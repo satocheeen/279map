@@ -43,6 +43,7 @@
   },
   "devDependencies": {
     "@types/ol": "^6.5.3",
+    "@types/ws": "^8.5.3",
     "cross-env": "^7.0.3",
     "dotenv": "^16.0.0",
     "dotenv-webpack": "^7.1.0",
