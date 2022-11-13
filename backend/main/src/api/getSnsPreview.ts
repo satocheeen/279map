@@ -1,5 +1,5 @@
 import { APIFunc } from "..";
-import { getSnsPostGetterByUrl } from "../../../common/src/sns/SnsPostGetter";
+import { getSnsPostGetterByUrl } from "279map-common/dist/sns/SnsPostGetter";
 import { GetSnsPreviewParam, GetSnsPreviewResult, SnsPreviewPost } from "../types/api";
 
 export const getSnsPreview: APIFunc<GetSnsPreviewParam, GetSnsPreviewResult> = async({ param }) => {

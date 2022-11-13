@@ -22,7 +22,7 @@
     "@types/mv": "^2.1.2",
     "@types/randomcolor": "^0.5.6",
     "@types/sharp": "^0.30.2",
-    "279map-common": "^1.0.0",
+    "279map-common": "git+https://codeberg.org/satocheeen/279map-common.git#v1.0.0",
     "axios": "^0.26.1",
     "cookie": "^0.5.0",
     "cookie-parser": "^1.4.6",

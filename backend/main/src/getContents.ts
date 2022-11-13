@@ -1,8 +1,8 @@
 import { ContentsDefine, GetContentsParam, GetContentsResult } from "./types/api";
 import { APIFunc, ConnectionPool } from '.';
-import { ContentsInfo, ContentsTable } from "../../common/src/types/schema";
+import { ContentsInfo, ContentsTable } from "279map-common/dist/types/schema";
 import { getBelongingItem, getContent } from "./util/utility";
-import { MapKind } from "../../common/src/types/common";
+import { MapKind } from "279map-common/dist/types/common";
 
 type RetRecord = ContentsTable & {item_page_id: string; another_item_id: string|null;};
 

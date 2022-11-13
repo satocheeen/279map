@@ -1,7 +1,7 @@
 import { APIFunc, ConnectionPool } from "..";
 import { GetOriginalIconDefineResult, IconDefine } from "../types/api";
-import { OriginalIconsTable } from "../../../common/src/types/schema";
-import { MapKind } from "../../../common/src/types/common";
+import { OriginalIconsTable } from "279map-common/dist/types/schema";
+import { MapKind } from "279map-common/dist/types/common";
 
 export const getOriginalIconDefine: APIFunc<void, GetOriginalIconDefineResult> = async({ currentMap }) => {
     const pageId = currentMap?.mapPageId;

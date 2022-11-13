@@ -1,7 +1,7 @@
 import { Extent } from 'ol/extent';
 import { ConnectionPool } from '..';
-import { MapKind } from '../../../common/src/types/common';
-import { ContentsTable, ItemsTable } from '../../../common/src/types/schema';
+import { MapKind } from '279map-common/dist/types/common';
+import { ContentsTable, ItemsTable } from '279map-common/dist/types/schema';
 
 export function getExtentWkt(ext: Extent): string {
     const [lon1, lat1, lon2, lat2] = ext;
