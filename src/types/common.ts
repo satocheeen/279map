@@ -1,0 +1,72 @@
+import GeoJSON, { GeoJsonObject } from 'geojson';
+
+/**
+ * システム全体（フロントエンド、バックエンド）で共通の型定義
+ */
+export enum MapKind {
+    Real = 'Real',
+    Virtual = 'Virtual',
+}
+
+/**
+ * 地物種別
+ * (DBに登録するので、後から増減可能なように文字列型にしている)
+ */
+ export enum FeatureType {
+    STRUCTURE = 'STRUCTURE',
+    ROAD = 'ROAD',
+    EARTH = 'EARTH',
+    FOREST = 'FOREST',
+    AREA = 'AREA',
+}
+
+export type IconInfo = {
+    type: 'system' | 'original';
+    id: string;
+}
+
+export type GeocoderId = {
+    map: 'osm';
+    osm_type: string;
+    osm_id: number;
+} | {
+    map: 'mapbox';
+    id: string;
+}
+
+export type GeocoderItem = {
+    idInfo: GeocoderId;
+    name: string;
+    geoJson: GeoJsonObject;
+}
+
+export type GeoProperties = {
+    featureType?: FeatureType.STRUCTURE;
+    radius?: number;
+} | {
+    featureType: FeatureType.STRUCTURE;
+    icon?: IconInfo;
+} | {
+    featureType: FeatureType.ROAD;
+    lineJson: GeoJSON.Feature;  // 元のLine
+    width: string;  // RoadWidth.key
+} | {
+    featureType: FeatureType.EARTH | FeatureType.FOREST;
+    radius?: number;
+} | {
+    featureType: FeatureType.AREA;
+    geocoderId?: GeocoderId;    // OSM等で管理されているFeatureの場合
+}
+
+export type ContentAttr = {
+    title: string;
+    overview: string;
+    categories: string[];
+} & ({
+    type: 'normal';
+    date?: string;
+    imageUrl?: string;
+} | {
+    type: 'sns';
+    url?: string;
+});
