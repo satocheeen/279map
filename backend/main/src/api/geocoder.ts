@@ -2,7 +2,8 @@ import axios from "axios";
 import { GeoJsonObject } from "geojson";
 import { getLogger } from "log4js";
 import { APIFunc } from "..";
-import { GeocoderId, GeocoderItem } from "279map-backend-common/dist/types/common";
+import { GeocoderId } from "279map-common/dist/types";
+import { GeocoderItem } from "279map-common/dist/api";
 import { MapboxAccessToken } from "../config";
 import { GeocoderParam, GeocoderResult, GetGeocoderFeatureParam, GetGeoCoderFeatureResult } from "279map-common/dist/api";
 

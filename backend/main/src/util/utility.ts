@@ -1,6 +1,6 @@
 import { Extent } from '279map-common/dist/types'
 import { ConnectionPool } from '..';
-import { MapKind } from '279map-backend-common/dist/types/common';
+import { MapKind } from '279map-common/dist/types';
 import { ContentsTable, ItemsTable } from '279map-backend-common/dist/types/schema';
 
 export function getExtentWkt(ext: Extent): string {

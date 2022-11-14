@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import { MapKind } from '279map-backend-common/dist/types/common';
+import { MapKind } from '279map-common/dist/types';
 import { ItemDefine } from '279map-common/dist/types';
 
 export type CurrentMap = {
