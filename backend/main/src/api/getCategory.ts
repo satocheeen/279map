@@ -1,7 +1,7 @@
 import randomColor from "randomcolor";
 import { APIFunc, ConnectionPool } from "..";
 import { CategoryDefine, GetCategoryResult } from "../types/api";
-import { ContentsTable } from "279map-common/dist/types/schema";
+import { ContentsTable } from "279map-backend-common/dist/types/schema";
 
 export const getCategory: APIFunc<void, GetCategoryResult> = async({ currentMap }) => {
     if (!currentMap) {

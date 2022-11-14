@@ -19,10 +19,10 @@ import { getSnsPreview } from './api/getSnsPreview';
 import { CurrentMap } from './session/SessionInfo';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import { getIcon } from './api/getIcon';
-import { sleep } from '279map-common/dist/utility';
-import { callOdbaApi } from '279map-common/dist/api/client';
-import * as ODBA from "279map-common/dist/api/dba-api-interface";
-import { BroadcastItemParam } from '279map-common/dist/api/broadcast';
+import { sleep } from '279map-backend-common/dist/utility';
+import { callOdbaApi } from '279map-backend-common/dist/api/client';
+import * as ODBA from "279map-backend-common/dist/api/dba-api-interface";
+import { BroadcastItemParam } from '279map-backend-common/dist/api/broadcast';
 
 // ログ初期化
 configure(LogSetting);

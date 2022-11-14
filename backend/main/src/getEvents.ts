@@ -1,6 +1,6 @@
 import { APIFunc, ConnectionPool } from ".";
 import { EventDefine, GetEventParam, GetEventsResult } from "./types/api";
-import { ContentsTable } from "279map-common/dist/types/schema";
+import { ContentsTable } from "279map-backend-common/dist/types/schema";
 import { getBelongingItem } from "./util/utility";
 
 export const getEvents: APIFunc<GetEventParam, GetEventsResult> = async({ currentMap }) => {

@@ -7,7 +7,7 @@ import { WebSocketMessage } from '../types/api';
 import { IncomingMessage, Server } from 'http';
 import { Request } from 'express';
 import SessionInfo from './SessionInfo';
-import { MapKind } from '279map-common/dist/types/common';
+import { MapKind } from '279map-backend-common/dist/types/common';
 
 /**
  * クライアントの情報を管理し、必要に応じてクライアントに通知を行うクラス

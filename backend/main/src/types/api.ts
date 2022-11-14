@@ -1,6 +1,6 @@
 import { Extent } from "ol/extent";
 import GeoJSON, { GeoJsonObject } from 'geojson';
-import { ContentAttr, GeocoderId, GeocoderItem, GeoProperties, MapKind } from '279map-common/dist/types/common';
+import { ContentAttr, GeocoderId, GeocoderItem, GeoProperties, MapKind } from '279map-backend-common/dist/types/common';
 
 /**
  * API内で使用する型定義
