@@ -1,5 +1,5 @@
 import GeoJSON, { GeoJsonObject } from 'geojson';
-export declare type Extent = [number, number, number, number];
+export declare type Extent = number[];
 export declare enum Auth {
     View = "View",
     Edit = "Edit"

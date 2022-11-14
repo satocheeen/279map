@@ -1,6 +1,6 @@
 import GeoJSON, { GeoJsonObject } from 'geojson';
 
-export type Extent = [number, number, number, number];
+export type Extent = number[];
 
 export enum Auth {
     View = 'View',
