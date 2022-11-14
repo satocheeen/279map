@@ -1,7 +1,7 @@
 {
-  "name": "279map-common",
-  "version": "0.0.1",
-  "description": "279map common modules",
+  "name": "279map-backend-common",
+  "version": "0.1.0",
+  "description": "279map backend common modules",
   "main": "index.js",
   "scripts": {
     "build": "npx tsc",
@@ -20,6 +20,7 @@
   "dependencies": {
     "@types/sharp": "^0.31.0",
     "@types/proj4": "^2.5.2",
+    "279map-common": "git+https://codeberg.org/satocheeen/279map-common.git#v0.1.0",
     "axios": "^1.1.3",
     "exifreader": "^4.8.1",
     "proj4": "^2.8.0",

@@ -1,9 +1,9 @@
 /**
- * APIのインタフェース
+ * Odba container's API interface.
  */
 
-import { ContentAttr, GeoProperties, MapKind } from "../types/common";
-import { APIDefine } from "./types";
+import { GeoProperties, MapKind } from "279map-common/dist/types";
+import { APIDefine, ContentAttr } from '279map-common/dist/api';
 
 /**
  * regist item

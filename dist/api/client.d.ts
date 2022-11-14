@@ -1,5 +1,5 @@
 /// <reference types="multer" />
-import { APIDefine } from "./types";
+import { APIDefine } from '279map-common/dist/api';
 export declare function callOdbaApi<API extends APIDefine<any, any>>(api: API, param: API['param']): Promise<API['result']>;
 /**
  * regist file to File Service

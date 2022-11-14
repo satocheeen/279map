@@ -1,6 +1,6 @@
 "use strict";
 /**
- * APIのインタフェース
+ * Odba container's API interface.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GetImageUrlAPI = exports.LinkContentToItemAPI = exports.GetUnpointDataAPI = exports.UpdateContentAPI = exports.UpdateItemAPI = exports.RemoveContentAPI = exports.RemoveItemAPI = exports.RegistContentAPI = exports.RegistItemAPI = void 0;

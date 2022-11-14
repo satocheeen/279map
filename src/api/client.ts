@@ -1,4 +1,4 @@
-import { APIDefine } from "./types";
+import { APIDefine } from '279map-common/dist/api';
 import axios from 'axios';
 import FormData from 'form-data';
 
