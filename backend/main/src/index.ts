@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import mysql from 'mysql2/promise';
 import { getMapInfo } from './getMapInfo';
-import { GeocoderParam, GetGeocoderFeatureParam, GetGeoCoderFeatureResult, APIDefine, GetItemsAPI, GetContentsAPI, GetCategoryAPI, GetEventsAPI, RegistItemAPI, UpdateItemAPI, RemoveItemAPI, RegistContentAPI, UpdateContentAPI, GetUnpointDataAPI, LinkContentToItemAPI, GetSnsPreviewAPI, GetMapInfoAPI, GeocoderResult, RemoveContentAPI, GetItemsResult, GetMapInfoResult, GetOriginalIconDefineAPI, RegistItemParam, UpdateItemParam, RemoveItemParam, RegistContentParam, UpdateContentParam, GetUnpointDataParam, GetUnpointDataResult, LinkContentToItemParam, RemoveContentParam, GetSnsPreviewParam, GetSnsPreviewResult } from './types/api';
+import { GeocoderParam, GetGeocoderFeatureParam, GetGeoCoderFeatureResult, APIDefine, GetItemsAPI, GetContentsAPI, GetCategoryAPI, GetEventsAPI, RegistItemAPI, UpdateItemAPI, RemoveItemAPI, RegistContentAPI, UpdateContentAPI, GetUnpointDataAPI, LinkContentToItemAPI, GetSnsPreviewAPI, GetMapInfoAPI, GeocoderResult, RemoveContentAPI, GetItemsResult, GetMapInfoResult, GetOriginalIconDefineAPI, RegistItemParam, UpdateItemParam, RemoveItemParam, RegistContentParam, UpdateContentParam, GetUnpointDataParam, GetUnpointDataResult, LinkContentToItemParam, RemoveContentParam, GetSnsPreviewParam, GetSnsPreviewResult } from '279map-common/dist/api';
 import { getItems } from './getItems';
 import session from 'express-session';
 import { configure, getLogger } from "log4js";

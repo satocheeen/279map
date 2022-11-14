@@ -1,4 +1,4 @@
-import { Extent } from 'ol/extent';
+import { Extent } from '279map-common/dist/types'
 import { ConnectionPool } from '..';
 import { MapKind } from '279map-backend-common/dist/types/common';
 import { ContentsTable, ItemsTable } from '279map-backend-common/dist/types/schema';

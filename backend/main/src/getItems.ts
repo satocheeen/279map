@@ -1,8 +1,8 @@
 import { ItemsTable, TrackGeoJsonTable } from '279map-backend-common/dist/types/schema';
 import { APIFunc, ConnectionPool } from '.';
 import { getExtentWkt } from './util/utility';
-import { GetItemsParam, GetItemsResult, ItemDefine } from './types/api';
-import { MapKind } from '279map-common/dist/types';
+import { GetItemsParam, GetItemsResult } from '279map-common/dist/api';
+import { ItemDefine, MapKind } from '279map-common/dist/types';
 
 export const getItems: APIFunc<GetItemsParam, GetItemsResult> = async({ currentMap, param }) => {
     if (!currentMap) {

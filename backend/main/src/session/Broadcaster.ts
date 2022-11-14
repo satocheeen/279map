@@ -3,7 +3,7 @@ import cookie from 'cookie';
 import cookieParser from 'cookie-parser';
 import { getLogger } from 'log4js';
 import { SessionSecretKey } from '../config';
-import { WebSocketMessage } from '../types/api';
+import { WebSocketMessage } from '279map-common/dist/api';
 import { IncomingMessage, Server } from 'http';
 import { Request } from 'express';
 import SessionInfo from './SessionInfo';

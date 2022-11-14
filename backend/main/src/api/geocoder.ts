@@ -4,7 +4,7 @@ import { getLogger } from "log4js";
 import { APIFunc } from "..";
 import { GeocoderId, GeocoderItem } from "279map-backend-common/dist/types/common";
 import { MapboxAccessToken } from "../config";
-import { GeocoderParam, GeocoderResult, GetGeocoderFeatureParam, GetGeoCoderFeatureResult } from "../types/api";
+import { GeocoderParam, GeocoderResult, GetGeocoderFeatureParam, GetGeoCoderFeatureResult } from "279map-common/dist/api";
 
 type OSMGeocordingResult = {
     boundingbox: [number, number, number, number];

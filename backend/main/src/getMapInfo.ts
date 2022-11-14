@@ -1,7 +1,8 @@
 import { MapPageInfoTable } from '279map-backend-common/dist/types/schema';
 import { APIFunc, ConnectionPool } from '.';
-import { Auth, GetMapInfoParam, GetMapInfoResult } from './types/api';
+import { GetMapInfoParam, GetMapInfoResult } from '279map-common/dist/api';
 import { MapKind } from '279map-backend-common/dist/types/common';
+import { Auth } from '279map-common/dist/types';
 
 type Result = {
     apiResult: GetMapInfoResult;
