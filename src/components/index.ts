@@ -1,1 +1,2 @@
-export { default as MapChart } from './MapChart';
+export { default as TestComponent } from './TestComponent';
+export { default as TsunaguMap } from './TsunaguMap';

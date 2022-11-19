@@ -1,0 +1,10 @@
+@import '../../../../styles/global.scss';
+
+.Phase {
+    margin-top: 1rem;
+    
+    &.Disabled {
+        pointer-events: none;
+        color: rgba($white, .5);
+    }
+}

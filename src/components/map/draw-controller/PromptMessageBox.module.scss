@@ -1,0 +1,22 @@
+@import '../../../styles/global.scss'; 
+
+.PromptMessageBox {
+    position: absolute;
+    top: 20px;
+    left: calc(50% - 250px);
+    width: 500px;
+    background: $dark-026;
+    color: #ffffff;
+    z-index: 10;
+    padding: 10px;
+}
+.message {
+    white-space: pre-wrap;
+}
+.BtnArea {
+    margin-top: 5px;
+    text-align: right;
+    > * {
+        margin-left: 5px;
+    }
+}

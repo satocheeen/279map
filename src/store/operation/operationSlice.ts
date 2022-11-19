@@ -1,0 +1,121 @@
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { Extent } from "ol/extent";
+import { ConfirmParam, ConfirmResult } from "../../components/common/confirm/useConfirm";
+import { loadMapDefine } from "../data/dataThunk";
+
+export type FilterDefine = {
+    type: 'category';
+    categoryName: string;
+} | {
+    type: 'calendar';
+    date: string;   // Date.toLocaleDateString()
+}
+export enum MapMode {
+    Normal, // 通常
+    Drawing,    // 作図中（メニュー等非表示）
+}
+type ViewInfo = {
+    extent: Extent;
+    zoom: number | undefined;
+}
+export type PopupTarget = {
+    // 指定のアイテムが持つコンテンツ全てを表示する場合
+    type: 'item';
+    itemId: string;
+    force?: boolean;   // trueの場合、コンテンツが存在しなくても、ポップアップ表示する（情報登録リンクを表示）
+} | {
+    // 特定のコンテンツのみ表示する場合
+    type: 'content';
+    contentId: string;
+}
+
+/**
+ * 操作関連のデータを管理するストア
+ */
+const operationSlice = createSlice({
+    name: 'operation',
+    initialState: {
+        // 選択中アイテムID
+        selectedItemIds: [] as string[],
+
+        // ポップアップを開いて表示する対象一覧
+        popupTargets: [] as PopupTarget[],
+
+        filter: [] as FilterDefine[],
+        mapMode: MapMode.Normal,
+
+        mapView: {
+            extent: [0,0,0,0],
+            zoom: 0,
+        } as ViewInfo,
+
+        // Spinner
+        showSpinner: false,
+        spinnerMessage: '',
+
+        // Confirm
+        showConfirmDialog: false,
+        confirmInfo: undefined as undefined | ConfirmParam,
+        confirmResult: undefined as undefined | ConfirmResult,
+    },
+    reducers: {
+        setSelectItem(state, action: PayloadAction<string[]>) {
+            state.selectedItemIds = action.payload;
+        },
+        unselectItem(state) {
+            state.selectedItemIds = [];
+        },
+        setPopup(state, action: PayloadAction<PopupTarget[]>) {
+            console.log('setPopup', action.payload);
+            state.popupTargets = action.payload;
+        },
+        clearPopup(state) {
+            console.log('clearPopup');
+            state.popupTargets = [];
+        },
+        setFilter(state, action: PayloadAction<FilterDefine>) {
+            state.filter = [action.payload];
+        },
+        clearFilter(state) {
+            state.filter = [];
+        },
+        updateMapView(state, action: PayloadAction<ViewInfo>) {
+            state.mapView = action.payload;
+        },
+        // kickCommand(state, action: PayloadAction<CommandSet>) {
+        //     state.kickCommand = action.payload;
+        // },
+        // commandリスナーがコマンド実行したらこれを呼ぶ
+        // commandKicked(state) {
+        //     state.kickCommand = undefined;
+        // },
+        changeMapMode(state, action: PayloadAction<MapMode>) {
+            state.mapMode = action.payload;
+        },
+        showSpinner(state, action: PayloadAction<{show: true; message?: string} | { show: false }>) {
+            state.showSpinner = action.payload.show;
+            if (action.payload.show) {
+                state.spinnerMessage = action.payload.message ? action.payload.message : '';
+            }
+        },
+        showConfirmDialog(state, action: PayloadAction<ConfirmParam>) {
+            state.showConfirmDialog = true;
+            state.confirmInfo = action.payload;
+            state.confirmResult = undefined;
+        },
+        hideConfirmDialog(state, action: PayloadAction<ConfirmResult>) {
+            state.showConfirmDialog = false;
+            state.confirmInfo = undefined;
+            state.confirmResult = action.payload;
+        },
+    },
+    extraReducers: (builder) => {
+        builder
+        .addCase(loadMapDefine.fulfilled, (state, action) => {
+            state.filter = [];
+            state.popupTargets = [];
+        })
+    }
+})
+export const operationActions = operationSlice.actions;
+export const operationReducer = operationSlice.reducer;
