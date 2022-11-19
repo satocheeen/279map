@@ -3,6 +3,7 @@ import { callApi } from '../../api/api';
 import { GetCategoryAPI, GetContentsParam, GetEventsAPI, GetItemsAPI, GetItemsParam, GetMapInfoAPI, GetMapInfoParam, GetMapInfoResult, GetOriginalIconDefineAPI, GetOriginalIconDefineResult, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '279map-common/dist/api';
 import { getContents } from './dataUtility';
 import { CategoryDefine, ContentsDefine, EventDefine, ItemDefine } from '279map-common/dist/types';
+import { RootState } from '../configureStore';
 
 /**
  * 地図定義ロード
@@ -10,9 +11,10 @@ import { CategoryDefine, ContentsDefine, EventDefine, ItemDefine } from '279map-
  */
  export const loadMapDefine = createAsyncThunk<GetMapInfoResult & {mapId: string}, GetMapInfoParam>(
     'data/loadMapDefineStatus',
-    async(param, { rejectWithValue }) => {
+    async(param, { rejectWithValue, getState }) => {
+        const mapServer = (getState() as RootState).session.mapServer;
         try {
-            const apiResult = await callApi(GetMapInfoAPI, param);
+            const apiResult = await callApi(mapServer, GetMapInfoAPI, param);
 
             return apiResult;
 
@@ -25,9 +27,10 @@ import { CategoryDefine, ContentsDefine, EventDefine, ItemDefine } from '279map-
 );
 export const loadOriginalIconDefine = createAsyncThunk<GetOriginalIconDefineResult>(
     'data/loadOriginalIconDefineStatus',
-    async(_, { rejectWithValue }) => {
+    async(_, { rejectWithValue, getState }) => {
         try {
-            const apiResult = await callApi(GetOriginalIconDefineAPI, undefined);
+            const mapServer = (getState() as RootState).session.mapServer;
+            const apiResult = await callApi(mapServer, GetOriginalIconDefineAPI, undefined);
             return apiResult;
         } catch(e) {
             console.warn('getOriginalIconDefine error', e);
@@ -38,9 +41,10 @@ export const loadOriginalIconDefine = createAsyncThunk<GetOriginalIconDefineResu
 // イベント情報ロード
 export const loadEvents = createAsyncThunk<EventDefine[]>(
     'data/loadEventsStatus',
-    async(_, { rejectWithValue }) => {
+    async(_, { rejectWithValue, getState }) => {
         try {
-            const apiResult = await callApi(GetEventsAPI, {});
+            const mapServer = (getState() as RootState).session.mapServer;
+            const apiResult = await callApi(mapServer, GetEventsAPI, {});
 
             return apiResult.events;
     
@@ -52,9 +56,10 @@ export const loadEvents = createAsyncThunk<EventDefine[]>(
 )
 export const loadCategories = createAsyncThunk<CategoryDefine[]>(
     'data/loadCategoriesStatus',
-    async(_, { rejectWithValue }) => {
+    async(_, { rejectWithValue, getState }) => {
         try {
-            const apiResult = await callApi(GetCategoryAPI, undefined);
+            const mapServer = (getState() as RootState).session.mapServer;
+            const apiResult = await callApi(mapServer, GetCategoryAPI, undefined);
 
             return apiResult.categories;
     
@@ -69,9 +74,10 @@ export const loadCategories = createAsyncThunk<CategoryDefine[]>(
  */
 export const loadItems = createAsyncThunk<ItemDefine[], GetItemsParam>(
     'data/loadItemsStatus',
-    async(param, { rejectWithValue  }) => {
+    async(param, { rejectWithValue, getState  }) => {
         try {
-            const apiResult = await callApi(GetItemsAPI, param);
+            const mapServer = (getState() as RootState).session.mapServer;
+            const apiResult = await callApi(mapServer, GetItemsAPI, param);
 
             return apiResult.items;
     
@@ -91,9 +97,10 @@ type LoadContentsResult = {
 }
 export const loadContents = createAsyncThunk<LoadContentsResult, LoadContentsParam>(
     'data/loadContentsStatus',
-    async(param, { rejectWithValue }) => {
+    async(param, { rejectWithValue, getState }) => {
         try {
-            const result = await getContents(param.targets);
+            const mapServer = (getState() as RootState).session.mapServer;
+            const result = await getContents(mapServer, param.targets);
             return {
                 contents: result,
                 keepCurrentData: param.keepCurrentData,
@@ -108,9 +115,10 @@ export const loadContents = createAsyncThunk<LoadContentsResult, LoadContentsPar
 )
 export const registFeature = createAsyncThunk<void, RegistItemParam>(
     'data/registFeatureStatus',
-    async(param, { rejectWithValue }) => {
+    async(param, { rejectWithValue, getState }) => {
         try {
-            await callApi(RegistItemAPI, param);
+            const mapServer = (getState() as RootState).session.mapServer;
+            await callApi(mapServer, RegistItemAPI, param);
 
         } catch (e) {
             console.warn('registFeature error', e);
@@ -120,9 +128,10 @@ export const registFeature = createAsyncThunk<void, RegistItemParam>(
 )
 export const updateFeature = createAsyncThunk<void, UpdateItemParam>(
     'data/updateFeatureStatus',
-    async(param, { rejectWithValue }) => {
+    async(param, { rejectWithValue, getState }) => {
         try {
-            await callApi(UpdateItemAPI, param);
+            const mapServer = (getState() as RootState).session.mapServer;
+            await callApi(mapServer, UpdateItemAPI, param);
 
         } catch (e) {
             console.warn('updateFeature error', e);
@@ -132,9 +141,10 @@ export const updateFeature = createAsyncThunk<void, UpdateItemParam>(
 )
 export const removeFeature = createAsyncThunk<void, RemoveItemParam>(
     'data/removeFeatureStatus',
-    async(param, { rejectWithValue }) => {
+    async(param, { rejectWithValue, getState }) => {
+        const mapServer = (getState() as RootState).session.mapServer;
         try {
-            await callApi(RemoveItemAPI, param);
+            await callApi(mapServer, RemoveItemAPI, param);
 
         } catch (e) {
             console.warn('removeFeature error', e);
@@ -145,15 +155,16 @@ export const removeFeature = createAsyncThunk<void, RemoveItemParam>(
 )
 export const registContent = createAsyncThunk<void, RegistContentParam>(
     'data/registContentStatus',
-    async(param, { rejectWithValue, dispatch }) => {
+    async(param, { rejectWithValue, dispatch, getState }) => {
         try {
-            await callApi(RegistContentAPI, param);
+            const mapServer = (getState() as RootState).session.mapServer;
+            await callApi(mapServer, RegistContentAPI, param);
 
             // 最新コンテンツロード
             await dispatch(loadContents({
                 targets: [param.parent],
             }));
-
+ 
         } catch(e) {
             console.warn('registContent error', e);
             return rejectWithValue(e);
@@ -162,9 +173,10 @@ export const registContent = createAsyncThunk<void, RegistContentParam>(
 )
 export const linkContentToItem = createAsyncThunk<void, LinkContentToItemParam>(
     'data/linkContentToItemStatus',
-    async(param, { rejectWithValue, dispatch }) => {
+    async(param, { rejectWithValue, dispatch, getState }) => {
         try {
-            await callApi(LinkContentToItemAPI, param);
+            const mapServer = (getState() as RootState).session.mapServer;
+            await callApi(mapServer, LinkContentToItemAPI, param);
 
             // 最新コンテンツロード
             await dispatch(loadContents({
@@ -179,9 +191,10 @@ export const linkContentToItem = createAsyncThunk<void, LinkContentToItemParam>(
 )
 export const updateContent = createAsyncThunk<void, UpdateContentParam>(
     'data/updateContentStatus',
-    async(param, { rejectWithValue, dispatch }) => {
+    async(param, { rejectWithValue, dispatch, getState }) => {
         try {
-            await callApi(UpdateContentAPI, param);
+            const mapServer = (getState() as RootState).session.mapServer;
+            await callApi(mapServer, UpdateContentAPI, param);
             // 最新コンテンツロード
             await dispatch(loadContents({
                 targets: [{
@@ -198,9 +211,10 @@ export const updateContent = createAsyncThunk<void, UpdateContentParam>(
 )
 export const removeContent = createAsyncThunk<RemoveContentParam, RemoveContentParam>(
     'data/removeContentStatus',
-    async(param, { rejectWithValue, dispatch }) => {
+    async(param, { rejectWithValue, dispatch, getState }) => {
         try {
-            await callApi(RemoveContentAPI, param);
+            const mapServer = (getState() as RootState).session.mapServer;
+            await callApi(mapServer, RemoveContentAPI, param);
 
             if (param.parentContentId) {
                 // 最新コンテンツロード

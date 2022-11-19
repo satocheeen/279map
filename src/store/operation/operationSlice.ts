@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Extent } from "ol/extent";
 import { ConfirmParam, ConfirmResult } from "../../components/common/confirm/useConfirm";
+import { MapMode } from "../../types/types";
 import { loadMapDefine } from "../data/dataThunk";
 
 export type FilterDefine = {
@@ -9,10 +10,6 @@ export type FilterDefine = {
 } | {
     type: 'calendar';
     date: string;   // Date.toLocaleDateString()
-}
-export enum MapMode {
-    Normal, // 通常
-    Drawing,    // 作図中（メニュー等非表示）
 }
 type ViewInfo = {
     extent: Extent;

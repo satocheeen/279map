@@ -1,13 +1,21 @@
 import { Auth } from "279map-common/dist/types";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { ServerInfo } from "../../types/types";
 import { loadMapDefine } from "../data/dataThunk";
 
 const sessionSlice = createSlice({
     name: 'session',
     initialState: {
         auth: Auth.View,
+        mapServer: {
+            domain: '',
+            ssl: true,
+        } as ServerInfo,
     },
     reducers: {
+        setMapServer(state, action: PayloadAction<ServerInfo>) {
+            state.mapServer = action.payload;
+        },
         setAuth(state, action: PayloadAction<Auth>) {
             state.auth = action.payload;
         }

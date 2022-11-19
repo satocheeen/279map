@@ -20,6 +20,7 @@ export default function useSession(props: Prop) {
     const loadingId = useRef<string>(); // ロード処理中の地図ID（二重ロード防止用）
     const dispatch = useAppDispatch();
     const wss = useRef<WebSocket>();
+    const mapServer = useSelector((state: RootState) => state.session.mapServer);
 
     /**
      * 地図定義ロード
@@ -80,13 +81,15 @@ export default function useSession(props: Prop) {
      * セッション開始
      */
      useEffect(() => {
+        if (mapServer.domain.length === 0) {
+            return;
+        }
         // WebSocket通信設定
         const startWss = () => {
-            const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-            console.log('env', process.env);
-            const port = process.env.NODE_ENV === 'development' ? '80' : window.location.port;
+            const protocol = mapServer.ssl ? 'wss' : 'ws';
+            const domain = mapServer.domain;
     
-            const socket = new WebSocket(protocol + "://" + document.domain + ':' + port);
+            const socket = new WebSocket(protocol + "://" + domain);
             socket.addEventListener('open', () => {
                 console.log('websocket connected');
                 setConnected(true);
@@ -117,7 +120,12 @@ export default function useSession(props: Prop) {
             wss.current = socket;
         };
 
-        fetch('/api/connect')
+        const protocol = mapServer.ssl ? 'https' : 'http';
+        const apiUrl = `${protocol}://${mapServer.domain}/api/`;
+
+        fetch(apiUrl + 'connect', {
+            credentials: "include",
+        })
         .then(() => {
             console.log('connect');
             // WebSocket準備
@@ -129,11 +137,13 @@ export default function useSession(props: Prop) {
         });
 
         return (() => {
-            fetch('/api/disconnect');
+            fetch(apiUrl + 'disconnect', {
+                credentials: 'include',
+            });
             wss.current?.close();
         });
 
-    }, [dispatch]);
+    }, [dispatch, mapServer]);
 
     // useEffect(() => {
     //     if (!mapId) {

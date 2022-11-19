@@ -1,28 +1,36 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useContext, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { loadCategories, loadEvents } from '../../store/data/dataThunk';
+import { useFilter } from '../../store/useFilter';
 import { addListener, removeListener } from '../../util/Commander';
+import { usePrevious } from '../../util/usePrevious';
 import MapChart from './MapChart';
-import { MapInfo } from './TsunaguMap';
 import useSession from './useSession';
+import { operationActions, PopupTarget } from '../../store/operation/operationSlice';
+import OverlaySpinner from '../common/spinner/OverlaySpinner';
+import { openItemContentsPopup } from '../popup/popupThunk';
+import { OwnerContext } from './TsunaguMap';
+import { sessionActions } from '../../store/session/sessionSlice';
 
-type Props = {
-    mapId: string;
-    onLoaded?: (mapInfo: MapInfo) => void;
-}
-
-export default function MapWrapper(props: Props) {
+export default function MapWrapper() {
     const mapId = useSelector((state: RootState) => state.data.mapId);
     const mapKind = useSelector((state: RootState) => state.data.mapKind);
     const mapName = useSelector((state: RootState) => {
         return state.data.mapName;
     });
+    const ownerContext = useContext(OwnerContext);
 
     const dispatch = useAppDispatch();
+
+    useEffect(() => {
+        dispatch(sessionActions.setMapServer(ownerContext.mapServer));
+    }, [ownerContext.mapServer]);
+
     useSession({
-        mapId: props.mapId,
+        mapId: ownerContext.mapId,
     });
+    useInitializePopup();
 
     // TODO: セッション確立してない場合は、実行しないように制御
     const loadLatestData = useCallback(() => {
@@ -54,14 +62,68 @@ export default function MapWrapper(props: Props) {
     }, [mapId, mapKind]);
 
     useEffect(() => {
-        if (props.onLoaded) {
-            props.onLoaded({
+        if (ownerContext.onLoaded) {
+            ownerContext.onLoaded({
                 mapName,
+                mapKind,
             })
         }
-    }, [mapName, props]);
+    }, [mapName, ownerContext]);
 
     return (
-        <MapChart />
+        <>
+            <MapChart />
+            <MySpinner />
+        </>
     );
+}
+
+function MySpinner() {
+    const isShow = useSelector((state: RootState) => state.operation.showSpinner);
+    const message = useSelector((state: RootState) => {
+        return state.operation.spinnerMessage;
+    });
+    if (!isShow) {
+        return null;
+    }
+    return (
+        <OverlaySpinner message={message} />
+    )
+}
+
+function useInitializePopup() {
+    const { filterTargetContentIds } = useFilter();
+    const dispatch = useAppDispatch();
+
+    /**
+     * フィルター設定変更時の処理
+     * - フィルター設定時
+     *   - フィルター強調対象のFeatureの吹き出しを表示する
+     *   - 対象外のFeatureの吹き出しは非表示に
+     * - フィルター解除時は、一律吹き出し非表示に
+     */
+     const prevFilterTargetContentIds = usePrevious(filterTargetContentIds);
+     useEffect(() => {
+        if (prevFilterTargetContentIds && filterTargetContentIds) {
+            if (JSON.stringify(prevFilterTargetContentIds) === JSON.stringify(filterTargetContentIds)) {
+                return;
+            }
+        }
+        // フィルター対象を抽出する
+        if (filterTargetContentIds === undefined) {
+            dispatch(operationActions.clearPopup());
+        } else {
+            const param = filterTargetContentIds.map(contentId => {
+                return {
+                    type: 'content',
+                    contentId,
+                } as PopupTarget;
+            });
+            dispatch(openItemContentsPopup(param));
+        }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filterTargetContentIds]);
+
+
 }

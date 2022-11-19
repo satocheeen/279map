@@ -10,10 +10,11 @@ const packageJson = require("./package.json");
 
 export default [
   {
-    input: "src/index.ts",
+    input: "src/entry.ts",
     output: [
       {
         dir: packageJson.main,
+        entryFileNames: () => "index.js",
         format: "cjs",
         sourcemap: true,
       },
@@ -36,10 +37,11 @@ export default [
     ],
   },
   {
-    input: "src/index.ts",
+    input: "src/entry.ts",
     output: [
       {
         dir: packageJson.module,
+        entryFileNames: () => "index.js",
         format: "esm",
         sourcemap: true,
       },
@@ -62,7 +64,7 @@ export default [
     ],
   },
   {
-    input: "dist/esm/types/index.d.ts",
+    input: "dist/esm/types/entry.d.ts",
     output: [{ file: "dist/index.d.ts", format: "esm" }],
     plugins: [dts()],
   },

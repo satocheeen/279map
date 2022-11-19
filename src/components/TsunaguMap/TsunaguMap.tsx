@@ -1,20 +1,29 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import { store } from '../../store/configureStore';
+import { MapInfo, MapMode, ServerInfo } from '../../types/types';
 import MapWrapper from './MapWrapper';
 
-export type MapInfo = {
-    mapName: string;
-}
 export type TsunaguMapProps = {
     mapId: string;
-    onLoaded?: (mapInfo: MapInfo) => void;
+    mapServer: ServerInfo;
+    onLoaded?: (mapInfo: MapInfo) => void;  // callback when map data has loaded.
+    onChangeMode?: (mode: MapMode) => void; // callback when map mode change.
 }
 
+export const OwnerContext = React.createContext<TsunaguMapProps>({
+    mapId: '',
+    mapServer: {
+        domain: '',
+        ssl: true,
+    },
+});
 export default function TsunaguMap(props: TsunaguMapProps) {
     return (
-        <Provider store={store}>
-            <MapWrapper mapId={props.mapId} onLoaded={props.onLoaded} />
-        </Provider>
+        <OwnerContext.Provider value={props}>
+            <Provider store={store}>
+                <MapWrapper />
+            </Provider>
+        </OwnerContext.Provider>
     );
 }

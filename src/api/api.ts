@@ -1,10 +1,12 @@
 import { APIDefine } from "279map-common/dist/api";
+import { ServerInfo } from "../types/types";
 
-export async function callApi<API extends APIDefine<any,any>>(api: API, param: API['param']): Promise<API['result']> {
+export async function callApi<API extends APIDefine<any,any>>(server: ServerInfo, api: API, param: API['param']): Promise<API['result']> {
     let response: Response | undefined;
     try {
+        const protocol = server.ssl ? 'https' : 'http';
         response = await accessServer({
-            url: '/api/' + api.uri,
+            url: `${protocol}://${server.domain}/api/${api.uri}`,
             method: api.method,
             param,
         });
@@ -36,6 +38,7 @@ export async function callApi<API extends APIDefine<any,any>>(api: API, param: A
                 'Content-Type': 'application/json',
             },
             body: param.param ? JSON.stringify(param.param) : undefined,
+            credentials: 'include',
         })
         .then((res) => {
             if (!res.ok) {
