@@ -1,4 +1,5 @@
 import React from 'react';
+import styles from './MapChart.module.scss';
 
 export interface MapChartProps {
     label: string;
@@ -6,7 +7,10 @@ export interface MapChartProps {
 
 const MapChart = (props: MapChartProps) => {
     return (
-        <div>{props.label}</div>
+        <div className={styles.Container}>
+            <p>Version 2</p>
+            <p>{props.label}</p>
+        </div>
     )
 }
 
