@@ -12,6 +12,7 @@ import { getEvents } from './getEvents';
 import Broadcaster from './session/Broadcaster';
 import proxy from 'express-http-proxy';
 import http from 'http';
+import https from 'https';
 import { convertBase64ToBinary } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
@@ -25,6 +26,7 @@ import * as ODBA from "279map-backend-common/dist/api/dba-api-interface";
 import { BroadcastItemParam } from '279map-backend-common/dist/api/broadcast';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import { readFileSync } from 'fs';
 
 // ログ初期化
 configure(LogSetting);
@@ -32,7 +34,7 @@ const logger = getLogger();
 const apiLogger = getLogger('api');
 
 const app = express();
-const port = 80;
+const port = 443;
 
 const internalApp = express();
 
@@ -54,15 +56,19 @@ app.use(express.urlencoded({extended: true}));
 app.use(express.json({
     limit: '1mb',
 })); 
-app.use(session({
+
+/** セッション設定 */
+const sessionConfig = {
     secret: SessionSecretKey,
     resave: false,
     saveUninitialized: false,
     cookie: {
         domain: process.env.DOMAIN,
-        sameSite: 'lax',
+        sameSite: 'none' as boolean | "none" | "lax" | "strict" | undefined,
+        secure: true,
     }
-}));
+};
+app.use(session(sessionConfig));
 app.use(cookieParser());
 
 // 本番では./html、開発環境では../buildを参照する
@@ -125,8 +131,11 @@ const initializeDb = async() => {
 //     logger.debug('enqueue', querNum);
 // })
 
+const server = https.createServer({
+    key: readFileSync(process.env.SSL_KEY_FILE || ''),
+    cert: readFileSync(process.env.SSL_CERT_FILE || ''),
+}, app);
 // WebSoskcet準備
-const server = http.createServer(app);
 const broadCaster = new Broadcaster(server);
 
 /**
