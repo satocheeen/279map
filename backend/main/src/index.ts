@@ -23,6 +23,7 @@ import { sleep } from '279map-backend-common/dist/utility';
 import { callOdbaApi } from '279map-backend-common/dist/api/client';
 import * as ODBA from "279map-backend-common/dist/api/dba-api-interface";
 import { BroadcastItemParam } from '279map-backend-common/dist/api/broadcast';
+import cors from 'cors';
 
 // ログ初期化
 configure(LogSetting);
@@ -36,7 +37,9 @@ const internalApp = express();
 
 const allowCors = process.env.CORS_ALLOW || false;
 logger.info('allowCors', allowCors);
-
+if (allowCors) {
+    app.use(cors());
+}
 /**
  * Android用APIのプロキシ
  */
