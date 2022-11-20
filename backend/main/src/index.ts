@@ -59,6 +59,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
+        domain: process.env.DOMAIN,
         sameSite: 'lax',
     }
 }));
