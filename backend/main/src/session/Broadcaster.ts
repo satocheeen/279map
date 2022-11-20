@@ -75,6 +75,7 @@ export default class Broadcaster {
         }
         const cookies = cookie.parse(req.headers.cookie);
         const sid = cookieParser.signedCookie(cookies["connect.sid"], SessionSecretKey);
+        this._logger.debug('connect.sid', cookies["connect.sid"], 'sid', sid);
         return sid;
     }
 
