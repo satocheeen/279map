@@ -34,6 +34,9 @@ const port = 80;
 
 const internalApp = express();
 
+const allowCors = process.env.CORS_ALLOW || false;
+logger.info('allowCors', allowCors);
+
 /**
  * Android用APIのプロキシ
  */
@@ -449,6 +452,9 @@ apiList.forEach((api => {
 
     const execute =  async(req: Request, res: Response) => {
         try {
+            if (allowCors) {
+                res.setHeader('Access-Control-Allow-Origin', '*');
+            }
             const session = broadCaster.getSessionInfo(req);
     
             const param = getParam(req);
