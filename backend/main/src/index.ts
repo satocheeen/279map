@@ -57,6 +57,9 @@ app.use(session({
     secret: SessionSecretKey,
     resave: false,
     saveUninitialized: false,
+    cookie: {
+        sameSite: 'none',
+    }
 }));
 
 // 本番では./html、開発環境では../buildを参照する
