@@ -24,6 +24,7 @@ import { callOdbaApi } from '279map-backend-common/dist/api/client';
 import * as ODBA from "279map-backend-common/dist/api/dba-api-interface";
 import { BroadcastItemParam } from '279map-backend-common/dist/api/broadcast';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 
 // ログ初期化
 configure(LogSetting);
@@ -58,9 +59,11 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
+        secure: 'auto',
         sameSite: 'none',
     }
 }));
+app.use(cookieParser());
 
 // 本番では./html、開発環境では../buildを参照する
 const static_path = process.env.STATIC_PATH || '../../build';
@@ -99,17 +102,17 @@ const initializeDb = async() => {
     } while(flag);
 }
 
-let connectNum = 0;
-ConnectionPool.on('connection', () => {
-    logger.debug('connection', ++connectNum);
-});
-ConnectionPool.on('release', () => {
-    --connectNum;
-    if (connectNum < 0) {
-        connectNum = 0;
-    }
-    logger.debug('release', connectNum);
-});
+// let connectNum = 0;
+// ConnectionPool.on('connection', () => {
+//     logger.debug('connection', ++connectNum);
+// });
+// ConnectionPool.on('release', () => {
+//     --connectNum;
+//     if (connectNum < 0) {
+//         connectNum = 0;
+//     }
+//     logger.debug('release', connectNum);
+// });
 // let querNum = 0;
 // ConnectionPool.on('acquire', () => {
 //     logger.debug('acquire', ++querNum);
@@ -463,9 +466,10 @@ apiList.forEach((api => {
     const execute =  async(req: Request, res: Response) => {
         try {
             const session = broadCaster.getSessionInfo(req);
+            const sid = req.cookies['connect.sid'];
     
             const param = getParam(req);
-            apiLogger.info('[start] ' + api.define.uri, param, req.sessionID, session !== undefined);
+            apiLogger.info('[start] ' + api.define.uri, param, sid, session !== undefined);
 
             // // TODO: getmapinfoでは不要
             // if (!session.mapPageId || !session.mapKind) {
