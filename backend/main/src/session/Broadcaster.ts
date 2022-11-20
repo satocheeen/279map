@@ -74,9 +74,10 @@ export default class Broadcaster {
             return;
         }
         const cookies = cookie.parse(req.headers.cookie);
-        const sid = cookieParser.signedCookie(cookies["connect.sid"], SessionSecretKey);
-        this._logger.debug('connect.sid', cookies["connect.sid"], 'sid', sid);
-        return sid;
+        return cookies["connect.sid"];
+        // const sid = cookieParser.signedCookie(cookies["connect.sid"], SessionSecretKey);
+        // this._logger.debug('connect.sid', cookies["connect.sid"], 'sid', sid, 'SessionSecretKey', SessionSecretKey);
+        // return sid;
     }
 
     addSession(req: Request): SessionInfo | undefined {
