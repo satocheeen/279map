@@ -35,10 +35,14 @@ const port = 80;
 
 const internalApp = express();
 
-const allowCors = process.env.CORS_ALLOW || false;
-logger.info('allowCors', allowCors);
-if (allowCors) {
-    app.use(cors());
+const allowCorsOrigin = process.env.CORS_ALLOW_ORIGIN || '';
+logger.info('allowCors', allowCorsOrigin);
+if (allowCorsOrigin.length > 0) {
+    const origin = allowCorsOrigin.split(',');
+    app.use(cors({
+        origin,
+        credentials: true,
+    }));
 }
 /**
  * Android用APIのプロキシ
@@ -105,14 +109,14 @@ ConnectionPool.on('release', () => {
 });
 // let querNum = 0;
 // ConnectionPool.on('acquire', () => {
-//     console.log('acquire', ++querNum);
+//     logger.debug('acquire', ++querNum);
 // });
 // ConnectionPool.on('enqueue', () => {
 //     --querNum;
 //     if (querNum < 0) {
 //         querNum = 0;
 //     }
-//     console.log('enqueue', querNum);
+//     logger.debug('enqueue', querNum);
 // })
 
 // WebSoskcet準備
@@ -455,9 +459,6 @@ apiList.forEach((api => {
 
     const execute =  async(req: Request, res: Response) => {
         try {
-            if (allowCors) {
-                res.setHeader('Access-Control-Allow-Origin', '*');
-            }
             const session = broadCaster.getSessionInfo(req);
     
             const param = getParam(req);
