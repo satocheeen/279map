@@ -59,7 +59,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: 'auto',
+        secure: true,
         sameSite: 'none',
     }
 }));
