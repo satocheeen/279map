@@ -20,12 +20,12 @@ export const getEvents: APIFunc<GetEventParam, GetEventsResult> = async({ curren
             inner join contents_db_info cdi ON c.contents_db_id = cdi.contents_db_id 
             where date is not null and cdi.map_page_id = ?
             order by date
-            `
+            `;
         const [rows] = await con.execute(sql, [mapPageId]);
         // filter by whether exist in the map kind
         const events = [] as EventDefine[];
         for (const row of (rows as ContentsTable[])) {
-            const itemList = await getBelongingItem(row, mapPageId, mapKind);
+            const itemList = await getBelongingItem(con, row, mapPageId, mapKind);
             if (itemList) {
                 itemList.forEach(item => {
                     events.push({
@@ -45,7 +45,7 @@ export const getEvents: APIFunc<GetEventParam, GetEventsResult> = async({ curren
         throw  'getEvents error' + e;
 
     } finally {
-        await con.commit();
+        await con.rollback();
         con.release();
     }
 }

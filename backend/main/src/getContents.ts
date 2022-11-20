@@ -4,6 +4,7 @@ import { ContentsInfo, ContentsTable } from "279map-backend-common/dist/types/sc
 import { getBelongingItem, getContent } from "./util/utility";
 import { MapKind } from "279map-common/dist/types";
 import { ContentsDefine } from "279map-common/dist/types";
+import { PoolConnection } from "mysql2/promise";
 
 type RetRecord = ContentsTable & {item_page_id: string; another_item_id: string|null;};
 
@@ -73,7 +74,7 @@ export const getContents: APIFunc<GetContentsParam, GetContentsResult> = async({
                 const [rows] = await con.execute(sql, [target.itemId, mapKind]);
                 myRows = rows as RetRecord[];
             } else {
-                myRows = await getContentInfo(target.contentId, currentMap.mapPageId,currentMap.mapKind);
+                myRows = await getContentInfo(con, target.contentId, currentMap.mapPageId,currentMap.mapKind);
 
             }
             if (myRows.length > 0) {
@@ -97,44 +98,21 @@ export const getContents: APIFunc<GetContentsParam, GetContentsResult> = async({
     }
 }
 
-async function getContentInfo(content_page_id: string, mapPageId: string, mapKind: MapKind): Promise<RetRecord[]> {
+async function getContentInfo(con: PoolConnection, content_page_id: string, mapPageId: string, mapKind: MapKind): Promise<RetRecord[]> {
     const contentRec = await getContent(content_page_id);
     if (!contentRec) {
         return [];
     }
-    const currentMapItem = await getBelongingItem(contentRec, mapPageId, mapKind);
+    const currentMapItem = await getBelongingItem(con, contentRec, mapPageId, mapKind);
     if (!currentMapItem) {
         return [];
     }
     const anotherMapKind = mapKind === MapKind.Real ? MapKind.Virtual: MapKind.Real;
-    const anotherMapItems = await getBelongingItem(contentRec, mapPageId, anotherMapKind);
+    const anotherMapItems = await getBelongingItem(con, contentRec, mapPageId, anotherMapKind);
     return currentMapItem.map(item => {
         return Object.assign({
             item_page_id: item.item_page_id,
             another_item_id: anotherMapItems ? anotherMapItems[0].item_page_id : null,
         }, contentRec);
     });
-}
-function convertParentChildStructure(contents: ContentsDefine[]): ContentsDefine[] {
-    // IDキーのマップを生成
-    const allMap = {} as {[contentId: string]: ContentsDefine};
-    contents.forEach(content => {
-        allMap[content.id] = content;
-    });
-
-    // 親子にする
-    contents.forEach(content => {
-        if (!content.parentId) {
-            // ルートコンテンツの場合は何もしない
-            return;
-        }
-        // 親のchildrenに入る
-        if (allMap[content.parentId].children === undefined) {
-            allMap[content.parentId].children = [];
-        }
-        allMap[content.parentId].children?.push(content);
-   });
-
-   // 親コンテンツのみを抽出
-   return Object.values(allMap).filter(content => !content.parentId);
 }
