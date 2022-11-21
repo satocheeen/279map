@@ -5,8 +5,8 @@ import { useSpinner } from '../../../common/spinner/useSpinner';
 import SelectFeature from '../SelectFeature';
 import { useAppDispatch } from '../../../../store/configureStore';
 import { updateFeature } from '../../../../store/data/dataThunk';
-import { SystemIconDefine } from '../../../../iconDefine';
 import { FeatureType } from '279map-common/dist/types';
+import { SystemIconDefine } from '../../../../types/types';
 
 type Props = {
     map: Map;   // コントロール対象の地図

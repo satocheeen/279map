@@ -1,4 +1,5 @@
-import { GeoProperties, MapKind } from "279map-common/dist/types";
+import { IconDefine, GeoProperties, MapKind } from "279map-common/dist/types";
+import { CSSProperties } from "react";
 
 export type ServerInfo = {
     domain: string;
@@ -28,3 +29,16 @@ export type FeatureProperties = {
     name: string;
     lastEditedTime: string;
 } & GeoProperties;
+
+/**
+ * アイコン定義
+ */
+export type SystemIconDefine = DefaultIconDefine & {
+    type: 'system' | 'original',
+}
+export type DefaultIconDefine = IconDefine & {
+    // 建物選択メニューで表示する際にCSS変更する場合に指定（色の微調整など）
+    menuViewCustomCss?: CSSProperties;
+    defaultColor?: string;
+}
+

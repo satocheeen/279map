@@ -5,8 +5,8 @@ import { Icon, Style } from "ol/style";
 import { getStructureScale } from "../../util/MapUtility";
 import { useCallback } from "react";
 import useIcon from "../../store/useIcon";
-import { SystemIconDefine } from "../../iconDefine";
 import { IconInfo } from "279map-common/dist/types";
+import { SystemIconDefine } from "../../types/types";
 
 type Props = {
     structureLayer?: VectorLayer<VectorSource>; // 建物レイヤ

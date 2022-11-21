@@ -4,8 +4,8 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../../store/configureStore';
 import useIcon from '../../../../store/useIcon';
 import styles from './SelectStructureDialog.module.scss';
-import { SystemIconDefine } from '../../../../iconDefine';
 import { MapKind } from '279map-common/dist/types';
+import { SystemIconDefine } from '../../../../types/types';
 
 type Props = {
     currentIconId?: string;         // 現在の画像ID

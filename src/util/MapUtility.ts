@@ -10,7 +10,7 @@ import { getCenter } from 'geolib';
 import * as geojson from 'geojson';
 import { GeolibInputCoordinates } from 'geolib/es/types';
 import proj4 from 'proj4';
-import * as jsts from 'jsts';
+// import jsts from 'jsts';
 import { Map } from 'ol';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';

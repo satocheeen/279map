@@ -1,7 +1,7 @@
 import { CategoryDefine, ContentsDefine, EventDefine, ItemDefine, MapKind } from '279map-common/dist/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { Extent } from 'ol/extent';
-import { defaultIconDefine, SystemIconDefine } from '../../iconDefine';
+import { SystemIconDefine } from '../../types/types';
 import { loadCategories, loadContents, loadEvents, loadItems, loadMapDefine, loadOriginalIconDefine, removeContent } from './dataThunk';
 
 /**
@@ -24,7 +24,7 @@ const dataSlice = createSlice({
         categories: [] as CategoryDefine[],
         events: [] as EventDefine[],    // イベント（日付を持つデータ）情報
 
-        iconDefine: defaultIconDefine as SystemIconDefine[],   // この地図で選択可能な建物アイコン定義。システムデフォルトに加えて、地図オリジナルのものを設定できるように、ここで管理。
+        originalIconDefine: [] as SystemIconDefine[],   // DBに登録されたオリジナルアイコン
     },
     reducers: {
         /**
@@ -83,7 +83,7 @@ const dataSlice = createSlice({
                     useMaps: def.useMaps,
                 } as SystemIconDefine;
             })
-            state.iconDefine = defaultIconDefine.concat(originalDefines);
+            state.originalIconDefine = originalDefines;
         })
         .addCase(loadEvents.fulfilled, (state, action) => {
             state.events = action.payload;
