@@ -107,46 +107,6 @@ declare type UnpointContent = {
     overview?: string;
 };
 
-type types_d_Extent = Extent;
-type types_d_Auth = Auth;
-declare const types_d_Auth: typeof Auth;
-type types_d_MapKind = MapKind;
-declare const types_d_MapKind: typeof MapKind;
-type types_d_FeatureType = FeatureType;
-declare const types_d_FeatureType: typeof FeatureType;
-type types_d_IconInfo = IconInfo;
-type types_d_GeocoderId = GeocoderId;
-type types_d_GeoProperties = GeoProperties;
-type types_d_TrackGpxDefine = TrackGpxDefine;
-type types_d_GeoJsonPosition = GeoJsonPosition;
-type types_d_Position = Position;
-type types_d_ItemDefine = ItemDefine;
-type types_d_ContentsDefine = ContentsDefine;
-type types_d_CategoryDefine = CategoryDefine;
-type types_d_EventDefine = EventDefine;
-type types_d_IconDefine = IconDefine;
-type types_d_UnpointContent = UnpointContent;
-declare namespace types_d {
-  export {
-    types_d_Extent as Extent,
-    types_d_Auth as Auth,
-    types_d_MapKind as MapKind,
-    types_d_FeatureType as FeatureType,
-    types_d_IconInfo as IconInfo,
-    types_d_GeocoderId as GeocoderId,
-    types_d_GeoProperties as GeoProperties,
-    types_d_TrackGpxDefine as TrackGpxDefine,
-    types_d_GeoJsonPosition as GeoJsonPosition,
-    types_d_Position as Position,
-    types_d_ItemDefine as ItemDefine,
-    types_d_ContentsDefine as ContentsDefine,
-    types_d_CategoryDefine as CategoryDefine,
-    types_d_EventDefine as EventDefine,
-    types_d_IconDefine as IconDefine,
-    types_d_UnpointContent as UnpointContent,
-  };
-}
-
 declare type APIDefine<PARAM, RESULT> = {
     uri: string;
     method: 'post' | 'get';
@@ -396,4 +356,4 @@ declare namespace api_d {
   };
 }
 
-export { api_d as api, types_d as types };
+export { Auth, CategoryDefine, ContentsDefine, EventDefine, Extent, FeatureType, GeoJsonPosition, GeoProperties, GeocoderId, IconDefine, IconInfo, ItemDefine, MapKind, Position, TrackGpxDefine, UnpointContent, api_d as api };

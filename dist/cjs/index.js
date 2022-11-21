@@ -87,32 +87,24 @@ var api = /*#__PURE__*/Object.freeze({
     GeocoderAPI: GeocoderAPI
 });
 
-var Auth;
+exports.Auth = void 0;
 (function (Auth) {
     Auth["View"] = "View";
     Auth["Edit"] = "Edit";
-})(Auth || (Auth = {}));
-var MapKind;
+})(exports.Auth || (exports.Auth = {}));
+exports.MapKind = void 0;
 (function (MapKind) {
     MapKind["Real"] = "Real";
     MapKind["Virtual"] = "Virtual";
-})(MapKind || (MapKind = {}));
-var FeatureType;
+})(exports.MapKind || (exports.MapKind = {}));
+exports.FeatureType = void 0;
 (function (FeatureType) {
     FeatureType["STRUCTURE"] = "STRUCTURE";
     FeatureType["ROAD"] = "ROAD";
     FeatureType["EARTH"] = "EARTH";
     FeatureType["FOREST"] = "FOREST";
     FeatureType["AREA"] = "AREA";
-})(FeatureType || (FeatureType = {}));
-
-var types = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    get Auth () { return Auth; },
-    get MapKind () { return MapKind; },
-    get FeatureType () { return FeatureType; }
-});
+})(exports.FeatureType || (exports.FeatureType = {}));
 
 exports.api = api;
-exports.types = types;
 //# sourceMappingURL=index.js.map

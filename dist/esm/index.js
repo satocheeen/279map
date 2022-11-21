@@ -102,12 +102,5 @@ var FeatureType;
     FeatureType["AREA"] = "AREA";
 })(FeatureType || (FeatureType = {}));
 
-var types = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    get Auth () { return Auth; },
-    get MapKind () { return MapKind; },
-    get FeatureType () { return FeatureType; }
-});
-
-export { api, types };
+export { Auth, FeatureType, MapKind, api };
 //# sourceMappingURL=index.js.map
