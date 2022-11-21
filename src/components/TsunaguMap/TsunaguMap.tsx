@@ -10,6 +10,8 @@ export type TsunaguMapProps = {
     mapServer: ServerInfo;
     iconDefine?: DefaultIconDefine[];
     mapKind: MapKind;  // which view Real or Virtual.
+    onSelect?: (targets: string[]) => void; // callback when items are selected
+    onUnselect?: () => void;    // callback when items are unselected.
     onLoaded?: (mapInfo: MapInfo) => void;  // callback when map data has loaded.
     onChangeMode?: (mode: MapMode) => void; // callback when map mode change.
 }

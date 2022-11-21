@@ -1,6 +1,6 @@
 import { MapKind } from '279map-common';
 import React, { useState, useCallback } from 'react';
-import TsunaguMap, { TsunaguMapProps } from '../components/TsunaguMap/TsunaguMap';
+import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
 import styles from './TestMap.module.scss';
 
 /**
@@ -8,11 +8,10 @@ import styles from './TestMap.module.scss';
  */
 const props = {
     mapServer: {
-        domain: 'localhost',
-        ssl: false,
+        domain: '279map.satocheeen.com',
+        ssl: true,
     },
-    mapId: 'otakaramap',
-    // mapId: 'test',
+    mapId: 'test',
     iconDefine: [
         {
             id: 'pin',
@@ -39,6 +38,14 @@ export default function TestMap() {
         setMapKind(kind);
     }, []);
 
+    const onSelect = useCallback((ids: string[]) => {
+        console.log('onSelect', ids);
+    }, []);
+
+    const onUnselect = useCallback(() => {
+        console.log('onUnselect');
+    }, []);
+
     return (
         <>
             <div className={styles.Form}>
@@ -52,7 +59,7 @@ export default function TestMap() {
                 </label>
             </div>
             <div style={{height: '100vh', width: '100vw', border: '1px solid #aaa'}}>
-                <TsunaguMap {...props} mapKind={mapKind} />
+                <TsunaguMap {...props} mapKind={mapKind} onSelect={onSelect} onUnselect={onUnselect} />
             </div>
         </>
     );

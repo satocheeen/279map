@@ -69,6 +69,23 @@ export default function MapWrapper() {
         }
     }, [mapName, ownerContext]);
 
+    /**
+     * 選択アイテムが変更されたらコールバック
+     */
+    const selectedItemIds = useSelector((state: RootState) => state.operation.selectedItemIds);
+    useEffect(() => {
+        if (selectedItemIds.length > 0) {
+            if (ownerContext.onSelect) {
+                ownerContext.onSelect(selectedItemIds);
+            }    
+        } else {
+            if (ownerContext.onUnselect) {
+                ownerContext.onUnselect();
+            }
+        }
+
+    }, [selectedItemIds, ownerContext]);
+
     return (
         <>
             <MapChart />
