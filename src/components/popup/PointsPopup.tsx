@@ -7,7 +7,7 @@ import { useFilter } from "../../store/useFilter";
 import ItemContents from "./ItemContents";
 import { openItemPopup } from "./popupThunk";
 import useData from "../../store/data/useData";
-import { ContentsDefine } from "279map-common/dist/types";
+import { ContentsDefine } from "279map-common";
 
 type Props = {
     // このポップアップにて情報表示する対象アイテム

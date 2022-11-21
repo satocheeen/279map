@@ -5,7 +5,7 @@ import { useSpinner } from '../../../common/spinner/useSpinner';
 import SelectFeature from '../SelectFeature';
 import { useAppDispatch } from '../../../../store/configureStore';
 import { updateFeature } from '../../../../store/data/dataThunk';
-import { FeatureType } from '279map-common/dist/types';
+import { FeatureType } from '279map-common';
 import { SystemIconDefine } from '../../../../types/types';
 
 type Props = {

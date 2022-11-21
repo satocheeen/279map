@@ -9,7 +9,7 @@ import { useFilter } from '../../store/useFilter';
 import { colorWithAlpha } from '../../util/CommonUtility';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
-import { FeatureType } from '279map-common/dist/types';
+import { FeatureType } from '279map-common';
 
 // 建物ラベルを表示するresolution境界値（これ以下の値の時に表示）
 const StructureLabelResolution = 0.003;

@@ -5,7 +5,7 @@ import styles from './ItemContents.module.scss';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
 import AddContentMenu from './AddContentMenu';
-import { Auth } from '279map-common/dist/types';
+import { Auth } from '279map-common';
 
 type Props = {
     item: PopupItem;

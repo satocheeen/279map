@@ -6,7 +6,7 @@ import { operationActions } from '../../store/operation/operationSlice';
 import { MapMode } from '../../types/types';
 import OverlaySpinner from '../common/spinner/OverlaySpinner';
 import EditTopographyInfoController from './draw-controller/topography/EditTopographyInfoController';
-import { FeatureType } from '279map-common/dist/types';
+import { FeatureType } from '279map-common';
 
 const DrawStructureController = lazy(() => import('./draw-controller/structure/DrawStructureController'));
 const MoveItemController = lazy(() => import('./draw-controller/structure/MoveItemController'));

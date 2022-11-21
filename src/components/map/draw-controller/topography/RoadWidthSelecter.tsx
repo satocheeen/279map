@@ -6,7 +6,7 @@ import VectorLayer from 'ol/layer/Vector';
 import useTopographyStyle, { RoadWidth } from '../../useTopographyStyle';
 import { convertLineToPolygon, extractGeoProperty } from '../../../../util/MapUtility';
 import PromptMessageBox from '../PromptMessageBox';
-import { FeatureType } from '279map-common/dist/types';
+import { FeatureType } from '279map-common';
 
 type Props = {
     map: Map;

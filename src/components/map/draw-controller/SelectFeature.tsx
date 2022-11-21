@@ -14,7 +14,7 @@ import useTopographyStyle from '../useTopographyStyle';
 import usePointStyle from '../usePointStyle';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/configureStore';
-import { FeatureType, MapKind } from '279map-common/dist/types';
+import { FeatureType, MapKind } from '279map-common';
 
 type Props = {
     map: Map;   // コントロール対象の地図

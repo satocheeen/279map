@@ -14,8 +14,8 @@ import proj4 from 'proj4';
 import { Map } from 'ol';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import { FeatureType, GeocoderId, GeoJsonPosition, GeoProperties } from '279map-common/dist/types';
-import { GetGeoCoderFeatureResult } from '279map-common/dist/api';
+import { FeatureType, GeocoderId, GeoJsonPosition, GeoProperties } from '279map-common';
+import { api } from '279map-common';
 
 /**
  * GeoJSONを元に対応するジオメトリを生成して返す
@@ -202,7 +202,7 @@ export async function getGeocoderFeature(id: GeocoderId): Promise<GeoJsonObject>
         return acc + (acc.length > 0 ? '&' : '') + key + '=' + value;
     }, '');
     const res = await fetch('/api/getGeocoderFeature?' + param);
-    const json = await res.json() as GetGeoCoderFeatureResult;
+    const json = await res.json() as api.GetGeoCoderFeatureResult;
     return json.geoJson;
 }
 

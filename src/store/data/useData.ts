@@ -5,7 +5,7 @@
 import { useSelector } from "react-redux";
 import { RootState } from "../configureStore";
 import { useMemo } from 'react';
-import { ContentsDefine } from "279map-common/dist/types";
+import { ContentsDefine } from "279map-common";
 
 export default function useData() {
     const contentsList = useSelector((state: RootState) => state.data.contentsList);

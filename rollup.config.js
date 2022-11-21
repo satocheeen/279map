@@ -5,6 +5,7 @@ import json from "@rollup/plugin-json";
 import dts from "rollup-plugin-dts";
 import postcss from 'rollup-plugin-postcss';
 import del from 'rollup-plugin-delete';
+import image from '@rollup/plugin-image';
 
 const packageJson = require("./package.json");
 
@@ -33,7 +34,8 @@ export default [
         use: ['sass'],
       }),
       json(),
-      del({ targets: packageJson.main + '/*' })
+      del({ targets: packageJson.main + '/*' }),
+      image(),
     ],
   },
   {
@@ -60,7 +62,8 @@ export default [
         use: ['sass'],
       }),
       json(),
-      del({ targets: packageJson.module + '/*' })
+      del({ targets: packageJson.module + '/*' }),
+      image(),
     ],
   },
   {

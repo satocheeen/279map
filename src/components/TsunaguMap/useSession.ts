@@ -1,11 +1,11 @@
 import { useCallback, useMemo, useRef, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { MapKind} from '279map-common/dist/types';
+import { MapKind} from '279map-common';
 import { RootState, useAppDispatch } from "../../store/configureStore";
 import { dataActions } from "../../store/data/dataSlice";
 import { loadMapDefine, loadOriginalIconDefine } from "../../store/data/dataThunk";
 import { doCommand } from "../../util/Commander";
-import { WebSocketMessage } from "279map-common/dist/api";
+import { api } from "279map-common";
 
 type Prop = {
     mapId: string;
@@ -106,7 +106,7 @@ export default function useSession(props: Prop) {
             });
             socket.addEventListener('message', (evt) => {
                 console.log('websocket message', evt.data);
-                const message = JSON.parse(evt.data) as WebSocketMessage;
+                const message = JSON.parse(evt.data) as api.WebSocketMessage;
                 if (message.type === 'updated') {
                     doCommand({
                         command: "LoadLatestData",

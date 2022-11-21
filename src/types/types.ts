@@ -1,4 +1,4 @@
-import { IconDefine, GeoProperties, MapKind } from "279map-common/dist/types";
+import { GeoProperties, IconDefine, MapKind } from "279map-common";
 import { CSSProperties } from "react";
 
 export type ServerInfo = {

@@ -1,7 +1,7 @@
-import { APIDefine } from "279map-common/dist/api";
+import { api } from "279map-common";
 import { ServerInfo } from "../types/types";
 
-export async function callApi<API extends APIDefine<any,any>>(server: ServerInfo, api: API, param: API['param']): Promise<API['result']> {
+export async function callApi<API extends api.APIDefine<any,any>>(server: ServerInfo, api: API, param: API['param']): Promise<API['result']> {
     let response: Response | undefined;
     try {
         const protocol = server.ssl ? 'https' : 'http';

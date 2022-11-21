@@ -15,7 +15,7 @@ import { removeContent } from "../../store/data/dataThunk";
 import reactStringReplace from "react-string-replace";
 import PopupMenuIcon from "./PopupMenuIcon";
 import AddContentMenu from "./AddContentMenu";
-import { Auth, ContentsDefine, MapKind } from "279map-common/dist/types";
+import { Auth, ContentsDefine, MapKind } from "279map-common";
 
 type Props = {
     itemId: string;

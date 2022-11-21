@@ -4,7 +4,7 @@ import { RootState } from '../../store/configureStore';
 import { colorWithAlpha } from '../../util/CommonUtility';
 import styles from './CategoryBadge.module.scss';
 import { MdClose } from 'react-icons/md';
-import { CategoryDefine } from '279map-common/dist/types';
+import { CategoryDefine } from '279map-common';
 
 type Props = {
     category: string;

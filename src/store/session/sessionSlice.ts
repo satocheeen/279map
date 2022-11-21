@@ -1,4 +1,4 @@
-import { Auth } from "279map-common/dist/types";
+import { Auth } from "279map-common";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { ServerInfo } from "../../types/types";
 import { loadMapDefine } from "../data/dataThunk";

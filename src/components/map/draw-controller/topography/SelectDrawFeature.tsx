@@ -1,4 +1,4 @@
-import { MapKind } from '279map-common/dist/types';
+import { MapKind } from '279map-common';
 import React from 'react';
 import { ListGroup } from 'react-bootstrap';
 import { TbCircle, TbHexagon } from 'react-icons/tb';

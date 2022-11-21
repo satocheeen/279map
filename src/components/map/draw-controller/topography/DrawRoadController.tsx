@@ -11,7 +11,7 @@ import { extractGeoProperty } from '../../../../util/MapUtility';
 import { useSpinner } from '../../../common/spinner/useSpinner';
 import { useAppDispatch } from '../../../../store/configureStore';
 import { registFeature } from '../../../../store/data/dataThunk';
-import { FeatureType, GeoProperties } from '279map-common/dist/types';
+import { FeatureType, GeoProperties } from '279map-common';
 
 enum Stage {
     DRAWING,        // 描画

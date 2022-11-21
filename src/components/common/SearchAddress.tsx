@@ -2,8 +2,7 @@ import { GeoJsonObject, Point } from 'geojson';
 import { Map } from 'ol';
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { Form, ListGroup, Spinner } from 'react-bootstrap';
-import { GeocoderItem, GeocoderResult } from '279map-common/dist/api';
-import { FeatureType, GeoProperties } from '279map-common/dist/types';
+import { api, FeatureType, GeoProperties } from '279map-common';
 
 type Props = {
     map: Map;
@@ -22,7 +21,7 @@ export interface SearchAddressHandler {
  */
 const SearchAddress = forwardRef<SearchAddressHandler, Props>((props, ref) => {
     const [address, setAddress] = useState('');
-    const [candidates, setCandidates] = useState<GeocoderItem[]>([]);
+    const [candidates, setCandidates] = useState<api.GeocoderItem[]>([]);
     const [isIME, setIME] = useState(false);
     const [searchMode, setSearchMode] = useState(true); // trueの場合、addressが変化したら住所検索実行。候補から住所を選択した直後は住所検索を行わないようにするために用意。
     const lastSearchAddress = useRef<string>();    // 最後に検索文字列として渡された文字列（多重実行時の最後の結果を反映するようにするために用意）
@@ -97,7 +96,7 @@ const SearchAddress = forwardRef<SearchAddressHandler, Props>((props, ref) => {
         const param = 'address=' + address + '&searchTarget=' + props.searchTarget.join(',');
         const result = await fetch('/api/geocoder?' + param);
 
-        const searchResult = await result.json() as GeocoderResult;
+        const searchResult = await result.json() as api.GeocoderResult;
 
         if (lastSearchAddress.current === address) {
             console.log('採用', address);
@@ -108,7 +107,7 @@ const SearchAddress = forwardRef<SearchAddressHandler, Props>((props, ref) => {
 
     }, [address, props.searchTarget, searchMode]);
 
-    const onSelectCandidate = useCallback((item: GeocoderItem) => {
+    const onSelectCandidate = useCallback((item: api.GeocoderItem) => {
         if (props.onAddress) {
             const geoJson = {
                 type: 'Feature',

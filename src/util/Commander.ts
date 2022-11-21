@@ -1,4 +1,4 @@
-import { FeatureType } from "279map-common/dist/types";
+import { FeatureType } from "279map-common";
 
 type TCallBack<T> = (param: T) => void;
 

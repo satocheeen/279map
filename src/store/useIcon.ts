@@ -1,4 +1,4 @@
-import { IconInfo } from "279map-common/dist/types";
+import { IconInfo } from "279map-common";
 import { useCallback, useContext, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { OwnerContext } from "../components/TsunaguMap/TsunaguMap";

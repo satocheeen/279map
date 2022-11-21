@@ -1,4 +1,4 @@
-import { FeatureType } from "279map-common/dist/types";
+import { FeatureType } from "279map-common";
 import { Feature, Map } from "ol";
 import { Draw } from "ol/interaction";
 import { DrawEvent } from "ol/interaction/Draw";

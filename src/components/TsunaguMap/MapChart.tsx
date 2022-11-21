@@ -29,7 +29,7 @@ import { Geometry } from "ol/geom";
 import { useFilter } from "../../store/useFilter";
 import { loadItems } from "../../store/data/dataThunk";
 import { openItemContentsPopup, openItemPopup } from "../popup/popupThunk";
-import { FeatureType, GeoJsonPosition, MapKind } from "279map-common/dist/types";
+import { FeatureType, GeoJsonPosition, MapKind } from "279map-common";
 import { FeatureProperties } from "../../types/types";
 
 export default function MapChart() {

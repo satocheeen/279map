@@ -1,4 +1,4 @@
-import { MapKind } from '279map-common/dist/types';
+import { MapKind } from '279map-common';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import TsunaguMap from './components/TsunaguMap';
@@ -14,8 +14,10 @@ const root = ReactDOM.createRoot(
 
 const props = {
     mapServer: {
-        domain: 'localhost',
-        ssl: false,
+        domain: 'otakaramap.satocheeen.com',
+        ssl: true,
+        // domain: 'localhost',
+        // ssl: false,
     },
     mapId: 'otakaramap',
     // mapId: 'test',
