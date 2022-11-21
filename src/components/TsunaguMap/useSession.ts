@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useEffect, useState } from "react";
+import { useCallback, useContext, useRef, useMemo, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { MapKind} from '279map-common';
 import { RootState, useAppDispatch } from "../../store/configureStore";
@@ -6,6 +6,7 @@ import { dataActions } from "../../store/data/dataSlice";
 import { loadMapDefine, loadOriginalIconDefine } from "../../store/data/dataThunk";
 import { doCommand } from "../../util/Commander";
 import { api } from "279map-common";
+import { OwnerContext } from "./TsunaguMap";
 
 type Prop = {
     mapId: string;
@@ -54,6 +55,10 @@ export default function useSession(props: Prop) {
 
     }, [dispatch, props.mapId, props.auth]);
 
+    const ownerContext = useContext(OwnerContext);
+    const mapId = useSelector((state: RootState) => state.data.mapId);
+    const mapKind = useMemo(() => ownerContext.mapKind, [ownerContext.mapKind]);
+
     /**
      * 地図ID指定時、地図データロード
      */
@@ -63,11 +68,8 @@ export default function useSession(props: Prop) {
             console.info('not connected.');
             return;
         }
-        loadMap(mapKind ? mapKind as MapKind : undefined);
-    }, [props.mapId, loadMap, connected]);
-
-    const mapId = useSelector((state: RootState) => state.data.mapId);
-    const mapKind = useSelector((state: RootState) => state.data.mapKind);
+        loadMap(mapKind);
+    }, [props.mapId, loadMap, mapKind, connected]);
 
     const currentMapRef = useRef({ mapId, mapKind }); // startWss内で使用するmapKind。（リアクティブの必要はないので、refを用意）
     useEffect(() => {

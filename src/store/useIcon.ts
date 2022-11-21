@@ -11,8 +11,8 @@ import defaultIcon from './pin.png'
  * @returns 
  */
 export default function useIcon() {
-    const currentMapKind = useSelector((state: RootState) => state.data.mapKind);
     const ownerContext = useContext(OwnerContext);
+    const currentMapKind = useMemo(() => ownerContext.mapKind, [ownerContext]);
     const originalIconDefine = useSelector((state: RootState) => state.data.originalIconDefine);
 
     const iconDefine = useMemo(() => {

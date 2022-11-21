@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { loadCategories, loadEvents } from '../../store/data/dataThunk';
@@ -14,12 +14,12 @@ import { OwnerContext } from './TsunaguMap';
 import { sessionActions } from '../../store/session/sessionSlice';
 
 export default function MapWrapper() {
+    const ownerContext = useContext(OwnerContext);
     const mapId = useSelector((state: RootState) => state.data.mapId);
-    const mapKind = useSelector((state: RootState) => state.data.mapKind);
+    const mapKind = useMemo(() => ownerContext.mapKind, [ownerContext]);
     const mapName = useSelector((state: RootState) => {
         return state.data.mapName;
     });
-    const ownerContext = useContext(OwnerContext);
 
     const dispatch = useAppDispatch();
 
@@ -65,7 +65,6 @@ export default function MapWrapper() {
         if (ownerContext.onLoaded) {
             ownerContext.onLoaded({
                 mapName,
-                mapKind,
             })
         }
     }, [mapName, ownerContext]);

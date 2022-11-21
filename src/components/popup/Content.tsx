@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useMemo, useState } from "react";
+import React, { ReactNode, useContext, useCallback, useMemo, useState } from "react";
 import { UrlType } from "../../types/types";
 import styles from './Content.module.scss';
 import { MdEdit, MdOutlineOpenInNew, MdDelete } from 'react-icons/md';
@@ -16,6 +16,7 @@ import reactStringReplace from "react-string-replace";
 import PopupMenuIcon from "./PopupMenuIcon";
 import AddContentMenu from "./AddContentMenu";
 import { Auth, ContentsDefine, MapKind } from "279map-common";
+import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 
 type Props = {
     itemId: string;
@@ -115,7 +116,9 @@ export default function Content(props: Props) {
         return props.content.anotherMapItemId;
     }, [props.content]);
 
-    const mapKind = useSelector((state: RootState) => state.data.mapKind);
+    const ownerContext =  useContext(OwnerContext);
+    const mapKind = useMemo(() => ownerContext.mapKind, [ownerContext.mapKind]);
+
     const toolTipMessage = useMemo(() => {
         const mapName = mapKind === MapKind.Real ? '村マップ' : '世界地図';
         return mapName + 'で見る';

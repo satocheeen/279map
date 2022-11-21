@@ -8,7 +8,6 @@ export type ServerInfo = {
 
 export type MapInfo = {
     mapName: string;
-    mapKind: MapKind;
 }
 
 // 地図のモード

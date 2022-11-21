@@ -1,9 +1,8 @@
 import { MapKind } from '279map-common';
-import React from 'react';
+import React, { useMemo, useContext } from 'react';
 import { ListGroup } from 'react-bootstrap';
 import { TbCircle, TbHexagon } from 'react-icons/tb';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../../store/configureStore';
+import { OwnerContext } from '../../../TsunaguMap/TsunaguMap';
 import styles from './SelectDrawFeature.module.scss';
 
 export enum DrawFeatureType {
@@ -17,7 +16,8 @@ type Props = {
 }
 
 export default function SelectDrawFeature(props: Props) {
-    const mapKind = useSelector((state: RootState) => state.data.mapKind);
+    const ownerContext =  useContext(OwnerContext);
+    const mapKind = useMemo(() => ownerContext.mapKind, [ownerContext.mapKind]);
 
     return (
         <ListGroup className={styles.LiteArea}>

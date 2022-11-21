@@ -14,7 +14,7 @@ const dataSlice = createSlice({
         mapId: undefined as string | undefined,
         mapName: '',
         useMaps: [] as MapKind[],
-        mapKind: MapKind.Real,
+        // mapKind: MapKind.Real,
         extent: undefined as Extent | undefined,
         itemMap: {} as {[id: string]: ItemDefine},
 
@@ -65,7 +65,7 @@ const dataSlice = createSlice({
             state.mapId = action.payload.mapId;
             state.mapName = action.payload.name;
             state.useMaps = action.payload.useMaps;
-            state.mapKind = action.payload.mapKind;
+            // state.mapKind = action.payload.mapKind;
             state.extent = action.payload.extent;
 
             // アイテムクリア

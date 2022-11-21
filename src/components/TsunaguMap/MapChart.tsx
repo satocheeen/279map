@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState, useContext } from "react";
 import 'ol/ol.css';
 import { Map, MapBrowserEvent, View } from 'ol';
 import * as olControl from 'ol/control';
@@ -31,10 +31,12 @@ import { loadItems } from "../../store/data/dataThunk";
 import { openItemContentsPopup, openItemPopup } from "../popup/popupThunk";
 import { FeatureType, GeoJsonPosition, MapKind } from "279map-common";
 import { FeatureProperties } from "../../types/types";
+import { OwnerContext } from "./TsunaguMap";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
     const mapRef = useRef(null as Map | null);
+    const ownerContext =  useContext(OwnerContext);
 
     // コンテンツ（建物・ポイント）レイヤ
     const pointContentsSourceRef = useRef(null as VectorSource | null);
@@ -49,7 +51,7 @@ export default function MapChart() {
     const isDrawing = useRef(false);    // 描画中かどうか
 
     const mapId = useSelector((state: RootState) => state.data.mapId);
-    const mapKind = useSelector((state: RootState) => state.data.mapKind);
+    const mapKind = useMemo(() => ownerContext.mapKind, [ownerContext.mapKind]);
 
     const defaultExtent = useSelector((state: RootState) => state.data.extent);
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
@@ -292,6 +294,7 @@ export default function MapChart() {
         // 背景地図レイヤ生成
         let layers: BaseLayer[] = [];
         let extent: Extent | undefined = undefined;
+        console.log('mapKind', mapKind);
         if (mapKind === MapKind.Real) {
             // 都道府県レイヤ
             const features = new GeoJSON().readFeatures(prefJson);
