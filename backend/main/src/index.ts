@@ -46,10 +46,10 @@ if (!process.env.SESSION_SECRET_KEY) {
     logger.warn('not set env SESSION_SECRET_KEY');
     exit(1);
 }
-// if (!process.env.DOMAIN) {
-//     logger.warn('not set env DOMAIN');
-//     exit(1);
-// }
+if (!process.env.HOST) {
+    logger.warn('not set env HOST');
+    exit(1);
+}
 
 const app = express();
 const port = 443;
@@ -81,7 +81,6 @@ const sessionConfig = {
     resave: false,
     saveUninitialized: false,
     cookie: {
-        // domain: process.env.DOMAIN, // TODO: 必要かどうか確認
         sameSite: 'none' as boolean | "none" | "lax" | "strict" | undefined,
         secure: true,
     }
