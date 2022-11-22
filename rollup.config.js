@@ -3,6 +3,7 @@ import commonjs from "@rollup/plugin-commonjs";
 import typescript from "@rollup/plugin-typescript";
 import dts from "rollup-plugin-dts";
 import del from 'rollup-plugin-delete';
+import strip from '@rollup/plugin-strip';
 
 const packageJson = require("./package.json");
 
@@ -25,7 +26,8 @@ export default [
       resolve(),
       commonjs(),
       typescript({ tsconfig: "./tsconfig.json" }),
-      del({ targets: 'dist/*' })
+      del({ targets: 'dist/*' }),
+      strip(),
     ],
   },
   {
