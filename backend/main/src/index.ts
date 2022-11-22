@@ -11,6 +11,7 @@ import { getContents } from './getContents';
 import { getEvents } from './getEvents';
 import Broadcaster from './session/Broadcaster';
 import proxy from 'express-http-proxy';
+import http from 'http';
 import https from 'https';
 import { convertBase64ToBinary } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
@@ -149,11 +150,16 @@ const initializeDb = async() => {
 //     logger.debug('enqueue', querNum);
 // })
 
+// Create Web Server
 const server = https.createServer({
     key: readFileSync(process.env.SSL_KEY_FILE || ''),
     cert: readFileSync(process.env.SSL_CERT_FILE || ''),
 }, app);
-// WebSoskcet準備
+http.createServer((express()).all("*", function (request, response) {
+    response.redirect(`https://${request.hostname}${request.url}`);
+})).listen(80);
+
+// Create WebSoskce Server
 const broadCaster = new Broadcaster(server);
 
 /**
