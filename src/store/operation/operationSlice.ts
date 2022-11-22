@@ -57,17 +57,21 @@ const operationSlice = createSlice({
     },
     reducers: {
         setSelectItem(state, action: PayloadAction<string[]>) {
+            if (JSON.stringify(state.selectedItemIds) === JSON.stringify(action.payload)) {
+                return;
+            }
             state.selectedItemIds = action.payload;
         },
         unselectItem(state) {
+            if (state.selectedItemIds.length === 0) {
+                return;
+            }
             state.selectedItemIds = [];
         },
         setPopup(state, action: PayloadAction<PopupTarget[]>) {
-            console.log('setPopup', action.payload);
             state.popupTargets = action.payload;
         },
         clearPopup(state) {
-            console.log('clearPopup');
             state.popupTargets = [];
         },
         setFilter(state, action: PayloadAction<FilterDefine>) {

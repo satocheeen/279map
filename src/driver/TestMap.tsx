@@ -9,6 +9,7 @@ import styles from './TestMap.module.scss';
 const props = {
     mapServer: {
         domain: '279map.satocheeen.com',
+        // domain: 'localhost',
         ssl: true,
     },
     mapId: 'test',
@@ -32,12 +33,20 @@ const props = {
 };
 
 export default function TestMap() {
+    // switch mapKind
     const [ mapKind, setMapKind ] = useState(MapKind.Real);
 
     const onRadio = useCallback((kind: MapKind) => {
         setMapKind(kind);
     }, []);
 
+    // switch popup
+    const [ disabledPopup, setDisablePopup] = useState(false);
+    const onDisalbedPopup = useCallback((val: boolean) => {
+        setDisablePopup(val);
+    }, []);
+
+    // callbacks
     const onSelect = useCallback((ids: string[]) => {
         console.log('onSelect', ids);
     }, []);
@@ -49,17 +58,32 @@ export default function TestMap() {
     return (
         <>
             <div className={styles.Form}>
-                <label>
-                    日本地図
-                    <input type="radio" checked={mapKind===MapKind.Real} onClick={() => onRadio(MapKind.Real)} />
-                </label>
-                <label>
-                    村マップ
-                    <input type="radio" checked={mapKind===MapKind.Virtual} onClick={() => onRadio(MapKind.Virtual)} />
-                </label>
+                <div className={styles.Col}>
+                    <h3>地図種別</h3>
+                    <label>
+                        日本地図
+                        <input type="radio" checked={mapKind===MapKind.Real} onClick={() => onRadio(MapKind.Real)} />
+                    </label>
+                    <label>
+                        村マップ
+                        <input type="radio" checked={mapKind===MapKind.Virtual} onClick={() => onRadio(MapKind.Virtual)} />
+                    </label>
+                </div>
+                <div className={styles.Col}>
+                    <h3>Popup</h3>
+                    <label>
+                        enabled
+                        <input type="radio" checked={!disabledPopup} onClick={() => onDisalbedPopup(false)} />
+                    </label>
+                    <label>
+                        disabled
+                        <input type="radio" checked={disabledPopup} onClick={() => onDisalbedPopup(true)} />
+                    </label>
+                </div>
             </div>
-            <div style={{height: '100vh', width: '100vw', border: '1px solid #aaa'}}>
-                <TsunaguMap {...props} mapKind={mapKind} onSelect={onSelect} onUnselect={onUnselect} />
+            <div className={styles.Map}>
+                <TsunaguMap {...props} mapKind={mapKind} disablePopup={disabledPopup}
+                     onSelect={onSelect} onUnselect={onUnselect} />
             </div>
         </>
     );

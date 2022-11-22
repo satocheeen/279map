@@ -1,5 +1,5 @@
 import { Map, Overlay } from 'ol';
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef, useMemo, useContext } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
 import PointsPopup from './PointsPopup';
@@ -8,6 +8,7 @@ import { GeolibInputCoordinates } from 'geolib/es/types';
 import { getFeatureByItemId, getGeoJsonCenter } from '../../util/MapUtility';
 import usePointStyle from '../map/usePointStyle';
 import usePopup from './usePopup';
+import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 
 type Props = {
     map: Map;
@@ -33,8 +34,13 @@ export default function PopupContainer(props: Props) {
         }).map(target => target.type === 'item' ? target.itemId : '')
     );
 
+    const ownerContext = useContext(OwnerContext);
+
     // ポップアップ表示対象のコンテンツを持つアイテムID一覧
     const hasContentsItemIdList = useMemo(() => {
+        if (ownerContext.disablePopup) {
+            return [];
+        }
         const list = Object.values(itemMap).filter(item => item.contentId).map(item => item.id);
         // コンテンツなくても強制表示するものを追加
         forceItemIds.forEach(id => {
@@ -43,7 +49,7 @@ export default function PopupContainer(props: Props) {
             }
         });
         return list;
-    }, [itemMap, forceItemIds]);
+    }, [itemMap, forceItemIds, ownerContext.disablePopup]);
 
     const { getStructureStyleFunction } = usePointStyle({});
 

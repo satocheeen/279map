@@ -1,6 +1,14 @@
 .Form {
-    > label {
-        display: inline-block;
-        margin-left: 1rem;
+    height: 8rem;
+    display: flex;
+    .Col {
+        label {
+            display: inline-block;
+            margin-left: 1rem;
+        }
     }
+}
+.Map {
+    height: calc(100vh - 8rem);
+    width: 100vw;
 }

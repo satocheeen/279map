@@ -1,5 +1,5 @@
 import { MapKind } from '279map-common';
-import React, { useCallback } from 'react';
+import React from 'react';
 import { Provider } from 'react-redux';
 import { store } from '../../store/configureStore';
 import { DefaultIconDefine, MapInfo, MapMode, ServerInfo } from '../../types/types';
@@ -10,6 +10,7 @@ export type TsunaguMapProps = {
     mapServer: ServerInfo;
     iconDefine?: DefaultIconDefine[];
     mapKind: MapKind;  // which view Real or Virtual.
+    disablePopup?: boolean; // when true, the map don't show popup.
     onSelect?: (targets: string[]) => void; // callback when items are selected
     onUnselect?: () => void;    // callback when items are unselected.
     onLoaded?: (mapInfo: MapInfo) => void;  // callback when map data has loaded.
@@ -26,9 +27,6 @@ export const OwnerContext = React.createContext<TsunaguMapProps>({
     mapKind: MapKind.Real,
 });
 export default function TsunaguMap(props: TsunaguMapProps) {
-    const changeMap = useCallback(() => {
-        console.log('hogehoge');
-    }, []);
     return (
         <OwnerContext.Provider value={props}>
             <Provider store={store}>
