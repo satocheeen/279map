@@ -1,6 +1,6 @@
 {
   "name": "279map-common",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "The modules which are used by 279map packages.",
   "scripts": {
     "rollup": "rollup -c"
@@ -8,6 +8,10 @@
   "keywords": [],
   "author": "Satocheeen (https://satocheeen.com)",
   "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://codeberg.org/satocheeen/279map-common.git"
+  },
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "files": [
