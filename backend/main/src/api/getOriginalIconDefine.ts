@@ -4,7 +4,7 @@ import { OriginalIconsTable } from "279map-backend-common/dist/types/schema";
 import { MapKind } from "279map-common/dist/types";
 import { IconDefine } from "279map-common/dist/types";
 
-export const getOriginalIconDefine: APIFunc<void, GetOriginalIconDefineResult> = async({ currentMap }) => {
+export const getOriginalIconDefine: APIFunc<void, GetOriginalIconDefineResult> = async({ currentMap, req }) => {
     const pageId = currentMap?.mapPageId;
     if (!pageId) {
         throw 'mapId is undefined.';
@@ -19,11 +19,12 @@ export const getOriginalIconDefine: APIFunc<void, GetOriginalIconDefineResult> =
         `;
         const [rows] = await con.execute(sql, [pageId]);
 
+        const host = req.get('host');
         const icons = (rows as OriginalIconsTable[]).map((row): IconDefine => {
             return {
                 id: row.icon_page_id,
                 caption: row.caption,
-                imagePath: '/api/geticon?id=' + row.icon_page_id,
+                imagePath: `https://${host}/api/geticon?id=${row.icon_page_id}`,
                 useMaps: [MapKind.Real, MapKind.Virtual],   // TODO:
             }
         });

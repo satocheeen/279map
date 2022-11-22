@@ -11,7 +11,6 @@ import { getContents } from './getContents';
 import { getEvents } from './getEvents';
 import Broadcaster from './session/Broadcaster';
 import proxy from 'express-http-proxy';
-import http from 'http';
 import https from 'https';
 import { convertBase64ToBinary } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
@@ -27,11 +26,30 @@ import { BroadcastItemParam } from '279map-backend-common/dist/api/broadcast';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { readFileSync } from 'fs';
+import { exit } from 'process';
 
 // ログ初期化
 configure(LogSetting);
 const logger = getLogger();
 const apiLogger = getLogger('api');
+
+// 必須環境変数が定義されているかチェック
+if (!process.env.MAIN_SERVICE_PORT) {
+    logger.warn('not set env MAIN_SERVICE_PORT');
+    exit(1);
+}
+if (!process.env.STATIC_PATH) {
+    logger.warn('not set env STATIC_PATH');
+    exit(1);
+}
+if (!process.env.SESSION_SECRET_KEY) {
+    logger.warn('not set env SESSION_SECRET_KEY');
+    exit(1);
+}
+// if (!process.env.DOMAIN) {
+//     logger.warn('not set env DOMAIN');
+//     exit(1);
+// }
 
 const app = express();
 const port = 443;
@@ -63,7 +81,7 @@ const sessionConfig = {
     resave: false,
     saveUninitialized: false,
     cookie: {
-        domain: process.env.DOMAIN,
+        // domain: process.env.DOMAIN, // TODO: 必要かどうか確認
         sameSite: 'none' as boolean | "none" | "lax" | "strict" | undefined,
         secure: true,
     }
@@ -165,6 +183,7 @@ app.get('/api/disconnect', async(req, res) => {
 
 type APIFuncParam<PARAM> = {
     currentMap: CurrentMap | undefined;
+    req: Request;
     param: PARAM;
 }
 export type APIFunc<PARAM, RESULT> = (param: APIFuncParam<PARAM>) => Promise<RESULT>;
@@ -485,7 +504,7 @@ apiList.forEach((api => {
             //     throw 'セッション状態不正:' + session.mapPageId + ',' + session.mapKind;
             // }
 
-            const result = await api.func({ currentMap: session?.currentMap, param });
+            const result = await api.func({ currentMap: session?.currentMap, req, param });
     
             let doSend = true;
             if (api.after) {
