@@ -1,14 +1,17 @@
 {
   "name": "279map-core",
-  "version": "0.0.6",
+  "version": "0.1.0",
   "description": "the core of 279map frontend",
+  "author": "Satocheeen (https://satocheeen.com)",
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://codeberg.org/satocheeen/279map-core"
+  },
   "scripts": {
     "start": "react-scripts start",
-    "rollup": "rollup -c --context window",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "rollup": "rollup -c --context window"
   },
-  "author": "Satocheeen",
-  "license": "MPL-2.0",
   "devDependencies": {
     "@rollup/plugin-commonjs": "^21.0.1",
     "@rollup/plugin-image": "^3.0.1",
@@ -36,7 +39,7 @@
     "@types/proj4": "^2.5.2",
     "@types/react": "^18.0.9",
     "@types/react-toggle": "^4.0.3",
-    "279map-common": "git+https://codeberg.org/satocheeen/279map-common.git#v0.1.2",
+    "279map-common": "^0.1.2",
     "dayjs": "^1.11.6",
     "geolib": "^3.3.3",
     "jsts": "^2.9.3",
