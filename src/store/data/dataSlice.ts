@@ -1,4 +1,4 @@
-import { CategoryDefine, ContentsDefine, EventDefine, ItemDefine, MapKind } from '279map-common';
+import { api, CategoryDefine, ContentsDefine, EventDefine, ItemDefine, MapKind } from '279map-common';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { Extent } from 'ol/extent';
 import { SystemIconDefine } from '../../types/types';
@@ -14,7 +14,7 @@ const dataSlice = createSlice({
         mapId: undefined as string | undefined,
         mapName: '',
         useMaps: [] as MapKind[],
-        // mapKind: MapKind.Real,
+        defaultMapKind: MapKind.Real,
         extent: undefined as Extent | undefined,
         itemMap: {} as {[id: string]: ItemDefine},
 
@@ -27,6 +27,12 @@ const dataSlice = createSlice({
         originalIconDefine: [] as SystemIconDefine[],   // DBに登録されたオリジナルアイコン
     },
     reducers: {
+        setMapDefine(state, action: PayloadAction<api.ConnectResult>) {
+            state.mapId = action.payload.mapId;
+            state.mapName = action.payload.name;
+            state.useMaps = action.payload.useMaps;
+            state.defaultMapKind = action.payload.defaultMapKind;
+        },
         /**
          * アイテム削除
          * @param 削除対象のアイテムID

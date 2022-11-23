@@ -9,7 +9,7 @@ import { RootState } from '../configureStore';
  * 地図定義ロード
  * @param mapKind ロードする地図種別。未指定の場合は、デフォルトの地図を読み込む。
  */
- export const loadMapDefine = createAsyncThunk<api.GetMapInfoResult & {mapId: string}, api.GetMapInfoParam>(
+export const loadMapDefine = createAsyncThunk<api.GetMapInfoResult & {mapId: string}, api.GetMapInfoParam>(
     'data/loadMapDefineStatus',
     async(param, { rejectWithValue, getState }) => {
         const mapServer = (getState() as RootState).session.mapServer;

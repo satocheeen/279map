@@ -8,6 +8,8 @@ import { doCommand } from "../../util/Commander";
 import { api } from "279map-common";
 import { OwnerContext } from "./TsunaguMap";
 import { useAPI } from "../../api/useAPI";
+import { sessionActions } from "../../store/session/sessionSlice";
+import { useCallbackWrapper } from "../../util/useCallbackWrapper";
 
 type Prop = {
     mapId: string;
@@ -23,6 +25,8 @@ export default function useSession(props: Prop) {
     const dispatch = useAppDispatch();
     const wss = useRef<WebSocket>();
     const mapServer = useSelector((state: RootState) => state.session.mapServer);
+    const ownerContext = useContext(OwnerContext);
+    const onConnect = useCallbackWrapper(ownerContext.onConnect);
 
     /**
      * 地図定義ロード
@@ -56,7 +60,6 @@ export default function useSession(props: Prop) {
 
     }, [dispatch, props.mapId, props.auth]);
 
-    const ownerContext = useContext(OwnerContext);
     const mapId = useSelector((state: RootState) => state.data.mapId);
     const mapKind = useMemo(() => ownerContext.mapKind, [ownerContext.mapKind]);
 
@@ -124,13 +127,19 @@ export default function useSession(props: Prop) {
             wss.current = socket;
         };
 
-        fetch(apiUrl + 'connect', {
+        fetch(apiUrl + 'connect?mapId=' + ownerContext.mapId, {
             credentials: "include",
         })
-        .then(() => {
-            console.log('connect');
+        .then((result) => {
+            return result.json();
+        })
+        .then((result: api.ConnectResult) => {
+            dispatch(dataActions.setMapDefine(result));
+            dispatch(sessionActions.setAuth(result.authLv));
             // WebSocket準備
             startWss();
+
+            onConnect.call(result);
         })
         .catch(() => {
             // TODO: エラー表示
@@ -144,7 +153,7 @@ export default function useSession(props: Prop) {
             wss.current?.close();
         });
 
-    }, [dispatch, mapServer, apiUrl]);
+    }, [dispatch, mapServer, apiUrl, onConnect.call, ownerContext.mapId]);
 
     // useEffect(() => {
     //     if (!mapId) {

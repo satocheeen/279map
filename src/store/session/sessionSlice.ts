@@ -20,12 +20,12 @@ const sessionSlice = createSlice({
             state.auth = action.payload;
         }
     },
-    extraReducers: (builder) => {
-        builder
-        .addCase(loadMapDefine.fulfilled, (state, action) => {
-            state.auth = action.payload.authLv;
-        })
-    }
+    // extraReducers: (builder) => {
+    //     builder
+    //     .addCase(loadMapDefine.fulfilled, (state, action) => {
+    //         state.auth = action.payload.authLv;
+    //     })
+    // }
 })
 
 export const sessionActions = sessionSlice.actions;

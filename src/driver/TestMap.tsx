@@ -1,4 +1,4 @@
-import { MapKind } from '279map-common';
+import { api, MapKind } from '279map-common';
 import React, { useState, useCallback } from 'react';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
 import styles from './TestMap.module.scss';
@@ -8,11 +8,11 @@ import styles from './TestMap.module.scss';
  */
 const props = {
     mapServer: {
-        domain: 'otakaramap.satocheeen.com',
-        // domain: 'localhost',
+        // domain: 'otakaramap.satocheeen.com',
+        domain: 'localhost',
         ssl: true,
     },
-    mapId: 'otakaramap',
+    mapId: 'test',
     iconDefine: [
         {
             id: 'pin',
@@ -33,6 +33,13 @@ const props = {
 };
 
 export default function TestMap() {
+    const [ cnt, setCnt ] = useState(0);
+    const onConnect = useCallback((mapDefine: api.ConnectResult) => {
+        console.log('connect', mapDefine);
+        setMapKind(mapDefine.defaultMapKind);
+        setCnt(cnt + 1);
+    }, [cnt]);
+
     // switch mapKind
     const [ mapKind, setMapKind ] = useState(MapKind.Real);
 
@@ -47,7 +54,6 @@ export default function TestMap() {
     }, []);
 
     // callbacks
-    const [ cnt, setCnt ] = useState(0);
     const onSelect = useCallback((ids: string[]) => {
         console.log('onSelect', ids, cnt);
         setCnt(cnt + 1);
@@ -85,7 +91,8 @@ export default function TestMap() {
             </div>
             <div className={styles.Map}>
                 <TsunaguMap {...props} mapKind={mapKind} disablePopup={disabledPopup}
-                     onSelect={onSelect} onUnselect={onUnselect} />
+                    onConnect={onConnect}
+                    onSelect={onSelect} onUnselect={onUnselect} />
             </div>
         </>
     );

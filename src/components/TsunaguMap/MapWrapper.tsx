@@ -12,6 +12,7 @@ import OverlaySpinner from '../common/spinner/OverlaySpinner';
 import { openItemContentsPopup } from '../popup/popupThunk';
 import { OwnerContext } from './TsunaguMap';
 import { sessionActions } from '../../store/session/sessionSlice';
+import { useCallbackWrapper } from '../../util/useCallbackWrapper';
 
 export default function MapWrapper() {
     const ownerContext = useContext(OwnerContext);
@@ -73,19 +74,16 @@ export default function MapWrapper() {
     /**
      * 選択アイテムが変更されたらコールバック
      */
+    const onSelect = useCallbackWrapper(ownerContext.onSelect);
+    const onUbnselect = useCallbackWrapper(ownerContext.onUnselect);
     const selectedItemIds = useSelector((state: RootState) => state.operation.selectedItemIds);
     useEffect(() => {
         if (selectedItemIds.length > 0) {
-            if (ownerContext.onSelect) {
-                ownerContext.onSelect(selectedItemIds);
-            }    
+            onSelect.call(selectedItemIds);
         } else {
-            if (ownerContext.onUnselect) {
-                ownerContext.onUnselect();
-            }
+            onUbnselect.call();
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedItemIds]);
+    }, [selectedItemIds, onSelect.call, onUbnselect.call]);
 
     return (
         <>
