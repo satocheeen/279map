@@ -278,7 +278,7 @@ export default function Content(props: Props) {
             }
             {categoryTag}
             {showSpinner &&
-                <div className={styles.SpinnerArea} v-show="showSpinner">
+                <div className={styles.SpinnerArea}>
                     <Spinner animation="border" variant="primary" />
                 </div>
             }

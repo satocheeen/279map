@@ -20,7 +20,7 @@ export interface SearchAddressHandler {
 /**
  * 住所 または 緯度経度 からGeoJson情報を生成して返す
  */
-const SearchAddress = forwardRef<SearchAddressHandler, Props>((props, ref) => {
+function SearchAddress(props: Props, ref: React.ForwardedRef<SearchAddressHandler>) {
     const [address, setAddress] = useState('');
     const [candidates, setCandidates] = useState<api.GeocoderItem[]>([]);
     const [isIME, setIME] = useState(false);
@@ -147,6 +147,5 @@ const SearchAddress = forwardRef<SearchAddressHandler, Props>((props, ref) => {
             }
         </div>
     );
-});
-export default SearchAddress;
-
+}
+export default React.forwardRef(SearchAddress);
