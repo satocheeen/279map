@@ -67,7 +67,7 @@ export default function MapWrapper() {
                 mapName,
             })
         }
-    }, [mapName, ownerContext.onLoaded]);
+    }, [mapName]);
 
     /**
      * 選択アイテムが変更されたらコールバック
@@ -84,7 +84,7 @@ export default function MapWrapper() {
             }
         }
 
-    }, [selectedItemIds, ownerContext.onSelect, ownerContext.onUnselect]);
+    }, [selectedItemIds]);
 
     return (
         <>

@@ -8,11 +8,11 @@ import styles from './TestMap.module.scss';
  */
 const props = {
     mapServer: {
-        domain: '279map.satocheeen.com',
+        domain: 'otakaramap.satocheeen.com',
         // domain: 'localhost',
         ssl: true,
     },
-    mapId: 'test',
+    mapId: 'otakaramap',
     iconDefine: [
         {
             id: 'pin',
@@ -47,9 +47,11 @@ export default function TestMap() {
     }, []);
 
     // callbacks
+    const [ cnt, setCnt ] = useState(0);
     const onSelect = useCallback((ids: string[]) => {
-        console.log('onSelect', ids);
-    }, []);
+        console.log('onSelect', ids, cnt);
+        setCnt(cnt + 1);
+    }, [cnt]);
 
     const onUnselect = useCallback(() => {
         console.log('onUnselect');
