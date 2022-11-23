@@ -12,6 +12,17 @@ import { GeoJsonObject } from "geojson";
 }
 
 /**
+ * connect
+ */
+export type ConnectResult = {
+    mapId: string;
+    name: string;
+    useMaps: MapKind[];
+    defaultMapKind: MapKind;
+    authLv: Auth;
+}
+
+/**
  * get map info
  */
 export const GetMapInfoAPI = {
