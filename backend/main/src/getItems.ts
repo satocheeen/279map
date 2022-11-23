@@ -1,10 +1,10 @@
 import { ItemsTable, TrackGeoJsonTable } from '279map-backend-common/dist/types/schema';
 import { APIFunc, ConnectionPool } from '.';
 import { getExtentWkt } from './util/utility';
-import { GetItemsParam, GetItemsResult } from '279map-common/dist/api';
-import { ItemDefine, MapKind } from '279map-common/dist/types';
+import { api } from '279map-common';
+import { ItemDefine, MapKind } from '279map-common';
 
-export const getItems: APIFunc<GetItemsParam, GetItemsResult> = async({ currentMap, param }) => {
+export const getItems: APIFunc<api.GetItemsParam, api.GetItemsResult> = async({ currentMap, param }) => {
     if (!currentMap) {
         throw 'no currentMap';
     }
@@ -20,7 +20,7 @@ export const getItems: APIFunc<GetItemsParam, GetItemsResult> = async({ currentM
         items,
     };
 }
-export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: GetItemsParam): Promise<ItemDefine[]> {
+export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: api.GetItemsParam): Promise<ItemDefine[]> {
     const con = await ConnectionPool.getConnection();
 
     // 子孫コンテンツ取得メソッド
@@ -92,7 +92,7 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
  * @param zoom_lv 
  * @param ext 
  */
-async function selectTrackInArea(param: GetItemsParam, mapPageId: string): Promise<ItemDefine[]> {
+async function selectTrackInArea(param: api.GetItemsParam, mapPageId: string): Promise<ItemDefine[]> {
     const con = await ConnectionPool.getConnection();
 
     try {

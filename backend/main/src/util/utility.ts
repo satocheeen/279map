@@ -1,6 +1,6 @@
-import { Extent } from '279map-common/dist/types'
+import { Extent } from '279map-common'
 import { ConnectionPool } from '..';
-import { MapKind } from '279map-common/dist/types';
+import { MapKind } from '279map-common';
 import { ContentsTable, ItemsTable } from '279map-backend-common/dist/types/schema';
 import { PoolConnection } from 'mysql2/promise';
 
