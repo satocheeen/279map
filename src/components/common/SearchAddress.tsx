@@ -3,6 +3,7 @@ import { Map } from 'ol';
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { Form, ListGroup, Spinner } from 'react-bootstrap';
 import { api, FeatureType, GeoProperties } from '279map-common';
+import { useAPI } from '../../api/useAPI';
 
 type Props = {
     map: Map;
@@ -79,7 +80,7 @@ const SearchAddress = forwardRef<SearchAddressHandler, Props>((props, ref) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isIME, address]);
 
-
+    const { apiUrl } = useAPI();
     const search = useCallback(async() => {
         if (!searchMode) {
             return;
@@ -94,7 +95,7 @@ const SearchAddress = forwardRef<SearchAddressHandler, Props>((props, ref) => {
         setShowSpinner(true);
         lastSearchAddress.current = address;
         const param = 'address=' + address + '&searchTarget=' + props.searchTarget.join(',');
-        const result = await fetch('/api/geocoder?' + param);
+        const result = await fetch(apiUrl + 'geocoder?' + param);
 
         const searchResult = await result.json() as api.GeocoderResult;
 
@@ -105,7 +106,7 @@ const SearchAddress = forwardRef<SearchAddressHandler, Props>((props, ref) => {
             setShowSpinner(false);
         }
 
-    }, [address, props.searchTarget, searchMode]);
+    }, [address, props.searchTarget, searchMode, apiUrl]);
 
     const onSelectCandidate = useCallback((item: api.GeocoderItem) => {
         if (props.onAddress) {

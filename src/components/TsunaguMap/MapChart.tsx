@@ -32,6 +32,7 @@ import { openItemContentsPopup, openItemPopup } from "../popup/popupThunk";
 import { FeatureType, GeoJsonPosition, MapKind } from "279map-common";
 import { FeatureProperties } from "../../types/types";
 import { OwnerContext } from "./TsunaguMap";
+import { useAPI } from "../../api/useAPI";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
@@ -392,6 +393,7 @@ export default function MapChart() {
     }, [defaultExtent]);
 
 
+    const { getGeocoderFeature } = useAPI();
     /**
      * アイテムFeatureをSourceにロードする
      * @param source ロード先
@@ -406,7 +408,7 @@ export default function MapChart() {
             let featurething;
             if (def.geoProperties?.featureType === FeatureType.AREA && def.geoProperties.geocoderId) {
                 // Geocoderの図形の場合は、Geocoder図形呼び出し
-                const geoJson = await MapUtility.getGeocoderFeature(def.geoProperties.geocoderId);
+                const geoJson = await getGeocoderFeature(def.geoProperties.geocoderId);
                 featurething = new GeoJSON().readFeatures(geoJson)[0];
 
             } else {

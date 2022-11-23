@@ -7,6 +7,7 @@ import { loadMapDefine, loadOriginalIconDefine } from "../../store/data/dataThun
 import { doCommand } from "../../util/Commander";
 import { api } from "279map-common";
 import { OwnerContext } from "./TsunaguMap";
+import { useAPI } from "../../api/useAPI";
 
 type Prop = {
     mapId: string;
@@ -79,6 +80,7 @@ export default function useSession(props: Prop) {
         };
     }, [mapId, mapKind]);
 
+    const { apiUrl } = useAPI();
     /**
      * セッション開始
      */
@@ -122,9 +124,6 @@ export default function useSession(props: Prop) {
             wss.current = socket;
         };
 
-        const protocol = mapServer.ssl ? 'https' : 'http';
-        const apiUrl = `${protocol}://${mapServer.domain}/api/`;
-
         fetch(apiUrl + 'connect', {
             credentials: "include",
         })
@@ -145,7 +144,7 @@ export default function useSession(props: Prop) {
             wss.current?.close();
         });
 
-    }, [dispatch, mapServer]);
+    }, [dispatch, mapServer, apiUrl]);
 
     // useEffect(() => {
     //     if (!mapId) {

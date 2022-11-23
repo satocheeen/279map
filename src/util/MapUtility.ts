@@ -195,17 +195,6 @@ export function getLayerName(featureType: FeatureType) {
     return r;
 }
 
-export async function getGeocoderFeature(id: GeocoderId): Promise<GeoJsonObject> {
-    const param = Object.entries(id).reduce((acc, cur) => {
-        const key = cur[0];
-        const value = cur[1];
-        return acc + (acc.length > 0 ? '&' : '') + key + '=' + value;
-    }, '');
-    const res = await fetch('/api/getGeocoderFeature?' + param);
-    const json = await res.json() as api.GetGeoCoderFeatureResult;
-    return json.geoJson;
-}
-
 export function getGeoJsonCenter(geoJson: GeoJsonObject): false |  { longitude: number; latitude: number; } {
     if (!('coordinates' in geoJson)) {
         console.warn('no coordinates', geoJson);

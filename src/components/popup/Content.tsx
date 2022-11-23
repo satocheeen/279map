@@ -17,6 +17,7 @@ import PopupMenuIcon from "./PopupMenuIcon";
 import AddContentMenu from "./AddContentMenu";
 import { Auth, ContentsDefine, MapKind } from "279map-common";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
+import { useAPI } from "../../api/useAPI";
 
 type Props = {
     itemId: string;
@@ -32,6 +33,8 @@ type Props = {
 export default function Content(props: Props) {
     const { confirm } = useConfirm();
     const dispatch = useAppDispatch();
+    const ownerContext =  useContext(OwnerContext);
+    const { apiUrl } = useAPI();
 
     const urlType = useMemo(() => {
         return props.content.url ? CommonUtility.getUrlType(props.content.url) : undefined;
@@ -39,11 +42,11 @@ export default function Content(props: Props) {
 
     const imageUrl = useMemo(() => {
         if (props.content.image) {
-            return '/api/getthumb?id=' + props.content.id;
+            return `${apiUrl}getthumb?id=${props.content.id}`;
         } else {
             return undefined;
         }
-    }, [props.content]);
+    }, [props.content, apiUrl]);
 
     const onClick = useCallback(() => {
         switch(urlType) {
@@ -116,7 +119,6 @@ export default function Content(props: Props) {
         return props.content.anotherMapItemId;
     }, [props.content]);
 
-    const ownerContext =  useContext(OwnerContext);
     const mapKind = useMemo(() => ownerContext.mapKind, [ownerContext.mapKind]);
 
     const toolTipMessage = useMemo(() => {
@@ -141,20 +143,21 @@ export default function Content(props: Props) {
      */
     const [showSpinner, setShowSpinner] = useState(false);
     const onImageClick = useCallback(async() => {
+        const url = `${apiUrl}getimageurl?id=${props.content.id}`;
         setShowSpinner(true);
         try {
-            const response = await fetch('/api/getimageurl?id=' + props.content.id);
+            const response = await fetch(url);
             if(!response.ok) {
                 throw response.statusText;
             }
-            const url = await response.text();
-            window.open(url, 'image' + props.content.id);
+            const imageUrl = await response.text();
+            window.open(imageUrl, 'image' + props.content.id);
         } catch(e) {
             console.warn('getImageUrl failed.', e);
         } finally {
             setShowSpinner(false);
         }
-    }, [props.content.id]);
+    }, [props.content.id, apiUrl]);
 
     const onEdit = useCallback(() => {
         doCommand({
