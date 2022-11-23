@@ -215,7 +215,7 @@ export default function Content(props: Props) {
 
         setShowSpinner(false);
 
-    }, [confirm, dispatch, props.content.anotherMapItemId, props.content.id, props.content.itemId]);
+    }, [props.itemId, props.parentContentId, confirm, dispatch, props.content.anotherMapItemId, props.content.id]);
 
     const overview = useMemo(() => {
         if (!props.content.overview) {

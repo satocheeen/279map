@@ -515,7 +515,7 @@ export default function MapChart() {
         //     }
         // }
 
-    }, [geoJsonItems, dispatch]);
+    }, [geoJsonItems, getGeocoderFeature]);
 
     useEffect(() => {
         // コンテンツを地図ソースに追加

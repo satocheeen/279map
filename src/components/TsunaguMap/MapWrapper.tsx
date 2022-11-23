@@ -25,7 +25,7 @@ export default function MapWrapper() {
 
     useEffect(() => {
         dispatch(sessionActions.setMapServer(ownerContext.mapServer));
-    }, [ownerContext.mapServer]);
+    }, [ownerContext.mapServer, dispatch]);
 
     useSession({
         mapId: ownerContext.mapId,
@@ -67,6 +67,7 @@ export default function MapWrapper() {
                 mapName,
             })
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mapName]);
 
     /**
@@ -83,7 +84,7 @@ export default function MapWrapper() {
                 ownerContext.onUnselect();
             }
         }
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedItemIds]);
 
     return (
