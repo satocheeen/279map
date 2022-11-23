@@ -74,12 +74,16 @@ export default class Broadcaster {
             return;
         }
         const cookies = cookie.parse(req.headers.cookie);
-        const sid = cookieParser.signedCookie(cookies["connect.sid"], SessionSecretKey);
-        return sid;
+        this._logger.debug('connect.sid', cookies["connect.sid"]);
+        return cookies["connect.sid"];
+        // const sid = cookieParser.signedCookie(cookies["connect.sid"], SessionSecretKey);
+        // this._logger.debug('connect.sid', cookies["connect.sid"], 'sid', sid, 'SessionSecretKey', SessionSecretKey);
+        // return sid;
     }
 
     addSession(req: Request): SessionInfo | undefined {
-        const sid = req.sessionID;
+        const sid = this.getSessionId(req);
+        // const sid = req.sessionID;
         if (!sid) {
             return undefined;
         }

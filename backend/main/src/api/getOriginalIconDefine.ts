@@ -23,7 +23,7 @@ export const getOriginalIconDefine: APIFunc<void, GetOriginalIconDefineResult> =
             return {
                 id: row.icon_page_id,
                 caption: row.caption,
-                imagePath: '/api/geticon?id=' + row.icon_page_id,
+                imagePath: `https://${process.env.HOST}/api/geticon?id=${row.icon_page_id}`,
                 useMaps: [MapKind.Real, MapKind.Virtual],   // TODO:
             }
         });

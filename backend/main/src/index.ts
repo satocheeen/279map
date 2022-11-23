@@ -11,7 +11,7 @@ import { getContents } from './getContents';
 import { getEvents } from './getEvents';
 import Broadcaster from './session/Broadcaster';
 import proxy from 'express-http-proxy';
-import http from 'http';
+import https from 'https';
 import { convertBase64ToBinary } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
@@ -23,17 +23,48 @@ import { sleep } from '279map-backend-common/dist/utility';
 import { callOdbaApi } from '279map-backend-common/dist/api/client';
 import * as ODBA from "279map-backend-common/dist/api/dba-api-interface";
 import { BroadcastItemParam } from '279map-backend-common/dist/api/broadcast';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import { readFileSync } from 'fs';
+import { exit } from 'process';
 
 // ログ初期化
 configure(LogSetting);
 const logger = getLogger();
 const apiLogger = getLogger('api');
 
+// 必須環境変数が定義されているかチェック
+if (!process.env.MAIN_SERVICE_PORT) {
+    logger.warn('not set env MAIN_SERVICE_PORT');
+    exit(1);
+}
+if (!process.env.STATIC_PATH) {
+    logger.warn('not set env STATIC_PATH');
+    exit(1);
+}
+if (!process.env.SESSION_SECRET_KEY) {
+    logger.warn('not set env SESSION_SECRET_KEY');
+    exit(1);
+}
+if (!process.env.HOST) {
+    logger.warn('not set env HOST');
+    exit(1);
+}
+
 const app = express();
-const port = 80;
+const port = 443;
 
 const internalApp = express();
 
+const allowCorsOrigin = process.env.CORS_ALLOW_ORIGIN || '';
+logger.info('allowCors', allowCorsOrigin);
+if (allowCorsOrigin.length > 0) {
+    const origin = allowCorsOrigin.split(',');
+    app.use(cors({
+        origin,
+        credentials: true,
+    }));
+}
 /**
  * Android用APIのプロキシ
  */
@@ -43,11 +74,19 @@ app.use(express.urlencoded({extended: true}));
 app.use(express.json({
     limit: '1mb',
 })); 
-app.use(session({
+
+/** セッション設定 */
+const sessionConfig = {
     secret: SessionSecretKey,
     resave: false,
     saveUninitialized: false,
-}));
+    cookie: {
+        sameSite: 'none' as boolean | "none" | "lax" | "strict" | undefined,
+        secure: true,
+    }
+};
+app.use(session(sessionConfig));
+app.use(cookieParser());
 
 // 本番では./html、開発環境では../buildを参照する
 const static_path = process.env.STATIC_PATH || '../../build';
@@ -86,31 +125,36 @@ const initializeDb = async() => {
     } while(flag);
 }
 
-let connectNum = 0;
-ConnectionPool.on('connection', () => {
-    logger.debug('connection', ++connectNum);
-});
-ConnectionPool.on('release', () => {
-    --connectNum;
-    if (connectNum < 0) {
-        connectNum = 0;
-    }
-    logger.debug('release', connectNum);
-});
+// let connectNum = 0;
+// ConnectionPool.on('connection', () => {
+//     logger.debug('connection', ++connectNum);
+// });
+// ConnectionPool.on('release', () => {
+//     --connectNum;
+//     if (connectNum < 0) {
+//         connectNum = 0;
+//     }
+//     logger.debug('release', connectNum);
+// });
 // let querNum = 0;
 // ConnectionPool.on('acquire', () => {
-//     console.log('acquire', ++querNum);
+//     logger.debug('acquire', ++querNum);
 // });
 // ConnectionPool.on('enqueue', () => {
 //     --querNum;
 //     if (querNum < 0) {
 //         querNum = 0;
 //     }
-//     console.log('enqueue', querNum);
+//     logger.debug('enqueue', querNum);
 // })
 
-// WebSoskcet準備
-const server = http.createServer(app);
+// Create Web Server
+const server = https.createServer({
+    key: readFileSync(process.env.SSL_KEY_FILE || ''),
+    cert: readFileSync(process.env.SSL_CERT_FILE || ''),
+}, app);
+
+// Create WebSoskce Server
 const broadCaster = new Broadcaster(server);
 
 /**
@@ -140,6 +184,7 @@ app.get('/api/disconnect', async(req, res) => {
 
 type APIFuncParam<PARAM> = {
     currentMap: CurrentMap | undefined;
+    req: Request;
     param: PARAM;
 }
 export type APIFunc<PARAM, RESULT> = (param: APIFuncParam<PARAM>) => Promise<RESULT>;
@@ -450,16 +495,17 @@ apiList.forEach((api => {
     const execute =  async(req: Request, res: Response) => {
         try {
             const session = broadCaster.getSessionInfo(req);
+            const sid = req.cookies['connect.sid'];
     
             const param = getParam(req);
-            apiLogger.info('[start] ' + api.define.uri, param, req.sessionID, session !== undefined);
+            apiLogger.info('[start] ' + api.define.uri, param, sid, session !== undefined);
 
             // // TODO: getmapinfoでは不要
             // if (!session.mapPageId || !session.mapKind) {
             //     throw 'セッション状態不正:' + session.mapPageId + ',' + session.mapKind;
             // }
 
-            const result = await api.func({ currentMap: session?.currentMap, param });
+            const result = await api.func({ currentMap: session?.currentMap, req, param });
     
             let doSend = true;
             if (api.after) {

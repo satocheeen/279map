@@ -2,6 +2,7 @@ import { Extent } from '279map-common/dist/types'
 import { ConnectionPool } from '..';
 import { MapKind } from '279map-common/dist/types';
 import { ContentsTable, ItemsTable } from '279map-backend-common/dist/types/schema';
+import { PoolConnection } from 'mysql2/promise';
 
 export function getExtentWkt(ext: Extent): string {
     const [lon1, lat1, lon2, lat2] = ext;
@@ -33,8 +34,8 @@ export function convertBase64ToBinary(base64: string) {
  * @param mapKind 
  * @returns 
  */
-export async function getBelongingItem(content: ContentsTable, mapPageId: string, mapKind: MapKind): Promise<ItemsTable[]|null> {
-    const items = await getItemHasTheContent(content.content_page_id, mapPageId, mapKind);
+export async function getBelongingItem(con: PoolConnection, content: ContentsTable, mapPageId: string, mapKind: MapKind): Promise<ItemsTable[]|null> {
+    const items = await getItemHasTheContent(con, content.content_page_id, mapPageId, mapKind);
     if (items.length > 0) {
         return items;
     }
@@ -45,13 +46,10 @@ export async function getBelongingItem(content: ContentsTable, mapPageId: string
     if (!parent) {
         return null;
     }
-    return await getBelongingItem(parent, mapPageId, mapKind);
-    
+    return await getBelongingItem(con, parent, mapPageId, mapKind);
 }
 
-async function getItemHasTheContent(content_page_id: string, mapPageId: string, mapKind: MapKind): Promise<ItemsTable[]> {
-    const con = await ConnectionPool.getConnection();
-
+async function getItemHasTheContent(con: PoolConnection, content_page_id: string, mapPageId: string, mapKind: MapKind): Promise<ItemsTable[]> {
     try {
         const sql = `
             select * from items i
@@ -64,9 +62,6 @@ async function getItemHasTheContent(content_page_id: string, mapPageId: string, 
     } catch(e) {
         throw 'getItemHasTheContent' + e;
 
-    } finally {
-        await con.rollback();
-        con.release();
     }
 
 }

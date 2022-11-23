@@ -64,6 +64,7 @@ export const getCategory: APIFunc<void, GetCategoryResult> = async({ currentMap 
         throw 'getCategory error' + e;
         
     } finally {
+        await con.rollback();
         con.release();
     }
 }
