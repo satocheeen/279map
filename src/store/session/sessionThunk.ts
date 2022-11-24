@@ -6,51 +6,10 @@ import { RootState } from "../configureStore";
 import { dataActions } from "../data/dataSlice";
 
 export const connectMap = createAsyncThunk<api.ConnectResult, { mapId: string; auth?: string }>(
-    'session/loadMapDefineStatus',
+    'session/connectMapStatus',
     async(param, { rejectWithValue, getState, dispatch }) => {
         const mapServer = (getState() as RootState).session.mapServer;
 
-        let wss: WebSocket;
-        // WebSocket通信設定
-        const startWss = () => {
-            const protocol = mapServer.ssl ? 'wss' : 'ws';
-            const domain = mapServer.domain;
-    
-            wss = new WebSocket(protocol + "://" + domain);
-            wss.addEventListener('open', () => {
-                console.log('websocket connected');
-                // 現在の地図情報を送信 (サーバー寸断後に再接続時)
-                const session = (getState() as RootState).session;
-                if (session.connectedMap) {
-                    wss?.send(JSON.stringify({
-                        mapId: session.connectedMap.mapId,
-                        mapKind: session.currentMapKindInfo?.mapKind,
-                    }));
-                }
-            });
-            wss.addEventListener('close', () => {
-                console.log('websocket closed');
-                // サーバーが瞬断された可能性があるので再接続試行
-                startWss();
-            });
-            wss.addEventListener('error', (err) => {
-                console.warn('websocket error', err);
-            });
-            wss.addEventListener('message', (evt) => {
-                console.log('websocket message', evt.data);
-                const message = JSON.parse(evt.data) as api.WebSocketMessage;
-                if (message.type === 'updated') {
-                    doCommand({
-                        command: "LoadLatestData",
-                        param: undefined,
-                    });
-                } else if (message.type === 'delete') {
-                    // アイテム削除
-                    dispatch(dataActions.removeItems(message.itemPageIdList));
-                }
-            });
-        };
-        
         try {
             const protocol = mapServer.ssl ? 'https' :'http';
             const domain = mapServer.domain;
@@ -76,17 +35,60 @@ export const connectMap = createAsyncThunk<api.ConnectResult, { mapId: string; a
  */
 export const loadMapDefine = createAsyncThunk<api.GetMapInfoResult, MapKind>(
     'session/loadMapDefineStatus',
-    async(param, { rejectWithValue, getState }) => {
+    async(param, { rejectWithValue, getState, dispatch }) => {
         const session = (getState() as RootState).session;
         const mapServer = session.mapServer;
+
         try {
             if (!session.connectedMap) {
                 throw 'no connect map.';
             }
+            const mapKind = param;
+            const mapId = session.connectedMap.mapId;
+
+            // WebSocket通信設定
+            const startWss = () => {
+                const protocol = mapServer.ssl ? 'wss' : 'ws';
+                const domain = mapServer.domain;
+        
+                const wss = new WebSocket(protocol + "://" + domain);
+                wss.addEventListener('open', () => {
+                    console.log('websocket connected');
+                    // 現在の地図情報を送信 (サーバー寸断後の再接続時用)
+                    wss.send(JSON.stringify({
+                        mapId,
+                        mapKind,
+                    }));
+                });
+                wss.addEventListener('close', () => {
+                    console.log('websocket closed');
+                    // サーバーが瞬断された可能性があるので再接続試行
+                    startWss();
+                });
+                wss.addEventListener('error', (err) => {
+                    console.warn('websocket error', err);
+                });
+                wss.addEventListener('message', (evt) => {
+                    console.log('websocket message', evt.data);
+                    const message = JSON.parse(evt.data) as api.WebSocketMessage;
+                    if (message.type === 'updated') {
+                        doCommand({
+                            command: "LoadLatestData",
+                            param: undefined,
+                        });
+                    } else if (message.type === 'delete') {
+                        // アイテム削除
+                        dispatch(dataActions.removeItems(message.itemPageIdList));
+                    }
+                });
+            };
+        
             const apiResult = await callApi(mapServer, api.GetMapInfoAPI, {
                 mapKind: param,
                 mapId: session.connectedMap.mapId,  // TODO 廃止
             });
+
+            startWss();
 
             return apiResult;
 

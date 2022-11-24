@@ -22,7 +22,7 @@ export default function ItemContents(props: Props) {
         return props.item.content;
     }, [props.item.content]);
 
-    const editable = useSelector((state: RootState) => state.session.auth === Auth.Edit);
+    const editable = useSelector((state: RootState) => state.session.connectedMap?.authLv === Auth.Edit);
 
     return (
         <div>

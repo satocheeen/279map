@@ -13,16 +13,16 @@ import { useCallback, useEffect, useRef } from "react";
  * @param callback 
  * @returns 
  */
-export function useCallbackWrapper(callback?: Function) {
+export function useCallbackWrapper<PARAM, RESULT>(callback?: (param: PARAM) => RESULT) {
     const callbackRef = useRef(callback);
 
     useEffect(() => {
         callbackRef.current = callback;
     }, [callback]);
 
-    const call = useCallback((...args: any) => {
+    const call = useCallback((args: PARAM) => {
         if (!callbackRef.current) return;
-        callbackRef.current.apply(undefined, args);
+        callbackRef.current.call(undefined, args);
     }, []);
 
     return {

@@ -12,7 +12,7 @@ import defaultIcon from './pin.png'
  */
 export default function useIcon() {
     const ownerContext = useContext(OwnerContext);
-    const currentMapKind = useMemo(() => ownerContext.mapKind, [ownerContext]);
+    const currentMapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
     const originalIconDefine = useSelector((state: RootState) => state.data.originalIconDefine);
 
     const iconDefine = useMemo(() => {
@@ -30,6 +30,8 @@ export default function useIcon() {
      * 現在の地図で使用可能なアイコン定義情報を返す
      */
     const currentMapIconDefine = useMemo((): SystemIconDefine[] => {
+        if (!currentMapKind) return [];
+        
         const list = iconDefine.filter(def => def.useMaps.indexOf(currentMapKind) !== -1);
         if (list.length > 0) {
             return list;

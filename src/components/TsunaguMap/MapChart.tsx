@@ -51,7 +51,7 @@ export default function MapChart() {
     const trackLayersRef = useRef<VectorLayer<VectorSource>[]>([]); // ズームレベルごとにレイヤ管理
     const isDrawing = useRef(false);    // 描画中かどうか
 
-    const mapId = useSelector((state: RootState) => state.data.mapId);
+    const mapId = useSelector((state: RootState) => state.session.connectedMap?.mapId);
     const mapKind = useMemo(() => ownerContext.mapKind, [ownerContext.mapKind]);
 
     const defaultExtent = useSelector((state: RootState) => state.data.extent);

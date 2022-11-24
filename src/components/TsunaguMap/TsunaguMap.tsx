@@ -9,7 +9,7 @@ export type TsunaguMapProps = {
     mapId: string;
     mapServer: ServerInfo;
     iconDefine?: DefaultIconDefine[];
-    mapKind: MapKind;  // which view Real or Virtual.
+    mapKind?: MapKind;  // which view Real or Virtual.
     disablePopup?: boolean; // when true, the map don't show popup.
 
     onConnect?: (mapDefine: api.ConnectResult) => void;

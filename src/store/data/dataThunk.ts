@@ -5,26 +5,6 @@ import { getContents } from './dataUtility';
 import { CategoryDefine, ContentsDefine, EventDefine, ItemDefine } from '279map-common';
 import { RootState } from '../configureStore';
 
-/**
- * 地図定義ロード
- * @param mapKind ロードする地図種別。未指定の場合は、デフォルトの地図を読み込む。
- */
-export const loadMapDefine = createAsyncThunk<api.GetMapInfoResult & {mapId: string}, api.GetMapInfoParam>(
-    'data/loadMapDefineStatus',
-    async(param, { rejectWithValue, getState }) => {
-        const mapServer = (getState() as RootState).session.mapServer;
-        try {
-            const apiResult = await callApi(mapServer, api.GetMapInfoAPI, param);
-
-            return apiResult;
-
-        } catch(e) {
-            console.warn('getMapInfo error', e);
-            return rejectWithValue(e);
-
-        }
-    }
-);
 export const loadOriginalIconDefine = createAsyncThunk<api.GetOriginalIconDefineResult>(
     'data/loadOriginalIconDefineStatus',
     async(_, { rejectWithValue, getState }) => {

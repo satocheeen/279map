@@ -6,21 +6,24 @@ import { useFilter } from '../../store/useFilter';
 import { addListener, removeListener } from '../../util/Commander';
 import { usePrevious } from '../../util/usePrevious';
 import MapChart from './MapChart';
-import useSession from './useSession';
+// import useSession from './useSession';
 import { operationActions, PopupTarget } from '../../store/operation/operationSlice';
 import OverlaySpinner from '../common/spinner/OverlaySpinner';
 import { openItemContentsPopup } from '../popup/popupThunk';
 import { OwnerContext } from './TsunaguMap';
 import { sessionActions } from '../../store/session/sessionSlice';
 import { useCallbackWrapper } from '../../util/useCallbackWrapper';
+import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
+import { MapInfo } from '../../entry';
 
 export default function MapWrapper() {
     const ownerContext = useContext(OwnerContext);
-    const mapId = useSelector((state: RootState) => state.data.mapId);
-    const mapKind = useMemo(() => ownerContext.mapKind, [ownerContext]);
-    const mapName = useSelector((state: RootState) => {
-        return state.data.mapName;
-    });
+    const connectedMap = useSelector((state: RootState) => state.session.connectedMap);
+    // const mapId = useSelector((state: RootState) => state.session.mapId);
+    const ownerMapKind = useMemo(() => ownerContext.mapKind, [ownerContext]);
+    // const mapName = useSelector((state: RootState) => {
+    //     return state.data.mapName;
+    // });
 
     const dispatch = useAppDispatch();
 
@@ -28,9 +31,9 @@ export default function MapWrapper() {
         dispatch(sessionActions.setMapServer(ownerContext.mapServer));
     }, [ownerContext.mapServer, dispatch]);
 
-    useSession({
-        mapId: ownerContext.mapId,
-    });
+    // useSession({
+    //     mapId: ownerContext.mapId,
+    // });
     useInitializePopup();
 
     // TODO: セッション確立してない場合は、実行しないように制御
@@ -55,33 +58,49 @@ export default function MapWrapper() {
     }, [dispatch]);
 
     /**
-     * 地図が切り替わったら再ロード
+     * connect to map
      */
     useEffect(() => {
-        loadLatestData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [mapId, mapKind]);
+        // connect
+        dispatch(connectMap({
+            mapId: ownerContext.mapId,
+            // TODO: auth
+        }))
+    }, [dispatch, ownerContext.mapId]);
+
+    /**
+     * load map define when connected map or mapkind has changed.
+     */
+    useEffect(() => {
+        if (!connectedMap) {
+            return;
+        }
+        const mapKind = ownerMapKind ?? connectedMap.defaultMapKind;
+        dispatch(loadMapDefine(mapKind));
+        // loadLatestData();
+    }, [connectedMap, ownerMapKind]);
+
+    const onLoaded = useCallbackWrapper<MapInfo, void>(ownerContext.onLoaded);
 
     useEffect(() => {
-        if (ownerContext.onLoaded) {
-            ownerContext.onLoaded({
-                mapName,
-            })
-        }
+        if (!connectedMap) return;
+        onLoaded.call({
+            mapName: connectedMap.name,
+        });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [mapName]);
+    }, [connectedMap]);
 
     /**
      * 選択アイテムが変更されたらコールバック
      */
     const onSelect = useCallbackWrapper(ownerContext.onSelect);
-    const onUbnselect = useCallbackWrapper(ownerContext.onUnselect);
+    const onUbnselect = useCallbackWrapper<undefined, void>(ownerContext.onUnselect);
     const selectedItemIds = useSelector((state: RootState) => state.operation.selectedItemIds);
     useEffect(() => {
         if (selectedItemIds.length > 0) {
             onSelect.call(selectedItemIds);
         } else {
-            onUbnselect.call();
+            onUbnselect.call(undefined);
         }
     }, [selectedItemIds, onSelect.call, onUbnselect.call]);
 

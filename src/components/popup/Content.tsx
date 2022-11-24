@@ -169,7 +169,7 @@ export default function Content(props: Props) {
         });
     }, [props.content]);
 
-    const editable = useSelector((state: RootState) => state.session.auth === Auth.Edit);
+    const editable = useSelector((state: RootState) => state.session.connectedMap?.authLv === Auth.Edit);
 
     const isEditable = useMemo(() => {
         if (!editable) {

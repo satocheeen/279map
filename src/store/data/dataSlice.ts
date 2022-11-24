@@ -1,8 +1,9 @@
-import { api, CategoryDefine, ContentsDefine, EventDefine, ItemDefine, MapKind } from '279map-common';
+import { CategoryDefine, ContentsDefine, EventDefine, ItemDefine } from '279map-common';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { Extent } from 'ol/extent';
 import { SystemIconDefine } from '../../types/types';
-import { loadCategories, loadContents, loadEvents, loadItems, loadMapDefine, loadOriginalIconDefine, removeContent } from './dataThunk';
+import { loadMapDefine } from '../session/sessionThunk';
+import { loadCategories, loadContents, loadEvents, loadItems, loadOriginalIconDefine, removeContent } from './dataThunk';
 
 /**
  * 地図関連の情報を管理
@@ -11,10 +12,6 @@ import { loadCategories, loadContents, loadEvents, loadItems, loadMapDefine, loa
 const dataSlice = createSlice({
     name: 'data',
     initialState: {
-        mapId: undefined as string | undefined,
-        mapName: '',
-        useMaps: [] as MapKind[],
-        defaultMapKind: MapKind.Real,
         extent: undefined as Extent | undefined,
         itemMap: {} as {[id: string]: ItemDefine},
 
@@ -27,12 +24,6 @@ const dataSlice = createSlice({
         originalIconDefine: [] as SystemIconDefine[],   // DBに登録されたオリジナルアイコン
     },
     reducers: {
-        setMapDefine(state, action: PayloadAction<api.ConnectResult>) {
-            state.mapId = action.payload.mapId;
-            state.mapName = action.payload.name;
-            state.useMaps = action.payload.useMaps;
-            state.defaultMapKind = action.payload.defaultMapKind;
-        },
         /**
          * アイテム削除
          * @param 削除対象のアイテムID
@@ -68,9 +59,6 @@ const dataSlice = createSlice({
     extraReducers: (builder) => {
         builder
         .addCase(loadMapDefine.fulfilled, (state, action) => {
-            state.mapId = action.payload.mapId;
-            state.mapName = action.payload.name;
-            state.useMaps = action.payload.useMaps;
             // state.mapKind = action.payload.mapKind;
             state.extent = action.payload.extent;
 

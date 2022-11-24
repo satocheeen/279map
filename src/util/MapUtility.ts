@@ -10,12 +10,11 @@ import { getCenter } from 'geolib';
 import * as geojson from 'geojson';
 import { GeolibInputCoordinates } from 'geolib/es/types';
 import proj4 from 'proj4';
-// import jsts from 'jsts';
+import 'https://unpkg.com/jsts@2.6.1/dist/jsts.min.js';
 import { Map } from 'ol';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import { FeatureType, GeocoderId, GeoJsonPosition, GeoProperties } from '279map-common';
-import { api } from '279map-common';
+import { FeatureType, GeoJsonPosition, GeoProperties } from '279map-common';
 
 /**
  * GeoJSONを元に対応するジオメトリを生成して返す

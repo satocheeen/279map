@@ -1,31 +1,39 @@
-import { Auth } from "279map-common";
+import { api, MapKind } from "279map-common";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { ServerInfo } from "../../types/types";
-import { loadMapDefine } from "../data/dataThunk";
+import { connectMap, loadMapDefine } from "./sessionThunk";
+import { Extent } from 'ol/extent';
 
 const sessionSlice = createSlice({
     name: 'session',
     initialState: {
-        auth: Auth.View,
         mapServer: {
             domain: '',
             ssl: true,
         } as ServerInfo,
+        connectedMap: undefined as undefined | api.ConnectResult,
+        currentMapKindInfo: undefined as undefined | {
+            mapKind: MapKind;
+            extent: Extent,
+        },
     },
     reducers: {
         setMapServer(state, action: PayloadAction<ServerInfo>) {
             state.mapServer = action.payload;
         },
-        setAuth(state, action: PayloadAction<Auth>) {
-            state.auth = action.payload;
-        }
     },
-    // extraReducers: (builder) => {
-    //     builder
-    //     .addCase(loadMapDefine.fulfilled, (state, action) => {
-    //         state.auth = action.payload.authLv;
-    //     })
-    // }
+    extraReducers: (builder) => {
+        builder
+        .addCase(connectMap.fulfilled, (state, action) => {
+            state.connectedMap = action.payload;
+        })
+        .addCase(loadMapDefine.fulfilled, (state, action) => {
+            state.currentMapKindInfo = {
+                mapKind: action.payload.mapKind,
+                extent: action.payload.extent,
+            };
+        })
+    }
 })
 
 export const sessionActions = sessionSlice.actions;
