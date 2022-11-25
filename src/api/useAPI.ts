@@ -1,18 +1,19 @@
 import { GeocoderId, api } from '279map-common';
 import { GeoJsonObject } from 'geojson';
-import { useContext, useMemo, useCallback } from 'react';
-import { OwnerContext } from "../components/TsunaguMap/TsunaguMap";
+import { useMemo, useCallback } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/configureStore';
 
 export function useAPI() {
-    const ownerContext =  useContext(OwnerContext);
+    const mapServer = useSelector((state: RootState) => state.session.mapServer);
 
     const apiUrl = useMemo(() => {
-        const protocol = ownerContext.mapServer.ssl ? 'https' :'http';
-        const domain = ownerContext.mapServer.domain;
+        const protocol = mapServer.ssl ? 'https' :'http';
+        const domain = mapServer.domain;
 
         return `${protocol}://${domain}/api/`;
 
-    }, [ownerContext.mapServer]);
+    }, [mapServer]);
 
     const getGeocoderFeature = useCallback(async(id: GeocoderId): Promise<GeoJsonObject> => {
         const param = Object.entries(id).reduce((acc, cur) => {

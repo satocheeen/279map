@@ -7,7 +7,7 @@ import MapWrapper from './MapWrapper';
 
 export type TsunaguMapProps = {
     mapId: string;
-    mapServer: ServerInfo;
+    mapServerHost: string;
     iconDefine?: DefaultIconDefine[];
     mapKind?: MapKind;  // which view Real or Virtual.
     disablePopup?: boolean; // when true, the map don't show popup.
@@ -21,10 +21,7 @@ export type TsunaguMapProps = {
 
 export const OwnerContext = React.createContext<TsunaguMapProps>({
     mapId: '',
-    mapServer: {
-        domain: '',
-        ssl: true,
-    },
+    mapServerHost: '',
     iconDefine: [],
     mapKind: MapKind.Real,
 });

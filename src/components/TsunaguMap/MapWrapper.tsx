@@ -27,8 +27,11 @@ export default function MapWrapper() {
     const dispatch = useAppDispatch();
 
     useEffect(() => {
-        dispatch(sessionActions.setMapServer(ownerContext.mapServer));
-    }, [ownerContext.mapServer, dispatch]);
+        dispatch(sessionActions.setMapServer({
+            domain: ownerContext.mapServerHost,
+            ssl: true,
+        }));
+    }, [ownerContext.mapServerHost, dispatch]);
 
     useInitializePopup();
 

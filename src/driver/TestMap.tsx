@@ -7,11 +7,7 @@ import styles from './TestMap.module.scss';
  * for Development
  */
 const props = {
-    mapServer: {
-        // domain: 'otakaramap.satocheeen.com',
-        domain: 'localhost',
-        ssl: true,
-    },
+    mapServerHost: 'localhost',
     mapId: 'test',
     iconDefine: [
         {
