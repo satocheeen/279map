@@ -2,7 +2,7 @@ import { api, MapKind } from '279map-common';
 import React from 'react';
 import { Provider } from 'react-redux';
 import { store } from '../../store/configureStore';
-import { DefaultIconDefine, MapInfo } from '../../types/types';
+import { DefaultIconDefine } from '../../types/types';
 import MapWrapper from './MapWrapper';
 
 export type TsunaguMapProps = {
