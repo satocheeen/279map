@@ -163,6 +163,11 @@ const broadCaster = new Broadcaster(server);
  */
 app.get('/api/connect', async(req, res) => {
     logger.info('connect', req.sessionID);
+    // セッションに何か格納しておかないと, http://localhostからのアクセス時に
+    // sessionIDが変わってしまうので、適当な値を設定
+    // @ts-ignore
+    req.session.temp = 'hogehoge';
+
     try {
         const mapId = req.query.mapId;
         if (!mapId || typeof mapId !== 'string') {
