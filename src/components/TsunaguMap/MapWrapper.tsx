@@ -78,7 +78,7 @@ export default function MapWrapper() {
         const mapKind = ownerMapKind ?? connectedMap.defaultMapKind;
         dispatch(loadMapDefine(mapKind));
         // loadLatestData();
-    }, [connectedMap, ownerMapKind]);
+    }, [connectedMap, ownerMapKind, dispatch]);
 
     const onLoaded = useCallbackWrapper<MapInfo, void>(ownerContext.onLoaded);
 

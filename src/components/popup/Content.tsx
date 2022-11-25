@@ -119,7 +119,7 @@ export default function Content(props: Props) {
         return props.content.anotherMapItemId;
     }, [props.content]);
 
-    const mapKind = useMemo(() => ownerContext.mapKind, [ownerContext.mapKind]);
+    const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
 
     const toolTipMessage = useMemo(() => {
         const mapName = mapKind === MapKind.Real ? '村マップ' : '世界地図';

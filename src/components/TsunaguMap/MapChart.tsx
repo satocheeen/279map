@@ -52,7 +52,7 @@ export default function MapChart() {
     const isDrawing = useRef(false);    // 描画中かどうか
 
     const mapId = useSelector((state: RootState) => state.session.connectedMap?.mapId);
-    const mapKind = useMemo(() => ownerContext.mapKind, [ownerContext.mapKind]);
+    const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
 
     const defaultExtent = useSelector((state: RootState) => state.data.extent);
     const itemMap = useSelector((state: RootState) => state.data.itemMap);

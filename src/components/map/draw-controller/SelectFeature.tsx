@@ -1,5 +1,5 @@
 import { Feature } from 'ol';
-import React, { useCallback, useEffect, useMemo, useRef, useState, useContext } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PromptMessageBox from './PromptMessageBox';
 import Style from 'ol/style/Style';
 import Stroke from 'ol/style/Stroke';
@@ -13,7 +13,8 @@ import { FeatureLike } from 'ol/Feature';
 import useTopographyStyle from '../useTopographyStyle';
 import usePointStyle from '../usePointStyle';
 import { FeatureType, MapKind } from '279map-common';
-import { OwnerContext } from '../../TsunaguMap/TsunaguMap';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../store/configureStore';
 
 type Props = {
     map: Map;   // コントロール対象の地図
@@ -46,8 +47,7 @@ export default function SelectFeature(props: Props) {
     const pointStyleHook = usePointStyle({
         structureLayer: itemLayer,
     });
-    const ownerContext =  useContext(OwnerContext);
-    const mapKind = useMemo(() => ownerContext.mapKind, [ownerContext.mapKind]);
+    const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
 
     useEffect(() => {
         const styleFunction = function(){

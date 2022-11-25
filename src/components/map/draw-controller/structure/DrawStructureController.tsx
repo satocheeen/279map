@@ -1,4 +1,4 @@
-import React, { useContext, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Map, Feature } from 'ol';
 import SelectStructureDialog from './SelectStructureDialog';
 import Draw, { DrawEvent } from "ol/interaction/Draw";
@@ -9,13 +9,13 @@ import usePointStyle from '../../usePointStyle';
 import PromptMessageBox from '../PromptMessageBox';
 import { useSpinner } from '../../../common/spinner/useSpinner';
 import SearchAddress, { SearchAddressHandler } from '../../../common/SearchAddress';
-import { useAppDispatch } from '../../../../store/configureStore';
+import { RootState, useAppDispatch } from '../../../../store/configureStore';
 import GeoJSON from 'ol/format/GeoJSON';
 import { GeoJsonObject } from 'geojson';
 import { registFeature } from '../../../../store/data/dataThunk';
 import { FeatureType, GeoProperties, MapKind } from '279map-common';
 import { SystemIconDefine } from '../../../../types/types';
-import { OwnerContext } from '../../../TsunaguMap/TsunaguMap';
+import { useSelector } from 'react-redux';
 
 type Props = {
     map: Map;
@@ -50,8 +50,7 @@ export default function DrawStructureController(props: Props) {
         structureLayer: drawingLayer,
     });
 
-    const ownerContext =  useContext(OwnerContext);
-    const mapKind = useMemo(() => ownerContext.mapKind, [ownerContext.mapKind]);
+    const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
     const searchAddressRef = useRef<SearchAddressHandler>(null);
 
     const onSelectedStructure = useCallback((iconDefine: SystemIconDefine) => {

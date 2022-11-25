@@ -1,10 +1,11 @@
-import React, { useContext, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import useIcon from '../../../../store/useIcon';
 import styles from './SelectStructureDialog.module.scss';
 import { MapKind } from '279map-common';
 import { SystemIconDefine } from '../../../../types/types';
-import { OwnerContext } from '../../../TsunaguMap/TsunaguMap';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../store/configureStore';
 
 type Props = {
     currentIconId?: string;         // 現在の画像ID
@@ -16,8 +17,7 @@ export default function SelectStructureDialog(props: Props) {
     const [show, setShow] = useState(true);
     const { currentMapIconDefine } = useIcon();
     const [selectedDefine, setSelectedDefine] = useState(null as SystemIconDefine | null);
-    const ownerContext =  useContext(OwnerContext);
-    const mapKind = useMemo(() => ownerContext.mapKind, [ownerContext.mapKind]);
+    const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
 
     useEffect(() => {
         if (props.currentIconId !== undefined) {
