@@ -4,6 +4,7 @@ import { callApi } from "../../api/api";
 import { doCommand } from "../../util/Commander";
 import { RootState } from "../configureStore";
 import { dataActions } from "../data/dataSlice";
+import { loadCategories, loadEvents } from "../data/dataThunk";
 
 export const connectMap = createAsyncThunk<api.ConnectResult, { mapId: string; auth?: string }>(
     'session/connectMapStatus',
@@ -89,6 +90,9 @@ export const loadMapDefine = createAsyncThunk<api.GetMapInfoResult, MapKind>(
             });
 
             startWss();
+
+            dispatch(loadEvents());
+            dispatch(loadCategories());
 
             return apiResult;
 

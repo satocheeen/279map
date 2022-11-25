@@ -15,15 +15,14 @@ import { sessionActions } from '../../store/session/sessionSlice';
 import { useCallbackWrapper } from '../../util/useCallbackWrapper';
 import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
 import { MapInfo } from '../../entry';
+import { useSpinner } from '../common/spinner/useSpinner';
 
 export default function MapWrapper() {
     const ownerContext = useContext(OwnerContext);
     const connectedMap = useSelector((state: RootState) => state.session.connectedMap);
-    // const mapId = useSelector((state: RootState) => state.session.mapId);
     const ownerMapKind = useMemo(() => ownerContext.mapKind, [ownerContext]);
-    // const mapName = useSelector((state: RootState) => {
-    //     return state.data.mapName;
-    // });
+    const currentMapKindInfo = useSelector((state: RootState) => state.session.currentMapKindInfo);
+    const spinner = useSpinner();
 
     const dispatch = useAppDispatch();
 
@@ -31,16 +30,7 @@ export default function MapWrapper() {
         dispatch(sessionActions.setMapServer(ownerContext.mapServer));
     }, [ownerContext.mapServer, dispatch]);
 
-    // useSession({
-    //     mapId: ownerContext.mapId,
-    // });
     useInitializePopup();
-
-    // TODO: セッション確立してない場合は、実行しないように制御
-    const loadLatestData = useCallback(() => {
-        dispatch(loadEvents());
-        dispatch(loadCategories());
-    }, [dispatch]);
 
    /**
      * 初回処理
@@ -104,9 +94,19 @@ export default function MapWrapper() {
         }
     }, [selectedItemIds, onSelect.call, onUbnselect.call]);
 
+    useEffect(() => {
+        if (currentMapKindInfo) {
+            spinner.hideSpinner();
+        } else {
+            spinner.showSpinner('ロード中...')
+        }
+    }, [currentMapKindInfo]);
+
     return (
         <>
-            <MapChart />
+            {currentMapKindInfo &&
+                <MapChart />
+            }
             <MySpinner />
         </>
     );

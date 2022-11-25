@@ -33,6 +33,7 @@ import { FeatureType, GeoJsonPosition, MapKind } from "279map-common";
 import { FeatureProperties } from "../../types/types";
 import { OwnerContext } from "./TsunaguMap";
 import { useAPI } from "../../api/useAPI";
+import { usePrevious } from "../../../dist/esm/types/util/usePrevious";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
