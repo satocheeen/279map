@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useMemo } from 'react';
+import React, { useContext, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { loadCategories, loadEvents } from '../../store/data/dataThunk';
@@ -6,16 +6,15 @@ import { useFilter } from '../../store/useFilter';
 import { addListener, removeListener } from '../../util/Commander';
 import { usePrevious } from '../../util/usePrevious';
 import MapChart from './MapChart';
-// import useSession from './useSession';
 import { operationActions, PopupTarget } from '../../store/operation/operationSlice';
 import OverlaySpinner from '../common/spinner/OverlaySpinner';
 import { openItemContentsPopup } from '../popup/popupThunk';
 import { OwnerContext } from './TsunaguMap';
 import { sessionActions } from '../../store/session/sessionSlice';
-import { useCallbackWrapper } from '../../util/useCallbackWrapper';
 import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
 import { MapInfo } from '../../entry';
 import { useSpinner } from '../common/spinner/useSpinner';
+import { api } from '279map-common';
 
 export default function MapWrapper() {
     const ownerContext = useContext(OwnerContext);
@@ -23,6 +22,10 @@ export default function MapWrapper() {
     const ownerMapKind = useMemo(() => ownerContext.mapKind, [ownerContext]);
     const currentMapKindInfo = useSelector((state: RootState) => state.session.currentMapKindInfo);
     const spinner = useSpinner();
+
+    const onConnectRef = useRef<typeof ownerContext.onConnect>();
+    const onSelectRef = useRef<typeof ownerContext.onSelect>();
+    const onUnselectRef = useRef<typeof ownerContext.onUnselect>();
 
     const dispatch = useAppDispatch();
 
@@ -32,6 +35,10 @@ export default function MapWrapper() {
             ssl: true,
         }));
     }, [ownerContext.mapServerHost, dispatch]);
+
+    useEffect(() => {
+        onConnectRef.current = ownerContext.onConnect;
+    }, [ownerContext]);
 
     useInitializePopup();
 
@@ -59,6 +66,11 @@ export default function MapWrapper() {
             mapId: ownerContext.mapId,
             // TODO: auth
         }))
+        .then((res) => {
+            if (onConnectRef.current) {
+                onConnectRef.current(res.payload as api.ConnectResult);
+            }
+        })
     }, [dispatch, ownerContext.mapId]);
 
     /**
@@ -73,29 +85,21 @@ export default function MapWrapper() {
         // loadLatestData();
     }, [connectedMap, ownerMapKind, dispatch]);
 
-    const onLoaded = useCallbackWrapper<MapInfo, void>(ownerContext.onLoaded);
-
-    useEffect(() => {
-        if (!connectedMap) return;
-        onLoaded.call({
-            mapName: connectedMap.name,
-        });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [connectedMap]);
-
     /**
      * 選択アイテムが変更されたらコールバック
      */
-    const onSelect = useCallbackWrapper(ownerContext.onSelect);
-    const onUbnselect = useCallbackWrapper<undefined, void>(ownerContext.onUnselect);
     const selectedItemIds = useSelector((state: RootState) => state.operation.selectedItemIds);
     useEffect(() => {
         if (selectedItemIds.length > 0) {
-            onSelect.call(selectedItemIds);
+            if (onSelectRef.current) {
+                onSelectRef.current(selectedItemIds);
+            }
         } else {
-            onUbnselect.call(undefined);
+            if (onUnselectRef.current) {
+                onUnselectRef.current();
+            }
         }
-    }, [selectedItemIds, onSelect.call, onUbnselect.call]);
+    }, [selectedItemIds]);
 
     useEffect(() => {
         if (currentMapKindInfo) {
@@ -103,7 +107,7 @@ export default function MapWrapper() {
         } else {
             spinner.showSpinner('ロード中...')
         }
-    }, [currentMapKindInfo]);
+    }, [currentMapKindInfo, spinner]);
 
     return (
         <>
