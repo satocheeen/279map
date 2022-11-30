@@ -6,6 +6,7 @@ import dts from "rollup-plugin-dts";
 import postcss from 'rollup-plugin-postcss';
 import del from 'rollup-plugin-delete';
 import image from '@rollup/plugin-image';
+import urlResolve from 'rollup-plugin-url-resolve';
 
 const packageJson = require("./package.json");
 
@@ -36,6 +37,7 @@ export default [
       json(),
       del({ targets: packageJson.main + '/*' }),
       image(),
+      urlResolve(),
     ],
   },
   {
@@ -64,6 +66,7 @@ export default [
       json(),
       del({ targets: packageJson.module + '/*' }),
       image(),
+      urlResolve(),
     ],
   },
   {

@@ -32,6 +32,7 @@
     "rollup-plugin-delete": "^2.0.0",
     "rollup-plugin-dts": "^4.0.1",
     "rollup-plugin-postcss": "^4.0.2",
+    "rollup-plugin-url-resolve": "^0.2.0",
     "sass": "^1.56.1",
     "typescript": "^4.9.3"
   },
@@ -43,7 +44,6 @@
   "types": "dist/index.d.ts",
   "dependencies": {
     "@reduxjs/toolkit": "^1.9.0",
-    "@types/jsts": "^0.17.14",
     "@types/proj4": "^2.5.2",
     "@types/react": "^18.0.9",
     "@types/react-toggle": "^4.0.3",

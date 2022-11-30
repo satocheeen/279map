@@ -33,12 +33,10 @@ import { FeatureType, GeoJsonPosition, MapKind } from "279map-common";
 import { FeatureProperties } from "../../types/types";
 import { OwnerContext } from "./TsunaguMap";
 import { useAPI } from "../../api/useAPI";
-import { usePrevious } from "../../../dist/esm/types/util/usePrevious";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
     const mapRef = useRef(null as Map | null);
-    const ownerContext =  useContext(OwnerContext);
 
     // コンテンツ（建物・ポイント）レイヤ
     const pointContentsSourceRef = useRef(null as VectorSource | null);

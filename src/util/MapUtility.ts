@@ -102,6 +102,7 @@ export function convertLineToPolygon(lineFeature: Feature<Geometry>, distance: n
         lineJson,
     });
     try {
+        // @ts-ignore
         const ol3Parser = new jsts.io.OL3Parser();
         (ol3Parser as any).inject(Point, LineString, LinearRing, Polygon, MultiPoint, MultiLineString, MultiPolygon);
         const jstsGeom = ol3Parser.read(lineFeature.getGeometry());
