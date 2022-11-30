@@ -12,7 +12,6 @@ import { openItemContentsPopup } from '../popup/popupThunk';
 import { OwnerContext } from './TsunaguMap';
 import { sessionActions } from '../../store/session/sessionSlice';
 import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
-import { MapInfo } from '../../entry';
 import { useSpinner } from '../common/spinner/useSpinner';
 import { api } from '279map-common';
 
@@ -38,6 +37,8 @@ export default function MapWrapper() {
 
     useEffect(() => {
         onConnectRef.current = ownerContext.onConnect;
+        onSelectRef.current = ownerContext.onSelect;
+        onUnselectRef.current = ownerContext.onUnselect;
     }, [ownerContext]);
 
     useInitializePopup();
