@@ -1,4 +1,4 @@
-import { MapKind } from '279map-common/dist/types';
+import { MapKind } from '279map-common';
 
 // NotionDB種類
 export type Kind = 'GPX' | 'Trace' | 'Item' | 'Content' | 'Icon';

@@ -1,4 +1,4 @@
-import { APIDefine } from "279map-common/dist/api";
+import { api } from "279map-common";
 import { Request, Response, Express } from 'express';
 import { Logger } from "log4js";
 import OdbaInterface from "./OdbaInterface";
@@ -13,7 +13,7 @@ declare type AfterParam<PARAM, RESULT> = {
     res: Response;
 };
 export declare type OdbaAPICallDefine<PARAM, RESULT> = {
-    define: APIDefine<PARAM, RESULT>;
+    define: api.APIDefine<PARAM, RESULT>;
     func: (param: OdbaAPIFuncParam<PARAM>) => Promise<RESULT>;
     after?: (param: AfterParam<PARAM, RESULT>) => boolean;
 };

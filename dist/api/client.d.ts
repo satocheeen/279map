@@ -1,6 +1,6 @@
 /// <reference types="multer" />
-import { APIDefine } from '279map-common/dist/api';
-export declare function callOdbaApi<API extends APIDefine<any, any>>(api: API, param: API['param']): Promise<API['result']>;
+import { api } from '279map-common';
+export declare function callOdbaApi<API extends api.APIDefine<any, any>>(api: API, param: API['param']): Promise<API['result']>;
 /**
  * regist file to File Service
  * @param file the file you want to save

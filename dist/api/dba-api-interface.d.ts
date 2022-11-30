@@ -1,12 +1,11 @@
 /**
  * Odba container's API interface.
  */
-import { GeoProperties, MapKind } from "279map-common/dist/types";
-import { APIDefine, ContentAttr } from '279map-common/dist/api';
+import { GeoProperties, MapKind, api } from "279map-common";
 /**
  * regist item
  */
-export declare const RegistItemAPI: APIDefine<RegistItemParam, string>;
+export declare const RegistItemAPI: api.APIDefine<RegistItemParam, string>;
 export declare type RegistItemParam = {
     mapId: string;
     mapKind: MapKind;
@@ -16,7 +15,7 @@ export declare type RegistItemParam = {
 /**
  * regist content
  */
-export declare const RegistContentAPI: APIDefine<RegistContentParam, void>;
+export declare const RegistContentAPI: api.APIDefine<RegistContentParam, void>;
 export declare type RegistContentParam = {
     mapId: string;
     parent: {
@@ -24,11 +23,11 @@ export declare type RegistContentParam = {
     } | {
         contentId: string;
     };
-} & ContentAttr;
+} & api.ContentAttr;
 /**
  * remove item
  */
-export declare const RemoveItemAPI: APIDefine<RemoveItemParam, void>;
+export declare const RemoveItemAPI: api.APIDefine<RemoveItemParam, void>;
 export declare type RemoveItemParam = {
     id: string;
     onlyGeoInfo: boolean;
@@ -36,7 +35,7 @@ export declare type RemoveItemParam = {
 /**
  * remove content
  */
-export declare const RemoveContentAPI: APIDefine<RemoveContentParam, void>;
+export declare const RemoveContentAPI: api.APIDefine<RemoveContentParam, void>;
 export declare type RemoveContentParam = {
     id: string;
     itemId: string;
@@ -46,7 +45,7 @@ export declare type RemoveContentParam = {
 /**
  * update item
  */
-export declare const UpdateItemAPI: APIDefine<UpdateItemParam, void>;
+export declare const UpdateItemAPI: api.APIDefine<UpdateItemParam, void>;
 export declare type UpdateItemParam = {
     id: string;
     geometry?: GeoJSON.Geometry;
@@ -55,15 +54,15 @@ export declare type UpdateItemParam = {
 /**
  * update content
  */
-export declare const UpdateContentAPI: APIDefine<UpdateContentParam, void>;
+export declare const UpdateContentAPI: api.APIDefine<UpdateContentParam, void>;
 export declare type UpdateContentParam = {
     id: string;
     mapId: string;
-} & Partial<ContentAttr>;
+} & Partial<api.ContentAttr>;
 /**
  * get unpoint data
  */
-export declare const GetUnpointDataAPI: APIDefine<GetUnpointDataParam, GetUnpointDataResult>;
+export declare const GetUnpointDataAPI: api.APIDefine<GetUnpointDataParam, GetUnpointDataResult>;
 export declare type GetUnpointDataParam = {
     mapId: string;
     mapKind: MapKind;
@@ -82,7 +81,7 @@ export declare type GetUnpointDataResult = {
 /**
  * link content to item
  */
-export declare const LinkContentToItemAPI: APIDefine<LinkContentToItemParam, void>;
+export declare const LinkContentToItemAPI: api.APIDefine<LinkContentToItemParam, void>;
 export declare type LinkContentToItemParam = {
     childContentId: string;
     parent: {
@@ -91,7 +90,7 @@ export declare type LinkContentToItemParam = {
         contentId: string;
     };
 };
-export declare const GetImageUrlAPI: APIDefine<{
+export declare const GetImageUrlAPI: api.APIDefine<{
     id: string;
 }, string | undefined>;
 /**

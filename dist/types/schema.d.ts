@@ -1,4 +1,4 @@
-import { MapKind } from '279map-common/dist/types';
+import { MapKind } from '279map-common';
 export declare type Kind = 'GPX' | 'Trace' | 'Item' | 'Content' | 'Icon';
 export declare type MapPageInfoTable = {
     map_page_id: string;
