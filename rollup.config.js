@@ -73,6 +73,7 @@ export default [
   {
     input: "dist/esm/types/entry.d.ts",
     output: [{ file: "dist/index.d.ts", format: "esm" }],
+    external: [/\.scss$/],
     plugins: [dts()],
   },
 ];
