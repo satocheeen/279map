@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState, useContext } from "react";
-import 'ol/ol.css';
 import { Map, MapBrowserEvent, View } from 'ol';
 import * as olControl from 'ol/control';
 import prefJson from './pref.json';

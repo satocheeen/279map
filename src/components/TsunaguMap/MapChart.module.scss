@@ -5,22 +5,36 @@
     width: 100%;
     height: 100%;
 
+    :global(.ol-control) {
+        padding: 2px;
+    }
+    :global(.ol-unselectable) {
+        user-select: none;
+    }
+
     :global(.ol-zoom) {
+        position: absolute;
         top: unset;
         bottom: 30px;
         right: 20px;
         left: unset;
 
         background-color: rgba(#fff, 0);
-        color: $white;
 
         button {
+            display: block;
+            padding: 0;
             border: $white 1px solid;
             border-radius: 5px;
             background-color: rgba(#fff, 0);
             width: 30px;
             height: 30px;
             margin: 5px;
+            color: $white;
+            font-weight: bold;
+            font-size: inherit;
+            text-align: center;
+            line-height: .4em;
 
             &:hover {
                 background-color: rgba($white, .5);
@@ -28,12 +42,51 @@
         }
     }
     :global(.ol-scale-line) {
-      right: 30px;
-      left: unset;
+        right: 30px;
+        left: unset;
+    }
+    // Map Cregit
+    :global(.ol-attribution) {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        border-radius: 4px 0 0;
+        background-color: rgba($white, .8);
+
+        text-align: right;
+        max-width: calc(100% - 1.3em);
+        display: flex;
+        flex-flow: row-reverse;
+        align-items: center;
+
+        button {
+            display: none;
+        }
+        ul {
+            margin: 0;
+            padding: 1px .5em;
+            color: #000;
+            text-shadow: 0 0 2px #fff;
+            font-size: 12px;
+
+            li {
+                display: inline;
+                list-style: none;
+            }
+        }
+        a {
+            color: rgba(0,60,136,0.7);
+            text-decoration: none;
+        }
     }
     :global(.ol-overlay-container) {
         &.active {
             z-index: 100;
+        }
+    }
+    :global(.ol-rotate) {
+        &:global(.ol-hidden) {
+            display: none;
         }
     }
 
