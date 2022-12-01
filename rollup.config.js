@@ -69,6 +69,7 @@ export default [
       urlResolve(),
     ],
   },
+  // make index.d.ts
   {
     input: "dist/esm/types/entry.d.ts",
     output: [{ file: "dist/index.d.ts", format: "esm" }],
