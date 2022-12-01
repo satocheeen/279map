@@ -4,7 +4,6 @@ import { Provider } from 'react-redux';
 import { store } from '../../store/configureStore';
 import { DefaultIconDefine } from '../../types/types';
 import MapWrapper from './MapWrapper';
-import './TsunaguMap.scss';
 import styles from './TsunaguMap.module.scss';
 
 export type TsunaguMapProps = {

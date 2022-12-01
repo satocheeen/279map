@@ -1,0 +1,18 @@
+@import '../../../styles/global.scss';
+
+// https://see-ss.com/posts/p29wgx8uh/loading
+.loading4 {
+    width: 30px;
+    height: 30px;
+    margin: 0 auto;
+    border: 5px solid $secondary;
+    border-right: 5px solid transparent;
+    border-radius: 50%;
+    animation: rotate 1s linear infinite;
+  }
+  
+  @keyframes rotate {
+    100% {
+      transform: rotate(360deg);
+    }
+}

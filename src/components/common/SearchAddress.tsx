@@ -1,9 +1,10 @@
 import { GeoJsonObject, Point } from 'geojson';
 import { Map } from 'ol';
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { Form, ListGroup, Spinner } from 'react-bootstrap';
+import { Form, ListGroup } from 'react-bootstrap';
 import { api, FeatureType, GeoProperties } from '279map-common';
 import { useAPI } from '../../api/useAPI';
+import Spinner from './spinner/Spinner';
 
 type Props = {
     map: Map;
@@ -133,7 +134,7 @@ function SearchAddress(props: Props, ref: React.ForwardedRef<SearchAddressHandle
                 onCompositionStart={()=>onCompositionSwitch('start')} onCompositionEnd={()=>onCompositionSwitch('end')}
                 onInput={onInput} />
             {showSpinner ?
-                <Spinner animation='border' variant='secondary'/>
+                <Spinner />
                 :
                 <ListGroup>
                     {candidates.map(candidate => {

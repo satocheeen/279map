@@ -7,7 +7,6 @@ import { useSelector } from "react-redux";
 import { RootState, useAppDispatch } from "../../store/configureStore";
 import CategoryBadge from "../common/CategoryBadge";
 import * as CommonUtility from '../../util/CommonUtility';
-import { Spinner } from "react-bootstrap";
 import { CgArrowsExchangeAlt } from "react-icons/cg";
 import { doCommand } from "../../util/Commander";
 import useConfirm, { ConfirmBtnPattern, ConfirmResult } from "../common/confirm/useConfirm";
@@ -18,6 +17,7 @@ import AddContentMenu from "./AddContentMenu";
 import { Auth, ContentsDefine, MapKind } from "279map-common";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import { useAPI } from "../../api/useAPI";
+import Spinner from "../common/spinner/Spinner";
 
 type Props = {
     itemId: string;
@@ -279,7 +279,7 @@ export default function Content(props: Props) {
             {categoryTag}
             {showSpinner &&
                 <div className={styles.SpinnerArea}>
-                    <Spinner animation="border" variant="primary" />
+                    <Spinner />
                 </div>
             }
             {

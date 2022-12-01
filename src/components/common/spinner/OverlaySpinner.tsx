@@ -1,5 +1,5 @@
 import React from 'react';
-import { Spinner } from 'react-bootstrap';
+import Spinner from './Spinner';
 import styles from './OverlaySpinner.module.scss';
 
 type Props = {
@@ -10,7 +10,7 @@ export default function OverlaySpinner(props: Props) {
     return (
         <div className={styles.SpinnerOverlay}>
             <div className={styles.GraphSpinner}>
-                <Spinner animation='border' variant='secondary'/>
+                <Spinner />
             </div>
             <p>{props.message}</p>
         </div>
