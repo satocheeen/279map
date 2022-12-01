@@ -4,6 +4,8 @@ import { Provider } from 'react-redux';
 import { store } from '../../store/configureStore';
 import { DefaultIconDefine } from '../../types/types';
 import MapWrapper from './MapWrapper';
+import './TsunaguMap.scss';
+import styles from './TsunaguMap.module.scss';
 
 export type TsunaguMapProps = {
     mapId: string;
@@ -28,7 +30,9 @@ export default function TsunaguMap(props: TsunaguMapProps) {
     return (
         <OwnerContext.Provider value={props}>
             <Provider store={store}>
-                <MapWrapper />
+                <div className={styles.TsunaguMap}>
+                    <MapWrapper />
+                </div>
             </Provider>
         </OwnerContext.Provider>
     );
