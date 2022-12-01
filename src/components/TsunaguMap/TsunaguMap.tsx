@@ -10,7 +10,8 @@ export type TsunaguMapProps = {
     mapServerHost: string;
     iconDefine?: DefaultIconDefine[];
     mapKind?: MapKind;  // which view Real or Virtual.
-    disablePopup?: boolean; // when true, the map don't show popup.
+    disabledPopup?: boolean; // when true, the map don't show popup.
+    disabledLabel?: boolean; // when true, the item's label hidden.
 
     onConnect?: (mapDefine: api.ConnectResult) => void;
     onSelect?: (targets: string[]) => void; // callback when items are selected

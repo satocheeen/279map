@@ -39,15 +39,10 @@ export default function TestMap() {
     // switch mapKind
     const [ mapKind, setMapKind ] = useState(MapKind.Real);
 
-    const onRadio = useCallback((kind: MapKind) => {
-        setMapKind(kind);
-    }, []);
-
     // switch popup
-    const [ disabledPopup, setDisablePopup] = useState(false);
-    const onDisalbedPopup = useCallback((val: boolean) => {
-        setDisablePopup(val);
-    }, []);
+    const [ disabledPopup, setDisablePopup ] = useState(false);
+
+    const [ disabledLabel, setDisableLabel ] = useState(false);
 
     // callbacks
     const onSelect = useCallback((ids: string[]) => {
@@ -66,30 +61,44 @@ export default function TestMap() {
                     <h3>地図種別</h3>
                     <label>
                         日本地図
-                        <input type="radio" checked={mapKind===MapKind.Real} onClick={() => onRadio(MapKind.Real)} />
+                        <input type="radio" checked={mapKind===MapKind.Real} onClick={() => setMapKind(MapKind.Real)} />
                     </label>
                     <label>
                         村マップ
-                        <input type="radio" checked={mapKind===MapKind.Virtual} onClick={() => onRadio(MapKind.Virtual)} />
+                        <input type="radio" checked={mapKind===MapKind.Virtual} onClick={() => setMapKind(MapKind.Virtual)} />
                     </label>
                 </div>
-                <div className={styles.Col}>
-                    <h3>Popup</h3>
-                    <label>
-                        enabled
-                        <input type="radio" checked={!disabledPopup} onClick={() => onDisalbedPopup(false)} />
-                    </label>
-                    <label>
-                        disabled
-                        <input type="radio" checked={disabledPopup} onClick={() => onDisalbedPopup(true)} />
-                    </label>
-                </div>
+                <PropRadio name='disabledPopup' value={disabledPopup} onChange={setDisablePopup} />
+                <PropRadio name='disabledLabel' value={disabledLabel} onChange={setDisableLabel} />
             </div>
             <div className={styles.Map}>
-                <TsunaguMap {...props} mapKind={mapKind} disablePopup={disabledPopup}
+                <TsunaguMap {...props} mapKind={mapKind}
+                    disabledPopup={disabledPopup}
+                    disabledLabel={disabledLabel}
                     onConnect={onConnect}
                     onSelect={onSelect} onUnselect={onUnselect} />
             </div>
         </>
     );
+}
+
+type PropRadioProps = {
+    name: string;
+    value: boolean;
+    onChange: (val: boolean) => void;
+}
+function PropRadio(props: PropRadioProps) {
+    return (
+        <div className={styles.Col}>
+            <h3>{props.name}</h3>
+            <label>
+                <input type="radio" checked={!props.value} onClick={() => props.onChange(false)} />
+                false
+            </label>
+            <label>
+                <input type="radio" checked={props.value} onClick={() => props.onChange(true)} />
+                true
+            </label>
+        </div>
+    )
 }

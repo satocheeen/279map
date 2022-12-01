@@ -8,7 +8,7 @@
 | mapServerHost | string | * | Sets the map server host |
 | iconDefine | [IconDefine](#icondefine)[] |  | Sets the icons defines using in the map.  If not set, a simple pin icon is used. |
 | mapKind | 'Real' \| 'Virtual' | | Sets the show map kind.  If not set, the default map which is map manager selected kind is shown. |
-| disablePopup | boolean | | Sets the `true` if you want not to show popup on the map |
+| disabledPopup | boolean | | Sets the `true` if you want not to show popup on the map |
 | onConnect | (result: [ConnectResult](#connectresult)) => void | | Callback fired when connecting map success |
 | onSelect | (selectedIds: string[]) => void | | Callback fired when the pins selected |
 | onUnselect | () => void | | Callback fired when the pins unselected |

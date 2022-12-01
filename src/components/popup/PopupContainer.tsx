@@ -38,7 +38,7 @@ export default function PopupContainer(props: Props) {
 
     // ポップアップ表示対象のコンテンツを持つアイテムID一覧
     const hasContentsItemIdList = useMemo(() => {
-        if (ownerContext.disablePopup) {
+        if (ownerContext.disabledPopup) {
             return [];
         }
         const list = Object.values(itemMap).filter(item => item.contentId).map(item => item.id);
@@ -49,7 +49,7 @@ export default function PopupContainer(props: Props) {
             }
         });
         return list;
-    }, [itemMap, forceItemIds, ownerContext.disablePopup]);
+    }, [itemMap, forceItemIds, ownerContext.disabledPopup]);
 
     const { getStructureStyleFunction } = usePointStyle({});
 

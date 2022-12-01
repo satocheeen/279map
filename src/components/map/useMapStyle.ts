@@ -1,5 +1,5 @@
 import { FeatureLike } from 'ol/Feature';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useContext, useEffect, useRef } from 'react';
 import VectorSource from "ol/source/Vector";
 import { Fill, Stroke, Style, Text } from 'ol/style';
 import VectorLayer from 'ol/layer/Vector';
@@ -10,6 +10,7 @@ import { colorWithAlpha } from '../../util/CommonUtility';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
 import { FeatureType } from '279map-common';
+import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 
 // 建物ラベルを表示するresolution境界値（これ以下の値の時に表示）
 const StructureLabelResolution = 0.003;
@@ -77,17 +78,19 @@ export default function useMapStyle() {
         };
     }, [getForceColor, getFilterStatus]);
 
+    const ownerContext = useContext(OwnerContext);
+
     const pointStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style => {
         const func = pointStyleHook.getStructureStyleFunction(colorFunc);
         const style = func(feature, resolution);
-        if (resolution <= StructureLabelResolution) {
+        if (!ownerContext.disabledLabel && resolution <= StructureLabelResolution) {
             // ラベル設定
             const text = createLabel(feature);
             style.setText(text);
         }
         return style;
 
-    }, [pointStyleHook, colorFunc]);
+    }, [pointStyleHook, colorFunc, ownerContext.disabledLabel]);
 
     useEffect(() => {
         pointsLayer.current?.setStyle(pointStyleFunction);
