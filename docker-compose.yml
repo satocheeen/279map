@@ -1,0 +1,40 @@
+# 開発環境での動作確認用
+version: "3"
+services:
+  db:
+    build: ./db
+    image: 279mapdb:latest
+    container_name: 279mapdb
+    env_file:
+      - ./.env
+  odba:
+    image: 279map-odba-notion:latest
+    container_name: odba
+    env_file:
+      - ./.env
+    volumes:
+        - C:/Temp:/var/log/www
+  fs:
+    image: 279map-fs-local:latest
+    container_name: fs
+    env_file:
+      - ./.env
+    environment:
+      HOST: http://localhost:8086
+    volumes:
+        - C:/Temp:/var/log/www
+        - C:/Temp/photo:/var/www/279map/photo
+  279map:
+    build: .
+    image: 279map-backend-main:latest
+    depends_on:
+      - db
+      - odba
+    container_name: 279map
+    env_file:
+      - ./.env
+    ports: 
+        - 8086:443
+    volumes:
+        - C:/Temp:/var/log/www
+        - C:/Temp/etc:/etc/ssl
