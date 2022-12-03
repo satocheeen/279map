@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
-import { MapKind } from '279map-common/dist/types';
-import { ItemDefine } from '279map-common/dist/types';
+import { MapKind } from '279map-common';
+import { ItemDefine } from '279map-common';
 
 export type CurrentMap = {
     mapPageId: string;

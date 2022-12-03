@@ -1,10 +1,10 @@
 import randomColor from "randomcolor";
 import { APIFunc, ConnectionPool } from "..";
-import { GetCategoryResult } from "279map-common/dist/api";
+import { api } from "279map-common";
 import { ContentsTable } from "279map-backend-common/dist/types/schema";
-import { CategoryDefine } from "279map-common/dist/types";
+import { CategoryDefine } from "279map-common";
 
-export const getCategory: APIFunc<void, GetCategoryResult> = async({ currentMap }) => {
+export const getCategory: APIFunc<void, api.GetCategoryResult> = async({ currentMap }) => {
     if (!currentMap) {
         throw 'mapPageId or mapKind not defined.';
     }

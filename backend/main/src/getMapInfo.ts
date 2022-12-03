@@ -1,23 +1,23 @@
 import { MapPageInfoTable } from '279map-backend-common/dist/types/schema';
 import { APIFunc, ConnectionPool } from '.';
-import { GetMapInfoParam, GetMapInfoResult } from '279map-common/dist/api';
-import { MapKind } from '279map-common/dist/types';
-import { Auth } from '279map-common/dist/types';
+import { api } from '279map-common/';
+import { MapKind } from '279map-common';
+import { Auth } from '279map-common';
 
 type Result = {
-    apiResult: GetMapInfoResult;
+    apiResult: api.GetMapInfoResult;
     defaultMapKind: MapKind;
 }
 /**
  * 指定の地図データページ配下のコンテンツ情報を返す
  * @param pageId Notion地図データページID
  */
-export const getMapInfo: APIFunc<GetMapInfoParam, GetMapInfoResult> = async({ param }) => {
+export const getMapInfo: APIFunc<api.GetMapInfoParam, api.GetMapInfoResult> = async({ param }) => {
     const result = await getMapInfoSub(param);
 
     return result.apiResult;
 }
-async function getMapInfoSub(param: GetMapInfoParam): Promise<Result> {
+async function getMapInfoSub(param: api.GetMapInfoParam): Promise<Result> {
     const pageId = param.mapId;
     const auth = param.auth;
     const mapKind = param.mapKind;
@@ -64,7 +64,7 @@ async function getMapInfoSub(param: GetMapInfoParam): Promise<Result> {
  * 指定の地図データページIDの情報を取得する
  * @param pageId Notion地図データページID または Alias
  */
-async function getMapPageInfo(pageId: string): Promise<MapPageInfoTable | null> {
+export async function getMapPageInfo(pageId: string): Promise<MapPageInfoTable | null> {
     const con = await ConnectionPool.getConnection();
 
     try {
