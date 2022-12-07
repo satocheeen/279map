@@ -41,26 +41,30 @@ export default function MapChart() {
 
     // コンテンツ（建物・ポイント）レイヤ
     const pointContentsSourceRef = useRef(new VectorSource());
-    const pointContentsLayerRef = useRef(new VectorLayer({
+    // const pointContentsLayerRef = useRef(new VectorLayer({
+    //     source: pointContentsSourceRef.current,
+    //     zIndex: 10,
+    //     properties: {
+    //         name: 'itemLayer',
+    //     },
+    // }));
+    // useFilteredPointStyle({
+    //     structureLayer: pointContentsLayerRef.current,
+    // });
+    const pointClusterSourceRef = useRef(new Cluster({
+        distance: 80,
+        minDistance: 20,
         source: pointContentsSourceRef.current,
+    }));
+    const pointClusterLayerRef = useRef(new VectorLayer({
+        source: pointClusterSourceRef.current,
         zIndex: 10,
         properties: {
             name: 'itemLayer',
         },
-    }));
-    useFilteredPointStyle({
-        structureLayer: pointContentsLayerRef.current,
-    });
-    const clusterSourceRef = useRef(new Cluster({
-        distance: 100,
-        minDistance: 20,
-        source: pointContentsSourceRef.current,
-    }));
-    const clusterLayerRef = useRef(new VectorLayer({
-        source: clusterSourceRef.current,
     }))
     useFilteredPointStyle({
-        structureLayer: clusterLayerRef.current,
+        structureLayer: pointClusterLayerRef.current,
     });
 
     // コンテンツ（地形）レイヤ
@@ -359,7 +363,7 @@ export default function MapChart() {
         // mapStyleHook.setPointsLayer(pointContentsLayerRef.current);
         // layers.push(pointContentsLayerRef.current);
         // mapStyleHook.setPointsLayer(clusterLayerRef.current);
-        layers.push(clusterLayerRef.current);
+        layers.push(pointClusterLayerRef.current);
 
         mapRef.current.setLayers(layers);
 

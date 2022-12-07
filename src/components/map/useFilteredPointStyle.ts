@@ -39,11 +39,28 @@ export default function useFilteredPointStyle(props: Props) {
     const ownerContext = useContext(OwnerContext);
 
     const pointStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style => {
+        const size = feature.get('features').length;
         const func = pointStyleHook.getStructureStyleFunction(colorFunc);
         const style = func(feature, resolution);
-        if (!ownerContext.disabledLabel && resolution <= StructureLabelResolution) {
+        if (size > 1) {
+            const imageSize = style.getImage().getImageSize();
+            const scale = style.getImage().getScale();
+            console.log('imageSize', imageSize, 'scale', scale);
+            const text = new Text({
+                textAlign: 'center',
+                textBaseline: 'middle',
+                offsetY: - imageSize[1] / 1.6,
+                text: size + '',
+                overflow: true,
+                backgroundFill: new Fill({ color: '#ffffffaa' }),
+                font: '1rem Calibri,sans-serif',
+                scale: 1.2,
+            });
+            style.setText(text);
+        } else if (!ownerContext.disabledLabel && resolution <= StructureLabelResolution) {
+            const myfeature = feature.get('features')[0];
             // ラベル設定
-            const text = createLabel(feature);
+            const text = createLabel(myfeature);
             style.setText(text);
         }
         return style;
