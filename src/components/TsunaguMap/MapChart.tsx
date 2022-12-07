@@ -3,7 +3,7 @@ import { Map, MapBrowserEvent, View } from 'ol';
 import * as olControl from 'ol/control';
 import prefJson from './pref.json';
 import GeoJSON from 'ol/format/GeoJSON';
-import VectorSource from "ol/source/Vector";
+import { Cluster, Vector as VectorSource } from "ol/source";
 import TileLayer from "ol/layer/Tile";
 import OSM from 'ol/source/OSM';
 import VectorLayer from "ol/layer/Vector";
@@ -17,7 +17,6 @@ import { RootState, useAppDispatch } from "../../store/configureStore";
 import {buffer, Extent } from 'ol/extent';
 import * as MapUtility from '../../util/MapUtility';
 import PopupContainer from "../popup/PopupContainer";
-import useMapStyle from "../map/useMapStyle";
 import DrawController from "../map/DrawController";
 import { addListener, removeListener } from "../../util/Commander";
 import { defaults } from 'ol/interaction'
@@ -32,18 +31,50 @@ import { FeatureType, GeoJsonPosition, MapKind } from "279map-common";
 import { FeatureProperties } from "../../types/types";
 import { OwnerContext } from "./TsunaguMap";
 import { useAPI } from "../../api/useAPI";
+import useFilteredPointStyle from "../map/useFilteredPointStyle";
+import useFilteredTopographyStyle from "../map/useFilteredTopographyStyle";
+import useTrackStyle from "../map/useTrackStyle";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
     const mapRef = useRef(null as Map | null);
 
     // コンテンツ（建物・ポイント）レイヤ
-    const pointContentsSourceRef = useRef(null as VectorSource | null);
-    const pointContentsLayerRef = useRef<VectorLayer<VectorSource> | null>(null);
+    const pointContentsSourceRef = useRef(new VectorSource());
+    const pointContentsLayerRef = useRef(new VectorLayer({
+        source: pointContentsSourceRef.current,
+        zIndex: 10,
+        properties: {
+            name: 'itemLayer',
+        },
+    }));
+    useFilteredPointStyle({
+        structureLayer: pointContentsLayerRef.current,
+    });
+    const clusterSourceRef = useRef(new Cluster({
+        distance: 100,
+        minDistance: 20,
+        source: pointContentsSourceRef.current,
+    }));
+    const clusterLayerRef = useRef(new VectorLayer({
+        source: clusterSourceRef.current,
+    }))
+    useFilteredPointStyle({
+        structureLayer: clusterLayerRef.current,
+    });
 
     // コンテンツ（地形）レイヤ
-    const topographyContentsSourceRef = useRef(null as VectorSource | null);
-    const topographyContentsLayerRef = useRef<VectorLayer<VectorSource> | null>(null);
+    const topographyContentsSourceRef = useRef(new VectorSource());
+    const topographyContentsLayerRef = useRef(new VectorLayer({
+        source: topographyContentsSourceRef.current,
+        zIndex: 2,
+        properties: {
+            name: 'topographyLayer',
+        },
+    }));
+    useFilteredTopographyStyle({
+        topographyLayer: topographyContentsLayerRef.current,
+    });
 
     // 軌跡レイヤ
     const trackLayersRef = useRef<VectorLayer<VectorSource>[]>([]); // ズームレベルごとにレイヤ管理
@@ -66,7 +97,6 @@ export default function MapChart() {
         return Object.values(itemMap).filter(content => content.position.type === 'track');
     }, [itemMap]);
 
-    const mapStyleHook = useMapStyle();
     const dispatch = useAppDispatch();
 
     const loadingCurrentAreaContents = useRef(false);
@@ -280,10 +310,8 @@ export default function MapChart() {
         mapRef.current.getAllLayers().forEach(layer => {
             mapRef.current?.removeLayer(layer);
         });
-        pointContentsSourceRef.current?.clear();
-        pointContentsSourceRef.current = null;
-        topographyContentsSourceRef.current?.clear();
-        topographyContentsSourceRef.current = null;
+        pointContentsSourceRef.current.clear();
+        topographyContentsSourceRef.current.clear();
         trackLayersRef.current.forEach(layer => {
             mapRef.current?.removeLayer(layer);
             layer.getSource()?.clear();
@@ -324,30 +352,14 @@ export default function MapChart() {
 
             extent = prefSource.getExtent();
         }
-        // コンテンツ（地形orエリア）レイヤ生成
-        topographyContentsSourceRef.current = new VectorSource();
-        topographyContentsLayerRef.current = new VectorLayer({
-            source: topographyContentsSourceRef.current,
-            zIndex: 2,
-            properties: {
-                name: 'topographyLayer',
-            },
-        });
-        mapStyleHook.setTopographyLayer(topographyContentsLayerRef.current);
-
+        // コンテンツ（地形orエリア）レイヤ追加
         layers.push(topographyContentsLayerRef.current);
 
-        // コンテンツ（建物）レイヤ生成
-        pointContentsSourceRef.current = new VectorSource();
-        pointContentsLayerRef.current = new VectorLayer({
-            source: pointContentsSourceRef.current,
-            zIndex: 10,
-            properties: {
-                name: 'itemLayer',
-            },
-        });
-        mapStyleHook.setPointsLayer(pointContentsLayerRef.current);
-        layers.push(pointContentsLayerRef.current);
+        // コンテンツ（建物）レイヤ設定
+        // mapStyleHook.setPointsLayer(pointContentsLayerRef.current);
+        // layers.push(pointContentsLayerRef.current);
+        // mapStyleHook.setPointsLayer(clusterLayerRef.current);
+        layers.push(clusterLayerRef.current);
 
         mapRef.current.setLayers(layers);
 
@@ -521,6 +533,7 @@ export default function MapChart() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [itemMap]);
 
+    const trackStyleHook = useTrackStyle();
     useEffect(() => {
         // 新たに追加された軌跡について描画する
         if (mapKind !== MapKind.Real) {
@@ -543,7 +556,7 @@ export default function MapChart() {
                     maxZoom: track.max_zoom,
                     zIndex: 1,
                 });
-                mapStyleHook.setTrackLayer(targetLayer);
+                trackStyleHook.addLayer(targetLayer);
                 trackLayersRef.current.push(targetLayer);
                 mapRef.current?.addLayer(targetLayer);
             }

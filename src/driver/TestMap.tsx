@@ -7,7 +7,7 @@ import styles from './TestMap.module.scss';
  * for Development
  */
 const props = {
-    mapServerHost: 'localhost',
+    mapServerHost: '279map.satocheeen.com',
     mapId: 'test',
     iconDefine: [
         {
@@ -61,11 +61,11 @@ export default function TestMap() {
                     <h3>地図種別</h3>
                     <label>
                         日本地図
-                        <input type="radio" checked={mapKind===MapKind.Real} onClick={() => setMapKind(MapKind.Real)} />
+                        <input type="radio" checked={mapKind===MapKind.Real} onChange={() => setMapKind(MapKind.Real)} />
                     </label>
                     <label>
                         村マップ
-                        <input type="radio" checked={mapKind===MapKind.Virtual} onClick={() => setMapKind(MapKind.Virtual)} />
+                        <input type="radio" checked={mapKind===MapKind.Virtual} onChange={() => setMapKind(MapKind.Virtual)} />
                     </label>
                 </div>
                 <PropRadio name='disabledPopup' value={disabledPopup} onChange={setDisablePopup} />
@@ -92,11 +92,11 @@ function PropRadio(props: PropRadioProps) {
         <div className={styles.Col}>
             <h3>{props.name}</h3>
             <label>
-                <input type="radio" checked={!props.value} onClick={() => props.onChange(false)} />
+                <input type="radio" checked={!props.value} onChange={() => props.onChange(false)} />
                 false
             </label>
             <label>
-                <input type="radio" checked={props.value} onClick={() => props.onChange(true)} />
+                <input type="radio" checked={props.value} onChange={() => props.onChange(true)} />
                 true
             </label>
         </div>
