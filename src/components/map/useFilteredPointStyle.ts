@@ -39,28 +39,17 @@ export default function useFilteredPointStyle(props: Props) {
     const ownerContext = useContext(OwnerContext);
 
     const pointStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style => {
-        const size = feature.get('features').length;
+        const features = feature.get('features');
+        const size = features.length;
         const func = pointStyleHook.getStructureStyleFunction(colorFunc);
-        const style = func(feature, resolution);
+        const style = func(features[0], resolution);
         if (size > 1) {
-            const imageSize = style.getImage().getImageSize();
-            const scale = style.getImage().getScale();
-            console.log('imageSize', imageSize, 'scale', scale);
-            const text = new Text({
-                textAlign: 'center',
-                textBaseline: 'middle',
-                offsetY: - imageSize[1] / 1.6,
-                text: size + '',
-                overflow: true,
-                backgroundFill: new Fill({ color: '#ffffffaa' }),
-                font: '1rem Calibri,sans-serif',
-                scale: 1.2,
-            });
-            style.setText(text);
+            // 複数アイテムがまとまっている場合、まとまっている数を表示
+            setClusterLabel(style, size);
+
         } else if (!ownerContext.disabledLabel && resolution <= StructureLabelResolution) {
-            const myfeature = feature.get('features')[0];
             // ラベル設定
-            const text = createLabel(myfeature);
+            const text = createItemNameLabel(features[0]);
             style.setText(text);
         }
         return style;
@@ -76,7 +65,7 @@ export default function useFilteredPointStyle(props: Props) {
  * 建物名ラベルを生成して返す
  * @param feature 
  */
- function createLabel(feature: FeatureLike): Text {
+function createItemNameLabel(feature: FeatureLike): Text {
     // ラベル設定
     let name = feature.getProperties().name;
     if (name === undefined) {
@@ -93,4 +82,22 @@ export default function useFilteredPointStyle(props: Props) {
     });
 
     return text;
+}
+
+function setClusterLabel(style: Style, size: number) {
+    const imageSize = style.getImage().getImageSize();
+    const scale = style.getImage().getScale() as number;
+    const offsetY = imageSize ? - (imageSize[1] / 1.6 * scale) : 0;
+    const text = new Text({
+        textAlign: 'center',
+        textBaseline: 'middle',
+        offsetY,
+        text: size + '',
+        overflow: true,
+        backgroundFill: new Fill({ color: '#ffffffff' }),
+        font: '1rem Calibri,sans-serif',
+        padding: [0, 5, 0, 5],
+        scale: 1.2,
+    });
+    style.setText(text);
 }
