@@ -40,6 +40,7 @@ import ClusterMenu from "../cluster-menu/ClusterMenu";
 
 type ClusterMenuInfo = {
     position: Coordinate;
+    itemIds: string[];
 }
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
@@ -260,6 +261,7 @@ export default function MapChart() {
             // 対象が複数存在する場合は、重畳選択メニューを表示
             setClusterMenuInfo({
                 position: evt.coordinate,
+                itemIds: points,
             });
         });
 
@@ -657,7 +659,7 @@ export default function MapChart() {
                 (
                     <>
                         {clusterMenuInfo &&
-                            <ClusterMenu map={mapRef.current} position={clusterMenuInfo.position} />
+                            <ClusterMenu map={mapRef.current} {...clusterMenuInfo} />
                         }
                         <PopupContainer map={mapRef.current} />
                         <LandNameOverlay map={mapRef.current} />

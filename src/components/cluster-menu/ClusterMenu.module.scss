@@ -1,5 +1,41 @@
+@import '../../styles/global.scss';
+
 .Container {
-    background: #fff;
-    width: 100px;
-    height: 100px;
+    background: $white;
+    width: 20rem;
+    // height: 200px;
+    box-shadow: 0 4px 4px rgba(0,0,0,0.2);
+}
+
+.Container:after, .Container:before {
+    top: 100%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+}
+.Container:after {
+    border-top-color: white;
+    border-width: 10px;
+    left: 48px;
+    margin-left: -10px;
+}
+.Container:before {
+    border-top-color: white;
+    border-width: 11px;
+    left: 48px;
+    margin-left: -11px;
+}
+
+
+.MenuItem {
+    // padding: .2rem;
+    padding: 0 1rem;
+    line-height: 2rem;
+    vertical-align: middle;
+    list-style: none;
+    &:hover {
+        background-color: $dark-012;
+    }
 }
