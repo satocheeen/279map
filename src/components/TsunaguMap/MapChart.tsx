@@ -34,10 +34,17 @@ import { useAPI } from "../../api/useAPI";
 import useFilteredPointStyle from "../map/useFilteredPointStyle";
 import useFilteredTopographyStyle from "../map/useFilteredTopographyStyle";
 import useTrackStyle from "../map/useTrackStyle";
+import { FeatureLike } from "ol/Feature";
+import { Coordinate } from "ol/coordinate";
+import ClusterMenu from "../cluster-menu/ClusterMenu";
 
+type ClusterMenuInfo = {
+    position: Coordinate;
+}
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
     const mapRef = useRef(null as Map | null);
+    const [clusterMenuInfo, setClusterMenuInfo] = useState<ClusterMenuInfo|null>(null);
 
     // コンテンツ（建物・ポイント）レイヤ
     const pointContentsSourceRef = useRef(new VectorSource());
@@ -217,46 +224,85 @@ export default function MapChart() {
             }
         }
 
-        // クリック位置付近の以下条件に該当する全アイテムをポップアップ表示
-        // - 建物、地点、エリア
-        // - コンテンツまたは概要情報を持つ島、緑地、道
         mapRef.current.on('click', (evt: MapBrowserEvent<any>) => {
             if (mapRef.current === null || isDrawing.current) {
                 return;
             }
-            // クリック位置付近にあるシンボルを取得
+            setClusterMenuInfo(null);
+            // クリック位置付近にあるアイテムIDを取得
             const points = [] as string[];
             mapRef.current.forEachFeatureAtPixel(evt.pixel, (f) => {
                 const id = f.getId() as string | undefined;
-                if (id === undefined) {
+                if (id !== undefined) {
+                    points.push(id);
                     return;
                 }
-                if (isTarget(id)) {
-                    points.push(id);
+                const features = f.get('features');
+                if (!features) {
+                    return;
                 }
+                (features as FeatureLike[]).forEach(feature => {
+                    const id = feature.getId() as string | undefined;
+                    if (id !== undefined) {
+                        points.push(id);
+                    }
+                });
             });
+
             if (points.length === 0) {
-                dispatch(operationActions.clearPopup());
                 dispatch(operationActions.unselectItem());
-            } else {
-                // 一番手前のものを選択状態にしてポップアップ表示。ただし、シンボルに関しては重なっているものは全て選択状態とする。
-                const targets = points.filter((point, index) => {
-                    if (index === 0) {
-                        return true;
-                    }
-                    const item = itemMapRef.current[point];
-                    if (item?.geoProperties?.featureType === FeatureType.STRUCTURE) {
-                        return true;
-                    }
-                    return false;
-                })
-                dispatch(openItemPopup({
-                    itemIds: targets,
-                    force: true
-                }));
-                dispatch(operationActions.setSelectItem(targets));
+                return;
+            } else if (points.length === 1) {
+                dispatch(operationActions.setSelectItem(points));
+                return;
             }
+
+            // 対象が複数存在する場合は、重畳選択メニューを表示
+            setClusterMenuInfo({
+                position: evt.coordinate,
+            });
         });
+
+        // // クリック位置付近の以下条件に該当する全アイテムをポップアップ表示
+        // // - 建物、地点、エリア
+        // // - コンテンツまたは概要情報を持つ島、緑地、道
+        // mapRef.current.on('click', (evt: MapBrowserEvent<any>) => {
+        //     if (mapRef.current === null || isDrawing.current) {
+        //         return;
+        //     }
+        //     // クリック位置付近にあるシンボルを取得
+        //     const points = [] as string[];
+        //     mapRef.current.forEachFeatureAtPixel(evt.pixel, (f) => {
+        //         const id = f.getId() as string | undefined;
+        //         if (id === undefined) {
+        //             return;
+        //         }
+        //         if (isTarget(id)) {
+        //             points.push(id);
+        //         }
+        //     });
+        //     if (points.length === 0) {
+        //         dispatch(operationActions.clearPopup());
+        //         dispatch(operationActions.unselectItem());
+        //     } else {
+        //         // 一番手前のものを選択状態にしてポップアップ表示。ただし、シンボルに関しては重なっているものは全て選択状態とする。
+        //         const targets = points.filter((point, index) => {
+        //             if (index === 0) {
+        //                 return true;
+        //             }
+        //             const item = itemMapRef.current[point];
+        //             if (item?.geoProperties?.featureType === FeatureType.STRUCTURE) {
+        //                 return true;
+        //             }
+        //             return false;
+        //         })
+        //         dispatch(openItemPopup({
+        //             itemIds: targets,
+        //             force: true
+        //         }));
+        //         dispatch(operationActions.setSelectItem(targets));
+        //     }
+        // });
 
         // クリック可能な地図上アイテムhover時にポインター表示
         mapRef.current.on('pointermove', (evt) => {
@@ -610,6 +656,9 @@ export default function MapChart() {
             {mapRef.current !== null &&
                 (
                     <>
+                        {clusterMenuInfo &&
+                            <ClusterMenu map={mapRef.current} position={clusterMenuInfo.position} />
+                        }
                         <PopupContainer map={mapRef.current} />
                         <LandNameOverlay map={mapRef.current} />
                         <DrawController map={mapRef.current} onStart={()=>{isDrawing.current=true}} onEnd={()=>{isDrawing.current=false}} />
