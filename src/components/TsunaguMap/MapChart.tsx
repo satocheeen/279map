@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState, useContext } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Map, MapBrowserEvent, View } from 'ol';
 import * as olControl from 'ol/control';
 import prefJson from './pref.json';
@@ -29,7 +29,6 @@ import { loadItems } from "../../store/data/dataThunk";
 import { openItemContentsPopup, openItemPopup } from "../popup/popupThunk";
 import { FeatureType, GeoJsonPosition, MapKind } from "279map-common";
 import { FeatureProperties } from "../../types/types";
-import { OwnerContext } from "./TsunaguMap";
 import { useAPI } from "../../api/useAPI";
 import useFilteredPointStyle from "../map/useFilteredPointStyle";
 import useFilteredTopographyStyle from "../map/useFilteredTopographyStyle";
@@ -37,6 +36,7 @@ import useTrackStyle from "../map/useTrackStyle";
 import { FeatureLike } from "ol/Feature";
 import { Coordinate } from "ol/coordinate";
 import ClusterMenu from "../cluster-menu/ClusterMenu";
+import { usePrevious } from "../../util/usePrevious";
 
 type ClusterMenuInfo = {
     position: Coordinate;
@@ -454,7 +454,6 @@ export default function MapChart() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [defaultExtent]);
 
-
     const { getGeocoderFeature } = useAPI();
     /**
      * アイテムFeatureをSourceにロードする
@@ -652,7 +651,17 @@ export default function MapChart() {
         }
     }, [flipping]);
 
-    const onClusterMenuSelected = useCallback((id: string) => {
+    // close cluster menu when zoom level is changed
+    const mapView = useSelector((state: RootState) => state.operation.mapView);
+    const prevMapView = usePrevious(mapView);
+    useEffect(() => {
+        if (mapView.zoom === prevMapView?.zoom) {
+            return;
+        }
+        setClusterMenuInfo(null);
+    }, [mapView, prevMapView]);
+
+   const onClusterMenuSelected = useCallback((id: string) => {
         setClusterMenuInfo(null);
         dispatch(operationActions.setSelectItem([id]));
     }, [dispatch]);
