@@ -1,4 +1,4 @@
-import Feature from 'ol/Feature';
+import Feature, { FeatureLike } from 'ol/Feature';
 import { Circle, Geometry, LinearRing, MultiLineString, MultiPoint, MultiPolygon, Point, Polygon } from 'ol/geom';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Extent } from 'ol/extent';
@@ -15,6 +15,7 @@ import { Map } from 'ol';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { FeatureType, GeoJsonPosition, GeoProperties } from '279map-common';
+import { getCenter as getExtentCenter } from 'ol/extent';
 
 /**
  * GeoJSONを元に対応するジオメトリを生成して返す
@@ -221,6 +222,16 @@ export function getGeoJsonCenter(geoJson: GeoJsonObject): false |  { longitude: 
         return false;
     }
 }
+export function getFeatureCenter(feature: FeatureLike): false |  { longitude: number; latitude: number; } {
+    const ext = feature.getGeometry()?.getExtent();
+    if (!ext) return false;
+
+    const center = getExtentCenter(ext);
+    return {
+        longitude: center[0],
+        latitude: center[1],
+    };
+}
 
 /**
  * 指定のitemIdを持つFeatureを返す
@@ -242,7 +253,16 @@ export function getFeatureByItemId(map: Map, itemId: string): Feature<Geometry> 
         if (!source || !(source instanceof VectorSource)) {
             return false;
         }
-        feature = source.getFeatureById(itemId) as Feature<Geometry>;
+        if (layer.getProperties()['name'] === 'itemLayer') {
+            // cluster layer
+            feature = source.getFeatures().find(f => {
+                const features = f.get('features') as FeatureLike[];
+                const hasTarget = features.some(f2 => f2.getId() === itemId);
+                return hasTarget;
+            });
+        } else {
+            feature = source.getFeatureById(itemId) as Feature<Geometry>;
+        }
         return feature;
     });
     return feature;

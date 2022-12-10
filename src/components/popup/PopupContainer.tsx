@@ -5,7 +5,7 @@ import { RootState } from '../../store/configureStore';
 import PointsPopup from './PointsPopup';
 import { getCenter } from 'geolib';
 import { GeolibInputCoordinates } from 'geolib/es/types';
-import { getFeatureByItemId, getGeoJsonCenter } from '../../util/MapUtility';
+import { getFeatureByItemId, getFeatureCenter } from '../../util/MapUtility';
 import usePointStyle from '../map/usePointStyle';
 import usePopup from './usePopup';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
@@ -58,21 +58,20 @@ export default function PopupContainer(props: Props) {
         const list = [] as PopupInfo[];
 
         hasContentsItemIdList.forEach((itemId) => {
-            const item = itemMap[itemId];
             const feature = getFeatureByItemId(props.map, itemId);
 
-            if (!item || !feature) {
+            if (!feature) {
                 // アイテム未ロードのものは、ひとまず無視 TODO: もしかしたらアイテムロードするようにした方がいいかも？
                 return;
             }
-            if (item.position.type !== 'geoJson') {
-                // TODO: GPX対応
-                return;
-            }
+            // if (item.position.type !== 'geoJson') {
+            //     // TODO: GPX対応
+            //     return;
+            // }
             
             // 表示位置決定
             // -- 中心位置取得
-            const itemPosition = getGeoJsonCenter(item.position.geoJson);
+            const itemPosition = getFeatureCenter(feature);
             if (!itemPosition) {
                 return;
             }
