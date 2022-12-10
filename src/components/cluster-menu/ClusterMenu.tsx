@@ -21,6 +21,7 @@ export default function ClusterMenu(props: Props) {
             offset: [-45, -20],
             stopEvent: true,
             element: elementRef.current as HTMLDivElement,
+            className: styles.ContainerWrapper,
         });
         props.map.addOverlay(overlay);
         overlay.setPosition(props.position);
