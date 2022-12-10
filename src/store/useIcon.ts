@@ -44,7 +44,7 @@ export default function useIcon() {
                 menuViewCustomCss: {
                     filter: 'opacity(0.5) drop-shadow(0 0 0 #aaa)',
                 },
-                defaultColor: '#aaf',
+                defaultColor: '#77f',
                 type: 'system',
             }
         ];
