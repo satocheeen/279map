@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo, useContext } from 'react';
+import React, { useEffect, useRef, useMemo, useContext, useCallback } from 'react';
 import { Map, Overlay } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import styles from './ClusterMenu.module.scss';
@@ -9,6 +9,7 @@ type Props = {
     map: Map;
     position: Coordinate; // メニュー表示位置
     itemIds: string[];
+    onSelect?: (id: string) => void;
 }
 
 export default function ClusterMenu(props: Props) {
@@ -29,12 +30,18 @@ export default function ClusterMenu(props: Props) {
         }
     }, [props.map, props.position]);
 
+    const onItemClick = useCallback((id: string) => {
+        if (props.onSelect) {
+            props.onSelect(id);
+        }
+    }, [props]);
+
     return (
         <div>
             <div ref={elementRef} className={styles.Container}>
                 {props.itemIds.map(id => {
                     return (
-                        <MenuItem key={id} id={id} />
+                        <MenuItem key={id} id={id} onClick={() => onItemClick(id)} />
                     );
                 })}
             </div>
@@ -44,6 +51,7 @@ export default function ClusterMenu(props: Props) {
 
 type MenuItemProp = {
     id: string;
+    onClick?: () => void;
 }
 function MenuItem(props: MenuItemProp) {
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
@@ -53,6 +61,6 @@ function MenuItem(props: MenuItemProp) {
     }, [itemMap, props.id]);
 
     return (
-        <li className={styles.MenuItem}>{itemName}</li>
+        <li className={styles.MenuItem} onClick={props.onClick}>{itemName}</li>
     );
 }

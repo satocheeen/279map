@@ -652,6 +652,11 @@ export default function MapChart() {
         }
     }, [flipping]);
 
+    const onClusterMenuSelected = useCallback((id: string) => {
+        setClusterMenuInfo(null);
+        dispatch(operationActions.setSelectItem([id]));
+    }, [dispatch]);
+
     return (
         <div className={styles.Container}>
             <div ref={myRef} className={`${styles.Chart} ${optionClassName}`} />
@@ -659,7 +664,7 @@ export default function MapChart() {
                 (
                     <>
                         {clusterMenuInfo &&
-                            <ClusterMenu map={mapRef.current} {...clusterMenuInfo} />
+                            <ClusterMenu map={mapRef.current} {...clusterMenuInfo} onSelect={onClusterMenuSelected} />
                         }
                         <PopupContainer map={mapRef.current} />
                         <LandNameOverlay map={mapRef.current} />
