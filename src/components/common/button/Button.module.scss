@@ -1,0 +1,27 @@
+.Button {
+    padding: .5rem 1rem;
+    border-radius: 5px;
+    border: 1px solid;
+    font-size: 120%;
+    cursor: pointer;
+
+    &.primary {
+        background-color: var(--primary-bg-color);
+        color: var(--primary-text-color);
+        border-color: var(--primary-border-color);
+    }
+
+    &.secondary {
+        background-color: var(--secondary-bg-color);
+        color: var(--secondary-text-color);
+        border-color: var(--secondary-border-color);
+    }
+
+    &:hover {
+        filter: brightness(0.97);
+    }
+
+    &:disabled {
+        filter: grayscale(80%) brightness(1.5);
+    }
+}

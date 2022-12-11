@@ -33,5 +33,7 @@
     height: 100%;
     overflow: hidden;
 
-    color: $black;    
+    * {
+        color: $black;
+    }
 }

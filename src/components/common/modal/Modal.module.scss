@@ -1,0 +1,27 @@
+@import '../../../styles/global.scss';
+
+// showModalによって表示したものは:modalが使える
+.Dialog:modal {
+    border:0;
+    border-radius: 5px;
+}
+// 背景オーバーレイ
+.Dialog::backdrop {
+    background-color: rgba(0,0,0,.32);
+}
+
+.Header {
+    font-size: 120%;
+    border-bottom: 1px solid $dark-012;
+}
+.Body {
+    padding: 1rem;
+}
+.Footer {
+    text-align: right;
+
+    button {
+        margin-left: 5px;
+        min-width: 7rem;
+    }
+}

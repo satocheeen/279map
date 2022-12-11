@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Button, Modal } from 'react-bootstrap';
+import Button from '../../../common/button/Button';
+import Modal, { ModalHeader, ModalBody, ModalFooter } from  '../../../common/modal/Modal';
 import useIcon from '../../../../store/useIcon';
 import styles from './SelectStructureDialog.module.scss';
 import { MapKind } from '279map-common';
@@ -67,9 +68,9 @@ export default function SelectStructureDialog(props: Props) {
 
     const imageList = useMemo(() => {
         const imageList = currentMapIconDefine.map((def: SystemIconDefine) => {
-            let className = styles.listGroupItem + " list-group-item list-group-item-action";
+            let className = styles.listGroupItem;
             if (def.imagePath === selectedDefine?.imagePath) {
-                className += " active " + styles.active;
+                className += " " + styles.active;
             }
             return <li className={className} key={def.imagePath}
                 onClick={()=>onSelect(def)}>
@@ -88,22 +89,24 @@ export default function SelectStructureDialog(props: Props) {
     }, [mapKind]);
 
     return (
-        <Modal show={show} className={styles.SelectStructureDialog}>
-            <Modal.Header>
-                <Modal.Title>{title}</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-                <div>{message}</div>
-                {imageList}
-            </Modal.Body>
-            <Modal.Footer>
-                <Button variant="outline-secondary" onClick={onCancel}>
+        <Modal show={show}>
+            <ModalHeader>
+                {title}
+            </ModalHeader>
+            <ModalBody>
+                <div className={styles.SelectStructureDialog}>
+                    <div>{message}</div>
+                    {imageList}
+                </div>
+            </ModalBody>
+            <ModalFooter>
+                <Button variant="secondary" onClick={onCancel}>
                         Cancel
                 </Button>
-                <Button variant="secondary" onClick={onOk} disabled={okDisable}>
+                <Button variant="primary" onClick={onOk} disabled={okDisable}>
                         OK
                 </Button>
-            </Modal.Footer>
+            </ModalFooter>
         </Modal>
     );
 }
