@@ -5,11 +5,12 @@ import { store } from '../../store/configureStore';
 import { DefaultIconDefine } from '../../types/types';
 import MapWrapper from './MapWrapper';
 import styles from './TsunaguMap.module.scss';
-import ConfirmDialog from '../common/confirm/ConfirmDialog';
+// import ConfirmDialog from '../common/confirm/ConfirmDialog';
 
 export type TsunaguMapProps = {
     mapId: string;
     mapServerHost: string;
+    auth?: string;
     iconDefine?: DefaultIconDefine[];
     mapKind?: MapKind;  // which view Real or Virtual.
     disabledPopup?: boolean; // when true, the map don't show popup.
@@ -36,7 +37,7 @@ export default function TsunaguMap(props: TsunaguMapProps) {
                     </div>
                 </Provider>
             </OwnerContext.Provider>
-            <ConfirmDialog />
+            {/* <ConfirmDialog /> */}
         </>
     );
 }

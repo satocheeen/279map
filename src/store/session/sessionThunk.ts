@@ -1,4 +1,4 @@
-import { api, MapKind } from "279map-common";
+import { api, Auth, MapKind } from "279map-common";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { callApi } from "../../api/api";
 import { doCommand } from "../../util/Commander";
@@ -15,7 +15,10 @@ export const connectMap = createAsyncThunk<api.ConnectResult, { mapId: string; a
             const protocol = mapServer.ssl ? 'https' :'http';
             const domain = mapServer.domain;
     
-            const url = `${protocol}://${domain}/api/connect?mapId=${param.mapId}`;
+            let url = `${protocol}://${domain}/api/connect?mapId=${param.mapId}`;
+            if (param.auth) {
+                url += '&auth=' + param.auth;
+            }
             const result = await fetch(url, {
                 credentials: "include",
             });

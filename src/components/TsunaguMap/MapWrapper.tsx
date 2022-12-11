@@ -65,14 +65,14 @@ export default function MapWrapper() {
         // connect
         dispatch(connectMap({
             mapId: ownerContext.mapId,
-            // TODO: auth
+            auth: ownerContext.auth,
         }))
         .then((res) => {
             if (onConnectRef.current) {
                 onConnectRef.current(res.payload as api.ConnectResult);
             }
         })
-    }, [dispatch, ownerContext.mapId]);
+    }, [dispatch, ownerContext.mapId, ownerContext.auth]);
 
     /**
      * load map define when connected map or mapkind has changed.
