@@ -5,6 +5,7 @@ import { store } from '../../store/configureStore';
 import { DefaultIconDefine } from '../../types/types';
 import MapWrapper from './MapWrapper';
 import styles from './TsunaguMap.module.scss';
+import ConfirmDialog from '../common/confirm/ConfirmDialog';
 
 export type TsunaguMapProps = {
     mapId: string;
@@ -27,12 +28,15 @@ export const OwnerContext = React.createContext<TsunaguMapProps>({
 });
 export default function TsunaguMap(props: TsunaguMapProps) {
     return (
-        <OwnerContext.Provider value={props}>
-            <Provider store={store}>
-                <div className={styles.TsunaguMap}>
-                    <MapWrapper />
-                </div>
-            </Provider>
-        </OwnerContext.Provider>
+        <>
+            <OwnerContext.Provider value={props}>
+                <Provider store={store}>
+                    <div className={styles.TsunaguMap}>
+                        <MapWrapper />
+                    </div>
+                </Provider>
+            </OwnerContext.Provider>
+            <ConfirmDialog />
+        </>
     );
 }

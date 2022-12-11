@@ -6,10 +6,6 @@ export type ServerInfo = {
     ssl: boolean;
 }
 
-export type MapInfo = {
-    mapName: string;
-}
-
 // 地図のモード
 export enum MapMode {
     Normal, // 通常
