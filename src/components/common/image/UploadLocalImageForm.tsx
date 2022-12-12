@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { Form } from 'react-bootstrap';
 import Button from '../../common/button/Button';
+import Input from '../../common/form/Input';
 import { ImageInfo } from './types';
 import * as imageUtility from './imageUtility';
 
@@ -52,7 +52,7 @@ export default function UploadLocalImageForm(props: Props) {
     return (
         <>
             <div>
-                <Form.Control type="file" data-browse="選択" accept="image" onChange={(e: React.FormEvent) => onFileSelected(e)} />
+                <Input type="file" data-browse="選択" accept="image" onChange={(e: React.FormEvent) => onFileSelected(e)} />
                 <p className="text-danger">{errMsg}</p>
             </div>
             <div>

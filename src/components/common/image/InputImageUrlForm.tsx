@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { Form } from 'react-bootstrap';
 import Button from '../../common/button/Button';
+import Input from '../../common/form/Input';
 import { ImageInfo } from './types';
 import * as imageUtility from './imageUtility';
 
@@ -49,7 +49,7 @@ export default function InputImageUrlForm(props: Props) {
     return (
         <>
             <div>
-                <Form.Control value={url} placeholder="画像URLを入力" onChange={(e) => handleChangeUrl(e)} />
+                <Input value={url} placeholder="画像URLを入力" onChange={(e) => handleChangeUrl(e)} />
                 <p className="text-danger">{errMsg}</p>
             </div>
             <div>

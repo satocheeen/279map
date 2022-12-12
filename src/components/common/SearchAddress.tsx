@@ -1,7 +1,8 @@
 import { GeoJsonObject, Point } from 'geojson';
 import { Map } from 'ol';
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { Form, ListGroup } from 'react-bootstrap';
+import { ListGroup } from 'react-bootstrap';
+import Input from '../common/form/Input';
 import { api, FeatureType, GeoProperties } from '279map-common';
 import { useAPI } from '../../api/useAPI';
 import Spinner from './spinner/Spinner';
@@ -128,8 +129,9 @@ function SearchAddress(props: Props, ref: React.ForwardedRef<SearchAddressHandle
 
     return (
         <div>
-            <Form.Control placeholder='住所 または 緯度,経度'
+            <Input type="text" placeholder='住所 または 緯度,経度'
                 value={address}
+                size={30}
                 disabled={props.disabled}
                 onCompositionStart={()=>onCompositionSwitch('start')} onCompositionEnd={()=>onCompositionSwitch('end')}
                 onInput={onInput} />
