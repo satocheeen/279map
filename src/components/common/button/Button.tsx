@@ -5,7 +5,7 @@ type Props = {
     variant: 'primary' | 'secondary';
     onClick?: () => void;
     disabled?: boolean;
-    children: string;
+    children: (JSX.Element | string) | (JSX.Element | string)[];
 }
 
 export default function Button(props: Props) {

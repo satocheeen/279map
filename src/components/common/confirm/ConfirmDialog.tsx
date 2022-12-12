@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import { Button, Modal } from 'react-bootstrap';
+import Button from '../button/Button';
+import Modal, { ModalHeader, ModalBody, ModalFooter } from '../modal/Modal';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/configureStore';
 import useConfirm, { ConfirmBtnPattern, ConfirmResult } from './useConfirm';
@@ -62,22 +63,22 @@ export default function ConfirmDialog() {
 
     return (
         <Modal show={isShow}>
-            <Modal.Header>
-                <Modal.Title>{title}</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
+            <ModalHeader>
+                {title}
+            </ModalHeader>
+            <ModalBody>
                 <div className={styles.body}>
                     {message}
                 </div>
-            </Modal.Body>
-            <Modal.Footer>
+            </ModalBody>
+            <ModalFooter>
                 <Button variant="primary" onClick={onOk}>
                     {okBtnLabel}
                 </Button>
                 <Button variant="secondary" onClick={onCancel}>
                     {cancelBtnLabel}
                 </Button>
-            </Modal.Footer>
+            </ModalFooter>
         </Modal>
     );
 }

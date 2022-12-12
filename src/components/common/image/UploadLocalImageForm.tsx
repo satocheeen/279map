@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { Button, Form } from 'react-bootstrap';
+import { Form } from 'react-bootstrap';
+import Button from '../../common/button/Button';
 import { ImageInfo } from './types';
 import * as imageUtility from './imageUtility';
 

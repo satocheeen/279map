@@ -4,7 +4,8 @@ import { GeoJsonObject } from 'geojson';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Feature, Map } from 'ol';
 import VectorSource from 'ol/source/Vector';
-import { Button, Form } from 'react-bootstrap';
+import { Form } from 'react-bootstrap';
+import Button from '../../../common/button/Button';
 import { convertKmToLonLat, getStructureScale } from '../../../../util/MapUtility';
 import { Circle } from 'ol/geom';
 import PromptMessageBox from '../PromptMessageBox';
@@ -293,7 +294,7 @@ export default function DrawPointRadius(props: Props) {
                             disabled={stage !== Stage.DrawCircle}
                             value={radius} onChange={onInputRadius} />
                     </Form.Group>
-                    <Button variant="outline-secondary"
+                    <Button variant="secondary"
                         onClick={()=>setStage(Stage.SelectCenter)}>戻る</Button>
                 </div>
             </div>

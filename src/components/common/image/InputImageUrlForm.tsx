@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { Button, Form } from 'react-bootstrap';
+import { Form } from 'react-bootstrap';
+import Button from '../../common/button/Button';
 import { ImageInfo } from './types';
 import * as imageUtility from './imageUtility';
 
@@ -52,7 +53,7 @@ export default function InputImageUrlForm(props: Props) {
                 <p className="text-danger">{errMsg}</p>
             </div>
             <div>
-                <Button variant="outline-secondary" onClick={onCancel}>Cancel</Button>
+                <Button variant="secondary" onClick={onCancel}>Cancel</Button>
                 <Button variant="secondary" onClick={onLoad}>取込</Button>
             </div>
         </>

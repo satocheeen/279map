@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import { Button } from 'react-bootstrap';
 import styles from './PromptMessageBox.module.scss';
+import Button from '../../common/button/Button';
 
 type Props = {
     message: string;
@@ -25,9 +25,9 @@ export default function PromptMessageBox(props: Props) {
 
     if (props.ok !== undefined) {
         if (props.okdisabled) {
-            okBtn = <Button variant="light" disabled>{okCaption}</Button>
+            okBtn = <Button variant="primary" disabled>{okCaption}</Button>
         } else {
-            okBtn = <Button variant="light" onClick={props.ok}>{okCaption}</Button>
+            okBtn = <Button variant="primary" onClick={props.ok}>{okCaption}</Button>
         }
     }
     return (
@@ -39,12 +39,12 @@ export default function PromptMessageBox(props: Props) {
                 <div>{props.children}</div>
             }
             <div className={styles.BtnArea}>
-                {okBtn}
                 {props.cancel !== undefined &&
-                    <Button variant="outline-light" onClick={props.cancel}>
+                    <Button variant="secondary" onClick={props.cancel}>
                         {cancelCaption}
                     </Button>
                 }
+                {okBtn}
             </div>
         </div>
     );

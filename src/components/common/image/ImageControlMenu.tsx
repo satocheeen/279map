@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Button } from 'react-bootstrap';
+import Button from '../../common/button/Button';
 
 export type ImageControlOperation = 'url' | 'file' | 'delete';
 type Props = {
@@ -66,11 +66,11 @@ export default function ImageControlMenu(props: Props) {
             return (
                 <>
                     <div>
-                        <Button variant="outline-secondary" onClick={onUrl}>
+                        <Button variant="secondary" onClick={onUrl}>
                             <i className="icon-sphere"></i>
                             Web画像
                         </Button>
-                        <Button variant="outline-secondary" onClick={onFile}>
+                        <Button variant="secondary" onClick={onFile}>
                             <i className="icon-display"></i>
                             端末画像
                         </Button>
