@@ -1,4 +1,4 @@
-import { api, MapKind } from '279map-common';
+import { api, CategoryDefine, MapKind } from '279map-common';
 import React from 'react';
 import { Provider } from 'react-redux';
 import { store } from '../../store/configureStore';
@@ -20,6 +20,7 @@ export type TsunaguMapProps = {
     onSelect?: (targets: string[]) => void; // callback when items are selected
     onUnselect?: () => void;    // callback when items are unselected.
     onModeChanged?: (mode: MapMode) => void;    // callback when map mode has changed.
+    onCategoriesLoaded?: (categories: CategoryDefine[]) => void;    // calback when categories has loaded or has changed.
 }
 
 export const OwnerContext = React.createContext<TsunaguMapProps>({
