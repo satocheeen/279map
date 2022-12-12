@@ -97,10 +97,12 @@ export default function Content(props: Props) {
         }
     }, [props.content, icon, onClick]);
 
+    const categories = useSelector((state: RootState) => state.data.categories);
+
     const categoryTag = useMemo(() => {
         return props.content.category?.map(category => {
             return (
-                <CategoryBadge key={category} category={category} />
+                <CategoryBadge key={category} category={category} existCategories={categories} />
             );
         });
     }, [props.content.category]);

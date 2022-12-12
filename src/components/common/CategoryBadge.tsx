@@ -1,6 +1,4 @@
 import React, { CSSProperties, useCallback, useMemo } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../store/configureStore';
 import { colorWithAlpha } from '../../util/CommonUtility';
 import styles from './CategoryBadge.module.scss';
 import { MdClose } from 'react-icons/md';
@@ -8,6 +6,7 @@ import { CategoryDefine } from '279map-common';
 
 type Props = {
     category: string;
+    existCategories: CategoryDefine[];
     outline?: boolean;      // trueの場合、アウトライン表現
     click?: () => void;    // クリック時のコールバック。
     onDeleteClick?: () => void; // Deleteボタン押下時のコールバック。
@@ -20,10 +19,9 @@ export default function CategoryBadge(props: Props) {
         }
     }, [props]);
 
-    const categories = useSelector((state: RootState) => state.data.categories);
     const category = useMemo((): CategoryDefine | undefined => {
-        return categories.find(c => c.name === props.category);
-    }, [props.category, categories]);
+        return props.existCategories.find(c => c.name === props.category);
+    }, [props.category, props.existCategories]);
 
     const style = useMemo((): CSSProperties => {
         const color = category ? category.color : '#faa';
