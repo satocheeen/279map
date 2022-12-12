@@ -2,7 +2,7 @@ import { api, MapKind } from '279map-common';
 import React from 'react';
 import { Provider } from 'react-redux';
 import { store } from '../../store/configureStore';
-import { DefaultIconDefine } from '../../types/types';
+import { DefaultIconDefine, MapMode } from '../../types/types';
 import MapWrapper from './MapWrapper';
 import styles from './TsunaguMap.module.scss';
 // import ConfirmDialog from '../common/confirm/ConfirmDialog';
@@ -19,6 +19,7 @@ export type TsunaguMapProps = {
     onConnect?: (mapDefine: api.ConnectResult) => void;
     onSelect?: (targets: string[]) => void; // callback when items are selected
     onUnselect?: () => void;    // callback when items are unselected.
+    onModeChanged?: (mode: MapMode) => void;    // callback when map mode has changed.
 }
 
 export const OwnerContext = React.createContext<TsunaguMapProps>({

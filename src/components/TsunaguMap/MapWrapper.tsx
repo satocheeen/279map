@@ -25,6 +25,7 @@ export default function MapWrapper() {
     const onConnectRef = useRef<typeof ownerContext.onConnect>();
     const onSelectRef = useRef<typeof ownerContext.onSelect>();
     const onUnselectRef = useRef<typeof ownerContext.onUnselect>();
+    const onModeChangedRef = useRef<typeof ownerContext.onModeChanged>();
 
     const dispatch = useAppDispatch();
 
@@ -39,6 +40,7 @@ export default function MapWrapper() {
         onConnectRef.current = ownerContext.onConnect;
         onSelectRef.current = ownerContext.onSelect;
         onUnselectRef.current = ownerContext.onUnselect;
+        onModeChangedRef.current = ownerContext.onModeChanged;
     }, [ownerContext]);
 
     useInitializePopup();
@@ -101,6 +103,16 @@ export default function MapWrapper() {
             }
         }
     }, [selectedItemIds]);
+
+    /**
+     * callback when map mode has changed.
+     */
+    const mapMode = useSelector((state: RootState) => state.operation.mapMode);
+    useEffect(() => {
+        if (onModeChangedRef.current) {
+            onModeChangedRef.current(mapMode);
+        }
+    }, [mapMode]);
 
     useEffect(() => {
         if (currentMapKindInfo) {
