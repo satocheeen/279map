@@ -74,8 +74,8 @@ const operationSlice = createSlice({
         clearPopup(state) {
             state.popupTargets = [];
         },
-        setFilter(state, action: PayloadAction<FilterDefine>) {
-            state.filter = [action.payload];
+        setFilter(state, action: PayloadAction<FilterDefine[]>) {
+            state.filter = action.payload;
         },
         clearFilter(state) {
             state.filter = [];

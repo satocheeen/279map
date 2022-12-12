@@ -1,6 +1,7 @@
 import { api, CategoryDefine, MapKind } from '279map-common';
 import React from 'react';
 import { Provider } from 'react-redux';
+import { FilterDefine } from '../../entry';
 import { store } from '../../store/configureStore';
 import { DefaultIconDefine, MapMode } from '../../types/types';
 import MapWrapper from './MapWrapper';
@@ -15,6 +16,8 @@ export type TsunaguMapProps = {
     mapKind?: MapKind;  // which view Real or Virtual.
     disabledPopup?: boolean; // when true, the map don't show popup.
     disabledLabel?: boolean; // when true, the item's label hidden.
+
+    filter?: FilterDefine[];
 
     onConnect?: (mapDefine: api.ConnectResult) => void;
     onSelect?: (targets: string[]) => void; // callback when items are selected

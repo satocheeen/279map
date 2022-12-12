@@ -126,6 +126,17 @@ export default function MapWrapper() {
         }
     }, [categories]);
 
+    /**
+     * set filter
+     */
+    useEffect(() => {
+        if (ownerContext.filter && ownerContext.filter.length > 0) {
+            dispatch(operationActions.setFilter(ownerContext.filter));
+        } else {
+            dispatch(operationActions.clearFilter());
+        }
+    }, [ownerContext.filter]);
+
     useEffect(() => {
         if (currentMapKindInfo) {
             spinner.hideSpinner();

@@ -1,6 +1,9 @@
 import { api, MapKind } from '279map-common';
 import React, { useState, useCallback } from 'react';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
+import { FilterDefine } from '../entry';
+import { MapMode } from '../types/types';
+import { doCommand } from '../util/Commander';
 import styles from './TestMap.module.scss';
 
 /**
@@ -9,23 +12,7 @@ import styles from './TestMap.module.scss';
 const props = {
     mapServerHost: '279map.satocheeen.com',
     mapId: 'test',
-    iconDefine: [
-        {
-            id: 'pin',
-            imagePath: '/icon/pin.png',
-            useMaps: [MapKind.Real],
-            menuViewCustomCss: {
-                filter: 'opacity(0.5) drop-shadow(0 0 0 #aaa)',
-            },
-            defaultColor: '#aaa',
-        },
-        {
-            id: 'school',
-            imagePath: '/icon/house.png',
-            useMaps: [MapKind.Virtual],
-        },
-    ],
-        
+    auth: 'hogehoge',        
 };
 
 export default function TestMap() {
@@ -44,6 +31,8 @@ export default function TestMap() {
 
     const [ disabledLabel, setDisableLabel ] = useState(false);
 
+    const [ filter, setFilter ] = useState<FilterDefine[]>([]);
+
     // callbacks
     const onSelect = useCallback((ids: string[]) => {
         console.log('onSelect', ids, cnt);
@@ -52,6 +41,30 @@ export default function TestMap() {
 
     const onUnselect = useCallback(() => {
         console.log('onUnselect');
+    }, []);
+
+    const onCallback = useCallback((msg: string, param: any) => {
+        console.log(msg, param);
+    }, []);
+
+    const createStructure = useCallback(() => {
+        doCommand({
+            command: 'DrawStructure',
+            param: undefined,
+        });
+    }, []);
+
+    const onFilter = useCallback(() => {
+        setFilter([
+            {
+                type: 'category',
+                categoryName: 'AAA',
+            }
+        ]);
+    }, []);
+
+    const clearFilter = useCallback(() => {
+        setFilter([]);
     }, []);
 
     return (
@@ -70,13 +83,19 @@ export default function TestMap() {
                 </div>
                 <PropRadio name='disabledPopup' value={disabledPopup} onChange={setDisablePopup} />
                 <PropRadio name='disabledLabel' value={disabledLabel} onChange={setDisableLabel} />
+                <button onClick={createStructure}>建設</button>
+                <button onClick={onFilter}>Filter</button>
+                <button onClick={clearFilter}>Filter Clear</button>
             </div>
             <div className={styles.Map}>
                 <TsunaguMap {...props} mapKind={mapKind}
                     disabledPopup={disabledPopup}
                     disabledLabel={disabledLabel}
+                    filter={filter}
                     onConnect={onConnect}
-                    onSelect={onSelect} onUnselect={onUnselect} />
+                    onSelect={onSelect} onUnselect={onUnselect}
+                    onModeChanged={(val) => onCallback('onModeChanged', val)}
+                    onCategoriesLoaded={(val)=>onCallback('onCategoriesLoaded', val)} />
             </div>
         </>
     );
