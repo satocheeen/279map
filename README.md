@@ -27,6 +27,9 @@ flowchart LR
 if you want to make originai UI map, you can use 279map-core.
 
 ```javascript
+// you need load jsts cdn
+import 'https://unpkg.com/jsts@2.6.1/dist/jsts.min.js';
+
 const props = {
     mapServerHost: 'localhost',
     mapId: 'test',

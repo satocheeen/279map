@@ -6,6 +6,7 @@ import { store } from '../../store/configureStore';
 import { DefaultIconDefine, MapMode } from '../../types/types';
 import MapWrapper from './MapWrapper';
 import styles from './TsunaguMap.module.scss';
+import './TsunaguMap.scss';
 // import ConfirmDialog from '../common/confirm/ConfirmDialog';
 
 export type TsunaguMapProps = {

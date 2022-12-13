@@ -1,3 +1,4 @@
+@import "~bootstrap/scss/bootstrap";
 :root {
     --primary-bg-color: #17a2b8;
     --primary-text-color: #fcfcfc;
@@ -10,7 +11,7 @@
     --white: #fcfcfc;
     --black: #444;
     --dark-012: rgba(0,0,0,0.12);
-
+    --dark-026: rgba(0,0,0,0.26);
 }
 $primary: #17a2b8;
 $secondary: #ddd;
