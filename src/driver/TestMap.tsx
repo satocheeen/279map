@@ -2,7 +2,6 @@ import { api, MapKind } from '279map-common';
 import React, { useState, useCallback } from 'react';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
 import { FilterDefine } from '../entry';
-import { MapMode } from '../types/types';
 import { doCommand } from '../util/Commander';
 import styles from './TestMap.module.scss';
 

@@ -1,0 +1,23 @@
+@import '../../styles/global.scss';
+
+.Card {
+    height: 100%;
+
+    :global(.card-img-top) {
+        background-color: rgba(#eee, .5);
+        min-height: 100px;
+        max-height: 100px;
+        aspect-ratio: 1 /1;
+        object-fit: cover;
+    }
+
+    .NoImg {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: $dark-054;
+        &:after {
+            content: 'No Image',
+        }
+    }
+}

@@ -1,0 +1,11 @@
+@import '../../../styles/global.scss';
+
+.Form {
+    padding: 10px;
+}
+.PreviewArea {
+    padding-left: 5rem;
+    .SubTitle {
+        color: $secondary;
+    }
+}

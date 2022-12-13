@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import { FilterDefine } from '../../entry';
 import { store } from '../../store/configureStore';
 import { DefaultIconDefine, MapMode } from '../../types/types';
+import ContentInfoEditDialog from '../info/content/ContentInfoEditDialog';
 import MapWrapper from './MapWrapper';
 import styles from './TsunaguMap.module.scss';
 import './TsunaguMap.scss';
@@ -41,6 +42,7 @@ export default function TsunaguMap(props: TsunaguMapProps) {
                 <Provider store={store}>
                     <div className={styles.TsunaguMap}>
                         <MapWrapper />
+                        <ContentInfoEditDialog />
                     </div>
                 </Provider>
             </OwnerContext.Provider>
