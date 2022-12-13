@@ -27,6 +27,7 @@ export default function MapWrapper() {
     const onUnselectRef = useRef<typeof ownerContext.onUnselect>();
     const onModeChangedRef = useRef<typeof ownerContext.onModeChanged>();
     const onCategoriesLoadedRef = useRef<typeof ownerContext.onCategoriesLoaded>();
+    const onEventsLoadedRef = useRef<typeof ownerContext.onEventsLoaded>();
 
     const dispatch = useAppDispatch();
 
@@ -43,6 +44,7 @@ export default function MapWrapper() {
         onUnselectRef.current = ownerContext.onUnselect;
         onModeChangedRef.current = ownerContext.onModeChanged;
         onCategoriesLoadedRef.current = ownerContext.onCategoriesLoaded;
+        onEventsLoadedRef.current = ownerContext.onEventsLoaded;
     }, [ownerContext]);
 
     useInitializePopup();
@@ -125,6 +127,16 @@ export default function MapWrapper() {
             onCategoriesLoadedRef.current(categories);
         }
     }, [categories]);
+
+    /**
+     * callback when events has loaded or changed.
+     */
+    const events = useSelector((state: RootState) => state.data.events);
+    useEffect(() => {
+        if(onEventsLoadedRef.current) {
+            onEventsLoadedRef.current(events);
+        }
+    }, [events]);
 
     /**
      * set filter

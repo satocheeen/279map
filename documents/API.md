@@ -15,6 +15,7 @@
 | onUnselect | () => void | | Callback fired when the pins unselected |
 | onModeChanged | (mode: MapMode) => void | | Callback fired when map mode has changed. |
 | onCategoriesLoaded | (categories: CategoriDefine[]) => void | | Callback fired when categories has loaded or changed. |
+| onEventsLoaded | (events: EventDefine[]) => void | | Callback fired when events has loaded or changed. |
 
 ## Type
 ### IconDefine
