@@ -4,14 +4,10 @@ import Button from '../../common/button/Button';
 import ContentInfoForm from './ContentInfoForm';
 import SelectUnpointDataList from '../SelectUnpointDataList';
 import styles from './ContentInfoEditDialog.module.scss';
-import { RootState, useAppDispatch } from '../../../store/configureStore';
 // import useConfirm from '../../common/confirm/useConfirm';
-import { addListener, doCommand, EditContentInfoWithAttrParam, NewContentInfoParam, removeListener } from '../../../util/Commander';
+import { doCommand, NewContentInfoParam } from '../../../util/Commander';
 import { api } from '279map-common';
 import { UnpointContent } from '279map-common';
-import { useSpinner } from '../../common/spinner/useSpinner';
-import { useSelector } from 'react-redux';
-import { linkContentToItem, registContent, updateContent } from '../../../store/data/dataThunk';
 
 type Props = {
     initialValue?: api.ContentAttr;
@@ -55,12 +51,10 @@ export default function ContentInfoEditDialog(props: Props) {
     const itemMap = {};
     const [target, setTarget] = useState<Target>();
     // const { confirm } = useConfirm();
-    const spinnerHook = useSpinner();
     // イベントリスナーの中で使用するため、refに格納
     const itemMapRef = useRef<typeof itemMap>();
     itemMapRef.current = itemMap;
-    const dispatch = useAppDispatch();
-    const mapServer = useSelector((state: RootState) => state.session.mapServer);
+    const [ spinner, setSpinner ] = useState<false|string>(false);
 
     /**
      * 初期化。
@@ -68,28 +62,29 @@ export default function ContentInfoEditDialog(props: Props) {
      * 当該モーダルを表示する。
      */
     useEffect(() => {
-        const hNew = addListener('NewContentInfo', async(param: NewContentInfoParam) => {
-            setTarget({
-                type: 'new',
-                param,
-            });
-            setShow(true);
-        });
-        const hEdit = addListener('EditContentInfoWithAttr', async(param: EditContentInfoWithAttrParam) => {
-            setTarget({
-                type: 'edit',
-                contentId: param.contentId,
-            });
-            setAttrValue(param.attr);
-            setShow(true);
-        });
 
-        return () => {
-            removeListener(hNew);
-            removeListener(hEdit);
-        }
+        // const hNew = addListener('NewContentInfo', async(param: NewContentInfoParam) => {
+        //     setTarget({
+        //         type: 'new',
+        //         param,
+        //     });
+        //     setShow(true);
+        // });
+        // const hEdit = addListener('EditContentInfoWithAttr', async(param: EditContentInfoWithAttrParam) => {
+        //     setTarget({
+        //         type: 'edit',
+        //         contentId: param.contentId,
+        //     });
+        //     setAttrValue(param.attr);
+        //     setShow(true);
+        // });
 
-    }, [dispatch, mapServer]);
+        // return () => {
+        //     removeListener(hNew);
+        //     removeListener(hEdit);
+        // }
+
+    }, []);
 
     const currentMode = useMemo(() => {
         if (!target || target.type === 'edit') {
@@ -124,7 +119,7 @@ export default function ContentInfoEditDialog(props: Props) {
         if (!target) {
             return;
         }
-        spinnerHook.showSpinner('登録中...');
+        setSpinner('登録中...');
 
         try {
             if (target?.type === 'new') {
@@ -144,10 +139,13 @@ export default function ContentInfoEditDialog(props: Props) {
                         console.warn('unpointContentId undefined');
                         return;
                     }
-                    await dispatch(linkContentToItem({
-                        parent: target.param.parent,
-                        childContentId: unpointContentId,
-                    }));
+                    await doCommand({
+                        command: 'LinkContentToItem',
+                        param: {
+                            parent: target.param.parent,
+                            childContentId: unpointContentId,
+                        }
+                    });
                 }
 
             } else {
@@ -158,7 +156,10 @@ export default function ContentInfoEditDialog(props: Props) {
                 if (apiParam.type === 'normal' && apiParam.imageUrl) {
                     apiParam.imageUrl = (apiParam.imageUrl === '/api/getthumb?id=' + target.contentId) ? undefined : apiParam.imageUrl;
                 }
-                await dispatch(updateContent(apiParam));
+                await doCommand({
+                    command: 'UpdateContent',
+                    param: apiParam,
+                });
             }
 
             setShow(false);
@@ -169,10 +170,10 @@ export default function ContentInfoEditDialog(props: Props) {
             //     message: '登録に失敗しました。再度実行して、うまくいかない場合は管理者へご連絡ください。',
             // });
         } finally {
-            spinnerHook.hideSpinner();
+            setSpinner(false);
         }
 
-    }, [attrValue, /*confirm, */ spinnerHook, currentMode, dispatch, target, unpointContentId]);
+    }, [attrValue, /*confirm, */ currentMode, target, unpointContentId]);
 
     const onCancel = useCallback(() => {
         if (props.onCancel) {
@@ -206,7 +207,7 @@ export default function ContentInfoEditDialog(props: Props) {
     }, [target]);
 
     return (
-        <Modal show={isShow}>
+        <Modal show={isShow} spinner={spinner}>
             <ModalHeader>
                 {title}
             </ModalHeader>

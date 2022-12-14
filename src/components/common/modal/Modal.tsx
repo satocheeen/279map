@@ -1,10 +1,12 @@
 import React, { useEffect, useRef } from 'react';
+import OverlaySpinner from '../spinner/OverlaySpinner';
 import styles from './Modal.module.scss';
 
 type Props = {
     show: boolean;
     children: [HeaderItem, BodyItem, FooterItem];
     className?: string;
+    spinner?: string | boolean; // trueまたは文字列の場合、Spinner表示。文字列の場合は、Spinner+メッセージ表示。
 }
 
 export default function Modal(props: Props) {
@@ -23,6 +25,9 @@ export default function Modal(props: Props) {
     return (
         <dialog ref={myRef} className={styles.Dialog}>
             {props.children}
+            {props.spinner &&
+                <OverlaySpinner message={typeof props.spinner === 'string' ? props.spinner : undefined} />
+            }
         </dialog>
     );
 }

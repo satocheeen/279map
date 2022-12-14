@@ -48,10 +48,12 @@ type CommandDefine =
     | TCommandDefine<'NewContentInfo', NewContentInfoParam>
     // コンテンツ情報編集 引数: contentId. 
     | TCommandDefine<'EditContentInfo', string>
-    // コンテンツ情報編集 引数:編集対象のコンテンツ情報. EditContentInfoを受けて、対象データを取得した後に発火される
-    | TCommandDefine<'EditContentInfoWithAttr', EditContentInfoWithAttrParam>
     // コンテンツ登録
     | TCommandDefine<'RegistContent', api.RegistContentParam>
+    // コンテンツ更新
+    | TCommandDefine<'UpdateContent', api.UpdateContentParam>
+    // 未配置コンテンツの紐づけ
+    | TCommandDefine<'LinkContentToItem', api.LinkContentToItemParam>
     ;
 type TSubscription = CommandDefine['subscription'];
 type TCallback = TSubscription[1];

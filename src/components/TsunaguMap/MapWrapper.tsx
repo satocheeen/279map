@@ -1,9 +1,9 @@
 import React, { useContext, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
-import { loadCategories, loadEvents, registContent } from '../../store/data/dataThunk';
+import { linkContentToItem, loadCategories, loadEvents, registContent, updateContent } from '../../store/data/dataThunk';
 import { useFilter } from '../../store/useFilter';
-import { addListener, doCommand, removeListener } from '../../util/Commander';
+import { addListener, doCommand, NewContentInfoParam, removeListener } from '../../util/Commander';
 import { usePrevious } from '../../util/usePrevious';
 import MapChart from './MapChart';
 import { operationActions, PopupTarget } from '../../store/operation/operationSlice';
@@ -30,6 +30,9 @@ export default function MapWrapper() {
     const onCategoriesLoadedRef = useRef<typeof ownerContext.onCategoriesLoaded>();
     const onEventsLoadedRef = useRef<typeof ownerContext.onEventsLoaded>();
 
+    const onNewContentInfoRef = useRef<typeof ownerContext.onNewContentInfo>();
+    const onEditContentInfoRef = useRef<typeof ownerContext.onEditContentInfo>();
+
     const dispatch = useAppDispatch();
 
     useEffect(() => {
@@ -46,6 +49,7 @@ export default function MapWrapper() {
         onModeChangedRef.current = ownerContext.onModeChanged;
         onCategoriesLoadedRef.current = ownerContext.onCategoriesLoaded;
         onEventsLoadedRef.current = ownerContext.onEventsLoaded;
+        onEditContentInfoRef.current = ownerContext.onEditContentInfo;
     }, [ownerContext]);
 
     useInitializePopup();
@@ -82,23 +86,35 @@ export default function MapWrapper() {
                 date: content.date?.toString(),
                 imageUrl: content.image ? '/api/getthumb?id=' + content.id : undefined,
             };
-            doCommand({
-                command: 'EditContentInfoWithAttr',
-                param: {
+            if (onEditContentInfoRef.current) {
+                onEditContentInfoRef.current({
                     contentId,
                     attr: attrValue,
-                }
-            });
+                });
+            }
         });
         const h3 = addListener('RegistContent', async(param: api.RegistContentParam) => {
-            await dispatch(registContent(param));
-
+            await dispatch(registContent(param));``
+        });
+        const h4 = addListener('UpdateContent', async(param: api.UpdateContentParam) => {
+            await dispatch(updateContent(param));``
+        });
+        const h5 = addListener('LinkContentToItem', async(param: api.LinkContentToItemParam) => {
+            await dispatch(linkContentToItem(param));``
+        });
+        const h6 = addListener('NewContentInfo', async(param: NewContentInfoParam) => {
+            if(onNewContentInfoRef.current) {
+                onNewContentInfoRef.current(param);
+            }
         });
 
         return () => {
             removeListener(h);
             removeListener(h2);
             removeListener(h3);
+            removeListener(h4);
+            removeListener(h5);
+            removeListener(h6);
         }
 
     }, [dispatch, mapServer]);
@@ -186,7 +202,7 @@ export default function MapWrapper() {
         } else {
             dispatch(operationActions.clearFilter());
         }
-    }, [ownerContext.filter]);
+    }, [ownerContext.filter, dispatch]);
 
     useEffect(() => {
         if (currentMapKindInfo) {

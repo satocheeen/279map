@@ -1,7 +1,7 @@
 import { api, CategoryDefine, EventDefine, MapKind } from '279map-common';
 import React from 'react';
 import { Provider } from 'react-redux';
-import { FilterDefine } from '../../entry';
+import { EditContentInfoWithAttrParam, FilterDefine, NewContentInfoParam } from '../../entry';
 import { store } from '../../store/configureStore';
 import { DefaultIconDefine, MapMode } from '../../types/types';
 import ContentInfoEditDialog from '../info/content/ContentInfoEditDialog';
@@ -27,6 +27,9 @@ export type TsunaguMapProps = {
     onModeChanged?: (mode: MapMode) => void;    // callback when map mode has changed.
     onCategoriesLoaded?: (categories: CategoryDefine[]) => void;    // calback when categories has loaded or has changed.
     onEventsLoaded?: (events: EventDefine[]) => void;   // callback when events has loaded or has changed.
+
+    onNewContentInfo?: (param: NewContentInfoParam) => void;    // callback when new content info kicked
+    onEditContentInfo?: (param: EditContentInfoWithAttrParam) => void;  // callback when content edit kicked
 }
 
 export const OwnerContext = React.createContext<TsunaguMapProps>({
