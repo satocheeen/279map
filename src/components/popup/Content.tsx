@@ -164,10 +164,7 @@ export default function Content(props: Props) {
     const onEdit = useCallback(() => {
         doCommand({
             command: "EditContentInfo",
-            param: {
-                operation: 'edit',
-                contentId: props.content.id,
-            }
+            param: props.content.id,
         });
     }, [props.content]);
 

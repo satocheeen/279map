@@ -34,9 +34,8 @@ export default function EditTopographyInfoController(props: Props) {
             return;
         }
         doCommand({
-            command: "EditContentInfo",
+            command: "NewContentInfo",
             param: {
-                operation: 'new',
                 parent: { itemId: selectedFeatureId.current },
                 mode,
             },

@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { loadCategories, loadEvents } from '../../store/data/dataThunk';
 import { useFilter } from '../../store/useFilter';
-import { addListener, removeListener } from '../../util/Commander';
+import { addListener, doCommand, removeListener } from '../../util/Commander';
 import { usePrevious } from '../../util/usePrevious';
 import MapChart from './MapChart';
 import { operationActions, PopupTarget } from '../../store/operation/operationSlice';
@@ -14,6 +14,7 @@ import { sessionActions } from '../../store/session/sessionSlice';
 import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
 import { useSpinner } from '../common/spinner/useSpinner';
 import { api } from '279map-common';
+import { getContents } from '../../store/data/dataUtility';
 
 export default function MapWrapper() {
     const ownerContext = useContext(OwnerContext);
@@ -49,6 +50,7 @@ export default function MapWrapper() {
 
     useInitializePopup();
 
+    const mapServer = useSelector((state: RootState) => state.session.mapServer);
    /**
      * 初回処理
      */
@@ -57,12 +59,44 @@ export default function MapWrapper() {
             dispatch(loadEvents());
             dispatch(loadCategories());
         });
+        const h2 = addListener('EditContentInfo', async(contentId: string) => {
+            // 編集対象コンテンツをロード
+            const contents = (await getContents(mapServer, [{
+                contentId,
+            }]));
+            if (!contents || contents?.length === 0) {
+                return;
+            }
+            const content = contents[0];
+            const attrValue: api.ContentAttr = content.url ? {
+                title: content.title,
+                overview: content.overview ?? '',
+                categories: content.category ?? [],
+                type: 'sns',
+                url: content.url,
+            } : {
+                title: content.title,
+                overview: content.overview ?? '',
+                categories: content.category ?? [],
+                type: 'normal',
+                date: content.date?.toString(),
+                imageUrl: content.image ? '/api/getthumb?id=' + content.id : undefined,
+            };
+            doCommand({
+                command: 'EditContentInfoWithAttr',
+                param: {
+                    contentId,
+                    attr: attrValue,
+                }
+            });
+        });
 
         return () => {
             removeListener(h);
+            removeListener(h2);
         }
 
-    }, [dispatch]);
+    }, [dispatch, mapServer]);
 
     /**
      * connect to map

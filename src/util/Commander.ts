@@ -1,4 +1,4 @@
-import { FeatureType } from "279map-common";
+import { api, FeatureType } from "279map-common";
 
 type TCallBack<T> = (param: T) => void;
 
@@ -9,13 +9,21 @@ type TCommandDefine<COMMAND extends string, PARAM> = {
         param: PARAM;
     }
 }
-export type EditContentInfoParam = {
-    // 編集の場合
-    operation: 'edit',
-    contentId: string;
-} | {
-    // 新規コンテンツ登録の場合
-    operation: 'new',
+// export type EditContentInfoParam = {
+//     // 編集の場合
+//     operation: 'edit',
+//     contentId: string;
+// } | {
+//     // 新規コンテンツ登録の場合
+//     operation: 'new',
+//     parent: {
+//         itemId: string;
+//     } | {
+//         contentId: string;
+//     }
+//     mode: 'manual' | 'select-unpoint';
+// }
+export type NewContentInfoParam = {
     parent: {
         itemId: string;
     } | {
@@ -23,7 +31,10 @@ export type EditContentInfoParam = {
     }
     mode: 'manual' | 'select-unpoint';
 }
-
+export type EditContentInfoWithAttrParam = {
+    contentId: string;
+    attr: api.ContentAttr;
+}
 type CommandDefine = 
     // 建設or地点登録
     TCommandDefine<'DrawStructure', undefined>
@@ -47,8 +58,12 @@ type CommandDefine =
     | TCommandDefine<'RemoveTopography', undefined>
     // 最新地図アイテム取得命令
     | TCommandDefine<'LoadLatestData', undefined>
-    // コンテンツ情報登録or編集 引数: contentId. undefinedの場合は、新規登録。
-    | TCommandDefine<'EditContentInfo', EditContentInfoParam>
+    // コンテンツ情報登録
+    | TCommandDefine<'NewContentInfo', NewContentInfoParam>
+    // コンテンツ情報編集 引数: contentId. 
+    | TCommandDefine<'EditContentInfo', string>
+    // コンテンツ情報編集 引数:編集対象のコンテンツ情報. EditContentInfoを受けて、対象データを取得した後に発火される
+    | TCommandDefine<'EditContentInfoWithAttr', EditContentInfoWithAttrParam>
     ;
 type TSubscription = CommandDefine['subscription'];
 type TCallback = TSubscription[1];

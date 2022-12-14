@@ -14,9 +14,8 @@ export default function AddContentMenu(props: Props) {
         switch(val) {
             case 'new':
                 doCommand({
-                    command: "EditContentInfo",
+                    command: "NewContentInfo",
                     param: {
-                        operation: 'new',
                         parent: props,
                         mode: 'manual',
                     },
@@ -24,9 +23,8 @@ export default function AddContentMenu(props: Props) {
                 break;
             case 'unpoint':
                 doCommand({
-                    command: "EditContentInfo",
+                    command: "NewContentInfo",
                     param: {
-                        operation: 'new',
                         parent: props,
                         mode: 'select-unpoint',
                     },

@@ -6,11 +6,10 @@ import SelectUnpointDataList from '../SelectUnpointDataList';
 import styles from './ContentInfoEditDialog.module.scss';
 import { RootState, useAppDispatch } from '../../../store/configureStore';
 // import useConfirm from '../../common/confirm/useConfirm';
-import { addListener, EditContentInfoParam, removeListener } from '../../../util/Commander';
+import { addListener, EditContentInfoWithAttrParam, NewContentInfoParam, removeListener } from '../../../util/Commander';
 import { api } from '279map-common';
 import { UnpointContent } from '279map-common';
 import { useSpinner } from '../../common/spinner/useSpinner';
-import { getContents } from '../../../store/data/dataUtility';
 import { useSelector } from 'react-redux';
 import { linkContentToItem, registContent, updateContent } from '../../../store/data/dataThunk';
 
@@ -33,6 +32,14 @@ enum Mode {
     Manual,
     UnpointContent,
 }
+
+type Target = {
+    type: 'new';
+    param: NewContentInfoParam;
+} | {
+    type: 'edit';
+    contentId: string;
+}
 /**
  * アイテム情報登録・編集コンポーネント
  */
@@ -45,11 +52,8 @@ export default function ContentInfoEditDialog(props: Props) {
         categories: [],
     });
     const [unpointContentId, setUnpointContentId] = useState<string>();
-    // const itemMap = useSelector((state: RootState) => state.data.itemMap);
     const itemMap = {};
-    const [param, setParam] = useState<EditContentInfoParam>();
-    // // 新規登録の場合、親itemId/contentId。編集の場合、contentId。
-    // const [ id, setId ] = useState<string>('');
+    const [target, setTarget] = useState<Target>();
     // const { confirm } = useConfirm();
     const spinnerHook = useSpinner();
     // イベントリスナーの中で使用するため、refに格納
@@ -64,55 +68,38 @@ export default function ContentInfoEditDialog(props: Props) {
      * 当該モーダルを表示する。
      */
     useEffect(() => {
-        const h = addListener('EditContentInfo', async(param: EditContentInfoParam) => {
-            if (!itemMapRef.current) {
-                return;
-            }
-            setParam(param);
-            if (param.operation === 'edit') {
-                // 編集の場合は既存コンテンツをロード
-                const contents = (await getContents(mapServer, [{
-                    contentId: param.contentId,
-                }]));
-                if (!contents || contents?.length === 0) {
-                    return;
-                }
-                const content = contents[0];
-                const attrValue: api.ContentAttr = content.url ? {
-                    title: content.title,
-                    overview: content.overview ?? '',
-                    categories: content.category ?? [],
-                    type: 'sns',
-                    url: content.url,
-                } : {
-                    title: content.title,
-                    overview: content.overview ?? '',
-                    categories: content.category ?? [],
-                    type: 'normal',
-                    date: content.date?.toString(),
-                    imageUrl: content.image ? '/api/getthumb?id=' + content.id : undefined,
-                };
-                setAttrValue(attrValue);
-            }
+        const hNew = addListener('NewContentInfo', async(param: NewContentInfoParam) => {
+            setTarget({
+                type: 'new',
+                param,
+            });
+        });
+        const hEdit = addListener('EditContentInfoWithAttr', async(param: EditContentInfoWithAttrParam) => {
+            setTarget({
+                type: 'edit',
+                contentId: param.contentId,
+            });
+            setAttrValue(param.attr);
             setShow(true);
         });
 
         return () => {
-            removeListener(h);
+            removeListener(hNew);
+            removeListener(hEdit);
         }
 
     }, [dispatch, mapServer]);
 
     const currentMode = useMemo(() => {
-        if (!param || param.operation === 'edit') {
+        if (!target || target.type === 'edit') {
             return Mode.Manual;
         }
-        if (param.mode === 'manual') {
+        if (target.param.mode === 'manual') {
             return Mode.Manual;
         } else {
             return Mode.UnpointContent;
         }
-    }, [param]);
+    }, [target]);
 
     useEffect(() => {
         if (!isShow) {
@@ -133,17 +120,17 @@ export default function ContentInfoEditDialog(props: Props) {
     }, [props.initialValue]);
 
     const onOk = useCallback(async() => {
-        if (!param) {
+        if (!target) {
             return;
         }
         spinnerHook.showSpinner('登録中...');
 
         try {
-            if (param.operation === 'new') {
+            if (target?.type === 'new') {
                 if (currentMode === Mode.Manual) {
                     // 新規登録
                     const apiParam = Object.assign({
-                        parent: param.parent,
+                        parent: target.param.parent,
                     }, attrValue);
                     await dispatch(registContent(apiParam));
 
@@ -154,7 +141,7 @@ export default function ContentInfoEditDialog(props: Props) {
                         return;
                     }
                     await dispatch(linkContentToItem({
-                        parent: param.parent,
+                        parent: target.param.parent,
                         childContentId: unpointContentId,
                     }));
                 }
@@ -162,10 +149,10 @@ export default function ContentInfoEditDialog(props: Props) {
             } else {
                 // 更新
                 const apiParam = Object.assign({
-                    id: param.contentId,
+                    id: target.contentId,
                 }, attrValue);
                 if (apiParam.type === 'normal' && apiParam.imageUrl) {
-                    apiParam.imageUrl = (apiParam.imageUrl === '/api/getthumb?id=' + param.contentId) ? undefined : apiParam.imageUrl;
+                    apiParam.imageUrl = (apiParam.imageUrl === '/api/getthumb?id=' + target.contentId) ? undefined : apiParam.imageUrl;
                 }
                 await dispatch(updateContent(apiParam));
             }
@@ -181,7 +168,7 @@ export default function ContentInfoEditDialog(props: Props) {
             spinnerHook.hideSpinner();
         }
 
-    }, [attrValue, /*confirm, */ spinnerHook, currentMode, dispatch, param, unpointContentId]);
+    }, [attrValue, /*confirm, */ spinnerHook, currentMode, dispatch, target, unpointContentId]);
 
     const onCancel = useCallback(() => {
         if (props.onCancel) {
@@ -207,12 +194,12 @@ export default function ContentInfoEditDialog(props: Props) {
     }, [currentMode, unpointContentId]);
 
     const title = useMemo(() => {
-        if (param?.operation==='edit') {
+        if (target?.type ==='edit') {
             return 'コンテンツ編集';
         } else {
             return 'コンテンツ登録';
         }
-    }, [param]);
+    }, [target]);
 
     return (
         <Modal show={isShow}>
