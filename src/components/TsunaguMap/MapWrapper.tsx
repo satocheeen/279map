@@ -49,6 +49,8 @@ export default function MapWrapper() {
         onModeChangedRef.current = ownerContext.onModeChanged;
         onCategoriesLoadedRef.current = ownerContext.onCategoriesLoaded;
         onEventsLoadedRef.current = ownerContext.onEventsLoaded;
+
+        onNewContentInfoRef.current = ownerContext.onNewContentInfo;
         onEditContentInfoRef.current = ownerContext.onEditContentInfo;
     }, [ownerContext]);
 
