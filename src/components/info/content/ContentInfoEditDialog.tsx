@@ -6,7 +6,7 @@ import SelectUnpointDataList from '../SelectUnpointDataList';
 import styles from './ContentInfoEditDialog.module.scss';
 import { RootState, useAppDispatch } from '../../../store/configureStore';
 // import useConfirm from '../../common/confirm/useConfirm';
-import { addListener, EditContentInfoWithAttrParam, NewContentInfoParam, removeListener } from '../../../util/Commander';
+import { addListener, doCommand, EditContentInfoWithAttrParam, NewContentInfoParam, removeListener } from '../../../util/Commander';
 import { api } from '279map-common';
 import { UnpointContent } from '279map-common';
 import { useSpinner } from '../../common/spinner/useSpinner';
@@ -73,6 +73,7 @@ export default function ContentInfoEditDialog(props: Props) {
                 type: 'new',
                 param,
             });
+            setShow(true);
         });
         const hEdit = addListener('EditContentInfoWithAttr', async(param: EditContentInfoWithAttrParam) => {
             setTarget({
@@ -132,7 +133,10 @@ export default function ContentInfoEditDialog(props: Props) {
                     const apiParam = Object.assign({
                         parent: target.param.parent,
                     }, attrValue);
-                    await dispatch(registContent(apiParam));
+                    await doCommand({
+                        command: 'RegistContent',
+                        param: apiParam,
+                    });
 
                 } else {
                     // 未配置コンテンツを紐づける場合

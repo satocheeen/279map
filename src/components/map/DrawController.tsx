@@ -34,7 +34,7 @@ export default function DrawController(props: Props) {
     
         const listenerH = [] as number[];
         listenerH.push(
-            addListener('DrawStructure', () => {
+            addListener('DrawStructure', async() => {
                 dispatch(operationActions.changeMapMode(MapMode.Drawing));
                 setDrawController(
                     <Suspense fallback={<OverlaySpinner />}>
@@ -44,7 +44,7 @@ export default function DrawController(props: Props) {
             })
         );
         listenerH.push(
-            addListener('MoveStructure', () => {
+            addListener('MoveStructure', async() => {
                 dispatch(operationActions.changeMapMode(MapMode.Drawing));
                 setDrawController(
                     <Suspense fallback={<OverlaySpinner />}>
@@ -54,7 +54,7 @@ export default function DrawController(props: Props) {
             })
         );
         listenerH.push(
-            addListener('ChangeStructure', () => {
+            addListener('ChangeStructure', async() => {
                 dispatch(operationActions.changeMapMode(MapMode.Drawing));
                 setDrawController(
                     <Suspense fallback={<OverlaySpinner />}>
@@ -64,7 +64,7 @@ export default function DrawController(props: Props) {
             })
         );
         listenerH.push(
-            addListener('RemoveStructure', () => {
+            addListener('RemoveStructure', async() => {
                 dispatch(operationActions.changeMapMode(MapMode.Drawing));
                 setDrawController(
                     <Suspense fallback={<OverlaySpinner />}>
@@ -74,7 +74,7 @@ export default function DrawController(props: Props) {
             })
         );
         listenerH.push(
-            addListener('DrawTopography', (featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA) => {
+            addListener('DrawTopography', async(featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA) => {
                 dispatch(operationActions.changeMapMode(MapMode.Drawing));
                 setDrawController(
                     <Suspense fallback={<OverlaySpinner />}>
@@ -84,7 +84,7 @@ export default function DrawController(props: Props) {
             })
         );
         listenerH.push(
-            addListener('DrawRoad', () => {
+            addListener('DrawRoad', async() => {
                 dispatch(operationActions.changeMapMode(MapMode.Drawing));
                 setDrawController(
                     <Suspense fallback={<OverlaySpinner />}>
@@ -94,7 +94,7 @@ export default function DrawController(props: Props) {
             })
         );
         listenerH.push(
-            addListener('EditTopography', () => {
+            addListener('EditTopography', async() => {
                 dispatch(operationActions.changeMapMode(MapMode.Drawing));
                 setDrawController(
                     <Suspense fallback={<OverlaySpinner />}>
@@ -104,7 +104,7 @@ export default function DrawController(props: Props) {
             })
         );
         listenerH.push(
-            addListener('EditTopographyInfo', () => {
+            addListener('EditTopographyInfo', async() => {
                 dispatch(operationActions.changeMapMode(MapMode.Drawing));
                 setDrawController(
                     <Suspense fallback={<OverlaySpinner />}>
@@ -114,7 +114,7 @@ export default function DrawController(props: Props) {
             })
         );
         listenerH.push(
-            addListener('RemoveTopography', () => {
+            addListener('RemoveTopography', async() => {
                 dispatch(operationActions.changeMapMode(MapMode.Drawing));
                 setDrawController(
                     <Suspense fallback={<OverlaySpinner />}>

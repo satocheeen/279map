@@ -327,8 +327,8 @@ export default function MapChart() {
             }
         });
 
-        const h = addListener('LoadLatestData', () => {
-            loadCurrentAreaContents();
+        const h = addListener('LoadLatestData', async() => {
+            await loadCurrentAreaContents();
         });
 
         return () => {

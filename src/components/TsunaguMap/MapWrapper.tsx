@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
-import { loadCategories, loadEvents } from '../../store/data/dataThunk';
+import { loadCategories, loadEvents, registContent } from '../../store/data/dataThunk';
 import { useFilter } from '../../store/useFilter';
 import { addListener, doCommand, removeListener } from '../../util/Commander';
 import { usePrevious } from '../../util/usePrevious';
@@ -55,9 +55,9 @@ export default function MapWrapper() {
      * 初回処理
      */
     useEffect(() => {
-        const h = addListener('LoadLatestData', () => {
-            dispatch(loadEvents());
-            dispatch(loadCategories());
+        const h = addListener('LoadLatestData', async() => {
+            await dispatch(loadEvents());
+            await dispatch(loadCategories());
         });
         const h2 = addListener('EditContentInfo', async(contentId: string) => {
             // 編集対象コンテンツをロード
@@ -90,10 +90,15 @@ export default function MapWrapper() {
                 }
             });
         });
+        const h3 = addListener('RegistContent', async(param: api.RegistContentParam) => {
+            await dispatch(registContent(param));
+
+        });
 
         return () => {
             removeListener(h);
             removeListener(h2);
+            removeListener(h3);
         }
 
     }, [dispatch, mapServer]);

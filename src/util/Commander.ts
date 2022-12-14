@@ -1,6 +1,6 @@
 import { api, FeatureType } from "279map-common";
 
-type TCallBack<T> = (param: T) => void;
+type TCallBack<T> = (param: T) => Promise<void>;
 
 type TCommandDefine<COMMAND extends string, PARAM> = {
     subscription: Parameters<(command: COMMAND, callback: TCallBack<PARAM>) => void>;
@@ -9,20 +9,6 @@ type TCommandDefine<COMMAND extends string, PARAM> = {
         param: PARAM;
     }
 }
-// export type EditContentInfoParam = {
-//     // 編集の場合
-//     operation: 'edit',
-//     contentId: string;
-// } | {
-//     // 新規コンテンツ登録の場合
-//     operation: 'new',
-//     parent: {
-//         itemId: string;
-//     } | {
-//         contentId: string;
-//     }
-//     mode: 'manual' | 'select-unpoint';
-// }
 export type NewContentInfoParam = {
     parent: {
         itemId: string;
@@ -64,6 +50,8 @@ type CommandDefine =
     | TCommandDefine<'EditContentInfo', string>
     // コンテンツ情報編集 引数:編集対象のコンテンツ情報. EditContentInfoを受けて、対象データを取得した後に発火される
     | TCommandDefine<'EditContentInfoWithAttr', EditContentInfoWithAttrParam>
+    // コンテンツ登録
+    | TCommandDefine<'RegistContent', api.RegistContentParam>
     ;
 type TSubscription = CommandDefine['subscription'];
 type TCallback = TSubscription[1];
@@ -95,12 +83,12 @@ export const removeListener = (id: number) => {
     commandListenerListMap[listener.command] = commandListenerListMap[listener.command].filter(itemId => id !== itemId);
 }
 
-export const doCommand = (param: CommandSet) => {
+export const doCommand = async(param: CommandSet) => {
     if (!(param.command in commandListenerListMap)) {
         return;
     }
     for (const listenerId of commandListenerListMap[param.command]) {
         const listener = listenerMap[listenerId].callback;
-        listener(param.param as never);
+        await listener(param.param as never);
     }
 }
