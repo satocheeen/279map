@@ -1,6 +1,7 @@
 import { api, CategoryDefine, EventDefine, MapKind } from '279map-common';
 import React from 'react';
 import { Provider } from 'react-redux';
+import { CommandHookType } from '../../api/useCommand';
 import { EditContentInfoWithAttrParam, FilterDefine, NewContentInfoParam } from '../../entry';
 import { store } from '../../store/configureStore';
 import { DefaultIconDefine, MapMode } from '../../types/types';
@@ -21,7 +22,7 @@ export type TsunaguMapProps = {
 
     filter?: FilterDefine[];
 
-    onConnect?: (mapDefine: api.ConnectResult) => void;
+    onConnect?: (mapDefine: api.ConnectResult, commandHook: CommandHookType) => void;
     onSelect?: (targets: string[]) => void; // callback when items are selected
     onUnselect?: () => void;    // callback when items are unselected.
     onModeChanged?: (mode: MapMode) => void;    // callback when map mode has changed.

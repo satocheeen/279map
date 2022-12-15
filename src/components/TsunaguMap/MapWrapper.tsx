@@ -1,9 +1,9 @@
-import React, { useContext, useEffect, useMemo, useRef } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { linkContentToItem, loadCategories, loadEvents, registContent, updateContent } from '../../store/data/dataThunk';
 import { useFilter } from '../../store/useFilter';
-import { addListener, doCommand, NewContentInfoParam, removeListener } from '../../util/Commander';
+import { addListener, NewContentInfoParam, removeListener } from '../../util/Commander';
 import { usePrevious } from '../../util/usePrevious';
 import MapChart from './MapChart';
 import { operationActions, PopupTarget } from '../../store/operation/operationSlice';
@@ -15,6 +15,7 @@ import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
 import { useSpinner } from '../common/spinner/useSpinner';
 import { api } from '279map-common';
 import { getContents } from '../../store/data/dataUtility';
+import { useCommand } from '../../api/useCommand';
 
 export default function MapWrapper() {
     const ownerContext = useContext(OwnerContext);
@@ -96,13 +97,13 @@ export default function MapWrapper() {
             }
         });
         const h3 = addListener('RegistContent', async(param: api.RegistContentParam) => {
-            await dispatch(registContent(param));``
+            await dispatch(registContent(param));
         });
         const h4 = addListener('UpdateContent', async(param: api.UpdateContentParam) => {
-            await dispatch(updateContent(param));``
+            await dispatch(updateContent(param));
         });
         const h5 = addListener('LinkContentToItem', async(param: api.LinkContentToItemParam) => {
-            await dispatch(linkContentToItem(param));``
+            await dispatch(linkContentToItem(param));
         });
         const h6 = addListener('NewContentInfo', async(param: NewContentInfoParam) => {
             if(onNewContentInfoRef.current) {
@@ -121,10 +122,13 @@ export default function MapWrapper() {
 
     }, [dispatch, mapServer]);
 
+    const commandHook = useCommand();
     /**
      * connect to map
      */
     useEffect(() => {
+        if (mapServer.domain.length === 0) return;
+
         // connect
         dispatch(connectMap({
             mapId: ownerContext.mapId,
@@ -132,10 +136,11 @@ export default function MapWrapper() {
         }))
         .then((res) => {
             if (onConnectRef.current) {
-                onConnectRef.current(res.payload as api.ConnectResult);
+                onConnectRef.current(res.payload as api.ConnectResult, commandHook);
             }
         })
-    }, [dispatch, ownerContext.mapId, ownerContext.auth]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [dispatch, ownerContext.mapId, ownerContext.auth, mapServer]);
 
     /**
      * load map define when connected map or mapkind has changed.

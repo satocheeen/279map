@@ -1,5 +1,6 @@
 import { api, MapKind } from '279map-common';
 import React, { useState, useCallback } from 'react';
+import { CommandHookType } from '../api/useCommand';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
 import { FilterDefine } from '../entry';
 import { doCommand } from '../util/Commander';
@@ -16,9 +17,11 @@ const props = {
 
 export default function TestMap() {
     const [ cnt, setCnt ] = useState(0);
-    const onConnect = useCallback((mapDefine: api.ConnectResult) => {
+    const [ commandHook, setCommandHook ] = useState<CommandHookType>();
+    const onConnect = useCallback((mapDefine: api.ConnectResult, commandHook: CommandHookType) => {
         console.log('connect', mapDefine);
         setMapKind(mapDefine.defaultMapKind);
+        setCommandHook(commandHook);
         setCnt(cnt + 1);
     }, [cnt]);
 
@@ -45,6 +48,12 @@ export default function TestMap() {
     const onCallback = useCallback((msg: string, param: any) => {
         console.log(msg, param);
     }, []);
+
+    const callGetSnsPreview = useCallback(async() => {
+        if(!commandHook) return;
+        const result = await commandHook.getSnsPreviewAPI('https://www.instagram.com/umihiko.miya/');
+        console.log('result', result);
+    }, [commandHook]);
 
     const createStructure = useCallback(() => {
         doCommand({
@@ -83,6 +92,7 @@ export default function TestMap() {
                 <PropRadio name='disabledPopup' value={disabledPopup} onChange={setDisablePopup} />
                 <PropRadio name='disabledLabel' value={disabledLabel} onChange={setDisableLabel} />
                 <button onClick={createStructure}>建設</button>
+                <button onClick={callGetSnsPreview}>GetSNS</button>
                 <button onClick={onFilter}>Filter</button>
                 <button onClick={clearFilter}>Filter Clear</button>
             </div>
