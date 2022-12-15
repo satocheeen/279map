@@ -75,6 +75,14 @@ export default function TestMap() {
         setFilter([]);
     }, []);
 
+    const confirm = useCallback(async() => {
+        const result = await commandHook?.confirm({
+            message: '確認ためし',
+            title: '確認',
+        });
+        console.log('confirm result', result);
+    }, [commandHook]);
+
     return (
         <>
             <div className={styles.Form}>
@@ -93,6 +101,7 @@ export default function TestMap() {
                 <PropRadio name='disabledLabel' value={disabledLabel} onChange={setDisableLabel} />
                 <button onClick={createStructure}>建設</button>
                 <button onClick={callGetSnsPreview}>GetSNS</button>
+                <button onClick={confirm}>Confirm</button>
                 <button onClick={onFilter}>Filter</button>
                 <button onClick={clearFilter}>Filter Clear</button>
             </div>

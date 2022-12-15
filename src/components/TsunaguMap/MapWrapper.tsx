@@ -96,15 +96,6 @@ export default function MapWrapper() {
                 });
             }
         });
-        const h3 = addListener('RegistContent', async(param: api.RegistContentParam) => {
-            await dispatch(registContent(param));
-        });
-        const h4 = addListener('UpdateContent', async(param: api.UpdateContentParam) => {
-            await dispatch(updateContent(param));
-        });
-        const h5 = addListener('LinkContentToItem', async(param: api.LinkContentToItemParam) => {
-            await dispatch(linkContentToItem(param));
-        });
         const h6 = addListener('NewContentInfo', async(param: NewContentInfoParam) => {
             if(onNewContentInfoRef.current) {
                 onNewContentInfoRef.current(param);
@@ -114,9 +105,6 @@ export default function MapWrapper() {
         return () => {
             removeListener(h);
             removeListener(h2);
-            removeListener(h3);
-            removeListener(h4);
-            removeListener(h5);
             removeListener(h6);
         }
 
