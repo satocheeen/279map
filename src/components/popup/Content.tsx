@@ -18,6 +18,7 @@ import { Auth, ContentsDefine, MapKind } from "279map-common";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import { useAPI } from "../../api/useAPI";
 import Spinner from "../common/spinner/Spinner";
+import { operationActions } from "../../store/operation/operationSlice";
 
 type Props = {
     itemId: string;
@@ -134,6 +135,8 @@ export default function Content(props: Props) {
             return;
         }
         const anotherMap = mapKind === MapKind.Real ? MapKind.Virtual : MapKind.Real;
+        dispatch(operationActions.setMapKind(anotherMap));
+        dispatch(operationActions.setFocusItemId(props.content.anotherMapItemId));
         // TODO:
         // searchParams.set('kind', anotherMap);
         // searchParams.set('feature', props.content.anotherMapItemId);

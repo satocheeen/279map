@@ -525,6 +525,7 @@ export default function MapChart() {
                 return !exist;
             });
             deleteFeatures.forEach(feature => {
+                console.log('removeFeature', feature.getId());
                 source.removeFeature(feature);
             });
         };
@@ -533,50 +534,82 @@ export default function MapChart() {
             deleteFeatureFunc(topographyContentsSourceRef.current);
         }
 
-        // TODO: 
-        // 初期FitさせるFeatureが指定されていて、そのFeatureが追加されたなら、Fit
-        // const featureId = searchParams.get('feature');
-        // if (featureId) {
-        //     let feature = null as Feature<Geometry> | null;
-        //     mapRef.current?.getAllLayers().some((layer) => {
-        //         const source = layer.getSource();
-        //         if (!source) {
-        //             return false;
-        //         }
-        //         if (!(source instanceof VectorSource)) {
-        //             return false;
-        //         }
-        //         feature = source.getFeatureById(featureId);
-        //         if (feature) {
-        //             return true;
-        //         } else {
-        //             return false;
-        //         }
-        //     });
-        //     if (feature) {
-        //         // 特定のFeatureが指定されている場合は、そこにfitさせる
-        //         const ext = feature.getGeometry()?.getExtent();
-        //         if (ext) {
-        //             const itemId = feature.getId() as string;
-        //             mapRef.current?.getView().fit(ext, {
-        //                 duration: 1000,
-        //                 callback: () => {
-        //                     // ポップアップ表示
-        //                     dispatch(openItemContentsPopup([{
-        //                         type: 'item',
-        //                         itemId,
-        //                     }]));
-        //                 }
-        //             });
-
-        //             // fitしおわったらクエリから除去
-        //             searchParams.delete('feature');
-        //             setSearchParams(searchParams);
-        //         }
-        //     }
-        // }
-
     }, [geoJsonItems, getGeocoderFeature]);
+
+    const focusItemId = useSelector((state: RootState) => state.operation.focusItemId);
+    const operationMapKind = useSelector((state: RootState) => state.operation.currentMapKind);
+    // 初期FitさせるFeatureが指定されていて、そのFeatureが追加されたなら、Fit
+    useEffect(() => {
+        if (!focusItemId) return;
+        console.log('focusItemId', focusItemId);
+        if (mapKind !== operationMapKind) {
+            // 地図の切り替え完了していない場合
+            return;
+        }
+
+        const getFeature = new Promise<FeatureLike>((resolve) => {
+            const searchFeatureFromAllLayers = (id: string) => {
+                const feature = pointContentsSourceRef.current.getFeatureById(id);
+                if (feature) {
+                    return feature;
+                }
+                const feature2 = topographyContentsSourceRef.current.getFeatureById(id);
+                return feature2;
+            };
+
+            const feature = searchFeatureFromAllLayers(focusItemId);
+    
+            if (feature) {
+                resolve(feature);
+                return;
+            }
+            // featureが存在しないなら、追加されるまで待つ
+            const eventSource = [] as VectorSource[];
+            const eventFn = () => {
+                const feature = searchFeatureFromAllLayers(focusItemId);
+                if (!feature) return;
+
+                eventSource.forEach(eSource => {
+                    eSource.un('addfeature', eventFn);
+                });
+                resolve(feature);
+            };
+            mapRef.current?.getAllLayers().forEach((layer) => {
+                const source = layer.getSource();
+                if (!source) {
+                    return;
+                }
+                if (!(source instanceof VectorSource)) {
+                    return;
+                }
+                eventSource.push(source);
+                source.on('addfeature', eventFn);
+            });
+        });
+
+        getFeature
+        .then((feature) => {
+            // 特定のFeatureが指定されている場合は、そこにfitさせる
+            const ext = feature.getGeometry()?.getExtent();
+            if (!ext) return;
+
+            mapRef.current?.getView().fit(ext, {
+                duration: 1000,
+                callback: () => {
+                    // ポップアップ表示
+                    dispatch(openItemContentsPopup([{
+                        type: 'item',
+                        itemId: focusItemId,
+                    }]));
+                }
+            });
+
+            // fitしおわったら除去
+            dispatch(operationActions.setFocusItemId(null));
+
+        })
+
+    }, [dispatch, focusItemId, mapKind, operationMapKind]);
 
     useEffect(() => {
         // コンテンツを地図ソースに追加

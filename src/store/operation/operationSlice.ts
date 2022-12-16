@@ -35,6 +35,8 @@ const operationSlice = createSlice({
     initialState: {
         // 表示する地図種別を指定（この値を変更すると、地図種別が切り替わる）
         currentMapKind: null as MapKind | null,
+        // フォーカスするアイテムを指定
+        focusItemId: null as string | null,
 
         // 選択中アイテムID
         selectedItemIds: [] as string[],
@@ -62,6 +64,9 @@ const operationSlice = createSlice({
     reducers: {
         setMapKind(state, action: PayloadAction<MapKind>) {
             state.currentMapKind = action.payload;
+        },
+        setFocusItemId(state, action: PayloadAction<string|null>) {
+            state.focusItemId = action.payload;
         },
         setSelectItem(state, action: PayloadAction<string[]>) {
             if (JSON.stringify(state.selectedItemIds) === JSON.stringify(action.payload)) {
