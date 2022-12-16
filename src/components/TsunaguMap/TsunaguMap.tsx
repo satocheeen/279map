@@ -15,13 +15,14 @@ export type TsunaguMapProps = {
     mapServerHost: string;
     auth?: string;
     iconDefine?: DefaultIconDefine[];
-    mapKind?: MapKind;  // which view Real or Virtual.
+    // mapKind?: MapKind;  // which view Real or Virtual.
     disabledPopup?: boolean; // when true, the map don't show popup.
     disabledLabel?: boolean; // when true, the item's label hidden.
 
     filter?: FilterDefine[];
 
     onConnect?: (mapDefine: api.ConnectResult, commandHook: CommandHookType) => void;
+    onMapKindChanged?: (mapKind: MapKind) => void;
     onSelect?: (targets: string[]) => void; // callback when items are selected
     onUnselect?: () => void;    // callback when items are unselected.
     onModeChanged?: (mode: MapMode) => void;    // callback when map mode has changed.
@@ -36,7 +37,7 @@ export const OwnerContext = React.createContext<TsunaguMapProps>({
     mapId: '',
     mapServerHost: '',
     iconDefine: [],
-    mapKind: MapKind.Real,
+    // mapKind: MapKind.Real,
 });
 export default function TsunaguMap(props: TsunaguMapProps) {
     return (

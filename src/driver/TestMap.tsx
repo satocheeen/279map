@@ -35,6 +35,13 @@ export default function TestMap() {
 
     const [ filter, setFilter ] = useState<FilterDefine[]>([]);
 
+    const onMapKindChanged = useCallback((mapKind: MapKind) => {
+        setMapKind(mapKind);
+    }, []);
+    const switchMapKind = useCallback((mapKind: MapKind) => {
+        commandHook?.switchMapKind(mapKind);
+    }, [commandHook]);
+
     // callbacks
     const onSelect = useCallback((ids: string[]) => {
         console.log('onSelect', ids, cnt);
@@ -90,11 +97,11 @@ export default function TestMap() {
                     <h3>地図種別</h3>
                     <label>
                         日本地図
-                        <input type="radio" checked={mapKind===MapKind.Real} onChange={() => setMapKind(MapKind.Real)} />
+                        <input type="radio" checked={mapKind===MapKind.Real} onChange={() => switchMapKind(MapKind.Real)} />
                     </label>
                     <label>
                         村マップ
-                        <input type="radio" checked={mapKind===MapKind.Virtual} onChange={() => setMapKind(MapKind.Virtual)} />
+                        <input type="radio" checked={mapKind===MapKind.Virtual} onChange={() => switchMapKind(MapKind.Virtual)} />
                     </label>
                 </div>
                 <PropRadio name='disabledPopup' value={disabledPopup} onChange={setDisablePopup} />
@@ -106,11 +113,12 @@ export default function TestMap() {
                 <button onClick={clearFilter}>Filter Clear</button>
             </div>
             <div className={styles.Map}>
-                <TsunaguMap {...props} mapKind={mapKind}
+                <TsunaguMap {...props}
                     disabledPopup={disabledPopup}
                     disabledLabel={disabledLabel}
                     filter={filter}
                     onConnect={onConnect}
+                    onMapKindChanged={onMapKindChanged}
                     onSelect={onSelect} onUnselect={onUnselect}
                     onModeChanged={(val) => onCallback('onModeChanged', val)}
                     onCategoriesLoaded={(val)=>onCallback('onCategoriesLoaded', val)} />

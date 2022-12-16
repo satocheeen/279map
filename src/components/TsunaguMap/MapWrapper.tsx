@@ -20,11 +20,12 @@ import { useCommand } from '../../api/useCommand';
 export default function MapWrapper() {
     const ownerContext = useContext(OwnerContext);
     const connectedMap = useSelector((state: RootState) => state.session.connectedMap);
-    const ownerMapKind = useMemo(() => ownerContext.mapKind, [ownerContext]);
+    // const ownerMapKind = useMemo(() => ownerContext.mapKind, [ownerContext]);
     const currentMapKindInfo = useSelector((state: RootState) => state.session.currentMapKindInfo);
     const spinner = useSpinner();
 
     const onConnectRef = useRef<typeof ownerContext.onConnect>();
+    const onMapKindChangedRef = useRef<typeof ownerContext.onMapKindChanged>();
     const onSelectRef = useRef<typeof ownerContext.onSelect>();
     const onUnselectRef = useRef<typeof ownerContext.onUnselect>();
     const onModeChangedRef = useRef<typeof ownerContext.onModeChanged>();
@@ -45,6 +46,7 @@ export default function MapWrapper() {
 
     useEffect(() => {
         onConnectRef.current = ownerContext.onConnect;
+        onMapKindChangedRef.current = ownerContext.onMapKindChanged;
         onSelectRef.current = ownerContext.onSelect;
         onUnselectRef.current = ownerContext.onUnselect;
         onModeChangedRef.current = ownerContext.onModeChanged;
@@ -130,6 +132,7 @@ export default function MapWrapper() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dispatch, ownerContext.mapId, ownerContext.auth, mapServer]);
 
+    const currentMapKind = useSelector((state: RootState) => state.operation.currentMapKind);
     /**
      * load map define when connected map or mapkind has changed.
      */
@@ -137,10 +140,21 @@ export default function MapWrapper() {
         if (!connectedMap) {
             return;
         }
-        const mapKind = ownerMapKind ?? connectedMap.defaultMapKind;
+        const mapKind = currentMapKind ?? connectedMap.defaultMapKind;
+        if (currentMapKindInfo?.mapKind === mapKind) {
+            return;
+        }
         dispatch(loadMapDefine(mapKind));
         // loadLatestData();
-    }, [connectedMap, ownerMapKind, dispatch]);
+    }, [connectedMap, currentMapKind, currentMapKindInfo, dispatch]);
+
+    useEffect(() => {
+        if (!currentMapKindInfo) return;
+
+        if (onMapKindChangedRef.current) {
+            onMapKindChangedRef.current(currentMapKindInfo.mapKind);
+        }
+    }, [currentMapKindInfo]);
 
     /**
      * 選択アイテムが変更されたらコールバック

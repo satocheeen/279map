@@ -1,3 +1,4 @@
+import { MapKind } from "279map-common";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Extent } from "ol/extent";
 import { ConfirmParam, ConfirmResult } from "../../components/common/confirm/useConfirm";
@@ -32,6 +33,9 @@ export type PopupTarget = {
 const operationSlice = createSlice({
     name: 'operation',
     initialState: {
+        // 表示する地図種別を指定（この値を変更すると、地図種別が切り替わる）
+        currentMapKind: null as MapKind | null,
+
         // 選択中アイテムID
         selectedItemIds: [] as string[],
 
@@ -56,6 +60,9 @@ const operationSlice = createSlice({
         confirmResult: undefined as undefined | ConfirmResult,
     },
     reducers: {
+        setMapKind(state, action: PayloadAction<MapKind>) {
+            state.currentMapKind = action.payload;
+        },
         setSelectItem(state, action: PayloadAction<string[]>) {
             if (JSON.stringify(state.selectedItemIds) === JSON.stringify(action.payload)) {
                 return;

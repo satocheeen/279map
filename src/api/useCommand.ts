@@ -2,9 +2,10 @@ import { useSelector } from "react-redux";
 import { useCallback } from 'react';
 import { RootState, useAppDispatch } from "../store/configureStore";
 import { callApi } from "./api";
-import { api, UnpointContent } from '279map-common';
+import { api, MapKind, UnpointContent } from '279map-common';
 import { registContent, updateContent, linkContentToItem } from '../store/data/dataThunk';
 import useConfirm from "../components/common/confirm/useConfirm";
+import { operationActions } from "../store/operation/operationSlice";
 
 /**
  * Parts側から呼び出し可能なコマンド
@@ -13,6 +14,13 @@ export function useCommand() {
     const mapServer = useSelector((state: RootState) => state.session.mapServer);
     const dispatch = useAppDispatch();
     const { confirm } = useConfirm();
+
+    /**
+     * 表示する地図種別の切り替え
+     */
+    const switchMapKind = useCallback((mapKind: MapKind) => {
+        dispatch(operationActions.setMapKind(mapKind));
+    }, [dispatch]);
 
     const registContentAPI = useCallback(async(param: api.RegistContentParam) => {
         await dispatch(registContent(param));
@@ -47,6 +55,7 @@ export function useCommand() {
     }, [mapServer]);
 
     return {
+        switchMapKind,
         confirm,
         registContentAPI,
         updateContentAPI,
