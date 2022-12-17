@@ -27,12 +27,24 @@ flowchart LR
 ```
 
 ## Develop
-```shell
-npm i
-npm run dev
-```
+1. create .env.dev. from sample.
+	```shell
+	cp .env.dev.sample .env.dev
+	```
+2. edit .env.dev
+3. package install
+	```shell
+	npm i
+	```
+4. start developer server.
+	```shell
+	npm run dev
+	```
 
-## Deploy Dcoker Container
-```shell
-docker-compose up -d
-```
+## Deploy
+1. delete exist docker image `279map-backend-main`
+2. make docker image
+	```shell
+	docker image build -t 279map-backend-main .
+	```
+3. make `docker-compose.yml`
