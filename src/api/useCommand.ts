@@ -22,6 +22,10 @@ export function useCommand() {
         dispatch(operationActions.setMapKind(mapKind));
     }, [dispatch]);
 
+    const focueItem = useCallback((itemId: string) => {
+        dispatch(operationActions.setFocusItemId(itemId));
+    }, [dispatch]);
+
     const registContentAPI = useCallback(async(param: api.RegistContentParam) => {
         await dispatch(registContent(param));
 
@@ -56,6 +60,7 @@ export function useCommand() {
 
     return {
         switchMapKind,
+        focueItem,
         confirm,
         registContentAPI,
         updateContentAPI,

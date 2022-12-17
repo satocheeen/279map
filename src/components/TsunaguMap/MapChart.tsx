@@ -542,7 +542,7 @@ export default function MapChart() {
     useEffect(() => {
         if (!focusItemId) return;
         console.log('focusItemId', focusItemId);
-        if (mapKind !== operationMapKind) {
+        if (operationMapKind && mapKind !== operationMapKind) {
             // 地図の切り替え完了していない場合
             return;
         }

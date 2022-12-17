@@ -90,6 +90,14 @@ export default function TestMap() {
         console.log('confirm result', result);
     }, [commandHook]);
 
+    const [ focusItemId, setFocusItemId ] = useState('');
+    const onChangeFocusItemId = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+        setFocusItemId(event.target.value);
+    }, []);
+    const onFocusItem = useCallback(() => {
+        commandHook?.focueItem(focusItemId);
+    }, [commandHook, focusItemId]);
+
     return (
         <>
             <div className={styles.Form}>
@@ -111,6 +119,11 @@ export default function TestMap() {
                 <button onClick={confirm}>Confirm</button>
                 <button onClick={onFilter}>Filter</button>
                 <button onClick={clearFilter}>Filter Clear</button>
+
+                <div className={styles.Col}>
+                    <input type='text' value={focusItemId} onChange={onChangeFocusItemId} />
+                    <button onClick={onFocusItem}>Focus Item</button>
+                </div>
             </div>
             <div className={styles.Map}>
                 <TsunaguMap {...props}
