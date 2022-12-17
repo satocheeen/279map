@@ -41,10 +41,6 @@ if (!process.env.MAIN_SERVICE_PORT) {
     console.warn('not set env MAIN_SERVICE_PORT');
     exit(1);
 }
-if (!process.env.STATIC_PATH) {
-    console.warn('not set env STATIC_PATH');
-    exit(1);
-}
 if (!process.env.SESSION_SECRET_KEY) {
     console.warn('not set env SESSION_SECRET_KEY');
     exit(1);
@@ -92,10 +88,6 @@ const sessionConfig = {
 };
 app.use(session(sessionConfig));
 app.use(cookieParser());
-
-// 本番では./html、開発環境では../buildを参照する
-const static_path = process.env.STATIC_PATH || '../../build';
-app.use(express.static(static_path));
 
 // File Service proxy
 if (process.env.FS_SERVICE_URL_PATH) {
@@ -555,7 +547,17 @@ apiList.forEach((api => {
 
 }));
 
-app.use('*', express.static(static_path));
+/**
+ * Frontend資源へプロキシ
+ */
+if (process.env.FRONTEND_SERVICE_HOST && process.env.FRONTEND_SERVICE_PORT) {
+    const url = process.env.FRONTEND_SERVICE_HOST + ':' + process.env.FRONTEND_SERVICE_PORT;
+    app.use('*', proxy(url, {
+        proxyReqPathResolver: (req) => {
+            return req.originalUrl;
+        },
+    }));    
+}
 
 logger.info('starting internal server');
 /**
