@@ -44,6 +44,10 @@ export const loadMapDefine = createAsyncThunk<api.GetMapInfoResult, MapKind>(
         const mapServer = session.mapServer;
 
         try {
+            if (mapServer.domain.length === 0) {
+                throw 'no set mapserver';
+            }
+    
             if (!session.connectedMap) {
                 throw 'no connect map.';
             }
