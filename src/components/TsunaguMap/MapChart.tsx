@@ -302,7 +302,13 @@ export default function MapChart() {
             const hitIds = [] as string[];
             mapRef.current.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
                 const layerName = layer.getProperties()['name'];
-                if (layerName === 'itemLayer' || layerName === 'topographyLayer') {
+                if (layerName === 'itemLayer') {
+                    const features = feature.get('features') as FeatureLike[];
+                    features.forEach(f => {
+                        const id = f.getId() as string;
+                        hitIds.push(id)
+                    });
+                } else if(layerName === 'topographyLayer') {
                     const id = feature.getId() as string;
                     hitIds.push(id)
                 }
