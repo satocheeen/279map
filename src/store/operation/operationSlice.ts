@@ -41,8 +41,8 @@ const operationSlice = createSlice({
         // 選択中アイテムID
         selectedItemIds: [] as string[],
 
-        // ポップアップを開いて表示する対象一覧
-        popupTargets: [] as PopupTarget[],
+        // // ポップアップを開いて表示する対象一覧
+        // popupTargets: [] as PopupTarget[],
 
         filter: [] as FilterDefine[],
         mapMode: MapMode.Normal,
@@ -80,12 +80,12 @@ const operationSlice = createSlice({
             }
             state.selectedItemIds = [];
         },
-        setPopup(state, action: PayloadAction<PopupTarget[]>) {
-            state.popupTargets = action.payload;
-        },
-        clearPopup(state) {
-            state.popupTargets = [];
-        },
+        // setPopup(state, action: PayloadAction<PopupTarget[]>) {
+        //     state.popupTargets = action.payload;
+        // },
+        // clearPopup(state) {
+        //     state.popupTargets = [];
+        // },
         setFilter(state, action: PayloadAction<FilterDefine[]>) {
             state.filter = action.payload;
         },
@@ -126,7 +126,7 @@ const operationSlice = createSlice({
         builder
         .addCase(loadMapDefine.fulfilled, (state, action) => {
             state.filter = [];
-            state.popupTargets = [];
+            // state.popupTargets = [];
         })
     }
 })

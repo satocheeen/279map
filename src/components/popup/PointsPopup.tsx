@@ -6,7 +6,6 @@ import { BsThreeDots } from 'react-icons/bs';
 import { useFilter } from "../../store/useFilter";
 import ItemContents from "./ItemContents";
 import { openItemPopup } from "./popupThunk";
-import useData from "../../store/data/useData";
 import { ContentsDefine } from "279map-common";
 
 type Props = {
@@ -20,74 +19,24 @@ export type PopupItem = {
 }
 
 export default function PointsPopup(props: Props) {
-    const popupTargets = useSelector((state: RootState) => state.operation.popupTargets);
-    const { contentsMap, itemContentsMap } = useData();
+    const itemMap = useSelector((state: RootState) => state.data.itemMap);
 
-    /**
-     * popupTargets内のうち、自身に関係するもの
-     */
-    const myTargets = useMemo(() => {
-        return popupTargets.filter(target => {
-            if (target.type === 'item') {
-                return props.itemIds.includes(target.itemId);
-            } else {
-                const content = contentsMap.get(target.contentId);
-                if (!content) {
-                    return false;
-                }
-                return props.itemIds.includes(content.itemId);
-            }
-        });
-    }, [popupTargets, contentsMap, props.itemIds]);
-
-    /**
-     * 表示対象のコンテンツ情報一覧
-     */
-    const targetContentsList = useMemo((): PopupItem[] => {
-        const map = {} as {[itemId: string]: PopupItem};
-        myTargets.forEach(target => {
-            if (target.type === 'item') {
-                const content = itemContentsMap.get(target.itemId);
-                if (content || target.force) {
-                    if (!map[target.itemId]) {
-                        map[target.itemId] = {
-                            id: target.itemId,
-                        };
-                    }
-                    if (content) {
-                        map[target.itemId].content = content;
-                    }
-                }
-            } else {
-                const content = contentsMap.get(target.contentId);
-                if (content) {
-                    if (!map[content.itemId]) {
-                        map[content.itemId] = {
-                            id: content.itemId,
-                            // name: itemMap[content.itemId].name,
-                            // overview: itemMap[content.itemId].overview,
-                            // contents: [],
-                        };
-                    }
-                    map[content.itemId].content = content;
-                }
-            }
-        })
-        return Object.values(map);
-    }, [contentsMap, itemContentsMap, myTargets]);
-
+    const targets = useMemo(() => {
+        return props.itemIds.map(id => itemMap[id]);
+    }, [props.itemIds, itemMap]);
     const { isFiltered } = useFilter();
     const status = useMemo((): 'Open' | 'Close' | 'Hide' => {
-        if (targetContentsList.length > 0) {
-            return 'Open';
-        }
-        // フィルタOn状態で、当該アイテムに表示対象コンテンツのない場合は、非表示にする
-        if (isFiltered) {
-            return 'Hide';
-        }
-        return 'Close';
+        return 'Open';
+        // if (targetContentsList.length > 0) {
+        //     return 'Open';
+        // }
+        // // フィルタOn状態で、当該アイテムに表示対象コンテンツのない場合は、非表示にする
+        // if (isFiltered) {
+        //     return 'Hide';
+        // }
+        // return 'Close';
 
-    }, [targetContentsList, isFiltered]);
+    }, [isFiltered]);
 
     const dispatch = useAppDispatch();
     const onOpen = useCallback(async() => {
@@ -103,7 +52,7 @@ export default function PointsPopup(props: Props) {
                 return (
                     <div className={styles.Contents}>
                         {
-                            targetContentsList.map(target => {
+                            targets.map(target => {
                                 return (
                                     <ItemContents key={target.id} item={target} />
                                 );
@@ -118,11 +67,19 @@ export default function PointsPopup(props: Props) {
             case 'Hide':
                 return null;
         }
-    }, [status, targetContentsList]);
+    }, [status, targets]);
 
     return (
         <div className={`${styles.Popup} ${styles[status]}`} onClick={onOpen}>
-            {dom}
+            <div className={styles.Contents}>
+                {
+                    targets.map(target => {
+                        return (
+                            <ItemContents key={target.id} item={target} />
+                        );
+                    })
+                }
+            </div>
         </div>
     );
 }

@@ -264,7 +264,7 @@ function useInitializePopup() {
         }
         // フィルター対象を抽出する
         if (filterTargetContentIds === undefined) {
-            dispatch(operationActions.clearPopup());
+            // dispatch(operationActions.clearPopup());
         } else {
             const param = filterTargetContentIds.map(contentId => {
                 return {

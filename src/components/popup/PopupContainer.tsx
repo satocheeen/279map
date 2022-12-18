@@ -7,7 +7,6 @@ import { getCenter } from 'geolib';
 import { GeolibInputCoordinates } from 'geolib/es/types';
 import { getFeatureByItemId, getFeatureCenter } from '../../util/MapUtility';
 import usePointStyle from '../map/usePointStyle';
-import usePopup from './usePopup';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 
 type Props = {
@@ -28,28 +27,18 @@ export default function PopupContainer(props: Props) {
     const overlayRefMap = useRef<{ [key: string]: Overlay }>({});
 
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
-    const forceItemIds = useSelector((state: RootState) => 
-        state.operation.popupTargets.filter(target => {
-            return target.type === 'item' && target.force;
-        }).map(target => target.type === 'item' ? target.itemId : '')
-    );
 
     const ownerContext = useContext(OwnerContext);
+    const mapRef = useRef(props.map);
 
-    // ポップアップ表示対象のコンテンツを持つアイテムID一覧
+    // コンテンツを持つアイテムID一覧
     const hasContentsItemIdList = useMemo(() => {
         if (ownerContext.disabledPopup) {
             return [];
         }
-        const list = Object.values(itemMap).filter(item => item.contentId).map(item => item.id);
-        // コンテンツなくても強制表示するものを追加
-        forceItemIds.forEach(id => {
-            if (list.indexOf(id) === -1) {
-                list.push(id);
-            }
-        });
+        const list = Object.values(itemMap).filter(item => item.contents).map(item => item.id);
         return list;
-    }, [itemMap, forceItemIds, ownerContext.disabledPopup]);
+    }, [itemMap, ownerContext.disabledPopup]);
 
     const { getStructureStyleFunction } = usePointStyle({});
 
@@ -58,7 +47,7 @@ export default function PopupContainer(props: Props) {
         const list = [] as PopupInfo[];
 
         hasContentsItemIdList.forEach((itemId) => {
-            const feature = getFeatureByItemId(props.map, itemId);
+            const feature = getFeatureByItemId(mapRef.current, itemId);
 
             if (!feature) {
                 // アイテム未ロードのものは、ひとまず無視 TODO: もしかしたらアイテムロードするようにした方がいいかも？
@@ -79,16 +68,17 @@ export default function PopupContainer(props: Props) {
             if (feature.getGeometry()?.getType() === 'Point') {
                 const adjust = function(){
                     const features = feature.get('features');
-                    const style = getStructureStyleFunction()(features[0], props.map.getView().getResolution() ?? 0);
+                    const style = getStructureStyleFunction()(features[0], mapRef.current.getView().getResolution() ?? 0);
                     const image = style.getImage();
-                    const pixel = props.map.getPixelFromCoordinate([itemPosition.longitude, itemPosition.latitude]);
+                    const pixel = mapRef.current.getPixelFromCoordinate([itemPosition.longitude, itemPosition.latitude]);
                     const imageSize = image.getSize();
+                    console.log('imageSize', imageSize);
                     if (!imageSize || imageSize.length < 2 || !pixel || pixel.length < 2) {
                         return;
                     }
 
                     pixel[1] = pixel[1] - imageSize[1] * (image.getScale() as number);
-                    const newPosition = props.map.getCoordinateFromPixel(pixel);
+                    const newPosition = mapRef.current.getCoordinateFromPixel(pixel);
                     itemPosition.latitude = newPosition[1];
                 };
                 adjust();
@@ -101,8 +91,8 @@ export default function PopupContainer(props: Props) {
                     return false;
                 }
                 // 距離をピクセルで算出
-                const pixel1 = props.map.getPixelFromCoordinate([center.longitude, center.latitude]);
-                const pixel2 = props.map.getPixelFromCoordinate([itemPosition.longitude, itemPosition.latitude]);
+                const pixel1 = mapRef.current.getPixelFromCoordinate([center.longitude, center.latitude]);
+                const pixel2 = mapRef.current.getPixelFromCoordinate([itemPosition.longitude, itemPosition.latitude]);
                 if (!pixel1 || !pixel2) {
                     return false;
                 }
@@ -122,20 +112,21 @@ export default function PopupContainer(props: Props) {
         });
         return list;
 
-    }, [hasContentsItemIdList, itemMap, props.map, getStructureStyleFunction]);
+    }, [hasContentsItemIdList, getStructureStyleFunction]);
 
-    const { openedPopupItemIds } = usePopup();
+    // const { openedPopupItemIds } = usePopup();
     // 開閉時に、zIndexを最前面に
     useEffect(() => {
-        const isOpen = (target: PopupInfo) => {
-            return target.itemIds.some(itemId => {
-                return openedPopupItemIds.includes(itemId);
-            });
-        }
+        // const isOpen = (target: PopupInfo) => {
+        //     return target.itemIds.some(itemId => {
+        //         return openedPopupItemIds.includes(itemId);
+        //     });
+        // }
         popupInfos.forEach(target => {
             const key = createKeyFromPopupInfo(target);
             const ele = elementRefMap.current[key]?.parentElement;
-            const open = isOpen(target);
+            // const open = isOpen(target);
+            const open = true;
             console.log('open', open);
             if(open) {
                 if (ele)
@@ -145,7 +136,7 @@ export default function PopupContainer(props: Props) {
                     ele.style.zIndex = '0';
             }
         });
-    }, [openedPopupItemIds, popupInfos]);
+    }, [/* openedPopupItemIds, */popupInfos]);
 
     const zoom = useSelector((state: RootState) => state.operation.mapView.zoom);
     useEffect(() => {
@@ -166,7 +157,7 @@ export default function PopupContainer(props: Props) {
                 stopEvent: true,
                 element: elementRefMap.current[key],
             });
-            props.map.addOverlay(overlay);
+            mapRef.current.addOverlay(overlay);
             overlay.setPosition([position.longitude, position.latitude]);
             overlayRefMap.current[key] = overlay;
         });
@@ -194,11 +185,10 @@ export default function PopupContainer(props: Props) {
             return !exist;
         });
         removeChildren.forEach(key => {
-            props.map.removeOverlay(overlayRefMap.current[key]);
+            mapRef.current.removeOverlay(overlayRefMap.current[key]);
             delete overlayRefMap.current[key];
         });
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [popupInfos, zoom]);
 
     return (

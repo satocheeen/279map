@@ -4,6 +4,7 @@ import { RootState } from "./configureStore";
 import { FilterDefine } from "./operation/operationSlice";
 import dayjs from 'dayjs';
 import { useCategory } from "./useCategory";
+import { ItemContentInfo, ItemDefine } from "279map-common";
 
 type FilterStatus = {
     status: 'Normal' | 'UnFiltered';
@@ -11,6 +12,26 @@ type FilterStatus = {
     status: 'Filtered';
 }
 
+/**
+ * Item配下の全コンテンツ情報をリストにして返す
+ * @param item 
+ * @returns 
+ */
+function getDescendantContents(item: ItemDefine): ItemContentInfo[] {
+    if (!item.contents) {
+        return [];
+    }
+    const getChildren = (content: ItemContentInfo): ItemContentInfo[] => {
+        const childrenList = [] as ItemContentInfo[];
+        content.children.forEach(child => {
+            childrenList.push(child);
+            const descendant = getChildren(child);
+            Array.prototype.push.apply(childrenList, descendant);
+        });
+        return childrenList;
+    }
+    return getChildren(item.contents);
+}
 /**
  * フィルタ状態を判断するフック
  */
@@ -52,12 +73,9 @@ export function useFilter() {
         // -- 1. 全コンテンツIdをセット
         let contentsIdList = [] as string[];
         Object.values(itemMap).forEach(item => {
-            if (item.contentId) {
-                contentsIdList.push(item.contentId);
-                if (item.discendantContentIds) {
-                    Array.prototype.push.apply(contentsIdList, item.discendantContentIds);
-                }
-            }
+            getDescendantContents(item).forEach(c => {
+                contentsIdList.push(c.id);
+            })
         });
         // -- 2. フィルタ条件に該当しないものを外していく
         filter.forEach(filterDef => {
@@ -96,12 +114,12 @@ export function useFilter() {
                 status: 'Normal'
             };
         }
-        if (!target.contentId) {
+        if (!target.contents) {
             return {
                 status: 'UnFiltered'
             };
         }
-        const targetContentIds = target.discendantContentIds ? [target.contentId, ...target.discendantContentIds] : [target.contentId];
+        const targetContentIds = getDescendantContents(target).map(c => c.id);
         const filtered = targetContentIds.some(targetContentId => {
             return filterTargetContentIds?.includes(targetContentId);
         });
@@ -125,13 +143,22 @@ export function useFilter() {
         if (filterTargetContentIds === undefined) {
             return undefined;
         }
-        console.log('filteredItemIdList calc')
         return Object.values(itemMap).filter(item => {
-            if (!item.contentId) {
+            if (!item.contents) {
                 return false;
             }
-            const itemContentIds = item.discendantContentIds ? [item.contentId, ...item.discendantContentIds] : [item.contentId];
-            return itemContentIds.some(contentId => filterTargetContentIds.includes(contentId));
+            const check = (content: ItemContentInfo): boolean => {
+                if (filterTargetContentIds.includes(content.id)) {
+                    return true;
+                }
+                if (content.children.length === 0) {
+                    return false;
+                }
+                return content.children.some(child => {
+                    return check(child);
+                });    
+            }
+            return check(item.contents);
         }).map(item => item.id);
 
     }, [filterTargetContentIds, itemMap]);

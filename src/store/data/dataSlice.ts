@@ -1,4 +1,4 @@
-import { CategoryDefine, ContentsDefine, EventDefine, ItemDefine, MapKind } from '279map-common';
+import { CategoryDefine, ContentsDefine, EventDefine, ItemContentInfo, ItemDefine, MapKind } from '279map-common';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { Extent } from 'ol/extent';
 import { SystemIconDefine } from '../../types/types';
@@ -124,20 +124,40 @@ const dataSlice = createSlice({
             // アイテムからも除去
             const itemMap = Object.assign({}, state.itemMap);
             const targetItem = itemMap[action.payload.itemId];
-            if (targetItem.contentId) {
-                if (targetItem.contentId === action.payload.id) {
-                    itemMap[action.payload.itemId] = {
-                        id: targetItem.id,
-                        name: targetItem.name,
-                        contentId: null,
-                        position: targetItem.position,
-                        geoProperties: targetItem.geoProperties,
-                        lastEditedTime: targetItem.lastEditedTime,
-                    }
+            if (targetItem.contents) {
+                let newContents = null as null | ItemContentInfo;
+                if (targetItem.contents.id === action.payload.id) {
+                    newContents = null;
                 } else {
-                    targetItem.discendantContentIds = targetItem.discendantContentIds?.filter(id => id !== action.payload.id);
+                    const removeChild = (children: ItemContentInfo[]): ItemContentInfo[] => {
+                        const newChildren = [] as ItemContentInfo[];
+                        for (const child of children) {
+                            if (child.id === action.payload.id) {
+                                continue;
+                            }
+                            const myNewChildren = removeChild(child.children);
+                            newChildren.push({
+                                id: child.id,
+                                hasImage: child.hasImage,
+                                children: myNewChildren,
+                            });
+                        };
+                        return newChildren;
+                    }
+                    const newChildren = removeChild(targetItem.contents.children);
+                    newContents = Object.assign({}, targetItem.contents, {
+                        children: newChildren,
+                    });
                 }
-            }
+                itemMap[action.payload.itemId] = {
+                    id: targetItem.id,
+                    name: targetItem.name,
+                    contents: newContents,
+                    position: targetItem.position,
+                    geoProperties: targetItem.geoProperties,
+                    lastEditedTime: targetItem.lastEditedTime,
+                }
+        }
             state.itemMap = itemMap;
 
         })

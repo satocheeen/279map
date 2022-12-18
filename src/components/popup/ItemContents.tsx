@@ -5,10 +5,12 @@ import styles from './ItemContents.module.scss';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
 import AddContentMenu from './AddContentMenu';
-import { Auth } from '279map-common';
+import { Auth, ContentsDefine, ItemContentInfo, ItemDefine } from '279map-common';
+import { useAPI } from '../../api/useAPI';
+import { BsThreeDots } from 'react-icons/bs';
 
 type Props = {
-    item: PopupItem;
+    item: ItemDefine;
 }
 
 /**
@@ -17,24 +19,43 @@ type Props = {
  * @returns 
  */
 export default function ItemContents(props: Props) {
-    const content = useMemo(() => {
-        // TODO: フィルタの考慮必要かも
-        return props.item.content;
-    }, [props.item.content]);
+    const { apiUrl } = useAPI();
 
     const editable = useSelector((state: RootState) => state.session.connectedMap?.authLv === Auth.Edit);
 
+    // 表示する画像URL
+    const imageUrl = useMemo((): string | null => {
+        const getImageOwnerContentId = (content: ItemContentInfo) : string | undefined => {
+            if (content.hasImage) {
+                return content.id;
+            }
+            let id: string | undefined;
+            content.children?.some(child => {
+                id = getImageOwnerContentId(child);
+                return id ? true : false;
+            });
+            return id;
+        }
+        if (!props.item.contents) {
+            return null;
+        }
+        const imageContentId = getImageOwnerContentId(props.item.contents);
+        if (!imageContentId) {
+            return null;
+        }
+        return `${apiUrl}getthumb?id=${imageContentId}`;
+
+    }, [apiUrl, props.item]);
+
     return (
         <div>
-            {content ?
-                <Content itemId={props.item.id} content={content} />
-                :
-                <div className={styles.IconAreas}>
-                    {editable &&
-                        <AddContentMenu itemId={props.item.id} />
-                    }
+            {imageUrl ?
+                <div className={styles.ImageContainer}>
+                    <img className={styles.Image} src={imageUrl} alt="contents" />
                 </div>
+                :
+                <BsThreeDots />
             }
         </div>
-    );
+    )
 }

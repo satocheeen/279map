@@ -44,6 +44,7 @@ export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
     const mapRef = useRef(null as Map | null);
     const [clusterMenuInfo, setClusterMenuInfo] = useState<ClusterMenuInfo|null>(null);
+    const [mapLoaded, setMapLoaded] = useState(false);
 
     // コンテンツ（建物・ポイント）レイヤ
     const pointContentsSourceRef = useRef(new VectorSource());
@@ -206,7 +207,7 @@ export default function MapChart() {
                 return true;
             }
             // コンテンツを持つか
-            if (item.contentId) {
+            if (item.contents) {
                 return true;
             } else {
                 return false;
@@ -252,6 +253,10 @@ export default function MapChart() {
                 itemIds: points,
             });
         });
+        mapRef.current.on('loadend', () => {
+            setMapLoaded(true);
+            console.log('loadend');
+        })
 
         // // クリック位置付近の以下条件に該当する全アイテムをポップアップ表示
         // // - 建物、地点、エリア
@@ -714,7 +719,9 @@ export default function MapChart() {
                         {clusterMenuInfo &&
                             <ClusterMenu map={mapRef.current} {...clusterMenuInfo} onSelect={onClusterMenuSelected} />
                         }
-                        <PopupContainer map={mapRef.current} />
+                        {mapLoaded &&
+                            <PopupContainer map={mapRef.current} />
+                        }
                         <LandNameOverlay map={mapRef.current} />
                         <DrawController map={mapRef.current} onStart={()=>{isDrawing.current=true}} onEnd={()=>{isDrawing.current=false}} />
                     </>

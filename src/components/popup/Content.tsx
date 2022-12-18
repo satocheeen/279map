@@ -27,14 +27,15 @@ type Props = {
     onClick?: () => void;
 }
 /**
- * ポップアップ内に表示するコンテント
+ * ポップアップ内に表示するコンテンツ。
+ * 親子コンテンツを全て表示する。
+ * （現在は未使用）
  * @param props 
  * @returns 
  */
 export default function Content(props: Props) {
     const { confirm } = useConfirm();
     const dispatch = useAppDispatch();
-    const ownerContext =  useContext(OwnerContext);
     const { apiUrl } = useAPI();
 
     const urlType = useMemo(() => {
