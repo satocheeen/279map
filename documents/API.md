@@ -7,7 +7,6 @@
 | mapId | string | * | Sets the connecting mapId or mapAlias |
 | mapServerHost | string | * | Sets the map server host |
 | iconDefine | [IconDefine](#icondefine)[] |  | Sets the icons defines using in the map.  If not set, a simple pin icon is used. |
-| mapKind | 'Real' \| 'Virtual' | | Sets the show map kind.  If not set, the default map which is map manager selected kind is shown. |
 | disabledPopup | boolean | | Sets the `true` if you want not to show popup on the map |
 | filter | FilterDefine[] | | Sets filter conditions, filter items on the map |
 | onConnect | (result: [ConnectResult](#connectresult), command: [Command](#command)) => void | | Callback fired when connecting map success |
@@ -21,8 +20,8 @@
 ### IconDefine
 | Name | Type | Description |
 | ---- | ---- | ---- |
-| id | string | the icon id |
-| imagePath | string | the url of the icon |
+| id | string | 'default' | the icon id. when 'default', you can use default icon. |
+| imagePath | string | the url of the icon. if 'default', you don't need set imagePath. |
 | useMaps | ('Real' \| 'Virtual')[] | the map kinds using the icon |
 
 ### ConnectResult

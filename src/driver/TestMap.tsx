@@ -1,7 +1,7 @@
 import { api, MapKind } from '279map-common';
 import React, { useState, useCallback } from 'react';
 import { CommandHookType } from '../api/useCommand';
-import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
+import TsunaguMap, { TsunaguMapProps } from '../components/TsunaguMap/TsunaguMap';
 import { FilterDefine } from '../entry';
 import { doCommand } from '../util/Commander';
 import styles from './TestMap.module.scss';
@@ -12,8 +12,19 @@ import styles from './TestMap.module.scss';
 const props = {
     mapServerHost: '279map.satocheeen.com',
     mapId: 'test',
-    auth: 'hogehoge',        
-};
+    auth: 'hogehoge',
+    iconDefine: [
+        {
+            id: 'default',
+            useMaps: [MapKind.Real],
+        },
+        {
+            id: 'house',
+            imagePath: './icon/house.png',
+            useMaps: [MapKind.Virtual],
+        }
+    ]
+} as TsunaguMapProps;
 
 export default function TestMap() {
     const [ cnt, setCnt ] = useState(0);

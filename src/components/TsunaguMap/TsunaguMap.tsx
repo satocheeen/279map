@@ -14,8 +14,11 @@ export type TsunaguMapProps = {
     mapId: string;
     mapServerHost: string;
     auth?: string;
-    iconDefine?: DefaultIconDefine[];
-    // mapKind?: MapKind;  // which view Real or Virtual.
+    iconDefine?: (DefaultIconDefine | {
+        // デフォルトアイコンを指定する場合に使用
+        id: 'default';
+        useMaps: MapKind[];
+    })[];
     disabledPopup?: boolean; // when true, the map don't show popup.
     disabledLabel?: boolean; // when true, the item's label hidden.
 

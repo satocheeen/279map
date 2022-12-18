@@ -1,4 +1,4 @@
-import { IconInfo } from "279map-common";
+import { IconInfo, MapKind } from "279map-common";
 import { useCallback, useContext, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { OwnerContext } from "../components/TsunaguMap/TsunaguMap";
@@ -6,6 +6,18 @@ import { SystemIconDefine } from "../types/types";
 import { RootState } from "./configureStore";
 import defaultIcon from './pin.png'
 
+function getDefaultIconDefine(useMaps: MapKind[]): SystemIconDefine {
+    return {
+        id: 'default',
+        imagePath: defaultIcon,
+        useMaps,
+        menuViewCustomCss: {
+            filter: 'opacity(0.5) drop-shadow(0 0 0 #aaa)',
+        },
+        defaultColor: '#77f',
+        type: 'system',
+    }
+}
 /**
  * アイコンに関するフック
  * @returns 
@@ -18,6 +30,9 @@ export default function useIcon() {
     const iconDefine = useMemo(() => {
         const defaultIconDefine = ownerContext.iconDefine ?? [];
         const list = defaultIconDefine.map(def => {
+            if (def.id === 'default') {
+                return getDefaultIconDefine(def.useMaps);
+            }
             return Object.assign({
                 type: 'system',
             } as SystemIconDefine, def);
@@ -36,18 +51,9 @@ export default function useIcon() {
         if (list.length > 0) {
             return list;
         }
-        return [
-            {
-                id: 'pin',
-                imagePath: defaultIcon,
-                useMaps: [currentMapKind],
-                menuViewCustomCss: {
-                    filter: 'opacity(0.5) drop-shadow(0 0 0 #aaa)',
-                },
-                defaultColor: '#77f',
-                type: 'system',
-            }
-        ];
+        const defaultIconDefine = getDefaultIconDefine([currentMapKind]);
+        return [defaultIconDefine];
+        
     }, [currentMapKind, iconDefine]);
 
     /**
