@@ -75,14 +75,18 @@ export type GeoJsonPosition = {
 }
 export type Position = GeoJsonPosition | TrackGpxDefine;
 
+export type ItemContentInfo = {
+    id: string;
+    hasImage: boolean;
+    children: ItemContentInfo[];
+}
 export type ItemDefine = {
     id: string;
     position: Position;
     name: string;
     geoProperties?: GeoProperties;
     lastEditedTime: string;
-    contentId: string | null;
-    discendantContentIds?: string[]; // 子孫コンテンツID（フィルタ判断用）
+    contents: ItemContentInfo | null;
 }
 export type ContentsDefine = {
     id: string;
