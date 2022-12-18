@@ -23,7 +23,12 @@ export async function callApi<API extends api.APIDefine<any, any>> (server: Serv
     if (result.length === 0) {
         return;
     } else {
-        return JSON.parse(result) as API['result'];
+        try {
+            const json =JSON.parse(result) as API['result'];
+            return json;
+        } catch(e) {
+            return result;
+        }
     }
 }
 

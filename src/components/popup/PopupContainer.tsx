@@ -78,7 +78,8 @@ export default function PopupContainer(props: Props) {
             // -- Pointの場合はシンボルの上部位置にする
             if (feature.getGeometry()?.getType() === 'Point') {
                 const adjust = function(){
-                    const style = getStructureStyleFunction()(feature, props.map.getView().getResolution() ?? 0);
+                    const features = feature.get('features');
+                    const style = getStructureStyleFunction()(features[0], props.map.getView().getResolution() ?? 0);
                     const image = style.getImage();
                     const pixel = props.map.getPixelFromCoordinate([itemPosition.longitude, itemPosition.latitude]);
                     const imageSize = image.getSize();

@@ -58,7 +58,9 @@ function MenuItem(props: MenuItemProp) {
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
 
     const itemName = useMemo(() => {
-        return itemMap[props.id].name;
+        const item = itemMap[props.id];
+        if (!item) return ''
+        return item.name;
     }, [itemMap, props.id]);
 
     return (

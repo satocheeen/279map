@@ -22,8 +22,6 @@ import { addListener, removeListener } from "../../util/Commander";
 import { defaults } from 'ol/interaction'
 import { operationActions } from "../../store/operation/operationSlice";
 import LandNameOverlay from "../map/LandNameOverlay";
-import { Feature } from "ol";
-import { Geometry } from "ol/geom";
 import { useFilter } from "../../store/useFilter";
 import { loadItems } from "../../store/data/dataThunk";
 import { openItemContentsPopup, openItemPopup } from "../popup/popupThunk";
@@ -49,16 +47,6 @@ export default function MapChart() {
 
     // コンテンツ（建物・ポイント）レイヤ
     const pointContentsSourceRef = useRef(new VectorSource());
-    // const pointContentsLayerRef = useRef(new VectorLayer({
-    //     source: pointContentsSourceRef.current,
-    //     zIndex: 10,
-    //     properties: {
-    //         name: 'itemLayer',
-    //     },
-    // }));
-    // useFilteredPointStyle({
-    //     structureLayer: pointContentsLayerRef.current,
-    // });
     const pointClusterSourceRef = useRef(new Cluster({
         distance: 80,
         minDistance: 20,
@@ -698,6 +686,18 @@ export default function MapChart() {
         setClusterMenuInfo(null);
         dispatch(operationActions.setSelectItem([id]));
     }, [dispatch]);
+
+    // set the cluster distance by zoomLv.
+    useEffect(() => {
+        if (mapView.zoom === prevMapView?.zoom) {
+            return;
+        }
+        const resolution = mapRef.current?.getView().getResolution();
+        if (!resolution) return;
+        const structureScale = MapUtility.getStructureScale(resolution);
+        pointClusterSourceRef.current.setDistance(80 * structureScale);
+        pointClusterSourceRef.current.setMinDistance(20 * structureScale);
+    }, [mapView, prevMapView]);
 
     return (
         <div className={styles.Container}>
