@@ -1,7 +1,7 @@
-import { ItemsTable, TrackGeoJsonTable } from '279map-backend-common/dist/types/schema';
+import { ContentsTable, ItemsTable, TrackGeoJsonTable } from '279map-backend-common/dist/types/schema';
 import { APIFunc, ConnectionPool } from '.';
 import { getExtentWkt } from './util/utility';
-import { api } from '279map-common';
+import { api, ItemContentInfo } from '279map-common';
 import { ItemDefine, MapKind } from '279map-common';
 
 export const getItems: APIFunc<api.GetItemsParam, api.GetItemsResult> = async({ currentMap, param }) => {
@@ -24,26 +24,45 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: ap
     const con = await ConnectionPool.getConnection();
 
     // 子孫コンテンツ取得メソッド
-    const getDiscendant = async(contentPageId: string): Promise<string[]> => {
-        const sql = 'select content_page_id from contents c where parent_id = ?';
+    const getChildrenContentInfo = async(contentPageId: string): Promise<ItemContentInfo[]> => {
+        const sql = 'select * from contents c where parent_id = ?';
         const [rows] = await con.execute(sql, [contentPageId]);
-        const myRows = rows as {content_page_id: string}[];
+        const myRows = rows as ContentsTable[];
         if (myRows.length === 0) {
             return [];
         }
-        const list = [] as string[];
-        for (const row of myRows) {
-            list.push(row.content_page_id);
-            const children = await getDiscendant(row.content_page_id);
-            Array.prototype.push.apply(list, children);
+        const children = [] as ItemContentInfo[];
+        for(const row of myRows) {
+            const discendant = await getChildrenContentInfo(row.content_page_id);
+            children.push({
+                id: row.content_page_id,
+                hasImage: row.thumbnail ? true : false,
+                children: discendant,
+            });
         }
-        return list;
-    }
+        return children;
+    };
+    // const getContentsInfo = async(contentPageId: string): Promise<ItemContentInfo|null> => {
+    //     const sql = 'select * from contents c where content_page_id = ?';
+
+    //     const [rows] = await con.execute(sql, [contentPageId]);
+    //     const myRows = rows as ContentsTable[];
+    //     if (myRows.length === 0) {
+    //         return null;
+    //     }
+
+    //     const children = await getChildrenContentInfo(contentPageId);
+    //     return {
+    //         id: contentPageId,
+    //         hasImage: myRows[0].thumbnail ? true : false,
+    //         children,
+    //     }
+    // }
     
     try {
         // 位置コンテンツ
         const sql = `
-        select i.*, ST_AsGeoJSON(i.location) as geojson, cdi.map_page_id, c.title 
+        select i.*, ST_AsGeoJSON(i.location) as geojson, cdi.map_page_id, c.* 
         from items i
         inner join contents_db_info cdi on i.contents_db_id = cdi.contents_db_id
         left join contents c  on c.content_page_id = i.content_page_id  
@@ -51,11 +70,16 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: ap
         `;
         const [rows] = await con.execute(sql, [mapPageId, mapKind]);
         const pointContents = [] as ItemDefine[];
-        for(const row of rows as (ItemsTable & {title?: string; geojson: any})[]) {
-            let contentIds: string[] | undefined;
+        for(const row of rows as (ItemsTable & ContentsTable & {geojson: any})[]) {
+            let contents: ItemContentInfo | null = null;
             if (row.content_page_id) {
                 // 配下のコンテンツID取得
-                contentIds = await getDiscendant(row.content_page_id);
+                const children = await getChildrenContentInfo(row.content_page_id);
+                contents = {
+                    id: row.content_page_id,
+                    hasImage: row.thumbnail ? true : false,
+                    children,
+                }
             }
 
             pointContents.push({
@@ -66,8 +90,7 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: ap
                     geoJson: row.geojson,
                 },
                 geoProperties: row.geo_properties ? JSON.parse(row.geo_properties) : undefined,
-                contentId: row.content_page_id,
-                discendantContentIds: contentIds,
+                contents,
                 lastEditedTime: row.last_edited_time,
             });
         }
@@ -117,7 +140,7 @@ async function selectTrackInArea(param: api.GetItemsParam, mapPageId: string): P
                 name: '',
                 overview: '',
                 category: [],
-                contentId: null,
+                contents: null,
                 lastEditedTime: row.last_edited_time,
             }
         });
