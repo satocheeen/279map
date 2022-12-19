@@ -19,25 +19,21 @@ export default function ContentsModal() {
             setContentId(param.contentId);
             setItemId(param.itemId);
             setShow(true);
+
+            // 最新コンテンツ取得
+            dispatch(loadContents({
+                targets: [
+                    {
+                        contentId: param.contentId,
+                    }
+                ],            
+            })).finally(() => {
+                setLoaded(true);
+            });
+
         });
 
-    }, []);
-
-    useEffect(() => {
-        if (!contentId) return;
-
-        // 最新コンテンツ取得
-        dispatch(loadContents({
-            targets: [
-                {
-                    contentId,
-                }
-            ],            
-        })).finally(() => {
-            setLoaded(true);
-        });
-
-    }, [dispatch, contentId]);
+    }, [dispatch]);
 
     const content = useSelector((state: RootState) => {
         return state.data.contentsList.find(cn => cn.id === contentId);
@@ -45,8 +41,6 @@ export default function ContentsModal() {
 
     const onClose = useCallback(() => {
         setShow(false);
-        setContentId(undefined);
-        setItemId(undefined);
     }, []);
 
     return (

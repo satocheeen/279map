@@ -21,7 +21,10 @@ export default function Modal(props: Props) {
             myRef.current?.showModal();
         } else {
             if (!myRef.current?.open) return;
-            myRef.current?.close();
+            // wait for animation
+            setTimeout(() => {
+                myRef.current?.close();
+            }, 300);
         }
     }, [props.show]);
 
@@ -44,7 +47,7 @@ export default function Modal(props: Props) {
     }, [props]);
 
     return (
-        <dialog ref={myRef} className={styles.Dialog}>
+        <dialog ref={myRef} className={`${styles.Dialog} ${props.show ? styles.Show : styles.Close}`}>
             <div className={styles.Header}>
                 {header?.props.children}
                 {props.closebtn &&

@@ -21,15 +21,3 @@
     }
   
 }
-
-@keyframes fadeIn { /*animetion-nameで設定した値を書く*/
-    0% {opacity: 0}
-    100% {opacity: 1}
-}
-  
-@keyframes fadeOut {
-    0% {opacity: 1}
-    30% {opacity: 1}
-    100% {opacity: 0}
-}
-  
