@@ -11,6 +11,8 @@
 }
 
 .Header {
+    display: flex;
+    justify-content: space-between;
     font-size: 120%;
     border-bottom: 1px solid $dark-012;
 }
@@ -24,4 +26,7 @@
         margin-left: 5px;
         min-width: 7rem;
     }
+}
+.Close {
+    cursor: pointer;
 }

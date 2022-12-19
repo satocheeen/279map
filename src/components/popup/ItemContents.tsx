@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { PopupItem } from './PointsPopup';
-import Content from './Content';
+import Content from '../contents/Content';
 import styles from './ItemContents.module.scss';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
@@ -8,6 +8,7 @@ import AddContentMenu from './AddContentMenu';
 import { Auth, ContentsDefine, ItemContentInfo, ItemDefine } from '279map-common';
 import { useAPI } from '../../api/useAPI';
 import { BsThreeDots } from 'react-icons/bs';
+import { doCommand } from '../../util/Commander';
 
 type Props = {
     item: ItemDefine;
@@ -47,15 +48,27 @@ export default function ItemContents(props: Props) {
 
     }, [apiUrl, props.item]);
 
+    const onClick = useCallback(() => {
+        if (!props.item.contents) return;
+
+        doCommand({
+            command: 'ShowContentsModal',
+            param: {
+                itemId: props.item.id,
+                contentId: props.item.contents.id,
+            }
+        });
+    }, [props.item]);
+
     if (imageUrl) {
         return (
-            <div className={styles.ImageContainer}>
+            <div className={styles.ImageContainer} onClick={onClick}>
                 <img className={styles.Image} src={imageUrl} alt="contents" />
             </div>
         )
     } else {
         return (
-            <div className={styles.ThreeDots}>
+            <div className={styles.ThreeDots} onClick={onClick}>
                 <BsThreeDots />
             </div>
         )

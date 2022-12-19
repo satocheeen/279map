@@ -1,4 +1,4 @@
-import React, { ReactNode, useContext, useCallback, useMemo, useState } from "react";
+import React, { ReactNode, useCallback, useMemo, useState } from "react";
 import { UrlType } from "../../types/types";
 import styles from './Content.module.scss';
 import { MdEdit, MdOutlineOpenInNew, MdDelete } from 'react-icons/md';
@@ -12,10 +12,9 @@ import { doCommand } from "../../util/Commander";
 import useConfirm, { ConfirmBtnPattern, ConfirmResult } from "../common/confirm/useConfirm";
 import { removeContent } from "../../store/data/dataThunk";
 import reactStringReplace from "react-string-replace";
-import PopupMenuIcon from "./PopupMenuIcon";
-import AddContentMenu from "./AddContentMenu";
+import PopupMenuIcon from "../popup/PopupMenuIcon";
+import AddContentMenu from "../popup/AddContentMenu";
 import { Auth, ContentsDefine, MapKind } from "279map-common";
-import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import { useAPI } from "../../api/useAPI";
 import Spinner from "../common/spinner/Spinner";
 import { operationActions } from "../../store/operation/operationSlice";
@@ -107,7 +106,7 @@ export default function Content(props: Props) {
                 <CategoryBadge key={category} category={category} existCategories={categories} />
             );
         });
-    }, [props.content.category]);
+    }, [props.content.category, categories]);
 
     const dateStr = useMemo(() => {
         if (!props.content.date) {
@@ -142,7 +141,7 @@ export default function Content(props: Props) {
         // searchParams.set('kind', anotherMap);
         // searchParams.set('feature', props.content.anotherMapItemId);
         // setSearchParams(searchParams);
-    }, [mapKind, props.content.anotherMapItemId]);
+    }, [mapKind, props.content.anotherMapItemId, dispatch]);
 
     /**
      * イメージロード

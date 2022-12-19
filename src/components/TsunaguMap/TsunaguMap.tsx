@@ -9,6 +9,7 @@ import MapWrapper from './MapWrapper';
 import styles from './TsunaguMap.module.scss';
 import './TsunaguMap.scss';
 import ConfirmDialog from '../common/confirm/ConfirmDialog';
+import ContentsModal from '../contents/ContentsModal';
 
 export type TsunaguMapProps = {
     mapId: string;
@@ -51,6 +52,7 @@ export default function TsunaguMap(props: TsunaguMapProps) {
                         <MapWrapper />
                     </div>
                     <ConfirmDialog />
+                    <ContentsModal />
             </Provider>
             </OwnerContext.Provider>
         </>
