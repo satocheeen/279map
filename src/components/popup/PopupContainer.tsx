@@ -1,13 +1,15 @@
 import { Map, Overlay } from 'ol';
-import React, { useEffect, useRef, useMemo, useContext } from 'react';
+import React, { useEffect, useRef, useMemo, useContext, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
 import PointsPopup from './PointsPopup';
 import { getCenter } from 'geolib';
 import { GeolibInputCoordinates } from 'geolib/es/types';
-import { getFeatureByItemId, getFeatureCenter } from '../../util/MapUtility';
+import { getFeatureCenter } from '../../util/MapUtility';
 import usePointStyle from '../map/usePointStyle';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
+import VectorSource from 'ol/source/Vector';
+import { FeatureLike } from 'ol/Feature';
 
 type Props = {
     map: Map;
@@ -42,79 +44,101 @@ export default function PopupContainer(props: Props) {
 
     const { getStructureStyleFunction } = usePointStyle({});
 
-    const popupInfos = useMemo((): PopupInfo[] => {
-        // アイテムごとに表示位置決定
-        const list = [] as PopupInfo[];
-
-        hasContentsItemIdList.forEach((itemId) => {
-            const feature = getFeatureByItemId(mapRef.current, itemId);
-
-            if (!feature) {
-                // アイテム未ロードのものは、ひとまず無視 TODO: もしかしたらアイテムロードするようにした方がいいかも？
-                return;
-            }
-            // if (item.position.type !== 'geoJson') {
-            //     // TODO: GPX対応
-            //     return;
-            // }
-            
-            // 表示位置決定
+    const getPopupPosition = useCallback((feature: FeatureLike): undefined | { longitude: number; latitude: number; } => {
             // -- 中心位置取得
             const itemPosition = getFeatureCenter(feature);
             if (!itemPosition) {
                 return;
             }
-            // -- Pointの場合はシンボルの上部位置にする
+
             if (feature.getGeometry()?.getType() === 'Point') {
-                const adjust = function(){
-                    const features = feature.get('features');
-                    const style = getStructureStyleFunction()(features[0], mapRef.current.getView().getResolution() ?? 0);
-                    const image = style.getImage();
-                    const pixel = mapRef.current.getPixelFromCoordinate([itemPosition.longitude, itemPosition.latitude]);
-                    const imageSize = image.getSize();
-                    console.log('imageSize', imageSize);
-                    if (!imageSize || imageSize.length < 2 || !pixel || pixel.length < 2) {
-                        return;
-                    }
+                // 建物orピンの場合、アイコンの上部にポップアップを表示する
+                const style = getStructureStyleFunction()(feature, mapRef.current.getView().getResolution() ?? 0);
+                const image = style.getImage();
+                const pixel = mapRef.current.getPixelFromCoordinate([itemPosition.longitude, itemPosition.latitude]);
+                const imageSize = image.getSize();
+                console.log('imageSize', imageSize);
+                if (!imageSize || imageSize.length < 2 || !pixel || pixel.length < 2) {
+                    return;
+                }
 
-                    pixel[1] = pixel[1] - imageSize[1] * (image.getScale() as number);
-                    const newPosition = mapRef.current.getCoordinateFromPixel(pixel);
-                    itemPosition.latitude = newPosition[1];
-                };
-                adjust();
+                pixel[1] = pixel[1] - imageSize[1] * (image.getScale() as number);
+                const newPosition = mapRef.current.getCoordinateFromPixel(pixel);
+                itemPosition.latitude = newPosition[1];
             }
 
-            // --位置が近いものはまとめる
-            const nearItem = list.find(listItem => {
-                const center = getCenter(listItem.itemPositions);
-                if (!center) {
-                    return false;
-                }
-                // 距離をピクセルで算出
-                const pixel1 = mapRef.current.getPixelFromCoordinate([center.longitude, center.latitude]);
-                const pixel2 = mapRef.current.getPixelFromCoordinate([itemPosition.longitude, itemPosition.latitude]);
-                if (!pixel1 || !pixel2) {
-                    return false;
-                }
-                const d = Math.sqrt(Math.pow(pixel1[0] - pixel2[0], 2) + Math.pow(pixel1[1] - pixel2[1], 2));
-                // TODO: ポップアップが開いているかどうかで、条件変更
-                return d < 30; // 指定pixel以内の距離にあるものはまとめる
+            return itemPosition;
+
+    }, [getStructureStyleFunction]);
+
+    /**
+     * 建物orピンのポップアップ情報を返す
+     */
+    const itemPopupInfos = useMemo((): PopupInfo[] => {
+        const itemLayer = mapRef.current.getAllLayers().find(layer => layer.getProperties()['name'] === 'itemLayer');
+        if (!itemLayer) return [];
+
+        const source = itemLayer.getSource() as VectorSource;
+        const popupInfoList = [] as PopupInfo[]; 
+        source.getFeatures().forEach(feature => {
+            const features = feature.get('features') as FeatureLike[];
+
+            // コンテンツを持つアイテムに絞る
+            const itemIds = features.map(f => f.getId() as string).filter(id => {
+                return hasContentsItemIdList.includes(id);
             });
-            if (nearItem) {
-                nearItem.itemIds.push(itemId);
-                nearItem.itemPositions.push(itemPosition);
-            } else {
-                list.push({
-                    itemPositions: [itemPosition],
-                    itemIds: [itemId],
-                });
+            if (itemIds.length === 0) {
+                return;
             }
+
+            const itemPosition = getPopupPosition(features[0]);
+            if (!itemPosition) {
+                return;
+            }
+
+            popupInfoList.push({
+                itemPositions: [itemPosition],
+                itemIds,
+            })
         });
-        return list;
 
-    }, [hasContentsItemIdList, getStructureStyleFunction]);
+        return popupInfoList;
+    }, [hasContentsItemIdList, getPopupPosition]);
 
-    // const { openedPopupItemIds } = usePopup();
+    /**
+     * エリアのポップアップ情報を返す
+     */
+    const areaPopupInfo = useMemo((): PopupInfo[] => {
+        const areaLayer = mapRef.current.getAllLayers().find(layer => layer.getProperties()['name'] === 'topographyLayer');
+        if (!areaLayer) return [];
+        const source = areaLayer.getSource() as VectorSource;
+        const popupInfoList = [] as PopupInfo[]; 
+        source.getFeatures().forEach(feature => {
+            // コンテンツを持つアイテムに絞る
+            const id = feature.getId() as string;
+            if (!hasContentsItemIdList.includes(id)) {
+                return;
+            }
+
+            const itemPosition = getPopupPosition(feature);
+            if (!itemPosition) {
+                return;
+            }
+
+            popupInfoList.push({
+                itemPositions: [itemPosition],
+                itemIds: [id],
+            })
+        });
+
+        return popupInfoList;
+
+    }, [hasContentsItemIdList, getPopupPosition]);
+
+    const popupInfos = useMemo((): PopupInfo[] => {
+        return itemPopupInfos.concat(areaPopupInfo);
+    }, [itemPopupInfos, areaPopupInfo]);
+
     // 開閉時に、zIndexを最前面に
     useEffect(() => {
         // const isOpen = (target: PopupInfo) => {
