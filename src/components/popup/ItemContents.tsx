@@ -47,15 +47,17 @@ export default function ItemContents(props: Props) {
 
     }, [apiUrl, props.item]);
 
-    return (
-        <div>
-            {imageUrl ?
-                <div className={styles.ImageContainer}>
-                    <img className={styles.Image} src={imageUrl} alt="contents" />
-                </div>
-                :
+    if (imageUrl) {
+        return (
+            <div className={styles.ImageContainer}>
+                <img className={styles.Image} src={imageUrl} alt="contents" />
+            </div>
+        )
+    } else {
+        return (
+            <div className={styles.ThreeDots}>
                 <BsThreeDots />
-            }
-        </div>
-    )
+            </div>
+        )
+    }
 }
