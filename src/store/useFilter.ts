@@ -30,7 +30,7 @@ function getDescendantContents(item: ItemDefine): ItemContentInfo[] {
         });
         return childrenList;
     }
-    return getChildren(item.contents);
+    return [item.contents, ...getChildren(item.contents)];
 }
 /**
  * フィルタ状態を判断するフック

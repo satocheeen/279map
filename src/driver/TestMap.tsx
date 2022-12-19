@@ -1,5 +1,5 @@
-import { api, MapKind } from '279map-common';
-import React, { useState, useCallback } from 'react';
+import { api, CategoryDefine, MapKind } from '279map-common';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { CommandHookType } from '../api/useCommand';
 import TsunaguMap, { TsunaguMapProps } from '../components/TsunaguMap/TsunaguMap';
 import { FilterDefine } from '../entry';
@@ -29,6 +29,7 @@ const props = {
 
 export default function TestMap() {
     const [ cnt, setCnt ] = useState(0);
+    const [ categories, setCategories ] = useState<CategoryDefine[]>([]);
     const [ commandHook, setCommandHook ] = useState<CommandHookType>();
     const onConnect = useCallback((mapDefine: api.ConnectResult, commandHook: CommandHookType) => {
         console.log('connect', mapDefine);
@@ -37,6 +38,26 @@ export default function TestMap() {
         setCnt(cnt + 1);
     }, [cnt]);
 
+    const onCategoriesLoaded = useCallback((categories: CategoryDefine[]) => {
+        setCategories(categories);
+    }, []);
+    const [ filteredCategory, setFilteredCategory ] = useState<string| undefined>();
+    const onChangeFilterCategory = useCallback((category: string | undefined) => {
+        setFilteredCategory(category);
+    }, []);
+    const filter = useMemo((): FilterDefine[] => {
+        if (filteredCategory === undefined) {
+            return [];
+        }
+        return [
+            {
+                type: 'category',
+                categoryName: filteredCategory,
+            }
+        ];
+
+    }, [filteredCategory]);
+
     // switch mapKind
     const [ mapKind, setMapKind ] = useState(MapKind.Real);
 
@@ -44,8 +65,6 @@ export default function TestMap() {
     const [ disabledPopup, setDisablePopup ] = useState(false);
 
     const [ disabledLabel, setDisableLabel ] = useState(false);
-
-    const [ filter, setFilter ] = useState<FilterDefine[]>([]);
 
     const onMapKindChanged = useCallback((mapKind: MapKind) => {
         setMapKind(mapKind);
@@ -81,19 +100,6 @@ export default function TestMap() {
         });
     }, []);
 
-    const onFilter = useCallback(() => {
-        setFilter([
-            {
-                type: 'category',
-                categoryName: 'AAA',
-            }
-        ]);
-    }, []);
-
-    const clearFilter = useCallback(() => {
-        setFilter([]);
-    }, []);
-
     const confirm = useCallback(async() => {
         const result = await commandHook?.confirm({
             message: '確認ためし',
@@ -126,11 +132,24 @@ export default function TestMap() {
                 </div>
                 <PropRadio name='disabledPopup' value={disabledPopup} onChange={setDisablePopup} />
                 <PropRadio name='disabledLabel' value={disabledLabel} onChange={setDisableLabel} />
+                <div className={styles.Col}>
+                    <h3>カテゴリフィルタ</h3>
+                    <label>
+                        なし
+                        <input type="radio" checked={filteredCategory===undefined} onChange={() => onChangeFilterCategory(undefined)} />
+                    </label>
+                    {categories.map(category => {
+                        return (
+                            <label key={category.name}>
+                                {category.name}
+                                <input type="radio" checked={filteredCategory===category.name} onChange={() => onChangeFilterCategory(category.name)} />
+                            </label>
+                        )
+                    })}
+                </div>
                 <button onClick={createStructure}>建設</button>
                 <button onClick={callGetSnsPreview}>GetSNS</button>
                 <button onClick={confirm}>Confirm</button>
-                <button onClick={onFilter}>Filter</button>
-                <button onClick={clearFilter}>Filter Clear</button>
 
                 <div className={styles.Col}>
                     <input type='text' value={focusItemId} onChange={onChangeFocusItemId} />
@@ -146,7 +165,7 @@ export default function TestMap() {
                     onMapKindChanged={onMapKindChanged}
                     onSelect={onSelect} onUnselect={onUnselect}
                     onModeChanged={(val) => onCallback('onModeChanged', val)}
-                    onCategoriesLoaded={(val)=>onCallback('onCategoriesLoaded', val)} />
+                    onCategoriesLoaded={onCategoriesLoaded} />
             </div>
         </>
     );
