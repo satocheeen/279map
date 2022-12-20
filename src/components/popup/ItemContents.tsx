@@ -1,15 +1,12 @@
 import React, { useCallback, useMemo } from 'react';
-import { PopupItem } from './PointsPopup';
-import Content from '../contents/Content';
 import styles from './ItemContents.module.scss';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
-import AddContentMenu from './AddContentMenu';
-import { Auth, ContentsDefine, ItemContentInfo, ItemDefine } from '279map-common';
+import { Auth, ItemContentInfo, ItemDefine } from '279map-common';
 import { useAPI } from '../../api/useAPI';
 import { BsThreeDots } from 'react-icons/bs';
-import { doCommand } from '../../util/Commander';
 import { operationActions } from '../../store/operation/operationSlice';
+import { useFilter } from '../../store/useFilter';
 
 type Props = {
     item: ItemDefine;
@@ -24,12 +21,13 @@ export default function ItemContents(props: Props) {
     const { apiUrl } = useAPI();
 
     const dispatch = useAppDispatch();
+    const { filterTargetContentIds } = useFilter();
     const editable = useSelector((state: RootState) => state.session.connectedMap?.authLv === Auth.Edit);
 
     // 表示する画像URL
     const imageUrl = useMemo((): string | null => {
         const getImageOwnerContentId = (content: ItemContentInfo) : string | undefined => {
-            if (content.hasImage) {
+            if ((filterTargetContentIds === undefined || filterTargetContentIds?.includes(content.id)) && content.hasImage) {
                 return content.id;
             }
             let id: string | undefined;
@@ -48,7 +46,7 @@ export default function ItemContents(props: Props) {
         }
         return `${apiUrl}getthumb?id=${imageContentId}`;
 
-    }, [apiUrl, props.item]);
+    }, [apiUrl, props.item, filterTargetContentIds]);
 
     const onClick = useCallback(() => {
         if (!props.item.contents) return;

@@ -77,7 +77,6 @@ export function useFilter() {
                 contentsIdList.push(c.id);
             })
         });
-        console.log('all content', contentsIdList);
         // -- 2. フィルタ条件に該当しないものを外していく
         filter.forEach(filterDef => {
             if (filterDef.type === 'category') {
@@ -124,8 +123,6 @@ export function useFilter() {
         const filtered = targetContentIds.some(targetContentId => {
             return filterTargetContentIds?.includes(targetContentId);
         });
-        console.log('filterTargetContentIds', filterTargetContentIds);
-        console.log('debug', target.name, targetContentIds, filtered);
         if (filtered) {
             return {
                 status: 'Filtered'

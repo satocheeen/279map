@@ -56,6 +56,9 @@ export default function PointsPopup(props: Props) {
         return targets.some(item => hasImageItem(item));
     }, [targets]);
 
+    if (targets.length === 0) {
+        return null;
+    }
     return (
         <div className={`${styles.Popup} ${hasImage ? '' : styles.Minimum}`}>
             <div className={styles.Contents}>

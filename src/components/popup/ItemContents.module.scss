@@ -4,12 +4,14 @@
 }
 .ImageContainer {
     width: 300px;
-    height: 200px;
     position: relative;
     overflow: hidden;
     cursor: pointer;
 }
 .ThreeDots {
-    margin: auto;
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
     cursor: pointer;
 }

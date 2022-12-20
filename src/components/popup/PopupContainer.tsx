@@ -57,7 +57,6 @@ export default function PopupContainer(props: Props) {
                 const image = style.getImage();
                 const pixel = mapRef.current.getPixelFromCoordinate([itemPosition.longitude, itemPosition.latitude]);
                 const imageSize = image.getSize();
-                console.log('imageSize', imageSize);
                 if (!imageSize || imageSize.length < 2 || !pixel || pixel.length < 2) {
                     return;
                 }
@@ -151,7 +150,6 @@ export default function PopupContainer(props: Props) {
             const ele = elementRefMap.current[key]?.parentElement;
             // const open = isOpen(target);
             const open = true;
-            console.log('open', open);
             if(open) {
                 if (ele)
                     ele.style.zIndex = '10';
