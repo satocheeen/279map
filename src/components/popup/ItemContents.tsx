@@ -3,12 +3,13 @@ import { PopupItem } from './PointsPopup';
 import Content from '../contents/Content';
 import styles from './ItemContents.module.scss';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../store/configureStore';
+import { RootState, useAppDispatch } from '../../store/configureStore';
 import AddContentMenu from './AddContentMenu';
 import { Auth, ContentsDefine, ItemContentInfo, ItemDefine } from '279map-common';
 import { useAPI } from '../../api/useAPI';
 import { BsThreeDots } from 'react-icons/bs';
 import { doCommand } from '../../util/Commander';
+import { operationActions } from '../../store/operation/operationSlice';
 
 type Props = {
     item: ItemDefine;
@@ -22,6 +23,7 @@ type Props = {
 export default function ItemContents(props: Props) {
     const { apiUrl } = useAPI();
 
+    const dispatch = useAppDispatch();
     const editable = useSelector((state: RootState) => state.session.connectedMap?.authLv === Auth.Edit);
 
     // 表示する画像URL
@@ -50,15 +52,9 @@ export default function ItemContents(props: Props) {
 
     const onClick = useCallback(() => {
         if (!props.item.contents) return;
+        dispatch(operationActions.setSelectItem([props.item.id]));
 
-        doCommand({
-            command: 'ShowContentsModal',
-            param: {
-                itemId: props.item.id,
-                contentId: props.item.contents.id,
-            }
-        });
-    }, [props.item]);
+    }, [props.item, dispatch]);
 
     if (imageUrl) {
         return (
