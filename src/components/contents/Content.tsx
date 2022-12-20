@@ -18,6 +18,7 @@ import { Auth, ContentsDefine, MapKind } from "279map-common";
 import { useAPI } from "../../api/useAPI";
 import Spinner from "../common/spinner/Spinner";
 import { operationActions } from "../../store/operation/operationSlice";
+import { useFilter } from "../../store/useFilter";
 
 type Props = {
     itemId: string;
@@ -35,6 +36,18 @@ export default function Content(props: Props) {
     const { confirm } = useConfirm();
     const dispatch = useAppDispatch();
     const { apiUrl } = useAPI();
+    const { filterTargetContentIds } = useFilter();
+
+    /**
+     * 表示対象コンテンツかどうか。
+     * （フィルタが掛かっている場合に、フィルタ対象のコンテンツのみを表示する）
+     */
+    const isShow = useMemo(() => {
+        if (filterTargetContentIds === undefined) {
+            return true;
+        }
+        return filterTargetContentIds.includes(props.content.id);
+    }, [filterTargetContentIds, props.content]);
 
     const urlType = useMemo(() => {
         return props.content.url ? CommonUtility.getUrlType(props.content.url) : undefined;
@@ -244,8 +257,8 @@ export default function Content(props: Props) {
 
     }, [props.content.overview]);
 
-    return (
-        <div className={styles.Item}>
+    const header = useMemo(() => {
+        return (
             <div className={styles.ItemHeader}>
                 <span className={styles.Title}>
                     {title}
@@ -271,29 +284,47 @@ export default function Content(props: Props) {
                     }
                 </div>
             </div>
-            {overview &&
-                <p className={styles.Overview}>{overview}</p>
-            }
-            {dateStr && 
-                <span className={styles.Date}>{dateStr}</span>
-            }
-            {categoryTag}
-            {showSpinner &&
-                <div className={styles.SpinnerArea}>
-                    <Spinner />
-                </div>
-            }
-            {
-                imageUrl &&
-                    <div className={styles.ImageContainer}>
-                        <img className={styles.Image} src={imageUrl} onClick={onImageClick} alt="contents" />
+        )
+    }, [props.content, title, onGoToAnotherMap, addableChild, existAnoterMap, isEditable, onDelete, onEdit, toolTipMessage]);
+
+    const body = useMemo(() => {
+        return (
+            <>
+                {overview &&
+                    <p className={styles.Overview}>{overview}</p>
+                }
+                {dateStr && 
+                    <span className={styles.Date}>{dateStr}</span>
+                }
+                {categoryTag}
+                {showSpinner &&
+                    <div className={styles.SpinnerArea}>
+                        <Spinner />
                     </div>
-            }
-            {
-                props.content.videoUrl &&
-                    <div className={styles.ImageContainer}>
-                        <video className={styles.Video} src={props.content.videoUrl} controls playsInline />
-                    </div>
+                }
+                {
+                    imageUrl &&
+                        <div className={styles.ImageContainer}>
+                            <img className={styles.Image} src={imageUrl} onClick={onImageClick} alt="contents" />
+                        </div>
+                }
+                {
+                    props.content.videoUrl &&
+                        <div className={styles.ImageContainer}>
+                            <video className={styles.Video} src={props.content.videoUrl} controls playsInline />
+                        </div>
+                }
+            </>
+        )
+    }, [overview, dateStr, categoryTag, showSpinner, imageUrl, props.content, onImageClick]);
+
+    return (
+        <div className={styles.Item}>
+            {isShow &&
+                <>
+                    {header}
+                    {body}
+                </>
             }
             {
                 props.content.children?.map(child => {

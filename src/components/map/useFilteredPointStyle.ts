@@ -58,7 +58,7 @@ export default function useFilteredPointStyle(props: Props) {
 
     useEffect(() => {
         props.structureLayer.setStyle(pointStyleFunction);
-    }, [pointStyleFunction]);
+    }, [pointStyleFunction, props.structureLayer]);
 }
 
 /**

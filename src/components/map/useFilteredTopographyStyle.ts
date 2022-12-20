@@ -60,6 +60,6 @@ export default function useFilteredTopographyStyle(props: Props) {
 
     useEffect(() => {
         props.topographyLayer.setStyle(topographyStyleFunction);
-    }, [topographyStyleFunction]);
+    }, [props.topographyLayer, topographyStyleFunction]);
 
 }

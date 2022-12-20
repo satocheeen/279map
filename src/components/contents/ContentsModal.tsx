@@ -43,7 +43,7 @@ export default function ContentsModal() {
             setLoaded(true);
         });
 
-    }, [itemId, dispatch]);
+    }, [itemId, itemMap, dispatch]);
 
     const content = useSelector((state: RootState) => {
         if (!itemId) return;
