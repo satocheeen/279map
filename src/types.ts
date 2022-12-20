@@ -107,10 +107,7 @@ export type ContentsDefine = {
 export type CategoryDefine = {
     name: string;
     color: string;
-    contents: {
-        content_id: string;
-        item_id: string;
-    }[];
+    content_ids: string[];
 }
 export type EventDefine = {
     date: Date;
