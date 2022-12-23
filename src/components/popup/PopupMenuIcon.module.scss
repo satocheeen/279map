@@ -19,9 +19,12 @@
 
 .PopupMenu {
     width: 10rem;
+    padding: 0 !important;
 
     ul {
         list-style: none;
+        pointer-events: all;
+        margin: 0;
         padding: 0;
     }
 

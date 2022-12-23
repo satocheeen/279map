@@ -1,6 +1,7 @@
 import React, { useMemo, useRef, useCallback, useState } from 'react';
-import { Overlay, OverlayTrigger, Popover, Tooltip } from 'react-bootstrap';
 import styles from './PopupMenuIcon.module.scss';
+import { Tooltip } from 'react-tooltip'
+import 'react-tooltip/dist/react-tooltip.css'
 
 type SubMenu<T extends string> = {
     items: {
@@ -16,12 +17,14 @@ type Props = {
     submenu?: SubMenu<any>;
 }
 
+let maxId = 0;
 /**
  * ポップアップ内で使用するアイコン
  * @param props 
  * @returns 
  */
 export default function PopupMenuIcon(props: Props) {
+    const id = useRef('popup-menu-icon-'+maxId++);
     const iconRef = useRef(null);
     const [isShowSubMenu, setShowSubMenu] = useState(false);
 
@@ -40,7 +43,7 @@ export default function PopupMenuIcon(props: Props) {
 
     const icon = useMemo(() => {
         return (
-            <span ref={iconRef} className={styles.Icon} onClick={onIconClick}>
+            <span ref={iconRef} id={id.current} className={styles.Icon} onClick={onIconClick}>
                 {props.children}
             </span>
         );
@@ -49,11 +52,10 @@ export default function PopupMenuIcon(props: Props) {
     const iconWithToolTip = useMemo(() => {
         if (props.tooltip) {
             return (
-                <OverlayTrigger overlay={
-                    <Tooltip>{props.tooltip}</Tooltip>
-                }>
+                <span>
                     {icon}
-                </OverlayTrigger>
+                    <Tooltip anchorId={id.current} content={props.tooltip} place="top" />
+                </span>
             );
         } else {
             return icon;
@@ -73,34 +75,22 @@ export default function PopupMenuIcon(props: Props) {
             return null;
         }
         return (
-            <Popover id="popover-contained">
-                <Popover.Body bsPrefix={styles.PopupMenu}>
-                    <ul className={styles.PopupMenu}>
-                        {props.submenu.items.map(item => {
-                            return (
-                                <li key={item.value} onClick={()=>onSubMenuClick(item.value)}>{item.text}</li>
-                            )
-                        })}
-                    </ul>
-                </Popover.Body>
-            </Popover>
+            <Tooltip anchorId={id.current} place="right" isOpen={isShowSubMenu} className={styles.PopupMenu}>
+                <ul>
+                    {props.submenu.items.map(item => {
+                        return (
+                            <li key={item.value} onClick={()=>onSubMenuClick(item.value)}>{item.text}</li>
+                        )
+                    })}
+                </ul>
+            </Tooltip>
         );
-    }, [props.submenu, onSubMenuClick]);
+    }, [props.submenu, onSubMenuClick, isShowSubMenu]);
 
     return (
         <>
             {iconWithToolTip}
-            {props.submenu &&
-                <Overlay target={iconRef.current} show={isShowSubMenu} placement="right">
-                    {({ placement, arrowProps, show: _show, popper, ...props }) => (
-                        <div
-                            {...props}
-                        >
-                        {subMenu}
-                    </div>
-                    )}
-                </Overlay>
-            }
+            {subMenu}
         </>
     );
 }
