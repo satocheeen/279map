@@ -14,16 +14,26 @@ type Props = {
 
 export default function Modal(props: Props) {
     const myRef = useRef<HTMLDialogElement|null>(null);
+    const closing = useRef(false);  // when closing dialog, seted tre.
 
     useEffect(() => {
         if (props.show) {
+            if (closing.current) {
+                closing.current = false;
+            }
             if (myRef.current?.open) return;
             myRef.current?.showModal();
+
         } else {
             if (!myRef.current?.open) return;
+            closing.current = true;
             // wait for animation
             setTimeout(() => {
-                myRef.current?.close();
+                // if modal show again while closing, don't close.
+                if (closing.current) {
+                    myRef.current?.close();
+                    closing.current = false;
+                }
             }, 300);
         }
     }, [props.show]);

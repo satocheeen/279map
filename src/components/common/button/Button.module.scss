@@ -4,6 +4,10 @@
     border: 1px solid;
     cursor: pointer;
 
+    &:active,&:focus-visible {
+        outline: none;
+    }
+
     &.primary {
         background-color: var(--primary-bg-color);
         color: var(--primary-text-color);

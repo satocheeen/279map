@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useMemo, useState } from "react";
+import React, { ReactNode, useCallback, useMemo, useState, useContext } from "react";
 import { UrlType } from "../../types/types";
 import styles from './Content.module.scss';
 import { MdEdit, MdOutlineOpenInNew, MdDelete } from 'react-icons/md';
@@ -19,6 +19,7 @@ import { useAPI } from "../../api/useAPI";
 import Spinner from "../common/spinner/Spinner";
 import { operationActions } from "../../store/operation/operationSlice";
 import { useFilter } from "../../store/useFilter";
+import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 
 type Props = {
     itemId: string;
@@ -37,6 +38,7 @@ export default function Content(props: Props) {
     const dispatch = useAppDispatch();
     const { apiUrl } = useAPI();
     const { filterTargetContentIds } = useFilter();
+    const { onEditContentInfo } = useContext(OwnerContext);
 
     /**
      * 表示対象コンテンツかどうか。
@@ -183,22 +185,25 @@ export default function Content(props: Props) {
         });
     }, [props.content]);
 
-    const editable = useSelector((state: RootState) => state.session.connectedMap?.authLv === Auth.Edit);
-
+    const editableAuthLv = useSelector((state: RootState) => state.session.connectedMap?.authLv === Auth.Edit);
     const isEditable = useMemo(() => {
-        if (!editable) {
-            return false;
-        }
+        if (!editableAuthLv) return false;
+        if (!onEditContentInfo) return false;
+
         // SNSコンテンツは編集不可
         return !props.content.isSnsContent;
-    }, [props.content, editable]);
+    }, [editableAuthLv, onEditContentInfo, props.content]);
+
+    const isDeletable = useMemo(() => {
+        if (!editableAuthLv) return false;
+        // SNSコンテンツは編集不可
+        return !props.content.isSnsContent;
+    }, [editableAuthLv, props.content]);
 
     const addableChild = useMemo(() => {
-        if (!editable) {
-            return false;
-        }
+        if (!editableAuthLv) return false;
         return props.content.addableChild;
-    }, [props.content, editable]);
+    }, [props.content, editableAuthLv]);
 
     const onDelete = useCallback(async() => {
         const result = await confirm({
@@ -265,14 +270,14 @@ export default function Content(props: Props) {
                 </span>
                 <div className={styles.IconAreas}>
                     {isEditable &&
-                        <>
-                            <PopupMenuIcon tooltip='編集' onClick={onEdit}>
-                                <MdEdit />
-                            </PopupMenuIcon>
-                            <PopupMenuIcon tooltip="削除" onClick={onDelete}>
-                                <MdDelete />
-                            </PopupMenuIcon>
-                        </>
+                        <PopupMenuIcon tooltip='編集' onClick={onEdit}>
+                            <MdEdit />
+                        </PopupMenuIcon>
+                    }
+                    {isDeletable &&
+                        <PopupMenuIcon tooltip="削除" onClick={onDelete}>
+                            <MdDelete />
+                        </PopupMenuIcon>
                     }
                     {addableChild &&
                         <AddContentMenu contentId={props.content.id} />
