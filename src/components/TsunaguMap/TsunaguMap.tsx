@@ -22,6 +22,7 @@ export type TsunaguMapProps = {
     })[];
     disabledPopup?: boolean; // when true, the map don't show popup.
     disabledLabel?: boolean; // when true, the item's label hidden.
+    disabledContentDialog?: boolean;    // when true, the content dialog didn't show even if you click a item.
 
     filter?: FilterDefine[];
 

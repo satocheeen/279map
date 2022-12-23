@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { Modal, ModalBody, ModalFooter, ModalHeader } from '../common';
 import { loadContents } from '../../store/data/dataThunk';
 import Content from './Content';
 import { useSelector } from 'react-redux';
 import { operationActions } from '../../store/operation/operationSlice';
+import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 
 export default function ContentsModal() {
     const [show, setShow] = useState(false);
@@ -12,14 +13,18 @@ export default function ContentsModal() {
     const [loadied, setLoaded] = useState(false);
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
     const selectedItemIds = useSelector((state: RootState) => state.operation.selectedItemIds);
+    const { disabledContentDialog } = useContext(OwnerContext);
 
     const itemId = useMemo((): string | undefined => {
+        if (disabledContentDialog) {
+            return;
+        }
         if (selectedItemIds.length === 0) {
             return;
         }
         return selectedItemIds[0];
 
-    }, [selectedItemIds]);
+    }, [disabledContentDialog, selectedItemIds]);
 
     useEffect(() => {
         if (!itemId) return;

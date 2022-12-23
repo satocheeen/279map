@@ -66,6 +66,8 @@ export default function TestMap() {
 
     const [ disabledLabel, setDisableLabel ] = useState(false);
 
+    const [ disabledContentDialog, setDisableContentDialog ] = useState(false);
+
     const onMapKindChanged = useCallback((mapKind: MapKind) => {
         setMapKind(mapKind);
     }, []);
@@ -132,6 +134,7 @@ export default function TestMap() {
                 </div>
                 <PropRadio name='disabledPopup' value={disabledPopup} onChange={setDisablePopup} />
                 <PropRadio name='disabledLabel' value={disabledLabel} onChange={setDisableLabel} />
+                <PropRadio name='disabledContentDialog' value={disabledContentDialog} onChange={setDisableContentDialog} />
                 <div className={styles.Col}>
                     <h3>カテゴリフィルタ</h3>
                     <label>
@@ -160,6 +163,7 @@ export default function TestMap() {
                 <TsunaguMap {...props}
                     disabledPopup={disabledPopup}
                     disabledLabel={disabledLabel}
+                    disabledContentDialog={disabledContentDialog}
                     filter={filter}
                     onConnect={onConnect}
                     onMapKindChanged={onMapKindChanged}
