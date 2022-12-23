@@ -9,7 +9,8 @@ type Props = {
     className?: string;
     spinner?: string | boolean; // trueまたは文字列の場合、Spinner表示。文字列の場合は、Spinner+メッセージ表示。
     closebtn?: boolean; // trueの場合、ヘッダに閉じるボタンを表示
-    onClose?: () => void;   // callback when click close btn
+    onCloseBtnClicked?: () => void;   // callback when click close btn
+    onClosed?: () => void;  // callback when closing dialog finish.
 }
 
 export default function Modal(props: Props) {
@@ -33,10 +34,13 @@ export default function Modal(props: Props) {
                 if (closing.current) {
                     myRef.current?.close();
                     closing.current = false;
+                    if (props.onClosed) {
+                        props.onClosed();
+                    }
                 }
             }, 300);
         }
-    }, [props.show]);
+    }, [props.show, props]);
 
     const header = useMemo(() => {
         return props.children.find(child => child.type === ModalHeader);
@@ -51,8 +55,8 @@ export default function Modal(props: Props) {
     }, [props.children]);
 
     const onClose = useCallback(() => {
-        if (props.onClose) {
-            props.onClose();
+        if (props.onCloseBtnClicked) {
+            props.onCloseBtnClicked();
         }
     }, [props]);
 

@@ -58,13 +58,19 @@ export default function ContentsModal() {
         return state.data.contentsList.find(cn => cn.id === contentId);
     });
 
-    const onClose = useCallback(() => {
-        dispatch(operationActions.unselectItem());
+    const onCloseBtnClicked = useCallback(() => {
         setShow(false);
+    }, []);
+
+    const onClosed = useCallback(() => {
+        dispatch(operationActions.unselectItem());
     }, [dispatch]);
 
     return (
-        <Modal show={show} spinner={!loadied} closebtn onClose={onClose}>
+        <Modal show={show} spinner={!loadied}
+            closebtn onCloseBtnClicked={onCloseBtnClicked}
+            onClosed={onClosed}
+            >
             <ModalHeader>詳細</ModalHeader>
             <ModalBody>
                 {(itemId &&content) ?
