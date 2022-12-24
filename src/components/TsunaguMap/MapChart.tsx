@@ -694,6 +694,13 @@ export default function MapChart() {
         setClusterMenuInfo(null);
     }, [mapView, prevMapView]);
 
+    const selectedItemIds = useSelector((state: RootState) => state.operation.selectedItemIds);
+    useEffect(() => {
+        if (selectedItemIds.length > 0) {
+            setClusterMenuInfo(null);
+        }
+    }, [selectedItemIds]);
+
    const onClusterMenuSelected = useCallback((id: string) => {
         setClusterMenuInfo(null);
         dispatch(operationActions.setSelectItem([id]));

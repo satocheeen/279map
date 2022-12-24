@@ -2,6 +2,8 @@ import React, { useMemo, useRef, useCallback, useState } from 'react';
 import styles from './PopupMenuIcon.module.scss';
 import { Tooltip } from 'react-tooltip'
 import 'react-tooltip/dist/react-tooltip.css'
+import { useAppDispatch } from '../../store/configureStore';
+import { operationActions } from '../../store/operation/operationSlice';
 
 type SubMenu<T extends string> = {
     items: {
@@ -15,6 +17,7 @@ type Props = {
     onClick?: () => void;
     children: React.ReactElement;
     submenu?: SubMenu<any>;
+    modal?:boolean;
 }
 
 let maxId = 0;
@@ -25,8 +28,8 @@ let maxId = 0;
  */
 export default function PopupMenuIcon(props: Props) {
     const id = useRef('popup-menu-icon-'+maxId++);
-    const iconRef = useRef(null);
     const [isShowSubMenu, setShowSubMenu] = useState(false);
+    const dispatch = useAppDispatch();
 
     const onIconClick = useCallback((evt: React.MouseEvent) => {
         evt.stopPropagation();
@@ -42,26 +45,23 @@ export default function PopupMenuIcon(props: Props) {
         }
     }, [props, isShowSubMenu]); 
 
+    const onMouseEnterIcon = useCallback(() => {
+        if (!props.tooltip) return;
+        dispatch(operationActions.setTooltip({
+            anchorId: id.current,
+            content: props.tooltip,
+            modal: props.modal,
+        }));
+    }, [props.tooltip, props.modal, dispatch]);
+
     const icon = useMemo(() => {
         return (
-            <span ref={iconRef} id={id.current} className={styles.Icon} onClick={onIconClick}>
+            <span id={id.current} className={styles.Icon} onClick={onIconClick}
+                onMouseEnter={onMouseEnterIcon}>
                 {props.children}
             </span>
         );
-    }, [props, onIconClick]);
-
-    const iconWithToolTip = useMemo(() => {
-        if (props.tooltip) {
-            return (
-                <span>
-                    {icon}
-                    <Tooltip anchorId={id.current} content={props.tooltip} place="top" className={styles.ToolTip} />
-                </span>
-            );
-        } else {
-            return icon;
-        }
-    }, [props.tooltip, icon]);
+    }, [props, onIconClick, onMouseEnterIcon]);
 
     const onSubMenuClick = useCallback((val: string) => {
         if (!props.submenu?.onClick) {
@@ -90,7 +90,7 @@ export default function PopupMenuIcon(props: Props) {
 
     return (
         <>
-            {iconWithToolTip}
+            {icon}
             {subMenu}
         </>
     );

@@ -26,6 +26,11 @@ export type PopupTarget = {
     type: 'content';
     contentId: string;
 }
+type TooltipParam = {
+    anchorId: string;
+    content: string;
+    modal?: boolean;    // set true when the tooltip on the dialog
+}
 
 /**
  * 操作関連のデータを管理するストア
@@ -60,6 +65,9 @@ const operationSlice = createSlice({
         showConfirmDialog: false,
         confirmInfo: undefined as undefined | ConfirmParam,
         confirmResult: undefined as undefined | ConfirmResult,
+
+        // Tooltip
+        tooltip: null as TooltipParam | null,
     },
     reducers: {
         setMapKind(state, action: PayloadAction<MapKind>) {
@@ -120,6 +128,9 @@ const operationSlice = createSlice({
             state.showConfirmDialog = false;
             state.confirmInfo = undefined;
             state.confirmResult = action.payload;
+        },
+        setTooltip(state, action: PayloadAction<TooltipParam>) {
+            state.tooltip = action.payload;
         },
     },
     extraReducers: (builder) => {

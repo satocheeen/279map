@@ -92,7 +92,7 @@ function MenuItem(props: MenuItemProp) {
             <span className={styles.NameArea}>
                 <span>{itemName}</span>
                 {!hasContent &&
-                    <AddContentMenu itemId={props.id} />
+                    <AddContentMenu target={{itemId: props.id}} />
                 }
             </span>
         </li>

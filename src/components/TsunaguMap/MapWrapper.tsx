@@ -1,9 +1,9 @@
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
-import { linkContentToItem, loadCategories, loadEvents, registContent, updateContent } from '../../store/data/dataThunk';
+import { loadCategories, loadEvents } from '../../store/data/dataThunk';
 import { useFilter } from '../../store/useFilter';
-import { addListener, NewContentInfoParam, removeListener } from '../../util/Commander';
+import { addListener, removeListener } from '../../util/Commander';
 import { usePrevious } from '../../util/usePrevious';
 import MapChart from './MapChart';
 import { operationActions, PopupTarget } from '../../store/operation/operationSlice';
@@ -16,6 +16,8 @@ import { useSpinner } from '../common/spinner/useSpinner';
 import { api } from '279map-common';
 import { getContents } from '../../store/data/dataUtility';
 import { useCommand } from '../../api/useCommand';
+import { Tooltip } from 'react-tooltip';
+import styles from './MapWrapper.module.scss';
 
 export default function MapWrapper() {
     const ownerContext = useContext(OwnerContext);
@@ -214,12 +216,26 @@ export default function MapWrapper() {
         }
     }, [currentMapKindInfo, spinner]);
 
+    const tooltip = useSelector((state: RootState) => state.operation.tooltip);
+    const showTooltip = useMemo(() => {
+        if(!tooltip) return false;
+        if (tooltip.modal) return false;
+        return true;
+    },[tooltip]);
+
+    useEffect(() => {
+        console.log('tooltip', tooltip);
+    }, [tooltip]);
+
     return (
         <>
             {currentMapKindInfo &&
                 <MapChart />
             }
             <MySpinner />
+            {(tooltip && showTooltip) &&
+                <Tooltip anchorId={tooltip.anchorId} content={tooltip.content} place="top" className={styles.Tooltip} />
+            }
         </>
     );
 }

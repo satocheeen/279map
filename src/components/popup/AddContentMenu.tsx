@@ -5,11 +5,13 @@ import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 
 type Props = {
-    itemId: string;
-} | {
-    contentId: string;
+    target: {
+        itemId: string;
+    } | {
+        contentId: string;
+    };
+    modal?: boolean;
 }
-
 export default function AddContentMenu(props: Props) {
     const { onNewContentInfo } = useContext(OwnerContext);
     const onAddContent = useCallback((val: 'new' | 'unpoint') => {
@@ -17,11 +19,11 @@ export default function AddContentMenu(props: Props) {
 
         const param: NewContentInfoParam = val === 'new'
         ? {
-            parent: props,
+            parent: props.target,
             mode: 'manual',
         }
         : {
-            parent: props,
+            parent: props.target,
             mode: 'select-unpoint',
         };
         onNewContentInfo(param);
@@ -39,7 +41,7 @@ export default function AddContentMenu(props: Props) {
     if (!onNewContentInfo) return null;
 
     return (
-        <PopupMenuIcon tooltip={caption} submenu={{
+        <PopupMenuIcon tooltip={caption} modal={props.modal} submenu={{
             items: [
                 { text: '新規作成', value: 'new' },
                 { text: '既存コンテンツ', value: 'unpoint' },
