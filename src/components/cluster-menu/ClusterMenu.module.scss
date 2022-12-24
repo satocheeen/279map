@@ -4,8 +4,7 @@
 }
 .Container {
     background: $white;
-    width: 20rem;
-    // height: 200px;
+    // width: 20rem;
     box-shadow: 0 4px 4px rgba(0,0,0,0.2);
 }
 
@@ -35,7 +34,7 @@
     // padding: .2rem;
     padding: 0 1rem;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     list-style: none;
     cursor: pointer;
@@ -49,12 +48,12 @@
         min-height: 2.5rem;
         align-items: center;
 
-        img {
-            height: 2rem;
-            width: 2.5rem;
-            margin-right: .5rem;
-            object-fit: contain;
-        }
+    }
+    img {
+        height: 2rem;
+        width: 2.5rem;
+        margin-right: .5rem;
+        object-fit: contain;
     }
 
 }

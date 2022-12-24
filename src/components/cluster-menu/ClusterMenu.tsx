@@ -88,13 +88,13 @@ function MenuItem(props: MenuItemProp) {
 
     return (
         <li className={styles.MenuItem} onClick={props.onClick}>
-            <div className={styles.NameArea}>
-                <img src={iconImagePath} />
+            <img src={iconImagePath} />
+            <span className={styles.NameArea}>
                 <span>{itemName}</span>
-            </div>
-            {!hasContent &&
-                <AddContentMenu itemId={props.id} />
-            }
+                {!hasContent &&
+                    <AddContentMenu itemId={props.id} />
+                }
+            </span>
         </li>
     );
 }
