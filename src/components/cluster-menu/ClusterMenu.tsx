@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
 import { MdOutlineLibraryAdd } from 'react-icons/md';
 import PopupMenuIcon from '../popup/PopupMenuIcon';
+import useIcon from '../../store/useIcon';
 
 type Props = {
     map: Map;
@@ -63,6 +64,22 @@ function MenuItem(props: MenuItemProp) {
 
     const item = useMemo(() => itemMap[props.id], [props.id, itemMap]);
 
+    const { getIconDefine } = useIcon();
+
+    const iconDefine= useMemo(() => {
+        if (!item.geoProperties) {
+            return getIconDefine();
+        }
+        if (!('icon' in item.geoProperties)) {
+            // TODO: 空を設定
+            return getIconDefine();
+        }
+        return getIconDefine(item.geoProperties.icon);
+
+    }, [getIconDefine, item]);
+
+    const iconImagePath = useMemo(() => iconDefine.imagePath, [iconDefine]);
+
     const hasContent =useMemo(() => {
         return item.contents ? true : false;
     }, [item]);
@@ -80,7 +97,10 @@ function MenuItem(props: MenuItemProp) {
 
     return (
         <li className={styles.MenuItem} onClick={props.onClick}>
-            <span>{itemName}</span>
+            <div className={styles.NameArea}>
+                <img src={iconImagePath} />
+                <span>{itemName}</span>
+            </div>
             {!hasContent &&
                 <PopupMenuIcon tooltip='コンテンツ追加' onClick={onClickNewContentBtn}>
                     <MdOutlineLibraryAdd />
