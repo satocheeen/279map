@@ -1,6 +1,6 @@
 @import '../../styles/global.scss';
 .ContainerWrapper {
-    z-index: 10;
+    z-index: 20;
 }
 .Container {
     background: $white;
@@ -36,6 +36,8 @@
     padding: 0 1rem;
     line-height: 2rem;
     min-height: 2rem;
+    display: flex;
+    justify-content: space-between;
     vertical-align: middle;
     list-style: none;
     cursor: pointer;

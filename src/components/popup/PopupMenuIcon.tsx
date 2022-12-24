@@ -29,6 +29,7 @@ export default function PopupMenuIcon(props: Props) {
     const [isShowSubMenu, setShowSubMenu] = useState(false);
 
     const onIconClick = useCallback((evt: React.MouseEvent) => {
+        evt.stopPropagation();
         if (!props.submenu && props.onClick) {
             props.onClick();
         } else {
@@ -54,7 +55,7 @@ export default function PopupMenuIcon(props: Props) {
             return (
                 <span>
                     {icon}
-                    <Tooltip anchorId={id.current} content={props.tooltip} place="top" />
+                    <Tooltip anchorId={id.current} content={props.tooltip} place="top" className={styles.ToolTip} />
                 </span>
             );
         } else {

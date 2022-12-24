@@ -290,7 +290,7 @@ export default function Content(props: Props) {
                 </div>
             </div>
         )
-    }, [props.content, title, onGoToAnotherMap, addableChild, existAnoterMap, isEditable, onDelete, onEdit, toolTipMessage]);
+    }, [props.content, title, onGoToAnotherMap, addableChild, existAnoterMap, isEditable, isDeletable, onDelete, onEdit, toolTipMessage]);
 
     const body = useMemo(() => {
         return (
