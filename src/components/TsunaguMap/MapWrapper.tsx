@@ -98,16 +98,9 @@ export default function MapWrapper() {
                 });
             }
         });
-        const h6 = addListener('NewContentInfo', async(param: NewContentInfoParam) => {
-            if(onNewContentInfoRef.current) {
-                onNewContentInfoRef.current(param);
-            }
-        });
-
         return () => {
             removeListener(h);
             removeListener(h2);
-            removeListener(h6);
         }
 
     }, [dispatch, mapServer]);

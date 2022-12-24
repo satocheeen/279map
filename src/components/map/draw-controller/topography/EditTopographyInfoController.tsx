@@ -1,7 +1,7 @@
 import { Feature, Map } from 'ol';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState, useContext } from 'react';
 import { ListGroup } from 'react-bootstrap';
-import { doCommand } from '../../../../util/Commander';
+import { OwnerContext } from '../../../TsunaguMap/TsunaguMap';
 import PromptMessageBox from '../PromptMessageBox';
 import SelectFeature from '../SelectFeature';
 
@@ -28,21 +28,21 @@ export default function EditTopographyInfoController(props: Props) {
         props.close();
     }, [props]);
 
+    const { onNewContentInfo } = useContext(OwnerContext);
     const onContentAdd = useCallback((mode: 'manual' | 'select-unpoint') => {
         if (!selectedFeatureId.current) {
             console.warn('selected feature id undefined.');
             return;
         }
-        doCommand({
-            command: "NewContentInfo",
-            param: {
-                parent: { itemId: selectedFeatureId.current },
-                mode,
-            },
+        if (!onNewContentInfo) return;
+
+        onNewContentInfo({
+            parent: { itemId: selectedFeatureId.current },
+            mode,
         });
         props.close();
 
-    }, [props]);
+    }, [props, onNewContentInfo]);
 
     switch(stage) {
         case Stage.SELECTING_FEATURE:

@@ -4,9 +4,8 @@ import { Coordinate } from 'ol/coordinate';
 import styles from './ClusterMenu.module.scss';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
-import { MdOutlineLibraryAdd } from 'react-icons/md';
-import PopupMenuIcon from '../popup/PopupMenuIcon';
 import useIcon from '../../store/useIcon';
+import AddContentMenu from '../popup/AddContentMenu';
 
 type Props = {
     map: Map;
@@ -56,9 +55,7 @@ export default function ClusterMenu(props: Props) {
 type MenuItemProp = {
     id: string;
     onClick?: () => void;
-    onNewContentClick?:() => void;  // when click the new content button which is showen when the item has no content
 }
-// TODO: コンテンツを持たないアイテムの場合、コンテンツ追加ボタンを表示
 function MenuItem(props: MenuItemProp) {
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
 
@@ -89,12 +86,6 @@ function MenuItem(props: MenuItemProp) {
         return item.name;
     }, [item]);
 
-    const onClickNewContentBtn = useCallback(() => {
-        if (props.onNewContentClick) {
-            props.onNewContentClick();
-        }
-    }, [props]);
-
     return (
         <li className={styles.MenuItem} onClick={props.onClick}>
             <div className={styles.NameArea}>
@@ -102,9 +93,7 @@ function MenuItem(props: MenuItemProp) {
                 <span>{itemName}</span>
             </div>
             {!hasContent &&
-                <PopupMenuIcon tooltip='コンテンツ追加' onClick={onClickNewContentBtn}>
-                    <MdOutlineLibraryAdd />
-                </PopupMenuIcon>
+                <AddContentMenu itemId={props.id} />
             }
         </li>
     );

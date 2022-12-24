@@ -169,7 +169,8 @@ export default function TestMap() {
                     onMapKindChanged={onMapKindChanged}
                     onSelect={onSelect} onUnselect={onUnselect}
                     onModeChanged={(val) => onCallback('onModeChanged', val)}
-                    onCategoriesLoaded={onCategoriesLoaded} />
+                    onCategoriesLoaded={onCategoriesLoaded}
+                    onNewContentInfo={(val) => onCallback('onNewContentInfo', val)} />
             </div>
         </>
     );

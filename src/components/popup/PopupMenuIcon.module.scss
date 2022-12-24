@@ -23,6 +23,7 @@
 .PopupMenu {
     width: 10rem;
     padding: 0 !important;
+    color:var(--white) !important;
 
     ul {
         list-style: none;
@@ -35,7 +36,8 @@
         padding: .2rem 1rem;
         cursor: pointer;
         &:hover {
-            background-color: $secondary;
+            filter: brightness(0.5);
+            // background-color: $secondary;
         }
     }
 }

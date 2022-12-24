@@ -44,8 +44,6 @@ type CommandDefine =
     | TCommandDefine<'RemoveTopography', undefined>
     // 最新地図アイテム取得命令
     | TCommandDefine<'LoadLatestData', undefined>
-    // コンテンツ情報登録
-    | TCommandDefine<'NewContentInfo', NewContentInfoParam>
     // コンテンツ情報編集 引数: contentId. 
     | TCommandDefine<'EditContentInfo', string>
     ;
