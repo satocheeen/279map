@@ -36,6 +36,8 @@ export default function AddContentMenu(props: Props) {
         }
     }, [props]);
 
+    if (!onNewContentInfo) return null;
+
     return (
         <PopupMenuIcon tooltip={caption} submenu={{
             items: [
