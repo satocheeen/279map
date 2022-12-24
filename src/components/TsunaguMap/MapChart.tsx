@@ -242,12 +242,13 @@ export default function MapChart() {
             if (points.length === 0) {
                 dispatch(operationActions.unselectItem());
                 return;
-            } else if (points.length === 1) {
+            } else if (points.length === 1 && itemMapRef.current[points[0]]?.contents) {
                 dispatch(operationActions.setSelectItem(points));
                 return;
             }
 
-            // 対象が複数存在する場合は、重畳選択メニューを表示
+            // show the cluseter menu when multiple items or the item has no contents
+            // 対象が複数存在する場合またはコンテンツを持たないアイテムの場合は、重畳選択メニューを表示
             setClusterMenuInfo({
                 position: evt.coordinate,
                 itemIds: points,
