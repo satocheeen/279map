@@ -270,20 +270,20 @@ export default function Content(props: Props) {
                 </span>
                 <div className={styles.IconAreas}>
                     {isEditable &&
-                        <PopupMenuIcon tooltip='編集' modal={true} onClick={onEdit}>
+                        <PopupMenuIcon tooltip='編集' onClick={onEdit}>
                             <MdEdit />
                         </PopupMenuIcon>
                     }
                     {isDeletable &&
-                        <PopupMenuIcon tooltip="削除" modal={true} onClick={onDelete}>
+                        <PopupMenuIcon tooltip="削除" onClick={onDelete}>
                             <MdDelete />
                         </PopupMenuIcon>
                     }
                     {addableChild &&
-                        <AddContentMenu modal={true} target={{contentId: props.content.id}} />
+                        <AddContentMenu target={{contentId: props.content.id}} />
                     }
                     {existAnoterMap &&
-                        <PopupMenuIcon tooltip={toolTipMessage} modal={true} onClick={onGoToAnotherMap}>
+                        <PopupMenuIcon tooltip={toolTipMessage} onClick={onGoToAnotherMap}>
                             <CgArrowsExchangeAlt />
                         </PopupMenuIcon>
                     }

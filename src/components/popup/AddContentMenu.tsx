@@ -1,8 +1,10 @@
-import React, { useCallback, useContext, useMemo } from 'react';
+import React, { useRef, useState, useCallback, useContext, useMemo } from 'react';
 import { MdOutlineLibraryAdd } from 'react-icons/md';
 import { NewContentInfoParam } from '../../util/Commander';
+import Tooltip from '../common/tooltip/Tooltip';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
+import styles from './AddContentMenu.module.scss';
 
 type Props = {
     target: {
@@ -10,10 +12,13 @@ type Props = {
     } | {
         contentId: string;
     };
-    modal?: boolean;
 }
+let maxId = 0;
 export default function AddContentMenu(props: Props) {
+    const id = useRef('add-content-menu-'+maxId++);
     const { onNewContentInfo } = useContext(OwnerContext);
+    const [isShowSubMenu, setShowSubMenu] = useState(false);
+
     const onAddContent = useCallback((val: 'new' | 'unpoint') => {
         if (!onNewContentInfo) return;
 
@@ -38,17 +43,23 @@ export default function AddContentMenu(props: Props) {
         }
     }, [props]);
 
+    const onClick = useCallback(() => {
+        setShowSubMenu((state) => !state);
+    }, []);
+
     if (!onNewContentInfo) return null;
 
     return (
-        <PopupMenuIcon tooltip={caption} modal={props.modal} submenu={{
-            items: [
-                { text: '新規作成', value: 'new' },
-                { text: '既存コンテンツ', value: 'unpoint' },
-            ],
-            onClick: onAddContent,
-        }}>
-            <MdOutlineLibraryAdd />
-        </PopupMenuIcon>
+        <>
+            <PopupMenuIcon id={id.current} tooltip={caption} onClick={onClick}>
+                <MdOutlineLibraryAdd />
+            </PopupMenuIcon>
+            <Tooltip anchorId={id.current} place='right' events={['click']}>
+                <ul className={styles.SubMenu}>
+                    <li onClick={() => onAddContent('new')}>新規作成</li>
+                    <li onClick={() => onAddContent('unpoint')}>既存コンテンツ</li>
+                </ul>
+            </Tooltip>
+        </>
     );
 }

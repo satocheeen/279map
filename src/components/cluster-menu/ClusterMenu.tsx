@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo, useContext, useCallback } from 'react';
+import React, { useEffect, useRef, useMemo, useState, useCallback } from 'react';
 import { Map, Overlay } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import styles from './ClusterMenu.module.scss';
@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
 import useIcon from '../../store/useIcon';
 import AddContentMenu from '../popup/AddContentMenu';
+import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
 
 type Props = {
     map: Map;
@@ -39,14 +40,23 @@ export default function ClusterMenu(props: Props) {
         }
     }, [props]);
 
+    const [ showTooltipId, setShowTooltipId ] = useState<string|undefined>();
+    const tooltipContextValue = {
+        enable: true,
+        showId: showTooltipId,
+        setShowId: setShowTooltipId,
+    } as TooltipContextValue;
+
     return (
         <div>
             <div ref={elementRef} className={styles.Container}>
-                {props.itemIds.map(id => {
-                    return (
-                        <MenuItem key={id} id={id} onClick={() => onItemClick(id)} />
-                    );
-                })}
+                <TooltipContext.Provider value={tooltipContextValue}>
+                    {props.itemIds.map(id => {
+                        return (
+                            <MenuItem key={id} id={id} onClick={() => onItemClick(id)} />
+                        );
+                    })}
+                </TooltipContext.Provider>
             </div>
         </div>
     );

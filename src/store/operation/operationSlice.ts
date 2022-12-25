@@ -65,9 +65,6 @@ const operationSlice = createSlice({
         showConfirmDialog: false,
         confirmInfo: undefined as undefined | ConfirmParam,
         confirmResult: undefined as undefined | ConfirmResult,
-
-        // Tooltip
-        tooltip: null as TooltipParam | null,
     },
     reducers: {
         setMapKind(state, action: PayloadAction<MapKind>) {
@@ -128,9 +125,6 @@ const operationSlice = createSlice({
             state.showConfirmDialog = false;
             state.confirmInfo = undefined;
             state.confirmResult = action.payload;
-        },
-        setTooltip(state, action: PayloadAction<TooltipParam>) {
-            state.tooltip = action.payload;
         },
     },
     extraReducers: (builder) => {

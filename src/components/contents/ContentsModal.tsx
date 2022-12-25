@@ -6,7 +6,6 @@ import Content from './Content';
 import { useSelector } from 'react-redux';
 import { operationActions } from '../../store/operation/operationSlice';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
-import { Tooltip } from 'react-tooltip';
 
 export default function ContentsModal() {
     const [show, setShow] = useState(false);
@@ -67,12 +66,6 @@ export default function ContentsModal() {
         dispatch(operationActions.unselectItem());
     }, [dispatch]);
 
-    const tooltip = useSelector((state: RootState) => state.operation.tooltip);
-    const showTooltip = useMemo(() => {
-        if (!tooltip) return false;
-        return tooltip.modal;
-    }, [tooltip]);
-
     return (
         <Modal show={show} spinner={!loadied}
             closebtn onCloseBtnClicked={onCloseBtnClicked}
@@ -85,9 +78,6 @@ export default function ContentsModal() {
                         <Content itemId={itemId}  content={content} />
                         :
                         <div/>
-                    }
-                    {(showTooltip && tooltip) &&
-                        <Tooltip anchorId={tooltip.anchorId} content={tooltip.content} place="top" />
                     }
                 </>
             </ModalBody>

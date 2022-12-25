@@ -16,25 +16,3 @@
         filter: brightness(1.2);
     }
 }
-
-.PopupMenu {
-    width: 10rem;
-    padding: 0 !important;
-    color:var(--white) !important;
-
-    ul {
-        list-style: none;
-        pointer-events: all;
-        margin: 0;
-        padding: 0;
-    }
-
-    li {
-        padding: .2rem 1rem;
-        cursor: pointer;
-        &:hover {
-            filter: brightness(0.5);
-            // background-color: $secondary;
-        }
-    }
-}

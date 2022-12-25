@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useRef } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { loadCategories, loadEvents } from '../../store/data/dataThunk';
@@ -16,8 +16,6 @@ import { useSpinner } from '../common/spinner/useSpinner';
 import { api } from '279map-common';
 import { getContents } from '../../store/data/dataUtility';
 import { useCommand } from '../../api/useCommand';
-import { Tooltip } from 'react-tooltip';
-import styles from './MapWrapper.module.scss';
 
 export default function MapWrapper() {
     const ownerContext = useContext(OwnerContext);
@@ -216,26 +214,12 @@ export default function MapWrapper() {
         }
     }, [currentMapKindInfo, spinner]);
 
-    const tooltip = useSelector((state: RootState) => state.operation.tooltip);
-    const showTooltip = useMemo(() => {
-        if(!tooltip) return false;
-        if (tooltip.modal) return false;
-        return true;
-    },[tooltip]);
-
-    useEffect(() => {
-        console.log('tooltip', tooltip);
-    }, [tooltip]);
-
     return (
         <>
             {currentMapKindInfo &&
                 <MapChart />
             }
             <MySpinner />
-            {(tooltip && showTooltip) &&
-                <Tooltip anchorId={tooltip.anchorId} content={tooltip.content} place="top" className={styles.Tooltip} />
-            }
         </>
     );
 }
