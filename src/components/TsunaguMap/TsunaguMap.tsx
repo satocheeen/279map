@@ -1,5 +1,5 @@
 import { api, CategoryDefine, EventDefine, MapKind } from '279map-common';
-import React from 'react';
+import React, { useState } from 'react';
 import { Provider } from 'react-redux';
 import { CommandHookType } from '../../api/useCommand';
 import { EditContentInfoWithAttrParam, FilterDefine, NewContentInfoParam } from '../../entry';
@@ -10,6 +10,7 @@ import styles from './TsunaguMap.module.scss';
 import './TsunaguMap.scss';
 import ConfirmDialog from '../common/confirm/ConfirmDialog';
 import ContentsModal from '../contents/ContentsModal';
+import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
 
 export type TsunaguMapProps = {
     mapId: string;
@@ -45,16 +46,24 @@ export const OwnerContext = React.createContext<TsunaguMapProps>({
     // mapKind: MapKind.Real,
 });
 export default function TsunaguMap(props: TsunaguMapProps) {
+    const [ showTooltipId, setShowTooltipId ] = useState<{[name: string]: string}>({});
+    const tooltipContextValue = {
+        showIdMap: showTooltipId,
+        setShowIdMap: setShowTooltipId,
+    } as TooltipContextValue;
+
     return (
         <>
             <OwnerContext.Provider value={props}>
-                <Provider store={store}>
-                    <div className={styles.TsunaguMap}>
-                        <MapWrapper />
-                    </div>
-                    <ConfirmDialog />
-                    <ContentsModal />
-            </Provider>
+                <TooltipContext.Provider value={tooltipContextValue}>
+                    <Provider store={store}>
+                        <div className={styles.TsunaguMap}>
+                            <MapWrapper />
+                        </div>
+                        <ConfirmDialog />
+                        <ContentsModal />
+                    </Provider>
+                </TooltipContext.Provider>
             </OwnerContext.Provider>
         </>
     );
