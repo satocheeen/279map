@@ -35,9 +35,9 @@ export default function PointsPopup(props: Props) {
     /**
      * このポップアップで表示するアイテム情報
      */
-    const targets = useMemo(() => {
+    const target = useMemo(() => {
         if (props.itemIds.length === 0) {
-            return [];
+            return undefined;
         }
         let infos = props.itemIds.map(id => itemMap[id]);
         // フィルタがかかっている場合は、フィルタ対象のものに絞る
@@ -45,31 +45,34 @@ export default function PointsPopup(props: Props) {
             infos = infos.filter(info => filteredItemIdList?.includes(info.id));
         }
         if (infos.length === 1) {
-            return infos;
+            return infos[0];
         }
         // 複数アイテムが表示対象の場合は、画像を持つもののみ表示対象
         const ownImageInfos = infos.filter(info => hasImageItem(info));
-        return ownImageInfos;
+        if (ownImageInfos.length === 0) {
+            // 画像を持つものがない場合は、冒頭
+            return infos[0];
+        }
+        // 最初の画像のみ表示
+        return ownImageInfos[0];
     }, [props.itemIds, itemMap, filteredItemIdList, isFiltered]);
 
     const hasImage = useMemo(() => {
-        return targets.some(item => hasImageItem(item));
-    }, [targets]);
+        if (!target) return false;
+        return hasImageItem(target);
+    }, [target]);
 
-    if (targets.length === 0) {
+    if (!target) {
         return null;
     }
     return (
         <div className={`${styles.Popup} ${hasImage ? '' : styles.Minimum}`}>
             <div className={styles.Contents}>
-                {
-                    targets.map(target => {
-                        return (
-                            <ItemContents key={target.id} item={target} />
-                        );
-                    })
-                }
+                <ItemContents key={target.id} item={target} />
             </div>
+            {props.itemIds.length > 1 &&
+                <div className={styles.Number}>{props.itemIds.length}</div>
+            }
         </div>
     );
 }
