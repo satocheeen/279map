@@ -84,7 +84,7 @@ export default function Modal(props: Props) {
 }
 
 type HeaderProps = {
-    children: string;
+    children?: string;
 }
 export function ModalHeader(props: HeaderProps) {
     return <></>
@@ -100,7 +100,7 @@ export function ModalBody(props: BodyProps) {
 type BodyItem = ReturnType<typeof ModalBody>
 
 type FooterProps = {
-    children: JSX.Element | JSX.Element[];
+    children?: JSX.Element | JSX.Element[];
 }
 export function ModalFooter(props: FooterProps) {
     return <></>

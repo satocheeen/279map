@@ -49,8 +49,8 @@ export default function ItemContents(props: Props) {
     }, [apiUrl, props.item, filterTargetContentIds]);
 
     const onClick = useCallback(() => {
-        if (!props.item.contents) return;
-        dispatch(operationActions.setSelectItem([props.item.id]));
+        // if (!props.item.contents) return;
+        // dispatch(operationActions.setSelectItem([props.item.id]));
 
     }, [props.item, dispatch]);
 
