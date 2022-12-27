@@ -3,6 +3,7 @@ import styles from './Card.module.scss';
 
 type Props = {
     title: string;
+    breadcrumb?: string[];
     imageUrl?: string;
     overview?: string;
     onClick?: () => void;
@@ -25,6 +26,16 @@ export default function Card(props: Props) {
                 }
             </div>
             <div className={styles.Body}>
+                <nav className={styles.BreadCrumb}>
+                    <ol>
+                        {props.breadcrumb &&
+                            props.breadcrumb.map((bc, index) => {
+                                return (
+                                    <li key={index}>{bc}</li>
+                                )
+                            })}
+                    </ol>
+                </nav>
                 <div className={styles.Title}>{props.title}</div>
                 <div className={styles.Overview}>{props.overview}</div>
             </div>

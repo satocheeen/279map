@@ -40,6 +40,24 @@
         padding: 5px;
         background-color: #fff;
 
+        .BreadCrumb {
+            height: 1.5rem;
+            color: var(--dark-054);
+            font-size: 80%;
+            ol {
+                display: flex;
+                list-style: none;
+                padding: 0;
+            }
+            li {
+                width: unset;
+                margin: 0 5px 0 0;
+                &::after {
+                    content: '>';
+                    padding-right: 5px;
+                }
+            }
+        }
         .Title {
         }
         .Overview {
