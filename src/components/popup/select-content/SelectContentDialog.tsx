@@ -6,6 +6,7 @@ import { Modal, ModalBody, ModalFooter, ModalHeader } from '../../common';
 import ContentCard from './ContentCard';
 import { loadContents } from '../../../store/data/dataThunk';
 import styles from './SelectContentDialog.module.scss';
+import { useContents } from '../../../store/useContents';
 
 type Props = {
     itemIds: string[];
@@ -13,37 +14,24 @@ type Props = {
 }
 
 export default function SelectContentDialog(props: Props) {
-    const itemMap = useSelector((state: RootState) => state.data.itemMap);
     const dispatch = useAppDispatch();
     const [show, setShow] = useState(true);
+    const { getDescendantContentsIdList } = useContents();
 
     const contentIds = useMemo(() => {
         // TODO: フィルタの考慮
         const idList = [] as string[];
         props.itemIds.forEach(id => {
-            const item = itemMap[id];
-            if (!item) return;
-            if (!item.contents) return;
-            idList.push(item.contents.id);
+            const descendants = getDescendantContentsIdList(id);
+            if (descendants.length === 0) return;
 
-            const getDecendant = (content: ItemContentInfo) => {
-                const descendantList = [] as string[];
-                content.children.forEach(child => {
-                    descendantList.push(child.id);
-                    const childDescendants = getDecendant(child);
-                    Array.prototype.push.apply(descendantList, childDescendants);
-                });
-                return descendantList;
-            }
-
-            const descendants = getDecendant(item.contents);
             Array.prototype.push.apply(idList, descendants);
         });
 
         console.log('contenIds', idList);
         return idList;
 
-    }, [props.itemIds, itemMap]);
+    }, [props.itemIds, getDescendantContentsIdList]);
 
     useEffect(() => {
         dispatch(loadContents({

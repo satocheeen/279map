@@ -7,6 +7,7 @@ import ItemContents from "./ItemContents";
 import { ContentsDefine, ItemContentInfo, ItemDefine } from "279map-common";
 import { operationActions } from "../../store/operation/operationSlice";
 import SelectContentDialog from "./select-content/SelectContentDialog";
+import { useContents } from "../../store/useContents";
 
 type Props = {
     // このポップアップにて情報表示する対象アイテム
@@ -33,6 +34,7 @@ function hasImageItem(item: ItemDefine): boolean {
 export default function PointsPopup(props: Props) {
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
     const { isFiltered, filteredItemIdList } = useFilter();
+    const { getDescendantContentsIdList } = useContents();
 
     /**
      * このポップアップで表示するアイテム情報
@@ -58,6 +60,14 @@ export default function PointsPopup(props: Props) {
         // 最初の画像のみ表示
         return ownImageInfos[0];
     }, [props.itemIds, itemMap, filteredItemIdList, isFiltered]);
+
+    // このアイテムの中に含まれるコンテンツの総数
+    const contentsNum = useMemo(() => {
+        return props.itemIds.reduce((acc, cur) => {
+            const descendants = getDescendantContentsIdList(cur);
+            return acc + descendants.length;
+        }, 0);
+    }, [props.itemIds, getDescendantContentsIdList]);
 
     const hasImage = useMemo(() => {
         if (!target) return false;
@@ -89,7 +99,7 @@ export default function PointsPopup(props: Props) {
                     <ItemContents key={target.id} item={target} />
                 </div>
                 {props.itemIds.length > 1 &&
-                    <div className={styles.Number}>{props.itemIds.length}</div>
+                    <div className={styles.Number}>{contentsNum}</div>
                 }
             </div>
             {showSelectDialog &&

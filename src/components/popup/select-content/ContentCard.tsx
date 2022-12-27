@@ -1,4 +1,3 @@
-import { ContentsDefine } from '279map-common';
 import React, { useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useAPI } from '../../../api/useAPI';
