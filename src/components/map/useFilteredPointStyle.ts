@@ -6,6 +6,7 @@ import usePointStyle from "./usePointStyle";
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import useFilterStatus from './useFilterStatus';
 import { Fill, Style, Text } from 'ol/style';
+import { useFilter } from '../../store/useFilter';
 
 // 建物ラベルを表示するresolution境界値（これ以下の値の時に表示）
 const StructureLabelResolution = 0.003;
@@ -20,6 +21,7 @@ type Props = {
  */
 export default function useFilteredPointStyle(props: Props) {
     const { getForceColor, getFilterStatus } = useFilterStatus();
+    const { filteredItemIdList } = useFilter();
 
     const pointStyleHook = usePointStyle({
         structureLayer: props.structureLayer, 
@@ -39,10 +41,21 @@ export default function useFilteredPointStyle(props: Props) {
     const ownerContext = useContext(OwnerContext);
 
     const pointStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style => {
-        const features = feature.get('features');
+        const features = feature.get('features') as FeatureLike[];
         const size = features.length;
+
+        // 複数アイテムがまとまっており、
+        // フィルタがかかっている場合は、フィルタ条件に該当するものをアイコン表示
+        let mainFeature = features[0];
+        if (filteredItemIdList && size > 1) {
+            const filteredFeature = features.find(feature => filteredItemIdList.includes(feature.getId() as string));
+            if (filteredFeature) {
+                mainFeature = filteredFeature;
+            }
+        }
+
         const func = pointStyleHook.getStructureStyleFunction(colorFunc);
-        const style = func(features[0], resolution);
+        const style = func(mainFeature, resolution);
         if (size > 1) {
             // 複数アイテムがまとまっている場合、まとまっている数を表示
             setClusterLabel(style, size);
@@ -54,7 +67,7 @@ export default function useFilteredPointStyle(props: Props) {
         }
         return style;
 
-    }, [pointStyleHook, colorFunc, ownerContext.disabledLabel]);
+    }, [filteredItemIdList, pointStyleHook, colorFunc, ownerContext.disabledLabel]);
 
     useEffect(() => {
         props.structureLayer.setStyle(pointStyleFunction);

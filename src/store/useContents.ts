@@ -23,7 +23,8 @@ export function useContents() {
         const getDecendant = (content: ItemContentInfo) => {
             const descendantList = [] as string[];
             content.children.forEach(child => {
-                const isPush = filtering ? filterTargetContentIds?.includes(child.id) : true;
+                const isPush = (filtering && filterTargetContentIds) ? filterTargetContentIds?.includes(child.id) : true;
+                console.log('isPush', isPush);
                 if (isPush) {
                     descendantList.push(child.id);
                 }
@@ -35,7 +36,7 @@ export function useContents() {
 
         const descendants = getDecendant(item.contents);
 
-        const isPush = filtering ? filterTargetContentIds?.includes(item.contents.id) : true;
+        const isPush = (filtering && filterTargetContentIds) ? filterTargetContentIds?.includes(item.contents.id) : true;
         const idList = isPush ? [item.contents.id] : [];
         Array.prototype.push.apply(idList, descendants);
 
