@@ -2,7 +2,7 @@ import { api, CategoryDefine, EventDefine, MapKind } from '279map-common';
 import React, { useState } from 'react';
 import { Provider } from 'react-redux';
 import { CommandHookType } from '../../api/useCommand';
-import { EditContentInfoWithAttrParam, FilterDefine, NewContentInfoParam } from '../../entry';
+import { EditContentInfoWithAttrParam, NewContentInfoParam } from '../../util/Commander';
 import { store } from '../../store/configureStore';
 import { DefaultIconDefine, MapMode } from '../../types/types';
 import MapWrapper from './MapWrapper';
@@ -11,6 +11,7 @@ import './TsunaguMap.scss';
 import ConfirmDialog from '../common/confirm/ConfirmDialog';
 import ContentsModal from '../contents/ContentsModal';
 import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
+import { FilterDefine } from '../../store/operation/operationSlice';
 
 export type TsunaguMapProps = {
     mapId: string;

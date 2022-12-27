@@ -2,8 +2,8 @@ import React, { useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useAPI } from '../../../api/useAPI';
 import { RootState } from '../../../store/configureStore';
+import { doCommand } from '../../../util/Commander';
 import Card from '../../common/card/Card';
-import styles from './ContentCard.module.scss';
 
 type Props = {
     contentId: string;
@@ -24,8 +24,11 @@ export default function ContentCard(props: Props) {
     }, [apiUrl, props.contentId, content]);
 
     const onClick = useCallback(() => {
-
-    }, []);
+        doCommand({
+            command: 'ShowContentInfo',
+            param: props.contentId,
+        })
+    }, [props.contentId]);
 
     if (!content) return null;
     return (

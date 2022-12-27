@@ -6,7 +6,15 @@ import Content from './Content';
 import { useSelector } from 'react-redux';
 import { operationActions } from '../../store/operation/operationSlice';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
+import { addListener, removeListener } from '../../util/Commander';
 
+type Target = {
+    type: 'item';
+    itemId: string;
+} | {
+    type: 'content';
+    contentId: string;
+}
 export default function ContentsModal() {
     const [show, setShow] = useState(false);
     const dispatch = useAppDispatch();
@@ -14,7 +22,22 @@ export default function ContentsModal() {
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
     const selectedItemIds = useSelector((state: RootState) => state.operation.selectedItemIds);
     const { disabledContentDialog } = useContext(OwnerContext);
+    // set content ID when show a content.
+    const [contentId, setContentId] = useState<string|undefined>();
 
+    useEffect(() => {
+        const h = addListener('ShowContentInfo', async(contentId: string) => {
+            setContentId(contentId);
+        });
+
+        return () => {
+            removeListener(h);
+        }
+    }, []);
+
+    /**
+     * show dialog when select an item.
+     */
     const itemId = useMemo((): string | undefined => {
         if (disabledContentDialog) {
             return;
@@ -26,37 +49,82 @@ export default function ContentsModal() {
 
     }, [disabledContentDialog, selectedItemIds]);
 
-    useEffect(() => {
-        if (!itemId) return;
-        const item = itemMap[itemId];
-        if (!item) return;
-
-        if (!item.contents) {
-            return;
+    const target = useMemo((): Target | undefined => {
+        if (contentId) {
+            return {
+                type: 'content',
+                contentId,
+            }
         }
-        setLoaded(false);
-        setShow(true);
+        if (itemId) {
+            return {
+                type: 'item',
+                itemId,
+            }
+        }
 
-        // 最新コンテンツ取得
-        dispatch(loadContents({
-            targets: [
-                {
-                    itemId,
-                }
-            ],            
-        })).finally(() => {
-            setLoaded(true);
-        });
+    }, [contentId, itemId]);
 
-    }, [itemId, itemMap, dispatch]);
+    useEffect(() => {
+        if (!target) return;
 
-    const content = useSelector((state: RootState) => {
-        if (!itemId) return;
-        const item = state.data.itemMap[itemId];
-        if (!item.contents) return;
-        const contentId = item.contents.id;
-        return state.data.contentsList.find(cn => cn.id === contentId);
+        if (target.type === 'item') {
+            const item = itemMap[target.itemId];
+            if (!item) return;
+    
+            if (!item.contents) {
+                return;
+            }
+            setLoaded(false);
+            setShow(true);
+    
+            // 最新コンテンツ取得
+            dispatch(loadContents({
+                targets: [
+                    {
+                        itemId: target.itemId,
+                    }
+                ],
+                keepCurrentData: true,
+            })).finally(() => {
+                setLoaded(true);
+            });
+        } else {
+            setLoaded(false);
+            setShow(true);
+    
+            // 最新コンテンツ取得
+            dispatch(loadContents({
+                targets: [
+                    {
+                        contentId: target.contentId,
+                    }
+                ],
+                keepCurrentData: true,
+            })).finally(() => {
+                setLoaded(true);
+            });
+
+        }
+
+    }, [target, itemMap, dispatch]);
+
+    const rootContent = useSelector((state: RootState) => {
+        if (!target) return;
+
+        if (target.type === 'item') {
+            const item = state.data.itemMap[target.itemId];
+            if (!item.contents) return;
+            const contentId = item.contents.id;
+            return state.data.contentsList.find(cn => cn.id === contentId);
+        } else {
+            return state.data.contentsList.find(c => c.id === target.contentId);
+        }
     });
+
+    useEffect(() => {
+        console.log('rootContent', rootContent);
+    }, [rootContent])
 
     const onCloseBtnClicked = useCallback(() => {
         setShow(false);
@@ -64,6 +132,7 @@ export default function ContentsModal() {
 
     const onClosed = useCallback(() => {
         dispatch(operationActions.unselectItem());
+        setContentId(undefined);
     }, [dispatch]);
 
     return (
@@ -73,13 +142,9 @@ export default function ContentsModal() {
             >
             <ModalHeader>詳細</ModalHeader>
             <ModalBody>
-                <>
-                    {(itemId && content) ?
-                        <Content itemId={itemId}  content={content} />
-                        :
-                        <div/>
-                    }
-                </>
+                {rootContent &&
+                    <Content itemId={rootContent.itemId}  content={rootContent} />
+                }
             </ModalBody>
             <ModalFooter>
 
