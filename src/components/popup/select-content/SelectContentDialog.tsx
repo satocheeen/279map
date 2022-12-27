@@ -19,10 +19,9 @@ export default function SelectContentDialog(props: Props) {
     const { getDescendantContentsIdList } = useContents();
 
     const contentIds = useMemo(() => {
-        // TODO: フィルタの考慮
         const idList = [] as string[];
         props.itemIds.forEach(id => {
-            const descendants = getDescendantContentsIdList(id);
+            const descendants = getDescendantContentsIdList(id, true);
             if (descendants.length === 0) return;
 
             Array.prototype.push.apply(idList, descendants);

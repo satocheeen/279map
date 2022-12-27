@@ -64,7 +64,7 @@ export default function PointsPopup(props: Props) {
     // このアイテムの中に含まれるコンテンツの総数
     const contentsNum = useMemo(() => {
         return props.itemIds.reduce((acc, cur) => {
-            const descendants = getDescendantContentsIdList(cur);
+            const descendants = getDescendantContentsIdList(cur, true);
             return acc + descendants.length;
         }, 0);
     }, [props.itemIds, getDescendantContentsIdList]);
