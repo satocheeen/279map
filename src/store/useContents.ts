@@ -24,7 +24,6 @@ export function useContents() {
             const descendantList = [] as string[];
             content.children.forEach(child => {
                 const isPush = (filtering && filterTargetContentIds) ? filterTargetContentIds?.includes(child.id) : true;
-                console.log('isPush', isPush);
                 if (isPush) {
                     descendantList.push(child.id);
                 }

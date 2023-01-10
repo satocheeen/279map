@@ -108,7 +108,9 @@ export default function MapChart() {
      * フィルタ時にフィルタ対象がExtentに入るようにする
      */
     const { filteredItemIdList } = useFilter();
+    const filteredItemIdListRef = useRef(filteredItemIdList);   // for using in map event funtion
     useEffect(() => {
+        filteredItemIdListRef.current = filteredItemIdList;
         if (!filteredItemIdList || !mapRef.current || filteredItemIdList.length === 0) {
             return;
         }
@@ -220,7 +222,7 @@ export default function MapChart() {
             }
             setClusterMenuInfo(null);
             // クリック位置付近にあるアイテムIDを取得
-            const points = [] as string[];
+            let points = [] as string[];
             mapRef.current.forEachFeatureAtPixel(evt.pixel, (f) => {
                 const id = f.getId() as string | undefined;
                 if (id !== undefined) {
@@ -238,6 +240,10 @@ export default function MapChart() {
                     }
                 });
             });
+            // フィルタ時はフィルタ対象外のものに絞る
+            if (filteredItemIdListRef.current) {
+                points = points.filter(point => filteredItemIdListRef.current?.includes(point));
+            }
 
             if (points.length === 0) {
                 dispatch(operationActions.unselectItem());
