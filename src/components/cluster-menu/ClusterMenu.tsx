@@ -12,6 +12,7 @@ type Props = {
     position: Coordinate; // メニュー表示位置
     itemIds: string[];
     onSelect?: (id: string) => void;
+    showAddContentMenu?: boolean;   // when true, show the menu of adding content if the item has no contents.
 }
 
 export default function ClusterMenu(props: Props) {
@@ -44,7 +45,7 @@ export default function ClusterMenu(props: Props) {
             <div ref={elementRef} className={styles.Container}>
                 {props.itemIds.map(id => {
                     return (
-                        <MenuItem key={id} id={id} onClick={() => onItemClick(id)} />
+                        <MenuItem key={id} id={id} showAddContentMenu={props.showAddContentMenu} onClick={() => onItemClick(id)} />
                     );
                 })}
             </div>
@@ -55,6 +56,7 @@ export default function ClusterMenu(props: Props) {
 type MenuItemProp = {
     id: string;
     onClick?: () => void;
+    showAddContentMenu?: boolean;   // when true, show the menu of adding content if the item has no contents.
 }
 function MenuItem(props: MenuItemProp) {
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
@@ -91,7 +93,7 @@ function MenuItem(props: MenuItemProp) {
             <img src={iconImagePath} />
             <span className={styles.NameArea}>
                 <span>{itemName}</span>
-                {!hasContent &&
+                {(!hasContent && props.showAddContentMenu) &&
                     <AddContentMenu target={{itemId: props.id}} />
                 }
             </span>

@@ -1,4 +1,4 @@
-import { Feature, Map } from 'ol';
+import { Map } from 'ol';
 import React, { useCallback, useRef, useState } from 'react';
 import SelectStructureDialog from './SelectStructureDialog';
 import { useSpinner } from '../../../common/spinner/useSpinner';
@@ -7,6 +7,7 @@ import { useAppDispatch } from '../../../../store/configureStore';
 import { updateFeature } from '../../../../store/data/dataThunk';
 import { FeatureType } from '279map-common';
 import { SystemIconDefine } from '../../../../types/types';
+import { FeatureLike } from 'ol/Feature';
 
 type Props = {
     map: Map;   // コントロール対象の地図
@@ -19,7 +20,7 @@ enum Stage {
 }
 
 export default function ChangeStructureIconController(props: Props) {
-    const selectedFeature = useRef<Feature>();
+    const selectedFeature = useRef<FeatureLike>();
     const spinnerHook = useSpinner();
     const dispatch = useAppDispatch();
     const [stage, setStage] = useState(Stage.SELECTING_TARGET);
@@ -28,7 +29,7 @@ export default function ChangeStructureIconController(props: Props) {
         props.close();
     }, [props]);
 
-    const onSelectFeature = useCallback((feature: Feature) => {
+    const onSelectFeature = useCallback((feature: FeatureLike) => {
         selectedFeature.current = feature;
         setStage(Stage.SELECTING_STRUCTURE);
     }, []);

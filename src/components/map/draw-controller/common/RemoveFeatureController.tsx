@@ -1,6 +1,6 @@
 import { Map } from 'ol';
 import React, { useCallback } from 'react';
-import Feature from 'ol/Feature';
+import { FeatureLike } from 'ol/Feature';
 import useConfirm, { ConfirmBtnPattern, ConfirmResult } from '../../../common/confirm/useConfirm';
 import SelectFeature from '../SelectFeature';
 import { useSpinner } from '../../../common/spinner/useSpinner';
@@ -23,7 +23,7 @@ export default function RemoveFeatureController(props: Props) {
     const spinnerHook = useSpinner();
     const dispatch = useAppDispatch();
 
-    const onRemoveOkClicked = useCallback(async(feature: Feature) => {
+    const onRemoveOkClicked = useCallback(async(feature: FeatureLike) => {
         // 確認メッセージ
         const result = await confirmHook.confirm({
             message: '削除してよろしいですか。'

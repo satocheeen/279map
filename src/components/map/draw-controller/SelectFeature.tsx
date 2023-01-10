@@ -1,13 +1,12 @@
-import { Feature } from 'ol';
+import { Feature, MapBrowserEvent } from 'ol';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PromptMessageBox from './PromptMessageBox';
-import Style from 'ol/style/Style';
+import Style, { StyleFunction } from 'ol/style/Style';
 import Stroke from 'ol/style/Stroke';
 import Fill from 'ol/style/Fill';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import Select, { SelectEvent } from 'ol/interaction/Select';
-import { click } from 'ol/events/condition';
 import { Map } from 'ol';
 import { FeatureLike } from 'ol/Feature';
 import useTopographyStyle from '../useTopographyStyle';
@@ -19,12 +18,13 @@ import { useFilter } from '../../../store/useFilter';
 import { Geometry } from 'ol/geom';
 import { Coordinate } from 'ol/coordinate';
 import ClusterMenu from '../../cluster-menu/ClusterMenu';
+import ClusterMenuController from '../../cluster-menu/ClusterMenuController';
 
 type Props = {
     map: Map;   // コントロール対象の地図
     target: 'topography' | 'structure';
     message?: string;
-    onOk: (feature: Feature) => void;
+    onOk: (feature: FeatureLike) => void;
     onCancel: () => void;
 }
 
@@ -47,7 +47,7 @@ type ClusterMenuInfo = {
  */
 export default function SelectFeature(props: Props) {
     const select = useRef<Select>();
-    const [selectedFeature, setSelectedFeature] = useState<Feature>();
+    const [selectedFeature, setSelectedFeature] = useState<FeatureLike>();
     const itemLayer = useMemo(() => {
         return props.map.getAllLayers().find(layer => {
             return layer.getProperties()['name'] === 'itemLayer';
@@ -108,59 +108,87 @@ export default function SelectFeature(props: Props) {
         const layer = props.map.getAllLayers().find(layer => {
             return layer.getProperties()['name'] === layerName;
         }) as VectorLayer<VectorSource>;
-        select.current = new Select({
-            condition: click,
-            layers: [layer],
-            style: styleFunction,
-        });
-        select.current.on('select', (evt: SelectEvent) => {
-            console.log('select', evt.selected);
-            if (evt.selected.length === 0) {
-                setSelectedFeature(undefined);
-                return;
-            }
 
-            let points = [] as Feature<Geometry>[];
-            const features = evt.selected[0].get('features') as Feature<Geometry>[];
-            features.forEach(feature => {
-                const id = feature.getId() as string | undefined;
-                if (id !== undefined) {
-                    points.push(feature);
-                }
-            });
-            // フィルタ時はフィルタ対象外のものに絞る
-            if (filteredItemIdListRef.current) {
-                points = points.filter(point => filteredItemIdListRef.current?.includes(point.getId() as string));
-            }
-            if (points.length === 0) {
-                setSelectedFeature(undefined);
-                return;
-            } else if (points.length === 1) {
-                setSelectedFeature(points[0]);
-                return;
-            }
+        // select.current = new Select({
+        //     condition: click,
+        //     layers: [layer],
+        //     style: styleFunction,
+        //     addCondition: (evt) => {
+        //         console.log('debug', evt);
 
-            // 対象が複数存在する場合またはコンテンツを持たないアイテムの場合は、重畳選択メニューを表示
-            // 表示位置
-            const ext = evt.selected[0].getGeometry()?.getExtent();
-            if (!ext) {
-                console.warn('position undefined');
-                return;
-            }
+        //         evt.t
+        //         return true;
+        //     }
+        // });
 
-            setClusterMenuInfo({
-                position: ext,
-                targets: points,
-            });
+        // const clickFunc = (evt: MapBrowserEvent<any>) => {
+        //     // 重畳選択メニュー用に位置を保存
+        //     lastClickCoordinateRef.current = evt.coordinate;
+        // }
+        // props.map.on('click', clickFunc);
 
-        });
-        props.map.addInteraction(select.current);
+        // select.current.on('select', (evt: SelectEvent) => {
+        //     console.log('select', evt.selected);
+        //     setClusterMenuInfo(null);
+        //     if (evt.selected.length === 0) {
+        //         setSelectedFeature(undefined);
+        //         return;
+        //     }
+
+        //     let points = [] as Feature<Geometry>[];
+        //     const features = evt.selected[0].get('features') as Feature<Geometry>[];
+        //     features.forEach(feature => {
+        //         const id = feature.getId() as string | undefined;
+        //         if (id !== undefined) {
+        //             points.push(feature);
+        //         }
+        //     });
+        //     // フィルタ時はフィルタ対象外のものに絞る
+        //     if (filteredItemIdListRef.current) {
+        //         points = points.filter(point => filteredItemIdListRef.current?.includes(point.getId() as string));
+        //     }
+        //     if (points.length === 0) {
+        //         setSelectedFeature(undefined);
+        //         return;
+        //     } else if (points.length === 1) {
+        //         setSelectedFeature(points[0]);
+        //         return;
+        //     }
+
+        //     // 対象が複数存在する場合またはコンテンツを持たないアイテムの場合は、重畳選択メニューを表示
+        //     // 表示位置
+        //     const ext = evt.selected[0].getGeometry()?.getExtent();
+        //     if (!lastClickCoordinateRef.current) {
+        //         console.warn('position undefined');
+        //         return;
+        //     }
+        //     // アイコン画像サイズ分、上にずらす
+        //     // const styleLike = evt.selected[0].getStyle() as StyleFunction;
+        //     // const resolution = props.map.getView().getResolution();
+        //     // if (styleLike && resolution) {
+        //     //     const style = styleLike(points[0], resolution) as Style;
+        //     //     // const imageSize = style.getImage().getImageSize();
+        //     //     const imageSize = [90, 90];
+        //     //     const scale = style.getImage().getScale() as number;
+        //     //     const offsetY = imageSize ? - (imageSize[1] / 1.6 * scale) : 0;
+        //     //     console.log('imageSize', imageSize, 'offsetY', offsetY);
+        //     //     ext[1] -= offsetY;
+        //     // }
+
+
+        //     setClusterMenuInfo({
+        //         position: lastClickCoordinateRef.current,
+        //         targets: points,
+        //     });
+
+        // });
+        // props.map.addInteraction(select.current);
 
         return () => {
             console.log('unmounted');
-            if (select.current) {
-                props.map.removeInteraction(select.current);
-            }
+            // if (select.current) {
+            //     props.map.removeInteraction(select.current);
+            // }
         }
      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -190,6 +218,11 @@ export default function SelectFeature(props: Props) {
         return props.message ? props.message : `対象の${name}を選択して、OKボタンを押下してください。`;
     }, [props.message, props.target, mapKind]);
 
+    const onSelect = useCallback((feature: FeatureLike | undefined) => {
+        console.log('onSelect', feature);
+        setSelectedFeature(feature);
+    }, []);
+
     const onOkClicked = useCallback(async() => {
         if (!selectedFeature) {
             console.warn('選択アイテムなし');
@@ -209,11 +242,9 @@ export default function SelectFeature(props: Props) {
                 ok={onOkClicked} cancel={onCancel}
                 okdisabled={selectedFeature === undefined} />
         
-            {clusterMenuInfo &&
-                <ClusterMenu map={props.map} position={clusterMenuInfo.position}
-                    itemIds={clusterMenuInfo.targets.map(target=>target.getId() as string)}
-                    onSelect={onClusterMenuSelected} />
-            }
+            <ClusterMenuController
+                map={props.map}
+                onSelect={onSelect} />
         </>
     );
 }

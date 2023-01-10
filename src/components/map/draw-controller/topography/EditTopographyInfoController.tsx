@@ -1,4 +1,5 @@
-import { Feature, Map } from 'ol';
+import { Map } from 'ol';
+import { FeatureLike } from 'ol/Feature';
 import React, { useCallback, useRef, useState, useContext } from 'react';
 import { ListGroup } from 'react-bootstrap';
 import { OwnerContext } from '../../../TsunaguMap/TsunaguMap';
@@ -18,7 +19,7 @@ export default function EditTopographyInfoController(props: Props) {
     const [stage, setStage] = useState(Stage.SELECTING_FEATURE);
     const selectedFeatureId = useRef<string>();
 
-    const onSelectFeature = useCallback((feature: Feature) => {
+    const onSelectFeature = useCallback((feature: FeatureLike) => {
         selectedFeatureId.current = feature.getId() as string;
 
         setStage(Stage.SELECTING_OPERATION);

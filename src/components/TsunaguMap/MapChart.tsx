@@ -45,6 +45,11 @@ export default function MapChart() {
     const mapRef = useRef(null as Map | null);
     const [clusterMenuInfo, setClusterMenuInfo] = useState<ClusterMenuInfo|null>(null);
     const [mapLoaded, setMapLoaded] = useState(false);
+    const mapMode = useSelector((state: RootState) => state.operation.mapMode);
+
+    useEffect(() => {
+        setClusterMenuInfo(null);
+    }, [mapMode]);
 
     // コンテンツ（建物・ポイント）レイヤ
     const pointContentsSourceRef = useRef(new VectorSource());
@@ -731,7 +736,8 @@ export default function MapChart() {
                 (
                     <>
                         {clusterMenuInfo &&
-                            <ClusterMenu map={mapRef.current} {...clusterMenuInfo} onSelect={onClusterMenuSelected} />
+                            <ClusterMenu map={mapRef.current} showAddContentMenu={true}
+                                {...clusterMenuInfo} onSelect={onClusterMenuSelected} />
                         }
                         {mapLoaded &&
                             <PopupContainer map={mapRef.current} />

@@ -14,6 +14,8 @@ import RoadWidthSelecter from './RoadWidthSelecter';
 import { useAppDispatch } from '../../../../store/configureStore';
 import { updateFeature } from '../../../../store/data/dataThunk';
 import { FeatureType, GeoProperties } from '279map-common';
+import { FeatureLike } from 'ol/Feature';
+import { Geometry } from 'ol/geom';
 
 type Props = {
     map: Map;   // コントロール対象の地図
@@ -31,7 +33,7 @@ enum Stage {
  */
  export default function EditTopographyController(props: Props) {
     const [stage, setStage] = useState(Stage.SELECTING_FEATURE);
-    const selectedFeature = useRef<Feature>();
+    const selectedFeature = useRef<FeatureLike>();
     const styleHook = useTopographyStyle({});
     const modifyLayer = useRef(new VectorLayer({
         source: new VectorSource(),
@@ -62,7 +64,7 @@ enum Stage {
     const dispatch = useAppDispatch();
     const spinnerHook = useSpinner();
 
-    const onSelectFeature = useCallback((feature: Feature) => {
+    const onSelectFeature = useCallback((feature: FeatureLike) => {
         console.log('select feature', feature);
         selectedFeature.current = feature;
 
@@ -70,9 +72,9 @@ enum Stage {
         let editFeature: Feature;
         if ((feature.getProperties() as GeoProperties).featureType === FeatureType.ROAD) {
             // 道の場合は、ラインに変換する
-            editFeature = getOriginalLine(feature);
+            editFeature = getOriginalLine(feature as Feature<Geometry>);
         } else {
-            editFeature = feature.clone();
+            editFeature = (feature as Feature<Geometry>).clone();
         }
         modifyLayer.current.getSource()?.addFeature(editFeature);
         props.map.addLayer(modifyLayer.current);
