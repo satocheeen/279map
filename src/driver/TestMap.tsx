@@ -1,4 +1,4 @@
-import { api, CategoryDefine, MapKind } from '279map-common';
+import { api, CategoryDefine, FeatureType, MapKind } from '279map-common';
 import React, { useState, useCallback, useMemo } from 'react';
 import { CommandHookType } from '../api/useCommand';
 import TsunaguMap, { TsunaguMapProps } from '../components/TsunaguMap/TsunaguMap';
@@ -94,14 +94,6 @@ export default function TestMap() {
         console.log('result', result);
     }, [commandHook]);
 
-    const drawStructure = useCallback(() => {
-        commandHook?.drawStructure();
-    }, [commandHook]);
-
-    const moveStructure = useCallback(() => {
-        commandHook?.moveStructure();
-    }, [commandHook]);
-
     const confirm = useCallback(async() => {
         const result = await commandHook?.confirm({
             message: '確認ためし',
@@ -153,8 +145,29 @@ export default function TestMap() {
                     </div>
                 </div>
                 <div className={styles.Col}>
-                    <button onClick={drawStructure}>建設</button>
-                    <button onClick={moveStructure}>移築</button>
+                    <button onClick={commandHook?.drawStructure}>建設</button>
+                    <button onClick={commandHook?.moveStructure}>移築</button>
+                    <button onClick={commandHook?.changeStructure}>改築</button>
+                    <button onClick={commandHook?.removeStructure}>建物解体</button>
+                </div>
+                <div className={styles.Col}>
+                    {mapKind === MapKind.Real ?
+                        <>
+                            <button onClick={()=>commandHook?.drawTopography(FeatureType.AREA)}>エリア作成</button>
+                            <button onClick={commandHook?.editTopography}>エリア編集</button>
+                            <button onClick={commandHook?.removeTopography}>エリア削除</button>
+                        </>
+                        :
+                        <>
+                            <button onClick={()=>commandHook?.drawTopography(FeatureType.EARTH)}>島作成</button>
+                            <button onClick={()=>commandHook?.drawTopography(FeatureType.FOREST)}>緑地作成</button>
+                            <button onClick={commandHook?.drawRoad}>道作成</button>
+                            <button onClick={commandHook?.editTopography}>地形編集</button>
+                            <button onClick={commandHook?.removeTopography}>地形削除</button>
+                        </>
+                    }
+                </div>
+                <div className={styles.Col}>
                     <button onClick={callGetSnsPreview}>GetSNS</button>
                     <button onClick={confirm}>Confirm</button>
                 </div>

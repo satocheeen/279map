@@ -2,7 +2,7 @@ import { useSelector } from "react-redux";
 import { useCallback } from 'react';
 import { RootState, useAppDispatch } from "../store/configureStore";
 import { callApi } from "./api";
-import { api, MapKind, UnpointContent } from '279map-common';
+import { api, FeatureType, MapKind, UnpointContent } from '279map-common';
 import { registContent, updateContent, linkContentToItem } from '../store/data/dataThunk';
 import useConfirm from "../components/common/confirm/useConfirm";
 import { operationActions } from "../store/operation/operationSlice";
@@ -33,7 +33,7 @@ export function useCommand() {
     }, [dispatch]);
 
     /**
-     * start the drawing a structure (or a pin) step.
+     * start the spte of drawing a structure (or a pin).
      * 建設または地点登録する
      */
     const drawStructure = useCallback(() => {
@@ -44,12 +44,78 @@ export function useCommand() {
     }, []);
 
     /**
-     * start the moving a structure (or a pin) step.
+     * start the step of moving a structure (or a pin).
      * 移築または地点移動する
      */
     const moveStructure = useCallback(() => {
         doCommand({
             command: 'MoveStructure',
+            param: undefined,
+        });
+    }, []);
+
+    /**
+     * start the step of changing a structure's icon.
+     * 改築（建物変更）する
+     */
+    const changeStructure = useCallback(() => {
+        doCommand({
+            command: 'ChangeStructure',
+            param: undefined,
+        });
+    }, []);
+
+    /**
+     * start the step of removing a structure.
+     * 建物解体する
+     */
+    const removeStructure = useCallback(() => {
+        doCommand({
+            command: 'RemoveStructure',
+            param: undefined,
+        });
+    }, []);
+
+    /**
+     * start the step of drawing a land, a green field or an area.
+     * 島or緑地orエリアを作成する
+     */
+    const drawTopography = useCallback((featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA) => {
+        doCommand({
+            command: 'DrawTopography',
+            param: featureType,
+        });
+    }, []);
+
+    /**
+     * start the step of drawing a road.
+     * 道を作成する
+     */
+    const drawRoad = useCallback(() => {
+        doCommand({
+            command: 'DrawRoad',
+            param: undefined,
+        });
+    }, []);
+
+    /**
+     * start the step of modifying a topography.
+     * 地形編集する
+     */
+    const editTopography = useCallback(()=>{
+        doCommand({
+            command:'EditTopography',
+            param: undefined,
+        });
+    },[]);
+
+    /**
+     * start the step of removing a topography.
+     * 地形削除する
+     */
+    const removeTopography = useCallback(() => {
+        doCommand({
+            command:'RemoveTopography',
             param: undefined,
         });
     }, []);
@@ -92,6 +158,12 @@ export function useCommand() {
         confirm,
         drawStructure,
         moveStructure,
+        changeStructure,
+        removeStructure,
+        drawTopography,
+        drawRoad,
+        editTopography,
+        removeTopography,
         registContentAPI,
         updateContentAPI,
         linkContentToItemAPI,
