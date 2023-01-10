@@ -15,6 +15,10 @@ import usePointStyle from '../usePointStyle';
 import { FeatureType, MapKind } from '279map-common';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/configureStore';
+import { useFilter } from '../../../store/useFilter';
+import { Geometry } from 'ol/geom';
+import { Coordinate } from 'ol/coordinate';
+import ClusterMenu from '../../cluster-menu/ClusterMenu';
 
 type Props = {
     map: Map;   // コントロール対象の地図
@@ -29,6 +33,12 @@ const EARTH_FILL_COLOR = '#d5d2c9';
 const FOREST_STROKE_COLOR = '#509B50';
 const FOREST_FILL_COLOR = '#969B8A';
 const STRUCTURE_COLOR = '#8888ff';
+
+type ClusterMenuInfo = {
+    position: Coordinate;
+    targets: Feature[];
+    // itemIds: string[];
+}
 
 /**
  * 編集対象のFeatureを選択させるコンポーネント
@@ -48,6 +58,14 @@ export default function SelectFeature(props: Props) {
         structureLayer: itemLayer,
     });
     const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
+
+    const [clusterMenuInfo, setClusterMenuInfo] = useState<ClusterMenuInfo|null>(null);
+
+    const { filteredItemIdList } = useFilter();
+    const filteredItemIdListRef = useRef(filteredItemIdList);   // for using in map event funtion
+    useEffect(() => {
+        filteredItemIdListRef.current = filteredItemIdList;
+    }, [filteredItemIdList]);
 
     useEffect(() => {
         const styleFunction = function(){
@@ -96,11 +114,45 @@ export default function SelectFeature(props: Props) {
             style: styleFunction,
         });
         select.current.on('select', (evt: SelectEvent) => {
+            console.log('select', evt.selected);
             if (evt.selected.length === 0) {
                 setSelectedFeature(undefined);
-            } else {
-                setSelectedFeature(evt.selected[0]);
+                return;
             }
+
+            let points = [] as Feature<Geometry>[];
+            const features = evt.selected[0].get('features') as Feature<Geometry>[];
+            features.forEach(feature => {
+                const id = feature.getId() as string | undefined;
+                if (id !== undefined) {
+                    points.push(feature);
+                }
+            });
+            // フィルタ時はフィルタ対象外のものに絞る
+            if (filteredItemIdListRef.current) {
+                points = points.filter(point => filteredItemIdListRef.current?.includes(point.getId() as string));
+            }
+            if (points.length === 0) {
+                setSelectedFeature(undefined);
+                return;
+            } else if (points.length === 1) {
+                setSelectedFeature(points[0]);
+                return;
+            }
+
+            // 対象が複数存在する場合またはコンテンツを持たないアイテムの場合は、重畳選択メニューを表示
+            // 表示位置
+            const ext = evt.selected[0].getGeometry()?.getExtent();
+            if (!ext) {
+                console.warn('position undefined');
+                return;
+            }
+
+            setClusterMenuInfo({
+                position: ext,
+                targets: points,
+            });
+
         });
         props.map.addInteraction(select.current);
 
@@ -112,6 +164,13 @@ export default function SelectFeature(props: Props) {
         }
      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const onClusterMenuSelected = useCallback((id: string) => {
+        const target = clusterMenuInfo?.targets.find(t => t.getId() === id);
+
+        setSelectedFeature(target);
+        setClusterMenuInfo(null);
+    }, [clusterMenuInfo?.targets]);
 
     const message= useMemo(() => {
         let name: string;
@@ -144,9 +203,17 @@ export default function SelectFeature(props: Props) {
     }, [props]);
 
     return (
-        <PromptMessageBox
-            message={message}
-            ok={onOkClicked} cancel={onCancel}
-            okdisabled={selectedFeature === undefined} />
+        <>
+            <PromptMessageBox
+                message={message}
+                ok={onOkClicked} cancel={onCancel}
+                okdisabled={selectedFeature === undefined} />
+        
+            {clusterMenuInfo &&
+                <ClusterMenu map={props.map} position={clusterMenuInfo.position}
+                    itemIds={clusterMenuInfo.targets.map(target=>target.getId() as string)}
+                    onSelect={onClusterMenuSelected} />
+            }
+        </>
     );
 }

@@ -42,6 +42,7 @@ export default function useFilteredPointStyle(props: Props) {
 
     const pointStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style => {
         const features = feature.get('features') as FeatureLike[];
+        // console.log('pointStyleFunction', features);
         let size = features.length;
 
         // 複数アイテムがまとまっており、
