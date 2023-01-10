@@ -58,13 +58,16 @@ export default function MoveItemController(props: Props) {
     
     const onFinishClicked = async() => {
         spinnerHook.showSpinner('更新中...');
-        for (const feature of movedFeatureCollection.getArray()) {
-            const geoJson = createGeoJson(feature);
-            // Notion更新
-            await dispatch(updateFeature({
-                id: feature.getId() as string,
-                geometry: geoJson.geometry,
-            }));
+        for (const mf of movedFeatureCollection.getArray()) {
+            const mfGeoJson = createGeoJson(mf);
+            const features = mf.get('features') as Feature<Geometry>[];
+            for (const feature of features) {
+                // DB更新
+                await dispatch(updateFeature({
+                    id: feature.getId() as string,
+                    geometry: mfGeoJson.geometry,
+                }));
+            }
         }
         spinnerHook.hideSpinner();
         props.close();
