@@ -24,7 +24,7 @@ import { operationActions } from "../../store/operation/operationSlice";
 import LandNameOverlay from "../map/LandNameOverlay";
 import { useFilter } from "../../store/useFilter";
 import { loadItems } from "../../store/data/dataThunk";
-import { openItemContentsPopup, openItemPopup } from "../popup/popupThunk";
+import { openItemContentsPopup } from "../popup/popupThunk";
 import { FeatureType, GeoJsonPosition, MapKind } from "279map-common";
 import { FeatureProperties } from "../../types/types";
 import { useAPI } from "../../api/useAPI";

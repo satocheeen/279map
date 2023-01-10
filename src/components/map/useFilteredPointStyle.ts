@@ -42,16 +42,17 @@ export default function useFilteredPointStyle(props: Props) {
 
     const pointStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style => {
         const features = feature.get('features') as FeatureLike[];
-        const size = features.length;
+        let size = features.length;
 
         // 複数アイテムがまとまっており、
         // フィルタがかかっている場合は、フィルタ条件に該当するものをアイコン表示
         let mainFeature = features[0];
         if (filteredItemIdList && size > 1) {
-            const filteredFeature = features.find(feature => filteredItemIdList.includes(feature.getId() as string));
-            if (filteredFeature) {
-                mainFeature = filteredFeature;
+            const filteredFeature = features.filter(feature => filteredItemIdList.includes(feature.getId() as string));
+            if (filteredFeature.length > 0) {
+                mainFeature = filteredFeature[0];
             }
+            size = filteredFeature.length;
         }
 
         const func = pointStyleHook.getStructureStyleFunction(colorFunc);
