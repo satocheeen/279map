@@ -6,6 +6,7 @@ import { api, MapKind, UnpointContent } from '279map-common';
 import { registContent, updateContent, linkContentToItem } from '../store/data/dataThunk';
 import useConfirm from "../components/common/confirm/useConfirm";
 import { operationActions } from "../store/operation/operationSlice";
+import { doCommand } from "../util/Commander";
 
 /**
  * Parts側から呼び出し可能なコマンド
@@ -16,15 +17,42 @@ export function useCommand() {
     const { confirm } = useConfirm();
 
     /**
+     * switch the map kind
      * 表示する地図種別の切り替え
      */
     const switchMapKind = useCallback((mapKind: MapKind) => {
         dispatch(operationActions.setMapKind(mapKind));
     }, [dispatch]);
 
-    const focueItem = useCallback((itemId: string) => {
+    /**
+     * focus the item
+     * 指定のアイテムにフォーカスする
+     */
+    const focusItem = useCallback((itemId: string) => {
         dispatch(operationActions.setFocusItemId(itemId));
     }, [dispatch]);
+
+    /**
+     * start the drawing a structure (or a pin) step.
+     * 建設または地点登録する
+     */
+    const drawStructure = useCallback(() => {
+        doCommand({
+            command: 'DrawStructure',
+            param: undefined,
+        });
+    }, []);
+
+    /**
+     * start the moving a structure (or a pin) step.
+     * 移築または地点移動する
+     */
+    const moveStructure = useCallback(() => {
+        doCommand({
+            command: 'MoveStructure',
+            param: undefined,
+        });
+    }, []);
 
     const registContentAPI = useCallback(async(param: api.RegistContentParam) => {
         await dispatch(registContent(param));
@@ -60,8 +88,10 @@ export function useCommand() {
 
     return {
         switchMapKind,
-        focueItem,
+        focusItem,
         confirm,
+        drawStructure,
+        moveStructure,
         registContentAPI,
         updateContentAPI,
         linkContentToItemAPI,

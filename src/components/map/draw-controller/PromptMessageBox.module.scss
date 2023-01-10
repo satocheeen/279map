@@ -1,12 +1,10 @@
-@import '../../../styles/global.scss'; 
-
 .PromptMessageBox {
     position: absolute;
     top: 20px;
     left: calc(50% - 280px);
     width: 560px;
-    background: $dark-026;
-    color: #ffffff;
+    background: var(--dark-026);
+    color: var(--white);
     z-index: 10;
     padding: 10px;
 }

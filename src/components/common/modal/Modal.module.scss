@@ -7,6 +7,8 @@
 
     animation: fadeIn .5s;
 
+    color: var(--black);
+
     &.Close {
         animation: fadeOut .3s forwards;
     }

@@ -1,9 +1,8 @@
 import { api, CategoryDefine, MapKind } from '279map-common';
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { CommandHookType } from '../api/useCommand';
 import TsunaguMap, { TsunaguMapProps } from '../components/TsunaguMap/TsunaguMap';
 import { FilterDefine } from '../entry';
-import { doCommand } from '../util/Commander';
 import styles from './TestMap.module.scss';
 
 /**
@@ -95,12 +94,13 @@ export default function TestMap() {
         console.log('result', result);
     }, [commandHook]);
 
-    const createStructure = useCallback(() => {
-        doCommand({
-            command: 'DrawStructure',
-            param: undefined,
-        });
-    }, []);
+    const drawStructure = useCallback(() => {
+        commandHook?.drawStructure();
+    }, [commandHook]);
+
+    const moveStructure = useCallback(() => {
+        commandHook?.moveStructure();
+    }, [commandHook]);
 
     const confirm = useCallback(async() => {
         const result = await commandHook?.confirm({
@@ -115,7 +115,7 @@ export default function TestMap() {
         setFocusItemId(event.target.value);
     }, []);
     const onFocusItem = useCallback(() => {
-        commandHook?.focueItem(focusItemId);
+        commandHook?.focusItem(focusItemId);
     }, [commandHook, focusItemId]);
 
     return (
@@ -137,22 +137,27 @@ export default function TestMap() {
                 <PropRadio name='disabledContentDialog' value={disabledContentDialog} onChange={setDisableContentDialog} />
                 <div className={styles.Col}>
                     <h3>カテゴリフィルタ</h3>
-                    <label>
-                        なし
-                        <input type="radio" checked={filteredCategory===undefined} onChange={() => onChangeFilterCategory(undefined)} />
-                    </label>
-                    {categories.map(category => {
-                        return (
-                            <label key={category.name}>
-                                {category.name}
-                                <input type="radio" checked={filteredCategory===category.name} onChange={() => onChangeFilterCategory(category.name)} />
-                            </label>
-                        )
-                    })}
+                    <div>
+                        <label>
+                            なし
+                            <input type="radio" checked={filteredCategory===undefined} onChange={() => onChangeFilterCategory(undefined)} />
+                        </label>
+                        {categories.map(category => {
+                            return (
+                                <label key={category.name}>
+                                    {category.name}
+                                    <input type="radio" checked={filteredCategory===category.name} onChange={() => onChangeFilterCategory(category.name)} />
+                                </label>
+                            )
+                        })}
+                    </div>
                 </div>
-                <button onClick={createStructure}>建設</button>
-                <button onClick={callGetSnsPreview}>GetSNS</button>
-                <button onClick={confirm}>Confirm</button>
+                <div className={styles.Col}>
+                    <button onClick={drawStructure}>建設</button>
+                    <button onClick={moveStructure}>移築</button>
+                    <button onClick={callGetSnsPreview}>GetSNS</button>
+                    <button onClick={confirm}>Confirm</button>
+                </div>
 
                 <div className={styles.Col}>
                     <input type='text' value={focusItemId} onChange={onChangeFocusItemId} />
