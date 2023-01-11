@@ -61,6 +61,7 @@ export default function MapChart() {
     const pointClusterLayerRef = useRef(new VectorLayer({
         source: pointClusterSourceRef.current,
         zIndex: 10,
+        renderBuffer: 200,
         properties: {
             name: 'itemLayer',
         },
