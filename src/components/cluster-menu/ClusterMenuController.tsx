@@ -7,12 +7,12 @@ import ClusterMenu from './ClusterMenu';
 
 type Props = {
     map: Map;
-    onSelect?: (feature: FeatureLike | undefined) => void;
+    onSelect?: (feature: Feature | undefined) => void;
     showAddContentMenu?: boolean;   // when true, show the add content menu button when the item has no contents.
 }
 type ClusterMenuTarget = {
     position: Coordinate;
-    targets: FeatureLike[];
+    targets: Feature[];
 }
 
 /**
@@ -34,11 +34,11 @@ export default function ClusterMenuController(props: Props) {
         const clickFunc =  (evt: MapBrowserEvent<any>) => {
             setClusterMenuInfo(null);
             // クリック位置付近にあるアイテムIDを取得
-            let points = [] as FeatureLike[];
+            let points = [] as Feature[];
             props.map.forEachFeatureAtPixel(evt.pixel, (f) => {
                 const id = f.getId() as string | undefined;
                 if (id !== undefined) {
-                    points.push(f);
+                    points.push(f as Feature);
                     return;
                 }
                 const features = f.get('features');

@@ -9,7 +9,9 @@ import { getFeatureCenter } from '../../util/MapUtility';
 import usePointStyle from '../map/usePointStyle';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import VectorSource from 'ol/source/Vector';
-import { FeatureLike } from 'ol/Feature';
+import Feature, { FeatureLike } from 'ol/Feature';
+import Style, { StyleFunction } from 'ol/style/Style';
+import VectorLayer from 'ol/layer/Vector';
 
 type Props = {
     map: Map;
@@ -42,9 +44,16 @@ export default function PopupContainer(props: Props) {
         return list;
     }, [itemMap, ownerContext.disabledPopup]);
 
-    const { getStructureStyleFunction } = usePointStyle({});
+    const itemLayer = useMemo(() => {
+        return props.map.getAllLayers().find(layer => {
+            return layer.getProperties()['name'] === 'itemLayer';
+        }) as VectorLayer<VectorSource>;
+    }, [props.map]);
+    const { pointStyleFunction } = usePointStyle({
+        structureLayer: itemLayer,
+    });
 
-    const getPopupPosition = useCallback((feature: FeatureLike): undefined | { longitude: number; latitude: number; } => {
+    const getPopupPosition = useCallback((feature: Feature): undefined | { longitude: number; latitude: number; } => {
             // -- 中心位置取得
             const itemPosition = getFeatureCenter(feature);
             if (!itemPosition) {
@@ -53,7 +62,7 @@ export default function PopupContainer(props: Props) {
 
             if (feature.getGeometry()?.getType() === 'Point') {
                 // 建物orピンの場合、アイコンの上部にポップアップを表示する
-                const style = getStructureStyleFunction()(feature, mapRef.current.getView().getResolution() ?? 0);
+                const style = pointStyleFunction(feature, mapRef.current.getView().getResolution() ?? 0);
                 const image = style.getImage();
                 const pixel = mapRef.current.getPixelFromCoordinate([itemPosition.longitude, itemPosition.latitude]);
                 const imageSize = image.getSize();
@@ -64,11 +73,12 @@ export default function PopupContainer(props: Props) {
                 pixel[1] = pixel[1] - imageSize[1] * (image.getScale() as number);
                 const newPosition = mapRef.current.getCoordinateFromPixel(pixel);
                 itemPosition.latitude = newPosition[1];
+    
             }
 
             return itemPosition;
 
-    }, [getStructureStyleFunction]);
+    }, [pointStyleFunction]);
 
     /**
      * 建物orピンのポップアップ情報を返す
@@ -80,7 +90,7 @@ export default function PopupContainer(props: Props) {
         const source = itemLayer.getSource() as VectorSource;
         const popupInfoList = [] as PopupInfo[]; 
         source.getFeatures().forEach(feature => {
-            const features = feature.get('features') as FeatureLike[];
+            const features = feature.get('features') as Feature[];
 
             // コンテンツを持つアイテムに絞る
             const itemIds = features.map(f => f.getId() as string).filter(id => {

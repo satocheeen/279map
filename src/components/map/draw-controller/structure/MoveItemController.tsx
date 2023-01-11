@@ -48,7 +48,8 @@ export default function MoveItemController(props: Props) {
     
         return new Select({
             layers: [itemLayer.current],
-            style: pointStyleHook.getStructureStyleFunction(selectedColorFunc),
+            // TODO:
+            // style: pointStyleHook.getStructureStyleFunction(selectedColorFunc),
         });
     }, [itemLayer, pointStyleHook]);
 

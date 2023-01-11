@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import SearchAddress, { SearchAddressHandler } from '../../../common/SearchAddress';
 import { GeoJsonObject } from 'geojson';
 import GeoJSON from 'ol/format/GeoJSON';
@@ -46,8 +46,14 @@ export default function DrawPointRadius(props: Props) {
     const [radius, setRadius] = useState(0);
     const [circleFeature, setCircleFeature] = useState<Feature>();
 
+    const itemLayer = useMemo(() => {
+        return props.map.getAllLayers().find(layer => layer.getProperties()['name'] === 'topographyLayer') as VectorLayer<VectorSource>;
+    }, [props.map]);
+
     const draw = useRef<Draw|undefined>();
-    const pointStyleHook = usePointStyle({});
+    const pointStyleHook = usePointStyle({
+        structureLayer: itemLayer,
+    });
     const styleHook = useTopographyStyle({
         defaultFeatureType: FeatureType.AREA,
         drawing: true,
@@ -105,7 +111,7 @@ export default function DrawPointRadius(props: Props) {
     // ステージ変更
     const startSelectCenter = useCallback(() => {
         const type = 'Point';
-        const style = pointStyleHook.getStructureStyleFunction();
+        const style = pointStyleHook.getDrawingStructureStyleFunction(iconHook.getIconDefine());
 
         // Circleは除去
         const circleFeature = drawingSource.getFeatures().find(feature => feature.getGeometry()?.getType() === 'Circle');

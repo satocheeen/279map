@@ -92,11 +92,7 @@ export default function DrawStructureController(props: Props) {
         }
         drawReset();
         const type = 'Point';
-        const style = pointStyleHook.getStructureStyleFunction(() => {
-            return {
-                iconDefine: drawingIcon.current ? drawingIcon.current : undefined,
-            };
-        });
+        const style = pointStyleHook.getDrawingStructureStyleFunction(drawingIcon.current);
         drawingFeature.current = undefined;
         drawingSource.clear();
         drawingLayer.setStyle(style);

@@ -28,13 +28,13 @@ import { openItemContentsPopup } from "../popup/popupThunk";
 import { FeatureType, GeoJsonPosition, MapKind } from "279map-common";
 import { FeatureProperties } from "../../types/types";
 import { useAPI } from "../../api/useAPI";
-import useFilteredPointStyle from "../map/useFilteredPointStyle";
 import useFilteredTopographyStyle from "../map/useFilteredTopographyStyle";
 import useTrackStyle from "../map/useTrackStyle";
 import { FeatureLike } from "ol/Feature";
 import { Coordinate } from "ol/coordinate";
 import ClusterMenu from "../cluster-menu/ClusterMenu";
 import { usePrevious } from "../../util/usePrevious";
+import usePointStyle from "../map/usePointStyle";
 
 type ClusterMenuInfo = {
     position: Coordinate;
@@ -65,9 +65,12 @@ export default function MapChart() {
             name: 'itemLayer',
         },
     }))
-    useFilteredPointStyle({
+    usePointStyle({
         structureLayer: pointClusterLayerRef.current,
     });
+    // useFilteredPointStyle({
+    //     structureLayer: pointClusterLayerRef.current,
+    // });
 
     // コンテンツ（地形）レイヤ
     const topographyContentsSourceRef = useRef(new VectorSource());
