@@ -1,6 +1,6 @@
 import useIcon from "../../store/useIcon";
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import Feature, { FeatureLike } from "ol/Feature";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { FeatureLike } from "ol/Feature";
 import { Fill, Icon, Style, Text } from 'ol/style';
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
@@ -15,6 +15,8 @@ import { RootState } from "../../store/configureStore";
 
 // 建物ラベルを表示するresolution境界値（これ以下の値の時に表示）
 const StructureLabelResolution = 0.003;
+
+const STRUCTURE_SELECTED_COLOR = '#8888ff';
 
 type Props = {
     structureLayer: VectorLayer<VectorSource>; // 建物レイヤ
@@ -31,7 +33,6 @@ export default function usePointStyle(props: Props) {
     const ownerContext = useContext(OwnerContext);
     const iconHook = useIcon();
     const mapMode = useSelector((state: RootState) => state.operation.mapMode);
-    const selectedFeatureRef = useRef<Feature>();
 
     const getZindex = useCallback((feature: FeatureLike): number => {
         const pointsSource = props.structureLayer.getSource();
@@ -50,7 +51,7 @@ export default function usePointStyle(props: Props) {
         return zIndex;
     }, [props.structureLayer]);
 
-    const createStyle = useCallback((param: {iconDefine: SystemIconDefine; feature: FeatureLike; resolution: number; color?: string; opacity?: number}) => {
+    const _createStyle = useCallback((param: {iconDefine: SystemIconDefine; feature: FeatureLike; resolution: number; color?: string; opacity?: number}) => {
         const type = param.feature.getGeometry()?.getType();
         if (type !== 'Point') {
             console.warn('geometry type is not point', param.feature);
@@ -81,14 +82,14 @@ export default function usePointStyle(props: Props) {
      */
     const getDrawingStructureStyleFunction = useCallback((iconDefine: SystemIconDefine) => {
         return (feature: FeatureLike, resolution: number) => {
-            return createStyle({
+            return _createStyle({
                 feature,
                 resolution,
                 iconDefine,
             });
 
         };
-    }, [createStyle]);
+    }, [_createStyle]);
 
     type AnalysisResult = {
         mainFeature: FeatureLike;
@@ -97,15 +98,34 @@ export default function usePointStyle(props: Props) {
     /**
      * 複数重なっているPointのうち、アイコン表示させるものを返す
      */
-    const analysisFeatures = useCallback((feature: FeatureLike): AnalysisResult => {
+    const _analysisFeatures = useCallback((feature: FeatureLike): AnalysisResult => {
         const features = feature.get('features') as FeatureLike[];
+
         if (!features) {
             return {
                 mainFeature: feature,
                 showFeaturesLength: 1,
             }
         }
+
+        let showFeaturesLength = features.length;
+        if (filteredItemIdList && features.length > 1) {
+            const filteredFeature = features.filter(feature => filteredItemIdList.includes(feature.getId() as string));
+            showFeaturesLength = filteredFeature.length;
+        }
+
+        // console.log('analysisFeatures', selectedFeatureRef.current);
         // 優先1. 選択状態のもの
+        // if (selectedFeatureRef.current) {
+        //     const selected = features.find(f => f === selectedFeatureRef.current);
+        //     console.log('selected', selected);
+        //     if (selected) {
+        //         return {
+        //             mainFeature: selected,
+        //             showFeaturesLength,
+        //         }
+        //     }
+        // }
         
         // 優先2. フィルタがかかっている場合は、フィルタ条件に該当するもの
         if (filteredItemIdList && features.length > 1) {
@@ -116,7 +136,7 @@ export default function usePointStyle(props: Props) {
             }
             return {
                 mainFeature: mainFeature ?? features[0],
-                showFeaturesLength: filteredFeature.length,
+                showFeaturesLength,
             }
         }
 
@@ -128,14 +148,8 @@ export default function usePointStyle(props: Props) {
 
     }, [filteredItemIdList]);
 
-    /**
-     * the style function for ordinaly.
-     * 通常時に使用するスタイル
-     */
-    const pointStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style => {
-        // console.log('pointStyleFunction', features);
-
-        const { mainFeature, showFeaturesLength } = analysisFeatures(feature);
+    const _createPointStyle = useCallback((feature: FeatureLike, resolution: number, forceColor?: string): Style => {
+        const { mainFeature, showFeaturesLength } = _analysisFeatures(feature);
 
         const icon = mainFeature.getProperties().icon as IconInfo | undefined;
         const iconDefine = iconHook.getIconDefine(icon);
@@ -143,11 +157,10 @@ export default function usePointStyle(props: Props) {
         // 色設定
         let color: string | undefined;
         let opacity = 1;
-        // const selected = mainFeature === selectedFeatureRef.current;
-        const selected = mainFeature.getProperties().selected;
-        if (selected) {
-            // -- 選択状態の場合
-            color = '#8888ff';
+
+        if (forceColor) {
+            color = forceColor;
+
         } else {
             // -- フィルタ状態に応じて色設定
             color = getForceColor(mainFeature);
@@ -156,7 +169,7 @@ export default function usePointStyle(props: Props) {
 
         }
 
-        const style = createStyle({
+        const style = _createStyle({
             feature,
             resolution,
             iconDefine,
@@ -175,21 +188,34 @@ export default function usePointStyle(props: Props) {
         }
         return style;
 
-    }, [ownerContext.disabledLabel, createStyle, getFilterStatus, getForceColor, iconHook, analysisFeatures]);
+    }, [ownerContext.disabledLabel, _createStyle, getFilterStatus, getForceColor, _analysisFeatures, iconHook]);
+
+    /**
+     * the style function for ordinaly.
+     * 通常時に使用するスタイル
+     */
+    const pointStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style => {
+        const style = _createPointStyle(feature, resolution);
+
+        return style;
+
+    }, [_createPointStyle]);
+
+    const selectedStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style => {
+        const style = _createPointStyle(feature, resolution, STRUCTURE_SELECTED_COLOR);
+
+        return style;
+    }, [_createPointStyle]);
 
     useEffect(() => {
         if (mapMode === MapMode.Normal)
             props.structureLayer.setStyle(pointStyleFunction);
     }, [pointStyleFunction, props.structureLayer, mapMode]);
 
-    const setSelectedFeature = useCallback((feature: Feature | undefined) => {
-        selectedFeatureRef.current = feature;
-    }, []);
-
     return {
         getDrawingStructureStyleFunction,
-        setSelectedFeature,
         pointStyleFunction,
+        selectedStyleFunction,
     }
 }
 
