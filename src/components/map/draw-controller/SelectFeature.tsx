@@ -48,6 +48,7 @@ export default function SelectFeature(props: Props) {
     });
     const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
 
+    // 初期化
     useEffect(() => {
         const styleFunction = function(){
             if (props.target === 'topography') {
@@ -89,7 +90,6 @@ export default function SelectFeature(props: Props) {
             style: styleFunction,
             filter: (feature) => {
                 const features = feature.get('features') as FeatureLike[];
-                console.log('features', features);
                 // 複数重なっているものは選択不可
                 return features.length === 1;
             },
@@ -102,6 +102,35 @@ export default function SelectFeature(props: Props) {
             }
         });
         props.map.addInteraction(select.current);
+
+        // 選択可能な地図上アイテムhover時にポインター表示
+        props.map.on('pointermove', (evt) => {
+            let isHover = false;
+            props.map.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
+                const layerName = layer.getProperties()['name'];
+                if (props.target === 'structure' && layerName !== 'itemLayer') {
+                    return;
+                }
+                if (props.target === 'topography' && layerName !== 'topographyLayer') {
+                    return;
+                }
+                if (layerName === 'itemLayer') {
+                    const features = feature.get('features') as FeatureLike[];
+                    if (features.length === 1) {
+                        isHover = true;
+                        return;
+                    }
+                } else if(layerName === 'topographyLayer') {
+                    isHover = true;
+                }
+            });
+            if (isHover) {
+                props.map.getTargetElement().style.cursor = 'pointer';
+            } else {
+                props.map.getTargetElement().style.cursor = '';
+            }
+        });
+
 
         return () => {
             console.log('unmounted');
