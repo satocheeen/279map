@@ -43,7 +43,6 @@ export type GeocoderId = {
 
 export type GeoProperties = {
     featureType?: FeatureType.STRUCTURE;
-    radius?: number;
 } | {
     featureType: FeatureType.STRUCTURE;
     icon?: IconInfo;
@@ -52,7 +51,7 @@ export type GeoProperties = {
     lineJson: GeoJSON.Feature;  // 元のLine
     width: string;  // RoadWidth.key
 } | {
-    featureType: FeatureType.EARTH | FeatureType.FOREST;
+    featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA;
     radius?: number;
 } | {
     featureType: FeatureType.AREA;
