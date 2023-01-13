@@ -159,11 +159,11 @@ const broadCaster = new Broadcaster(server);
  */
 app.get('/api/connect', async(req, res) => {
     apiLogger.info('[start] connect', req.sessionID);
-    // セッションに何か格納しておかないと, http://localhostからのアクセス時に
-    // sessionIDが変わってしまうので、適当な値を設定
-    // → ここで値を設定すると、この次にsessionIDが変わってしまうので、ひとまずコメントアウト
-    // @ts-ignore
-    // req.session.temp = 'hogehoge';
+    if (!req.headers.cookie) {
+        // Cookie未設定時は、セッションに適当な値を格納することで、Cookieを作成する
+        // @ts-ignore
+        req.session.temp = 'hogehoge';
+    }
 
     try {
         const mapId = req.query.mapId;
