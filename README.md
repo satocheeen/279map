@@ -40,6 +40,7 @@ flowchart LR
 	```shell
 	npm run dev
 	```
+when you develop with running 279map-docker container, you stop 279map container.
 
 ## Deploy
 1. delete exist docker image `279map-backend-main`

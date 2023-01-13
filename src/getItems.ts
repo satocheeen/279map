@@ -62,7 +62,7 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: ap
     try {
         // 位置コンテンツ
         const sql = `
-        select i.*, ST_AsGeoJSON(i.location) as geojson, cdi.map_page_id, c.* 
+        select i.*, ST_AsGeoJSON(i.location) as geojson, cdi.map_page_id, c.title, c.thumbnail
         from items i
         inner join contents_db_info cdi on i.contents_db_id = cdi.contents_db_id
         left join contents c  on c.content_page_id = i.content_page_id  
@@ -70,7 +70,7 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: ap
         `;
         const [rows] = await con.execute(sql, [mapPageId, mapKind]);
         const pointContents = [] as ItemDefine[];
-        for(const row of rows as (ItemsTable & ContentsTable & {geojson: any})[]) {
+        for(const row of rows as (ItemsTable & {title?: string; thumbnail?: string} & {geojson: any})[]) {
             let contents: ItemContentInfo | null = null;
             if (row.content_page_id) {
                 // 配下のコンテンツID取得
