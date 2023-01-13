@@ -8,6 +8,7 @@ import { ContentsDefine, ItemContentInfo, ItemDefine } from "279map-common";
 import { operationActions } from "../../store/operation/operationSlice";
 import SelectContentDialog from "./select-content/SelectContentDialog";
 import { useContents } from "../../store/useContents";
+import { MapMode } from "../../types/types";
 
 type Props = {
     // このポップアップにて情報表示する対象アイテム
@@ -89,7 +90,12 @@ export default function PointsPopup(props: Props) {
         setShowSelectDialog(false);
     }, []);
 
+    const mapMode = useSelector((state: RootState) => state.operation.mapMode);
+
     if (!target) {
+        return null;
+    }
+    if (mapMode === MapMode.Drawing) {
         return null;
     }
     return (
