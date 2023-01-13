@@ -11,7 +11,7 @@ import { MapKind } from '279map-common';
  * クライアントの情報を管理し、必要に応じてクライアントに通知を行うクラス
  */
 export default class Broadcaster {
-    _logger = getLogger();
+    _logger = getLogger('api');
     _wss: WebSocket.Server;
     _sessionMap = {} as {[sid: string]: SessionInfo};
 
@@ -83,12 +83,14 @@ export default class Broadcaster {
         const sid = this.getSessionId(req);
         // const sid = req.sessionID;
         if (!sid) {
+            this._logger.warn('[addSession] sid not found');
             return undefined;
         }
         if (this._sessionMap[sid]) {
+            this._logger.info('[addSession] session already exist', sid);
             return this._sessionMap[sid];
         }
-        this._logger.info('Add Session', sid);
+        this._logger.info('[addSession] make a new session', sid);
         this._sessionMap[sid] = new SessionInfo(sid);
         return this._sessionMap[sid];
     }

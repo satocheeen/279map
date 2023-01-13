@@ -158,11 +158,12 @@ const broadCaster = new Broadcaster(server);
  * 接続確立
  */
 app.get('/api/connect', async(req, res) => {
-    logger.info('connect', req.sessionID);
+    apiLogger.info('[start] connect', req.sessionID);
     // セッションに何か格納しておかないと, http://localhostからのアクセス時に
     // sessionIDが変わってしまうので、適当な値を設定
+    // → ここで値を設定すると、この次にsessionIDが変わってしまうので、ひとまずコメントアウト
     // @ts-ignore
-    req.session.temp = 'hogehoge';
+    // req.session.temp = 'hogehoge';
 
     try {
         const mapId = req.query.mapId;
@@ -178,9 +179,10 @@ app.get('/api/connect', async(req, res) => {
         broadCaster.addSession(req);
     
         res.send(define);
+        apiLogger.info('[end] connect', req.sessionID);
     
     } catch(e) {
-        logger.warn('connect error', e);
+        apiLogger.warn('connect error', e);
         res.status(500).send(e);
 
     }
@@ -224,6 +226,7 @@ const apiList: APICallDefine<any,any>[] = [
         after: ({req, result }) => {
             let session = broadCaster.getSessionInfo(req);
             const myResult = result as api.GetMapInfoResult;
+            console.log('get map Info after', session);
             if (!session) {
                 logger.warn('no session');
             }
@@ -512,7 +515,7 @@ apiList.forEach((api => {
             const sid = req.cookies['connect.sid'];
     
             const param = getParam(req);
-            apiLogger.info('[start] ' + api.define.uri, param, sid, session !== undefined);
+            apiLogger.info('[start] ' + api.define.uri, param, sid, session);
 
             // // TODO: getmapinfoでは不要
             // if (!session.mapPageId || !session.mapKind) {
