@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Map, Collection, Feature } from 'ol';
+import { Map, Collection, Feature, MapBrowserEvent } from 'ol';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { DragBox, Select, Translate } from 'ol/interaction';
@@ -12,7 +12,6 @@ import { TranslateEvent } from 'ol/interaction/Translate';
 import "react-toggle/style.css";
 import Toggle from 'react-toggle';
 import usePointStyle from '../../usePointStyle';
-import { FeatureLike } from 'ol/Feature';
 import { useSpinner } from '../../../common/spinner/useSpinner';
 import { useAppDispatch } from '../../../../store/configureStore';
 import { updateFeature } from '../../../../store/data/dataThunk';
@@ -39,17 +38,9 @@ export default function MoveItemController(props: Props) {
     const dispatch = useAppDispatch();
 
     const select = useMemo(() => {
-        const selectedColorFunc = (feature: FeatureLike): {color?: string; alpha?: number} => {
-            return {
-                color: '#8888ff',
-                alpha: 1,
-            };
-        };
-    
         return new Select({
             layers: [itemLayer.current],
-            // TODO:
-            // style: pointStyleHook.getStructureStyleFunction(selectedColorFunc),
+            style: pointStyleHook.selectedStyleFunction,
         });
     }, [itemLayer, pointStyleHook]);
 
@@ -86,6 +77,30 @@ export default function MoveItemController(props: Props) {
         })
         props.close();
     }
+
+    // 対象アイテムhover時のカーソル設定
+    useEffect(() => {
+        const pointerMoveEvent = (evt: MapBrowserEvent<any>) => {
+            let isHover = false;
+            props.map.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
+                const layerName = layer.getProperties()['name'];
+                if (layerName === 'itemLayer') {
+                    isHover = true;
+                }
+            });
+            if (isHover) {
+                props.map.getTargetElement().style.cursor = 'pointer';
+            } else {
+                props.map.getTargetElement().style.cursor = '';
+            }
+        };
+        props.map.on('pointermove', pointerMoveEvent);
+
+        return () => {
+            props.map.un('pointermove', pointerMoveEvent);
+        }
+
+    }, [props.map]);
 
     useEffect(() => {
         // 移動前の状態を記憶

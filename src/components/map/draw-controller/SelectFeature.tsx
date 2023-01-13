@@ -1,4 +1,4 @@
-import { Feature } from 'ol';
+import { Feature, MapBrowserEvent } from 'ol';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PromptMessageBox from './PromptMessageBox';
 import Style from 'ol/style/Style';
@@ -109,7 +109,7 @@ export default function SelectFeature(props: Props) {
         props.map.addInteraction(select.current);
 
         // 選択可能な地図上アイテムhover時にポインター表示
-        props.map.on('pointermove', (evt) => {
+        const pointerMoveEvent = (evt: MapBrowserEvent<any>) => {
             let isHover = false;
             props.map.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
                 const layerName = layer.getProperties()['name'];
@@ -134,13 +134,15 @@ export default function SelectFeature(props: Props) {
             } else {
                 props.map.getTargetElement().style.cursor = '';
             }
-        });
+        };
+        props.map.on('pointermove', pointerMoveEvent);
 
 
         return () => {
             if (select.current) {
                 props.map.removeInteraction(select.current);
             }
+            props.map.un('pointermove', pointerMoveEvent);
         }
      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
