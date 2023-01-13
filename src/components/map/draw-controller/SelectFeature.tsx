@@ -97,7 +97,12 @@ export default function SelectFeature(props: Props) {
         select.current.on('select', (evt: SelectEvent) => {
             if (evt.selected.length === 0) {
                 setSelectedFeature(undefined);
-            } else {
+                return;
+            }
+            if (props.target === 'structure') {
+                const features = evt.selected[0].get('features') as Feature[];
+                setSelectedFeature(features[0]);
+            } else{
                 setSelectedFeature(evt.selected[0]);
             }
         });
@@ -133,7 +138,6 @@ export default function SelectFeature(props: Props) {
 
 
         return () => {
-            console.log('unmounted');
             if (select.current) {
                 props.map.removeInteraction(select.current);
             }
