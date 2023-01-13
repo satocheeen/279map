@@ -482,7 +482,7 @@ export default function MapChart() {
         // 追加、更新
         for (const def of geoJsonItems) {
             let featurething;
-            if (def.geoProperties?.featureType === FeatureType.AREA && def.geoProperties.geocoderId) {
+            if (def.geoProperties?.featureType === FeatureType.AREA && ('geocoderId' in def.geoProperties && def.geoProperties.geocoderId)) {
                 // Geocoderの図形の場合は、Geocoder図形呼び出し
                 const geoJson = await getGeocoderFeature(def.geoProperties.geocoderId);
                 featurething = new GeoJSON().readFeatures(geoJson)[0];
