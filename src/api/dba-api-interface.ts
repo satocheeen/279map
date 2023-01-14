@@ -15,6 +15,7 @@ export const RegistItemAPI = {
 export type RegistItemParam = {
     mapId: string;
     mapKind: MapKind;
+    name?: string;  // topography only
     geometry: GeoJSON.Geometry;
     geoProperties: GeoProperties;  // GeoProperties
 }
@@ -73,6 +74,7 @@ export const UpdateItemAPI = {
 
 export type UpdateItemParam = {
     id: string;
+    name?: string;  // topography only
     geometry?: GeoJSON.Geometry;
     geoProperties?: GeoProperties;
 }
