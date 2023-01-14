@@ -134,6 +134,7 @@ export const RegistItemAPI = {
 } as APIDefine<RegistItemParam, string>;
 
 export type RegistItemParam = {
+    name?: string;  // only topography.  the structures' name is decided by content's name.
     geometry: GeoJSON.Geometry;
     geoProperties: GeoProperties;
 }
@@ -148,6 +149,7 @@ export const UpdateItemAPI = {
 
 export type UpdateItemParam = {
     id: string;
+    name?: string;  // only topography.  the structures' name is decided by content's name.
     geometry?: GeoJSON.Geometry;
     geoProperties?: GeoProperties;
 }
