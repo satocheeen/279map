@@ -120,6 +120,13 @@ export function useCommand() {
         });
     }, []);
 
+    const editTopographyInfo = useCallback(() => {
+        doCommand({
+            command:'EditTopographyInfo',
+            param: undefined,
+        });
+    }, []);
+
     const registContentAPI = useCallback(async(param: api.RegistContentParam) => {
         await dispatch(registContent(param));
 
@@ -164,6 +171,7 @@ export function useCommand() {
         drawRoad,
         editTopography,
         removeTopography,
+        editTopographyInfo,
         registContentAPI,
         updateContentAPI,
         linkContentToItemAPI,

@@ -16,6 +16,7 @@ import { FeatureType, MapKind } from '279map-common';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/configureStore';
 import { colorWithAlpha } from '../../../util/CommonUtility';
+import { MapStyles } from '../../../util/constant-defines';
 
 type Props = {
     map: Map;   // コントロール対象の地図
@@ -25,12 +26,6 @@ type Props = {
     onCancel: () => void;
 }
 
-const EARTH_STROKE_COLOR = '#dd9C00';
-const EARTH_FILL_COLOR = '#d5d2c9';
-const FOREST_STROKE_COLOR = '#509B50';
-const FOREST_FILL_COLOR = '#969B8A';
-const AREA_STROKE_COLOR = '#aaaaff';
-const AREA_FILL_COLOR = '#aaaaff';
 /**
  * 編集対象のFeatureを選択させるコンポーネント
  * @param props 
@@ -58,21 +53,33 @@ export default function SelectFeature(props: Props) {
                     const featureType = feature.getProperties()['featureType'];
                     let strokeColor;
                     let fillColor = '';
-                    let alpha = 1;
+                    let alpha: number;
+                    let zIndex: number;
                     switch(featureType) {
                         case FeatureType.FOREST:
-                            strokeColor = FOREST_STROKE_COLOR;
-                            fillColor = FOREST_FILL_COLOR;
+                            strokeColor = MapStyles.Forest.selectedColor.stroke;
+                            fillColor = MapStyles.Forest.selectedColor.fill;
+                            alpha = MapStyles.Forest.selectedColor.alpha;
+                            zIndex = MapStyles.Forest.zIndex;
                             break;
                         case FeatureType.AREA:
-                            strokeColor = AREA_STROKE_COLOR;
-                            fillColor = AREA_FILL_COLOR;
-                            alpha = 0.3;
+                            strokeColor = MapStyles.Area.selectedColor.stroke;
+                            fillColor = MapStyles.Area.selectedColor.fill;
+                            alpha = MapStyles.Area.selectedColor.alpha;
+                            zIndex = MapStyles.Area.zIndex;
+                            break;
+                        case FeatureType.ROAD:
+                            strokeColor = MapStyles.Road.selectedColor.stroke;
+                            fillColor = MapStyles.Road.selectedColor.fill;
+                            alpha = MapStyles.Road.selectedColor.alpha;
+                            zIndex = MapStyles.Road.zIndex;
                             break;
                         default:
-                            strokeColor = EARTH_STROKE_COLOR;
-                            fillColor = EARTH_FILL_COLOR;
-                    }
+                            strokeColor = MapStyles.Earth.selectedColor.stroke;
+                            fillColor = MapStyles.Earth.selectedColor.fill;
+                            alpha = MapStyles.Earth.selectedColor.alpha;
+                            zIndex = MapStyles.Earth.zIndex;
+                        }
                     return new Style({
                         stroke: new Stroke({
                             color: strokeColor,
@@ -81,6 +88,7 @@ export default function SelectFeature(props: Props) {
                         fill: new Fill({
                             color: colorWithAlpha(fillColor, alpha),
                         }),
+                        zIndex,
                     });
                 }
                 return  topographyStyleHook.getStyleFunction(selectedStyleFunc);
