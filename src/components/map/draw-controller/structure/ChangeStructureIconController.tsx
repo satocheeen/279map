@@ -41,7 +41,7 @@ export default function ChangeStructureIconController(props: Props) {
         }
         spinnerHook.showSpinner('更新中...');
 
-        // Notion更新
+        // update DB
         await dispatch(updateFeature({
             id: selectedFeature.current.getId() as string,
             geoProperties: {

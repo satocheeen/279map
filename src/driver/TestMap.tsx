@@ -164,7 +164,7 @@ export default function TestMap() {
                             <button onClick={commandHook?.drawRoad}>道作成</button>
                             <button onClick={commandHook?.editTopography}>地形編集</button>
                             <button onClick={commandHook?.removeTopography}>地形削除</button>
-                            <button onClick={commandHook?.editTopographyInfo}>地形情報編集</button>
+                            <button onClick={commandHook?.editTopographyInfo}>地名編集</button>
                         </>
                     }
                 </div>
