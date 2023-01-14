@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Map, MapBrowserEvent, View } from 'ol';
+import { Map, View } from 'ol';
 import * as olControl from 'ol/control';
 import prefJson from './pref.json';
 import GeoJSON from 'ol/format/GeoJSON';
@@ -26,15 +26,16 @@ import { useFilter } from "../../store/useFilter";
 import { loadItems } from "../../store/data/dataThunk";
 import { openItemContentsPopup } from "../popup/popupThunk";
 import { FeatureType, GeoJsonPosition, MapKind } from "279map-common";
-import { FeatureProperties } from "../../types/types";
+import { FeatureProperties, MapMode } from "../../types/types";
 import { useAPI } from "../../api/useAPI";
 import useFilteredTopographyStyle from "../map/useFilteredTopographyStyle";
 import useTrackStyle from "../map/useTrackStyle";
-import { FeatureLike } from "ol/Feature";
+import Feature, { FeatureLike } from "ol/Feature";
 import { Coordinate } from "ol/coordinate";
 import ClusterMenu from "../cluster-menu/ClusterMenu";
 import { usePrevious } from "../../util/usePrevious";
 import usePointStyle from "../map/usePointStyle";
+import ClusterMenuController from "../cluster-menu/ClusterMenuController";
 
 type ClusterMenuInfo = {
     position: Coordinate;
@@ -69,9 +70,6 @@ export default function MapChart() {
     usePointStyle({
         structureLayer: pointClusterLayerRef.current,
     });
-    // useFilteredPointStyle({
-    //     structureLayer: pointClusterLayerRef.current,
-    // });
 
     // コンテンツ（地形）レイヤ
     const topographyContentsSourceRef = useRef(new VectorSource());
@@ -207,140 +205,10 @@ export default function MapChart() {
         //     state.lonlatPopupPosition = map.getEventCoordinate(evt);
         // });
 
-        // ポップアップ表示対象のアイテムか
-        const isTarget = (id: string): boolean => {
-            const item = itemMapRef.current[id];
-            const featureType = item?.geoProperties?.featureType;
-            if (!featureType) {
-                return false;
-            }
-            if (featureType === FeatureType.STRUCTURE || featureType === FeatureType.AREA) {
-                return true;
-            }
-            // コンテンツを持つか
-            if (item.contents) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        mapRef.current.on('click', (evt: MapBrowserEvent<any>) => {
-            if (mapRef.current === null || isDrawing.current) {
-                return;
-            }
-            setClusterMenuInfo(null);
-            // クリック位置付近にあるアイテムIDを取得
-            let points = [] as string[];
-            mapRef.current.forEachFeatureAtPixel(evt.pixel, (f) => {
-                const id = f.getId() as string | undefined;
-                if (id !== undefined) {
-                    points.push(id);
-                    return;
-                }
-                const features = f.get('features');
-                if (!features) {
-                    return;
-                }
-                (features as FeatureLike[]).forEach(feature => {
-                    const id = feature.getId() as string | undefined;
-                    if (id !== undefined) {
-                        points.push(id);
-                    }
-                });
-            });
-            // フィルタ時はフィルタ対象外のものに絞る
-            if (filteredItemIdListRef.current) {
-                points = points.filter(point => filteredItemIdListRef.current?.includes(point));
-            }
-
-            if (points.length === 0) {
-                dispatch(operationActions.unselectItem());
-                return;
-            } else if (points.length === 1 && itemMapRef.current[points[0]]?.contents) {
-                dispatch(operationActions.setSelectItem(points));
-                return;
-            }
-
-            // show the cluseter menu when multiple items or the item has no contents
-            // 対象が複数存在する場合またはコンテンツを持たないアイテムの場合は、重畳選択メニューを表示
-            setClusterMenuInfo({
-                position: evt.coordinate,
-                itemIds: points,
-            });
-        });
         mapRef.current.on('loadend', () => {
             setMapLoaded(true);
             console.log('loadend');
         })
-
-        // // クリック位置付近の以下条件に該当する全アイテムをポップアップ表示
-        // // - 建物、地点、エリア
-        // // - コンテンツまたは概要情報を持つ島、緑地、道
-        // mapRef.current.on('click', (evt: MapBrowserEvent<any>) => {
-        //     if (mapRef.current === null || isDrawing.current) {
-        //         return;
-        //     }
-        //     // クリック位置付近にあるシンボルを取得
-        //     const points = [] as string[];
-        //     mapRef.current.forEachFeatureAtPixel(evt.pixel, (f) => {
-        //         const id = f.getId() as string | undefined;
-        //         if (id === undefined) {
-        //             return;
-        //         }
-        //         if (isTarget(id)) {
-        //             points.push(id);
-        //         }
-        //     });
-        //     if (points.length === 0) {
-        //         dispatch(operationActions.clearPopup());
-        //         dispatch(operationActions.unselectItem());
-        //     } else {
-        //         // 一番手前のものを選択状態にしてポップアップ表示。ただし、シンボルに関しては重なっているものは全て選択状態とする。
-        //         const targets = points.filter((point, index) => {
-        //             if (index === 0) {
-        //                 return true;
-        //             }
-        //             const item = itemMapRef.current[point];
-        //             if (item?.geoProperties?.featureType === FeatureType.STRUCTURE) {
-        //                 return true;
-        //             }
-        //             return false;
-        //         })
-        //         dispatch(openItemPopup({
-        //             itemIds: targets,
-        //             force: true
-        //         }));
-        //         dispatch(operationActions.setSelectItem(targets));
-        //     }
-        // });
-
-        // クリック可能な地図上アイテムhover時にポインター表示
-        mapRef.current.on('pointermove', (evt) => {
-            if (mapRef.current === null || isDrawing.current) {
-                return;
-            }
-            const hitIds = [] as string[];
-            mapRef.current.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
-                const layerName = layer.getProperties()['name'];
-                if (layerName === 'itemLayer') {
-                    const features = feature.get('features') as FeatureLike[];
-                    features.forEach(f => {
-                        const id = f.getId() as string;
-                        hitIds.push(id)
-                    });
-                } else if(layerName === 'topographyLayer') {
-                    const id = feature.getId() as string;
-                    hitIds.push(id)
-                }
-            });
-            const isHover = hitIds.some(id => isTarget(id));
-            if (isHover) {
-                mapRef.current.getTargetElement().style.cursor = 'pointer';
-            } else {
-                mapRef.current.getTargetElement().style.cursor = '';
-            }
-        });
 
         const h = addListener('LoadLatestData', async() => {
             await loadCurrentAreaContents();
@@ -354,6 +222,15 @@ export default function MapChart() {
             removeListener(h);
         }
     }, [dispatch, loadCurrentAreaContents]);
+
+    const onSelectItem = useCallback((feature: Feature | undefined) => {
+        if (!feature) {
+            dispatch(operationActions.unselectItem());
+        } else {
+            dispatch(operationActions.setSelectItem([feature.getId() as string]));
+        }
+
+    }, [dispatch]);
 
     /**
      * 地図が切り替わったら、レイヤ再配置
@@ -423,9 +300,6 @@ export default function MapChart() {
         layers.push(topographyContentsLayerRef.current);
 
         // コンテンツ（建物）レイヤ設定
-        // mapStyleHook.setPointsLayer(pointContentsLayerRef.current);
-        // layers.push(pointContentsLayerRef.current);
-        // mapStyleHook.setPointsLayer(clusterLayerRef.current);
         layers.push(pointClusterLayerRef.current);
 
         mapRef.current.setLayers(layers);
@@ -747,6 +621,11 @@ export default function MapChart() {
                             <PopupContainer map={mapRef.current} />
                         }
                         <LandNameOverlay map={mapRef.current} />
+                        {mapMode === MapMode.Normal &&
+                            <ClusterMenuController map={mapRef.current}
+                                targets={[FeatureType.STRUCTURE, FeatureType.AREA]}
+                                onSelect={onSelectItem} showAddContentMenu={true} />
+                        }
                         <DrawController map={mapRef.current} onStart={()=>{isDrawing.current=true}} onEnd={()=>{isDrawing.current=false}} />
                     </>
                 )

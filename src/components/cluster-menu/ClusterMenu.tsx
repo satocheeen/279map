@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useMemo, useCallback } from 'react';
 import { Map, Overlay } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import styles from './ClusterMenu.module.scss';
@@ -7,12 +7,24 @@ import { RootState } from '../../store/configureStore';
 import useIcon from '../../store/useIcon';
 import AddContentMenu from '../popup/AddContentMenu';
 
+/**
+ * Cluster items' menu for selecting an item.
+ * 重畳選択メニュー
+ */
+
 type Props = {
     map: Map;
-    position: Coordinate; // メニュー表示位置
+
+    // the menu position
+    position: Coordinate;
+
+    // the menu items' ID. 
     itemIds: string[];
+
     onSelect?: (id: string) => void;
-    showAddContentMenu?: boolean;   // when true, show the menu of adding content if the item has no contents.
+
+    // when true, show the menu of adding content if the item has no contents.
+    showAddContentMenu?: boolean;
 }
 
 export default function ClusterMenu(props: Props) {

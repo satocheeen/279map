@@ -114,7 +114,7 @@ export default function ContentsModal() {
 
         if (target.type === 'item') {
             const item = state.data.itemMap[target.itemId];
-            if (!item.contents) return;
+            if (!item?.contents) return;
             const contentId = item.contents.id;
             return state.data.contentsList.find(cn => cn.id === contentId);
         } else {
