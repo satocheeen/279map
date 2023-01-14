@@ -1,7 +1,7 @@
 import { Extent } from '279map-common'
 import { ConnectionPool } from '..';
 import { MapKind } from '279map-common';
-import { ContentsTable, ItemsTable } from '279map-backend-common/dist/types/schema';
+import { types } from '279map-backend-common';
 import { PoolConnection } from 'mysql2/promise';
 
 export function getExtentWkt(ext: Extent): string {
@@ -34,7 +34,7 @@ export function convertBase64ToBinary(base64: string) {
  * @param mapKind 
  * @returns 
  */
-export async function getBelongingItem(con: PoolConnection, content: ContentsTable, mapPageId: string, mapKind: MapKind): Promise<ItemsTable[]|null> {
+export async function getBelongingItem(con: PoolConnection, content: types.ContentsTable, mapPageId: string, mapKind: MapKind): Promise<types.ItemsTable[]|null> {
     const items = await getItemHasTheContent(con, content.content_page_id, mapPageId, mapKind);
     if (items.length > 0) {
         return items;
@@ -49,7 +49,7 @@ export async function getBelongingItem(con: PoolConnection, content: ContentsTab
     return await getBelongingItem(con, parent, mapPageId, mapKind);
 }
 
-async function getItemHasTheContent(con: PoolConnection, content_page_id: string, mapPageId: string, mapKind: MapKind): Promise<ItemsTable[]> {
+async function getItemHasTheContent(con: PoolConnection, content_page_id: string, mapPageId: string, mapKind: MapKind): Promise<types.ItemsTable[]> {
     try {
         const sql = `
             select * from items i
@@ -57,7 +57,7 @@ async function getItemHasTheContent(con: PoolConnection, content_page_id: string
             where i.content_page_id = ? and cdi.map_page_id = ? and i.map_kind = ?
             `;
         const [rows] = await con.execute(sql, [content_page_id, mapPageId, mapKind]);
-        return (rows as ItemsTable[]);
+        return (rows as types.ItemsTable[]);
 
     } catch(e) {
         throw 'getItemHasTheContent' + e;
@@ -65,7 +65,7 @@ async function getItemHasTheContent(con: PoolConnection, content_page_id: string
     }
 
 }
-export async function getContent(content_page_id: string): Promise<ContentsTable|null> {
+export async function getContent(content_page_id: string): Promise<types.ContentsTable|null> {
     const con = await ConnectionPool.getConnection();
     try {
         const sql = "select * from contents where content_page_id = ?";
@@ -73,7 +73,7 @@ export async function getContent(content_page_id: string): Promise<ContentsTable
         if ((rows as []).length === 0) {
             return null;
         }
-        return (rows as ContentsTable[])[0];
+        return (rows as types.ContentsTable[])[0];
 
     } catch(e) {
         throw 'getContent' + e;

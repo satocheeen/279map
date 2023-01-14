@@ -1,6 +1,6 @@
 import { APIFunc, ConnectionPool } from ".";
 import { api } from "279map-common";
-import { ContentsTable } from "279map-backend-common/dist/types/schema";
+import { types } from "279map-backend-common";
 import { getBelongingItem } from "./util/utility";
 import { EventDefine } from "279map-common";
 
@@ -24,7 +24,7 @@ export const getEvents: APIFunc<api.GetEventParam, api.GetEventsResult> = async(
         const [rows] = await con.execute(sql, [mapPageId]);
         // filter by whether exist in the map kind
         const events = [] as EventDefine[];
-        for (const row of (rows as ContentsTable[])) {
+        for (const row of (rows as types.ContentsTable[])) {
             const itemList = await getBelongingItem(con, row, mapPageId, mapKind);
             if (itemList) {
                 itemList.forEach(item => {

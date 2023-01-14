@@ -1,4 +1,4 @@
-import { MapPageInfoTable } from '279map-backend-common/dist/types/schema';
+import { types } from '279map-backend-common';
 import { APIFunc, ConnectionPool } from '.';
 import { api } from '279map-common/';
 import { MapKind } from '279map-common';
@@ -64,15 +64,15 @@ async function getMapInfoSub(param: api.GetMapInfoParam): Promise<Result> {
  * 指定の地図データページIDの情報を取得する
  * @param pageId Notion地図データページID または Alias
  */
-export async function getMapPageInfo(pageId: string): Promise<MapPageInfoTable | null> {
+export async function getMapPageInfo(pageId: string): Promise<types.MapPageInfoTable | null> {
     const con = await ConnectionPool.getConnection();
 
     try {
         const [rows] = await con.execute('SELECT * FROM map_page_info WHERE map_page_id=? OR replace(map_page_id, "-", "")=? OR alias=?', [pageId, pageId, pageId]);
-        if ((rows as MapPageInfoTable[]).length === 0) {
+        if ((rows as types.MapPageInfoTable[]).length === 0) {
             return null;
         }
-        const record = (rows as MapPageInfoTable[])[0];
+        const record = (rows as types.MapPageInfoTable[])[0];
         return record;
     } finally {
         await con.commit();

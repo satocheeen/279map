@@ -1,7 +1,7 @@
 import randomColor from "randomcolor";
 import { APIFunc, ConnectionPool } from "..";
 import { api } from "279map-common";
-import { ContentsTable } from "279map-backend-common/dist/types/schema";
+import { types } from "279map-backend-common";
 import { CategoryDefine } from "279map-common";
 
 /**
@@ -28,7 +28,7 @@ export const getCategory: APIFunc<void, api.GetCategoryResult> = async({ current
 
         const [rows] = await con.execute(sql, [mapPageId]);
         const categoryMap = new Map<string, CategoryDefine>();
-        (rows as ContentsTable[]).forEach((row) => {
+        (rows as types.ContentsTable[]).forEach((row) => {
             const categories = JSON.parse(row.category as string) as string[];
             categories.forEach(category => {
                 if (categoryMap.has(category)) {

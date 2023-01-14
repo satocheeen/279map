@@ -19,10 +19,7 @@ import { getSnsPreview } from './api/getSnsPreview';
 import { CurrentMap } from './session/SessionInfo';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import { getIcon } from './api/getIcon';
-import { sleep } from '279map-backend-common/dist/utility';
-import { callOdbaApi } from '279map-backend-common/dist/api/client';
-import * as ODBA from "279map-backend-common/dist/api/dba-api-interface";
-import { BroadcastItemParam } from '279map-backend-common/dist/api/broadcast';
+import { utility, api as backendAPI } from '279map-backend-common';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { readFileSync } from 'fs';
@@ -116,7 +113,7 @@ const initializeDb = async() => {
             flag = false;
         } catch (e) {
             logger.warn('db cconnect failed. retry...');
-            await sleep(3);
+            await utility.sleep(3);
         }
         
     } while(flag);
@@ -294,7 +291,7 @@ const apiList: APICallDefine<any,any>[] = [
             const mapKind = currentMap.mapKind;
         
             // DBA呼び出し
-            const id = await callOdbaApi(ODBA.RegistItemAPI, {
+            const id = await backendAPI.callOdbaApi(backendAPI.RegistItemAPI, {
                 mapId: mapPageId,
                 mapKind,
                 geometry: param.geometry,
@@ -316,7 +313,7 @@ const apiList: APICallDefine<any,any>[] = [
     {
         define: api.UpdateItemAPI,
         func: async({ param }) => {
-            await callOdbaApi(ODBA.UpdateItemAPI, param);
+            await backendAPI.callOdbaApi(backendAPI.UpdateItemAPI, param);
         },
         after: ({ req }) => {
             // 更新通知
@@ -331,7 +328,7 @@ const apiList: APICallDefine<any,any>[] = [
     {
         define: api.RemoveItemAPI,
         func: async({ param }) => {
-            await callOdbaApi(ODBA.RemoveItemAPI, param);
+            await backendAPI.callOdbaApi(backendAPI.RemoveItemAPI, param);
         },
         after: ( { req, param }) => {
             // 更新通知
@@ -353,7 +350,7 @@ const apiList: APICallDefine<any,any>[] = [
             const mapPageId =currentMap.mapPageId;
             
             // DBA呼び出し
-            await callOdbaApi(ODBA.RegistContentAPI, Object.assign({
+            await backendAPI.callOdbaApi(backendAPI.RegistContentAPI, Object.assign({
                 mapId: mapPageId,
             }, param));
         },
@@ -376,7 +373,7 @@ const apiList: APICallDefine<any,any>[] = [
             const mapId = currentMap.mapPageId;
             
             // DBA呼び出し
-            await callOdbaApi(ODBA.UpdateContentAPI, Object.assign({
+            await backendAPI.callOdbaApi(backendAPI.UpdateContentAPI, Object.assign({
                 mapId,
             }, param));
         },
@@ -397,7 +394,7 @@ const apiList: APICallDefine<any,any>[] = [
                 throw 'no currentmap';
             }
         
-            const res = await callOdbaApi(ODBA.GetUnpointDataAPI, {
+            const res = await backendAPI.callOdbaApi(backendAPI.GetUnpointDataAPI, {
                 mapId: currentMap.mapPageId,
                 mapKind: currentMap.mapKind,
                 nextToken: param.nextToken,
@@ -412,7 +409,7 @@ const apiList: APICallDefine<any,any>[] = [
         define: api.LinkContentToItemAPI,
         func: async({ param }) => {
             // DBA呼び出し
-            await callOdbaApi(ODBA.LinkContentToItemAPI, param);
+            await backendAPI.callOdbaApi(backendAPI.LinkContentToItemAPI, param);
         },
     } as APICallDefine<api.LinkContentToItemParam, void>,
 
@@ -421,7 +418,7 @@ const apiList: APICallDefine<any,any>[] = [
         define: api.RemoveContentAPI,
         func: async({ param }) => {
             // DBA呼び出し
-            await callOdbaApi(ODBA.RemoveContentAPI, param);
+            await backendAPI.callOdbaApi(backendAPI.RemoveContentAPI, param);
         },
     } as APICallDefine<api.RemoveContentParam, void>,
 
@@ -458,7 +455,7 @@ const apiList: APICallDefine<any,any>[] = [
         } as api.APIDefine<{id: string}, string>,
         func: async({ param }) => {
             // DBA呼び出し
-            return await callOdbaApi(ODBA.GetImageUrlAPI, param);
+            return await backendAPI.callOdbaApi(backendAPI.GetImageUrlAPI, param);
         },
     } as APICallDefine<{id: string}, string>,
 
@@ -571,7 +568,7 @@ internalApp.use(express.json({
     limit: '1mb',
 })); 
 internalApp.post('/api/broadcast', (req: Request, res: Response) => {
-    const param = req.body as BroadcastItemParam;
+    const param = req.body as backendAPI.BroadcastItemParam;
     logger.info('broadcast', param);
     switch(param.operation) {
         case 'insert':

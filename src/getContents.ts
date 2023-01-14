@@ -1,12 +1,12 @@
 import { api } from "279map-common";
 import { APIFunc, ConnectionPool } from '.';
-import { ContentsInfo, ContentsTable } from "279map-backend-common/dist/types/schema";
+import { types } from "279map-backend-common";
 import { getBelongingItem, getContent } from "./util/utility";
 import { MapKind } from "279map-common";
 import { ContentsDefine } from "279map-common";
 import { PoolConnection } from "mysql2/promise";
 
-type RetRecord = ContentsTable & {item_page_id: string; another_item_id: string|null;};
+type RetRecord = types.ContentsTable & {item_page_id: string; another_item_id: string|null;};
 
 export const getContents: APIFunc<api.GetContentsParam, api.GetContentsResult> = async({ currentMap, param }) => {
     if (!currentMap) {
@@ -19,7 +19,7 @@ export const getContents: APIFunc<api.GetContentsParam, api.GetContentsResult> =
         const allContents = [] as ContentsDefine[];
 
         const convertRecord = (row: RetRecord): ContentsDefine => {
-            const contents = row.contents ? JSON.parse(row.contents) as ContentsInfo: undefined;
+            const contents = row.contents ? JSON.parse(row.contents) as types.ContentsInfo: undefined;
             const another_item_ids = row.another_item_id?.split(',') ?? [];
             let isSnsContent = false;
             let addableChild = true;

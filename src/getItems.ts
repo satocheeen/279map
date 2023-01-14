@@ -1,4 +1,4 @@
-import { ContentsTable, ItemsTable, TrackGeoJsonTable } from '279map-backend-common/dist/types/schema';
+import { types } from '279map-backend-common';
 import { APIFunc, ConnectionPool } from '.';
 import { getExtentWkt } from './util/utility';
 import { api, ItemContentInfo } from '279map-common';
@@ -27,7 +27,7 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: ap
     const getChildrenContentInfo = async(contentPageId: string): Promise<ItemContentInfo[]> => {
         const sql = 'select * from contents c where parent_id = ?';
         const [rows] = await con.execute(sql, [contentPageId]);
-        const myRows = rows as ContentsTable[];
+        const myRows = rows as types.ContentsTable[];
         if (myRows.length === 0) {
             return [];
         }
@@ -70,7 +70,7 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: ap
         `;
         const [rows] = await con.execute(sql, [mapPageId, mapKind]);
         const pointContents = [] as ItemDefine[];
-        for(const row of rows as (ItemsTable & {title?: string; thumbnail?: string} & {geojson: any})[]) {
+        for(const row of rows as (types.ItemsTable & {title?: string; thumbnail?: string} & {geojson: any})[]) {
             let contents: ItemContentInfo | null = null;
             if (row.content_page_id) {
                 // 配下のコンテンツID取得
@@ -128,7 +128,7 @@ async function selectTrackInArea(param: api.GetItemsParam, mapPageId: string): P
                     WHERE map_page_id= ? AND MBRIntersects(geojson, GeomFromText(?,4326)) AND min_zoom <= ? AND ? < max_zoom`;
         const [rows] = await con.execute(sql, [mapPageId, wkt, param.zoom, param.zoom]);
         
-        return (rows as (TrackGeoJsonTable & {last_edited_time: string})[]).map(row => {
+        return (rows as (types.TrackGeoJsonTable & {last_edited_time: string})[]).map(row => {
             return {
                 id: '' + row.track_file_id + row.sub_id,
                 position: {

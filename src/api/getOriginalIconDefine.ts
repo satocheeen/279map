@@ -1,6 +1,6 @@
 import { APIFunc, ConnectionPool } from "..";
 import { api } from "279map-common";
-import { OriginalIconsTable } from "279map-backend-common/dist/types/schema";
+import { types } from "279map-backend-common";
 import { MapKind } from "279map-common";
 import { IconDefine } from "279map-common";
 
@@ -19,7 +19,7 @@ export const getOriginalIconDefine: APIFunc<void, api.GetOriginalIconDefineResul
         `;
         const [rows] = await con.execute(sql, [pageId]);
 
-        const icons = (rows as OriginalIconsTable[]).map((row): IconDefine => {
+        const icons = (rows as types.OriginalIconsTable[]).map((row): IconDefine => {
             return {
                 id: row.icon_page_id,
                 caption: row.caption,
