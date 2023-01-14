@@ -198,12 +198,10 @@ export default function MapChart() {
             interactions: defaults({ doubleClickZoom: false }),
         });
 
-        // TODO: 右クリック時
-        // mapRef.current.getViewport().addEventListener('contextmenu', (evt) => {
-        //     evt.preventDefault();
-        //     state.popupPosition = undefined;
-        //     state.lonlatPopupPosition = map.getEventCoordinate(evt);
-        // });
+        // cancel right click
+        mapRef.current.getViewport().addEventListener('contextmenu', (evt) => {
+            evt.preventDefault();
+        });
 
         mapRef.current.on('loadend', () => {
             setMapLoaded(true);

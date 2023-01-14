@@ -88,6 +88,7 @@ export default function ClusterMenuController(props: Props) {
         return points;
     }, [props.map, props.targets]);
 
+    // イベントコールバック用意
     useEffect(() => {
         const clickFunc =  (evt: MapBrowserEvent<any>) => {
             setClusterMenuInfo(null);
@@ -99,19 +100,27 @@ export default function ClusterMenuController(props: Props) {
                     props.onSelect(undefined);
                 }
                 return;
-            } else if (points.length === 1) {
-                if (props.onSelect) {
-                    props.onSelect(points[0]);
-                } 
-                return;
             }
 
             // show the cluseter menu when multiple items or the item has no contents
             // 対象が複数存在する場合またはコンテンツを持たないアイテムの場合は、重畳選択メニューを表示
-            setClusterMenuInfo({
-                position: evt.coordinate,
-                targets: points,
-            });
+            if (points.length === 1) {
+                const item = itemMapRef.current[points[0].getId() as string];
+                if (props.showAddContentMenu && !item.contents) {
+                    setClusterMenuInfo({
+                        position: evt.coordinate,
+                        targets: points,
+                    });
+                } else if (props.onSelect) {
+                    props.onSelect(points[0]);
+                } 
+            } else {
+                setClusterMenuInfo({
+                    position: evt.coordinate,
+                    targets: points,
+                });
+            }
+
         };
         props.map.on('click', clickFunc);
 
