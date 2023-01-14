@@ -44,15 +44,21 @@ export default class InstagramPostGetter implements SnsPostGetter {
 
     async getPosts(max: number) {
         const posts = await getInstagramPosts(this.#option.userName);
+        let text = '';
+        let hashtags = [] as string[];
+
         const result = posts.map(post => {
             // ハッシュタグ除去
-            const extractRes = extractHashTag(post.caption);
-            const text = extractRes.text;
+            if (post.caption) {
+                const extractRes = extractHashTag(post.caption);
+                text = extractRes.text;
+                hashtags = extractRes.tags;
+            }
 
             return {
                 id: post.id,
                 text,
-                hashtags: extractRes.tags,
+                hashtags,
                 media: post.media_url ? {
                     type: post.media_type === 'VIDEO' ? 'VIDEO' : 'IMAGE',
                     url: post.media_url,
@@ -67,7 +73,7 @@ export default class InstagramPostGetter implements SnsPostGetter {
 }
 type InstagramPost = {
     id: string;
-    caption: string;
+    caption?: string;
     media_type: 'CAROUSEL_ALBUM' | 'IMAGE' | 'VIDEO';
     media_url?: string;
     permalink: string;
