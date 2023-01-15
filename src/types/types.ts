@@ -1,4 +1,4 @@
-import { GeoProperties, IconDefine, MapKind } from "279map-common";
+import { GeoProperties, IconDefine, api } from "279map-common";
 import { CSSProperties } from "react";
 
 export type ServerInfo = {
@@ -37,3 +37,15 @@ export type DefaultIconDefine = IconDefine & {
     defaultColor?: string;
 }
 
+export type NewContentInfoParam = {
+    parent: {
+        itemId: string;
+    } | {
+        contentId: string;
+    }
+    mode: 'manual' | 'select-unpoint';
+}
+export type EditContentInfoWithAttrParam = {
+    contentId: string;
+    attr: api.ContentAttr;
+}

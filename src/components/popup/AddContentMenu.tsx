@@ -1,6 +1,6 @@
 import React, { useRef, useState, useCallback, useContext, useMemo } from 'react';
 import { MdOutlineLibraryAdd } from 'react-icons/md';
-import { NewContentInfoParam } from '../../util/Commander';
+import { NewContentInfoParam } from '../../types/types';
 import Tooltip from '../common/tooltip/Tooltip';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';

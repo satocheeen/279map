@@ -9,18 +9,6 @@ type TCommandDefine<COMMAND extends string, PARAM> = {
         param: PARAM;
     }
 }
-export type NewContentInfoParam = {
-    parent: {
-        itemId: string;
-    } | {
-        contentId: string;
-    }
-    mode: 'manual' | 'select-unpoint';
-}
-export type EditContentInfoWithAttrParam = {
-    contentId: string;
-    attr: api.ContentAttr;
-}
 type CommandDefine = 
     // 建設or地点登録
     TCommandDefine<'DrawStructure', undefined>
