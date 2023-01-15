@@ -82,9 +82,12 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: ap
                 }
             }
 
+            // itemがnameを持つならname。持たないなら、コンテンツtitle.
+            const name = row.name && row.name.length > 0 ? row.name : (row.title ?? '');
+
             pointContents.push({
                 id: row.item_page_id,
-                name: row.title ?? '',
+                name,
                 position: {
                     type: 'geoJson',
                     geoJson: row.geojson,
