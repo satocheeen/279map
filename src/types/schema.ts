@@ -40,6 +40,7 @@ export type TrackGeoJsonTable = {
 export type ItemsTable = {
     item_page_id: string;
     contents_db_id: string;
+    name: string | null;
     location: {x: number; y: number;};   // Geometry
     geo_properties: string;       // GeoPropertiesのJSON文字列
     map_kind: MapKind;
