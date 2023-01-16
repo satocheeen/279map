@@ -173,7 +173,7 @@ app.get('/api/connect', async(req, res) => {
         }
         const define = await getMapDefine(mapId, auth);
     
-        broadCaster.addSession(req);
+        broadCaster.addSession(req.sessionID);
     
         res.send(define);
         apiLogger.info('[end] connect', req.sessionID);
@@ -190,7 +190,7 @@ app.get('/api/connect', async(req, res) => {
 app.get('/api/disconnect', async(req, res) => {
     console.log('disconnect', req.sessionID);
 
-    broadCaster.removeSession(req);
+    broadCaster.removeSession(req.sessionID);
 
     res.send('disconnect');
 });
@@ -221,7 +221,7 @@ const apiList: APICallDefine<any,any>[] = [
         define: api.GetMapInfoAPI,
         func: getMapInfo,
         after: ({req, result }) => {
-            let session = broadCaster.getSessionInfo(req);
+            let session = broadCaster.getSessionInfo(req.sessionID);
             const myResult = result as api.GetMapInfoResult;
             console.log('get map Info after', session);
             if (!session) {
@@ -250,7 +250,7 @@ const apiList: APICallDefine<any,any>[] = [
         after: ({ req, result }) => {
             // 送信済みのコンテンツ情報は除外する
             // TODO: 削除考慮
-            const session = broadCaster.getSessionInfo(req);
+            const session = broadCaster.getSessionInfo(req.sessionID);
             if (!session) {
                 logger.warn('no session');
                 return true;
@@ -508,7 +508,7 @@ apiList.forEach((api => {
 
     const execute =  async(req: Request, res: Response) => {
         try {
-            const session = broadCaster.getSessionInfo(req);
+            const session = broadCaster.getSessionInfo(req.sessionID);
             const sid = req.cookies['connect.sid'];
     
             const param = getParam(req);

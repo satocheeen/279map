@@ -11,19 +11,21 @@ flowchart LR
 	end
 	subgraph backend
 		db[("cache db")]
+		279map-backend-common
 		279map-backend-main <--> odba
 		279map-backend-main <--> db
 		odba <--> db
 		fs["fs (option)"] <--> 279map-backend-main
 		fs <--> odba
+		279map-backend-main -. use .-> 279map-backend-common
+		odba -. use .-> 279map-backend-common
+		fs -. use .-> 279map-backend-common
 	end
 	frontend -. use .-> 279map-common
 	backend -. use .-> 279map-common
-	backend -. use .-> 279map-backend-common
 	279map-core <-- https,wss --> 279map-backend-main
 
     style 279map-backend-main fill:#faa, stroke:#f55
-    style db fill:#faa, stroke:#f55
 ```
 
 ## Develop

@@ -24,7 +24,7 @@ export default class Broadcaster {
 
         this._wss.on('connection', (ws, req) => {
             // SessionID取得
-            const sid = this.getSessionId(req);
+            const sid = this.getSessionIdFromWsRequest(req);
             if (!sid) {
                 this._logger.warn('WebSocket connected failed. can not get sid.');
                 return;
@@ -66,22 +66,24 @@ export default class Broadcaster {
         
     }
     
-    getSessionId(req: IncomingMessage) {
+    getSessionIdFromWsRequest(req: IncomingMessage) {
         if (!req.headers.cookie) {
             this._logger.warn('WebSocket connected failed. can not get cookie.');
             return;
         }
         const cookies = cookie.parse(req.headers.cookie);
-        this._logger.debug('connect.sid', cookies["connect.sid"]);
-        return cookies["connect.sid"];
-        // const sid = cookieParser.signedCookie(cookies["connect.sid"], SessionSecretKey);
-        // this._logger.debug('connect.sid', cookies["connect.sid"], 'sid', sid, 'SessionSecretKey', SessionSecretKey);
-        // return sid;
+        let sid = cookies["connect.sid"];
+        this._logger.debug('connect.sid', sid);
+        // ピリオド以降を除去する
+        const index = sid.indexOf('.');
+        if (index > 0) {
+            sid = sid.substring(0, index);
+        }
+        this._logger.debug('sid', sid);
+        return sid;
     }
 
-    addSession(req: Request): SessionInfo | undefined {
-        const sid = this.getSessionId(req);
-        // const sid = req.sessionID;
+    addSession(sid: string): SessionInfo | undefined {
         if (!sid) {
             this._logger.warn('[addSession] sid not found');
             return undefined;
@@ -95,24 +97,16 @@ export default class Broadcaster {
         return this._sessionMap[sid];
     }
 
-    removeSession(req: Request) {
-        const sid = this.getSessionId(req);
-        if (!sid) {
-            return;
-        }
+    removeSession(sid: string) {
         delete this._sessionMap[sid];
     }
 
-    getSessionInfo(req: Request) {
-        const sid = this.getSessionId(req);
-        if (!sid) {
-            return undefined;
-        }
+    getSessionInfo(sid: string) {
         return this._sessionMap[sid];
     }
 
-    getCurrentMap(req: Request) {
-        return this.getSessionInfo(req)?.currentMap;
+    getCurrentMap(sid: string) {
+        return this.getSessionInfo(sid)?.currentMap;
     }
 
     /**
@@ -180,7 +174,7 @@ export default class Broadcaster {
      * @returns 
      */
     broadcastSameMap(req: Request, message: api.WebSocketMessage) {
-        const currentMap = this.getCurrentMap(req);
+        const currentMap = this.getCurrentMap(req.sessionID);
         if (!currentMap) {
             return;
         }
