@@ -45,7 +45,6 @@ export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
     const mapRef = useRef(null as Map | null);
     const [clusterMenuInfo, setClusterMenuInfo] = useState<ClusterMenuInfo|null>(null);
-    const [mapLoaded, setMapLoaded] = useState(false);
     const mapMode = useSelector((state: RootState) => state.operation.mapMode);
 
     useEffect(() => {
@@ -202,11 +201,6 @@ export default function MapChart() {
         mapRef.current.getViewport().addEventListener('contextmenu', (evt) => {
             evt.preventDefault();
         });
-
-        mapRef.current.on('loadend', () => {
-            setMapLoaded(true);
-            console.log('loadend');
-        })
 
         const h = addListener('LoadLatestData', async() => {
             await loadCurrentAreaContents();
@@ -615,9 +609,7 @@ export default function MapChart() {
                             <ClusterMenu map={mapRef.current} showAddContentMenu={true}
                                 {...clusterMenuInfo} onSelect={onClusterMenuSelected} />
                         }
-                        {mapLoaded &&
-                            <PopupContainer map={mapRef.current} />
-                        }
+                        <PopupContainer map={mapRef.current} />
                         <LandNameOverlay map={mapRef.current} />
                         {mapMode === MapMode.Normal &&
                             <ClusterMenuController map={mapRef.current}
