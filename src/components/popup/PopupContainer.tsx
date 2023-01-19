@@ -34,36 +34,6 @@ export default function PopupContainer(props: Props) {
 
     const ownerContext = useContext(OwnerContext);
     const mapRef = useRef(props.map);
-    const [ redrawFlag, setRedrawFlag ] = useState(0);
-    useEffect(() => {
-        mapRef.current = props.map;
-
-        const source = itemLayer.getSource() as VectorSource;
-
-        // 画像ロード完了していないと、imagePositionの取得に失敗するので、ここでイベント検知して再描画させる
-        const loadendFunc = () => {
-            console.log('loadend');
-            setRedrawFlag(redrawFlag+1);
-            // setItemSource(source);
-        }
-        mapRef.current.on('loadend', loadendFunc);
-        source.on('addfeature', loadendFunc);
-
-        return () => {
-            mapRef.current.un('loadend', loadendFunc);
-            source.un('addfeature', loadendFunc);
-        }
-
-    }, [props.map, redrawFlag]);
-
-    // コンテンツを持つアイテムID一覧
-    const hasContentsItemIdList = useMemo(() => {
-        if (ownerContext.disabledPopup) {
-            return [];
-        }
-        const list = Object.values(itemMap).filter(item => item.contents).map(item => item.id);
-        return list;
-    }, [itemMap, ownerContext.disabledPopup]);
 
     const itemLayer = useMemo(() => {
         return props.map.getAllLayers().find(layer => {
@@ -73,6 +43,43 @@ export default function PopupContainer(props: Props) {
     const { pointStyleFunction } = usePointStyle({
         structureLayer: itemLayer,
     });
+
+    const [ loadendFlag, setLoadendFlag ] = useState(0);
+    const [ addfeatureFlag, setAddfeatureFlag ] = useState(0);
+    useEffect(() => {
+        mapRef.current = props.map;
+
+        // 画像ロード完了していないと、imagePositionの取得に失敗するので、ここでイベント検知して再描画させる
+        const loadendFunc = () => {
+            console.log('loadend');
+            setLoadendFlag((val) => {
+                return val + 1
+            });
+        }
+        mapRef.current.once('loadend', loadendFunc);
+
+        const source = itemLayer.getSource() as VectorSource;
+        const addfeatureFunc = () => {
+            console.log('add feature');
+            setAddfeatureFlag((val) => val + 1);
+        }
+        source.on('addfeature', addfeatureFunc);
+
+        return () => {
+            mapRef.current.un('loadend', loadendFunc);
+            source.un('addfeature', addfeatureFunc);
+        }
+
+    }, [props.map, itemLayer]);
+
+    // コンテンツを持つアイテムID一覧
+    const hasContentsItemIdList = useMemo(() => {
+        if (ownerContext.disabledPopup) {
+            return [];
+        }
+        const list = Object.values(itemMap).filter(item => item.contents).map(item => item.id);
+        return list;
+    }, [itemMap, ownerContext.disabledPopup]);
 
     const getPopupPosition = useCallback((feature: Feature): undefined | { longitude: number; latitude: number; } => {
             // -- 中心位置取得
@@ -101,7 +108,9 @@ export default function PopupContainer(props: Props) {
 
             return itemPosition;
 
-    }, [pointStyleFunction]);
+    // loadendによって、画像サイズを取得できるようなので、依存配列にloadendFlagを入れている
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pointStyleFunction, loadendFlag]);
 
     const popupInfos = useMemo((): PopupInfo[] => {
         /**
@@ -111,9 +120,7 @@ export default function PopupContainer(props: Props) {
             const itemSource = itemLayer.getSource();
             if (!itemSource) return [];
 
-            console.log('hasContentsItemIdList', hasContentsItemIdList);
             const popupInfoList = [] as PopupInfo[]; 
-            console.log('feature length', itemSource.getFeatures().length);
             itemSource.getFeatures().forEach(feature => {
                 const features = feature.get('features') as Feature[];
 
@@ -127,7 +134,6 @@ export default function PopupContainer(props: Props) {
 
                 const itemPosition = getPopupPosition(features[0]);
                 if (!itemPosition) {
-                    console.log('itemPosition undefined');
                     return;
                 }
 
@@ -136,7 +142,6 @@ export default function PopupContainer(props: Props) {
                     itemIds,
                 })
             });
-            console.log('itemPopupInfos', popupInfoList);
 
             return popupInfoList;
         }();
@@ -172,13 +177,8 @@ export default function PopupContainer(props: Props) {
         }();
 
         const infos = itemPopupInfos.concat(areaPopupInfo);
-        console.log('popupInfos calc', infos);
         return infos;
     }, [itemLayer, hasContentsItemIdList, getPopupPosition]);
-
-    useEffect(() => {
-        console.log('popupInfos changed', popupInfos);
-    }, [popupInfos]);
 
     // 開閉時に、zIndexを最前面に
     useEffect(() => {
@@ -204,13 +204,11 @@ export default function PopupContainer(props: Props) {
 
     const zoom = useSelector((state: RootState) => state.operation.mapView.zoom);
     useEffect(() => {
-        console.log('popupInfos useEffect', redrawFlag);
         // 新しく追加されたものについて、オーバレイを配置する
         const addChildren = popupInfos.filter(target => {
             const exist = Object.keys(overlayRefMap.current).some(key => key === createKeyFromPopupInfo(target));
             return !exist;
         });
-        console.log('addChildren', addChildren);
 
         addChildren.forEach(target => {
             const position = getCenter(target.itemPositions);
@@ -223,7 +221,6 @@ export default function PopupContainer(props: Props) {
                 stopEvent: true,
                 element: elementRefMap.current[key],
             });
-            console.log('addOverlay');
             mapRef.current.addOverlay(overlay);
             overlay.setPosition([position.longitude, position.latitude]);
             overlayRefMap.current[key] = overlay;
@@ -256,7 +253,7 @@ export default function PopupContainer(props: Props) {
             delete overlayRefMap.current[key];
         });
 
-    }, [popupInfos, zoom, redrawFlag]);
+    }, [popupInfos, zoom, addfeatureFlag]);
 
     return (
         <>
