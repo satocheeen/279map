@@ -125,7 +125,11 @@ export default function MapChart() {
         filteredItemIdList.forEach(itemId => {
             const feature = MapUtility.getFeatureByItemId(map, itemId);
             if (feature) {
-                source.addFeature(feature);
+                // Cluster化している場合は、既にsourceに追加されている可能性があるので、
+                // 追加済みでない場合のみ追加
+                if (!source.hasFeature(feature)) {
+                    source.addFeature(feature);
+                }
             } else {
                 console.warn('feature not found.', itemId);
             }
