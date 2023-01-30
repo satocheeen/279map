@@ -25,6 +25,7 @@ import cookieParser from 'cookie-parser';
 import { readFileSync } from 'fs';
 import { exit } from 'process';
 import { getMapDefine } from './getMapDefine';
+import { callAuthApi } from './util/auth';
 
 // ログ初期化
 configure(LogSetting);
@@ -171,7 +172,14 @@ app.get('/api/connect', async(req, res) => {
         if (auth && typeof auth !== 'string') {
             throw 'illegal auth';
         }
+        // 認証Lv.取得
+        const authLv = await callAuthApi(auth);
+        console.log('authLv', authLv);
+
         const define = await getMapDefine(mapId, auth);
+        if (authLv) {
+            define.authLv = authLv;
+        }
     
         broadCaster.addSession(req.sessionID);
     
