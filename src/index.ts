@@ -26,6 +26,7 @@ import { readFileSync } from 'fs';
 import { exit } from 'process';
 import { getMapDefine } from './getMapDefine';
 import { callAuthApi } from './util/auth';
+import { auth, requiresAuth } from 'express-openid-connect';
 
 // ログ初期化
 configure(LogSetting);
@@ -152,6 +153,31 @@ const server = https.createServer({
 // Create WebSoskce Server
 const broadCaster = new Broadcaster(server);
 
+const config = {
+    authRequired: false,
+    auth0Logout: true,
+    baseURL: `https://${process.env.MAIN_SERVICE_HOST || ''}:${port}`,
+    clientID: process.env.AUTH0_CLIENT_ID,
+    issuerBaseURL: `https://${process.env.AUTH0_DOMAIN}`,
+    secret: process.env.AUTH0_SECRET,
+  };
+  
+  // The `auth` router attaches /login, /logout
+  // and /callback routes to the baseURL
+  app.use(auth(config));
+  
+  // req.oidc.isAuthenticated is provided from the auth router
+  app.get('/', (req, res) => {
+    res.send(
+      req.oidc.isAuthenticated() ? 'Logged in' : 'Logged out'
+    )
+  });
+  
+  // The /profile route will show the user profile as JSON
+  app.get('/profile', requiresAuth(), (req, res) => {
+    res.send(JSON.stringify(req.oidc.user, null, 2));
+  });
+
 /**
  * 接続確立
  */
@@ -172,14 +198,19 @@ app.get('/api/connect', async(req, res) => {
         if (auth && typeof auth !== 'string') {
             throw 'illegal auth';
         }
-        // 認証Lv.取得
-        const authLv = await callAuthApi(auth);
-        console.log('authLv', authLv);
 
+        // TODO: 地図の公開範囲取得
         const define = await getMapDefine(mapId, auth);
-        if (authLv) {
-            define.authLv = authLv;
-        }
+
+        // TODO: 地図の公開範囲がprivateで、未ログインの場合は強制ログイン要求を返す
+
+        // // 認証Lv.取得
+        // const authLv = await callAuthApi(auth);
+        // console.log('authLv', authLv);
+
+        // if (authLv) {
+        //     define.authLv = authLv;
+        // }
     
         broadCaster.addSession(req.sessionID);
     
