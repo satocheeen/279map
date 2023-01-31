@@ -1,0 +1,26 @@
+.Form {
+    height: 10rem;
+    display: flex;
+    .Col {
+        display: flex;
+        flex-direction: column;
+        
+        margin-left: 20px;
+        margin-right: 20px;
+
+        min-width: 7rem;
+        max-width: 15rem;
+
+        label {
+            display: inline-block;
+            margin-left: 1rem;
+        }
+        div {
+            overflow: auto;
+        }
+    }
+}
+.Map {
+    height: calc(100vh - 10rem);
+    width: 100vw;
+}

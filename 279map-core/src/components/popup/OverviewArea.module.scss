@@ -1,0 +1,15 @@
+.OverviewArea {
+    &.Ommit {
+        max-height: 3rem;
+        overflow-y: hidden;
+    }
+}
+.Overview {
+    margin-top: 5px;
+    margin-left: 10px;
+    white-space: pre-wrap;
+}
+.Control {
+    text-align: right;
+    font-size: 90%;
+}

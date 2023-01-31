@@ -1,0 +1,33 @@
+@import '../../styles/global.scss';
+
+.TagBadge {
+    position: relative;
+    display: inline-block;
+    padding: 0.2em 0.8em;
+    margin: 5px;
+    font-size: 75%;
+    font-weight: 700;
+    align-items: center;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border: solid 1px $white;
+    border-radius: 10px;
+
+    color: #ffffff;
+
+    &.outline {
+        background-color: rgba(255, 255, 255, 0);
+    }
+
+    &.clickable {
+        cursor: pointer;
+        &:hover {
+            filter: brightness(1.2)
+        }
+    }
+
+    .DeleteIcon {
+        cursor: pointer;
+    }
+}

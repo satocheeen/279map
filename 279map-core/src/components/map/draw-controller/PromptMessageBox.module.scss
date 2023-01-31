@@ -1,0 +1,20 @@
+.PromptMessageBox {
+    position: absolute;
+    top: 20px;
+    left: calc(50% - 280px);
+    width: 560px;
+    background: var(--dark-026);
+    color: var(--white);
+    z-index: 10;
+    padding: 10px;
+}
+.message {
+    white-space: pre-wrap;
+}
+.BtnArea {
+    margin-top: 5px;
+    text-align: right;
+    > * {
+        margin-left: 5px;
+    }
+}

@@ -1,0 +1,84 @@
+@import "../..//styles/global.scss";
+
+.Container {
+    min-width: 200px;
+    min-height: 30px;
+    cursor: pointer;
+    align-items: center;
+
+    position: relative;
+    display: flex;
+
+    background-color: rgba($color: #aaa, $alpha: 0.5);
+    border: $white 1px solid;
+    border-radius: 20px;
+    // box-shadow: inset 5px 5px 5px $dark-026, inset -5px -5px 5px #fff;
+    box-shadow: inset 5px 5px 5px $dark-012;
+
+    // 透過の場合
+    &.Transparent {
+        background-color: unset;
+    }
+
+    &.Hover {
+        background-color: rgba($color: #ccc, $alpha: 0.3);
+    }
+
+}
+.Button {
+    position: absolute;
+    top: 0;
+    width: calc(50% + 10px);
+    height: 100%;
+
+    border-radius: 20px;
+    background-color: rgba($color: #fff, $alpha: .8);
+    box-shadow: inset -3px 0px 3px $dark-026;
+
+    &.Left {
+        margin-left: 0px;
+    }
+    &.Right {
+        margin-left: calc(50% - 6px);
+    }
+    transition: margin-left .5s;
+
+    &.Hover {
+        filter: brightness(0.97) ;
+        // filter: drop-shadow(0px 0px 5px #fff);
+    }
+}
+.Label {
+    width: 50%;
+    height: 100%;
+    z-index: 10;
+    // background-color: rgba($color: $white, $alpha: 0.5);
+    display: flex;
+    align-items: center;
+    color: #777;
+    font-size: .9rem;
+
+    &.Left {
+        padding-left: 10px;
+        border-top-left-radius: 20px;
+        border-bottom-left-radius: 20px;
+        justify-content: left;
+    }
+
+    &.Right{
+        flex-direction: row-reverse;
+
+        padding-right: 10px;
+        border-top-right-radius: 20px;
+        border-bottom-right-radius: 20px;
+        justify-content: right;
+    }
+
+    &.On {
+    }
+    &.Off {
+        color: rgba(#555, .3);
+        // opacity: .3;
+    }
+
+}

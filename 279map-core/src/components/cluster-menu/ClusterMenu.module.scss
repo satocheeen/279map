@@ -1,0 +1,59 @@
+@import '../../styles/global.scss';
+.ContainerWrapper {
+    z-index: 20;
+}
+.Container {
+    background: $white;
+    // width: 20rem;
+    box-shadow: 0 4px 4px rgba(0,0,0,0.2);
+}
+
+.Container:after, .Container:before {
+    top: 100%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+}
+.Container:after {
+    border-top-color: white;
+    border-width: 10px;
+    left: 48px;
+    margin-left: -10px;
+}
+.Container:before {
+    border-top-color: white;
+    border-width: 11px;
+    left: 48px;
+    margin-left: -11px;
+}
+
+
+.MenuItem {
+    // padding: .2rem;
+    padding: 0 1rem;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    list-style: none;
+    cursor: pointer;
+    &:hover {
+        background-color: $dark-012;
+    }
+
+    .NameArea {
+        display: flex;
+        line-height: 2.5rem;
+        min-height: 2.5rem;
+        align-items: center;
+
+    }
+    img {
+        height: 2rem;
+        width: 2.5rem;
+        margin-right: .5rem;
+        object-fit: contain;
+    }
+
+}

@@ -1,0 +1,23 @@
+@import "../../styles/global.scss";
+
+.LandnameOverlayContainer {
+    pointer-events: none !important;
+    z-index: 1000;
+}
+  
+.LandnameOverlay {
+    background-color: $dark-054;
+    color: #ffffff;
+    transform: translate(-50%, -50%);
+    padding: 5px 10px 5px 10px;
+  
+    /* Fade In */
+    animation: fadeIn 2s;
+    opacity: 1;
+  
+    &.fadeOut {
+      animation: fadeOut 2s;
+      opacity: 0;
+    }
+  
+}
