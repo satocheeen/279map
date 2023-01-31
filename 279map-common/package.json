@@ -1,0 +1,35 @@
+{
+  "name": "279map-common",
+  "version": "0.4.1",
+  "description": "The modules which are used by 279map packages.",
+  "scripts": {
+    "rollup": "rollup -c"
+  },
+  "keywords": [],
+  "author": "Satocheeen (https://satocheeen.com)",
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://codeberg.org/satocheeen/279map-common"
+  },
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "files": [
+    "dist"
+  ],
+  "types": "dist/index.d.ts",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^21.0.1",
+    "@rollup/plugin-node-resolve": "^13.0.6",
+    "@rollup/plugin-strip": "^3.0.1",
+    "@rollup/plugin-typescript": "^8.3.0",
+    "@types/node": "^16.18.3",
+    "rollup": "^2.60.0",
+    "rollup-plugin-delete": "^2.0.0",
+    "rollup-plugin-dts": "^4.0.1",
+    "typescript": "^4.8.4"
+  },
+  "dependencies": {
+    "@types/geojson": "^7946.0.10"
+  }
+}
