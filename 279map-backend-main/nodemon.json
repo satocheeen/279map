@@ -1,0 +1,8 @@
+{
+    "env": {
+        "NODE_ENV": "dev"
+    },
+    "watch": ["src"],
+    "ext": "ts, js, json",   
+    "exec": "./node_modules/.bin/ts-node -r dotenv/config ./src/index.ts dotenv_config_path=.env.dev"  
+}
