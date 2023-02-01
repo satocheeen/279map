@@ -1,7 +1,4 @@
-# 279map-core
-This is used in 279map.
-279map-core connects to 279map server and provides basic features of 279map.
-if you want to make originai UI map, you can use 279map-core.
+# 279map
 
 ## Package Configuration
 ```mermaid
@@ -9,19 +6,39 @@ flowchart LR
 	279map-common
 	subgraph frontend
 		279map-core
-		279map[279map*] -. use .-> 279map-core
+		279map -. use .-> 279map-core
 	end
 	subgraph backend
-		direction TB
-		279map-main-server <--> odba
-    end
+		db[("279map-db")]
+		279map-backend-common
+		279map-backend-main <--> odba
+		279map-backend-main <--> db
+		odba <--> db
+		fs["fs (option)"] <--> 279map-backend-main
+		fs <--> odba
+		279map-backend-main -. use .-> 279map-backend-common
+		odba -. use .-> 279map-backend-common
+		fs -. use .-> 279map-backend-common
+	end
 	frontend -. use .-> 279map-common
 	backend -. use .-> 279map-common
-	backend -. use .-> 279map-backend-common
-    279map-core <-- https,wss --> 279map-main-server
+	279map-core <-- https,wss --> 279map-backend-main
+
     style 279map-core fill:#faa, stroke:#f55
+    style 279map-backend-main fill:#faa, stroke:#f55
+    style 279map-common fill:#faa, stroke:#f55
+    style 279map-backend-common fill:#faa, stroke:#f55
+    style db fill:#faa, stroke:#f55
 ```
 \* or original map you made
+
+| package | | detail |
+|--|--|--|
+| 279map-backend-main | main server |[ReadeMe](279map-backend-main/README.md) |
+| 279map-core | frontend's core modules |[ReadeMe](279map-core/README.md) |
+| 279map-common | common modules |[ReadeMe](279map-common/README.md) |
+| 279map-backend-common | common modules for backend |[ReadeMe](279map-backend-common/README.md) |
+| 279map-db | cache db | [ReadeMe](279map-db/README.md) |
 
 ## Develop
 ### set up Database

@@ -17,6 +17,7 @@ CREATE TABLE `map_page_info` (
   `edit_auth_hash` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `default_map` enum('Real','Virtual') COLLATE utf8mb4_unicode_ci NOT NULL,
   `use_maps` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `public_range` enum('Public','Private') COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`map_page_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

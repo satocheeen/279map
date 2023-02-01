@@ -1,11 +1,16 @@
 import { getMapPageInfo } from './getMapInfo';
 import { MapKind, Auth, api } from '279map-common';
+import { types } from '279map-backend-common';
 
+type Result = {
+    connectResult: api.ConnectResult;
+    publicRange: types.PublicRange;
+}
 /**
  * 指定の地図データに関する定義情報を返す
  * @param mapId mapId or mapAlias
  */
-export async function getMapDefine(mapId: string, auth?: string): Promise<api.ConnectResult> {
+export async function getMapDefine(mapId: string, auth?: string): Promise<Result> {
     const mapPageInfo = await getMapPageInfo(mapId);
     if (mapPageInfo === null) {
         // 該当地図が存在しない場合
@@ -23,11 +28,14 @@ export async function getMapDefine(mapId: string, auth?: string): Promise<api.Co
     }
     console.log('authLv', authLv);
     return {
-        mapId: mapPageInfo.map_page_id,
-        defaultMapKind: mapPageInfo.default_map,
-        name: mapPageInfo.title,
-        useMaps,
-        authLv,
+        connectResult: {
+            mapId: mapPageInfo.map_page_id,
+            defaultMapKind: mapPageInfo.default_map,
+            name: mapPageInfo.title,
+            useMaps,
+            authLv,
+        },
+        publicRange: mapPageInfo.public_range,
     }
 
 }

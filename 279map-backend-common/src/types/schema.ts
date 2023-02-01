@@ -3,12 +3,17 @@ import { MapKind } from '279map-common';
 // NotionDB種類
 export type Kind = 'GPX' | 'Trace' | 'Item' | 'Content' | 'Icon';
 
+export enum PublicRange {
+    Public = 'Public',
+    Private = 'Private'
+}
 export type MapPageInfoTable = {
     map_page_id: string;
     alias?: string;
     title: string;
     use_maps: string;   // MapKindをカンマ区切り
     default_map: MapKind;
+    public_range: PublicRange;
     edit_auth_hash?: string;
     last_edited_time: string;
 }

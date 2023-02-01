@@ -201,6 +201,7 @@ app.get('/api/connect', async(req, res) => {
 
         // TODO: 地図の公開範囲取得
         const define = await getMapDefine(mapId, auth);
+        apiLogger.debug('public_range', define.publicRange);
 
         // TODO: 地図の公開範囲がprivateで、未ログインの場合は強制ログイン要求を返す
 
@@ -214,7 +215,7 @@ app.get('/api/connect', async(req, res) => {
     
         broadCaster.addSession(req.sessionID);
     
-        res.send(define);
+        res.send(define.connectResult);
         apiLogger.info('[end] connect', req.sessionID);
     
     } catch(e) {
