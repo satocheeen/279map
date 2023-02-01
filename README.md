@@ -23,8 +23,13 @@ flowchart LR
 ```
 \* or original map you made
 
-## Development
-### build common package
+## Develop
+### set up Database
+```shell
+cd 279map-db
+docker-compose up -d --build
+```
+### build common packages
 1. build 279map-common
     ```shell
     cd 279map-common
@@ -37,13 +42,30 @@ flowchart LR
     npm i
     npm run rollup
     ```
-### set up DB
-
-3. package install in 279map-core
+#### build 279map-backend-main
+1. create .env.dev. from sample.
+    ```shell
+    cd 279map-backend-main
+    cp .env.dev.sample .env.dev
+    ```
+2. edit xxxxxx in .env.dev to your environment.
+3. package install
+    ```shell
+    npm i
+    ```
+#### build and start 279map-core
+1. package install
     ```shell
     cd 279map-core
     npm i
     ```
+### start development sesrver
+```shell
+npm start
+```
+
+## Deploy
+TODO: write
 
 ## Copyright
 Copyright (c) 2022 satocheeen.com
