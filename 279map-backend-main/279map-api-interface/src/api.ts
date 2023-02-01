@@ -15,11 +15,14 @@ import { GeoJsonObject } from "geojson";
  * connect
  */
 export type ConnectResult = {
+    result: 'success';
     mapId: string;
     name: string;
     useMaps: MapKind[];
     defaultMapKind: MapKind;
     authLv: Auth;
+} | {
+    result: 'require_authenticate';
 }
 
 /**

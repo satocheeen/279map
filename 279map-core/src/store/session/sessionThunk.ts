@@ -6,8 +6,9 @@ import { dataActions } from "../data/dataSlice";
 import { loadCategories, loadEvents, loadOriginalIconDefine } from "../data/dataThunk";
 import { ConnectResult, GetMapInfoAPI, GetMapInfoResult, WebSocketMessage } from '279map-api-interface';
 import { MapKind } from "279map-common";
+import { ConnectedMap } from "./sessionSlice";
 
-export const connectMap = createAsyncThunk<ConnectResult, { mapId: string; auth?: string }>(
+export const connectMap = createAsyncThunk<ConnectedMap|undefined, { mapId: string; auth?: string }>(
     'session/connectMapStatus',
     async(param, { rejectWithValue, getState, dispatch }) => {
         const mapServer = (getState() as RootState).session.mapServer;
@@ -24,8 +25,21 @@ export const connectMap = createAsyncThunk<ConnectResult, { mapId: string; auth?
                 credentials: "include",
             });
             const json = await result.json() as ConnectResult;
+
+            if (json.result === 'require_authenticate') {
+                // TODO: ログイン画面へ遷移
+                window.location.href = 'https://localhost/login';
+            } else {
+                return {
+                    mapId: json.mapId,
+                    name: json.name,
+                    defaultMapKind: json.defaultMapKind,
+                    useMaps: json.useMaps,
+                    authLv: json.authLv,
+                };    
+            }
     
-            return json;
+
 
         } catch(e) {
             console.warn('connect error', e);

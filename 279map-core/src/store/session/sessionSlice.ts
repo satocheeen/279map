@@ -1,10 +1,16 @@
-import { MapKind } from "279map-common";
+import { Auth, MapKind } from "279map-common";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { ServerInfo } from "../../types/types";
 import { connectMap, loadMapDefine } from "./sessionThunk";
 import { Extent } from 'ol/extent';
-import { ConnectResult } from "279map-api-interface";
 
+export type ConnectedMap = {
+    mapId: string;
+    name: string;
+    useMaps: MapKind[];
+    defaultMapKind: MapKind;
+    authLv: Auth;
+}
 const sessionSlice = createSlice({
     name: 'session',
     initialState: {
@@ -12,7 +18,7 @@ const sessionSlice = createSlice({
             domain: '',
             ssl: true,
         } as ServerInfo,
-        connectedMap: undefined as undefined | ConnectResult,
+        connectedMap: undefined as undefined | ConnectedMap,
         currentMapKindInfo: undefined as undefined | {
             mapKind: MapKind;
             extent: Extent,

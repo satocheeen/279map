@@ -4,9 +4,9 @@
   "description": "This is used in 279map. 279map-core connects to 279map server and provides basic features of 279map. if you want to make originai UI map, you can use 279map-core.",
   "main": "index.js",
   "scripts": {
-    "start": "npm-run-all --parallel frontend api-server:dev",
+    "start": "npm-run-all --parallel frontend backend",
     "frontend": "cd 279map-core && npm start",
-    "api-server:dev": "cd 279map-backend-main && npm run dev"
+    "backend": "cd 279map-backend-main && npm run dev"
   },
   "repository": {
     "type": "git",

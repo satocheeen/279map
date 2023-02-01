@@ -202,16 +202,38 @@ app.get('/api/connect', async(req, res) => {
 
         const define = await getMapDefine(mapId, auth);
 
+        let result: ConnectResult;
         if (!req.oidc.isAuthenticated()) {
+            console.log('未ログイン');
             // 未ログインの場合
             if (define.publicRange === types.PublicRange.Public) {
                 // 地図の公開範囲がPublicならView権限付与
-                define.connectResult.authLv = Auth.View;
+                result = {
+                    result: 'success',
+                    mapId: define.mapId,
+                    name: define.name,
+                    useMaps: define.useMaps,
+                    defaultMapKind: define.defaultMapKind,
+                    authLv: Auth.View,
+                }
             } else {
                 // Privateの場合はログイン要求を返す
+                result = {
+                    result: 'require_authenticate'
+                };
+            }
+        } else {
+            console.log('ログイン済み');
+            // TODO: ログイン済みの場合
+            result = {
+                result: 'success',
+                mapId: define.mapId,
+                name: define.name,
+                useMaps: define.useMaps,
+                defaultMapKind: define.defaultMapKind,
+                authLv: Auth.View,
             }
         }
-        // TODO: 地図の公開範囲がprivateで、未ログインの場合は強制ログイン要求を返す
 
         // // 認証Lv.取得
         // const authLv = await callAuthApi(auth);
@@ -221,9 +243,11 @@ app.get('/api/connect', async(req, res) => {
         //     define.authLv = authLv;
         // }
     
-        broadCaster.addSession(req.sessionID);
+        if (result.result === 'success') {
+            broadCaster.addSession(req.sessionID);
+        }
     
-        res.send(define.connectResult);
+        res.send(result);
         apiLogger.info('[end] connect', req.sessionID);
     
     } catch(e) {

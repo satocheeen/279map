@@ -1,10 +1,13 @@
 import { getMapPageInfo } from './getMapInfo';
 import { MapKind, Auth } from '279map-common';
 import { types } from '279map-backend-common';
-import { ConnectResult } from '../279map-api-interface/src';
 
 type Result = {
-    connectResult: ConnectResult;
+    mapId: string;
+    defaultMapKind: MapKind;
+    name: string;
+    useMaps: MapKind[];
+    authLv: Auth;
     publicRange: types.PublicRange;
 }
 /**
@@ -29,13 +32,11 @@ export async function getMapDefine(mapId: string, auth?: string): Promise<Result
     }
     console.log('authLv', authLv);
     return {
-        connectResult: {
-            mapId: mapPageInfo.map_page_id,
-            defaultMapKind: mapPageInfo.default_map,
-            name: mapPageInfo.title,
-            useMaps,
-            authLv,
-        },
+        mapId: mapPageInfo.map_page_id,
+        defaultMapKind: mapPageInfo.default_map,
+        name: mapPageInfo.title,
+        useMaps,
+        authLv,
         publicRange: mapPageInfo.public_range,
     }
 
