@@ -9,9 +9,8 @@ import styles from './TestMap.module.scss';
  * for Development
  */
 const props = {
-    // mapServerHost: '279map.satocheeen.com',
     mapServerHost: 'localhost',
-    mapId: 'test',
+    mapId: 'testmap',
     auth: 'hogehoge',
     iconDefine: [
         {
