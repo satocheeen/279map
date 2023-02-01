@@ -1,9 +1,10 @@
 import { getMapPageInfo } from './getMapInfo';
-import { MapKind, Auth, api } from '279map-common';
+import { MapKind, Auth } from '279map-common';
 import { types } from '279map-backend-common';
+import { ConnectResult } from '../279map-api-interface/src';
 
 type Result = {
-    connectResult: api.ConnectResult;
+    connectResult: ConnectResult;
     publicRange: types.PublicRange;
 }
 /**
@@ -22,7 +23,7 @@ export async function getMapDefine(mapId: string, auth?: string): Promise<Result
     });
 
     // 権限判定
-    let authLv = Auth.View;
+    let authLv = Auth.None;
     if (mapPageInfo.edit_auth_hash && auth && mapPageInfo.edit_auth_hash === auth) {
         authLv = Auth.Edit;
     }

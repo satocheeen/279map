@@ -1,12 +1,13 @@
-import { api, Auth, MapKind } from "279map-common";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { callApi } from "../../api/api";
 import { doCommand } from "../../util/Commander";
 import { RootState } from "../configureStore";
 import { dataActions } from "../data/dataSlice";
 import { loadCategories, loadEvents, loadOriginalIconDefine } from "../data/dataThunk";
+import { ConnectResult, GetMapInfoAPI, GetMapInfoResult, WebSocketMessage } from '279map-api-interface';
+import { MapKind } from "279map-common";
 
-export const connectMap = createAsyncThunk<api.ConnectResult, { mapId: string; auth?: string }>(
+export const connectMap = createAsyncThunk<ConnectResult, { mapId: string; auth?: string }>(
     'session/connectMapStatus',
     async(param, { rejectWithValue, getState, dispatch }) => {
         const mapServer = (getState() as RootState).session.mapServer;
@@ -22,7 +23,7 @@ export const connectMap = createAsyncThunk<api.ConnectResult, { mapId: string; a
             const result = await fetch(url, {
                 credentials: "include",
             });
-            const json = await result.json() as api.ConnectResult;
+            const json = await result.json() as ConnectResult;
     
             return json;
 
@@ -37,7 +38,7 @@ export const connectMap = createAsyncThunk<api.ConnectResult, { mapId: string; a
  * 地図定義ロード
  * @param mapKind ロードする地図種別。未指定の場合は、デフォルトの地図を読み込む。
  */
-export const loadMapDefine = createAsyncThunk<api.GetMapInfoResult, MapKind>(
+export const loadMapDefine = createAsyncThunk<GetMapInfoResult, MapKind>(
     'session/loadMapDefineStatus',
     async(param, { rejectWithValue, getState, dispatch }) => {
         const session = (getState() as RootState).session;
@@ -78,7 +79,7 @@ export const loadMapDefine = createAsyncThunk<api.GetMapInfoResult, MapKind>(
                 });
                 wss.addEventListener('message', (evt) => {
                     console.log('websocket message', evt.data);
-                    const message = JSON.parse(evt.data) as api.WebSocketMessage;
+                    const message = JSON.parse(evt.data) as WebSocketMessage;
                     if (message.type === 'updated') {
                         doCommand({
                             command: "LoadLatestData",
@@ -91,7 +92,7 @@ export const loadMapDefine = createAsyncThunk<api.GetMapInfoResult, MapKind>(
                 });
             };
         
-            const apiResult = await callApi(mapServer, api.GetMapInfoAPI, {
+            const apiResult = await callApi(mapServer, GetMapInfoAPI, {
                 mapKind: param,
                 mapId: session.connectedMap.mapId,  // TODO 廃止
             });

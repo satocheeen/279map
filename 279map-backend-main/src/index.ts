@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import mysql from 'mysql2/promise';
 import { getMapInfo } from './getMapInfo';
-import { api } from '279map-common';
+import { Auth } from '279map-common';
 import { getItems } from './getItems';
 import session from 'express-session';
 import { configure, getLogger } from "log4js";
@@ -19,7 +19,7 @@ import { getSnsPreview } from './api/getSnsPreview';
 import { CurrentMap } from './session/SessionInfo';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import { getIcon } from './api/getIcon';
-import { utility, api as backendAPI } from '279map-backend-common';
+import { utility, api as backendAPI, types } from '279map-backend-common';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { readFileSync } from 'fs';
@@ -27,6 +27,7 @@ import { exit } from 'process';
 import { getMapDefine } from './getMapDefine';
 import { callAuthApi } from './util/auth';
 import { auth, requiresAuth } from 'express-openid-connect';
+import { APIDefine, ConnectResult, GeocoderParam, GeocoderResult, GetCategoryAPI, GetContentsAPI, GetEventsAPI, GetGeocoderFeatureParam, GetGeoCoderFeatureResult, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoResult, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetSnsPreviewResult, GetUnpointDataAPI, GetUnpointDataParam, GetUnpointDataResult, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 
 // ログ初期化
 configure(LogSetting);
@@ -199,10 +200,17 @@ app.get('/api/connect', async(req, res) => {
             throw 'illegal auth';
         }
 
-        // TODO: 地図の公開範囲取得
         const define = await getMapDefine(mapId, auth);
-        apiLogger.debug('public_range', define.publicRange);
 
+        if (!req.oidc.isAuthenticated()) {
+            // 未ログインの場合
+            if (define.publicRange === types.PublicRange.Public) {
+                // 地図の公開範囲がPublicならView権限付与
+                define.connectResult.authLv = Auth.View;
+            } else {
+                // Privateの場合はログイン要求を返す
+            }
+        }
         // TODO: 地図の公開範囲がprivateで、未ログインの場合は強制ログイン要求を返す
 
         // // 認証Lv.取得
@@ -249,7 +257,7 @@ type AfterParam<PARAM, RESULT> = {
     res: Response;
 }
 type APICallDefine<PARAM, RESULT> = {
-    define: api.APIDefine<PARAM, RESULT>;
+    define: APIDefine<PARAM, RESULT>;
     func: (param: APIFuncParam<PARAM>) => Promise<RESULT>;
     // func実行後に実施する処理
     after?: (param: AfterParam<PARAM, RESULT>) => boolean;   // falseで復帰した場合は、res.sendしない
@@ -258,11 +266,11 @@ type APICallDefine<PARAM, RESULT> = {
 const apiList: APICallDefine<any,any>[] = [
     // 地図基本情報取得
     {
-        define: api.GetMapInfoAPI,
+        define: GetMapInfoAPI,
         func: getMapInfo,
         after: ({req, result }) => {
             let session = broadCaster.getSessionInfo(req.sessionID);
-            const myResult = result as api.GetMapInfoResult;
+            const myResult = result as GetMapInfoResult;
             console.log('get map Info after', session);
             if (!session) {
                 logger.warn('no session');
@@ -280,12 +288,12 @@ const apiList: APICallDefine<any,any>[] = [
     },
     // オリジナルアイコン情報取得
     {
-        define: api.GetOriginalIconDefineAPI,
+        define: GetOriginalIconDefineAPI,
         func: getOriginalIconDefine,
     },
     // 地図アイテム取得
     {
-        define: api.GetItemsAPI,
+        define: GetItemsAPI,
         func: getItems,
         after: ({ req, result }) => {
             // 送信済みのコンテンツ情報は除外する
@@ -295,7 +303,7 @@ const apiList: APICallDefine<any,any>[] = [
                 logger.warn('no session');
                 return true;
             }
-            result.items = (result as api.GetItemsResult).items.filter(item => {
+            result.items = (result as GetItemsResult).items.filter(item => {
                 const isSend = session.isSendedItem(item);
                 return !isSend;
             });
@@ -306,23 +314,23 @@ const apiList: APICallDefine<any,any>[] = [
     },
     // コンテンツ取得
     {
-        define: api.GetContentsAPI,
+        define: GetContentsAPI,
         func: getContents,
     },
     // カテゴリ取得
     {
-        define: api.GetCategoryAPI,
+        define: GetCategoryAPI,
         func: getCategory,
     },
     // イベント取得
     {
-        define: api.GetEventsAPI,
+        define: GetEventsAPI,
         func: getEvents,
     },
 
     // 位置アイテム登録
     {
-        define: api.RegistItemAPI,
+        define: RegistItemAPI,
         func: async({ currentMap, param }) => {
             if (!currentMap) {
                 throw 'no currentmap';
@@ -347,11 +355,11 @@ const apiList: APICallDefine<any,any>[] = [
             });
             return true;
         },
-    } as APICallDefine<api.RegistItemParam, string>,
+    } as APICallDefine<RegistItemParam, string>,
 
     // 位置アイテム更新
     {
-        define: api.UpdateItemAPI,
+        define: UpdateItemAPI,
         func: async({ param }) => {
             await backendAPI.callOdbaApi(backendAPI.UpdateItemAPI, param);
         },
@@ -362,11 +370,11 @@ const apiList: APICallDefine<any,any>[] = [
             });
             return true;
         }
-    } as APICallDefine<api.UpdateItemParam, void>,
+    } as APICallDefine<UpdateItemParam, void>,
 
     // 位置アイテム削除
     {
-        define: api.RemoveItemAPI,
+        define: RemoveItemAPI,
         func: async({ param }) => {
             await backendAPI.callOdbaApi(backendAPI.RemoveItemAPI, param);
         },
@@ -378,11 +386,11 @@ const apiList: APICallDefine<any,any>[] = [
             });
             return true;
         }
-    } as APICallDefine<api.RemoveItemParam, void>,
+    } as APICallDefine<RemoveItemParam, void>,
 
     // コンテンツ登録
     {
-        define: api.RegistContentAPI,
+        define: RegistContentAPI,
         func: async({ currentMap: currentMap, param }) => {
             if (!currentMap) {
                 throw 'no currentmap';
@@ -401,11 +409,11 @@ const apiList: APICallDefine<any,any>[] = [
             });
             return true;
         }
-    } as APICallDefine<api.RegistContentParam, void>,
+    } as APICallDefine<RegistContentParam, void>,
 
     // コンテンツ更新
     {
-        define: api.UpdateContentAPI,
+        define: UpdateContentAPI,
         func: async({ currentMap, param }) => {
             if (!currentMap) {
                 throw 'no currentmap';
@@ -424,11 +432,11 @@ const apiList: APICallDefine<any,any>[] = [
             });
             return true;
         }
-    } as APICallDefine<api.UpdateContentParam, void>,
+    } as APICallDefine<UpdateContentParam, void>,
 
     // 地点未登録コンテンツ取得
     {
-        define: api.GetUnpointDataAPI,
+        define: GetUnpointDataAPI,
         func: async({ currentMap, param }) => {
             if (!currentMap) {
                 throw 'no currentmap';
@@ -442,31 +450,31 @@ const apiList: APICallDefine<any,any>[] = [
         
             return res;
         },
-    } as APICallDefine<api.GetUnpointDataParam, api.GetUnpointDataResult>,
+    } as APICallDefine<GetUnpointDataParam, GetUnpointDataResult>,
 
     // コンテンツをアイテムに紐づけ
     {
-        define: api.LinkContentToItemAPI,
+        define: LinkContentToItemAPI,
         func: async({ param }) => {
             // DBA呼び出し
             await backendAPI.callOdbaApi(backendAPI.LinkContentToItemAPI, param);
         },
-    } as APICallDefine<api.LinkContentToItemParam, void>,
+    } as APICallDefine<LinkContentToItemParam, void>,
 
     // コンテンツ削除
     {
-        define: api.RemoveContentAPI,
+        define: RemoveContentAPI,
         func: async({ param }) => {
             // DBA呼び出し
             await backendAPI.callOdbaApi(backendAPI.RemoveContentAPI, param);
         },
-    } as APICallDefine<api.RemoveContentParam, void>,
+    } as APICallDefine<RemoveContentParam, void>,
 
     // SNSプレビュー取得
     {
-        define: api.GetSnsPreviewAPI,
+        define: GetSnsPreviewAPI,
         func: getSnsPreview,
-    } as APICallDefine<api.GetSnsPreviewParam, api.GetSnsPreviewResult>,
+    } as APICallDefine<GetSnsPreviewParam, GetSnsPreviewResult>,
 
     // サムネイル画像取得
     {
@@ -492,7 +500,7 @@ const apiList: APICallDefine<any,any>[] = [
         define: {
             uri: 'getimageurl',
             method: 'get',
-        } as api.APIDefine<{id: string}, string>,
+        } as APIDefine<{id: string}, string>,
         func: async({ param }) => {
             // DBA呼び出し
             return await backendAPI.callOdbaApi(backendAPI.GetImageUrlAPI, param);
@@ -525,7 +533,7 @@ const apiList: APICallDefine<any,any>[] = [
             method: 'get',
         },
         func: geocoder,
-    } as APICallDefine<api.GeocoderParam, api.GeocoderResult>,
+    } as APICallDefine<GeocoderParam, GeocoderResult>,
 
     // 住所検索結果Feature取得
     {
@@ -534,7 +542,7 @@ const apiList: APICallDefine<any,any>[] = [
             method: 'get',
         },
         func: getGeocoderFeature,
-    } as APICallDefine<api.GetGeocoderFeatureParam, api.GetGeoCoderFeatureResult>,
+    } as APICallDefine<GetGeocoderFeatureParam, GetGeoCoderFeatureResult>,
 ];
 
 apiList.forEach((api => {

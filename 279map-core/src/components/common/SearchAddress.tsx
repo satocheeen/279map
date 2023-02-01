@@ -1,11 +1,12 @@
 import { GeoJsonObject, Point } from 'geojson';
 import { Map } from 'ol';
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { ListGroup } from 'react-bootstrap';
 import Input from '../common/form/Input';
-import { api, FeatureType, GeoProperties } from '279map-common';
+import { FeatureType, GeoProperties } from '279map-common';
 import { useAPI } from '../../api/useAPI';
 import Spinner from './spinner/Spinner';
+import { GeocoderItem, GeocoderResult } from '279map-api-interface';
 
 type Props = {
     map: Map;
@@ -24,7 +25,7 @@ export interface SearchAddressHandler {
  */
 function SearchAddress(props: Props, ref: React.ForwardedRef<SearchAddressHandler>) {
     const [address, setAddress] = useState('');
-    const [candidates, setCandidates] = useState<api.GeocoderItem[]>([]);
+    const [candidates, setCandidates] = useState<GeocoderItem[]>([]);
     const [isIME, setIME] = useState(false);
     const [searchMode, setSearchMode] = useState(true); // trueの場合、addressが変化したら住所検索実行。候補から住所を選択した直後は住所検索を行わないようにするために用意。
     const lastSearchAddress = useRef<string>();    // 最後に検索文字列として渡された文字列（多重実行時の最後の結果を反映するようにするために用意）
@@ -99,7 +100,7 @@ function SearchAddress(props: Props, ref: React.ForwardedRef<SearchAddressHandle
         const param = 'address=' + address + '&searchTarget=' + props.searchTarget.join(',');
         const result = await fetch(apiUrl + 'geocoder?' + param);
 
-        const searchResult = await result.json() as api.GeocoderResult;
+        const searchResult = await result.json() as GeocoderResult;
 
         if (lastSearchAddress.current === address) {
             console.log('採用', address);
@@ -110,7 +111,7 @@ function SearchAddress(props: Props, ref: React.ForwardedRef<SearchAddressHandle
 
     }, [address, props.searchTarget, searchMode, apiUrl]);
 
-    const onSelectCandidate = useCallback((item: api.GeocoderItem) => {
+    const onSelectCandidate = useCallback((item: GeocoderItem) => {
         if (props.onAddress) {
             const geoJson = {
                 type: 'Feature',

@@ -1,9 +1,9 @@
+import { GeocoderId } from "279map-common";
 import axios from "axios";
 import { GeoJsonObject } from "geojson";
 import { getLogger } from "log4js";
 import { APIFunc } from "..";
-import { GeocoderId } from "279map-common";
-import { api } from "279map-common";
+import { GeocoderItem, GeocoderParam, GeocoderResult, GetGeocoderFeatureParam, GetGeoCoderFeatureResult } from "../../279map-api-interface/src";
 import { MapboxAccessToken } from "../config";
 
 type OSMGeocordingResult = {
@@ -37,7 +37,7 @@ type MapboxResult = {
 
 const logger = getLogger('api');
 
-export const geocoder: APIFunc<api.GeocoderParam, api.GeocoderResult> = async({ param }) => {
+export const geocoder: APIFunc<GeocoderParam, GeocoderResult> = async({ param }) => {
     const address = param.address;
 
     try {
@@ -59,7 +59,7 @@ export const geocoder: APIFunc<api.GeocoderParam, api.GeocoderResult> = async({ 
     return [];
 }
 
-async function mapboxSearch(address: string, searchTarget: ('point' | 'area')[]): Promise<api.GeocoderItem[]> {
+async function mapboxSearch(address: string, searchTarget: ('point' | 'area')[]): Promise<GeocoderItem[]> {
     let url = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + address + '.json?access_token=' + MapboxAccessToken;
     url = encodeURI(url);
 
@@ -78,7 +78,7 @@ async function mapboxSearch(address: string, searchTarget: ('point' | 'area')[])
             // サイズが大きいものは弾く TODO: 間引いたものを生成する
             return JSON.stringify(feature.geometry).length < 1800;
         }
-    }).map((res): api.GeocoderItem => {
+    }).map((res): GeocoderItem => {
         return {
             idInfo: {
                 map: 'mapbox',
@@ -91,7 +91,7 @@ async function mapboxSearch(address: string, searchTarget: ('point' | 'area')[])
     return list;
 };
 
-async function osmSearch(address: string, searchTarget: ('point' | 'area')[]): Promise<api.GeocoderItem[]> {
+async function osmSearch(address: string, searchTarget: ('point' | 'area')[]): Promise<GeocoderItem[]> {
     let url = 'https://nominatim.openstreetmap.org/search?q=' + address + '&format=json&polygon_geojson=1';
     url = encodeURI(url);
 
@@ -109,7 +109,7 @@ async function osmSearch(address: string, searchTarget: ('point' | 'area')[]): P
         } else {
             return searchTarget.includes('area');
         }
-    }).map((res): api.GeocoderItem => {
+    }).map((res): GeocoderItem => {
         return {
             idInfo: {
                 map: 'osm',
@@ -123,7 +123,7 @@ async function osmSearch(address: string, searchTarget: ('point' | 'area')[]): P
     return list;
 };
 
-export const getGeocoderFeature: APIFunc<api.GetGeocoderFeatureParam, api.GetGeoCoderFeatureResult> = async({ param }) => {
+export const getGeocoderFeature: APIFunc<GetGeocoderFeatureParam, GetGeoCoderFeatureResult> = async({ param }) => {
     const result = await getFeatureById(param);
 
     return {

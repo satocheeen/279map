@@ -1,11 +1,11 @@
 import WebSocket from 'ws';
 import cookie from 'cookie';
 import { getLogger } from 'log4js';
-import { api } from '279map-common';
 import { IncomingMessage, Server } from 'http';
 import { Request } from 'express';
 import SessionInfo from './SessionInfo';
 import { MapKind } from '279map-common';
+import { WebSocketMessage } from '../../279map-api-interface/src';
 
 /**
  * クライアントの情報を管理し、必要に応じてクライアントに通知を行うクラス
@@ -150,7 +150,7 @@ export default class Broadcaster {
      * @param mapKind 対象の地図種別。未指定の場合は、地図種別に関わらず送信する。
      * @param message 送信する通知
      */
-    #broadcast(mapPageId: string, mapKind: MapKind | undefined, message: api.WebSocketMessage) {
+    #broadcast(mapPageId: string, mapKind: MapKind | undefined, message: WebSocketMessage) {
         console.log('broadcast', mapKind, message);
         Object.values(this._sessionMap).forEach(client => {
             if (!client.ws || !client.currentMap) {
@@ -173,7 +173,7 @@ export default class Broadcaster {
      * @param message 
      * @returns 
      */
-    broadcastSameMap(req: Request, message: api.WebSocketMessage) {
+    broadcastSameMap(req: Request, message: WebSocketMessage) {
         const currentMap = this.getCurrentMap(req.sessionID);
         if (!currentMap) {
             return;

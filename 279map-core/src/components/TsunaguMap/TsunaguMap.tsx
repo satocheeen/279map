@@ -1,4 +1,4 @@
-import { api, CategoryDefine, EventDefine, MapKind } from '279map-common';
+import { CategoryDefine, EventDefine, MapKind } from '279map-common';
 import React, { useState } from 'react';
 import { Provider } from 'react-redux';
 import { CommandHookType } from '../../api/useCommand';
@@ -11,6 +11,7 @@ import ConfirmDialog from '../common/confirm/ConfirmDialog';
 import ContentsModal from '../contents/ContentsModal';
 import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
 import { FilterDefine } from '../../store/operation/operationSlice';
+import { ConnectResult } from '279map-api-interface';
 
 export type TsunaguMapProps = {
     mapId: string;
@@ -27,7 +28,7 @@ export type TsunaguMapProps = {
 
     filter?: FilterDefine[];
 
-    onConnect?: (mapDefine: api.ConnectResult, commandHook: CommandHookType) => void;
+    onConnect?: (mapDefine: ConnectResult, commandHook: CommandHookType) => void;
     onMapKindChanged?: (mapKind: MapKind) => void;
     onSelect?: (targets: string[]) => void; // callback when items are selected
     onUnselect?: () => void;    // callback when items are unselected.

@@ -1,4 +1,5 @@
-import { GeocoderId, api } from '279map-common';
+import { GetGeoCoderFeatureResult } from '279map-api-interface';
+import { GeocoderId } from '279map-common';
 import { GeoJsonObject } from 'geojson';
 import { useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
@@ -22,7 +23,7 @@ export function useAPI() {
             return acc + (acc.length > 0 ? '&' : '') + key + '=' + value;
         }, '');
         const res = await fetch(apiUrl + 'getGeocoderFeature?' + param);
-        const json = await res.json() as api.GetGeoCoderFeatureResult;
+        const json = await res.json() as GetGeoCoderFeatureResult;
         return json.geoJson;
     }, [apiUrl]);
 

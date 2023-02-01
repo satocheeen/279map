@@ -1,14 +1,13 @@
-import { api } from "279map-common";
 import { APIFunc, ConnectionPool } from '.';
 import { types } from "279map-backend-common";
 import { getBelongingItem, getContent } from "./util/utility";
-import { MapKind } from "279map-common";
-import { ContentsDefine } from "279map-common";
 import { PoolConnection } from "mysql2/promise";
+import { GetContentsParam, GetContentsResult } from '../279map-api-interface/src';
+import { ContentsDefine, MapKind } from '279map-common';
 
 type RetRecord = types.ContentsTable & {item_page_id: string; another_item_id: string|null;};
 
-export const getContents: APIFunc<api.GetContentsParam, api.GetContentsResult> = async({ currentMap, param }) => {
+export const getContents: APIFunc<GetContentsParam, GetContentsResult> = async({ currentMap, param }) => {
     if (!currentMap) {
         throw 'mapKind not defined.';
     }

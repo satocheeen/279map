@@ -1,4 +1,5 @@
-import { GeoProperties, IconDefine, api } from "279map-common";
+import { ContentAttr } from "279map-api-interface";
+import { GeoProperties, IconDefine } from "279map-common";
 import { CSSProperties } from "react";
 
 export type ServerInfo = {
@@ -47,5 +48,5 @@ export type NewContentInfoParam = {
 }
 export type EditContentInfoWithAttrParam = {
     contentId: string;
-    attr: api.ContentAttr;
+    attr: ContentAttr;
 }

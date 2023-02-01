@@ -2,11 +2,12 @@ import { useSelector } from "react-redux";
 import { useCallback } from 'react';
 import { RootState, useAppDispatch } from "../store/configureStore";
 import { callApi } from "./api";
-import { api, FeatureType, MapKind, UnpointContent } from '279map-common';
+import { FeatureType, MapKind, UnpointContent } from '279map-common';
 import { registContent, updateContent, linkContentToItem } from '../store/data/dataThunk';
 import useConfirm from "../components/common/confirm/useConfirm";
 import { operationActions } from "../store/operation/operationSlice";
 import { doCommand } from "../util/Commander";
+import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam } from "279map-api-interface";
 
 /**
  * Parts側から呼び出し可能なコマンド
@@ -127,29 +128,29 @@ export function useCommand() {
         });
     }, []);
 
-    const registContentAPI = useCallback(async(param: api.RegistContentParam) => {
+    const registContentAPI = useCallback(async(param: RegistContentParam) => {
         await dispatch(registContent(param));
 
     }, [dispatch]);
 
-    const updateContentAPI = useCallback(async(param: api.UpdateContentParam) => {
+    const updateContentAPI = useCallback(async(param: UpdateContentParam) => {
         await dispatch(updateContent(param));
 
     }, [dispatch]);
 
-    const linkContentToItemAPI = useCallback(async(param: api.LinkContentToItemParam) => {
+    const linkContentToItemAPI = useCallback(async(param: LinkContentToItemParam) => {
         await dispatch(linkContentToItem(param));
     }, [dispatch]);
 
     const getSnsPreviewAPI = useCallback(async(url: string) => {
-        const res = await callApi(mapServer, api.GetSnsPreviewAPI, {
+        const res = await callApi(mapServer, GetSnsPreviewAPI, {
             url,
         });
         return res;
     }, [mapServer]);
 
     const getUnpointDataAPI = useCallback(async(nextToken?: string) => {
-        const result = await callApi(mapServer, api.GetUnpointDataAPI, {
+        const result = await callApi(mapServer, GetUnpointDataAPI, {
             nextToken,
         });
         return {

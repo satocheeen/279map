@@ -1,10 +1,9 @@
 import { APIFunc, ConnectionPool } from "..";
-import { api } from "279map-common";
 import { types } from "279map-backend-common";
-import { MapKind } from "279map-common";
-import { IconDefine } from "279map-common";
+import { GetOriginalIconDefineResult } from "../../279map-api-interface/src";
+import { IconDefine, MapKind } from "279map-common";
 
-export const getOriginalIconDefine: APIFunc<void, api.GetOriginalIconDefineResult> = async({ currentMap }) => {
+export const getOriginalIconDefine: APIFunc<void, GetOriginalIconDefineResult> = async({ currentMap }) => {
     const pageId = currentMap?.mapPageId;
     if (!pageId) {
         throw 'mapId is undefined.';

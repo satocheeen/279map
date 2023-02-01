@@ -1,10 +1,10 @@
 import { APIFunc, ConnectionPool } from ".";
-import { api } from "279map-common";
 import { types } from "279map-backend-common";
 import { getBelongingItem } from "./util/utility";
+import { GetEventParam, GetEventsResult } from "../279map-api-interface/src";
 import { EventDefine } from "279map-common";
 
-export const getEvents: APIFunc<api.GetEventParam, api.GetEventsResult> = async({ currentMap }) => {
+export const getEvents: APIFunc<GetEventParam, GetEventsResult> = async({ currentMap }) => {
     if (!currentMap) {
         throw 'no currentmap';
     }

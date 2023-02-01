@@ -1,8 +1,9 @@
-import { api, ContentsDefine } from "279map-common";
+import { GetContentsAPI, GetContentsParam } from "279map-api-interface";
+import { ContentsDefine } from "279map-common";
 import { callApi } from "../../api/api";
 import { ServerInfo } from "../../types/types";
 
-export async function getContents(mapServer: ServerInfo, param: api.GetContentsParam): Promise<ContentsDefine[]> {
+export async function getContents(mapServer: ServerInfo, param: GetContentsParam): Promise<ContentsDefine[]> {
     try {
         // 重複する内容は除去する
         const itemIdSet = new Set<string>();
@@ -24,7 +25,7 @@ export async function getContents(mapServer: ServerInfo, param: api.GetContentsP
                 }
             }
         });
-        const apiResult = await callApi(mapServer, api.GetContentsAPI, fixedParam);
+        const apiResult = await callApi(mapServer, GetContentsAPI, fixedParam);
 
         return apiResult.contents;
 

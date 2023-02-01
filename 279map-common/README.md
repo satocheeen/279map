@@ -21,3 +21,8 @@ backend -. use .-> 279map-backend-common
 279map-core <-- https,wss --> main
 style 279map-common fill:#faa, stroke:#f55
 ```
+
+## Deploy
+```
+npm run rollup
+```

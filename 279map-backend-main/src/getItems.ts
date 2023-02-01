@@ -1,10 +1,10 @@
 import { types } from '279map-backend-common';
+import { ItemContentInfo, ItemDefine, MapKind } from '279map-common';
 import { APIFunc, ConnectionPool } from '.';
+import { GetItemsParam, GetItemsResult } from '../279map-api-interface/src';
 import { getExtentWkt } from './util/utility';
-import { api, ItemContentInfo } from '279map-common';
-import { ItemDefine, MapKind } from '279map-common';
 
-export const getItems: APIFunc<api.GetItemsParam, api.GetItemsResult> = async({ currentMap, param }) => {
+export const getItems: APIFunc<GetItemsParam, GetItemsResult> = async({ currentMap, param }) => {
     if (!currentMap) {
         throw 'no currentMap';
     }
@@ -20,7 +20,7 @@ export const getItems: APIFunc<api.GetItemsParam, api.GetItemsResult> = async({ 
         items,
     };
 }
-export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: api.GetItemsParam): Promise<ItemDefine[]> {
+export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: GetItemsParam): Promise<ItemDefine[]> {
     const con = await ConnectionPool.getConnection();
 
     // 子孫コンテンツ取得メソッド
@@ -118,7 +118,7 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: ap
  * @param zoom_lv 
  * @param ext 
  */
-async function selectTrackInArea(param: api.GetItemsParam, mapPageId: string): Promise<ItemDefine[]> {
+async function selectTrackInArea(param: GetItemsParam, mapPageId: string): Promise<ItemDefine[]> {
     const con = await ConnectionPool.getConnection();
 
     try {

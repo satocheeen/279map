@@ -13,9 +13,9 @@ import { OwnerContext } from './TsunaguMap';
 import { sessionActions } from '../../store/session/sessionSlice';
 import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
 import { useSpinner } from '../common/spinner/useSpinner';
-import { api } from '279map-common';
 import { getContents } from '../../store/data/dataUtility';
 import { useCommand } from '../../api/useCommand';
+import { ConnectResult, ContentAttr } from '279map-api-interface';
 
 export default function MapWrapper() {
     const ownerContext = useContext(OwnerContext);
@@ -77,7 +77,7 @@ export default function MapWrapper() {
                 return;
             }
             const content = contents[0];
-            const attrValue: api.ContentAttr = content.url ? {
+            const attrValue: ContentAttr = content.url ? {
                 title: content.title,
                 overview: content.overview ?? '',
                 categories: content.category ?? [],
@@ -119,7 +119,7 @@ export default function MapWrapper() {
         }))
         .then((res) => {
             if (onConnectRef.current) {
-                onConnectRef.current(res.payload as api.ConnectResult, commandHook);
+                onConnectRef.current(res.payload as ConnectResult, commandHook);
             }
         })
     // eslint-disable-next-line react-hooks/exhaustive-deps
