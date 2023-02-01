@@ -1,8 +1,6 @@
 import { types } from '279map-backend-common';
 import { APIFunc, ConnectionPool } from '.';
-import { api } from '279map-common/';
-import { MapKind } from '279map-common';
-import { Auth } from '279map-common';
+import { api, MapKind, Auth } from '279map-common';
 
 type Result = {
     apiResult: api.GetMapInfoResult;

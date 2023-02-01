@@ -23,46 +23,27 @@ flowchart LR
 ```
 \* or original map you made
 
-## How to use
-if you want to make originai UI map, you can use 279map-core.
+## Development
+### build common package
+1. build 279map-common
+    ```shell
+    cd 279map-common
+    npm i
+    npm run rollup
+    ```
+2. build 279map-backend-common
+    ```shell
+    cd 279map-backend-common
+    npm i
+    npm run rollup
+    ```
+### set up DB
 
-```javascript
-// you need load jsts cdn
-import 'https://unpkg.com/jsts@2.6.1/dist/jsts.min.js';
-
-const props = {
-    mapServerHost: 'localhost',
-    mapId: 'test',
-    iconDefine: [
-        {
-            id: 'pin',
-            imagePath: '/icon/pin.png',
-            useMaps: ['Real', 'Virtual'],
-        },
-        {
-            id: 'school',
-            imagePath: '/icon/house.png',
-            useMaps: ['Virtual'],
-        },
-    ],
-};
-
-return (
-	<TsunaguMap {...props}  />
-)
-```
-
-→show [API References](documents/API.md)
-
-## 279map compatiblity
-|  279map-core  |  279map-main-server  |
-| ---- | ---- |
-|  0.2.X  |  0.39.17  |
-|  0.1.X  |  0.39.16  |
-
-
-## Supplement
-- if you use on Next.js, set  `swcMinify: false` in next.config.js.  279map use OpenLayers and it can't run when `swcMinify: true`.
+3. package install in 279map-core
+    ```shell
+    cd 279map-core
+    npm i
+    ```
 
 ## Copyright
 Copyright (c) 2022 satocheeen.com
