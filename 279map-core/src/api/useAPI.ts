@@ -8,13 +8,18 @@ import { RootState } from '../store/configureStore';
 export function useAPI() {
     const mapServer = useSelector((state: RootState) => state.session.mapServer);
 
-    const apiUrl = useMemo(() => {
+    const serverUrl = useMemo(() => {
         const protocol = mapServer.ssl ? 'https' :'http';
         const domain = mapServer.domain;
 
-        return `${protocol}://${domain}/api/`;
+        return `${protocol}://${domain}/`;
 
     }, [mapServer]);
+
+    const apiUrl = useMemo(() => {
+        return serverUrl + 'api/';
+
+    }, [serverUrl]);
 
     const getGeocoderFeature = useCallback(async(id: GeocoderId): Promise<GeoJsonObject> => {
         const param = Object.entries(id).reduce((acc, cur) => {

@@ -10,7 +10,7 @@ import { operationActions, PopupTarget } from '../../store/operation/operationSl
 import OverlaySpinner from '../common/spinner/OverlaySpinner';
 import { openItemContentsPopup } from '../popup/popupThunk';
 import { OwnerContext } from './TsunaguMap';
-import { sessionActions } from '../../store/session/sessionSlice';
+import { ConnectedMap, sessionActions } from '../../store/session/sessionSlice';
 import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
 import { useSpinner } from '../common/spinner/useSpinner';
 import { getContents } from '../../store/data/dataUtility';
@@ -119,7 +119,7 @@ export default function MapWrapper() {
         }))
         .then((res) => {
             if (onConnectRef.current) {
-                onConnectRef.current(res.payload as ConnectResult, commandHook);
+                onConnectRef.current(res.payload as ConnectedMap, commandHook);
             }
         })
     // eslint-disable-next-line react-hooks/exhaustive-deps

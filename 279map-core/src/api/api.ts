@@ -1,6 +1,11 @@
 import { APIDefine } from '279map-api-interface';
 import { ServerInfo } from '../types/types';
 
+export function getServerUrl(server: ServerInfo) {
+    const protocol = server.ssl ? 'https' : 'http';
+    return `${protocol}://${server.domain}`;
+}
+
 /**
  * call API (called from redux)
  * API呼び出し（reduxから呼ぶ際に使用する）
@@ -8,9 +13,9 @@ import { ServerInfo } from '../types/types';
 export async function callApi<API extends APIDefine<any, any>> (server: ServerInfo, api: API, param: API['param']): Promise<API['result']> {
     let response: Response | undefined;
     try {
-        const protocol = server.ssl ? 'https' : 'http';
+        const serverUrl = getServerUrl(server);
         response = await accessServer({
-            url: `${protocol}://${server.domain}/api/${api.uri}`,
+            url: `${serverUrl}/api/${api.uri}`,
             method: api.method,
             param,
         });

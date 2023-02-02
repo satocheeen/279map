@@ -77,10 +77,11 @@ docker-compose up -d --build
     npm i
     ```
 ### start development sesrver
+1. start servers.
 ```shell
 npm start
 ```
-run https://localhost
+2. open https://localhost on your browser.
 
 ## Deploy
 TODO: write

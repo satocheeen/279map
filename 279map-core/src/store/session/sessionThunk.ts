@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { callApi } from "../../api/api";
+import { callApi, getServerUrl } from "../../api/api";
 import { doCommand } from "../../util/Commander";
 import { RootState } from "../configureStore";
 import { dataActions } from "../data/dataSlice";
@@ -14,10 +14,9 @@ export const connectMap = createAsyncThunk<ConnectedMap|undefined, { mapId: stri
         const mapServer = (getState() as RootState).session.mapServer;
 
         try {
-            const protocol = mapServer.ssl ? 'https' :'http';
-            const domain = mapServer.domain;
+            const serverUrl = getServerUrl(mapServer);
     
-            let url = `${protocol}://${domain}/api/connect?mapId=${param.mapId}`;
+            let url = `${serverUrl}/api/connect?mapId=${param.mapId}`;
             if (param.auth) {
                 url += '&auth=' + param.auth;
             }

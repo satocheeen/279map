@@ -33,10 +33,12 @@
 | defaultMapKind | 'Real' \| 'Virtual' | if you don't set mapKind, the map kind is used |
 | authLv | 'View' \| 'Edit' | the user's access level. |
 
-### Command
-You can operate the map or access map's API by the command which is returned when `onConnect`.
+### CommandHook
+You can operate the map or access map's API by the command hook which is returned when `onConnect`.
 | Name | Param | Return | Description |
 | ---- | ---- | ---- | ---- |
+| login ||| login or signup |
+| logout ||| logout. if the showing map is private, redirect to login page. |
 | switchMapKind | 'Real' \| 'Virtual' | | switch map kind |
 | focusItem | itemId: string | | focus item on the map |
 | registContentAPI | RegistContentParam | | regist a new content |

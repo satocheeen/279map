@@ -1,7 +1,7 @@
 import { useSelector } from "react-redux";
 import { useCallback } from 'react';
 import { RootState, useAppDispatch } from "../store/configureStore";
-import { callApi } from "./api";
+import { callApi, getServerUrl } from "./api";
 import { FeatureType, MapKind, UnpointContent } from '279map-common';
 import { registContent, updateContent, linkContentToItem } from '../store/data/dataThunk';
 import useConfirm from "../components/common/confirm/useConfirm";
@@ -16,6 +16,26 @@ export function useCommand() {
     const mapServer = useSelector((state: RootState) => state.session.mapServer);
     const dispatch = useAppDispatch();
     const { confirm } = useConfirm();
+
+    /**
+     * login
+     */
+    const login = useCallback(() => {
+        // ログイン画面へ遷移
+        const serverUrl = getServerUrl(mapServer);
+        const redirect_uri = window.location.origin
+        const url = `${serverUrl}/login?redirect_uri=${redirect_uri}`;
+        console.log('url', url);
+        window.location.href = encodeURI(url);
+    }, [mapServer]);
+
+    /**
+     * logout
+     */
+    const logout = useCallback(() => {
+        const serverUrl = getServerUrl(mapServer);
+        window.location.href = `${serverUrl}/logout`;
+    }, [ mapServer]);
 
     /**
      * switch the map kind
@@ -161,6 +181,8 @@ export function useCommand() {
     }, [mapServer]);
 
     return {
+        login,
+        logout,
         switchMapKind,
         focusItem,
         confirm,

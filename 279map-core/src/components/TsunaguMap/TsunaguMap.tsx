@@ -11,7 +11,7 @@ import ConfirmDialog from '../common/confirm/ConfirmDialog';
 import ContentsModal from '../contents/ContentsModal';
 import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
 import { FilterDefine } from '../../store/operation/operationSlice';
-import { ConnectResult } from '279map-api-interface';
+import { ConnectedMap } from '../../store/session/sessionSlice';
 
 export type TsunaguMapProps = {
     mapId: string;
@@ -28,7 +28,7 @@ export type TsunaguMapProps = {
 
     filter?: FilterDefine[];
 
-    onConnect?: (mapDefine: ConnectResult, commandHook: CommandHookType) => void;
+    onConnect?: (mapDefine: ConnectedMap, commandHook: CommandHookType) => void;
     onMapKindChanged?: (mapKind: MapKind) => void;
     onSelect?: (targets: string[]) => void; // callback when items are selected
     onUnselect?: () => void;    // callback when items are unselected.
