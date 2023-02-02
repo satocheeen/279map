@@ -1,4 +1,4 @@
-import { GetGeoCoderFeatureResult } from '279map-api-interface';
+import { GetGeoCoderFeatureResult } from 'tsunagumap-api';
 import { GeocoderId } from '279map-common';
 import { GeoJsonObject } from 'geojson';
 import { useMemo, useCallback } from 'react';

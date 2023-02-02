@@ -1,4 +1,4 @@
-import { ContentAttr } from "279map-api-interface";
+import { ContentAttr } from "tsunagumap-api";
 import { GeoProperties, IconDefine } from "279map-common";
 import { CSSProperties } from "react";
 

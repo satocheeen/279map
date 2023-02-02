@@ -4,7 +4,7 @@ import { doCommand } from "../../util/Commander";
 import { RootState } from "../configureStore";
 import { dataActions } from "../data/dataSlice";
 import { loadCategories, loadEvents, loadOriginalIconDefine } from "../data/dataThunk";
-import { ConnectResult, GetMapInfoAPI, GetMapInfoResult, WebSocketMessage } from '279map-api-interface';
+import { ConnectResult, GetMapInfoAPI, GetMapInfoResult, WebSocketMessage } from 'tsunagumap-api';
 import { MapKind } from "279map-common";
 import { ConnectedMap } from "./sessionSlice";
 

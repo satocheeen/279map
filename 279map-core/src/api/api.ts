@@ -1,4 +1,4 @@
-import { APIDefine } from '279map-api-interface';
+import { APIDefine } from 'tsunagumap-api';
 import { ServerInfo } from '../types/types';
 
 export function getServerUrl(server: ServerInfo) {

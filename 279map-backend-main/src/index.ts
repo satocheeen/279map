@@ -163,9 +163,9 @@ const config = {
     secret: process.env.AUTH0_SECRET,
   };
   
-  // The `auth` router attaches /login, /logout
-  // and /callback routes to the baseURL
-  app.use(auth(config));
+// The `auth` router attaches /login, /logout
+// and /callback routes to the baseURL
+app.use(auth(config));
   
 //   // req.oidc.isAuthenticated is provided from the auth router
 //   app.get('/', (req, res) => {
@@ -204,7 +204,7 @@ app.get('/api/connect', async(req, res) => {
 
         let result: ConnectResult;
         if (!req.oidc.isAuthenticated()) {
-            console.log('未ログイン');
+            console.log('未ログイン', define.publicRange);
             // 未ログインの場合
             if (define.publicRange === types.PublicRange.Public) {
                 // 地図の公開範囲がPublicならView権限付与

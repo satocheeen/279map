@@ -48,7 +48,7 @@ export default function SelectContentDialog(props: Props) {
     }, [props]);
 
     return (
-        <Modal show={show} closebtn onCloseBtnClicked={onCancel}>
+        <Modal show={show} onCloseBtnClicked={onCancel}>
             <ModalHeader>コンテンツ選択</ModalHeader>
             <ModalBody>
                 <div className={styles.Body}>

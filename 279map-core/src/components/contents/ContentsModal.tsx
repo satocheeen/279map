@@ -137,7 +137,7 @@ export default function ContentsModal() {
 
     return (
         <Modal show={show} spinner={!loadied}
-            closebtn onCloseBtnClicked={onCloseBtnClicked}
+            onCloseBtnClicked={onCloseBtnClicked}
             onClosed={onClosed}
             >
             <ModalHeader>詳細</ModalHeader>

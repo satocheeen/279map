@@ -6,7 +6,7 @@ import Input from '../common/form/Input';
 import { FeatureType, GeoProperties } from '279map-common';
 import { useAPI } from '../../api/useAPI';
 import Spinner from './spinner/Spinner';
-import { GeocoderItem, GeocoderResult } from '279map-api-interface';
+import { GeocoderItem, GeocoderResult } from 'tsunagumap-api';
 
 type Props = {
     map: Map;

@@ -1,4 +1,4 @@
-import { GetContentsAPI, GetContentsParam } from "279map-api-interface";
+import { GetContentsAPI, GetContentsParam } from "tsunagumap-api";
 import { ContentsDefine } from "279map-common";
 import { callApi } from "../../api/api";
 import { ServerInfo } from "../../types/types";

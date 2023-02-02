@@ -15,7 +15,7 @@ import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
 import { useSpinner } from '../common/spinner/useSpinner';
 import { getContents } from '../../store/data/dataUtility';
 import { useCommand } from '../../api/useCommand';
-import { ConnectResult, ContentAttr } from '279map-api-interface';
+import { ContentAttr } from 'tsunagumap-api';
 
 export default function MapWrapper() {
     const ownerContext = useContext(OwnerContext);

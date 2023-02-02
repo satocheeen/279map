@@ -7,7 +7,7 @@ import { registContent, updateContent, linkContentToItem } from '../store/data/d
 import useConfirm from "../components/common/confirm/useConfirm";
 import { operationActions } from "../store/operation/operationSlice";
 import { doCommand } from "../util/Commander";
-import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam } from "279map-api-interface";
+import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam } from "tsunagumap-api";
 
 /**
  * Parts側から呼び出し可能なコマンド

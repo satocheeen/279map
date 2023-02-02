@@ -8,7 +8,7 @@ type Props = {
     children: [HeaderItem, BodyItem, FooterItem];
     className?: string;
     spinner?: string | boolean; // trueまたは文字列の場合、Spinner表示。文字列の場合は、Spinner+メッセージ表示。
-    closebtn?: boolean; // trueの場合、ヘッダに閉じるボタンを表示
+    // closebtn?: boolean; // trueの場合、ヘッダに閉じるボタンを表示
     onCloseBtnClicked?: () => void;   // callback when click close btn
     onClosed?: () => void;  // callback when closing dialog finish.
 }
@@ -54,18 +54,12 @@ export default function Modal(props: Props) {
         return props.children.find(child => child.type === ModalFooter);
     }, [props.children]);
 
-    const onClose = useCallback(() => {
-        if (props.onCloseBtnClicked) {
-            props.onCloseBtnClicked();
-        }
-    }, [props]);
-
     return (
         <dialog ref={myRef} className={`${styles.Dialog} ${props.show ? styles.Show : styles.Close}`}>
             <div className={styles.Header}>
                 {header?.props.children}
-                {props.closebtn &&
-                    <span className={styles.Close} onClick={onClose}>
+                {props.onCloseBtnClicked &&
+                    <span className={styles.Close} onClick={props.onCloseBtnClicked}>
                         <MdClose />
                     </span>
                 }
