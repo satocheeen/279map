@@ -80,6 +80,7 @@ docker-compose up -d --build
 ```shell
 npm start
 ```
+run https://localhost
 
 ## Deploy
 TODO: write
