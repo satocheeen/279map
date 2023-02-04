@@ -1,11 +1,10 @@
-import { ConnectResult } from 'tsunagumap-api';
+// import { ConnectResult } from '279map-api-interface';
 import { CategoryDefine, FeatureType, MapKind } from '279map-common';
 import React, { useState, useCallback, useMemo } from 'react';
-import { CommandHookType } from '../api/useCommand';
-import TsunaguMap, { TsunaguMapProps } from '../components/TsunaguMap/TsunaguMap';
-import { FilterDefine } from '../entry';
-import { ConnectedMap } from '../store/session/sessionSlice';
-import styles from './TestMap.module.scss';
+import { TsunaguMap, CommandHookType, FilterDefine } from '279map-core';
+// import TsunaguMap, { TsunaguMapProps } from '../components/TsunaguMap/TsunaguMap';
+// import { ConnectedMap } from '../store/session/sessionSlice';
+import styles from './App.module.scss';
 
 /**
  * for Development
@@ -17,6 +16,7 @@ const props = {
     iconDefine: [
         {
             id: 'default',
+            imagePath: '',
             useMaps: [MapKind.Real],
         },
         {
@@ -25,13 +25,13 @@ const props = {
             useMaps: [MapKind.Virtual],
         }
     ]
-} as TsunaguMapProps;
+};// as TsunaguMapProps;
 
-export default function TestMap() {
+export default function App() {
     const [ cnt, setCnt ] = useState(0);
     const [ categories, setCategories ] = useState<CategoryDefine[]>([]);
     const [ commandHook, setCommandHook ] = useState<CommandHookType>();
-    const onConnect = useCallback((mapDefine: ConnectedMap, commandHook: CommandHookType) => {
+    const onConnect = useCallback((mapDefine: any /*ConnectedMap*/, commandHook: CommandHookType) => {
         console.log('connect', mapDefine);
         setMapKind(mapDefine.defaultMapKind);
         setCommandHook(commandHook);
@@ -115,8 +115,8 @@ export default function TestMap() {
         <>
             <div className={styles.Form}>
                 <div className={styles.Col}>
-                    <button onClick={commandHook?.login}>Login</button>
-                    <button onClick={commandHook?.logout}>Logout</button>
+                    {/* <button onClick={commandHook?.login}>Login</button> */}
+                    {/* <button onClick={commandHook?.logout}>Logout</button> */}
                 </div>
                 <div className={styles.Col}>
                     <h3>地図種別</h3>
