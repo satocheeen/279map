@@ -12,7 +12,7 @@
     "@types/react": "^18.0.27",
     "@types/react-dom": "^18.0.10",
     "279map-common": "file:../279map-common",
-    "279map-core": "^0.3.4",
+    "279map-core": "file:../279map-core",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",

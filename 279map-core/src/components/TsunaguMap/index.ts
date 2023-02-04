@@ -1,1 +1,1 @@
-export { default } from './TsunaguMap';
+export { default, TsunaguMapProps } from './TsunaguMap';

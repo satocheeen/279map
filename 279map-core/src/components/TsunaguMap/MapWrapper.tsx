@@ -116,6 +116,7 @@ export default function MapWrapper() {
         dispatch(connectMap({
             mapId: ownerContext.mapId,
             auth: ownerContext.auth,
+            token: ownerContext.token,
         }))
         .then((res) => {
             if (onConnectRef.current) {
@@ -123,7 +124,7 @@ export default function MapWrapper() {
             }
         })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [dispatch, ownerContext.mapId, ownerContext.auth, mapServer]);
+    }, [dispatch, ownerContext.mapId, ownerContext.auth, ownerContext.token, mapServer]);
 
     const currentMapKind = useSelector((state: RootState) => state.operation.currentMapKind);
     /**

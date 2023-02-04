@@ -8,7 +8,7 @@ import { ConnectResult, GetMapInfoAPI, GetMapInfoResult, WebSocketMessage } from
 import { MapKind } from "279map-common";
 import { ConnectedMap } from "./sessionSlice";
 
-export const connectMap = createAsyncThunk<ConnectedMap|undefined, { mapId: string; auth?: string }>(
+export const connectMap = createAsyncThunk<ConnectedMap|undefined, { mapId: string; auth?: string; token?: string }>(
     'session/connectMapStatus',
     async(param, { rejectWithValue, getState, dispatch }) => {
         const mapServer = (getState() as RootState).session.mapServer;
@@ -20,8 +20,12 @@ export const connectMap = createAsyncThunk<ConnectedMap|undefined, { mapId: stri
             if (param.auth) {
                 url += '&auth=' + param.auth;
             }
+            if (param.token) {
+                url += '&token=' + param.token;
+            }
             const result = await fetch(url, {
                 credentials: "include",
+                
             });
             const json = await result.json() as ConnectResult;
 

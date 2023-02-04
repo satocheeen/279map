@@ -17,6 +17,7 @@ export type TsunaguMapProps = {
     mapId: string;
     mapServerHost: string;
     auth?: string;
+    token?: string;
     iconDefine?: (DefaultIconDefine | {
         // デフォルトアイコンを指定する場合に使用
         id: 'default';
