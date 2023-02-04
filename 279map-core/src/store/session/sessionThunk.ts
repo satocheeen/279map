@@ -20,12 +20,17 @@ export const connectMap = createAsyncThunk<ConnectedMap|undefined, { mapId: stri
             if (param.auth) {
                 url += '&auth=' + param.auth;
             }
+            let headers = {};
             if (param.token) {
                 url += '&token=' + param.token;
+                headers = {
+                    Authorization:  `Bearer ${param.token}`
+                }
             }
+            console.log('connectMap', param.token);
             const result = await fetch(url, {
-                credentials: "include",
-                
+                // credentials: "include",
+                headers,    
             });
             const json = await result.json() as ConnectResult;
 

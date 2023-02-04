@@ -209,19 +209,22 @@ export default function App() {
                 </div>
             </div>
             <div className={styles.Map}>
+                {accessToken &&
                 <TsunaguMap {...props}
-                    disabledPopup={disabledPopup}
-                    disabledLabel={disabledLabel}
-                    disabledContentDialog={disabledContentDialog}
-                    filter={filter}
-                    onConnect={onConnect}
-                    onMapKindChanged={onMapKindChanged}
-                    onSelect={onSelect} onUnselect={onUnselect}
-                    onModeChanged={(val) => onCallback('onModeChanged', val)}
-                    onCategoriesLoaded={onCategoriesLoaded}
-                    onNewContentInfo={(val) => onCallback('onNewContentInfo', val)}
-                    onEditContentInfo={(val) => onCallback('onEditContentInfo', val)}
-                     />
+                token={accessToken}
+                disabledPopup={disabledPopup}
+                disabledLabel={disabledLabel}
+                disabledContentDialog={disabledContentDialog}
+                filter={filter}
+                onConnect={onConnect}
+                onMapKindChanged={onMapKindChanged}
+                onSelect={onSelect} onUnselect={onUnselect}
+                onModeChanged={(val) => onCallback('onModeChanged', val)}
+                onCategoriesLoaded={onCategoriesLoaded}
+                onNewContentInfo={(val) => onCallback('onNewContentInfo', val)}
+                onEditContentInfo={(val) => onCallback('onEditContentInfo', val)}
+                 />
+            }
             </div>
         </>
     );

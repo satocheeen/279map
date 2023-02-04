@@ -115,7 +115,8 @@ export default function TestMap() {
     useEffect(() => {
         setTimeout(() => {
             console.log('setToken');
-            setToken('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImE2S0hnVFRPMWZqRThXX1hqZWNoTyJ9.eyJpc3MiOiJodHRwczovL2Rldi1nbjVhdzhqaXVscThxcmJ6LmpwLmF1dGgwLmNvbS8iLCJzdWIiOiJhdXRoMHw2M2M4ZmMxODMyOTA1NTA4YjMzNTM3MDMiLCJhdWQiOlsiaHR0cHM6Ly8yNzltYXAuc2F0b2NoZWVlbi9hcGkiLCJodHRwczovL2Rldi1nbjVhdzhqaXVscThxcmJ6LmpwLmF1dGgwLmNvbS91c2VyaW5mbyJdLCJpYXQiOjE2NzU0OTEyMzcsImV4cCI6MTY3NTU3NzYzNywiYXpwIjoiUmxXblR3OGhXV0ZQWjdCZDBnYTl0VmRhQm13SFQ1UXgiLCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIn0.7OP6voxJz4U9z6k0pHQpW2cdaP5SSn-0b4k3gMqb-2bHK1rDPS6hrn8L_YDkAGOoWjGItAmxmIOQMf-AU0bEbQi7tjjyk2FafBzP0eFY5HB-pxOLmoeYYVXJr3MWB1TSpW76KpqekC2QT0JwduWVISZ5mpMPZEX1RIhRYyu3OnwWJ_riLqwG_wvswhTDUyuW3GWSGl7qOCwQEgapTONv_pFiDkisiCzQIQD2eAN6STRuQ5NQsGu6pkoOELCvImjh10NivV8dGY7YIK7xtim1T4j2Y8jnlAP9uoQPpTq9I5JRRZBKnxjwJIItjbO6iwD60ta5IyQsA48VHJTybeoXDA');
+            // setToken('hogehoge');
+            setToken('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImE2S0hnVFRPMWZqRThXX1hqZWNoTyJ9.eyJpc3MiOiJodHRwczovL2Rldi1nbjVhdzhqaXVscThxcmJ6LmpwLmF1dGgwLmNvbS8iLCJzdWIiOiJhdXRoMHw2M2M4ZmMxODMyOTA1NTA4YjMzNTM3MDMiLCJhdWQiOlsiaHR0cHM6Ly8yNzltYXAuc2F0b2NoZWVlbi9hcGkiLCJodHRwczovL2Rldi1nbjVhdzhqaXVscThxcmJ6LmpwLmF1dGgwLmNvbS91c2VyaW5mbyJdLCJpYXQiOjE2NzU0OTg4OTUsImV4cCI6MTY3NTU4NTI5NSwiYXpwIjoiUmxXblR3OGhXV0ZQWjdCZDBnYTl0VmRhQm13SFQ1UXgiLCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIn0.th5qDoBt2M99XWWJJP1JNXKC4ZhsJEp1HOL5TuAo99vx5x7YZyFFnB6nu-3_wiIyfU95fckhkXijVRdkIYKjJmmP4bcTw_ERczrZCU9P7xCVeZ5rYaGHQDUQFSwNXJYsUuSpFjVzYQgf6qLzFr8Eyy9BFJicRzsTvtW5jUpi276A41XF8dglxV4Ol8dUxgiHAX5-pveH6dD_lfO8apVDcXuTgjMz-SaK5tZOvmjao1YTucl6LFA9Snvs-InIPJxyJRwyhpZH_3BwuSzrPdIAQH4MllLK736Ah3fwCXF8u90I_kAlcfojLBpB-RV-bWbhDDT3-q_4QlnTsrK6GEQ_QQ');
         }, 10);
     }, []);
 
@@ -192,7 +193,8 @@ export default function TestMap() {
                 </div>
             </div>
             <div className={styles.Map}>
-                <TsunaguMap {...props}
+                {token &&
+                    <TsunaguMap {...props}
                     token={token}
                     disabledPopup={disabledPopup}
                     disabledLabel={disabledLabel}
@@ -205,7 +207,8 @@ export default function TestMap() {
                     onCategoriesLoaded={onCategoriesLoaded}
                     onNewContentInfo={(val) => onCallback('onNewContentInfo', val)}
                     onEditContentInfo={(val) => onCallback('onEditContentInfo', val)}
-                     />
+                    />
+                }
             </div>
         </>
     );

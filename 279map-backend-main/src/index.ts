@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import mysql from 'mysql2/promise';
 import { getMapInfo } from './getMapInfo';
 import { Auth } from '279map-common';
@@ -26,8 +26,9 @@ import { readFileSync } from 'fs';
 import { exit } from 'process';
 import { getMapDefine } from './getMapDefine';
 import { callAuthApi } from './util/auth';
-import { auth, requiresAuth } from 'express-openid-connect';
+// import { auth, requiresAuth } from 'express-openid-connect';
 import { APIDefine, ConnectResult, GeocoderParam, GeocoderResult, GetCategoryAPI, GetContentsAPI, GetEventsAPI, GetGeocoderFeatureParam, GetGeoCoderFeatureResult, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoResult, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetSnsPreviewResult, GetUnpointDataAPI, GetUnpointDataParam, GetUnpointDataResult, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
+import { auth, requiredScopes } from 'express-oauth2-jwt-bearer';
 
 // ログ初期化
 configure(LogSetting);
@@ -154,18 +155,25 @@ const server = https.createServer({
 // Create WebSoskce Server
 const broadCaster = new Broadcaster(server);
 
-const config = {
-    authRequired: false,
-    auth0Logout: true,
-    baseURL: `https://${process.env.MAIN_SERVICE_HOST || ''}:${port}`,
-    clientID: process.env.AUTH0_CLIENT_ID,
-    issuerBaseURL: `https://${process.env.AUTH0_DOMAIN}`,
-    secret: process.env.AUTH0_SECRET,
-  };
+const checkJwt = auth({
+    audience: process.env.OAUTH_AUDIENCE,
+    issuerBaseURL: `https://${process.env.OAUTH_DOMAIN}/`,
+
+});
+// app.use(checkJwt);
+
+// const config = {
+//     authRequired: false,
+//     auth0Logout: true,
+//     baseURL: `https://${process.env.MAIN_SERVICE_HOST || ''}:${port}`,
+//     clientID: process.env.AUTH0_CLIENT_ID,
+//     issuerBaseURL: `https://${process.env.OAUTH_DOMAIN}`,
+//     secret: process.env.AUTH0_SECRET,
+//   };
   
-// The `auth` router attaches /login, /logout
-// and /callback routes to the baseURL
-app.use(auth(config));
+// // The `auth` router attaches /login, /logout
+// // and /callback routes to the baseURL
+// app.use(auth(config));
   
 //   // req.oidc.isAuthenticated is provided from the auth router
 //   app.get('/', (req, res) => {
@@ -175,15 +183,61 @@ app.use(auth(config));
 //   });
   
   // The /profile route will show the user profile as JSON
-  app.get('/profile', requiresAuth(), (req, res) => {
-    res.send(JSON.stringify(req.oidc.user, null, 2));
-  });
+// app.get('/profile', requiresAuth(), (req, res) => {
+// res.send(JSON.stringify(req.oidc.user, null, 2));
+// });
+
+/**
+ * 
+ * @param req 
+ * @param res 
+ * @param next 
+ */
+const checkAuth = async(req: Request, res: Response, next: NextFunction) => {
+    apiLogger.info('authorization', req.headers.authorization);
+
+    const mapId = req.query.mapId;
+    if (!mapId || typeof mapId !== 'string') {
+        throw 'not set mapId'
+    }
+    const auth = req.query.auth;
+    if (auth && typeof auth !== 'string') {
+        throw 'illegal auth';
+    }
+
+    if (!req.headers.authorization) {
+        // TODO: 未ログインの場合は、地図がpublicか確認
+        const define = await getMapDefine(mapId, auth);
+    
+        if (define.publicRange === types.PublicRange.Private) {
+            // privateの場合 -> error
+            console.log('not auth');
+            next('can not access this map');
+        } else {
+            // publicの場合 -> View権限をresに付与？
+            console.log('skip checkJwt');
+            next('route');
+        }
+    
+    } else {
+        // 認証情報ある場合は、後続処理
+        next();
+    }
+}
+/**
+ * 認証チェック
+ */
+app.get('/api/*', checkAuth, checkJwt);
 
 /**
  * 接続確立
  */
-app.get('/api/connect', async(req, res) => {
+app.get('/api/connect', async(req, res, next) => {
+    console.log('debug')
     apiLogger.info('[start] connect', req.sessionID);
+    apiLogger.info('cookie', req.cookies);
+    apiLogger.info('auth', req.auth);
+    apiLogger.info('authorization', req.headers.authorization);
     if (!req.headers.cookie) {
         // Cookie未設定時は、セッションに適当な値を格納することで、Cookieを作成する
         // @ts-ignore
@@ -199,30 +253,34 @@ app.get('/api/connect', async(req, res) => {
         if (auth && typeof auth !== 'string') {
             throw 'illegal auth';
         }
+        const token = req.query.token;
+        if (token && typeof token !== 'string') {
+            throw 'illegal token';
+        }
 
         const define = await getMapDefine(mapId, auth);
 
         let result: ConnectResult;
-        if (!req.oidc.isAuthenticated()) {
-            console.log('未ログイン', define.publicRange);
-            // 未ログインの場合
-            if (define.publicRange === types.PublicRange.Public) {
-                // 地図の公開範囲がPublicならView権限付与
-                result = {
-                    result: 'success',
-                    mapId: define.mapId,
-                    name: define.name,
-                    useMaps: define.useMaps,
-                    defaultMapKind: define.defaultMapKind,
-                    authLv: Auth.View,
-                }
-            } else {
-                // Privateの場合はログイン要求を返す
-                result = {
-                    result: 'require_authenticate'
-                };
-            }
-        } else {
+        // if (!req.oidc.isAuthenticated()) {
+        //     console.log('未ログイン', define.publicRange);
+        //     // 未ログインの場合
+        //     if (define.publicRange === types.PublicRange.Public) {
+        //         // 地図の公開範囲がPublicならView権限付与
+        //         result = {
+        //             result: 'success',
+        //             mapId: define.mapId,
+        //             name: define.name,
+        //             useMaps: define.useMaps,
+        //             defaultMapKind: define.defaultMapKind,
+        //             authLv: Auth.View,
+        //         }
+        //     } else {
+        //         // Privateの場合はログイン要求を返す
+        //         result = {
+        //             result: 'require_authenticate'
+        //         };
+        //     }
+        // } else {
             console.log('ログイン済み');
             // TODO: ログイン済みの場合
             result = {
@@ -233,7 +291,7 @@ app.get('/api/connect', async(req, res) => {
                 defaultMapKind: define.defaultMapKind,
                 authLv: Auth.View,
             }
-        }
+        // }
 
         // // 認証Lv.取得
         // const authLv = await callAuthApi(auth);
