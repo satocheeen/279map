@@ -188,46 +188,50 @@ const checkJwt = auth({
 // });
 
 /**
- * 
- * @param req 
- * @param res 
- * @param next 
- */
-const checkAuth = async(req: Request, res: Response, next: NextFunction) => {
-    apiLogger.info('authorization', req.headers.authorization);
-
-    const mapId = req.query.mapId;
-    if (!mapId || typeof mapId !== 'string') {
-        throw 'not set mapId'
-    }
-    const auth = req.query.auth;
-    if (auth && typeof auth !== 'string') {
-        throw 'illegal auth';
-    }
-
-    if (!req.headers.authorization) {
-        // TODO: 未ログインの場合は、地図がpublicか確認
-        const define = await getMapDefine(mapId, auth);
-    
-        if (define.publicRange === types.PublicRange.Private) {
-            // privateの場合 -> error
-            console.log('not auth');
-            next('can not access this map');
-        } else {
-            // publicの場合 -> View権限をresに付与？
-            console.log('skip checkJwt');
-            next('route');
-        }
-    
-    } else {
-        // 認証情報ある場合は、後続処理
-        next();
-    }
-}
-/**
  * 認証チェック
  */
-app.get('/api/*', checkAuth, checkJwt);
+app.get('/api/*', 
+    async(req: Request, res: Response, next: NextFunction) => {
+        apiLogger.info('authorization', req.headers.authorization);
+
+        const mapId = req.query.mapId;
+        if (!mapId || typeof mapId !== 'string') {
+            throw 'not set mapId'
+        }
+        const auth = req.query.auth;
+        if (auth && typeof auth !== 'string') {
+            throw 'illegal auth';
+        }
+
+        if (!req.headers.authorization) {
+            // TODO: 未ログインの場合は、地図がpublicか確認
+            const define = await getMapDefine(mapId, auth);
+        
+            if (define.publicRange === types.PublicRange.Private) {
+                // privateの場合 -> error
+                console.log('not auth');
+                next('can not access this map');
+            } else {
+                // publicの場合 -> View権限をresに付与？
+                console.log('skip checkJwt');
+                next('route');
+            }
+        
+        } else {
+            // 認証情報ある場合は、後続処理
+            next();
+        }
+    },
+    checkJwt,
+    (err: Error, req: Request, res: Response, next: NextFunction) => {
+        res.status(500).send({
+            error: {
+                name: err.name,
+                message: err.message
+            }
+        });
+    }
+);
 
 /**
  * 接続確立

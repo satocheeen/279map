@@ -195,7 +195,7 @@ export default function TestMap() {
             <div className={styles.Map}>
                 {token &&
                     <TsunaguMap {...props}
-                    token={token}
+                    // token={token}
                     disabledPopup={disabledPopup}
                     disabledLabel={disabledLabel}
                     disabledContentDialog={disabledContentDialog}
