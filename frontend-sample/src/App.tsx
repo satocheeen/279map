@@ -1,10 +1,11 @@
 // import { ConnectResult } from '279map-api-interface';
 import { CategoryDefine, FeatureType, MapKind } from '279map-common';
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { TsunaguMap, CommandHookType, FilterDefine } from '279map-core';
 // import TsunaguMap, { TsunaguMapProps } from '../components/TsunaguMap/TsunaguMap';
 // import { ConnectedMap } from '../store/session/sessionSlice';
 import styles from './App.module.scss';
+import { useAuth0 } from "@auth0/auth0-react";
 
 /**
  * for Development
@@ -28,6 +29,8 @@ const props = {
 };// as TsunaguMapProps;
 
 export default function App() {
+    const { loginWithRedirect, logout, user, isAuthenticated, getAccessTokenSilently } = useAuth0();
+    const [ accessToken, setAccessToken ] = useState<string|undefined>();
     const [ cnt, setCnt ] = useState(0);
     const [ categories, setCategories ] = useState<CategoryDefine[]>([]);
     const [ commandHook, setCommandHook ] = useState<CommandHookType>();
@@ -57,6 +60,18 @@ export default function App() {
         ];
 
     }, [filteredCategory]);
+
+    useEffect(() => {
+        if (!isAuthenticated) {
+            setAccessToken(undefined);
+            return;
+        }
+        getAccessTokenSilently()
+        .then(token => {
+            console.log('token', token);
+            setAccessToken(token);
+        });
+    }, [isAuthenticated]);
 
     // switch mapKind
     const [ mapKind, setMapKind ] = useState(MapKind.Real);
@@ -115,8 +130,18 @@ export default function App() {
         <>
             <div className={styles.Form}>
                 <div className={styles.Col}>
-                    {/* <button onClick={commandHook?.login}>Login</button> */}
-                    {/* <button onClick={commandHook?.logout}>Logout</button> */}
+                    {isAuthenticated ? 
+                        <div>
+                            <span>Log in</span>
+                            <span>{user?.sub}</span>
+                        </div>
+                        :
+                        <span>Log out </span>
+                    }
+                    <button onClick={() => loginWithRedirect()}>Login</button>
+                    <button onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}>
+                        Logout
+                    </button>
                 </div>
                 <div className={styles.Col}>
                     <h3>地図種別</h3>

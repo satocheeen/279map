@@ -3,13 +3,25 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { Auth0Provider } from '@auth0/auth0-react';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
+console.log('process.env.OAUTH_DOMAIN', process.env.REACT_APP_OAUTH_DOMAIN);
+console.log('process.env.OAUTH_CLIENT_ID', process.env.REACT_APP_OAUTH_CLIENT_ID);
 root.render(
   <React.StrictMode>
-    <App />
+    <Auth0Provider
+        domain={process.env.REACT_APP_OAUTH_DOMAIN || ''}
+        clientId={process.env.REACT_APP_OAUTH_CLIENT_ID || ''}
+        authorizationParams={{
+          redirect_uri: window.location.origin,
+          audience: 'https://279map.satocheeen/api',
+        }}
+    >
+        <App />
+      </Auth0Provider>    
   </React.StrictMode>
 );
 
