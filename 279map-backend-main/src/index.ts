@@ -176,21 +176,21 @@ app.get('/api/*',
         }
 
         if (!req.headers.authorization) {
-            // TODO: 未ログインの場合は、地図がpublicか確認
+            // 未ログインの場合は、地図がpublicか確認
             const define = await getMapDefine(mapId, auth);
         
             if (define.publicRange === types.PublicRange.Private) {
                 // privateの場合 -> error
-                console.log('not auth');
+                apiLogger.debug('not auth');
                 next('can not access this map');
             } else {
                 // publicの場合 -> View権限をresに付与？
-                console.log('skip checkJwt');
+                apiLogger.debug('skip checkJwt');
                 next('route');
             }
         
         } else {
-            // 認証情報ある場合は、後続処理
+            // 認証情報ある場合は、後続の認証チェック処理
             next();
         }
     },
@@ -236,28 +236,21 @@ app.get('/api/connect', async(req, res, next) => {
 
         const define = await getMapDefine(mapId, auth);
 
+
         let result: ConnectResult;
-        // if (!req.oidc.isAuthenticated()) {
-        //     console.log('未ログイン', define.publicRange);
-        //     // 未ログインの場合
-        //     if (define.publicRange === types.PublicRange.Public) {
-        //         // 地図の公開範囲がPublicならView権限付与
-        //         result = {
-        //             result: 'success',
-        //             mapId: define.mapId,
-        //             name: define.name,
-        //             useMaps: define.useMaps,
-        //             defaultMapKind: define.defaultMapKind,
-        //             authLv: Auth.View,
-        //         }
-        //     } else {
-        //         // Privateの場合はログイン要求を返す
-        //         result = {
-        //             result: 'require_authenticate'
-        //         };
-        //     }
-        // } else {
-            console.log('ログイン済み');
+        if (!req.headers.authorization && define.publicRange === types.PublicRange.Public) {
+            // 未ログインで地図の公開範囲がpublicの場合は、View権限
+            apiLogger.debug('未ログイン', define.publicRange);
+            result = {
+                result: 'success',
+                mapId: define.mapId,
+                name: define.name,
+                useMaps: define.useMaps,
+                defaultMapKind: define.defaultMapKind,
+                authLv: Auth.View,
+            }
+        } else {
+            apiLogger.debug('ログイン済み');
             // TODO: ログイン済みの場合
             result = {
                 result: 'success',
@@ -267,7 +260,7 @@ app.get('/api/connect', async(req, res, next) => {
                 defaultMapKind: define.defaultMapKind,
                 authLv: Auth.View,
             }
-        // }
+        }
 
         // // 認証Lv.取得
         // const authLv = await callAuthApi(auth);
