@@ -25,8 +25,6 @@ import cookieParser from 'cookie-parser';
 import { readFileSync } from 'fs';
 import { exit } from 'process';
 import { getMapDefine } from './getMapDefine';
-import { callAuthApi } from './util/auth';
-// import { auth, requiresAuth } from 'express-openid-connect';
 import { APIDefine, ConnectResult, GeocoderParam, GeocoderResult, GetCategoryAPI, GetContentsAPI, GetEventsAPI, GetGeocoderFeatureParam, GetGeoCoderFeatureResult, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoResult, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetSnsPreviewResult, GetUnpointDataAPI, GetUnpointDataParam, GetUnpointDataResult, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { auth, requiredScopes } from 'express-oauth2-jwt-bearer';
 
@@ -156,36 +154,10 @@ const server = https.createServer({
 const broadCaster = new Broadcaster(server);
 
 const checkJwt = auth({
-    audience: process.env.OAUTH_AUDIENCE,
-    issuerBaseURL: `https://${process.env.OAUTH_DOMAIN}/`,
+    audience: process.env.AUTH0_AUDIENCE,
+    issuerBaseURL: `https://${process.env.AUTH0_DOMAIN}/`,
 
 });
-// app.use(checkJwt);
-
-// const config = {
-//     authRequired: false,
-//     auth0Logout: true,
-//     baseURL: `https://${process.env.MAIN_SERVICE_HOST || ''}:${port}`,
-//     clientID: process.env.AUTH0_CLIENT_ID,
-//     issuerBaseURL: `https://${process.env.OAUTH_DOMAIN}`,
-//     secret: process.env.AUTH0_SECRET,
-//   };
-  
-// // The `auth` router attaches /login, /logout
-// // and /callback routes to the baseURL
-// app.use(auth(config));
-  
-//   // req.oidc.isAuthenticated is provided from the auth router
-//   app.get('/', (req, res) => {
-//     res.send(
-//       req.oidc.isAuthenticated() ? 'Logged in' : 'Logged out'
-//     )
-//   });
-  
-  // The /profile route will show the user profile as JSON
-// app.get('/profile', requiresAuth(), (req, res) => {
-// res.send(JSON.stringify(req.oidc.user, null, 2));
-// });
 
 /**
  * 認証チェック
