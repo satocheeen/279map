@@ -124,10 +124,6 @@ export default function TestMap() {
         <>
             <div className={styles.Form}>
                 <div className={styles.Col}>
-                    <button onClick={commandHook?.login}>Login</button>
-                    <button onClick={commandHook?.logout}>Logout</button>
-                </div>
-                <div className={styles.Col}>
                     <h3>地図種別</h3>
                     <label>
                         日本地図
