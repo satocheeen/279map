@@ -185,7 +185,12 @@ export default function Content(props: Props) {
         });
     }, [props.content]);
 
-    const editableAuthLv = useSelector((state: RootState) => state.session.connectedMap?.authLv === Auth.Edit);
+    const editableAuthLv = useSelector((state: RootState) => {
+        if (state.session.connectStatus.status !== 'connected') {
+            return false;
+        }
+        return state.session.connectStatus.connectedMap?.authLv === Auth.Edit
+    });
     const isEditable = useMemo(() => {
         if (!editableAuthLv) return false;
         if (!onEditContentInfo) return false;

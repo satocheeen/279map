@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { loadCategories, loadEvents } from '../../store/data/dataThunk';
@@ -10,16 +10,17 @@ import { operationActions, PopupTarget } from '../../store/operation/operationSl
 import OverlaySpinner from '../common/spinner/OverlaySpinner';
 import { openItemContentsPopup } from '../popup/popupThunk';
 import { OwnerContext } from './TsunaguMap';
-import { ConnectedMap, sessionActions } from '../../store/session/sessionSlice';
-import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
+import { sessionActions } from '../../store/session/sessionSlice';
+import { connectMap, loadMapDefine, ConnectMapResult } from '../../store/session/sessionThunk';
 import { useSpinner } from '../common/spinner/useSpinner';
 import { getContents } from '../../store/data/dataUtility';
 import { useCommand } from '../../api/useCommand';
 import { ContentAttr } from 'tsunagumap-api';
+import styles from './MapWrapper.module.scss';
 
 export default function MapWrapper() {
     const ownerContext = useContext(OwnerContext);
-    const connectedMap = useSelector((state: RootState) => state.session.connectedMap);
+    const connectStatus = useSelector((state: RootState) => state.session.connectStatus);
     // const ownerMapKind = useMemo(() => ownerContext.mapKind, [ownerContext]);
     const currentMapKindInfo = useSelector((state: RootState) => state.session.currentMapKindInfo);
     const spinner = useSpinner();
@@ -119,9 +120,23 @@ export default function MapWrapper() {
             token: ownerContext.token,
         }))
         .then((res) => {
+            const result = res.payload as ConnectMapResult;
             if (onConnectRef.current) {
-                onConnectRef.current(res.payload as ConnectedMap, commandHook);
+                if (result.result === 'success') {
+                    onConnectRef.current({
+                        result: 'success',
+                        mapDefine: result.connectedMap,
+                        commandHook,
+                    });
+                } else if (result.result === 'Unauthorized') {
+                    onConnectRef.current({
+                        result: 'Unauthorized',
+                    });
+                }
             }
+        })
+        .catch(err => {
+            console.warn('connect error', err);
         })
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dispatch, ownerContext.mapId, ownerContext.auth, ownerContext.token, mapServer]);
@@ -131,16 +146,16 @@ export default function MapWrapper() {
      * load map define when connected map or mapkind has changed.
      */
     useEffect(() => {
-        if (!connectedMap) {
+        if (connectStatus.status !== 'connected') {
             return;
         }
-        const mapKind = currentMapKind ?? connectedMap.defaultMapKind;
+        const mapKind = currentMapKind ?? connectStatus.connectedMap.defaultMapKind;
         if (currentMapKindInfo?.mapKind === mapKind) {
             return;
         }
         dispatch(loadMapDefine(mapKind));
         // loadLatestData();
-    }, [connectedMap, currentMapKind, currentMapKindInfo, dispatch]);
+    }, [connectStatus, currentMapKind, currentMapKindInfo, dispatch]);
 
     useEffect(() => {
         if (!currentMapKindInfo) return;
@@ -207,18 +222,26 @@ export default function MapWrapper() {
         }
     }, [ownerContext.filter, dispatch]);
 
+    const [ errorMessage, setErrorMessage ] = useState<string|undefined>();
+
     useEffect(() => {
-        if (currentMapKindInfo) {
-            spinner.hideSpinner();
-        } else {
+        if (connectStatus.status === 'connecting-map') {
             spinner.showSpinner('ロード中...')
+        } else if (connectStatus.status === 'Unauthorized') {
+            spinner.hideSpinner();
+            setErrorMessage('ログインが必要です');
+        } else if (currentMapKindInfo) {
+            spinner.hideSpinner();
         }
-    }, [currentMapKindInfo, spinner]);
+    }, [connectStatus, currentMapKindInfo, spinner]);
 
     return (
         <>
             {currentMapKindInfo &&
                 <MapChart />
+            }
+            {errorMessage &&
+                <div className={styles.ErrorMessage}>{errorMessage}</div>
             }
             <MySpinner />
         </>

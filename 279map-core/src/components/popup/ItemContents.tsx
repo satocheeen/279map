@@ -22,7 +22,12 @@ export default function ItemContents(props: Props) {
 
     const dispatch = useAppDispatch();
     const { filterTargetContentIds } = useFilter();
-    const editable = useSelector((state: RootState) => state.session.connectedMap?.authLv === Auth.Edit);
+    const editable = useSelector((state: RootState) => {
+        if (state.session.connectStatus.status !== 'connected') {
+            return false;
+        }
+        return state.session.connectStatus.connectedMap.authLv === Auth.Edit
+    });
 
     // 表示する画像URL
     const imageUrl = useMemo((): string | null => {

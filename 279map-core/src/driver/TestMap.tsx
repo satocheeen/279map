@@ -1,10 +1,8 @@
-import { ConnectResult } from 'tsunagumap-api';
 import { CategoryDefine, FeatureType, MapKind } from '279map-common';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { CommandHookType } from '../api/useCommand';
-import TsunaguMap, { TsunaguMapProps } from '../components/TsunaguMap/TsunaguMap';
+import TsunaguMap, { OnConnectParam, TsunaguMapProps } from '../components/TsunaguMap/TsunaguMap';
 import { FilterDefine } from '../entry';
-import { ConnectedMap } from '../store/session/sessionSlice';
 import styles from './TestMap.module.scss';
 
 /**
@@ -31,12 +29,14 @@ export default function TestMap() {
     const [ cnt, setCnt ] = useState(0);
     const [ categories, setCategories ] = useState<CategoryDefine[]>([]);
     const [ commandHook, setCommandHook ] = useState<CommandHookType>();
-    const onConnect = useCallback((mapDefine: ConnectedMap, commandHook: CommandHookType) => {
-        console.log('connect', mapDefine);
-        setMapKind(mapDefine.defaultMapKind);
-        setCommandHook(commandHook);
+    const onConnect = useCallback((param: OnConnectParam) => {
+        console.log('connect', param);
+        if (param.result === 'success') {
+            setMapKind(param.mapDefine.defaultMapKind);
+            setCommandHook(commandHook);
+        }
         setCnt(cnt + 1);
-    }, [cnt]);
+    }, [cnt, commandHook]);
 
     const onCategoriesLoaded = useCallback((categories: CategoryDefine[]) => {
         setCategories(categories);

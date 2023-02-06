@@ -182,7 +182,10 @@ app.get('/api/*',
             if (define.publicRange === types.PublicRange.Private) {
                 // privateの場合 -> error
                 apiLogger.debug('not auth');
-                next('can not access this map');
+                next({
+                    name: 'Unauthenticated',
+                    message: 'this map is private, please login.',
+                });
             } else {
                 // publicの場合 -> View権限をresに付与？
                 apiLogger.debug('skip checkJwt');
@@ -196,12 +199,22 @@ app.get('/api/*',
     },
     checkJwt,
     (err: Error, req: Request, res: Response, next: NextFunction) => {
-        res.status(500).send({
-            error: {
-                name: err.name,
-                message: err.message
-            }
-        });
+        console.log('error catch', err);
+        if (err.name === 'Unauthenticated') {
+            res.status(401).send({
+                error: {
+                    name: err.name,
+                    message: err.message
+                }
+            });
+        } else {
+            res.status(403).send({
+                error: {
+                    name: err.name,
+                    message: err.message
+                }
+            });
+        }
     }
 );
 
@@ -242,7 +255,6 @@ app.get('/api/connect', async(req, res, next) => {
             // 未ログインで地図の公開範囲がpublicの場合は、View権限
             apiLogger.debug('未ログイン', define.publicRange);
             result = {
-                result: 'success',
                 mapId: define.mapId,
                 name: define.name,
                 useMaps: define.useMaps,
@@ -253,7 +265,6 @@ app.get('/api/connect', async(req, res, next) => {
             apiLogger.debug('ログイン済み');
             // TODO: ログイン済みの場合
             result = {
-                result: 'success',
                 mapId: define.mapId,
                 name: define.name,
                 useMaps: define.useMaps,
@@ -270,9 +281,9 @@ app.get('/api/connect', async(req, res, next) => {
         //     define.authLv = authLv;
         // }
     
-        if (result.result === 'success') {
+        // if (result.result === 'success') {
             broadCaster.addSession(req.sessionID);
-        }
+        // }
     
         res.send(result);
         apiLogger.info('[end] connect', req.sessionID);

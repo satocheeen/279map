@@ -8,7 +8,13 @@ import { ConnectResult, GetMapInfoAPI, GetMapInfoResult, WebSocketMessage } from
 import { MapKind } from "279map-common";
 import { ConnectedMap } from "./sessionSlice";
 
-export const connectMap = createAsyncThunk<ConnectedMap|undefined, { mapId: string; auth?: string; token?: string }>(
+export type ConnectMapResult = {
+    result: 'success',
+    connectedMap: ConnectedMap,
+} | {
+    result: 'Unauthorized',
+}
+export const connectMap = createAsyncThunk<ConnectMapResult, { mapId: string; auth?: string; token?: string }>(
     'session/connectMapStatus',
     async(param, { rejectWithValue, getState, dispatch }) => {
         const mapServer = (getState() as RootState).session.mapServer;
@@ -30,28 +36,27 @@ export const connectMap = createAsyncThunk<ConnectedMap|undefined, { mapId: stri
             console.log('connectMap', param.token);
             const result = await fetch(url, {
                 // credentials: "include",
-                headers,    
+                headers,
             });
+            if (!result.ok) {
+                if (result.status === 401) {
+                    return {
+                        result: 'Unauthorized',
+                    };
+                } else {
+                    throw new Error(result.statusText);
+                }
+            }
             const json = await result.json() as ConnectResult;
 
-            if (json.result === 'require_authenticate') {
-                // TODO: ログイン画面へ遷移
-                window.location.href = 'https://localhost/login';
-            } else {
-                return {
-                    mapId: json.mapId,
-                    name: json.name,
-                    defaultMapKind: json.defaultMapKind,
-                    useMaps: json.useMaps,
-                    authLv: json.authLv,
-                };    
-            }
-    
-
+            return {
+                result: 'success',
+                connectedMap: json,
+            };    
 
         } catch(e) {
             console.warn('connect error', e);
-            return rejectWithValue(e);
+            return rejectWithValue('connect error' + e);
         }
     }
 )
@@ -71,11 +76,11 @@ export const loadMapDefine = createAsyncThunk<GetMapInfoResult, MapKind>(
                 throw 'no set mapserver';
             }
     
-            if (!session.connectedMap) {
+            if (session.connectStatus.status !== 'connected') {
                 throw 'no connect map.';
             }
             const mapKind = param;
-            const mapId = session.connectedMap.mapId;
+            const mapId = session.connectStatus.connectedMap.mapId;
 
             // WebSocket通信設定
             const startWss = () => {
@@ -116,7 +121,7 @@ export const loadMapDefine = createAsyncThunk<GetMapInfoResult, MapKind>(
         
             const apiResult = await callApi(mapServer, GetMapInfoAPI, {
                 mapKind: param,
-                mapId: session.connectedMap.mapId,  // TODO 廃止
+                mapId: session.connectStatus.connectedMap.mapId,  // TODO 廃止
             });
 
             startWss();

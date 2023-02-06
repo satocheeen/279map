@@ -13,6 +13,13 @@ import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
 import { FilterDefine } from '../../store/operation/operationSlice';
 import { ConnectedMap } from '../../store/session/sessionSlice';
 
+export type OnConnectParam = {
+    result: 'success',
+    mapDefine: ConnectedMap,
+    commandHook: CommandHookType,
+} | {
+    result: 'Unauthorized',
+}
 export type TsunaguMapProps = {
     mapId: string;
     mapServerHost: string;
@@ -29,7 +36,7 @@ export type TsunaguMapProps = {
 
     filter?: FilterDefine[];
 
-    onConnect?: (mapDefine: ConnectedMap, commandHook: CommandHookType) => void;
+    onConnect?: (param: OnConnectParam) => void;
     onMapKindChanged?: (mapKind: MapKind) => void;
     onSelect?: (targets: string[]) => void; // callback when items are selected
     onUnselect?: () => void;    // callback when items are unselected.

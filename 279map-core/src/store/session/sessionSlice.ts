@@ -11,6 +11,14 @@ export type ConnectedMap = {
     defaultMapKind: MapKind;
     authLv: Auth;
 }
+type ConnectStatus = {
+    status: 'connecting-map',
+} | {
+    status: 'connected',
+    connectedMap: ConnectedMap,
+} | {
+    status: 'Unauthorized',
+}
 const sessionSlice = createSlice({
     name: 'session',
     initialState: {
@@ -18,11 +26,13 @@ const sessionSlice = createSlice({
             domain: '',
             ssl: true,
         } as ServerInfo,
-        connectedMap: undefined as undefined | ConnectedMap,
+        connectStatus: {
+            status: 'connecting-map',
+        } as ConnectStatus,
         currentMapKindInfo: undefined as undefined | {
             mapKind: MapKind;
-            extent: Extent,
-        },
+            extent: Extent;
+        }
     },
     reducers: {
         setMapServer(state, action: PayloadAction<ServerInfo>) {
@@ -32,7 +42,16 @@ const sessionSlice = createSlice({
     extraReducers: (builder) => {
         builder
         .addCase(connectMap.fulfilled, (state, action) => {
-            state.connectedMap = action.payload;
+            if (action.payload.result === 'success') {
+                state.connectStatus = {
+                    status: 'connected',
+                    connectedMap: action.payload.connectedMap,
+                }
+            } else if (action.payload.result === 'Unauthorized') {
+                state.connectStatus = {
+                    status: 'Unauthorized'
+                }
+            }
         })
         .addCase(loadMapDefine.fulfilled, (state, action) => {
             state.currentMapKindInfo = {
