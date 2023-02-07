@@ -18,7 +18,7 @@ export const getOriginalIconDefine: APIFunc<void, GetOriginalIconDefineResult> =
         `;
         const [rows] = await con.execute(sql, [pageId]);
 
-        const icons = (rows as types.OriginalIconsTable[]).map((row): IconDefine => {
+        const icons = (rows as types.schema.OriginalIconsTable[]).map((row): IconDefine => {
             return {
                 id: row.icon_page_id,
                 caption: row.caption,

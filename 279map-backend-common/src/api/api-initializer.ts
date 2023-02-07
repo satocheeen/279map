@@ -1,4 +1,4 @@
-import { api } from "279map-common";
+import { APIDefine } from "279map-common";
 import { Request, Response, Express } from 'express';
 import { Logger } from "log4js";
 import { GetImageUrlAPI, GetUnpointDataAPI, LinkContentToItemAPI, RegistContentAPI, RegistItemAPI, RemoveContentAPI, RemoveItemAPI, UpdateContentAPI, UpdateItemAPI } from "./dba-api-interface";
@@ -16,7 +16,7 @@ type AfterParam<PARAM, RESULT> = {
     res: Response;
 }
 export type OdbaAPICallDefine<PARAM, RESULT> = {
-    define: api.APIDefine<PARAM, RESULT>;
+    define: APIDefine<PARAM, RESULT>;
     func: (param: OdbaAPIFuncParam<PARAM>) => Promise<RESULT>;
     // func実行後に実施する処理
     after?: (param: AfterParam<PARAM, RESULT>) => boolean;   // falseで復帰した場合は、res.sendしない

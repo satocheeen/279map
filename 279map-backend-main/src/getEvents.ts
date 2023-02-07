@@ -24,7 +24,7 @@ export const getEvents: APIFunc<GetEventParam, GetEventsResult> = async({ curren
         const [rows] = await con.execute(sql, [mapPageId]);
         // filter by whether exist in the map kind
         const events = [] as EventDefine[];
-        for (const row of (rows as types.ContentsTable[])) {
+        for (const row of (rows as types.schema.ContentsTable[])) {
             const itemList = await getBelongingItem(con, row, mapPageId, mapKind);
             if (itemList) {
                 itemList.forEach(item => {

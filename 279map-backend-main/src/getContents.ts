@@ -5,7 +5,7 @@ import { PoolConnection } from "mysql2/promise";
 import { GetContentsParam, GetContentsResult } from '../279map-api-interface/src';
 import { ContentsDefine, MapKind } from '279map-common';
 
-type RetRecord = types.ContentsTable & {item_page_id: string; another_item_id: string|null;};
+type RetRecord = types.schema.ContentsTable & {item_page_id: string; another_item_id: string|null;};
 
 export const getContents: APIFunc<GetContentsParam, GetContentsResult> = async({ currentMap, param }) => {
     if (!currentMap) {
@@ -18,7 +18,7 @@ export const getContents: APIFunc<GetContentsParam, GetContentsResult> = async({
         const allContents = [] as ContentsDefine[];
 
         const convertRecord = (row: RetRecord): ContentsDefine => {
-            const contents = row.contents ? JSON.parse(row.contents) as types.ContentsInfo: undefined;
+            const contents = row.contents ? JSON.parse(row.contents) as types.schema.ContentsInfo: undefined;
             const another_item_ids = row.another_item_id?.split(',') ?? [];
             let isSnsContent = false;
             let addableChild = true;

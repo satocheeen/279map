@@ -2,7 +2,7 @@
  * Odba container's API interface.
  */
 
-import { GeoProperties, MapKind, api } from "279map-common";
+import { GeoProperties, MapKind, APIDefine, ContentAttr } from "279map-common";
 
 /**
  * regist item
@@ -10,7 +10,7 @@ import { GeoProperties, MapKind, api } from "279map-common";
 export const RegistItemAPI = {
     uri: 'regist-item',
     method: 'post',
-} as api.APIDefine<RegistItemParam, string>;   // result = registed item ID
+} as APIDefine<RegistItemParam, string>;   // result = registed item ID
 
 export type RegistItemParam = {
     mapId: string;
@@ -26,7 +26,7 @@ export type RegistItemParam = {
 export const RegistContentAPI = {
     uri: 'regist-content',
     method: 'post',
-} as api.APIDefine<RegistContentParam, void>;
+} as APIDefine<RegistContentParam, void>;
 
 export type RegistContentParam = {
     mapId: string;
@@ -35,7 +35,7 @@ export type RegistContentParam = {
     } | {
         contentId: string;
     }
-} & api.ContentAttr;
+} & ContentAttr;
 
 /**
  * remove item
@@ -43,7 +43,7 @@ export type RegistContentParam = {
 export const RemoveItemAPI = {
     uri: 'remove-item',
     method: 'post',
-} as api.APIDefine<RemoveItemParam, void>;
+} as APIDefine<RemoveItemParam, void>;
 
 export type RemoveItemParam = {
     id: string; // 削除対象アイテムのID
@@ -56,7 +56,7 @@ export type RemoveItemParam = {
 export const RemoveContentAPI = {
     uri: 'remove-content',
     method: 'post',
-} as api.APIDefine<RemoveContentParam, void>;
+} as APIDefine<RemoveContentParam, void>;
 
 export type RemoveContentParam = {
     id: string;
@@ -70,7 +70,7 @@ export type RemoveContentParam = {
 export const UpdateItemAPI = {
     uri: 'update-item',
     method: 'post',
-} as api.APIDefine<UpdateItemParam, void>;
+} as APIDefine<UpdateItemParam, void>;
 
 export type UpdateItemParam = {
     id: string;
@@ -85,12 +85,12 @@ export type UpdateItemParam = {
 export const UpdateContentAPI = {
     uri: 'update-content',
     method: 'post',
-} as api.APIDefine<UpdateContentParam, void>;
+} as APIDefine<UpdateContentParam, void>;
 
 export type UpdateContentParam = {
     id: string;
     mapId: string;
-} & Partial<api.ContentAttr>;
+} & Partial<ContentAttr>;
 
 /**
  * get unpoint data
@@ -98,7 +98,7 @@ export type UpdateContentParam = {
 export const GetUnpointDataAPI = {
     uri: 'get-unpointdata',
     method: 'post',
-} as api.APIDefine<GetUnpointDataParam, GetUnpointDataResult>;
+} as APIDefine<GetUnpointDataParam, GetUnpointDataResult>;
 
 export type GetUnpointDataParam = {
     mapId: string;
@@ -122,7 +122,7 @@ export type GetUnpointDataResult = {
 export const LinkContentToItemAPI = {
     uri:'link-content2item',
     method: 'post'
-} as api.APIDefine<LinkContentToItemParam, void>;
+} as APIDefine<LinkContentToItemParam, void>;
 
 export type LinkContentToItemParam = {
     childContentId: string;
@@ -136,7 +136,7 @@ export type LinkContentToItemParam = {
 export const GetImageUrlAPI = {
     uri: 'get-imageurl',
     method: 'get',
-} as api.APIDefine<{id: string}, string|undefined>;
+} as APIDefine<{id: string}, string|undefined>;
 
 /**
  * for Android

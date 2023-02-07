@@ -1,1 +1,1 @@
-export { default, TsunaguMapProps } from './TsunaguMap';
+export { default as TsunaguMap, TsunaguMapProps, OnConnectParam } from './TsunaguMap';

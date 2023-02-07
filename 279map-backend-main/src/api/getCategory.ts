@@ -28,7 +28,7 @@ export const getCategory: APIFunc<void, GetCategoryResult> = async({ currentMap 
 
         const [rows] = await con.execute(sql, [mapPageId]);
         const categoryMap = new Map<string, CategoryDefine>();
-        (rows as types.ContentsTable[]).forEach((row) => {
+        (rows as types.schema.ContentsTable[]).forEach((row) => {
             const categories = JSON.parse(row.category as string) as string[];
             categories.forEach(category => {
                 if (categoryMap.has(category)) {

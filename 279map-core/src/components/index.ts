@@ -1,3 +1,3 @@
 export { default as TestComponent } from './TestComponent';
-export { default as TsunaguMap } from './TsunaguMap';
+export * from './TsunaguMap';
 export * from './common';

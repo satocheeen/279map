@@ -27,7 +27,7 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
     const getChildrenContentInfo = async(contentPageId: string): Promise<ItemContentInfo[]> => {
         const sql = 'select * from contents c where parent_id = ?';
         const [rows] = await con.execute(sql, [contentPageId]);
-        const myRows = rows as types.ContentsTable[];
+        const myRows = rows as types.schema.ContentsTable[];
         if (myRows.length === 0) {
             return [];
         }
@@ -70,7 +70,7 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
         `;
         const [rows] = await con.execute(sql, [mapPageId, mapKind]);
         const pointContents = [] as ItemDefine[];
-        for(const row of rows as (types.ItemsTable & {title?: string; thumbnail?: string} & {geojson: any})[]) {
+        for(const row of rows as (types.schema.ItemsTable & {title?: string; thumbnail?: string} & {geojson: any})[]) {
             let contents: ItemContentInfo | null = null;
             if (row.content_page_id) {
                 // 配下のコンテンツID取得
@@ -131,7 +131,7 @@ async function selectTrackInArea(param: GetItemsParam, mapPageId: string): Promi
                     WHERE map_page_id= ? AND MBRIntersects(geojson, GeomFromText(?,4326)) AND min_zoom <= ? AND ? < max_zoom`;
         const [rows] = await con.execute(sql, [mapPageId, wkt, param.zoom, param.zoom]);
         
-        return (rows as (types.TrackGeoJsonTable & {last_edited_time: string})[]).map(row => {
+        return (rows as (types.schema.TrackGeoJsonTable & {last_edited_time: string})[]).map(row => {
             return {
                 id: '' + row.track_file_id + row.sub_id,
                 position: {

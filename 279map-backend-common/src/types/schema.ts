@@ -1,4 +1,4 @@
-import { MapKind } from '279map-common';
+import { Auth, MapKind } from '279map-common';
 
 // NotionDB種類
 export type Kind = 'GPX' | 'Trace' | 'Item' | 'Content' | 'Icon';
@@ -16,6 +16,12 @@ export type MapPageInfoTable = {
     public_range: PublicRange;
     edit_auth_hash?: string;
     last_edited_time: string;
+}
+export type MapUserTable = {
+    map_page_id: string;
+    user_id: string;
+    auth_lv: Auth;
+    name: string;
 }
 export type ContentsDbInfoTable = {
     contents_db_id: string;

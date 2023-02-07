@@ -8,7 +8,7 @@ type Result = {
     name: string;
     useMaps: MapKind[];
     authLv: Auth;
-    publicRange: types.PublicRange;
+    publicRange: types.schema.PublicRange;
 }
 /**
  * 指定の地図データに関する定義情報を返す

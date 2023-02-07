@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import mysql from 'mysql2/promise';
 import { getMapInfo } from './getMapInfo';
-import { Auth } from '279map-common';
+import { APIDefine, Auth } from '279map-common';
 import { getItems } from './getItems';
 import session from 'express-session';
 import { configure, getLogger } from "log4js";
@@ -25,7 +25,7 @@ import cookieParser from 'cookie-parser';
 import { readFileSync } from 'fs';
 import { exit } from 'process';
 import { getMapDefine } from './getMapDefine';
-import { APIDefine, ConnectResult, GeocoderParam, GeocoderResult, GetCategoryAPI, GetContentsAPI, GetEventsAPI, GetGeocoderFeatureParam, GetGeoCoderFeatureResult, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoResult, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetSnsPreviewResult, GetUnpointDataAPI, GetUnpointDataParam, GetUnpointDataResult, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
+import { ConnectResult, GeocoderParam, GeocoderResult, GetCategoryAPI, GetContentsAPI, GetEventsAPI, GetGeocoderFeatureParam, GetGeoCoderFeatureResult, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoResult, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetSnsPreviewResult, GetUnpointDataAPI, GetUnpointDataParam, GetUnpointDataResult, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { auth, requiredScopes } from 'express-oauth2-jwt-bearer';
 
 // ログ初期化
@@ -179,7 +179,7 @@ app.get('/api/*',
             // 未ログインの場合は、地図がpublicか確認
             const define = await getMapDefine(mapId, auth);
         
-            if (define.publicRange === types.PublicRange.Private) {
+            if (define.publicRange === types.schema.PublicRange.Private) {
                 // privateの場合 -> error
                 apiLogger.debug('not auth');
                 next({
@@ -251,7 +251,7 @@ app.get('/api/connect', async(req, res, next) => {
 
 
         let result: ConnectResult;
-        if (!req.headers.authorization && define.publicRange === types.PublicRange.Public) {
+        if (!req.auth && define.publicRange === types.schema.PublicRange.Public) {
             // 未ログインで地図の公開範囲がpublicの場合は、View権限
             apiLogger.debug('未ログイン', define.publicRange);
             result = {
@@ -262,7 +262,8 @@ app.get('/api/connect', async(req, res, next) => {
                 authLv: Auth.View,
             }
         } else {
-            apiLogger.debug('ログイン済み');
+            apiLogger.debug('ログイン済み', req.auth);
+            // ユーザの地図に対する権限を取得
             // TODO: ログイン済みの場合
             result = {
                 mapId: define.mapId,

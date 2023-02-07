@@ -1,15 +1,6 @@
 import { Auth, CategoryDefine, ContentsDefine, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, UnpointContent } from "279map-common/src/types";
 import { GeoJsonObject } from "geojson";
-
-/**
- * API interface
- */
- export type APIDefine<PARAM, RESULT> = {
-    uri: string;
-    method: 'post' | 'get';
-    param: PARAM;
-    result: RESULT;
-}
+import { APIDefine, ContentAttr } from '279map-common';
 
 /**
  * connect
@@ -181,18 +172,6 @@ export type RegistContentParam = {
         contentId: string;
     }
 } & ContentAttr;
-export type ContentAttr = {
-    title: string;
-    overview: string;
-    categories: string[];
-} & ({
-    type: 'normal';
-    date?: string;
-    imageUrl?: string;
-} | {
-    type: 'sns';
-    url?: string;
-});
 
 /**
  * update content
