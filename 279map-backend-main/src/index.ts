@@ -27,6 +27,7 @@ import { exit } from 'process';
 import { getMapDefine } from './getMapDefine';
 import { ConnectResult, GeocoderParam, GeocoderResult, GetCategoryAPI, GetContentsAPI, GetEventsAPI, GetGeocoderFeatureParam, GetGeoCoderFeatureResult, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoResult, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetSnsPreviewResult, GetUnpointDataAPI, GetUnpointDataParam, GetUnpointDataResult, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { auth, requiredScopes } from 'express-oauth2-jwt-bearer';
+import { getMapUser } from './auth/getMapUser';
 
 // ログ初期化
 configure(LogSetting);
@@ -247,30 +248,53 @@ app.get('/api/connect', async(req, res, next) => {
             throw 'illegal token';
         }
 
-        const define = await getMapDefine(mapId, auth);
-
+        const mapDefine = await getMapDefine(mapId, auth);
 
         let result: ConnectResult;
-        if (!req.auth && define.publicRange === types.schema.PublicRange.Public) {
-            // 未ログインで地図の公開範囲がpublicの場合は、View権限
-            apiLogger.debug('未ログイン', define.publicRange);
+        if (!req.auth) {
+            // 未ログイン（地図の公開範囲public）の場合は、View権限
+            apiLogger.debug('未ログイン', mapDefine.publicRange);
             result = {
-                mapId: define.mapId,
-                name: define.name,
-                useMaps: define.useMaps,
-                defaultMapKind: define.defaultMapKind,
+                mapId: mapDefine.mapId,
+                name: mapDefine.name,
+                useMaps: mapDefine.useMaps,
+                defaultMapKind: mapDefine.defaultMapKind,
                 authLv: Auth.View,
             }
         } else {
             apiLogger.debug('ログイン済み', req.auth);
             // ユーザの地図に対する権限を取得
-            // TODO: ログイン済みの場合
+            const userId = req.auth.payload.sub;
+            if (!userId) {
+                throw 'user id not found';
+            }
+            const mapUserInfo = await getMapUser(mapDefine.mapId, userId);
+            apiLogger.debug('mapUserInfo', mapUserInfo);
+            let authLv: Auth;
+            if (mapUserInfo && mapUserInfo.auth_lv !== Auth.None) {
+                authLv = mapUserInfo.auth_lv;
+            } else {
+                // ユーザが権限を持たない場合
+                if (mapDefine.publicRange === types.schema.PublicRange.Public) {
+                    // 地図がPublicの場合、View権限
+                    authLv = Auth.View;
+                } else {
+                    // 地図がprivateの場合、権限なしエラーを返却
+                    res.status(403).send({
+                        error: {
+                            name: 'Forbidden',
+                            message: 'user has no authentication for the map.',
+                        }
+                    });
+                    return;
+                }
+            }
             result = {
-                mapId: define.mapId,
-                name: define.name,
-                useMaps: define.useMaps,
-                defaultMapKind: define.defaultMapKind,
-                authLv: Auth.View,
+                mapId: mapDefine.mapId,
+                name: mapDefine.name,
+                useMaps: mapDefine.useMaps,
+                defaultMapKind: mapDefine.defaultMapKind,
+                authLv,
             }
         }
 
