@@ -1,24 +1,14 @@
 import { types } from '279map-backend-common';
-import { APIFunc, ConnectionPool } from '.';
-import { MapKind, Auth } from '279map-common';
+import { ConnectionPool } from '.';
+import { MapKind } from '279map-common';
 import { GetMapInfoParam, GetMapInfoResult } from '../279map-api-interface/src';
 
-type Result = {
-    apiResult: GetMapInfoResult;
-    defaultMapKind: MapKind;
-}
 /**
  * 指定の地図データページ配下のコンテンツ情報を返す
  * @param pageId Notion地図データページID
  */
-export const getMapInfo: APIFunc<GetMapInfoParam, GetMapInfoResult> = async({ param }) => {
-    const result = await getMapInfoSub(param);
-
-    return result.apiResult;
-}
-async function getMapInfoSub(param: GetMapInfoParam): Promise<Result> {
+export async function getMapInfo(param: GetMapInfoParam): Promise<GetMapInfoResult> {
     const pageId = param.mapId;
-    const auth = param.auth;
     const mapKind = param.mapKind;
     
     const mapPageInfo = await getMapPageInfo(pageId);
@@ -36,25 +26,12 @@ async function getMapInfoSub(param: GetMapInfoParam): Promise<Result> {
         return mapKindStr as MapKind;
     });
 
-    // // カテゴリを取得
-    // const category = await getCategory(mapPageInfo.map_page_id, targetMapKind);
-
-    // 権限判定
-    let authLv = Auth.View;
-    if (mapPageInfo.edit_auth_hash && auth && mapPageInfo.edit_auth_hash === auth) {
-        authLv = Auth.Edit;
-    }
-    console.log('authLv', authLv);
     return {
-        defaultMapKind: mapPageInfo.default_map,
-        apiResult: {
-            mapId: mapPageInfo.map_page_id,
-            name: mapPageInfo.title,
-            mapKind: mapKind ? mapKind : mapPageInfo.default_map,
-            extent,
-            useMaps,
-            authLv,
-        },
+        mapId: mapPageInfo.map_page_id,
+        name: mapPageInfo.title,
+        mapKind: mapKind ? mapKind : mapPageInfo.default_map,
+        extent,
+        useMaps,
     }
 
 }

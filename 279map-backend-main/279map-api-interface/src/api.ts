@@ -31,7 +31,6 @@ export type GetMapInfoResult = {
     mapKind: MapKind;
     extent: Extent;
     useMaps: MapKind[],
-    authLv: Auth;
 };
 
 /**

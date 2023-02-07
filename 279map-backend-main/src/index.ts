@@ -392,6 +392,37 @@ app.get('/api/disconnect', async(req, res) => {
     res.send('disconnect');
 });
 
+// 地図基本情報取得
+app.post('/api/' + GetMapInfoAPI.uri, async(req, res) => {
+    try {
+        if (!req.connect?.authLv) throw 'no session';
+        if (![Auth.View, Auth.Edit].includes(req.connect.authLv)) {
+            res.status(403).send('can not use this api');
+            return;
+        }
+        const session = broadCaster.getSessionInfo(req.connect?.sessionKey as string);
+
+        const param = req.body;
+
+        const result = await getMapInfo(param);
+
+        const myResult = result as GetMapInfoResult;
+        session.resetItems();
+        session.currentMap = {
+            mapPageId: myResult.mapId,
+            mapKind: myResult.mapKind,
+        }
+
+        apiLogger.debug('result', result);
+
+        res.send(result);
+
+    } catch(e) {    
+        apiLogger.warn(e);
+        res.status(500).send(e);
+    }
+})
+
 type APIFuncParam<PARAM> = {
     currentMap: CurrentMap | undefined;
     req: Request;
@@ -413,28 +444,6 @@ type APICallDefine<PARAM, RESULT> = {
 }
 
 const apiList: APICallDefine<any,any>[] = [
-    // 地図基本情報取得
-    {
-        define: GetMapInfoAPI,
-        func: getMapInfo,
-        after: ({req, result }) => {
-            const session = broadCaster.getSessionInfo(req.connect?.sessionKey as string);
-            const myResult = result as GetMapInfoResult;
-            console.log('get map Info after', session);
-            if (!session) {
-                logger.warn('no session');
-            }
-            if (session) {
-                session.resetItems();
-                session.currentMap = {
-                    mapPageId: myResult.mapId,
-                    mapKind: myResult.mapKind,
-                }
-            }
-
-            return true;
-        }
-    },
     // オリジナルアイコン情報取得
     {
         define: GetOriginalIconDefineAPI,
@@ -741,6 +750,10 @@ apiList.forEach((api => {
     }
 
 }));
+
+app.all('/api/*', (req) => {
+    apiLogger.info('[end]', req.url, req.connect?.sessionKey);
+});
 
 /**
  * Frontend資源へプロキシ
