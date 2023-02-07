@@ -132,6 +132,10 @@ export default function MapWrapper() {
                     onConnectRef.current({
                         result: 'Unauthorized',
                     });
+                } else {
+                    onConnectRef.current({
+                        result: 'Forbidden',
+                    });
                 }
             }
         })
@@ -230,6 +234,9 @@ export default function MapWrapper() {
         } else if (connectStatus.status === 'Unauthorized') {
             spinner.hideSpinner();
             setErrorMessage('ログインが必要です');
+        } else if (connectStatus.status === 'Forbidden') {
+            spinner.hideSpinner();
+            setErrorMessage('この地図へのアクセス権限がありません。再ログインして問題が解決しない場合は、管理者へ問い合わせてください。');
         } else if (currentMapKindInfo) {
             spinner.hideSpinner();
         }

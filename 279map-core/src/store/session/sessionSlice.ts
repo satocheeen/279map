@@ -17,7 +17,7 @@ type ConnectStatus = {
     status: 'connected',
     connectedMap: ConnectedMap,
 } | {
-    status: 'Unauthorized',
+    status: 'Unauthorized' | 'Forbidden',
 }
 const sessionSlice = createSlice({
     name: 'session',
@@ -47,9 +47,9 @@ const sessionSlice = createSlice({
                     status: 'connected',
                     connectedMap: action.payload.connectedMap,
                 }
-            } else if (action.payload.result === 'Unauthorized') {
+            } else {
                 state.connectStatus = {
-                    status: 'Unauthorized'
+                    status: action.payload.result
                 }
             }
         })

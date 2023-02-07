@@ -19,6 +19,8 @@ export type OnConnectParam = {
     commandHook: CommandHookType,
 } | {
     result: 'Unauthorized',
+} | {
+    result: 'Forbidden',
 }
 export type TsunaguMapProps = {
     mapId: string;

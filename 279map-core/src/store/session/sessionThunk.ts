@@ -13,6 +13,8 @@ export type ConnectMapResult = {
     connectedMap: ConnectedMap,
 } | {
     result: 'Unauthorized',
+} | {
+    result: 'Forbidden',
 }
 export const connectMap = createAsyncThunk<ConnectMapResult, { mapId: string; auth?: string; token?: string }>(
     'session/connectMapStatus',
@@ -43,6 +45,10 @@ export const connectMap = createAsyncThunk<ConnectMapResult, { mapId: string; au
                     return {
                         result: 'Unauthorized',
                     };
+                } else if (result.status === 403) {
+                    return {
+                        result: 'Forbidden',
+                    }
                 } else {
                     throw new Error(result.statusText);
                 }
