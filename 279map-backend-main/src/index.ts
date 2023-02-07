@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import mysql from 'mysql2/promise';
 import { getMapInfo } from './getMapInfo';
-import { APIDefine, Auth } from '279map-common';
+import { APIDefine, Auth, MapKind } from '279map-common';
 import { getItems } from './getItems';
 import session from 'express-session';
 import { configure, getLogger } from "log4js";
@@ -24,10 +24,25 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { readFileSync } from 'fs';
 import { exit } from 'process';
-import { getMapDefine } from './getMapDefine';
+import { getMapId } from './getMapDefine';
 import { ConnectResult, GeocoderParam, GeocoderResult, GetCategoryAPI, GetContentsAPI, GetEventsAPI, GetGeocoderFeatureParam, GetGeoCoderFeatureResult, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoResult, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetSnsPreviewResult, GetUnpointDataAPI, GetUnpointDataParam, GetUnpointDataResult, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { auth, requiredScopes } from 'express-oauth2-jwt-bearer';
 import { getMapUser } from './auth/getMapUser';
+import { getMapPageInfo } from './getMapInfo';
+import { getSessionIdFromCookies } from './session/session_utility';
+
+declare global {
+    namespace Express {
+        interface Request {
+            connect?: {
+                sessionKey: string; // SID or Token
+                mapId: string;
+                mapPageInfo?: types.schema.MapPageInfoTable;
+                authLv?: Auth;
+            }
+        }
+    }
+}
 
 // ログ初期化
 configure(LogSetting);
@@ -161,26 +176,74 @@ const checkJwt = auth({
 });
 
 /**
- * 認証チェック
+ * mapIdを取得してrequestに格納
  */
-app.get('/api/*', 
+app.all('/api/*', 
     async(req: Request, res: Response, next: NextFunction) => {
-        apiLogger.info('authorization', req.headers.authorization);
+        let sessionKey = req.headers.authorization;
+        if (!sessionKey) {
+            sessionKey = getSessionIdFromCookies(req);
+        }
+        if (!sessionKey) {
+            sessionKey = req.sessionID;
+        }
+        apiLogger.info('[start]', req.url, sessionKey);
 
-        const mapId = req.query.mapId;
-        if (!mapId || typeof mapId !== 'string') {
-            throw 'not set mapId'
+        if (req.url.startsWith('/api/connect')) {
+            const queryMapId = req.query.mapId;
+            if (!queryMapId || typeof queryMapId !== 'string') {
+                res.status(400).send('not set mapId');
+                return;
+            }
+            const mapId = await getMapId(queryMapId);
+            if (mapId === null) {
+                res.status(400).send('mapId is not found : ' + queryMapId);
+                return;
+            }
+            req.connect = {
+                sessionKey,
+                mapId,
+            };
+        } else {
+            const session = broadCaster.getSessionInfo(sessionKey);
+            if (!session?.currentMap) {
+                res.status(400).send('currentMap is not found: ' + sessionKey);
+                return;
+            }
+            req.connect = { 
+                sessionKey,
+                mapId: session.currentMap.mapPageId
+            };
         }
-        const auth = req.query.auth;
-        if (auth && typeof auth !== 'string') {
-            throw 'illegal auth';
+        next();
+    }
+);
+
+/**
+ * 認証チェック。チェックの課程で、connect.mapPageInfo, authに値設定。
+ */
+app.all('/api/*', 
+    async(req: Request, res: Response, next: NextFunction) => {
+        if (!req.connect) {
+            apiLogger.error('connect not found.');
+            res.status(500).send('Illegal state error.');
+            return;
         }
+        apiLogger.info('authorization', req.connect);
+
+        const mapId = req.connect.mapId;
+
+        // 地図情報取得
+        const mapPageInfo = await getMapPageInfo(mapId);
+        if (!mapPageInfo) {
+            res.status(400).send('map not found.');
+            return;
+        }
+        req.connect.mapPageInfo = mapPageInfo;
 
         if (!req.headers.authorization) {
             // 未ログインの場合は、地図がpublicか確認
-            const define = await getMapDefine(mapId, auth);
-        
-            if (define.publicRange === types.schema.PublicRange.Private) {
+            if (mapPageInfo.public_range === types.schema.PublicRange.Private) {
                 // privateの場合 -> error
                 apiLogger.debug('not auth');
                 next({
@@ -188,7 +251,7 @@ app.get('/api/*',
                     message: 'this map is private, please login.',
                 });
             } else {
-                // publicの場合 -> View権限をresに付与？
+                // publicの場合
                 apiLogger.debug('skip checkJwt');
                 next('route');
             }
@@ -208,6 +271,13 @@ app.get('/api/*',
                     message: err.message
                 }
             });
+        } else if (err.name === 'Bad Request') {
+            res.status(400).send({
+                error: {
+                    name: err.name,
+                    message: err.message
+                }
+            });
         } else {
             res.status(403).send({
                 error: {
@@ -216,18 +286,62 @@ app.get('/api/*',
                 }
             });
         }
-    }
+    },
 );
 
+/**
+ * check the user's auth Level.
+ * set req.connect.authLv
+ */
+app.all('/api/*', 
+    async(req: Request, res: Response, next: NextFunction) => {
+        const mapId = req.connect?.mapId;
+        const mapDefine = req.connect?.mapPageInfo;
+        if (!req.connect || !mapId || !mapDefine) {
+            res.status(500).send('Illegal state error');
+            return;
+        }
+
+        if (!req.auth) {
+            // 未ログイン（地図の公開範囲public）の場合は、View権限
+            apiLogger.debug('未ログイン', mapDefine.public_range);
+            req.connect.authLv = Auth.View;
+            next();
+            return;
+        }
+
+        apiLogger.debug('ログイン済み', req.auth);
+        // ユーザの地図に対する権限を取得
+        const userId = req.auth.payload.sub;
+        if (!userId) {
+            res.status(400).send('user id not found');
+            return;
+        }
+        const mapUserInfo = await getMapUser(mapId, userId);
+        apiLogger.debug('mapUserInfo', mapUserInfo);
+
+        if (mapUserInfo && mapUserInfo.auth_lv !== Auth.None) {
+            req.connect.authLv = mapUserInfo.auth_lv;
+        } else {
+            // ユーザが権限を持たない場合
+            if (mapDefine.public_range === types.schema.PublicRange.Public) {
+                // 地図がPublicの場合、View権限
+                req.connect.authLv = Auth.View;
+            } else {
+                // 地図がprivateの場合、権限なしエラーを返却
+                res.status(403).send('user has no authentication for the map.');
+            }
+        }
+        next();
+
+    }
+);
 /**
  * 接続確立
  */
 app.get('/api/connect', async(req, res, next) => {
-    console.log('debug')
-    apiLogger.info('[start] connect', req.sessionID);
+    apiLogger.info('[start] connect', req.connect?.sessionKey);
     apiLogger.info('cookie', req.cookies);
-    apiLogger.info('auth', req.auth);
-    apiLogger.info('authorization', req.headers.authorization);
     if (!req.headers.cookie) {
         // Cookie未設定時は、セッションに適当な値を格納することで、Cookieを作成する
         // @ts-ignore
@@ -235,83 +349,29 @@ app.get('/api/connect', async(req, res, next) => {
     }
 
     try {
-        const mapId = req.query.mapId;
-        if (!mapId || typeof mapId !== 'string') {
-            throw 'not set mapId'
-        }
-        const auth = req.query.auth;
-        if (auth && typeof auth !== 'string') {
-            throw 'illegal auth';
-        }
-        const token = req.query.token;
-        if (token && typeof token !== 'string') {
-            throw 'illegal token';
+        if (!req.connect || !req.connect.mapPageInfo || !req.connect.authLv) {
+            res.status(500).send('Illegal state error');
+            return;
         }
 
-        const mapDefine = await getMapDefine(mapId, auth);
-
-        let result: ConnectResult;
-        if (!req.auth) {
-            // 未ログイン（地図の公開範囲public）の場合は、View権限
-            apiLogger.debug('未ログイン', mapDefine.publicRange);
-            result = {
-                mapId: mapDefine.mapId,
-                name: mapDefine.name,
-                useMaps: mapDefine.useMaps,
-                defaultMapKind: mapDefine.defaultMapKind,
-                authLv: Auth.View,
-            }
-        } else {
-            apiLogger.debug('ログイン済み', req.auth);
-            // ユーザの地図に対する権限を取得
-            const userId = req.auth.payload.sub;
-            if (!userId) {
-                throw 'user id not found';
-            }
-            const mapUserInfo = await getMapUser(mapDefine.mapId, userId);
-            apiLogger.debug('mapUserInfo', mapUserInfo);
-            let authLv: Auth;
-            if (mapUserInfo && mapUserInfo.auth_lv !== Auth.None) {
-                authLv = mapUserInfo.auth_lv;
-            } else {
-                // ユーザが権限を持たない場合
-                if (mapDefine.publicRange === types.schema.PublicRange.Public) {
-                    // 地図がPublicの場合、View権限
-                    authLv = Auth.View;
-                } else {
-                    // 地図がprivateの場合、権限なしエラーを返却
-                    res.status(403).send({
-                        error: {
-                            name: 'Forbidden',
-                            message: 'user has no authentication for the map.',
-                        }
-                    });
-                    return;
-                }
-            }
-            result = {
-                mapId: mapDefine.mapId,
-                name: mapDefine.name,
-                useMaps: mapDefine.useMaps,
-                defaultMapKind: mapDefine.defaultMapKind,
-                authLv,
-            }
+        const result: ConnectResult = {
+            mapId: req.connect.mapId,
+            name: req.connect.mapPageInfo.title,
+            useMaps: req.connect.mapPageInfo.use_maps.split(',').map(mapKindStr => {
+                return mapKindStr as MapKind;
+            }),
+            defaultMapKind: req.connect.mapPageInfo.default_map,
+            authLv: req.connect.authLv,
         }
 
-        // // 認証Lv.取得
-        // const authLv = await callAuthApi(auth);
-        // console.log('authLv', authLv);
-
-        // if (authLv) {
-        //     define.authLv = authLv;
-        // }
-    
-        // if (result.result === 'success') {
-            broadCaster.addSession(req.sessionID);
-        // }
+        const session = broadCaster.addSession(req.connect.sessionKey);
+        session.currentMap = {
+            mapPageId: req.connect.mapId,
+            mapKind: req.connect.mapPageInfo.default_map,
+        };
     
         res.send(result);
-        apiLogger.info('[end] connect', req.sessionID);
+        apiLogger.info('[end] connect', req.connect.sessionKey);
     
     } catch(e) {
         apiLogger.warn('connect error', e);
@@ -323,9 +383,11 @@ app.get('/api/connect', async(req, res, next) => {
  * 切断
  */
 app.get('/api/disconnect', async(req, res) => {
-    console.log('disconnect', req.sessionID);
-
-    broadCaster.removeSession(req.sessionID);
+    if (!req.connect) {
+        res.status(400).send('no session');
+        return;
+    }
+    broadCaster.removeSession(req.connect.sessionKey);
 
     res.send('disconnect');
 });
@@ -356,7 +418,7 @@ const apiList: APICallDefine<any,any>[] = [
         define: GetMapInfoAPI,
         func: getMapInfo,
         after: ({req, result }) => {
-            let session = broadCaster.getSessionInfo(req.sessionID);
+            const session = broadCaster.getSessionInfo(req.connect?.sessionKey as string);
             const myResult = result as GetMapInfoResult;
             console.log('get map Info after', session);
             if (!session) {
@@ -385,7 +447,7 @@ const apiList: APICallDefine<any,any>[] = [
         after: ({ req, result }) => {
             // 送信済みのコンテンツ情報は除外する
             // TODO: 削除考慮
-            const session = broadCaster.getSessionInfo(req.sessionID);
+            const session = broadCaster.getSessionInfo(req.connect?.sessionKey as string);
             if (!session) {
                 logger.warn('no session');
                 return true;
@@ -643,11 +705,9 @@ apiList.forEach((api => {
 
     const execute =  async(req: Request, res: Response) => {
         try {
-            const session = broadCaster.getSessionInfo(req.sessionID);
-            const sid = req.cookies['connect.sid'];
+            const session = broadCaster.getSessionInfo(req.connect?.sessionKey as string);
     
             const param = getParam(req);
-            apiLogger.info('[start] ' + api.define.uri, param, sid, session);
 
             // // TODO: getmapinfoでは不要
             // if (!session.mapPageId || !session.mapKind) {

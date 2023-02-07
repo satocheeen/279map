@@ -18,10 +18,14 @@ export async function getMapUser(mapId: string, userId: string): Promise<types.s
         if (records.length === 0) {
             return null;
         }
+        
         return records[0];
 
     } catch(e) {
         throw new Error('select map_user table failed.');
+    } finally {
+        await con.rollback();
+        con.release();
     }
 
 }

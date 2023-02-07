@@ -116,7 +116,7 @@ export default function TestMap() {
         setTimeout(() => {
             console.log('setToken');
             // setToken('hogehoge');
-            setToken('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImE2S0hnVFRPMWZqRThXX1hqZWNoTyJ9.eyJpc3MiOiJodHRwczovL2Rldi1nbjVhdzhqaXVscThxcmJ6LmpwLmF1dGgwLmNvbS8iLCJzdWIiOiJhdXRoMHw2M2M4ZmMxODMyOTA1NTA4YjMzNTM3MDMiLCJhdWQiOlsiaHR0cHM6Ly8yNzltYXAuc2F0b2NoZWVlbi9hcGkiLCJodHRwczovL2Rldi1nbjVhdzhqaXVscThxcmJ6LmpwLmF1dGgwLmNvbS91c2VyaW5mbyJdLCJpYXQiOjE2NzU0OTg4OTUsImV4cCI6MTY3NTU4NTI5NSwiYXpwIjoiUmxXblR3OGhXV0ZQWjdCZDBnYTl0VmRhQm13SFQ1UXgiLCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIn0.th5qDoBt2M99XWWJJP1JNXKC4ZhsJEp1HOL5TuAo99vx5x7YZyFFnB6nu-3_wiIyfU95fckhkXijVRdkIYKjJmmP4bcTw_ERczrZCU9P7xCVeZ5rYaGHQDUQFSwNXJYsUuSpFjVzYQgf6qLzFr8Eyy9BFJicRzsTvtW5jUpi276A41XF8dglxV4Ol8dUxgiHAX5-pveH6dD_lfO8apVDcXuTgjMz-SaK5tZOvmjao1YTucl6LFA9Snvs-InIPJxyJRwyhpZH_3BwuSzrPdIAQH4MllLK736Ah3fwCXF8u90I_kAlcfojLBpB-RV-bWbhDDT3-q_4QlnTsrK6GEQ_QQ');
+            setToken('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImE2S0hnVFRPMWZqRThXX1hqZWNoTyJ9.eyJpc3MiOiJodHRwczovL2Rldi1nbjVhdzhqaXVscThxcmJ6LmpwLmF1dGgwLmNvbS8iLCJzdWIiOiJhdXRoMHw2M2M4ZmMxODMyOTA1NTA4YjMzNTM3MDMiLCJhdWQiOlsiaHR0cHM6Ly8yNzltYXAuc2F0b2NoZWVlbi9hcGkiLCJodHRwczovL2Rldi1nbjVhdzhqaXVscThxcmJ6LmpwLmF1dGgwLmNvbS91c2VyaW5mbyJdLCJpYXQiOjE2NzU3MzE5NjcsImV4cCI6MTY3NTgxODM2NywiYXpwIjoiUmxXblR3OGhXV0ZQWjdCZDBnYTl0VmRhQm13SFQ1UXgiLCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIn0.ECU90vNX3o1Z8Lo7MvP_MsE-Ae2tSSsTLfsFsDfTkwp_Ypg82X_N62hedAT05dBhn9-XSlX_a9YVmguY2jEKvtBTvdy9Ah5t8TYzFrDwMds6OcRWQeKdJX_nATgVY0x9iwDvHRQbZY9Zhib1JxpaJ44e2KjZ1wMy7r1gmSSAo0E-JlFu-SQuRictobaaY9GiiWnh1NxhMvkMCdTs31fAHjOv7AakL6h0flOOPRO6Lzdy7e9ho_hnUVE0aP1qKrnJcE0gSNLzwA_oDHSuDPpsU_gO-Bh551dYWpIUYt-Sh66Sva_jcU_LFmjhyniWwWeo2HfLDryUl8sTqzuwrC1gAA');
         }, 10);
     }, []);
 
@@ -191,7 +191,7 @@ export default function TestMap() {
             <div className={styles.Map}>
                 {token &&
                     <TsunaguMap {...props}
-                    token={token}
+                    // token={token}
                     disabledPopup={disabledPopup}
                     disabledLabel={disabledLabel}
                     disabledContentDialog={disabledContentDialog}

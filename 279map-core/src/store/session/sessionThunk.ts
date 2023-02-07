@@ -30,14 +30,13 @@ export const connectMap = createAsyncThunk<ConnectMapResult, { mapId: string; au
             }
             let headers = {};
             if (param.token) {
-                url += '&token=' + param.token;
                 headers = {
-                    Authorization:  `Bearer ${param.token}`
+                    Authorization:  param.token ? `Bearer ${param.token}` : ''
                 }
             }
             console.log('connectMap', param.token);
             const result = await fetch(url, {
-                // credentials: "include",
+                credentials: param.token ? undefined : 'include',
                 headers,
             });
             if (!result.ok) {

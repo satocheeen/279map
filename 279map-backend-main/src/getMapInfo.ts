@@ -67,7 +67,7 @@ export async function getMapPageInfo(pageId: string): Promise<types.schema.MapPa
     const con = await ConnectionPool.getConnection();
 
     try {
-        const [rows] = await con.execute('SELECT * FROM map_page_info WHERE map_page_id=? OR replace(map_page_id, "-", "")=? OR alias=?', [pageId, pageId, pageId]);
+        const [rows] = await con.execute('SELECT * FROM map_page_info WHERE map_page_id=?', [pageId]);
         if ((rows as types.schema.MapPageInfoTable[]).length === 0) {
             return null;
         }

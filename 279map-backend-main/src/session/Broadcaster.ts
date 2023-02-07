@@ -1,11 +1,11 @@
 import WebSocket from 'ws';
-import cookie from 'cookie';
 import { getLogger } from 'log4js';
-import { IncomingMessage, Server } from 'http';
+import { Server } from 'http';
 import { Request } from 'express';
 import SessionInfo from './SessionInfo';
 import { MapKind } from '279map-common';
 import { WebSocketMessage } from '../../279map-api-interface/src';
+import { getSessionIdFromCookies } from './session_utility';
 
 /**
  * クライアントの情報を管理し、必要に応じてクライアントに通知を行うクラス
@@ -24,7 +24,7 @@ export default class Broadcaster {
 
         this._wss.on('connection', (ws, req) => {
             // SessionID取得
-            const sid = this.getSessionIdFromWsRequest(req);
+            const sid = getSessionIdFromCookies(req);
             if (!sid) {
                 this._logger.warn('WebSocket connected failed. can not get sid.');
                 return;
@@ -66,27 +66,10 @@ export default class Broadcaster {
         
     }
     
-    getSessionIdFromWsRequest(req: IncomingMessage) {
-        if (!req.headers.cookie) {
-            this._logger.warn('WebSocket connected failed. can not get cookie.');
-            return;
-        }
-        const cookies = cookie.parse(req.headers.cookie);
-        let sid = cookies["connect.sid"];
-        this._logger.debug('connect.sid', sid);
-        // ピリオド以降を除去する
-        const index = sid.indexOf('.');
-        if (index > 0) {
-            sid = sid.substring(0, index);
-        }
-        this._logger.debug('sid', sid);
-        return sid;
-    }
-
-    addSession(sid: string): SessionInfo | undefined {
+    addSession(sid: string): SessionInfo {
         if (!sid) {
             this._logger.warn('[addSession] sid not found');
-            return undefined;
+            throw '[addSession] sid not found';
         }
         if (this._sessionMap[sid]) {
             this._logger.info('[addSession] session already exist', sid);

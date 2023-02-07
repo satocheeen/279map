@@ -17,6 +17,7 @@ export async function callApi<API extends APIDefine<any, any>> (server: ServerIn
         response = await accessServer({
             url: `${serverUrl}/api/${api.uri}`,
             method: api.method,
+            token: server.token,
             param,
         });
 
@@ -42,7 +43,7 @@ export async function callApi<API extends APIDefine<any, any>> (server: ServerIn
  * 接続失敗時は数度リトライする。
  * @param url 
  */
- async function accessServer(param: {url: string; method?: 'get' | 'post'; param?: {}}): Promise<Response> {
+ async function accessServer(param: {url: string; method?: 'get' | 'post'; token?: string; param?: {}}): Promise<Response> {
     let response: Response | undefined;
 
     const func = () => new Promise<Response>((resolve, reject) => {
@@ -50,9 +51,10 @@ export async function callApi<API extends APIDefine<any, any>> (server: ServerIn
             method: param.method,
             headers: {
                 'Content-Type': 'application/json',
+                Authorization:  param.token ? `Bearer ${param.token}` : '',
             },
             body: param.param ? JSON.stringify(param.param) : undefined,
-            credentials: 'include',
+            credentials: param.token ? undefined : 'include',
         })
         .then((res) => {
             if (!res.ok) {

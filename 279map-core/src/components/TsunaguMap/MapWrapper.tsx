@@ -42,6 +42,7 @@ export default function MapWrapper() {
         dispatch(sessionActions.setMapServer({
             domain: ownerContext.mapServerHost,
             ssl: true,
+            token: ownerContext.token,
         }));
     }, [ownerContext.mapServerHost, dispatch]);
 

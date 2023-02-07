@@ -4,6 +4,7 @@ import { CSSProperties } from "react";
 export type ServerInfo = {
     domain: string;
     ssl: boolean;
+    token?: string;
 }
 
 // 地図のモード
