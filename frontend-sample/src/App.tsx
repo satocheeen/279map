@@ -35,7 +35,7 @@ export default function App() {
         console.log('connect', param);
         if (param.result === 'success') {
             setMapKind(param.mapDefine.defaultMapKind);
-            setCommandHook(commandHook);
+            setCommandHook(param.commandHook);
         }
         setCnt(cnt + 1);
     }, [cnt, commandHook]);

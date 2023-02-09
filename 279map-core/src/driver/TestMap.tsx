@@ -33,7 +33,7 @@ export default function TestMap() {
         console.log('connect', param);
         if (param.result === 'success') {
             setMapKind(param.mapDefine.defaultMapKind);
-            setCommandHook(commandHook);
+            setCommandHook(param.commandHook);
         }
         setCnt(cnt + 1);
     }, [cnt, commandHook]);
@@ -155,7 +155,7 @@ export default function TestMap() {
                     </div>
                 </div>
                 <div className={styles.Col}>
-                    <button onClick={commandHook?.drawStructure}>建設</button>
+                <button onClick={commandHook?.drawStructure}>建設</button>
                     <button onClick={commandHook?.moveStructure}>移築</button>
                     <button onClick={commandHook?.changeStructure}>改築</button>
                     <button onClick={commandHook?.removeStructure}>建物解体</button>

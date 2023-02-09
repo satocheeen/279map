@@ -1,8 +1,9 @@
 import randomColor from "randomcolor";
-import { APIFunc, ConnectionPool } from "..";
+import { ConnectionPool } from "..";
 import { types } from "279map-backend-common";
 import { GetCategoryResult } from "../../279map-api-interface/src";
 import { CategoryDefine } from "279map-common";
+import { CurrentMap } from "../session/SessionInfo";
 
 /**
  * get the categories which are used in current map.
@@ -10,7 +11,7 @@ import { CategoryDefine } from "279map-common";
  * @param param0 
  * @returns categories
  */
-export const getCategory: APIFunc<void, GetCategoryResult> = async({ currentMap }) => {
+export async function getCategory(currentMap: CurrentMap): Promise<GetCategoryResult> {
     if (!currentMap) {
         throw 'mapPageId or mapKind not defined.';
     }

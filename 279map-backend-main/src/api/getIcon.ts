@@ -1,5 +1,5 @@
 import { getLogger } from "log4js";
-import { APIFunc, ConnectionPool } from "..";
+import { ConnectionPool } from "..";
 
 const logger = getLogger();
 
@@ -7,7 +7,7 @@ const logger = getLogger();
  * 指定のidのアイコン画像Base64を返す
  * @param pageId 
  */
-export const getIcon: APIFunc<{id: string}, string> = async({ param }) => {
+export async function getIcon(param: {id: string}): Promise<string> {
     let pageId = param.id;
     if (pageId.endsWith('/')) {
         pageId = pageId.substring(0, pageId.length-1);

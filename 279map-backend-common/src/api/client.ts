@@ -1,23 +1,29 @@
 import { APIDefine } from '279map-common';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import FormData from 'form-data';
 
 export async function callOdbaApi<API extends APIDefine<any,any>>(api: API, param: API['param']): Promise<API['result']> {
     const url = `http://${process.env.ODBA_SERVICE_HOST}:${process.env.ODBA_SERVICE_PORT}/${api.uri}/`;
     try {
-        let result;
+        let res: AxiosResponse;
         if (api.method === 'get') {
-            const res = await axios.get(url, {
+            res = await axios.get(url, {
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 params: param,
+                timeout: 10000,
             });
-            result = res.data;
         } else {
-            const res = await axios.post(url, param);
-            result = res.data;
+            res = await axios.post(url, param, {
+                timeout: 10000,
+            });
         }
+        if (res.status !== 400) {
+            throw res.statusText + res.data;
+        }
+        const result = res.data;
+
         return result as API['result'];
     
     } catch (e) {

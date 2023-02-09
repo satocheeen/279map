@@ -38,7 +38,7 @@ export default function Content(props: Props) {
     const dispatch = useAppDispatch();
     const { apiUrl } = useAPI();
     const { filterTargetContentIds } = useFilter();
-    const { onEditContentInfo } = useContext(OwnerContext);
+    const { onEditContentInfo, token } = useContext(OwnerContext);
 
     /**
      * 表示対象コンテンツかどうか。
@@ -165,7 +165,12 @@ export default function Content(props: Props) {
         const url = `${apiUrl}getimageurl?id=${props.content.id}`;
         setShowSpinner(true);
         try {
-            const response = await fetch(url);
+            const response = await fetch(url, {
+                headers: {
+                    Authorization:  token ? `Bearer ${token}` : '',
+                },    
+                credentials: token ? undefined : 'include',
+            });
             if(!response.ok) {
                 throw response.statusText;
             }

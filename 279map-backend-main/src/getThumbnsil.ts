@@ -1,11 +1,11 @@
-import { APIFunc, ConnectionPool } from ".";
+import { ConnectionPool } from ".";
 
 /**
  * 指定のページのサムネイル画像Base64を返す
  * @param pageId 
  */
-export const getThumbnail: APIFunc<{id: string}, string> = async({ param }) => {
-    let pageId = param.id;
+export async function getThumbnail(id: string): Promise<string> {
+    let pageId = id;
     if (pageId.endsWith('/')) {
         pageId = pageId.substring(0, pageId.length-1);
     }

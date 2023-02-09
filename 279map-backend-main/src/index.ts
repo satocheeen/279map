@@ -16,7 +16,7 @@ import { convertBase64ToBinary } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
 import { getSnsPreview } from './api/getSnsPreview';
-import { CurrentMap } from './session/SessionInfo';
+import SessionInfo, { CurrentMap } from './session/SessionInfo';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import { getIcon } from './api/getIcon';
 import { utility, api as backendAPI, types } from '279map-backend-common';
@@ -25,11 +25,12 @@ import cookieParser from 'cookie-parser';
 import { readFileSync } from 'fs';
 import { exit } from 'process';
 import { getMapId } from './getMapDefine';
-import { ConnectResult, GeocoderParam, GeocoderResult, GetCategoryAPI, GetContentsAPI, GetEventsAPI, GetGeocoderFeatureParam, GetGeoCoderFeatureResult, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoResult, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetSnsPreviewResult, GetUnpointDataAPI, GetUnpointDataParam, GetUnpointDataResult, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
+import { ConnectResult, GeocoderParam, GeocoderResult, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetGeoCoderFeatureResult, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetMapInfoResult, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetSnsPreviewResult, GetUnpointDataAPI, GetUnpointDataParam, GetUnpointDataResult, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { auth, requiredScopes } from 'express-oauth2-jwt-bearer';
 import { getMapUser } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
 import { getSessionIdFromCookies } from './session/session_utility';
+import { GetItemsParam } from '../279map-api-interface/dist';
 
 declare global {
     namespace Express {
@@ -39,7 +40,8 @@ declare global {
                 mapId: string;
                 mapPageInfo?: types.schema.MapPageInfoTable;
                 authLv?: Auth;
-            }
+            },
+            currentMap: CurrentMap;
         }
     }
 }
@@ -207,6 +209,7 @@ app.all('/api/*',
         } else {
             const session = broadCaster.getSessionInfo(sessionKey);
             if (!session?.currentMap) {
+                apiLogger.warn('currentMap is not found: ', sessionKey, broadCaster._sessionMap);
                 res.status(400).send('currentMap is not found: ' + sessionKey);
                 return;
             }
@@ -220,6 +223,8 @@ app.all('/api/*',
 );
 
 /**
+ * Authorization.
+ * set connect.mapPageInfo, auth in this process.
  * 認証チェック。チェックの課程で、connect.mapPageInfo, authに値設定。
  */
 app.all('/api/*', 
@@ -392,364 +397,553 @@ app.get('/api/disconnect', async(req, res) => {
     res.send('disconnect');
 });
 
-// 地図基本情報取得
-app.post('/api/' + GetMapInfoAPI.uri, async(req, res) => {
-    try {
-        if (!req.connect?.authLv) throw 'no session';
-        if (![Auth.View, Auth.Edit].includes(req.connect.authLv)) {
-            res.status(403).send('can not use this api');
+const checkApiAuthLv = (needAuthLv: Auth) => {
+    return async(req: Request, res: Response, next: NextFunction) => {
+        let allowAuthList: Auth[];
+        switch(needAuthLv) {
+            case Auth.View:
+                allowAuthList = [Auth.View, Auth.Edit];
+                break;
+            case Auth.Edit:
+                allowAuthList = [Auth.Edit];
+                break;
+            default:
+                allowAuthList = [];
+        }
+        if (!req.connect?.authLv || !allowAuthList.includes(req.connect.authLv)) {
+            res.status(403).send('the user does not have authentication using this api.');
             return;
         }
-        const session = broadCaster.getSessionInfo(req.connect?.sessionKey as string);
-
-        const param = req.body;
-
-        const result = await getMapInfo(param);
-
-        const myResult = result as GetMapInfoResult;
-        session.resetItems();
-        session.currentMap = {
-            mapPageId: myResult.mapId,
-            mapKind: myResult.mapKind,
-        }
-
-        apiLogger.debug('result', result);
-
-        res.send(result);
-
-    } catch(e) {    
-        apiLogger.warn(e);
-        res.status(500).send(e);
+        next();
     }
-})
-
-type APIFuncParam<PARAM> = {
-    currentMap: CurrentMap | undefined;
-    req: Request;
-    param: PARAM;
-}
-export type APIFunc<PARAM, RESULT> = (param: APIFuncParam<PARAM>) => Promise<RESULT>;
-
-type AfterParam<PARAM, RESULT> = {
-    param: PARAM;
-    result: RESULT;
-    req: Request;
-    res: Response;
-}
-type APICallDefine<PARAM, RESULT> = {
-    define: APIDefine<PARAM, RESULT>;
-    func: (param: APIFuncParam<PARAM>) => Promise<RESULT>;
-    // func実行後に実施する処理
-    after?: (param: AfterParam<PARAM, RESULT>) => boolean;   // falseで復帰した場合は、res.sendしない
 }
 
-const apiList: APICallDefine<any,any>[] = [
-    // オリジナルアイコン情報取得
-    {
-        define: GetOriginalIconDefineAPI,
-        func: getOriginalIconDefine,
-    },
-    // 地図アイテム取得
-    {
-        define: GetItemsAPI,
-        func: getItems,
-        after: ({ req, result }) => {
+// 地図基本情報取得
+app.post(`/api/${GetMapInfoAPI.uri}`, 
+    checkApiAuthLv(Auth.View), 
+    async(req, res) => {
+        try {
+            const session = broadCaster.getSessionInfo(req.connect?.sessionKey as string);
+
+            const param = req.body as GetMapInfoParam;
+
+            const result = await getMapInfo(param);
+
+            session.resetItems();
+            session.currentMap = {
+                mapPageId: result.mapId,
+                mapKind: result.mapKind,
+            }
+
+            apiLogger.debug('result', result);
+
+            res.send(result);
+
+        } catch(e) {    
+            apiLogger.warn(e);
+            res.status(500).send(e);
+        }
+    }
+);
+
+/**
+ * check whether connecting map and set the value of req.currentMap
+ */
+const checkCurrentMap = async(req: Request, res: Response, next: NextFunction) => {
+    const session = broadCaster.getSessionInfo(req.connect?.sessionKey as string);
+    if (!session.currentMap) {
+        res.status(500).send('not connect a map');
+        return;
+    }
+    req.currentMap = session.currentMap;
+    next();
+}
+
+
+/**
+ * get original icon define
+ * オリジナルアイコン情報取得
+ */
+app.post(`/api/${GetOriginalIconDefineAPI.uri}`, 
+    checkApiAuthLv(Auth.View), 
+    checkCurrentMap,
+    async(req, res) => {
+        try {
+            const result = await getOriginalIconDefine(req.currentMap);
+
+            apiLogger.debug('result', result);
+
+            res.send(result);
+
+        } catch(e) {    
+            apiLogger.warn(e);
+            res.status(500).send(e);
+        }
+    }
+);
+
+/**
+ * get items
+ * 地図アイテム取得
+ */
+app.post(`/api/${GetItemsAPI.uri}`,
+    checkApiAuthLv(Auth.View), 
+    checkCurrentMap,
+    async(req, res) => {
+        try {
+            const param = req.body as GetItemsParam;
+            const result = await getItems({
+                param,
+                currentMap: req.currentMap
+            });
+
             // 送信済みのコンテンツ情報は除外する
             // TODO: 削除考慮
-            const session = broadCaster.getSessionInfo(req.connect?.sessionKey as string);
-            if (!session) {
-                logger.warn('no session');
-                return true;
-            }
+            const session = broadCaster.getSessionInfo(req.connect?.sessionKey as string) as SessionInfo;
             result.items = (result as GetItemsResult).items.filter(item => {
                 const isSend = session.isSendedItem(item);
                 return !isSend;
             });
             session.addItems(result.items);
 
-            return true;
-        }
-    },
-    // コンテンツ取得
-    {
-        define: GetContentsAPI,
-        func: getContents,
-    },
-    // カテゴリ取得
-    {
-        define: GetCategoryAPI,
-        func: getCategory,
-    },
-    // イベント取得
-    {
-        define: GetEventsAPI,
-        func: getEvents,
-    },
+            apiLogger.debug('result', result);
 
-    // 位置アイテム登録
-    {
-        define: RegistItemAPI,
-        func: async({ currentMap, param }) => {
-            if (!currentMap) {
-                throw 'no currentmap';
-            }
-            const mapPageId = currentMap.mapPageId;
-            const mapKind = currentMap.mapKind;
+            res.send(result);
+
+        } catch(e) {    
+            apiLogger.warn(e);
+            res.status(500).send(e);
+        }
+    }
+);
+
+/**
+ * コンテンツ取得
+ */
+app.post(`/api/${GetContentsAPI.uri}`,
+    checkApiAuthLv(Auth.View), 
+    checkCurrentMap,
+    async(req, res) => {
+        try {
+            const param = req.body as GetContentsParam;
+            const result = await getContents({
+                param,
+                currentMap: req.currentMap
+            });
+
+            apiLogger.debug('result', result);
+
+            res.send(result);
+
+        } catch(e) {    
+            apiLogger.warn(e);
+            res.status(500).send(e);
+        }
+    }
+);
+
+/**
+ * カテゴリ取得
+ */
+app.post(`/api/${GetCategoryAPI.uri}`,
+    checkApiAuthLv(Auth.View), 
+    checkCurrentMap,
+    async(req, res) => {
+        try {
+            const result = await getCategory(req.currentMap);
+
+            apiLogger.debug('result', result);
+
+            res.send(result);
+
+        } catch(e) {    
+            apiLogger.warn(e);
+            res.status(500).send(e);
+        }
+    }
+);
+
+/**
+ * カテゴリ取得
+ */
+app.post(`/api/${GetEventsAPI.uri}`,
+    checkApiAuthLv(Auth.View), 
+    checkCurrentMap,
+    async(req, res) => {
+        try {
+            const result = await getEvents(req.currentMap);
+
+            apiLogger.debug('result', result);
+
+            res.send(result);
+
+        } catch(e) {    
+            apiLogger.warn(e);
+            res.status(500).send(e);
+        }
+    }
+);
+
+/**
+ * regist item
+ * 位置アイテム登録
+ */
+app.post(`/api/${RegistItemAPI.uri}`,
+    checkApiAuthLv(Auth.Edit), 
+    checkCurrentMap,
+    async(req, res) => {
+        try {
+            const param = req.body as RegistItemParam;
+            const mapPageId = req.currentMap.mapPageId;
+            const mapKind = req.currentMap.mapKind;
         
-            // DBA呼び出し
+            // call ODBA
             const id = await backendAPI.callOdbaApi(backendAPI.RegistItemAPI, {
                 mapId: mapPageId,
                 mapKind,
                 geometry: param.geometry,
                 geoProperties: param.geoProperties,
             });
-        
-            return id;
-        },
-        after: ({ req }) => {
+    
             // 更新通知
             broadCaster.broadcastSameMap(req, {
                 type: 'updated',
             });
-            return true;
-        },
-    } as APICallDefine<RegistItemParam, string>,
-
-    // 位置アイテム更新
-    {
-        define: UpdateItemAPI,
-        func: async({ param }) => {
-            await backendAPI.callOdbaApi(backendAPI.UpdateItemAPI, param);
-        },
-        after: ({ req }) => {
-            // 更新通知
-            broadCaster.broadcastSameMap(req, {
-                type: 'updated',
-            });
-            return true;
+            
+            res.send(id);
+    
+        } catch(e) {    
+            apiLogger.warn(e);
+            res.status(500).send(e);
         }
-    } as APICallDefine<UpdateItemParam, void>,
+    }
+);
 
-    // 位置アイテム削除
-    {
-        define: RemoveItemAPI,
-        func: async({ param }) => {
+/**
+ * update item
+ * 位置アイテム更新
+ */
+app.post(`/api/${UpdateItemAPI.uri}`,
+    checkApiAuthLv(Auth.Edit), 
+    checkCurrentMap,
+    async(req, res) => {
+        try {
+            const param = req.body as UpdateItemParam;
+
+            // call ODBA
+            await backendAPI.callOdbaApi(backendAPI.UpdateItemAPI, param);
+    
+            // 更新通知
+            broadCaster.broadcastSameMap(req, {
+                type: 'updated',
+            });
+            
+            res.send('complete');
+    
+        } catch(e) {    
+            apiLogger.warn(e);
+            res.status(500).send(e);
+        }
+    }
+);
+
+/**
+ * update item
+ * 位置アイテム削除
+ */
+app.post(`/api/${RemoveItemAPI.uri}`,
+    checkApiAuthLv(Auth.Edit), 
+    checkCurrentMap,
+    async(req, res) => {
+        try {
+            const param = req.body as RemoveItemParam;
+
+            // call ODBA
             await backendAPI.callOdbaApi(backendAPI.RemoveItemAPI, param);
-        },
-        after: ( { req, param }) => {
+    
             // 更新通知
             broadCaster.broadcastSameMap(req, {
                 type: 'delete',
                 itemPageIdList: [param.id],
             });
-            return true;
-        }
-    } as APICallDefine<RemoveItemParam, void>,
-
-    // コンテンツ登録
-    {
-        define: RegistContentAPI,
-        func: async({ currentMap: currentMap, param }) => {
-            if (!currentMap) {
-                throw 'no currentmap';
-            }
-            const mapPageId =currentMap.mapPageId;
             
-            // DBA呼び出し
+            res.send('complete');
+    
+        } catch(e) {    
+            apiLogger.warn(e);
+            res.status(500).send(e);
+        }
+    }
+);
+
+/**
+ * regist a content
+ * コンテンツ登録
+ */
+app.post(`/api/${RegistContentAPI.uri}`,
+    checkApiAuthLv(Auth.Edit), 
+    checkCurrentMap,
+    async(req, res) => {
+        try {
+            const param = req.body as RegistContentParam;
+            const mapPageId = req.currentMap.mapPageId;
+    
+            // call ODBA
             await backendAPI.callOdbaApi(backendAPI.RegistContentAPI, Object.assign({
                 mapId: mapPageId,
             }, param));
-        },
-        after: ({ req }) => {
+    
             // 更新通知
             broadCaster.broadcastSameMap(req, {
                 type: 'updated',
             });
-            return true;
+        
+            res.send('complete');
+    
+        } catch(e) {    
+            apiLogger.warn(e);
+            res.status(500).send(e);
         }
-    } as APICallDefine<RegistContentParam, void>,
+    }
+);
 
-    // コンテンツ更新
-    {
-        define: UpdateContentAPI,
-        func: async({ currentMap, param }) => {
-            if (!currentMap) {
-                throw 'no currentmap';
-            }
-            const mapId = currentMap.mapPageId;
-            
-            // DBA呼び出し
+/**
+ * update a content
+ * コンテンツ更新
+ */
+app.post(`/api/${UpdateContentAPI.uri}`,
+    checkApiAuthLv(Auth.Edit), 
+    checkCurrentMap,
+    async(req, res) => {
+        try {
+            const param = req.body as UpdateContentParam;
+            const mapId = req.currentMap.mapPageId;
+    
+            // call ODBA
             await backendAPI.callOdbaApi(backendAPI.UpdateContentAPI, Object.assign({
                 mapId,
             }, param));
-        },
-        after: ({ req }) => {
+    
             // 更新通知
             broadCaster.broadcastSameMap(req, {
                 type: 'updated',
             });
-            return true;
-        }
-    } as APICallDefine<UpdateContentParam, void>,
-
-    // 地点未登録コンテンツ取得
-    {
-        define: GetUnpointDataAPI,
-        func: async({ currentMap, param }) => {
-            if (!currentMap) {
-                throw 'no currentmap';
-            }
         
-            const res = await backendAPI.callOdbaApi(backendAPI.GetUnpointDataAPI, {
-                mapId: currentMap.mapPageId,
-                mapKind: currentMap.mapKind,
-                nextToken: param.nextToken,
-            });
-        
-            return res;
-        },
-    } as APICallDefine<GetUnpointDataParam, GetUnpointDataResult>,
-
-    // コンテンツをアイテムに紐づけ
-    {
-        define: LinkContentToItemAPI,
-        func: async({ param }) => {
-            // DBA呼び出し
-            await backendAPI.callOdbaApi(backendAPI.LinkContentToItemAPI, param);
-        },
-    } as APICallDefine<LinkContentToItemParam, void>,
-
-    // コンテンツ削除
-    {
-        define: RemoveContentAPI,
-        func: async({ param }) => {
-            // DBA呼び出し
-            await backendAPI.callOdbaApi(backendAPI.RemoveContentAPI, param);
-        },
-    } as APICallDefine<RemoveContentParam, void>,
-
-    // SNSプレビュー取得
-    {
-        define: GetSnsPreviewAPI,
-        func: getSnsPreview,
-    } as APICallDefine<GetSnsPreviewParam, GetSnsPreviewResult>,
-
-    // サムネイル画像取得
-    {
-        define: {
-            uri: 'getthumb',
-            method: 'get',
-        },
-        func: getThumbnail,
-        after: ({ res, result }) => {
-            const bin = convertBase64ToBinary(result);
-            res.writeHead(200, {
-                'Content-Type': bin.contentType,
-                'Content-Length': bin.binary.length
-            });
-            res.end(bin.binary);
-
-            return false;
-        },
-    } as APICallDefine<{id: string}, string>,
-
-    // オリジナル画像URL取得
-    {
-        define: {
-            uri: 'getimageurl',
-            method: 'get',
-        } as APIDefine<{id: string}, string>,
-        func: async({ param }) => {
-            // DBA呼び出し
-            return await backendAPI.callOdbaApi(backendAPI.GetImageUrlAPI, param);
-        },
-    } as APICallDefine<{id: string}, string>,
-
-    // アイコン画像取得
-    {
-        define: {
-            uri: 'geticon',
-            method: 'get',
-        },
-        func: getIcon,
-        after: ({ res, result }) => {
-            const bin = convertBase64ToBinary(result);
-            res.writeHead(200, {
-                'Content-Type': bin.contentType,
-                'Content-Length': bin.binary.length
-            });
-            res.end(bin.binary);
-
-            return false;
-        },
-    } as APICallDefine<{id: string}, string>,
-
-    // 住所検索
-    {
-        define: {
-            uri: 'geocoder',
-            method: 'get',
-        },
-        func: geocoder,
-    } as APICallDefine<GeocoderParam, GeocoderResult>,
-
-    // 住所検索結果Feature取得
-    {
-        define: {
-            uri: 'getGeocoderFeature',
-            method: 'get',
-        },
-        func: getGeocoderFeature,
-    } as APICallDefine<GetGeocoderFeatureParam, GetGeoCoderFeatureResult>,
-];
-
-apiList.forEach((api => {
-    const getParam = (req: Request) => {
-        if (api.define.method === 'post') {
-            return req.body;
-        } else {
-            return req.query;
-        }
-    }
-
-    const execute =  async(req: Request, res: Response) => {
-        try {
-            const session = broadCaster.getSessionInfo(req.connect?.sessionKey as string);
+            res.send('complete');
     
-            const param = getParam(req);
-
-            // // TODO: getmapinfoでは不要
-            // if (!session.mapPageId || !session.mapKind) {
-            //     throw 'セッション状態不正:' + session.mapPageId + ',' + session.mapKind;
-            // }
-
-            const result = await api.func({ currentMap: session?.currentMap, req, param });
-    
-            let doSend = true;
-            if (api.after) {
-                doSend = api.after({ param, result, req, res });
-            }
-        
-            apiLogger.info('[end] ' + api.define.uri);
-            apiLogger.debug('result', result);
-        
-            if (doSend) {
-                res.send(result);
-            }
-
-        } catch(e) {    
-            apiLogger.warn(api.define.uri + ' error', e);
+        } catch(e) {
+            apiLogger.warn(e);
             res.status(500).send(e);
         }
-    };
-
-    if (api.define.method === 'post') {
-        app.post('/api/' + api.define.uri, execute);
-    } else {
-        app.get('/api/' + api.define.uri, execute);
     }
+);
 
-}));
+/**
+ * get unpointed conents
+ * 地点未登録コンテンツ取得
+ */
+app.post(`/api/${GetUnpointDataAPI.uri}`,
+    checkApiAuthLv(Auth.Edit), 
+    checkCurrentMap,
+    async(req, res) => {
+        try {
+            const param = req.body as GetUnpointDataParam;
+
+            // call ODBA
+            const result = await backendAPI.callOdbaApi(backendAPI.GetUnpointDataAPI, {
+                mapId: req.currentMap.mapPageId,
+                mapKind: req.currentMap.mapKind,
+                nextToken: param.nextToken,
+            });
+    
+            res.send(result);
+    
+        } catch(e) {
+            apiLogger.warn(e);
+            res.status(500).send(e);
+        }
+    }
+);
+
+/**
+ * link content to item
+ * コンテンツをアイテムに紐づけ
+ */
+app.post(`/api/${LinkContentToItemAPI.uri}`,
+    checkApiAuthLv(Auth.Edit), 
+    checkCurrentMap,
+    async(req, res) => {
+        try {
+            const param = req.body as LinkContentToItemParam;
+
+            // call ODBA
+            await backendAPI.callOdbaApi(backendAPI.LinkContentToItemAPI, param);
+    
+            res.send('complete');
+    
+        } catch(e) {
+            apiLogger.warn(e);
+            res.status(500).send(e);
+        }
+    }
+);
+
+/**
+ * remote the content
+ * コンテンツ削除
+ */
+app.post(`/api/${RemoveContentAPI.uri}`,
+    checkApiAuthLv(Auth.Edit), 
+    checkCurrentMap,
+    async(req, res) => {
+        try {
+            const param = req.body as RemoveContentParam;
+
+            // call ODBA
+            await backendAPI.callOdbaApi(backendAPI.RemoveContentAPI, param);
+    
+            res.send('complete');
+    
+        } catch(e) {
+            apiLogger.warn(e);
+            res.status(500).send(e);
+        }
+    }
+);
+
+/**
+ * get sns preview
+ * SNSプレビュー取得
+ */
+app.post(`/api/${GetSnsPreviewAPI.uri}`,
+    checkApiAuthLv(Auth.Edit), 
+    checkCurrentMap,
+    async(req, res) => {
+        try {
+            const param = req.body as GetSnsPreviewParam;
+
+            const result = await getSnsPreview(param);
+    
+            res.send(result);
+    
+        } catch(e) {
+            apiLogger.warn(e);
+            res.status(500).send(e);
+        }
+    }
+);
+
+/**
+ * get thumbnail
+ * サムネイル画像取得
+ */
+app.get('/api/getthumb',
+    checkApiAuthLv(Auth.View), 
+    checkCurrentMap,
+    async(req, res) => {
+        try {
+            const id = req.query.id as string;
+            const result = await getThumbnail(id);
+    
+            const bin = convertBase64ToBinary(result);
+            res.writeHead(200, {
+                'Content-Type': bin.contentType,
+                'Content-Length': bin.binary.length
+            });
+            res.end(bin.binary);
+
+        } catch(e) {
+            apiLogger.warn(e);
+            res.status(500).send(e);
+        }
+    }
+);
+
+/**
+ * get original image's url.
+ * オリジナル画像URL取得
+ */
+app.get('/api/getimageurl',
+    checkApiAuthLv(Auth.View), 
+    checkCurrentMap,
+    async(req, res) => {
+        try {
+            const param = req.query as { id: string };
+
+            // call odba
+            return await backendAPI.callOdbaApi(backendAPI.GetImageUrlAPI, param);
+
+        } catch(e) {
+            apiLogger.warn(e);
+            res.status(500).send(e);
+        }
+    }
+);
+
+/**
+ * アイコン画像取得
+ */
+app.get('/api/geticon',
+    checkApiAuthLv(Auth.View), 
+    checkCurrentMap,
+    async(req, res) => {
+        try {
+            const param = req.query as { id: string };
+
+            const result = await getIcon(param);
+            const bin = convertBase64ToBinary(result);
+            res.writeHead(200, {
+                'Content-Type': bin.contentType,
+                'Content-Length': bin.binary.length
+            });
+            res.end(bin.binary);
+
+            return false;
+
+        } catch(e) {
+            apiLogger.warn(e);
+            res.status(500).send(e);
+        }
+    }
+);
+
+/**
+ * 住所検索
+ */
+app.get('/api/geocoder',
+    checkApiAuthLv(Auth.View), 
+    checkCurrentMap,
+    async(req, res) => {
+        try {
+            const param = req.query as GeocoderParam;
+            const result = geocoder(param);
+            res.send(result);
+    
+        } catch(e) {
+            apiLogger.warn(e);
+            res.status(500).send(e);
+        }
+    }
+);
+
+/**
+ * 住所検索結果Feature取得
+ */
+app.get('/api/getGeocoderFeature',
+    checkApiAuthLv(Auth.View), 
+    checkCurrentMap,
+    async(req, res) => {
+        try {
+            const param = req.query as GetGeocoderFeatureParam;
+            const result = getGeocoderFeature(param);
+            res.send(result);
+
+        } catch(e) {
+            apiLogger.warn(e);
+            res.status(500).send(e);
+        }
+    }
+);
 
 app.all('/api/*', (req) => {
     apiLogger.info('[end]', req.url, req.connect?.sessionKey);

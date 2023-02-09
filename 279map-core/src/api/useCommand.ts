@@ -38,6 +38,7 @@ export function useCommand() {
      * 建設または地点登録する
      */
     const drawStructure = useCallback(() => {
+        console.log('call drawStructure');
         doCommand({
             command: 'DrawStructure',
             param: undefined,

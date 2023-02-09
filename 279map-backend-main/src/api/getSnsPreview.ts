@@ -1,8 +1,7 @@
-import { APIFunc } from "..";
 import { sns } from "279map-backend-common";
 import { GetSnsPreviewParam, GetSnsPreviewResult, SnsPreviewPost } from "../../279map-api-interface/src";
 
-export const getSnsPreview: APIFunc<GetSnsPreviewParam, GetSnsPreviewResult> = async({ param }) => {
+export async function getSnsPreview(param: GetSnsPreviewParam): Promise<GetSnsPreviewResult> {
     const postGetter = sns.getSnsPostGetterByUrl(param.url);
     if (!postGetter) {
         throw '対応しているURLではありません。';

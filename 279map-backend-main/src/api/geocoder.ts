@@ -2,7 +2,6 @@ import { GeocoderId } from "279map-common";
 import axios from "axios";
 import { GeoJsonObject } from "geojson";
 import { getLogger } from "log4js";
-import { APIFunc } from "..";
 import { GeocoderItem, GeocoderParam, GeocoderResult, GetGeocoderFeatureParam, GetGeoCoderFeatureResult } from "../../279map-api-interface/src";
 import { MapboxAccessToken } from "../config";
 
@@ -37,7 +36,7 @@ type MapboxResult = {
 
 const logger = getLogger('api');
 
-export const geocoder: APIFunc<GeocoderParam, GeocoderResult> = async({ param }) => {
+export async function geocoder(param: GeocoderParam): Promise<GeocoderResult> {
     const address = param.address;
 
     try {
@@ -123,7 +122,7 @@ async function osmSearch(address: string, searchTarget: ('point' | 'area')[]): P
     return list;
 };
 
-export const getGeocoderFeature: APIFunc<GetGeocoderFeatureParam, GetGeoCoderFeatureResult> = async({ param }) => {
+export async function getGeocoderFeature(param: GetGeocoderFeatureParam): Promise<GetGeoCoderFeatureResult> {
     const result = await getFeatureById(param);
 
     return {
