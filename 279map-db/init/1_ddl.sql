@@ -14,7 +14,6 @@ CREATE TABLE `map_page_info` (
   `title` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
   `last_edited_time` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
   `alias` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `edit_auth_hash` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `default_map` enum('Real','Virtual') COLLATE utf8mb4_unicode_ci NOT NULL,
   `use_maps` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
   `public_range` enum('Public','Private') COLLATE utf8mb4_unicode_ci NOT NULL,
