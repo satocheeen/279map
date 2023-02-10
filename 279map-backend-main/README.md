@@ -18,17 +18,10 @@ This is the main server of 279map.
 when you develop with running 279map-docker container, you stop 279map container.
 
 ## Deploy
-### 279map-api-interface
-if you modify 279map-api-interface, you need to build for 279map-core.
-```
-cd 279map-api-interface
-npm run rollup
-``` 
-
 ### 279map-backend-main
-1. delete exist docker image `279map-backend-main`
-2. make docker image
+1. npm publish `279map-common` and `279map-backend-common` if you modify them.
+2. delete exist docker image `279map-backend-main`
+3. make docker image
 	```shell
 	docker image build -t 279map-backend-main .
 	```
-3. make `docker-compose.yml`

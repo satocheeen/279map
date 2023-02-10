@@ -1,4 +1,4 @@
-import { Auth, CategoryDefine, ContentsDefine, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, UnpointContent } from "279map-common/src/types";
+import { Auth, CategoryDefine, ContentsDefine, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, UnpointContent } from "279map-common";
 import { GeoJsonObject } from "geojson";
 import { APIDefine, ContentAttr } from '279map-common';
 

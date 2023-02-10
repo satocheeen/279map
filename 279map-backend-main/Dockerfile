@@ -1,12 +1,18 @@
 # 1. build stage
 FROM node:16.13 as build
 
-# -- backend
 WORKDIR /home/node/app/backend
 COPY . .
+
 WORKDIR /home/node/app/backend
-RUN yarn install
-RUN yarn build
+
+# -- install latest npm package
+RUN npm install
+RUN npm i -D 279map-common@npm:279map-common
+RUN npm i 279map-backend-common@npm:279map-backend-common
+
+RUN npm run build
+
 WORKDIR /home/node/app/backend/dist
 RUN npm init -y
 RUN npm install --platform=linuxmusl --arch=x64 sharp
