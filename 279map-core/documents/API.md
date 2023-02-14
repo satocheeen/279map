@@ -9,7 +9,7 @@
 | iconDefine | [IconDefine](#icondefine)[] |  | Sets the icons defines using in the map.  If not set, a simple pin icon is used. |
 | disabledPopup | boolean | | Sets the `true` if you want not to show popup on the map |
 | filter | FilterDefine[] | | Sets filter conditions, filter items on the map |
-| onConnect | (result: [ConnectResult](#connectresult), command: [Command](#command)) => void | | Callback fired when connecting map success |
+| onConnect | (result: [MapDefine](#mapdefined), command: [Command](#command)) => void | | Callback fired when connecting map success |
 | onSelect | (selectedIds: string[]) => void | | Callback fired when the pins selected |
 | onUnselect | () => void | | Callback fired when the pins unselected |
 | onModeChanged | (mode: MapMode) => void | | Callback fired when map mode has changed. |
@@ -24,7 +24,7 @@
 | imagePath | string | the url of the icon. if 'default', you don't need set imagePath. |
 | useMaps | ('Real' \| 'Virtual')[] | the map kinds using the icon |
 
-### ConnectResult
+### MapDefine
 | Name | Type | Description |
 | ---- | ---- | ---- |
 | mapId | string | map's id |

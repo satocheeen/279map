@@ -14,6 +14,17 @@ export enum MapKind {
 }
 
 /**
+ * 地図定義情報
+ */
+export type MapDefine = {
+    mapId: string;
+    name: string;
+    useMaps: MapKind[];
+    defaultMapKind: MapKind;
+    authLv: Auth;   // ユーザの接続権限
+}
+
+/**
  * 地物種別
  * (DBに登録するので、後から増減可能なように文字列型にしている)
  */

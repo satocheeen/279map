@@ -3,17 +3,6 @@ import { GeoJsonObject } from "geojson";
 import { APIDefine, ContentAttr, SnsPreviewPost } from '279map-common';
 
 /**
- * connect
- */
-export type ConnectResult = {
-    mapId: string;
-    name: string;
-    useMaps: MapKind[];
-    defaultMapKind: MapKind;
-    authLv: Auth;
-}
-
-/**
  * get map info
  */
 export const GetMapInfoAPI = {

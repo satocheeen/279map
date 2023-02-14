@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import mysql from 'mysql2/promise';
 import { getMapInfo } from './getMapInfo';
-import { Auth, MapKind } from '279map-common';
+import { Auth, MapKind, MapDefine } from '279map-common';
 import { getItems } from './getItems';
 import session from 'express-session';
 import { configure, getLogger } from "log4js";
@@ -25,7 +25,7 @@ import cookieParser from 'cookie-parser';
 import { readFileSync } from 'fs';
 import { exit } from 'process';
 import { getMapId } from './getMapDefine';
-import { ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
+import { GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { auth } from 'express-oauth2-jwt-bearer';
 import { getMapUser } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
@@ -359,7 +359,7 @@ app.get('/api/connect', async(req, res, next) => {
             return;
         }
 
-        const result: ConnectResult = {
+        const result: MapDefine = {
             mapId: req.connect.mapId,
             name: req.connect.mapPageInfo.title,
             useMaps: req.connect.mapPageInfo.use_maps.split(',').map(mapKindStr => {
