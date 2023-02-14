@@ -140,3 +140,12 @@ export type ContentAttr = {
     type: 'sns';
     url?: string;
 });
+
+export type SnsPreviewPost = {
+    text: string;
+    media?: {
+        type: 'IMAGE' | 'VIDEO';
+        url: string;
+    };
+    date?: string;
+}

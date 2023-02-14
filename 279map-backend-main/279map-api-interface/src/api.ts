@@ -1,6 +1,6 @@
 import { Auth, CategoryDefine, ContentsDefine, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, UnpointContent } from "279map-common";
 import { GeoJsonObject } from "geojson";
-import { APIDefine, ContentAttr } from '279map-common';
+import { APIDefine, ContentAttr, SnsPreviewPost } from '279map-common';
 
 /**
  * connect
@@ -225,14 +225,6 @@ export const GetSnsPreviewAPI = {
 } as APIDefine<GetSnsPreviewParam, GetSnsPreviewResult>;
 export type GetSnsPreviewParam = {
     url: string;
-}
-export type SnsPreviewPost = {
-    text: string;
-    media?: {
-        type: 'IMAGE' | 'VIDEO';
-        url: string;
-    };
-    date?: string;
 }
 export type GetSnsPreviewResult = {
     type:  'InstagramUser';
