@@ -1,21 +1,14 @@
-import { Auth, MapKind } from "279map-common";
+import { MapDefine, MapKind } from "279map-common";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { ServerInfo } from "../../types/types";
 import { connectMap, loadMapDefine } from "./sessionThunk";
 import { Extent } from 'ol/extent';
 
-export type ConnectedMap = {
-    mapId: string;
-    name: string;
-    useMaps: MapKind[];
-    defaultMapKind: MapKind;
-    authLv: Auth;
-}
 type ConnectStatus = {
     status: 'connecting-map',
 } | {
     status: 'connected',
-    connectedMap: ConnectedMap,
+    connectedMap: MapDefine,
 } | {
     status: 'Unauthorized' | 'Forbidden',
 }

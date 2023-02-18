@@ -6,11 +6,10 @@ import { dataActions } from "../data/dataSlice";
 import { loadCategories, loadEvents, loadOriginalIconDefine } from "../data/dataThunk";
 import { GetMapInfoAPI, GetMapInfoResult, WebSocketMessage } from 'tsunagumap-api';
 import { MapKind, MapDefine } from "279map-common";
-import { ConnectedMap } from "./sessionSlice";
 
 export type ConnectMapResult = {
     result: 'success',
-    connectedMap: ConnectedMap,
+    connectedMap: MapDefine,
 } | {
     result: 'Unauthorized',
 } | {

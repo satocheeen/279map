@@ -1,4 +1,4 @@
-import { CategoryDefine, EventDefine, MapKind } from '279map-common';
+import { CategoryDefine, EventDefine, MapDefine, MapKind } from '279map-common';
 import React, { useState } from 'react';
 import { Provider } from 'react-redux';
 import { CommandHookType } from '../../api/useCommand';
@@ -11,11 +11,10 @@ import ConfirmDialog from '../common/confirm/ConfirmDialog';
 import ContentsModal from '../contents/ContentsModal';
 import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
 import { FilterDefine } from '../../store/operation/operationSlice';
-import { ConnectedMap } from '../../store/session/sessionSlice';
 
 export type OnConnectParam = {
     result: 'success',
-    mapDefine: ConnectedMap,
+    mapDefine: MapDefine,
     commandHook: CommandHookType,
 } | {
     result: 'Unauthorized',
