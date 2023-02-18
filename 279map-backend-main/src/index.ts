@@ -40,6 +40,7 @@ declare global {
                 mapId: string;
                 mapPageInfo?: types.schema.MapPageInfoTable;
                 authLv?: Auth;
+                userName?: string;
             },
             currentMap: CurrentMap;
         }
@@ -327,6 +328,7 @@ app.all('/api/*',
 
         if (mapUserInfo && mapUserInfo.auth_lv !== Auth.None) {
             req.connect.authLv = mapUserInfo.auth_lv;
+            req.connect.userName = mapUserInfo.name;
         } else {
             // ユーザが権限を持たない場合
             if (mapDefine.public_range === types.schema.PublicRange.Public) {
@@ -367,6 +369,7 @@ app.get('/api/connect', async(req, res, next) => {
             }),
             defaultMapKind: req.connect.mapPageInfo.default_map,
             authLv: req.connect.authLv,
+            userName: req.connect.userName || '',
         }
 
         const session = broadCaster.addSession(req.connect.sessionKey);

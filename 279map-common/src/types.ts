@@ -22,6 +22,7 @@ export type MapDefine = {
     useMaps: MapKind[];
     defaultMapKind: MapKind;
     authLv: Auth;   // ユーザの接続権限
+    userName: string;
 }
 
 /**
