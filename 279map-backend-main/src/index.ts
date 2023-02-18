@@ -172,6 +172,7 @@ const server = https.createServer({
 // Create WebSoskce Server
 const broadCaster = new Broadcaster(server);
 
+logger.debug('create checkJwt', process.env.AUTH0_AUDIENCE, `https://${process.env.AUTH0_DOMAIN}/`);
 const checkJwt = auth({
     audience: process.env.AUTH0_AUDIENCE,
     issuerBaseURL: `https://${process.env.AUTH0_DOMAIN}/`,
