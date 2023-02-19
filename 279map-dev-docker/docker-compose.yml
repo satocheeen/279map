@@ -3,7 +3,6 @@ version: "3"
 services:
   db:
     image: 279map-db:latest
-    container_name: 279mapdb
     env_file:
       - ./.env
     ports:
@@ -13,7 +12,6 @@ services:
   odba:
     # 任意のイメージを指定
     image: 279map-backend-odba-notion:latest
-    container_name: odba
     env_file:
       - ./.env
     ports:
@@ -23,7 +21,6 @@ services:
   fs:
     # 任意のイメージを指定
     image: 279map-fs-local:latest
-    container_name: fs
     env_file:
       - ./.env
     environment:
@@ -31,21 +28,18 @@ services:
     volumes:
         - ./log:/var/log/www
         - ./fs:/var/www/279map/photo
-  # frontend:
-  #   # 任意のイメージを指定
-  #   image: 279map-frontend:latest
-  #   env_file:
-  #     - ./.env
-  #   ports: 
-  #       - 3000:80
-  #   volumes:
-  #       - ./log:/var/log/www
+  frontend:
+    # 任意のイメージを指定
+    image: 279map-frontend:latest
+    env_file:
+      - ./.env
+    volumes:
+        - ./log:/var/log/www
   main:
     image: 279map-backend-main:latest
     depends_on:
       - db
       - odba
-    container_name: 279map
     env_file:
       - ./.env
     ports: 
@@ -53,7 +47,4 @@ services:
         - 8083:8083
     volumes:
         - ./log:/var/log/www
-        - ./etc:/etc/ssl
-networks:
-  default:
-    driver: bridge
+        - ./etc:/usr/local/share

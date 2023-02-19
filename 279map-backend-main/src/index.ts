@@ -176,7 +176,6 @@ logger.debug('create checkJwt', process.env.AUTH0_AUDIENCE, `https://${process.e
 const checkJwt = auth({
     audience: process.env.AUTH0_AUDIENCE,
     issuerBaseURL: `https://${process.env.AUTH0_DOMAIN}/`,
-
 });
 
 /**
@@ -289,7 +288,8 @@ app.all('/api/*',
             res.status(403).send({
                 error: {
                     name: err.name,
-                    message: err.message
+                    message: err.message,
+                    stack: err.stack,
                 }
             });
         }

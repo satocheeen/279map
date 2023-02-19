@@ -21,6 +21,11 @@ RUN npm install --platform=linuxmusl --arch=x64 sharp
 FROM alpine:latest
 
 RUN apk add --no-cache nodejs
+# -- setup ca-certificates
+RUN apk add --no-cache ca-certificates
+COPY ./dev/cert.pem /etc/ssl/certs/ca-certificates.crt
+RUN update-ca-certificates
+
 COPY --from=build /home/node/app/backend/dist /var/www
 
 RUN mkdir /var/log/www
