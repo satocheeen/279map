@@ -54,3 +54,6 @@ services:
     volumes:
         - ./log:/var/log/www
         - ./etc:/etc/ssl
+networks:
+  default:
+    driver: bridge
