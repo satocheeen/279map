@@ -25,7 +25,7 @@ import cookieParser from 'cookie-parser';
 import { readFileSync } from 'fs';
 import { exit } from 'process';
 import { getMapId } from './getMapDefine';
-import { GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
+import { ConfigAPI, GeocoderParam, GetCategoryAPI, ConfigResult, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { auth } from 'express-oauth2-jwt-bearer';
 import { getMapUser } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
@@ -179,7 +179,20 @@ const checkJwt = auth({
 });
 
 /**
- * mapIdを取得してrequestに格納
+ * システム共通定義を返す
+ */
+app.get(`/api/${ConfigAPI.uri}`, async(_, res) => {
+    const result = {
+        auth0: {
+            domain: process.env.AUTH0_DOMAIN,
+            audience: process.env.AUTH0_AUDIENCE,
+        }
+    } as ConfigResult;
+    res.send(result);
+});
+
+/**
+ * mapIdを取得して_uestに格納
  */
 app.all('/api/*', 
     async(req: Request, res: Response, next: NextFunction) => {

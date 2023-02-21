@@ -3,6 +3,20 @@ import { GeoJsonObject } from "geojson";
 import { APIDefine, ContentAttr, SnsPreviewPost } from '279map-common';
 
 /**
+ * get common config
+ */
+export const ConfigAPI = {
+    uri: 'config',
+    method: 'get',
+} as APIDefine<void, GetMapInfoResult>;
+export type ConfigResult = {
+    auth0: {
+        domain: string;
+        audience: string;
+    }    
+}
+
+/**
  * get map info
  */
 export const GetMapInfoAPI = {
