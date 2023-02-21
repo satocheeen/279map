@@ -8,10 +8,11 @@ import { APIDefine, ContentAttr, SnsPreviewPost } from '279map-common';
 export const ConfigAPI = {
     uri: 'config',
     method: 'get',
-} as APIDefine<void, GetMapInfoResult>;
+} as APIDefine<void, ConfigResult>;
 export type ConfigResult = {
     auth0: {
         domain: string;
+        clientId: string;
         audience: string;
     }    
 }

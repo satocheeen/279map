@@ -185,6 +185,7 @@ app.get(`/api/${ConfigAPI.uri}`, async(_, res) => {
     const result = {
         auth0: {
             domain: process.env.AUTH0_DOMAIN,
+            clientId: process.env.AUTH0_FRONTEND_CLIENT_ID,
             audience: process.env.AUTH0_AUDIENCE,
         }
     } as ConfigResult;
