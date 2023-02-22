@@ -95,16 +95,15 @@ app.use(express.json({
 })); 
 
 /** セッション設定 */
-const sessionConfig = {
+app.use(session({
     secret: SessionSecretKey,
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,
     cookie: {
         sameSite: 'none' as boolean | "none" | "lax" | "strict" | undefined,
         secure: true,
-    }
-};
-app.use(session(sessionConfig));
+    },
+}));
 app.use(cookieParser());
 
 // File Service proxy
