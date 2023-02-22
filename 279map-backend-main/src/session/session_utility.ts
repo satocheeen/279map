@@ -9,6 +9,9 @@ export function getSessionIdFromCookies(req: Request | IncomingMessage): string 
     }
     const cookies = cookie.parse(req.headers.cookie);
     let sid = cookies["connect.sid"];
+    if (!sid) {
+        return;
+    }
     // 冒頭のs:とピリオド以降を除去する
     const regex = /s:(.*)\.(.*)/
     const match = sid.match(regex);
