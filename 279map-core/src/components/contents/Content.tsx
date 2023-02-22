@@ -181,7 +181,7 @@ export default function Content(props: Props) {
         } finally {
             setShowSpinner(false);
         }
-    }, [props.content.id, apiUrl]);
+    }, [props.content.id, apiUrl, token]);
 
     const onEdit = useCallback(() => {
         doCommand({

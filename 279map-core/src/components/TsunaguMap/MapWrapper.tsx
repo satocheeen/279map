@@ -44,7 +44,7 @@ export default function MapWrapper() {
             ssl: true,
             token: ownerContext.token,
         }));
-    }, [ownerContext.mapServerHost, dispatch]);
+    }, [ownerContext.mapServerHost, ownerContext.token, dispatch]);
 
     useEffect(() => {
         onConnectRef.current = ownerContext.onConnect;
