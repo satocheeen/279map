@@ -15,7 +15,7 @@ export type ConnectMapResult = {
 } | {
     result: 'Forbidden',
 }
-export const connectMap = createAsyncThunk<ConnectMapResult, { mapId: string; auth?: string; token?: string }>(
+export const connectMap = createAsyncThunk<ConnectMapResult, { mapId: string; token?: string }>(
     'session/connectMapStatus',
     async(param, { rejectWithValue, getState, dispatch }) => {
         const mapServer = (getState() as RootState).session.mapServer;
@@ -24,9 +24,6 @@ export const connectMap = createAsyncThunk<ConnectMapResult, { mapId: string; au
             const serverUrl = getServerUrl(mapServer);
     
             let url = `${serverUrl}/api/connect?mapId=${param.mapId}`;
-            if (param.auth) {
-                url += '&auth=' + param.auth;
-            }
             let headers = {};
             if (param.token) {
                 headers = {

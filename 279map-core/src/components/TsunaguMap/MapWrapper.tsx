@@ -62,7 +62,7 @@ export default function MapWrapper() {
     useInitializePopup();
 
     const mapServer = useSelector((state: RootState) => state.session.mapServer);
-   /**
+    /**
      * 初回処理
      */
     useEffect(() => {
@@ -117,7 +117,6 @@ export default function MapWrapper() {
         // connect
         dispatch(connectMap({
             mapId: ownerContext.mapId,
-            auth: ownerContext.auth,
             token: ownerContext.token,
         }))
         .then((res) => {
@@ -144,7 +143,7 @@ export default function MapWrapper() {
             console.warn('connect error', err);
         })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [dispatch, ownerContext.mapId, ownerContext.auth, ownerContext.token, mapServer]);
+    }, [dispatch, ownerContext.mapId, ownerContext.token, mapServer]);
 
     const currentMapKind = useSelector((state: RootState) => state.operation.currentMapKind);
     /**
