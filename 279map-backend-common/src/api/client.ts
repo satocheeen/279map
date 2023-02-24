@@ -19,7 +19,7 @@ export async function callOdbaApi<API extends APIDefine<any,any>>(api: API, para
                 timeout: 10000,
             });
         }
-        if (res.status !== 400) {
+        if (res.status !== 200) {
             throw res.statusText + res.data;
         }
         const result = res.data;
