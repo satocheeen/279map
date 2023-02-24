@@ -20,7 +20,7 @@ export async function callOdbaApi<API extends APIDefine<any,any>>(api: API, para
             });
         }
         if (res.status !== 200) {
-            throw res.statusText + res.data;
+            throw `odba return errir response: ${res.status} ${res.statusText} ${res.data}`;
         }
         const result = res.data;
 
