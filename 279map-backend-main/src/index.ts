@@ -67,6 +67,15 @@ if (!process.env.HOST) {
     console.warn('not set env HOST');
     exit(1);
 }
+if (!process.env.AUTH_METHOD) {
+    console.warn('not set env AUTH_METHOD');
+    exit(1);
+}
+if (!['None', 'Auth0'].includes(process.env.AUTH_METHOD)) {
+    console.warn('illegal value AUTH_METHOD: ' + process.env.AUTH_METHOD);
+    exit(1);
+}
+const authMethod = process.env.AUTH_METHOD as 'None' | 'Auth0';
 
 logger.info('preparomg express');
 
@@ -172,10 +181,17 @@ const server = https.createServer({
 const broadCaster = new Broadcaster(server);
 
 logger.debug('create checkJwt', process.env.AUTH0_AUDIENCE, `https://${process.env.AUTH0_DOMAIN}/`);
-const checkJwt = auth({
-    audience: process.env.AUTH0_AUDIENCE,
-    issuerBaseURL: `https://${process.env.AUTH0_DOMAIN}/`,
-});
+let checkJwt: (req: Request, res: Response, next: NextFunction) => void;
+if (authMethod === 'Auth0') {
+    checkJwt = auth({
+        audience: process.env.AUTH0_AUDIENCE,
+        issuerBaseURL: `https://${process.env.AUTH0_DOMAIN}/`,
+    });
+} else {
+    checkJwt = (req: Request, res: Response, next: NextFunction) => {
+        next();
+    };
+}
 
 /**
  * システム共通定義を返す
