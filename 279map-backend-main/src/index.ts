@@ -71,11 +71,11 @@ if (!process.env.AUTH_METHOD) {
     console.warn('not set env AUTH_METHOD');
     exit(1);
 }
-if (!['None', 'Auth0'].includes(process.env.AUTH_METHOD)) {
+if (!['None', 'Auth0', 'Direct'].includes(process.env.AUTH_METHOD)) {
     console.warn('illegal value AUTH_METHOD: ' + process.env.AUTH_METHOD);
     exit(1);
 }
-const authMethod = process.env.AUTH_METHOD as 'None' | 'Auth0';
+const authMethod = process.env.AUTH_METHOD as 'None' | 'Auth0' | 'Direct';
 
 logger.info('preparomg express');
 
@@ -181,17 +181,20 @@ const server = https.createServer({
 const broadCaster = new Broadcaster(server);
 
 logger.debug('create checkJwt', process.env.AUTH0_AUDIENCE, `https://${process.env.AUTH0_DOMAIN}/`);
-let checkJwt: (req: Request, res: Response, next: NextFunction) => void;
-if (authMethod === 'Auth0') {
-    checkJwt = auth({
-        audience: process.env.AUTH0_AUDIENCE,
-        issuerBaseURL: `https://${process.env.AUTH0_DOMAIN}/`,
-    });
-} else {
-    checkJwt = (req: Request, res: Response, next: NextFunction) => {
-        next();
-    };
-}
+const checkJwt: (req: Request, res: Response, next: NextFunction) => void = function(){
+    switch(authMethod) {
+        case 'Auth0':
+            return auth({
+                audience: process.env.AUTH0_AUDIENCE,
+                issuerBaseURL: `https://${process.env.AUTH0_DOMAIN}/`,
+            });
+        case 'Direct':
+        case 'None':
+            return (req: Request, res: Response, next: NextFunction) => {
+                next();
+            };
+    }
+}();
 
 /**
  * システム共通定義を返す
@@ -208,7 +211,7 @@ app.get(`/api/${ConfigAPI.uri}`, async(_, res) => {
 });
 
 /**
- * mapIdを取得して_uestに格納
+ * mapIdを取得してrequestに格納
  */
 app.all('/api/*', 
     async(req: Request, res: Response, next: NextFunction) => {
@@ -325,6 +328,21 @@ app.all('/api/*',
     },
 );
 
+const getUserId = (req: Request): string | undefined => {
+    if (authMethod === 'None') {
+        return;
+
+    } else if (authMethod === 'Auth0') {
+        if (!req.auth) {
+            return;
+        }
+        return req.auth.payload.sub;
+
+    } else {
+        // 
+        return req.headers.authorization?.replace('Bearer ', '');
+    }
+}
 /**
  * check the user's auth Level.
  * set req.connect.authLv
@@ -338,7 +356,8 @@ app.all('/api/*',
             return;
         }
 
-        if (!req.auth) {
+        const userId = getUserId(req);
+        if (!userId) {
             // 未ログイン（地図の公開範囲public）の場合は、View権限
             apiLogger.debug('未ログイン', mapDefine.public_range);
             req.connect.authLv = Auth.View;
@@ -348,11 +367,6 @@ app.all('/api/*',
 
         apiLogger.debug('ログイン済み', req.auth);
         // ユーザの地図に対する権限を取得
-        const userId = req.auth.payload.sub;
-        if (!userId) {
-            res.status(400).send('user id not found');
-            return;
-        }
         const mapUserInfo = await getMapUser(mapId, userId);
         apiLogger.debug('mapUserInfo', mapUserInfo);
 
