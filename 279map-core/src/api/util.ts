@@ -1,6 +1,7 @@
 import { ConfigAPI } from "tsunagumap-api";
-import { ServerInfo } from "../entry";
 import { callApi } from "./api";
+import { ServerInfo } from '../types/types';
+import { ServerConfig } from "279map-common";
 
 /**
  * サーバーの認証方式について呼び出し元に返すための関数
@@ -12,7 +13,7 @@ export async function getAuthConfig(host: string) {
         domain: host,
     } as ServerInfo;
     try {
-        const result = await callApi(mapServer, ConfigAPI, undefined)
+        const result = await callApi(mapServer, ConfigAPI, undefined) as ServerConfig;
         return result;
 
     } catch(e) {
