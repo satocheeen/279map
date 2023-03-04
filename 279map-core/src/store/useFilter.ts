@@ -1,10 +1,10 @@
 import { useCallback, useMemo } from "react";
 import { useSelector, shallowEqual } from "react-redux";
 import { RootState } from "./configureStore";
-import { FilterDefine } from "./operation/operationSlice";
 import dayjs from 'dayjs';
 import { useCategory } from "./useCategory";
 import { ItemContentInfo, ItemDefine } from "279map-common";
+import { FilterDefine } from "../entry";
 
 type FilterStatus = {
     status: 'Normal' | 'UnFiltered';

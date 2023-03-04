@@ -1,5 +1,51 @@
 import { ContentAttr, GeoProperties, IconDefine } from "279map-common";
 import { CSSProperties } from "react";
+import { ConfigResult } from 'tsunagumap-api';
+import { CategoryDefine, EventDefine, MapDefine, MapKind } from '279map-common';
+import { CommandHookType } from '../api/useCommand';
+
+export type OnInitializeParam = {
+    result: 'success';
+    config: ConfigResult;
+} | {
+    result: 'failed';
+}
+export type OnConnectParam = {
+    result: 'success',
+    mapDefine: MapDefine,
+    commandHook: CommandHookType,
+} | {
+    result: 'Unauthorized',
+} | {
+    result: 'Forbidden',
+}
+export type TsunaguMapProps = {
+    mapId: string;
+    mapServerHost: string;
+    token?: string;
+    iconDefine?: (DefaultIconDefine | {
+        // デフォルトアイコンを指定する場合に使用
+        id: 'default';
+        useMaps: MapKind[];
+    })[];
+    disabledPopup?: boolean; // when true, the map don't show popup.
+    disabledLabel?: boolean; // when true, the item's label hidden.
+    disabledContentDialog?: boolean;    // when true, the content dialog didn't show even if you click a item.
+
+    filter?: FilterDefine[];
+
+    onInitialize?: (param: OnInitializeParam) => void;
+    onConnect?: (param: OnConnectParam) => void;
+    onMapKindChanged?: (mapKind: MapKind) => void;
+    onSelect?: (targets: string[]) => void; // callback when items are selected
+    onUnselect?: () => void;    // callback when items are unselected.
+    onModeChanged?: (mode: MapMode) => void;    // callback when map mode has changed.
+    onCategoriesLoaded?: (categories: CategoryDefine[]) => void;    // calback when categories has loaded or has changed.
+    onEventsLoaded?: (events: EventDefine[]) => void;   // callback when events has loaded or has changed.
+
+    onNewContentInfo?: (param: NewContentInfoParam) => void;    // callback when new content info kicked
+    onEditContentInfo?: (param: EditContentInfoWithAttrParam) => void;  // callback when content edit kicked
+}
 
 export type ServerInfo = {
     domain: string;
@@ -49,4 +95,12 @@ export type NewContentInfoParam = {
 export type EditContentInfoWithAttrParam = {
     contentId: string;
     attr: ContentAttr;
+}
+
+export type FilterDefine = {
+    type: 'category';
+    categoryName: string;
+} | {
+    type: 'calendar';
+    date: string;   // Date.toLocaleDateString()
 }

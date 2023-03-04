@@ -2,16 +2,9 @@ import { MapKind } from "279map-common";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Extent } from "ol/extent";
 import { ConfirmParam, ConfirmResult } from "../../components/common/confirm/useConfirm";
-import { MapMode } from "../../types/types";
+import { FilterDefine, MapMode } from "../../types/types";
 import { loadMapDefine } from "../session/sessionThunk";
 
-export type FilterDefine = {
-    type: 'category';
-    categoryName: string;
-} | {
-    type: 'calendar';
-    date: string;   // Date.toLocaleDateString()
-}
 type ViewInfo = {
     extent: Extent;
     zoom: number | undefined;

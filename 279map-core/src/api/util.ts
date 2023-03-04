@@ -2,22 +2,13 @@ import { ConfigAPI } from "tsunagumap-api";
 import { ServerInfo } from "../entry";
 import { callApi } from "./api";
 
-export async function getAuth0Config(host: string) {
-    const mapServer = {
-        domain: host,
-        ssl: true,
-    } as ServerInfo;
-
+export async function getServerConfig(mapServer: ServerInfo) {
     try {
         const result = await callApi(mapServer, ConfigAPI, undefined)
-        return {
-            domain: result.auth0.domain,
-            clientId: result.auth0.clientId,
-            audience: result.auth0.audience,
-        }
+        return result;
 
     } catch(e) {
         console.warn('get server config failed.', e);
-        return null;
+        throw new Error('get server config failed.', { cause: e});
     }
 }

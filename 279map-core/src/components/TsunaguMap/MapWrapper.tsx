@@ -17,6 +17,7 @@ import { getContents } from '../../store/data/dataUtility';
 import { useCommand } from '../../api/useCommand';
 import { ContentAttr } from '279map-common';
 import styles from './MapWrapper.module.scss';
+import { getServerConfig } from '../../entry';
 
 export default function MapWrapper() {
     const ownerContext = useContext(OwnerContext);
@@ -25,6 +26,7 @@ export default function MapWrapper() {
     const currentMapKindInfo = useSelector((state: RootState) => state.session.currentMapKindInfo);
     const spinner = useSpinner();
 
+    const onInitializeRef = useRef<typeof ownerContext.onInitialize>();
     const onConnectRef = useRef<typeof ownerContext.onConnect>();
     const onMapKindChangedRef = useRef<typeof ownerContext.onMapKindChanged>();
     const onSelectRef = useRef<typeof ownerContext.onSelect>();
@@ -47,6 +49,7 @@ export default function MapWrapper() {
     }, [ownerContext.mapServerHost, ownerContext.token, dispatch]);
 
     useEffect(() => {
+        onInitializeRef.current = ownerContext.onInitialize;
         onConnectRef.current = ownerContext.onConnect;
         onMapKindChangedRef.current = ownerContext.onMapKindChanged;
         onSelectRef.current = ownerContext.onSelect;
@@ -62,10 +65,35 @@ export default function MapWrapper() {
     useInitializePopup();
 
     const mapServer = useSelector((state: RootState) => state.session.mapServer);
+    const [ initialized, setInitialized ] = useState(false);
+
     /**
      * 初回処理
      */
     useEffect(() => {
+        // サーバーConfig取得
+        if (mapServer.domain.length === 0) return;
+        getServerConfig(mapServer)
+        .then((res) => {
+            if (onInitializeRef.current) {
+                onInitializeRef.current({
+                    result: 'success',
+                    config: res
+                });
+            }
+        })
+        .catch((e) => {
+            console.warn(e);
+            if (onInitializeRef.current) {
+                onInitializeRef.current({
+                    result: 'failed',
+                });
+            }
+        })
+        .finally(() => {
+            setInitialized(true);
+        });
+
         const h = addListener('LoadLatestData', async() => {
             await dispatch(loadEvents());
             await dispatch(loadCategories());
@@ -112,7 +140,7 @@ export default function MapWrapper() {
      * connect to map
      */
     useEffect(() => {
-        if (mapServer.domain.length === 0) return;
+        if (!initialized) return;
 
         // connect
         dispatch(connectMap({
@@ -143,7 +171,7 @@ export default function MapWrapper() {
             console.warn('connect error', err);
         })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [dispatch, ownerContext.mapId, ownerContext.token, mapServer]);
+    }, [dispatch, ownerContext.mapId, ownerContext.token, initialized]);
 
     const currentMapKind = useSelector((state: RootState) => state.operation.currentMapKind);
     /**
