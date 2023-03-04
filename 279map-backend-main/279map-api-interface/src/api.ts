@@ -1,4 +1,4 @@
-import { AuthMethod, CategoryDefine, ContentsDefine, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, UnpointContent } from "279map-common";
+import { CategoryDefine, ContentsDefine, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, ServerConfig, UnpointContent } from "279map-common";
 import { GeoJsonObject } from "geojson";
 import { APIDefine, ContentAttr, SnsPreviewPost } from '279map-common';
 
@@ -8,17 +8,7 @@ import { APIDefine, ContentAttr, SnsPreviewPost } from '279map-common';
 export const ConfigAPI = {
     uri: 'config',
     method: 'get',
-} as APIDefine<void, ConfigResult>;
-export type ConfigResult = {
-    authMethod: AuthMethod.Auth0;
-    auth0: {
-        domain: string;
-        clientId: string;
-        audience: string;
-    }
-} | {
-    authMethod: AuthMethod.None | AuthMethod.Direct;
-}
+} as APIDefine<void, ServerConfig>;
 
 /**
  * get map info

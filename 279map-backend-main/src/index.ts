@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import mysql from 'mysql2/promise';
 import { getMapInfo } from './getMapInfo';
-import { Auth, MapKind, MapDefine, AuthMethod } from '279map-common';
+import { Auth, MapKind, MapDefine, AuthMethod, ServerConfig } from '279map-common';
 import { getItems } from './getItems';
 import session from 'express-session';
 import { configure, getLogger } from "log4js";
@@ -25,7 +25,7 @@ import cookieParser from 'cookie-parser';
 import { readFileSync } from 'fs';
 import { exit } from 'process';
 import { getMapId } from './getMapDefine';
-import { ConfigAPI, GeocoderParam, GetCategoryAPI, ConfigResult, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
+import { ConfigAPI, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { auth } from 'express-oauth2-jwt-bearer';
 import { getMapUser } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
@@ -207,12 +207,12 @@ app.get(`/api/${ConfigAPI.uri}`, async(_, res) => {
                 clientId: process.env.AUTH0_FRONTEND_CLIENT_ID,
                 audience: process.env.AUTH0_AUDIENCE,
             }
-        } as ConfigResult;
+        } as ServerConfig;
         res.send(result);
     } else {
         res.send({
             authMethod,
-        } as ConfigResult)
+        } as ServerConfig)
     }
 });
 
