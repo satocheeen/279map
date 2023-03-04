@@ -2,6 +2,11 @@ import GeoJSON, { GeoJsonObject } from 'geojson';
 
 export type Extent = number[];
 
+export enum AuthMethod {
+    None = 'None',
+    Direct = 'Direct',
+    Auth0 = 'Auth0',
+}
 export enum Auth {
     None = 'None',
     View = 'View',

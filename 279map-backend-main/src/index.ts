@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import mysql from 'mysql2/promise';
 import { getMapInfo } from './getMapInfo';
-import { Auth, MapKind, MapDefine } from '279map-common';
+import { Auth, MapKind, MapDefine, AuthMethod } from '279map-common';
 import { getItems } from './getItems';
 import session from 'express-session';
 import { configure, getLogger } from "log4js";
@@ -75,7 +75,7 @@ if (!['None', 'Auth0', 'Direct'].includes(process.env.AUTH_METHOD)) {
     console.warn('illegal value AUTH_METHOD: ' + process.env.AUTH_METHOD);
     exit(1);
 }
-const authMethod = process.env.AUTH_METHOD as 'None' | 'Auth0' | 'Direct';
+const authMethod = process.env.AUTH_METHOD as AuthMethod;
 
 logger.info('preparomg express');
 
@@ -183,13 +183,12 @@ const broadCaster = new Broadcaster(server);
 logger.debug('create checkJwt', process.env.AUTH0_AUDIENCE, `https://${process.env.AUTH0_DOMAIN}/`);
 const checkJwt: (req: Request, res: Response, next: NextFunction) => void = function(){
     switch(authMethod) {
-        case 'Auth0':
+        case AuthMethod.Auth0:
             return auth({
                 audience: process.env.AUTH0_AUDIENCE,
                 issuerBaseURL: `https://${process.env.AUTH0_DOMAIN}/`,
             });
-        case 'Direct':
-        case 'None':
+        default:
             return (req: Request, res: Response, next: NextFunction) => {
                 next();
             };
@@ -200,14 +199,21 @@ const checkJwt: (req: Request, res: Response, next: NextFunction) => void = func
  * システム共通定義を返す
  */
 app.get(`/api/${ConfigAPI.uri}`, async(_, res) => {
-    const result = {
-        auth0: {
-            domain: process.env.AUTH0_DOMAIN,
-            clientId: process.env.AUTH0_FRONTEND_CLIENT_ID,
-            audience: process.env.AUTH0_AUDIENCE,
-        }
-    } as ConfigResult;
-    res.send(result);
+    if (authMethod === AuthMethod.Auth0) {
+        const result = {
+            authMethod: AuthMethod.Auth0,
+            auth0: {
+                domain: process.env.AUTH0_DOMAIN,
+                clientId: process.env.AUTH0_FRONTEND_CLIENT_ID,
+                audience: process.env.AUTH0_AUDIENCE,
+            }
+        } as ConfigResult;
+        res.send(result);
+    } else {
+        res.send({
+            authMethod,
+        } as ConfigResult)
+    }
 });
 
 /**
