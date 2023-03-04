@@ -1,12 +1,11 @@
-import { ContentAttr, GeoProperties, IconDefine } from "279map-common";
+import { ContentAttr, GeoProperties, IconDefine, ServerConfig } from "279map-common";
 import { CSSProperties } from "react";
-import { ConfigResult } from 'tsunagumap-api';
 import { CategoryDefine, EventDefine, MapDefine, MapKind } from '279map-common';
 import { CommandHookType } from '../api/useCommand';
 
 export type OnInitializeParam = {
     result: 'success';
-    config: ConfigResult;
+    config: ServerConfig;
 } | {
     result: 'failed';
 }
