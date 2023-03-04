@@ -7,6 +7,19 @@ export enum AuthMethod {
     Direct = 'Direct',
     Auth0 = 'Auth0',
 }
+
+// サーバーからフロントエンドに渡すConfig情報
+export type ServerConfig = {
+    authMethod: AuthMethod.Auth0;
+    auth0: {
+        domain: string;
+        clientId: string;
+        audience: string;
+    }
+} | {
+    authMethod: AuthMethod.None | AuthMethod.Direct;
+}
+
 export enum Auth {
     None = 'None',
     View = 'View',

@@ -1,6 +1,6 @@
 {
   "name": "279map-common",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "The modules which are used by 279map packages.",
   "scripts": {
     "rollup": "rollup -c"
