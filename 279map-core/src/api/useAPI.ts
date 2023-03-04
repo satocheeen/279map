@@ -9,7 +9,7 @@ export function useAPI() {
     const mapServer = useSelector((state: RootState) => state.session.mapServer);
 
     const serverUrl = useMemo(() => {
-        const protocol = mapServer.ssl ? 'https' :'http';
+        const protocol = 'https';
         const domain = mapServer.domain;
 
         return `${protocol}://${domain}/`;

@@ -85,7 +85,7 @@ export const loadMapDefine = createAsyncThunk<GetMapInfoResult, MapKind>(
 
             // WebSocket通信設定
             const startWss = () => {
-                const protocol = mapServer.ssl ? 'wss' : 'ws';
+                const protocol = 'wss';
                 const domain = mapServer.domain;
         
                 const wss = new WebSocket(protocol + "://" + domain);

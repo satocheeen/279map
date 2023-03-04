@@ -38,7 +38,7 @@ export default function TestMap() {
             setCommandHook(param.commandHook);
         }
         setCnt(cnt + 1);
-    }, [cnt, commandHook]);
+    }, [cnt]);
 
     const onCategoriesLoaded = useCallback((categories: CategoryDefine[]) => {
         setCategories(categories);
@@ -198,7 +198,6 @@ export default function TestMap() {
                     disabledLabel={disabledLabel}
                     disabledContentDialog={disabledContentDialog}
                     filter={filter}
-                    onInitialize={(val) => {console.log('onInitialize', val)}}
                     onConnect={onConnect}
                     onMapKindChanged={onMapKindChanged}
                     onSelect={onSelect} onUnselect={onUnselect}

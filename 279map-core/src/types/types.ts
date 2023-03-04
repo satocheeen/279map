@@ -33,7 +33,6 @@ export type TsunaguMapProps = {
 
     filter?: FilterDefine[];
 
-    onInitialize?: (param: OnInitializeParam) => void;
     onConnect?: (param: OnConnectParam) => void;
     onMapKindChanged?: (mapKind: MapKind) => void;
     onSelect?: (targets: string[]) => void; // callback when items are selected
@@ -48,7 +47,6 @@ export type TsunaguMapProps = {
 
 export type ServerInfo = {
     domain: string;
-    ssl: boolean;
     token?: string;
 }
 

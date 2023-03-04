@@ -2,7 +2,7 @@ import { APIDefine } from '279map-common';
 import { ServerInfo } from '../types/types';
 
 export function getServerUrl(server: ServerInfo) {
-    const protocol = server.ssl ? 'https' : 'http';
+    const protocol = 'https';
     return `${protocol}://${server.domain}`;
 }
 
