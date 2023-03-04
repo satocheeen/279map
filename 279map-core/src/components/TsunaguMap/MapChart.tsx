@@ -265,7 +265,7 @@ export default function MapChart() {
         
         // 背景地図レイヤ生成
         let layers: BaseLayer[] = [];
-        let extent: Extent | undefined = undefined;
+        let extent: Extent =  [0, 0, 20, 20];
         console.log('mapKind', mapKind);
         if (mapKind === MapKind.Real) {
             // 都道府県レイヤ
@@ -306,9 +306,8 @@ export default function MapChart() {
         mapRef.current.setLayers(layers);
 
         mapRef.current.getView().setMaxZoom(mapKind === MapKind.Virtual ? 10 : 18);
-        if (extent) {
-            mapRef.current.getView().fit(extent);
-        }
+        console.log('extent fit', extent);
+        mapRef.current.getView().fit(extent);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mapId, mapKind]);
