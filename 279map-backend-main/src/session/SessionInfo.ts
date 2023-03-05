@@ -1,11 +1,7 @@
 import WebSocket from 'ws';
-import { MapKind } from '279map-common';
 import { ItemDefine } from '279map-common';
+import { types } from '279map-backend-common';
 
-export type CurrentMap = {
-    mapId: string;
-    mapKind: MapKind;
-}
 type ItemInfo = {
     id: string;
     lastEditedTime: string;
@@ -16,7 +12,7 @@ export default class SessionInfo {
     #ws?: WebSocket.WebSocket;   // WebSocket
 
     // 現在表示中の地図
-    #currentMap?: CurrentMap;
+    #currentMap?: types.CurrentMap;
 
     // クライアントに送信済みのアイテム情報
     #items: ItemInfo[] = [];
@@ -37,7 +33,7 @@ export default class SessionInfo {
         return this.#ws;
     }
 
-    set currentMap(currentMap: CurrentMap | undefined) {
+    set currentMap(currentMap: types.CurrentMap | undefined) {
         this.#currentMap = currentMap;
     }
     get currentMap() {

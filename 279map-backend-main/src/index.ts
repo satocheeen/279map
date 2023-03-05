@@ -16,7 +16,7 @@ import { convertBase64ToBinary } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
 import { getSnsPreview } from './api/getSnsPreview';
-import SessionInfo, { CurrentMap } from './session/SessionInfo';
+import SessionInfo from './session/SessionInfo';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import { getIcon } from './api/getIcon';
 import { utility, api as backendAPI, types } from '279map-backend-common';
@@ -42,7 +42,7 @@ declare global {
                 authLv?: Auth;
                 userName?: string;
             },
-            currentMap: CurrentMap;
+            currentMap: types.CurrentMap;
         }
     }
 }
@@ -647,13 +647,10 @@ app.post(`/api/${RegistItemAPI.uri}`,
     async(req, res) => {
         try {
             const param = req.body as RegistItemParam;
-            const mapPageId = req.currentMap.mapId;
-            const mapKind = req.currentMap.mapKind;
         
             // call ODBA
             const id = await backendAPI.callOdbaApi(backendAPI.RegistItemAPI, {
-                mapId: mapPageId,
-                mapKind,
+                currentMap: req.currentMap,
                 geometry: param.geometry,
                 geoProperties: param.geoProperties,
             });
@@ -682,11 +679,11 @@ app.post(`/api/${UpdateItemAPI.uri}`,
     async(req, res) => {
         try {
             const param = req.body as UpdateItemParam;
-            const mapPageId = req.currentMap.mapId;
-            const mapKind = req.currentMap.mapKind;
 
             // call ODBA
-            await backendAPI.callOdbaApi(backendAPI.UpdateItemAPI, param);
+            await backendAPI.callOdbaApi(backendAPI.UpdateItemAPI, Object.assign({
+                currentMap: req.currentMap,
+            }, param));
     
             // 更新通知
             broadCaster.broadcastSameMap(req, {
@@ -714,7 +711,9 @@ app.post(`/api/${RemoveItemAPI.uri}`,
             const param = req.body as RemoveItemParam;
 
             // call ODBA
-            await backendAPI.callOdbaApi(backendAPI.RemoveItemAPI, param);
+            await backendAPI.callOdbaApi(backendAPI.RemoveItemAPI, Object.assign({
+                currentMap: req.currentMap,
+            }, param));
     
             // 更新通知
             broadCaster.broadcastSameMap(req, {
@@ -741,11 +740,10 @@ app.post(`/api/${RegistContentAPI.uri}`,
     async(req, res) => {
         try {
             const param = req.body as RegistContentParam;
-            const mapPageId = req.currentMap.mapId;
     
             // call ODBA
             await backendAPI.callOdbaApi(backendAPI.RegistContentAPI, Object.assign({
-                mapId: mapPageId,
+                currentMap: req.currentMap,
             }, param));
     
             // 更新通知
@@ -772,11 +770,10 @@ app.post(`/api/${UpdateContentAPI.uri}`,
     async(req, res) => {
         try {
             const param = req.body as UpdateContentParam;
-            const mapId = req.currentMap.mapId;
     
             // call ODBA
             await backendAPI.callOdbaApi(backendAPI.UpdateContentAPI, Object.assign({
-                mapId,
+                currentMap: req.currentMap,
             }, param));
     
             // 更新通知
@@ -806,8 +803,7 @@ app.post(`/api/${GetUnpointDataAPI.uri}`,
 
             // call ODBA
             const result = await backendAPI.callOdbaApi(backendAPI.GetUnpointDataAPI, {
-                mapId: req.currentMap.mapId,
-                mapKind: req.currentMap.mapKind,
+                currentMap: req.currentMap,
                 nextToken: param.nextToken,
             });
     
@@ -832,7 +828,9 @@ app.post(`/api/${LinkContentToItemAPI.uri}`,
             const param = req.body as LinkContentToItemParam;
 
             // call ODBA
-            await backendAPI.callOdbaApi(backendAPI.LinkContentToItemAPI, param);
+            await backendAPI.callOdbaApi(backendAPI.LinkContentToItemAPI, Object.assign({
+                currentMap: req.currentMap,
+            }, param));
     
             res.send('complete');
     
@@ -855,7 +853,9 @@ app.post(`/api/${RemoveContentAPI.uri}`,
             const param = req.body as RemoveContentParam;
 
             // call ODBA
-            await backendAPI.callOdbaApi(backendAPI.RemoveContentAPI, param);
+            await backendAPI.callOdbaApi(backendAPI.RemoveContentAPI, Object.assign({
+                currentMap: req.currentMap,
+            }, param));
     
             res.send('complete');
     

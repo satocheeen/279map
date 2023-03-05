@@ -3,7 +3,6 @@ import { ConnectionPool } from "..";
 import { types } from "279map-backend-common";
 import { GetCategoryResult } from "../../279map-api-interface/src";
 import { CategoryDefine } from "279map-common";
-import { CurrentMap } from "../session/SessionInfo";
 
 /**
  * get the categories which are used in current map.
@@ -11,7 +10,7 @@ import { CurrentMap } from "../session/SessionInfo";
  * @param param0 
  * @returns categories
  */
-export async function getCategory(currentMap: CurrentMap): Promise<GetCategoryResult> {
+export async function getCategory(currentMap: types.CurrentMap): Promise<GetCategoryResult> {
     if (!currentMap) {
         throw 'mapPageId or mapKind not defined.';
     }

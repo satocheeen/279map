@@ -1,11 +1,10 @@
 import { ConnectionPool } from ".";
 import { types } from "279map-backend-common";
 import { getBelongingItem } from "./util/utility";
-import { GetEventParam, GetEventsResult } from "../279map-api-interface/src";
+import { GetEventsResult } from "../279map-api-interface/src";
 import { EventDefine } from "279map-common";
-import { CurrentMap } from "./session/SessionInfo";
 
-export async function getEvents(currentMap: CurrentMap): Promise<GetEventsResult> {
+export async function getEvents(currentMap: types.CurrentMap): Promise<GetEventsResult> {
     if (!currentMap) {
         throw 'no currentmap';
     }

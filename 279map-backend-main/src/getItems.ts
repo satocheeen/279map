@@ -2,10 +2,9 @@ import { types } from '279map-backend-common';
 import { ItemContentInfo, ItemDefine, MapKind } from '279map-common';
 import { ConnectionPool } from '.';
 import { GetItemsParam, GetItemsResult } from '../279map-api-interface/src';
-import { CurrentMap } from './session/SessionInfo';
 import { getExtentWkt } from './util/utility';
 
-export async function getItems({ param, currentMap }: {param:GetItemsParam; currentMap: CurrentMap}): Promise<GetItemsResult> {
+export async function getItems({ param, currentMap }: {param:GetItemsParam; currentMap: types.CurrentMap}): Promise<GetItemsResult> {
     if (!currentMap) {
         throw 'no currentMap';
     }

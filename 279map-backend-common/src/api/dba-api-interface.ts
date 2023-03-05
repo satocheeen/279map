@@ -3,7 +3,11 @@
  */
 
 import { GeoProperties, MapKind, APIDefine, ContentAttr } from "279map-common";
+import { CurrentMap } from "../types";
 
+type CommonParam = {
+    currentMap: CurrentMap;
+}
 /**
  * regist item
  */
@@ -12,9 +16,7 @@ export const RegistItemAPI = {
     method: 'post',
 } as APIDefine<RegistItemParam, string>;   // result = registed item ID
 
-export type RegistItemParam = {
-    mapId: string;
-    mapKind: MapKind;
+export type RegistItemParam = CommonParam & {
     name?: string;  // topography only
     geometry: GeoJSON.Geometry;
     geoProperties: GeoProperties;  // GeoProperties
@@ -28,8 +30,7 @@ export const RegistContentAPI = {
     method: 'post',
 } as APIDefine<RegistContentParam, void>;
 
-export type RegistContentParam = {
-    mapId: string;
+export type RegistContentParam = CommonParam & {
     parent: {
         itemId: string;
     } | {
@@ -45,7 +46,7 @@ export const RemoveItemAPI = {
     method: 'post',
 } as APIDefine<RemoveItemParam, void>;
 
-export type RemoveItemParam = {
+export type RemoveItemParam = CommonParam & {
     id: string; // 削除対象アイテムのID
     onlyGeoInfo: boolean;   // trueの場合、地理情報のみ消す。配下のコンテンツは削除しない）
 }
@@ -58,7 +59,7 @@ export const RemoveContentAPI = {
     method: 'post',
 } as APIDefine<RemoveContentParam, void>;
 
-export type RemoveContentParam = {
+export type RemoveContentParam = CommonParam & {
     id: string;
     itemId: string;
     parentContentId?: string;
@@ -72,7 +73,7 @@ export const UpdateItemAPI = {
     method: 'post',
 } as APIDefine<UpdateItemParam, void>;
 
-export type UpdateItemParam = {
+export type UpdateItemParam = CommonParam & {
     id: string;
     name?: string;  // topography only
     geometry?: GeoJSON.Geometry;
@@ -87,9 +88,8 @@ export const UpdateContentAPI = {
     method: 'post',
 } as APIDefine<UpdateContentParam, void>;
 
-export type UpdateContentParam = {
+export type UpdateContentParam = CommonParam & {
     id: string;
-    mapId: string;
 } & Partial<ContentAttr>;
 
 /**
@@ -100,9 +100,7 @@ export const GetUnpointDataAPI = {
     method: 'post',
 } as APIDefine<GetUnpointDataParam, GetUnpointDataResult>;
 
-export type GetUnpointDataParam = {
-    mapId: string;
-    mapKind: MapKind;
+export type GetUnpointDataParam = CommonParam & {
     nextToken?: string;
 }
 export type UnpointContent = {
@@ -124,7 +122,7 @@ export const LinkContentToItemAPI = {
     method: 'post'
 } as APIDefine<LinkContentToItemParam, void>;
 
-export type LinkContentToItemParam = {
+export type LinkContentToItemParam = CommonParam & {
     childContentId: string;
     parent: {
         itemId: string;
