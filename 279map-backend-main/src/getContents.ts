@@ -74,7 +74,7 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                 const [rows] = await con.execute(sql, [target.itemId, mapKind]);
                 myRows = rows as RetRecord[];
             } else {
-                myRows = await getContentInfo(con, target.contentId, currentMap.mapPageId,currentMap.mapKind);
+                myRows = await getContentInfo(con, target.contentId, currentMap.mapId,currentMap.mapKind);
 
             }
             if (myRows.length > 0) {

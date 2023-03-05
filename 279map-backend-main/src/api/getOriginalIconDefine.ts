@@ -5,7 +5,7 @@ import { IconDefine, MapKind } from "279map-common";
 import { CurrentMap } from '../session/SessionInfo';
 
 export async function getOriginalIconDefine(currentMap: CurrentMap): Promise<GetOriginalIconDefineResult> {
-    const pageId = currentMap?.mapPageId;
+    const pageId = currentMap?.mapId;
     if (!pageId) {
         throw 'mapId is undefined.';
     }

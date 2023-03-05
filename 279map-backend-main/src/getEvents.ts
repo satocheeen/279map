@@ -9,7 +9,7 @@ export async function getEvents(currentMap: CurrentMap): Promise<GetEventsResult
     if (!currentMap) {
         throw 'no currentmap';
     }
-    const mapPageId = currentMap.mapPageId;
+    const mapPageId = currentMap.mapId;
     const mapKind = currentMap.mapKind;
 
     const con = await ConnectionPool.getConnection();

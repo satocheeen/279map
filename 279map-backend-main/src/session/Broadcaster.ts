@@ -50,7 +50,7 @@ export default class Broadcaster {
                 }
                 const info = JSON.parse(message.toString());
                 this._sessionMap[sid].currentMap = {
-                    mapPageId: info.mapId,
+                    mapId: info.mapId,
                     mapKind: info.mapKind,
                 }
             });
@@ -139,7 +139,7 @@ export default class Broadcaster {
             if (!client.ws || !client.currentMap) {
                 return;
             }
-            if (client.currentMap.mapPageId !== mapPageId) {
+            if (client.currentMap.mapId !== mapPageId) {
                 return;
             }
             if (mapKind && client.currentMap.mapKind !== mapKind) {
@@ -161,7 +161,7 @@ export default class Broadcaster {
         if (!currentMap) {
             return;
         }
-        this.#broadcast(currentMap.mapPageId, currentMap.mapKind, message);
+        this.#broadcast(currentMap.mapId, currentMap.mapKind, message);
     }
 
 }

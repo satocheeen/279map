@@ -254,7 +254,7 @@ app.all('/api/*',
             }
             req.connect = { 
                 sessionKey,
-                mapId: session.currentMap.mapPageId
+                mapId: session.currentMap.mapId
             };
         }
         next();
@@ -424,7 +424,7 @@ app.get('/api/connect', async(req, res, next) => {
 
         const session = broadCaster.addSession(req.connect.sessionKey);
         session.currentMap = {
-            mapPageId: req.connect.mapId,
+            mapId: req.connect.mapId,
             mapKind: req.connect.mapPageInfo.default_map,
         };
     
@@ -484,7 +484,7 @@ app.post(`/api/${GetMapInfoAPI.uri}`,
 
             session.resetItems();
             session.currentMap = {
-                mapPageId: result.mapId,
+                mapId: result.mapId,
                 mapKind: result.mapKind,
             }
 
@@ -647,7 +647,7 @@ app.post(`/api/${RegistItemAPI.uri}`,
     async(req, res) => {
         try {
             const param = req.body as RegistItemParam;
-            const mapPageId = req.currentMap.mapPageId;
+            const mapPageId = req.currentMap.mapId;
             const mapKind = req.currentMap.mapKind;
         
             // call ODBA
@@ -682,6 +682,8 @@ app.post(`/api/${UpdateItemAPI.uri}`,
     async(req, res) => {
         try {
             const param = req.body as UpdateItemParam;
+            const mapPageId = req.currentMap.mapId;
+            const mapKind = req.currentMap.mapKind;
 
             // call ODBA
             await backendAPI.callOdbaApi(backendAPI.UpdateItemAPI, param);
@@ -739,7 +741,7 @@ app.post(`/api/${RegistContentAPI.uri}`,
     async(req, res) => {
         try {
             const param = req.body as RegistContentParam;
-            const mapPageId = req.currentMap.mapPageId;
+            const mapPageId = req.currentMap.mapId;
     
             // call ODBA
             await backendAPI.callOdbaApi(backendAPI.RegistContentAPI, Object.assign({
@@ -770,7 +772,7 @@ app.post(`/api/${UpdateContentAPI.uri}`,
     async(req, res) => {
         try {
             const param = req.body as UpdateContentParam;
-            const mapId = req.currentMap.mapPageId;
+            const mapId = req.currentMap.mapId;
     
             // call ODBA
             await backendAPI.callOdbaApi(backendAPI.UpdateContentAPI, Object.assign({
@@ -804,7 +806,7 @@ app.post(`/api/${GetUnpointDataAPI.uri}`,
 
             // call ODBA
             const result = await backendAPI.callOdbaApi(backendAPI.GetUnpointDataAPI, {
-                mapId: req.currentMap.mapPageId,
+                mapId: req.currentMap.mapId,
                 mapKind: req.currentMap.mapKind,
                 nextToken: param.nextToken,
             });

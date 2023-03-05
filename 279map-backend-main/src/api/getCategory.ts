@@ -15,7 +15,7 @@ export async function getCategory(currentMap: CurrentMap): Promise<GetCategoryRe
     if (!currentMap) {
         throw 'mapPageId or mapKind not defined.';
     }
-    const mapPageId = currentMap.mapPageId;
+    const mapPageId = currentMap.mapId;
     const mapKind = currentMap.mapKind;
 
     const con = await ConnectionPool.getConnection();

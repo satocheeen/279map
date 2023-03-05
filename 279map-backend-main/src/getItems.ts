@@ -9,7 +9,7 @@ export async function getItems({ param, currentMap }: {param:GetItemsParam; curr
     if (!currentMap) {
         throw 'no currentMap';
     }
-    const mapPageId = currentMap.mapPageId;
+    const mapPageId = currentMap.mapId;
     const mapKind = currentMap.mapKind;
     if (!mapPageId || !mapKind) {
         throw 'no currentMap';
