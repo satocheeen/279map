@@ -116,7 +116,7 @@ export type ItemDefine = {
     name: string;
     geoProperties?: GeoProperties;
     lastEditedTime: string;
-    contents: ItemContentInfo | null;
+    contents: ItemContentInfo[];
 }
 export type ContentsDefine = {
     id: string;
