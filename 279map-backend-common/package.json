@@ -28,7 +28,7 @@
     "@types/geojson": "^7946.0.10",
     "@types/multer": "^1.4.7",
     "@types/node": "^16.18.3",
-    "279map-common": "^0.5.5",
+    "279map-common": "^0.6.0",
     "rollup": "^2.60.0",
     "rollup-plugin-delete": "^2.0.0",
     "rollup-plugin-dts": "^4.0.1",
