@@ -18,7 +18,7 @@ export function useContents() {
     const getDescendantContentsIdList = useCallback((itemId: string, filtering: boolean): string[] => {
         const item = itemMap[itemId];
         if (!item) return [];
-        if (!item.contents) return [];
+        if (item.contents.length===0) return [];
 
         const getDecendant = (content: ItemContentInfo) => {
             const descendantList = [] as string[];

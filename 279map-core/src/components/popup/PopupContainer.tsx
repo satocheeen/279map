@@ -77,7 +77,7 @@ export default function PopupContainer(props: Props) {
         if (ownerContext.disabledPopup) {
             return [];
         }
-        const list = Object.values(itemMap).filter(item => item.contents).map(item => item.id);
+        const list = Object.values(itemMap).filter(item => item.contents.length>0).map(item => item.id);
         return list;
     }, [itemMap, ownerContext.disabledPopup]);
 

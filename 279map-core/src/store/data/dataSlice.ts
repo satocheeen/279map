@@ -124,7 +124,7 @@ const dataSlice = createSlice({
             // アイテムからも除去
             const itemMap = Object.assign({}, state.itemMap);
             const targetItem = itemMap[action.payload.itemId];
-            if (targetItem.contents) {
+            if (targetItem.contents.length>0) {
                 let newContents: ItemContentInfo[];
                 if (targetItem.contents.some(c => c.id === action.payload.id)) {
                     newContents = [];

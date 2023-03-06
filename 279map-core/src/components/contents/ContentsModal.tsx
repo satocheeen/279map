@@ -73,7 +73,7 @@ export default function ContentsModal() {
             const item = itemMap[target.itemId];
             if (!item) return;
     
-            if (!item.contents) {
+            if (item.contents.length===0) {
                 return;
             }
             setLoaded(false);

@@ -92,7 +92,7 @@ function MenuItem(props: MenuItemProp) {
     const iconImagePath = useMemo(() => iconDefine.imagePath, [iconDefine]);
 
     const hasContent =useMemo(() => {
-        return item.contents ? true : false;
+        return item.contents.length > 0;
     }, [item]);
 
     const itemName = useMemo(() => {

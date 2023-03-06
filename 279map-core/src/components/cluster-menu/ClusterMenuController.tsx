@@ -106,7 +106,7 @@ export default function ClusterMenuController(props: Props) {
             // 対象が複数存在する場合またはコンテンツを持たないアイテムの場合は、重畳選択メニューを表示
             if (points.length === 1) {
                 const item = itemMapRef.current[points[0].getId() as string];
-                if (props.showAddContentMenu && !item.contents) {
+                if (props.showAddContentMenu && item.contents.length === 0) {
                     setClusterMenuInfo({
                         position: evt.coordinate,
                         targets: points,

@@ -21,7 +21,8 @@ export type PopupItem = {
 }
 
 function hasImageItem(item: ItemDefine): boolean {
-    if (!item.contents) return false;
+    if (item.contents.length===0) return false;
+    console.log('item.contents', item.contents);
     if (item.contents.some(c => c.hasImage)) return true;
     const hasChildOwnImage = (children: ItemContentInfo[]): boolean => {
         return children.some(child => {
@@ -54,6 +55,7 @@ export default function PointsPopup(props: Props) {
         }
         // 複数アイテムが表示対象の場合は、画像を持つもののみ表示対象
         const ownImageInfos = infos.filter(info => hasImageItem(info));
+        console.log('ownImageInfos', ownImageInfos);
         if (ownImageInfos.length === 0) {
             // 画像を持つものがない場合は、冒頭
             return infos[0];

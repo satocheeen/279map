@@ -118,7 +118,7 @@ export function useFilter() {
                 status: 'Normal'
             };
         }
-        if (!target.contents) {
+        if (target.contents.length===0) {
             return {
                 status: 'UnFiltered'
             };
@@ -148,7 +148,7 @@ export function useFilter() {
             return undefined;
         }
         return Object.values(itemMap).filter(item => {
-            if (!item.contents) {
+            if (item.contents.length===0) {
                 return false;
             }
             const check = (content: ItemContentInfo): boolean => {

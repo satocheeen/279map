@@ -42,7 +42,7 @@ export default function ItemContents(props: Props) {
             });
             return id;
         }
-        if (!props.item.contents) {
+        if (props.item.contents.length === 0) {
             return null;
         }
         let imageContentId: string | undefined ;
