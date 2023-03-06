@@ -62,15 +62,14 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
     try {
         // 位置コンテンツ
         const sql = `
-        select i.*, ST_AsGeoJSON(i.location) as geojson, cdi.map_page_id, c.title, c.thumbnail
+        select i.*, ST_AsGeoJSON(i.location) as geojson, cdi.map_page_id
         from items i
         inner join contents_db_info cdi on i.contents_db_id = cdi.contents_db_id
-        left join contents c  on c.content_page_id = i.content_page_id  
         where map_page_id = ? and i.map_kind = ?
         `;
         const [rows] = await con.execute(sql, [mapPageId, mapKind]);
         const pointContents = [] as ItemDefine[];
-        for(const row of rows as (types.schema.ItemsTable & {title?: string; thumbnail?: string} & {geojson: any})[]) {
+        for(const row of rows as (types.schema.ItemsTable & {geojson: any})[]) {
             const contents: ItemContentInfo[] = [];
 
             const contentLinkSql = 'select * from item_content_link where item_page_id = ?';
@@ -82,14 +81,14 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
                     const children = await getChildrenContentInfo(linkRecord.content_page_id);
                     contents.push({
                         id: linkRecord.content_page_id,
-                        hasImage: row.thumbnail ? true : false,
+                        hasImage: children.some(child => child.hasImage),
                         children,
                     });
                 }
             }
 
             // itemがnameを持つならname。持たないなら、コンテンツtitle.
-            const name = row.name && row.name.length > 0 ? row.name : (row.title ?? '');
+            const name = row.name ?? '';
 
             pointContents.push({
                 id: row.item_page_id,

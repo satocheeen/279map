@@ -52,11 +52,13 @@ export async function getBelongingItem(con: PoolConnection, content: types.schem
 async function getItemHasTheContent(con: PoolConnection, content_page_id: string, mapPageId: string, mapKind: MapKind): Promise<types.schema.ItemsTable[]> {
     try {
         const sql = `
-            select * from items i
-            inner join contents_db_info cdi ON i.contents_db_id = cdi.contents_db_id
-            where i.content_page_id = ? and cdi.map_page_id = ? and i.map_kind = ?
-            `;
+        select * from items i
+        inner join contents_db_info cdi ON i.contents_db_id = cdi.contents_db_id
+        inner join item_content_link icl on icl.item_page_id = i.item_page_id 
+        where icl.content_page_id = ? and cdi.map_page_id = ? and i.map_kind = ?
+        `;
         const [rows] = await con.execute(sql, [content_page_id, mapPageId, mapKind]);
+        console.log('rows', rows);
         return (rows as types.schema.ItemsTable[]);
 
     } catch(e) {

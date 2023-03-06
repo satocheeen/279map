@@ -5,7 +5,7 @@ import { PoolConnection } from "mysql2/promise";
 import { GetContentsParam, GetContentsResult } from '../279map-api-interface/src';
 import { ContentsDefine, MapKind } from '279map-common';
 
-type RetRecord = types.schema.ContentsTable & {item_page_id: string; another_item_id: string|null;};
+type RetRecord = types.schema.ContentsTable & {item_page_id: string; /*another_item_id: string|null;*/};
 
 export async function getContents({ param, currentMap }: {param: GetContentsParam; currentMap: types.CurrentMap}): Promise<GetContentsResult> {
     if (!currentMap) {
@@ -19,7 +19,7 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
 
         const convertRecord = (row: RetRecord): ContentsDefine => {
             const contents = row.contents ? JSON.parse(row.contents) as types.schema.ContentsInfo: undefined;
-            const another_item_ids = row.another_item_id?.split(',') ?? [];
+            const another_item_ids = [] as string[];    //TODO: row.another_item_id?.split(',') ?? [];
             let isSnsContent = false;
             let addableChild = true;
             if (row.supplement) {
@@ -45,12 +45,18 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
         }
         const getChildren = async(contentId: string): Promise<ContentsDefine[]> => {
             const getChildrenQuery = `
-            select c.*, i.item_page_id, i.map_kind, group_concat(i2.item_page_id) as another_item_id from contents c 
-            left join items i on c.content_page_id = i.content_page_id 
-            left join items i2 on c.content_page_id = i2.content_page_id and i2.item_page_id <> i.item_page_id
-            group by c.content_page_id, i.item_page_id 
-            having c.parent_id = ?
-            `;
+                select c.*, i.item_page_id, i.map_kind from contents c
+                inner join item_content_link icl on icl.content_page_id = c.content_page_id 
+                inner join items i on i.item_page_id = icl.item_page_id 
+                where c.parent_id = ?
+                `;
+            // const getChildrenQuery = `
+            // select c.*, i.item_page_id, i.map_kind, group_concat(i2.item_page_id) as another_item_id from contents c 
+            // left join items i on c.content_page_id = i.content_page_id 
+            // left join items i2 on c.content_page_id = i2.content_page_id and i2.item_page_id <> i.item_page_id
+            // group by c.content_page_id, i.item_page_id 
+            // having c.parent_id = ?
+            // `;
             const [rows] = await con.execute(getChildrenQuery, [contentId]);
             const children = [] as ContentsDefine[];
             for (const row of rows as RetRecord[]) {
@@ -64,9 +70,9 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
             let myRows: RetRecord[];
             if ('itemId' in target) {
                 const sql = `
-                select c.*, i.item_page_id, i.map_kind, group_concat(i2.item_page_id) as another_item_id from contents c 
-                inner join items i on c.content_page_id = i.content_page_id 
-                left join items i2 on c.content_page_id = i2.content_page_id and i2.item_page_id <> i.item_page_id  
+                select c.*, i.item_page_id, i.map_kind from contents c
+                inner join item_content_link icl on icl.content_page_id = c.content_page_id 
+                inner join items i on i.item_page_id = icl.item_page_id 
                 group by c.content_page_id, i.item_page_id 
                 having i.item_page_id = ? and i.map_kind = ?
                 `;
