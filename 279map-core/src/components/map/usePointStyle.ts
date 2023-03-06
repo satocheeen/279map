@@ -252,9 +252,9 @@ function setClusterLabel(style: Style, size: number) {
         offsetY,
         text: size + '',
         overflow: true,
-        backgroundFill: new Fill({ color: '#ffffffff' }),
+        backgroundFill: new Fill({ color: '#ffffffaa' }),
         font: '1rem Calibri,sans-serif',
-        padding: [0, 5, 0, 5],
+        padding: [0, 1, 0, 1],
         scale: 1.2,
     });
     style.setText(text);
