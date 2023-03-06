@@ -1,12 +1,3 @@
-DROP TABLE IF EXISTS map_page_info CASCADE;
-DROP TABLE IF EXISTS contents_db_info CASCADE;
-DROP TABLE IF EXISTS items CASCADE;
-DROP TABLE IF EXISTS contents CASCADE;
-DROP TABLE IF EXISTS tracks CASCADE;
-DROP TABLE IF EXISTS track_files CASCADE;
-DROP TABLE IF EXISTS track_geojson CASCADE;
-DROP TABLE IF EXISTS original_icons CASCADE;
-
 -- 279map_db.map_page_info definition
 
 CREATE TABLE `map_page_info` (
@@ -65,13 +56,22 @@ CREATE TABLE `items` (
   `last_edited_time` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
   `geo_properties` text COLLATE utf8mb4_unicode_ci,
   `map_kind` enum('Real','Virtual') COLLATE utf8mb4_unicode_ci NOT NULL,
-  `content_page_id` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `name` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`item_page_id`),
   KEY `point_contents_FK` (`contents_db_id`) USING BTREE,
-  KEY `items_FK` (`content_page_id`),
-  CONSTRAINT `items_FK` FOREIGN KEY (`content_page_id`) REFERENCES `contents` (`content_page_id`) ON DELETE CASCADE,
   CONSTRAINT `points_FK_copy` FOREIGN KEY (`contents_db_id`) REFERENCES `contents_db_info` (`contents_db_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- 279map_db.item_content_link definition
+
+CREATE TABLE `item_content_link` (
+  `item_page_id` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `content_page_id` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`item_page_id`,`content_page_id`),
+  KEY `item_content_link_FK_1` (`content_page_id`),
+  CONSTRAINT `item_content_link_FK` FOREIGN KEY (`item_page_id`) REFERENCES `items` (`item_page_id`) ON DELETE CASCADE,
+  CONSTRAINT `item_content_link_FK_1` FOREIGN KEY (`content_page_id`) REFERENCES `contents` (`content_page_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

@@ -54,7 +54,6 @@ export type ItemsTable = {
     location: {x: number; y: number;};   // Geometry
     geo_properties: string;       // GeoPropertiesのJSON文字列
     map_kind: MapKind;
-    content_page_id: string | null;
     last_edited_time: string;
 }
 export type ContentsTable = {
@@ -68,6 +67,10 @@ export type ContentsTable = {
     supplement?: string;      // ContentOptionのJSON文字列
     parent_id?: string;         // 親コンテンツID
     last_edited_time: string;
+}
+export type ItemContentLink = {
+    item_page_id: string;
+    content_page_id: string;
 }
 /**
  * conteentsテーブル内のcontentsカラムを構成する情報
