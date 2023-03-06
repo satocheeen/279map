@@ -24,6 +24,24 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
     const con = await ConnectionPool.getConnection();
 
     // 子孫コンテンツ取得メソッド
+    const getContentsInfo = async(contentPageId: string): Promise<ItemContentInfo[]> => {
+        const sql = 'select * from contents c where content_page_id = ?';
+        const [rows] = await con.execute(sql, [contentPageId]);
+        const myRows = rows as types.schema.ContentsTable[];
+        if (myRows.length === 0) {
+            return [];
+        }
+        const children = [] as ItemContentInfo[];
+        for(const row of myRows) {
+            const discendant = await getChildrenContentInfo(row.content_page_id);
+            children.push({
+                id: row.content_page_id,
+                hasImage: row.thumbnail ? true : false,
+                children: discendant,
+            });
+        }
+        return children;
+    }
     const getChildrenContentInfo = async(contentPageId: string): Promise<ItemContentInfo[]> => {
         const sql = 'select * from contents c where parent_id = ?';
         const [rows] = await con.execute(sql, [contentPageId]);
@@ -78,7 +96,8 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
             if (linkRecords.length > 0) {
                 // 配下のコンテンツID取得
                 for (const linkRecord of linkRecords) {
-                    const children = await getChildrenContentInfo(linkRecord.content_page_id);
+                    const children = await getContentsInfo(linkRecord.content_page_id);
+                    console.log('children', linkRecord.content_page_id, children);
                     contents.push({
                         id: linkRecord.content_page_id,
                         hasImage: children.some(child => child.hasImage),
