@@ -18,7 +18,7 @@ type FilterStatus = {
  * @returns 
  */
 function getDescendantContents(item: ItemDefine): ItemContentInfo[] {
-    if (!item.contents) {
+    if (item.contents.length === 0) {
         return [];
     }
     const getChildren = (content: ItemContentInfo): ItemContentInfo[] => {
@@ -30,7 +30,11 @@ function getDescendantContents(item: ItemDefine): ItemContentInfo[] {
         });
         return childrenList;
     }
-    return [item.contents, ...getChildren(item.contents)];
+    const contents = item.contents.reduce((acc, cur) => {
+        const children = getChildren(cur);
+        return acc.concat(children);
+    }, [] as ItemContentInfo[]);
+    return contents;
 }
 /**
  * フィルタ状態を判断するフック
@@ -158,7 +162,7 @@ export function useFilter() {
                     return check(child);
                 });    
             }
-            return check(item.contents);
+            return item.contents.some(content => check(content));
         }).map(item => item.id);
 
     }, [filterTargetContentIds, itemMap]);

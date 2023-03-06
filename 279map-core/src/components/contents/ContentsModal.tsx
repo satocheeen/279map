@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 import { operationActions } from '../../store/operation/operationSlice';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import { addListener, removeListener } from '../../util/Commander';
+import { ContentsDefine } from '279map-common';
 
 type Target = {
     type: 'item';
@@ -109,22 +110,19 @@ export default function ContentsModal() {
 
     }, [target, itemMap, dispatch]);
 
-    const rootContent = useSelector((state: RootState) => {
-        if (!target) return;
+    const contents = useSelector((state: RootState): ContentsDefine[] => {
+        if (!target) return [];
 
         if (target.type === 'item') {
             const item = state.data.itemMap[target.itemId];
-            if (!item?.contents) return;
-            const contentId = item.contents.id;
-            return state.data.contentsList.find(cn => cn.id === contentId);
+            if (!item) return [];
+            if (item.contents.length === 0) return [];
+            // const contentId = item.contents.id;
+            return state.data.contentsList.filter(cn => item.contents.some(ic => ic.id === cn.id));
         } else {
-            return state.data.contentsList.find(c => c.id === target.contentId);
+            return state.data.contentsList.filter(c => c.id === target.contentId);
         }
-    });
-
-    useEffect(() => {
-        console.log('rootContent', rootContent);
-    }, [rootContent])
+    })
 
     const onCloseBtnClicked = useCallback(() => {
         setShow(false);
@@ -142,9 +140,11 @@ export default function ContentsModal() {
             >
             <ModalHeader>詳細</ModalHeader>
             <ModalBody>
-                {rootContent &&
-                    <Content itemId={rootContent.itemId}  content={rootContent} />
-                }
+                {contents.map((content) => {
+                    return (
+                        <Content key={content.id} itemId={content.itemId}  content={content} />
+                    )
+                })}
             </ModalBody>
             <ModalFooter>
 

@@ -33,10 +33,13 @@ export function useContents() {
             return descendantList;
         }
 
-        const descendants = getDecendant(item.contents);
+        const descendants = item.contents.reduce((acc, cur) => {
+            const decendants = getDecendant(cur);
+            return acc.concat(decendants);
+        }, [] as string[]);
 
-        const isPush = (filtering && filterTargetContentIds) ? filterTargetContentIds?.includes(item.contents.id) : true;
-        const idList = isPush ? [item.contents.id] : [];
+        const isPush = (filtering && filterTargetContentIds) ? filterTargetContentIds?.some((contentId)=> item.contents.some(c => c.id === contentId)) : true;
+        const idList = isPush ? item.contents.map(c => c.id) : [];
         Array.prototype.push.apply(idList, descendants);
 
         return idList;

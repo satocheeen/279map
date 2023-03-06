@@ -125,9 +125,9 @@ const dataSlice = createSlice({
             const itemMap = Object.assign({}, state.itemMap);
             const targetItem = itemMap[action.payload.itemId];
             if (targetItem.contents) {
-                let newContents = null as null | ItemContentInfo;
-                if (targetItem.contents.id === action.payload.id) {
-                    newContents = null;
+                let newContents: ItemContentInfo[];
+                if (targetItem.contents.some(c => c.id === action.payload.id)) {
+                    newContents = [];
                 } else {
                     const removeChild = (children: ItemContentInfo[]): ItemContentInfo[] => {
                         const newChildren = [] as ItemContentInfo[];
@@ -144,7 +144,7 @@ const dataSlice = createSlice({
                         };
                         return newChildren;
                     }
-                    const newChildren = removeChild(targetItem.contents.children);
+                    const newChildren = removeChild(targetItem.contents);
                     newContents = Object.assign({}, targetItem.contents, {
                         children: newChildren,
                     });

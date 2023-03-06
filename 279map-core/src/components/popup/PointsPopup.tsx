@@ -22,14 +22,14 @@ export type PopupItem = {
 
 function hasImageItem(item: ItemDefine): boolean {
     if (!item.contents) return false;
-    if (item.contents.hasImage) return true;
+    if (item.contents.some(c => c.hasImage)) return true;
     const hasChildOwnImage = (children: ItemContentInfo[]): boolean => {
         return children.some(child => {
             if (child.hasImage) return true;
             return hasChildOwnImage(child.children);
         });
     }
-    return hasChildOwnImage(item.contents.children);
+    return hasChildOwnImage(item.contents);
 
 }
 export default function PointsPopup(props: Props) {

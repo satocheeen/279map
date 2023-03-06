@@ -45,7 +45,13 @@ export default function ItemContents(props: Props) {
         if (!props.item.contents) {
             return null;
         }
-        const imageContentId = getImageOwnerContentId(props.item.contents);
+        let imageContentId: string | undefined ;
+        for (const content of props.item.contents) {
+            imageContentId = getImageOwnerContentId(content);
+            if (!imageContentId) {
+                break;
+            }
+        }
         if (!imageContentId) {
             return null;
         }
