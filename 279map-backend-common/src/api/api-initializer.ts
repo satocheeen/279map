@@ -1,7 +1,7 @@
 import { APIDefine } from "279map-common";
 import { Request, Response, Express } from 'express';
 import { Logger } from "log4js";
-import { GetImageUrlAPI, GetUnpointDataAPI, LinkContentToItemAPI, RegistContentAPI, RegistItemAPI, RemoveContentAPI, RemoveItemAPI, UpdateContentAPI, UpdateItemAPI } from "./dba-api-interface";
+import { GetImageUrlAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from "./dba-api-interface";
 import OdbaInterface from "./OdbaInterface";
 
 type OdbaAPIFuncParam<PARAM> = {
@@ -9,44 +9,84 @@ type OdbaAPIFuncParam<PARAM> = {
 }
 export type OdbaAPIFunc<PARAM, RESULT> = (param: OdbaAPIFuncParam<PARAM>) => Promise<RESULT>;
 
-type AfterParam<PARAM, RESULT> = {
-    param: PARAM;
-    result: RESULT;
-    req: Request;
-    res: Response;
-}
 export type OdbaAPICallDefine<PARAM, RESULT> = {
     define: APIDefine<PARAM, RESULT>;
-    func: (param: OdbaAPIFuncParam<PARAM>) => Promise<RESULT>;
-    // func実行後に実施する処理
-    after?: (param: AfterParam<PARAM, RESULT>) => boolean;   // falseで復帰した場合は、res.sendしない
+    func: OdbaAPIFunc<PARAM, RESULT>;
 }
 
 export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger) {
     const apiList: OdbaAPICallDefine<any,any>[] = [
         {
             define: RegistItemAPI,
-            func: odba.registItem,
+            func: async(param: OdbaAPIFuncParam<RegistItemParam>): Promise<string> => {
+                // regist to original db
+                const itemId = await odba.registItemOdb(param.param);
+
+                // update cache db
+                await odba.updateItemCache({
+                    currentMap: param.param.currentMap, 
+                    itemId,
+                });
+                return itemId;
+            }
         },
         {
             define: RegistContentAPI,
-            func: odba.registContent,
+            func: async(param: OdbaAPIFuncParam<RegistContentParam>): Promise<void> => {
+                // regist to original db
+                const contentId = await odba.registContentOdb(param.param);
+
+                // update cache db
+                await odba.updateContentCache({
+                    currentMap: param.param.currentMap, 
+                    contentId,
+                });
+            },
         },
         {
             define: RemoveItemAPI,
-            func: odba.removeItem,
+            func: async(param: OdbaAPIFuncParam<RemoveItemParam>): Promise<void> => {
+                await odba.removeItemOdb(param.param);
+
+                await odba.removeItemCache({
+                    currentMap: param.param.currentMap, 
+                    itemId: param.param.id,
+                });
+            },
         },
         {
             define: RemoveContentAPI,
-            func: odba.removeContent,
+            func: async(param: OdbaAPIFuncParam<RemoveContentParam>): Promise<void> => {
+                await odba.removeContentOdb(param.param);
+
+                await odba.removeContentCache({
+                    currentMap: param.param.currentMap, 
+                    contentId: param.param.id,
+                });
+            }
         },
         {
             define: UpdateItemAPI,
-            func: odba.updateItem,
+            func: async(param: OdbaAPIFuncParam<UpdateItemParam>): Promise<void> => {
+                await odba.updateItemOdb(param.param);
+
+                // update cache db
+                await odba.updateItemCache({
+                    currentMap: param.param.currentMap, 
+                    itemId: param.param.id,
+                });
+            },
         },
         {
             define: UpdateContentAPI,
-            func: odba.updateContent,
+            func: async(param: OdbaAPIFuncParam<UpdateContentParam>): Promise<void> => {
+                await odba.updateContentOdb(param.param);
+
+                await odba.updateContentCache({
+                    currentMap: param.param.currentMap, 
+                    contentId: param.param.id,
+                });
+            },
         },
         {
             define: GetUnpointDataAPI,
@@ -54,7 +94,21 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
         },
         {
             define: LinkContentToItemAPI,
-            func: odba.linkContentToItem,
+            func: async(param: OdbaAPIFuncParam<LinkContentToItemParam>): Promise<void> => {
+                await odba.linkContentToItem(param.param);
+
+                if ('itemId' in param.param.parent) {
+                    await odba.updateItemCache({
+                        currentMap: param.param.currentMap, 
+                        itemId: param.param.parent.itemId,
+                    });
+                } else {
+                    await odba.updateContentCache({
+                        currentMap: param.param.currentMap, 
+                        contentId: param.param.parent.contentId,
+                    });
+                }
+            }
         },
         {
             define: GetImageUrlAPI,
@@ -82,17 +136,10 @@ export function registAPIs(app: Express, apiList: OdbaAPICallDefine<any,any>[], 
     
                 const result = await api.func({ param });
         
-                let doSend = true;
-                if (api.after) {
-                    doSend = api.after({ param, result, req, res });
-                }
-            
                 logger.info('[end] ' + api.define.uri);
                 logger.debug('result', result);
             
-                if (doSend) {
-                    res.send(result);
-                }
+                res.send(result);
     
             } catch(e) {    
                 logger.warn(api.define.uri + ' error', e);
