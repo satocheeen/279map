@@ -71,14 +71,20 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
         const [rows] = await con.execute(sql, [mapPageId, mapKind]);
         const pointContents = [] as ItemDefine[];
         for(const row of rows as (types.schema.ItemsTable & {title?: string; thumbnail?: string} & {geojson: any})[]) {
-            let contents: ItemContentInfo | null = null;
-            if (row.content_page_id) {
+            const contents: ItemContentInfo[] = [];
+
+            const contentLinkSql = 'select * from item_content_link where item_page_id = ?';
+            const [linkRows] = await con.execute(contentLinkSql, [row.item_page_id]);
+            const linkRecords = linkRows as types.schema.ItemContentLink[];
+            if (linkRecords.length > 0) {
                 // 配下のコンテンツID取得
-                const children = await getChildrenContentInfo(row.content_page_id);
-                contents = {
-                    id: row.content_page_id,
-                    hasImage: row.thumbnail ? true : false,
-                    children,
+                for (const linkRecord of linkRecords) {
+                    const children = await getChildrenContentInfo(linkRecord.content_page_id);
+                    contents.push({
+                        id: linkRecord.content_page_id,
+                        hasImage: row.thumbnail ? true : false,
+                        children,
+                    });
                 }
             }
 
@@ -143,7 +149,7 @@ async function selectTrackInArea(param: GetItemsParam, mapPageId: string): Promi
                 name: '',
                 overview: '',
                 category: [],
-                contents: null,
+                contents: [],
                 lastEditedTime: row.last_edited_time,
             }
         });
