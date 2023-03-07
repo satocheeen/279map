@@ -265,7 +265,7 @@ export default function MapChart() {
         
         // 背景地図レイヤ生成
         let layers: BaseLayer[] = [];
-        let extent: Extent =  [0, 0, 20, 20];
+        let extent: Extent =  [0, 0, 2, 2];
         console.log('mapKind', mapKind);
         if (mapKind === MapKind.Real) {
             // 都道府県レイヤ
