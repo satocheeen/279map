@@ -235,8 +235,7 @@ function createItemNameLabel(feature: FeatureLike): Text {
         textBaseline: 'middle',
         text: name,
         overflow: true,
-        // TODO: アイコン画像によって、背景色があった方がいいケースとない方がいいケースがあるので、対応策考える。
-        // backgroundFill: new Fill({ color: '#ffffffaa' }),
+        backgroundFill: new Fill({ color: '#ffffffaa' }),
         font: '1rem Calibri,sans-serif',
     });
 
@@ -246,15 +245,16 @@ function createItemNameLabel(feature: FeatureLike): Text {
 function setClusterLabel(style: Style, size: number) {
     const imageSize = style.getImage().getImageSize();
     const scale = style.getImage().getScale() as number;
-    const offsetY = imageSize ? - (imageSize[1] / 1.6 * scale) : 0;
+    const offsetY = imageSize ? - (imageSize[1] / 1.65 * scale) : 0;
     const text = new Text({
         textAlign: 'center',
         textBaseline: 'middle',
         offsetY,
         text: size + '',
         overflow: true,
-        backgroundFill: new Fill({ color: '#ffffffaa' }),
-        font: '1rem Calibri,sans-serif',
+        // TODO: アイコン画像によって、背景色があった方がいいケースとない方がいいケースがあるので、対応策考える。
+        // backgroundFill: new Fill({ color: '#ffffffaa' }),
+        font: '.6rem Calibri,sans-serif',
         padding: [0, 1, 0, 1],
         scale: 1.2,
     });
