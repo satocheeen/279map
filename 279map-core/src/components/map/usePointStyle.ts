@@ -235,7 +235,8 @@ function createItemNameLabel(feature: FeatureLike): Text {
         textBaseline: 'middle',
         text: name,
         overflow: true,
-        backgroundFill: new Fill({ color: '#ffffffaa' }),
+        // TODO: アイコン画像によって、背景色があった方がいいケースとない方がいいケースがあるので、対応策考える。
+        // backgroundFill: new Fill({ color: '#ffffffaa' }),
         font: '1rem Calibri,sans-serif',
     });
 
