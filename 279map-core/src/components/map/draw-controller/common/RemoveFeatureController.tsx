@@ -32,18 +32,12 @@ export default function RemoveFeatureController(props: Props) {
             return;
         }
 
-        const result2 = await confirmHook.confirm({
-            message: 'Notionページも削除しますか。\nはい→Notionページも削除する\nいいえ→地図上からのみ削除する',
-            btnPattern: ConfirmBtnPattern.YesNo,
-        });
-        const onlyGeoInfo = result2 === ConfirmResult.No;
-
         spinnerHook.showSpinner('削除中...');
 
         // DB更新
         await dispatch(removeFeature({
             id: feature.getId() as string,
-            onlyGeoInfo,
+            onlyGeoInfo: false,
         }));
 
         spinnerHook.hideSpinner();
