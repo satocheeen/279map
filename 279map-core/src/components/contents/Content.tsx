@@ -223,7 +223,7 @@ export default function Content(props: Props) {
             return;
         }
         let deleteOnlyLink = true;
-        if (!props.content.anotherMapItemId) {
+        if (!props.content.readonly && !props.content.anotherMapItemId) {
             // もう一方の地図で使用されている場合は、アイテムとのリンク除去
             // 使用されていないならば、どうするか確認
             const result2 = await confirm({
