@@ -133,6 +133,7 @@ export type ContentsDefine = {
     anotherMapItemId?: string; // もう片方の地図に存在する場合、そのアイテムID
     isSnsContent: boolean;  // trueの場合、SNS等から自動連係したコンテンツ
     addableChild: boolean;  // trueの場合、子コンテンツ追加可能。SNS連携の親コンテンツは子コンテンツ追加不可なので、その制御用。
+    readonly: boolean;      // trueの場合、編集・削除不可能。
 }
 export type CategoryDefine = {
     name: string;
