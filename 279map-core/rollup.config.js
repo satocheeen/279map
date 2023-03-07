@@ -31,8 +31,13 @@ export default [
       }),
       postcss({
         extract: false,
-        modules: true,
+        modules: {
+          // CSS Modulesの設定
+          generateScopedName: '[name]__[local]___[hash:base64:5]',
+          exclude: 'react-tooltip/dist/react-tooltip.css', // 除外するファイルの指定
+        },
         use: ['sass'],
+        extensions: ['.css', '.scss']
       }),
       json(),
       del({ targets: packageJson.main + '/*' }),
@@ -60,8 +65,13 @@ export default [
       }),
       postcss({
         extract: false,
-        modules: true,
+        modules: {
+          // CSS Modulesの設定
+          generateScopedName: '[name]__[local]___[hash:base64:5]',
+          exclude: 'react-tooltip/dist/react-tooltip.css', // 除外するファイルの指定
+        },
         use: ['sass'],
+        extensions: ['.css', '.scss']
       }),
       json(),
       del({ targets: packageJson.module + '/*' }),
