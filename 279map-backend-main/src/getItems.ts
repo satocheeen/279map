@@ -1,8 +1,11 @@
 import { types } from '279map-backend-common';
 import { ItemContentInfo, ItemDefine, MapKind } from '279map-common';
+import { getLogger } from 'log4js';
 import { ConnectionPool } from '.';
 import { GetItemsParam, GetItemsResult } from '../279map-api-interface/src';
 import { getExtentWkt } from './util/utility';
+
+const apiLogger = getLogger('api');
 
 export async function getItems({ param, currentMap }: {param:GetItemsParam; currentMap: types.CurrentMap}): Promise<GetItemsResult> {
     if (!currentMap) {
@@ -23,24 +26,23 @@ export async function getItems({ param, currentMap }: {param:GetItemsParam; curr
 export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: GetItemsParam): Promise<ItemDefine[]> {
     const con = await ConnectionPool.getConnection();
 
-    // 子孫コンテンツ取得メソッド
-    const getContentsInfo = async(contentPageId: string): Promise<ItemContentInfo[]> => {
+    // コンテンツ取得メソッド
+    const getContentsInfo = async(contentPageId: string): Promise<ItemContentInfo|null> => {
         const sql = 'select * from contents c where content_page_id = ?';
         const [rows] = await con.execute(sql, [contentPageId]);
         const myRows = rows as types.schema.ContentsTable[];
         if (myRows.length === 0) {
-            return [];
+            apiLogger.warn('not founc content.', contentPageId);
+            return null;
         }
-        const children = [] as ItemContentInfo[];
-        for(const row of myRows) {
-            const discendant = await getChildrenContentInfo(row.content_page_id);
-            children.push({
-                id: row.content_page_id,
-                hasImage: row.thumbnail ? true : false,
-                children: discendant,
-            });
-        }
-        return children;
+
+        const row = myRows[0];
+        const discendant = await getChildrenContentInfo(row.content_page_id);
+        return {
+            id: row.content_page_id,
+            hasImage: row.thumbnail ? true : false,
+            children: discendant,
+        };
     }
     const getChildrenContentInfo = async(contentPageId: string): Promise<ItemContentInfo[]> => {
         const sql = 'select * from contents c where parent_id = ?';
@@ -60,22 +62,6 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
         }
         return children;
     };
-    // const getContentsInfo = async(contentPageId: string): Promise<ItemContentInfo|null> => {
-    //     const sql = 'select * from contents c where content_page_id = ?';
-
-    //     const [rows] = await con.execute(sql, [contentPageId]);
-    //     const myRows = rows as ContentsTable[];
-    //     if (myRows.length === 0) {
-    //         return null;
-    //     }
-
-    //     const children = await getChildrenContentInfo(contentPageId);
-    //     return {
-    //         id: contentPageId,
-    //         hasImage: myRows[0].thumbnail ? true : false,
-    //         children,
-    //     }
-    // }
     
     try {
         // 位置コンテンツ
@@ -97,12 +83,9 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
             if (linkRecords.length > 0) {
                 // 配下のコンテンツID取得
                 for (const linkRecord of linkRecords) {
-                    const children = await getContentsInfo(linkRecord.content_page_id);
-                    contents.push({
-                        id: linkRecord.content_page_id,
-                        hasImage: children.some(child => child.hasImage),
-                        children,
-                    });
+                    const child = await getContentsInfo(linkRecord.content_page_id);
+                    if (!child) continue;
+                    contents.push(child);
                     // コンテンツリンクの更新日時が新しければ、そちらを更新日時とする
                     if (lastEditedTime.localeCompare(linkRecord.last_edited_time) < 0) {
                         lastEditedTime = linkRecord.last_edited_time;
