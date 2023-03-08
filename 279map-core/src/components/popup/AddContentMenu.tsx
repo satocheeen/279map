@@ -36,7 +36,7 @@ export default function AddContentMenu(props: Props) {
     }, [props, onNewContentInfo]);
 
     const caption = useMemo(() => {
-        if ('itemId' in props) {
+        if ('itemId' in props.target) {
             return 'コンテンツ追加';
         } else {
             return '子コンテンツ追加';

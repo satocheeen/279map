@@ -198,6 +198,7 @@ export default function Content(props: Props) {
     });
     const isEditable = useMemo(() => {
         if (!editableAuthLv) return false;
+        if (props.content.readonly) return false;
         if (!onEditContentInfo) return false;
 
         // SNSコンテンツは編集不可
