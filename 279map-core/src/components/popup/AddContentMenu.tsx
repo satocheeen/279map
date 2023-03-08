@@ -54,17 +54,22 @@ export default function AddContentMenu(props: Props) {
     if (!onNewContentInfo) return null;
 
     return (
+        // <>
+        //     <PopupMenuIcon id={id.current} tooltip={caption} onClick={onClick}>
+        //         <MdOutlineLibraryAdd />
+        //     </PopupMenuIcon>
+        //     <Tooltip anchorId={id.current} place='right' isOpen={isShowSubMenu}
+        //         onHide={onSubMenuHide} name="addContents">
+        //         <ul className={styles.SubMenu}>
+        //             <li onClick={() => onAddContent('new')}>新規作成</li>
+        //             <li onClick={() => onAddContent('unpoint')}>既存コンテンツ</li>
+        //         </ul>
+        //     </Tooltip>
+        // </>
         <>
-            <PopupMenuIcon id={id.current} tooltip={caption} onClick={onClick}>
+            <PopupMenuIcon id={id.current} tooltip={caption} onClick={() => onAddContent('unpoint')}>
                 <MdOutlineLibraryAdd />
             </PopupMenuIcon>
-            <Tooltip anchorId={id.current} place='right' isOpen={isShowSubMenu}
-                onHide={onSubMenuHide} name="addContents">
-                <ul className={styles.SubMenu}>
-                    <li onClick={() => onAddContent('new')}>新規作成</li>
-                    <li onClick={() => onAddContent('unpoint')}>既存コンテンツ</li>
-                </ul>
-            </Tooltip>
         </>
-    );
+);
 }

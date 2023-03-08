@@ -212,8 +212,10 @@ export default function Content(props: Props) {
     }, [editableAuthLv, props.content]);
 
     const addableChild = useMemo(() => {
-        if (!editableAuthLv) return false;
-        return props.content.addableChild;
+        // TODO: ひとまず、子コンテンツ追加機能Off
+        return false;
+        // if (!editableAuthLv) return false;
+        // return props.content.addableChild;
     }, [props.content, editableAuthLv]);
 
     const onDelete = useCallback(async() => {
