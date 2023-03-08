@@ -66,6 +66,7 @@ export type ContentsTable = {
     date?: Date;
     supplement?: string;      // ContentOptionのJSON文字列
     parent_id?: string;         // 親コンテンツID
+    readonly: boolean;
     last_edited_time: string;
 }
 export type ItemContentLink = {

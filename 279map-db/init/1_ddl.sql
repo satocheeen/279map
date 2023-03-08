@@ -39,6 +39,7 @@ CREATE TABLE `contents` (
   `parent_id` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `supplement` text COLLATE utf8mb4_unicode_ci,
   `contents_db_id` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `readonly` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`content_page_id`),
   KEY `contents_FK` (`parent_id`),
   KEY `contents_FK_1` (`contents_db_id`),
