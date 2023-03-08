@@ -41,7 +41,7 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                     anotherMapItemId: another_item_ids.length === 0 ? undefined : another_item_ids[0],  // 複数存在する場合は１つだけ返す
                     isSnsContent,
                     addableChild,
-                    readonly: row.readonly,
+                    readonly: row.readonly ? true : false,
                 };
         }
         const getChildren = async(contentId: string): Promise<ContentsDefine[]> => {
