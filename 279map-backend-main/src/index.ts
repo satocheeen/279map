@@ -53,7 +53,6 @@ const logger = getLogger();
 const apiLogger = getLogger('api');
 
 // process.exitは非同期処理を待たないので、loggerではなくconsoleで出力
-console.log('checking process.env');
 // 必須環境変数が定義されているかチェック
 if (!process.env.MAIN_SERVICE_PORT) {
     console.warn('not set env MAIN_SERVICE_PORT');
@@ -313,7 +312,6 @@ app.all('/api/*',
     },
     checkJwt,
     (err: Error, req: Request, res: Response, next: NextFunction) => {
-        console.log('error catch', err);
         if (err.name === 'Unauthenticated') {
             res.status(401).send({
                 error: {

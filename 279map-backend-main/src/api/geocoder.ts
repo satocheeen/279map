@@ -70,7 +70,6 @@ async function mapboxSearch(address: string, searchTarget: ('point' | 'area')[])
         if (feature.geometry.type === 'Point') {
             return searchTarget.includes('point');
         } else {
-            console.log('feature type', feature.geometry.type);
             if(!searchTarget.includes('area')) {
                 return false;
             }

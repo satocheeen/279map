@@ -104,7 +104,6 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
                         children,
                     });
                     // コンテンツリンクの更新日時が新しければ、そちらを更新日時とする
-                    console.log('lastEditedTime', lastEditedTime, linkRecord.last_edited_time);
                     if (lastEditedTime.localeCompare(linkRecord.last_edited_time) < 0) {
                         lastEditedTime = linkRecord.last_edited_time;
                     }

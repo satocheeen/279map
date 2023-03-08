@@ -4,7 +4,6 @@ import cookie from 'cookie';
 
 export function getSessionIdFromCookies(req: Request | IncomingMessage): string | undefined {
     if (!req.headers.cookie) {
-        console.log('not cookie');
         return;
     }
     const cookies = cookie.parse(req.headers.cookie);

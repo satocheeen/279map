@@ -42,7 +42,6 @@ export default class Broadcaster {
         
             // サーバー寸断時の再接続考慮
             ws.on('message', (message) => {
-                console.log('receive ws', message);
                 if (this._sessionMap[sid] === undefined) {
                     this._logger.warn('session recreate', sid);
                     this._sessionMap[sid] = new SessionInfo(sid);
@@ -60,7 +59,7 @@ export default class Broadcaster {
                 this._sessionMap[sid]?.resetItems();
 
                 // delete this._sessionMap[sid];
-                console.log('disconnect', this._sessionMap);
+                this._logger.debug('disconnect', this._sessionMap);
             });
         });
         
@@ -134,7 +133,7 @@ export default class Broadcaster {
      * @param message 送信する通知
      */
     #broadcast(mapPageId: string, mapKind: MapKind | undefined, message: WebSocketMessage) {
-        console.log('broadcast', mapKind, message);
+        this._logger.debug('broadcast', mapKind, message);
         Object.values(this._sessionMap).forEach(client => {
             if (!client.ws || !client.currentMap) {
                 return;
@@ -146,7 +145,7 @@ export default class Broadcaster {
                 return;
             }
             client.ws.send(JSON.stringify(message));
-            console.log('send', client.sid);
+            this._logger.debug('send', client.sid);
         })
     }
 

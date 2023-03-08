@@ -58,7 +58,6 @@ async function getItemHasTheContent(con: PoolConnection, content_page_id: string
         where icl.content_page_id = ? and cdi.map_page_id = ? and i.map_kind = ?
         `;
         const [rows] = await con.execute(sql, [content_page_id, mapPageId, mapKind]);
-        console.log('rows', rows);
         return (rows as types.schema.ItemsTable[]);
 
     } catch(e) {
