@@ -156,7 +156,6 @@ export function registAPIs(app: Express, apiList: OdbaAPICallDefine<any,any>[], 
     apiList.forEach((api => {
         const getParam = (req: Request): typeof api.define.param => {
             if (api.define.method === 'post') {
-                console.log('req body', req.body);
                 return req.body as typeof api.define.param;
             } else {
                 return req.query as typeof api.define.param;

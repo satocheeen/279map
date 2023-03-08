@@ -22,7 +22,6 @@ export default class InstagramPostGetter implements SnsPostGetter {
             if (!hit) {
                 return null;
             }
-            console.log('checkUrl', hit);
             const userName = hit[2];
             return {
                 type: 'InstagramUser',
