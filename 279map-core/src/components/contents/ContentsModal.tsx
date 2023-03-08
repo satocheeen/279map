@@ -8,6 +8,8 @@ import { operationActions } from '../../store/operation/operationSlice';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import { addListener, removeListener } from '../../util/Commander';
 import { ContentsDefine } from '279map-common';
+import AddContentMenu from '../popup/AddContentMenu';
+import styles from './ContentsModal.module.scss';
 
 type Target = {
     type: 'item';
@@ -138,7 +140,14 @@ export default function ContentsModal() {
             onCloseBtnClicked={onCloseBtnClicked}
             onClosed={onClosed}
             >
-            <ModalHeader>詳細</ModalHeader>
+            <ModalHeader>
+                <div className={styles.ItemHeader}>
+                    詳細
+                    {itemId &&
+                    <AddContentMenu target={{itemId}} />
+                }
+                </div>
+            </ModalHeader>
             <ModalBody>
                 {contents.map((content) => {
                     return (

@@ -78,7 +78,7 @@ export default function Modal(props: Props) {
 }
 
 type HeaderProps = {
-    children?: string;
+    children?: string | JSX.Element | JSX.Element[];
 }
 export function ModalHeader(props: HeaderProps) {
     return <></>
