@@ -69,6 +69,7 @@ CREATE TABLE `items` (
 CREATE TABLE `item_content_link` (
   `item_page_id` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
   `content_page_id` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `last_edited_time` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`item_page_id`,`content_page_id`),
   KEY `item_content_link_FK_1` (`content_page_id`),
   CONSTRAINT `item_content_link_FK` FOREIGN KEY (`item_page_id`) REFERENCES `items` (`item_page_id`) ON DELETE CASCADE,

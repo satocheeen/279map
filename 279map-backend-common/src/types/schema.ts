@@ -72,6 +72,7 @@ export type ContentsTable = {
 export type ItemContentLink = {
     item_page_id: string;
     content_page_id: string;
+    last_edited_time: string;
 }
 /**
  * conteentsテーブル内のcontentsカラムを構成する情報
