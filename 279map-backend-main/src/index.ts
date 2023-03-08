@@ -837,7 +837,12 @@ app.post(`/api/${LinkContentToItemAPI.uri}`,
             await backendAPI.callOdbaApi(backendAPI.LinkContentToItemAPI, Object.assign({
                 currentMap: req.currentMap,
             }, param));
-    
+
+            // 更新通知
+            broadCaster.broadcastSameMap(req, {
+                type: 'updated',
+            });
+            
             res.send('complete');
     
         } catch(e) {

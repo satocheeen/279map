@@ -89,6 +89,7 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
         const pointContents = [] as ItemDefine[];
         for(const row of rows as (types.schema.ItemsTable & {geojson: any})[]) {
             const contents: ItemContentInfo[] = [];
+            let lastEditedTime = row.last_edited_time;
 
             const contentLinkSql = 'select * from item_content_link where item_page_id = ?';
             const [linkRows] = await con.execute(contentLinkSql, [row.item_page_id]);
@@ -97,12 +98,16 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
                 // 配下のコンテンツID取得
                 for (const linkRecord of linkRecords) {
                     const children = await getContentsInfo(linkRecord.content_page_id);
-                    console.log('children', linkRecord.content_page_id, children);
                     contents.push({
                         id: linkRecord.content_page_id,
                         hasImage: children.some(child => child.hasImage),
                         children,
                     });
+                    // コンテンツリンクの更新日時が新しければ、そちらを更新日時とする
+                    console.log('lastEditedTime', lastEditedTime, linkRecord.last_edited_time);
+                    if (lastEditedTime.localeCompare(linkRecord.last_edited_time) < 0) {
+                        lastEditedTime = linkRecord.last_edited_time;
+                    }
                 }
             }
 
@@ -118,7 +123,7 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
                 },
                 geoProperties: row.geo_properties ? JSON.parse(row.geo_properties) : undefined,
                 contents,
-                lastEditedTime: row.last_edited_time,
+                lastEditedTime,
             });
         }
 
