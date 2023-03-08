@@ -83,11 +83,12 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                 myRows = await getContentInfo(con, target.contentId, currentMap.mapId,currentMap.mapKind);
 
             }
-            if (myRows.length > 0) {
-                const content = convertRecord(myRows[0]);
+            for (const row of myRows) {
+                const content = convertRecord(row);
                 // 子孫コンテンツを取得
                 content.children = await getChildren(content.id);
                 allContents.push(content);
+
             }
         }
 

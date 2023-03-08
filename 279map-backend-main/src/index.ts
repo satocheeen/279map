@@ -866,6 +866,11 @@ app.post(`/api/${RemoveContentAPI.uri}`,
                 currentMap: req.currentMap,
             }, param));
     
+            // 更新通知
+            broadCaster.broadcastSameMap(req, {
+                type: 'updated',
+            });
+
             res.send('complete');
     
         } catch(e) {
