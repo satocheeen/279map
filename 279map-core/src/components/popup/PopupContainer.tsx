@@ -16,11 +16,16 @@ import VectorLayer from 'ol/layer/Vector';
 type Props = {
     map: Map;
 }
-type PopupInfo = {
+type PopupGroup = {
+    mainFeature: Feature;
+    itemIds: string[];  // ポップアップに紐づくアイテムID一覧
+}
+
+type PopupGroupWithPosition = {
     itemPositions: GeolibInputCoordinates[];    // ポップアップ表示位置
     itemIds: string[];  // ポップアップに紐づくアイテムID一覧
 }
-function createKeyFromPopupInfo(param: PopupInfo): string {
+function createKeyFromPopupInfo(param: PopupGroupWithPosition): string {
     if (!param) {
         return '';
     }
@@ -81,46 +86,15 @@ export default function PopupContainer(props: Props) {
         return list;
     }, [itemMap, ownerContext.disabledPopup]);
 
-    const getPopupPosition = useCallback((feature: Feature): undefined | { longitude: number; latitude: number; } => {
-            // -- 中心位置取得
-            const itemPosition = getFeatureCenter(feature);
-            if (!itemPosition) {
-                console.log('getFeatureCenter undefined')
-                return;
-            }
-
-            if (feature.getGeometry()?.getType() === 'Point') {
-                // 建物orピンの場合、アイコンの上部にポップアップを表示する
-                const style = pointStyleFunction(feature, mapRef.current.getView().getResolution() ?? 0);
-                const image = style.getImage();
-                const pixel = mapRef.current.getPixelFromCoordinate([itemPosition.longitude, itemPosition.latitude]);
-                const imageSize = image.getSize();
-                if (!imageSize || imageSize.length < 2 || !pixel || pixel.length < 2) {
-                    console.log('imageSize undefined', imageSize);
-                    return;
-                }
-
-                pixel[1] = pixel[1] - imageSize[1] * (image.getScale() as number);
-                const newPosition = mapRef.current.getCoordinateFromPixel(pixel);
-                itemPosition.latitude = newPosition[1];
-    
-            }
-
-            return itemPosition;
-
-    // loadendによって、画像サイズを取得できるようなので、依存配列にloadendFlagを入れている
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pointStyleFunction, loadendFlag]);
-
-    const popupInfos = useMemo((): PopupInfo[] => {
+    const popupGroups = useMemo((): PopupGroup[] => {
         /**
          * 建物orピンのポップアップ情報を返す
          */
-        const itemPopupInfos = function(): PopupInfo[] {
+        const itemPopupInfos = function(): PopupGroup[] {
             const itemSource = itemLayer.getSource();
             if (!itemSource) return [];
 
-            const popupInfoList = [] as PopupInfo[]; 
+            const popupInfoList = [] as PopupGroup[];
             itemSource.getFeatures().forEach(feature => {
                 const features = feature.get('features') as Feature[];
 
@@ -132,13 +106,8 @@ export default function PopupContainer(props: Props) {
                     return;
                 }
 
-                const itemPosition = getPopupPosition(features[0]);
-                if (!itemPosition) {
-                    return;
-                }
-
                 popupInfoList.push({
-                    itemPositions: [itemPosition],
+                    mainFeature: features[0],
                     itemIds,
                 })
             });
@@ -149,11 +118,11 @@ export default function PopupContainer(props: Props) {
         /**
          * エリアのポップアップ情報を返す
          */
-        const areaPopupInfo = function(): PopupInfo[] {
+        const areaPopupInfo = function(): PopupGroup[] {
             const areaLayer = mapRef.current.getAllLayers().find(layer => layer.getProperties()['name'] === 'topographyLayer');
             if (!areaLayer) return [];
             const source = areaLayer.getSource() as VectorSource;
-            const popupInfoList = [] as PopupInfo[]; 
+            const popupInfoList = [] as PopupGroup[]; 
             source.getFeatures().forEach(feature => {
                 // コンテンツを持つアイテムに絞る
                 const id = feature.getId() as string;
@@ -161,13 +130,8 @@ export default function PopupContainer(props: Props) {
                     return;
                 }
 
-                const itemPosition = getPopupPosition(feature);
-                if (!itemPosition) {
-                    return;
-                }
-
                 popupInfoList.push({
-                    itemPositions: [itemPosition],
+                    mainFeature: feature,
                     itemIds: [id],
                 })
             });
@@ -177,8 +141,74 @@ export default function PopupContainer(props: Props) {
         }();
 
         const infos = itemPopupInfos.concat(areaPopupInfo);
+
         return infos;
-    }, [itemLayer, hasContentsItemIdList, getPopupPosition]);
+    // vectorSource.getFeatures()の結果が変わるので、addfeatureFlagを依存関係に入れている
+    }, [itemLayer, hasContentsItemIdList, addfeatureFlag]);
+
+    /**
+     * ポップアップ表示位置設定
+     */
+    const [ regetPositionFlag, setRegetPositionFlag ] = useState(false);  // 画像ロード未完了のために位置取得できない場合に、時間を置いて再度位置取得するためのフラグ
+    const [ popupGroupWithPosition, setPopupGroupWithPosition ] = useState<PopupGroupWithPosition[]>([])
+    useEffect(() => {
+        const itemSource = itemLayer.getSource();
+        if (!itemSource) return;
+
+        const getPopupPosition = (feature: Feature): undefined | { longitude: number; latitude: number; } => {
+                // -- 中心位置取得
+                const itemPosition = getFeatureCenter(feature);
+                if (!itemPosition) {
+                    console.log('getFeatureCenter undefined')
+                    return;
+                }
+    
+                if (feature.getGeometry()?.getType() === 'Point') {
+                    // 建物orピンの場合、アイコンの上部にポップアップを表示する
+                    const style = pointStyleFunction(feature, mapRef.current.getView().getResolution() ?? 0);
+                    const image = style.getImage();
+                    const pixel = mapRef.current.getPixelFromCoordinate([itemPosition.longitude, itemPosition.latitude]);
+                    const imageSize = image.getSize();
+                    if (!imageSize || imageSize.length < 2 || !pixel || pixel.length < 2) {
+                        console.log('imageSize undefined', image, imageSize);
+                        return;
+                    }
+    
+                    pixel[1] = pixel[1] - imageSize[1] * (image.getScale() as number);
+                    const newPosition = mapRef.current.getCoordinateFromPixel(pixel);
+                    itemPosition.latitude = newPosition[1];
+        
+                }
+    
+                return itemPosition;
+    
+        };
+        
+        const result = [] as PopupGroupWithPosition[];
+        let retryFlag = false;
+        for (const popupGroup of popupGroups) {
+            const itemPosition = getPopupPosition(popupGroup.mainFeature);
+            if (!itemPosition) {
+                console.log('get position retry');
+                retryFlag = true;
+                continue;
+            }
+            result.push({
+                itemPositions: [itemPosition],
+                itemIds: popupGroup.itemIds,
+            });
+        }
+        setPopupGroupWithPosition(result);
+        if (retryFlag) {
+            setTimeout(() => {
+                setRegetPositionFlag(true);
+            }, 100);
+        } else {
+            setRegetPositionFlag(false);
+        }
+
+    // pointStyleFunctionを依存関係に入れると無限ループが発生
+    }, [popupGroups, itemLayer, regetPositionFlag]);
 
     // 開閉時に、zIndexを最前面に
     useEffect(() => {
@@ -187,7 +217,7 @@ export default function PopupContainer(props: Props) {
         //         return openedPopupItemIds.includes(itemId);
         //     });
         // }
-        popupInfos.forEach(target => {
+        popupGroupWithPosition.forEach(target => {
             const key = createKeyFromPopupInfo(target);
             const ele = elementRefMap.current[key]?.parentElement;
             // const open = isOpen(target);
@@ -200,17 +230,19 @@ export default function PopupContainer(props: Props) {
                     ele.style.zIndex = '0';
             }
         });
-    }, [/* openedPopupItemIds, */popupInfos]);
+    }, [/* openedPopupItemIds, */popupGroupWithPosition]);
 
     const zoom = useSelector((state: RootState) => state.operation.mapView.zoom);
     useEffect(() => {
         // 新しく追加されたものについて、オーバレイを配置する
-        const addChildren = popupInfos.filter(target => {
+        const addChildren = popupGroupWithPosition.filter(target => {
             const exist = Object.keys(overlayRefMap.current).some(key => key === createKeyFromPopupInfo(target));
             return !exist;
         });
 
+        console.log('addChildren', addChildren);
         addChildren.forEach(target => {
+            if (!target.itemPositions) return;
             const position = getCenter(target.itemPositions);
             if (!position) {
                 return;
@@ -227,11 +259,12 @@ export default function PopupContainer(props: Props) {
         });
 
         // 位置更新されたもについて位置を更新する
-        const updateChildren = popupInfos.filter(target => {
+        const updateChildren = popupGroupWithPosition.filter(target => {
             const exist = Object.keys(overlayRefMap.current).some(key => key === createKeyFromPopupInfo(target));
             return exist;
         });
         updateChildren.forEach(target => {
+            if (!target.itemPositions) return;
             const position = getCenter(target.itemPositions);
             if (!position) {
                 return;
@@ -243,7 +276,7 @@ export default function PopupContainer(props: Props) {
 
         // 削除されたものについて、Overlay削除する
         const removeChildren = Object.keys(overlayRefMap.current).filter(key => {
-            const exist = popupInfos.some(target => {
+            const exist = popupGroupWithPosition.some(target => {
                 return key === createKeyFromPopupInfo(target)
             });
             return !exist;
@@ -253,12 +286,12 @@ export default function PopupContainer(props: Props) {
             delete overlayRefMap.current[key];
         });
 
-    }, [popupInfos, zoom, addfeatureFlag]);
+    }, [popupGroupWithPosition, zoom]);
 
     return (
         <>
             {
-                popupInfos.map(target => {
+                popupGroupWithPosition.map(target => {
                     const key = createKeyFromPopupInfo(target);
                     return (
                         <div key={key}>
