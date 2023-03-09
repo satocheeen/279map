@@ -1,4 +1,4 @@
-import { CategoryDefine, ContentsDefine, EventDefine, ItemContentInfo, ItemDefine, MapKind } from '279map-common';
+import { CategoryDefine, ContentsDefine, EventDefine, ItemContentInfo, ItemDefine } from '../../279map-common';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { Extent } from 'ol/extent';
 import { SystemIconDefine } from '../../types/types';

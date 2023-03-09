@@ -14,7 +14,7 @@ import { removeContent } from "../../store/data/dataThunk";
 import reactStringReplace from "react-string-replace";
 import PopupMenuIcon from "../popup/PopupMenuIcon";
 import AddContentMenu from "../popup/AddContentMenu";
-import { Auth, ContentsDefine, MapKind } from "279map-common";
+import { Auth, ContentsDefine, MapKind } from "../../279map-common";
 import { useAPI } from "../../api/useAPI";
 import Spinner from "../common/spinner/Spinner";
 import { operationActions } from "../../store/operation/operationSlice";

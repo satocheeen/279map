@@ -6,7 +6,7 @@ import VectorSource from 'ol/source/Vector';
 import { usePrevious } from '../../util/usePrevious';
 import { RootState } from '../../store/configureStore';
 import styles from './LandNameOverlay.module.scss';
-import { FeatureType } from '279map-common';
+import { FeatureType } from '../../279map-common';
 
 type Props = {
     map: Map;

@@ -2,7 +2,7 @@ import React, { CSSProperties, useCallback, useMemo } from 'react';
 import { colorWithAlpha } from '../../util/CommonUtility';
 import styles from './CategoryBadge.module.scss';
 import { MdClose } from 'react-icons/md';
-import { CategoryDefine } from '279map-common';
+import { CategoryDefine } from '../../279map-common';
 
 type Props = {
     category: string;

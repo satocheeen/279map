@@ -1,4 +1,4 @@
-import { FeatureType } from '279map-common';
+import { FeatureType } from '../../279map-common';
 import { Map, MapBrowserEvent } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import Feature from 'ol/Feature';

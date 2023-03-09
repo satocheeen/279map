@@ -1,4 +1,4 @@
-import { FeatureType } from "279map-common";
+import { FeatureType } from "../../279map-common";
 import { FeatureLike } from "ol/Feature";
 import { Fill, Stroke, Style } from "ol/style";
 import { useCallback } from "react";

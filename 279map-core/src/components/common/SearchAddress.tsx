@@ -3,7 +3,7 @@ import { Map } from 'ol';
 import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { ListGroup } from 'react-bootstrap';
 import Input from '../common/form/Input';
-import { FeatureType, GeoProperties } from '279map-common';
+import { FeatureType, GeoProperties } from '../../279map-common';
 import { useAPI } from '../../api/useAPI';
 import Spinner from './spinner/Spinner';
 import { GeocoderItem, GeocoderResult } from 'tsunagumap-api';

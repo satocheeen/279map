@@ -25,7 +25,7 @@ import LandNameOverlay from "../map/LandNameOverlay";
 import { useFilter } from "../../store/useFilter";
 import { loadItems } from "../../store/data/dataThunk";
 import { openItemContentsPopup } from "../popup/popupThunk";
-import { FeatureType, GeoJsonPosition, MapKind } from "279map-common";
+import { FeatureType, GeoJsonPosition, MapKind } from "../../279map-common";
 import { FeatureProperties, MapMode } from "../../types/types";
 import { useAPI } from "../../api/useAPI";
 import useFilteredTopographyStyle from "../map/useFilteredTopographyStyle";

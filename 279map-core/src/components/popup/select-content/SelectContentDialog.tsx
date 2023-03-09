@@ -1,7 +1,5 @@
-import { ItemContentInfo } from '279map-common';
 import React, { useMemo, useCallback, useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from '../../../store/configureStore';
+import { useAppDispatch } from '../../../store/configureStore';
 import { Modal, ModalBody, ModalFooter, ModalHeader } from '../../common';
 import ContentCard from './ContentCard';
 import { loadContents } from '../../../store/data/dataThunk';

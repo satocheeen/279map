@@ -15,9 +15,8 @@ import { connectMap, loadMapDefine, ConnectMapResult } from '../../store/session
 import { useSpinner } from '../common/spinner/useSpinner';
 import { getContents } from '../../store/data/dataUtility';
 import { useCommand } from '../../api/useCommand';
-import { ContentAttr } from '279map-common';
+import { ContentAttr } from '../../279map-common';
 import styles from './MapWrapper.module.scss';
-import { getAuthConfig } from '../../entry';
 
 export default function MapWrapper() {
     const ownerContext = useContext(OwnerContext);

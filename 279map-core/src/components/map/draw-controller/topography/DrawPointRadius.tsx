@@ -19,7 +19,7 @@ import IconAnchorUnits from 'ol/style/IconAnchorUnits';
 import useIcon from '../../../../store/useIcon';
 import usePointStyle from '../../usePointStyle';
 import { getDistance } from 'geolib';
-import { FeatureType } from '279map-common';
+import { FeatureType } from '../../../../279map-common';
 
 type Props = {
     map: Map;   // コントロール対象の地図

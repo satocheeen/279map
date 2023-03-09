@@ -3,7 +3,7 @@ import { useSelector, shallowEqual } from "react-redux";
 import { RootState } from "./configureStore";
 import dayjs from 'dayjs';
 import { useCategory } from "./useCategory";
-import { ItemContentInfo, ItemDefine } from "279map-common";
+import { ItemContentInfo, ItemDefine } from "../279map-common";
 import { FilterDefine } from "../entry";
 
 type FilterStatus = {

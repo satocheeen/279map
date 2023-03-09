@@ -1,7 +1,7 @@
 import { ConfigAPI } from "tsunagumap-api";
 import { callApi } from "./api";
 import { ServerInfo } from '../types/types';
-import { ServerConfig } from "279map-common";
+import { ServerConfig } from "../279map-common";
 
 /**
  * サーバーの認証方式について呼び出し元に返すための関数

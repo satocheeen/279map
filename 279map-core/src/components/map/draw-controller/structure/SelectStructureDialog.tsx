@@ -3,7 +3,7 @@ import Button from '../../../common/button/Button';
 import Modal, { ModalHeader, ModalBody, ModalFooter } from  '../../../common/modal/Modal';
 import useIcon from '../../../../store/useIcon';
 import styles from './SelectStructureDialog.module.scss';
-import { MapKind } from '279map-common';
+import { MapKind } from '../../../../279map-common';
 import { SystemIconDefine } from '../../../../types/types';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../store/configureStore';

@@ -2,7 +2,7 @@ import { useSelector } from "react-redux";
 import { useCallback } from 'react';
 import { RootState, useAppDispatch } from "../store/configureStore";
 import { callApi } from "./api";
-import { FeatureType, MapKind, UnpointContent } from '279map-common';
+import { FeatureType, MapKind, UnpointContent } from '../279map-common';
 import { registContent, updateContent, linkContentToItem } from '../store/data/dataThunk';
 import useConfirm from "../components/common/confirm/useConfirm";
 import { operationActions } from "../store/operation/operationSlice";

@@ -13,7 +13,7 @@ import VectorLayer from 'ol/layer/Vector';
 import useTopographyStyle from '../../useTopographyStyle';
 import { useAppDispatch } from '../../../../store/configureStore';
 import { registFeature } from '../../../../store/data/dataThunk';
-import { FeatureType, GeoProperties } from '279map-common';
+import { FeatureType, GeoProperties } from '../../../../279map-common';
 
 type Props = {
     map: Map;   // コントロール対象の地図

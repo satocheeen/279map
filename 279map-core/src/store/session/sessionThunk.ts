@@ -5,7 +5,7 @@ import { RootState } from "../configureStore";
 import { dataActions } from "../data/dataSlice";
 import { loadCategories, loadEvents, loadOriginalIconDefine } from "../data/dataThunk";
 import { GetMapInfoAPI, GetMapInfoResult, WebSocketMessage } from 'tsunagumap-api';
-import { MapKind, MapDefine } from "279map-common";
+import { MapKind, MapDefine } from "../../279map-common";
 
 export type ConnectMapResult = {
     result: 'success',

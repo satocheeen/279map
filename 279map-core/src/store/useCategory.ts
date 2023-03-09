@@ -1,4 +1,4 @@
-import { CategoryDefine } from "279map-common";
+import { CategoryDefine } from "../279map-common";
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "./configureStore";

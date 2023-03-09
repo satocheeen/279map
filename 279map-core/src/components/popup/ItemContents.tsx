@@ -2,7 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import styles from './ItemContents.module.scss';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
-import { Auth, ItemContentInfo, ItemDefine } from '279map-common';
+import { Auth, ItemContentInfo, ItemDefine } from '../../279map-common';
 import { useAPI } from '../../api/useAPI';
 import { BsThreeDots } from 'react-icons/bs';
 import { operationActions } from '../../store/operation/operationSlice';

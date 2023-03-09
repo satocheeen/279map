@@ -13,7 +13,7 @@ import SelectFeature from '../SelectFeature';
 import RoadWidthSelecter from './RoadWidthSelecter';
 import { useAppDispatch } from '../../../../store/configureStore';
 import { updateFeature } from '../../../../store/data/dataThunk';
-import { FeatureType, GeoProperties } from '279map-common';
+import { FeatureType, GeoProperties } from '../../../../279map-common';
 import { FeatureLike } from 'ol/Feature';
 import { Geometry } from 'ol/geom';
 

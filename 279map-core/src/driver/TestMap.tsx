@@ -1,4 +1,4 @@
-import { CategoryDefine, FeatureType, MapKind } from '279map-common';
+import { CategoryDefine, FeatureType, MapKind } from '../279map-common';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { CommandHookType } from '../api/useCommand';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
@@ -9,16 +9,22 @@ import styles from './TestMap.module.scss';
  * for Development
  */
 // const mapId = 'VXNlck5vZGU6Mg==';
-const mapId = 'test';
+const mapId = 'VXNlck5vZGU6Mw==';
+// const mapId = 'otakaramap';
 const props = {
     mapServerHost: 'localhost',
     mapId,
     auth: 'hogehoge',
     iconDefine: [
         {
-            id: 'default',
+            id: 'pin',
+            imagePath: '/icon/icon0066_ss.png',
             useMaps: [MapKind.Real],
         },
+        // {
+        //     id: 'default',
+        //     useMaps: [MapKind.Real],
+        // },
         {
             id: 'house',
             imagePath: './icon/house.png',

@@ -7,7 +7,7 @@ import SearchAddress from "../../../common/SearchAddress";
 import useTopographyStyle from "../../useTopographyStyle";
 import PromptMessageBox from "../PromptMessageBox";
 import GeoJSON from 'ol/format/GeoJSON';
-import { FeatureType } from "279map-common";
+import { FeatureType } from "../../../../279map-common";
 
 type Props = {
     map: Map;

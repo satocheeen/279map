@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 import { operationActions } from '../../store/operation/operationSlice';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import { addListener, removeListener } from '../../util/Commander';
-import { ContentsDefine } from '279map-common';
+import { ContentsDefine } from '../../279map-common';
 import AddContentMenu from '../popup/AddContentMenu';
 import styles from './ContentsModal.module.scss';
 

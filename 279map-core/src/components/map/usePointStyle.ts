@@ -9,7 +9,7 @@ import { MapMode, SystemIconDefine } from "../../types/types";
 import useFilterStatus from "./useFilterStatus";
 import { useFilter } from "../../store/useFilter";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
-import { IconInfo } from "279map-common";
+import { IconInfo } from "../../279map-common";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/configureStore";
 

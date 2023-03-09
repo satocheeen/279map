@@ -14,7 +14,7 @@ import 'https://unpkg.com/jsts@2.6.1/dist/jsts.min.js';
 import { Map } from 'ol';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import { FeatureType, GeoJsonPosition, GeoProperties } from '279map-common';
+import { FeatureType, GeoJsonPosition, GeoProperties } from '../279map-common';
 import { getCenter as getExtentCenter } from 'ol/extent';
 
 /**

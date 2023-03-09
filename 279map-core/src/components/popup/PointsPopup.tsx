@@ -4,7 +4,7 @@ import { RootState, useAppDispatch } from "../../store/configureStore";
 import styles from './PointsPopup.module.scss';
 import { useFilter } from "../../store/useFilter";
 import ItemContents from "./ItemContents";
-import { ContentsDefine, ItemContentInfo, ItemDefine } from "279map-common";
+import { ContentsDefine, ItemContentInfo, ItemDefine } from "../../279map-common";
 import { operationActions } from "../../store/operation/operationSlice";
 import SelectContentDialog from "./select-content/SelectContentDialog";
 import { useContents } from "../../store/useContents";

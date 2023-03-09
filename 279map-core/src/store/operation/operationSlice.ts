@@ -1,4 +1,4 @@
-import { MapKind } from "279map-common";
+import { MapKind } from "../../279map-common";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Extent } from "ol/extent";
 import { ConfirmParam, ConfirmResult } from "../../components/common/confirm/useConfirm";

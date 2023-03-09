@@ -1,6 +1,6 @@
-import { ContentAttr, GeoProperties, IconDefine } from "279map-common";
+import { ContentAttr, GeoProperties, IconDefine } from "../279map-common";
 import { CSSProperties } from "react";
-import { CategoryDefine, EventDefine, MapDefine, MapKind } from '279map-common';
+import { CategoryDefine, EventDefine, MapDefine, MapKind } from '../279map-common';
 import { CommandHookType } from '../api/useCommand';
 
 export type OnConnectParam = {

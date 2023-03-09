@@ -12,7 +12,7 @@ import { Map } from 'ol';
 import { FeatureLike } from 'ol/Feature';
 import useTopographyStyle from '../useTopographyStyle';
 import usePointStyle from '../usePointStyle';
-import { FeatureType, MapKind } from '279map-common';
+import { FeatureType, MapKind } from '../../../279map-common';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/configureStore';
 import { colorWithAlpha } from '../../../util/CommonUtility';

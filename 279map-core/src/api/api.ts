@@ -1,4 +1,4 @@
-import { APIDefine } from '279map-common';
+import { APIDefine } from '../279map-common';
 import { ServerInfo } from '../types/types';
 
 export function getServerUrl(server: ServerInfo) {

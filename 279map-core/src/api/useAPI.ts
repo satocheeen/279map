@@ -1,5 +1,5 @@
 import { GetGeoCoderFeatureResult } from 'tsunagumap-api';
-import { GeocoderId } from '279map-common';
+import { GeocoderId } from '../279map-common';
 import { GeoJsonObject } from 'geojson';
 import { useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
