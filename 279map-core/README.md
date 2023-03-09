@@ -3,25 +3,40 @@ This is used in 279map.
 279map-core connects to 279map server and provides basic features of 279map.
 if you want to make originai UI map, you can use 279map-core.
 
-## Package Configuration
 ```mermaid
-flowchart LR
-	279map-common
+flowchart RL
 	subgraph frontend
-		279map-core
-		279map[279map*] -. use .-> 279map-core
+		subgraph 279map-core
+			279map-common-core["279map-common"]
+		end
+		279map-frontend -. use .-> 279map-core
 	end
+
 	subgraph backend
-		direction TB
-		279map-main-server <--> odba
-    end
-	frontend -. use .-> 279map-common
-	backend -. use .-> 279map-common
-	backend -. use .-> 279map-backend-common
-    279map-core <-- https,wss --> 279map-main-server
-    style 279map-core fill:#faa, stroke:#f55
+		db[("279map-db")]
+
+		subgraph 279map-backend-main
+			api-interface["api-interface (private)"]
+		end
+
+		subgraph 279map-backend-common
+			279map-common-backend["279map-common"]
+		end
+
+		279map-backend-main <--> odba
+		279map-backend-main <--> db
+		odba <--> db
+		fs["fs (option)"] <--> 279map-backend-main
+		fs <--> odba
+		279map-backend-main -. use .-> 279map-backend-common
+		odba -. use .-> 279map-backend-common
+		fs -. use .-> 279map-backend-common
+	end
+	279map-core -.-> api-interface
+	original-db[("Original DB")] <--> odba
+	
+	style 279map-core fill:#faa, stroke:#f55
 ```
-\* or original map you made
 
 ## How to use
 if you want to make originai UI map, you can use 279map-core.
@@ -55,10 +70,10 @@ return (
 →show [API References](documents/API.md)
 
 ## 279map compatiblity
-|  279map-core  |  279map-main-server  |
+|  279map-core  |  279map-main-backend  |
 | ---- | ---- |
-|  0.2.X  |  0.39.17  |
-|  0.1.X  |  0.39.16  |
+|  0.5.6  |  0.46.5  |
+|  0.5.5 |  0.46.4  |
 
 
 ## Supplement

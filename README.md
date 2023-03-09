@@ -2,15 +2,25 @@
 
 ## Package Configuration
 ```mermaid
-flowchart LR
-	279map-common
+flowchart RL
 	subgraph frontend
-		279map-core
-		279map -. use .-> 279map-core
+		subgraph 279map-core
+			279map-common-core["279map-common"]
+		end
+		279map-frontend -. use .-> 279map-core
 	end
+
 	subgraph backend
 		db[("279map-db")]
-		279map-backend-common
+
+		subgraph 279map-backend-main
+			api-interface["api-interface (private)"]
+		end
+
+		subgraph 279map-backend-common
+			279map-common-backend["279map-common"]
+		end
+
 		279map-backend-main <--> odba
 		279map-backend-main <--> db
 		odba <--> db
@@ -20,13 +30,11 @@ flowchart LR
 		odba -. use .-> 279map-backend-common
 		fs -. use .-> 279map-backend-common
 	end
-	frontend -. use .-> 279map-common
-	backend -. use .-> 279map-common
-	279map-core <-- https,wss --> 279map-backend-main
+	279map-core -.-> api-interface
+	original-db[("Original DB")] <--> odba
 
     style 279map-core fill:#faa, stroke:#f55
     style 279map-backend-main fill:#faa, stroke:#f55
-    style 279map-common fill:#faa, stroke:#f55
     style 279map-backend-common fill:#faa, stroke:#f55
     style db fill:#faa, stroke:#f55
 ```
