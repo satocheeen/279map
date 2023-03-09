@@ -3,7 +3,7 @@ import { types } from "279map-backend-common";
 import { getBelongingItem, getContent } from "./util/utility";
 import { PoolConnection } from "mysql2/promise";
 import { GetContentsParam, GetContentsResult } from '../279map-api-interface/src';
-import { ContentsDefine, MapKind } from '279map-common';
+import { ContentsDefine, MapKind } from '279map-backend-common';
 
 type RetRecord = types.schema.ContentsTable & {item_page_id: string; /*another_item_id: string|null;*/};
 

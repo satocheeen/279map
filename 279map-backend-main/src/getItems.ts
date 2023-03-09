@@ -1,5 +1,5 @@
 import { types } from '279map-backend-common';
-import { ItemContentInfo, ItemDefine, MapKind } from '279map-common';
+import { ItemContentInfo, ItemDefine, MapKind } from '279map-backend-common';
 import { getLogger } from 'log4js';
 import { ConnectionPool } from '.';
 import { GetItemsParam, GetItemsResult } from '../279map-api-interface/src';

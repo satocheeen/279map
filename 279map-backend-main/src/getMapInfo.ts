@@ -1,6 +1,6 @@
 import { types } from '279map-backend-common';
 import { ConnectionPool } from '.';
-import { MapKind } from '279map-common';
+import { MapKind } from '279map-backend-common';
 import { GetMapInfoParam, GetMapInfoResult } from '../279map-api-interface/src';
 
 /**

@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import { ItemDefine } from '279map-common';
+import { ItemDefine } from '279map-backend-common';
 import { types } from '279map-backend-common';
 
 type ItemInfo = {

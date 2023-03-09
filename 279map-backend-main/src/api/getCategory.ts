@@ -2,7 +2,7 @@ import randomColor from "randomcolor";
 import { ConnectionPool } from "..";
 import { types } from "279map-backend-common";
 import { GetCategoryResult } from "../../279map-api-interface/src";
-import { CategoryDefine } from "279map-common";
+import { CategoryDefine } from "279map-backend-common";
 
 /**
  * get the categories which are used in current map.

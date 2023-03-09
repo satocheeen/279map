@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import mysql from 'mysql2/promise';
 import { getMapInfo } from './getMapInfo';
-import { Auth, MapKind, MapDefine, AuthMethod, ServerConfig } from '279map-common';
+import { Auth, MapKind, MapDefine, AuthMethod, ServerConfig } from '279map-backend-common';
 import { getItems } from './getItems';
 import session from 'express-session';
 import { configure, getLogger } from "log4js";

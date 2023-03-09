@@ -3,7 +3,7 @@ import { getLogger } from 'log4js';
 import { Server } from 'http';
 import { Request } from 'express';
 import SessionInfo from './SessionInfo';
-import { MapKind } from '279map-common';
+import { MapKind } from '279map-backend-common';
 import { WebSocketMessage } from '../../279map-api-interface/src';
 import { getSessionIdFromCookies } from './session_utility';
 

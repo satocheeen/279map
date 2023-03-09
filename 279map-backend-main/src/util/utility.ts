@@ -1,7 +1,5 @@
-import { Extent } from '279map-common'
 import { ConnectionPool } from '..';
-import { MapKind } from '279map-common';
-import { types } from '279map-backend-common';
+import { types, MapKind, Extent } from '279map-backend-common';
 import { PoolConnection } from 'mysql2/promise';
 
 export function getExtentWkt(ext: Extent): string {
