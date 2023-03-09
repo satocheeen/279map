@@ -2,7 +2,7 @@
  * Odba container's API interface.
  */
 
-import { GeoProperties, MapKind, APIDefine, ContentAttr } from "279map-common";
+import { GeoProperties, APIDefine, ContentAttr } from "../279map-common";
 import { CurrentMap } from "../types";
 
 type CommonParam = {

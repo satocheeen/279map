@@ -1,4 +1,4 @@
-import { APIDefine } from "279map-common";
+import { APIDefine } from "../279map-common";
 import { Request, Response, Express } from 'express';
 import { Logger } from "log4js";
 import { GetImageUrlAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from "./dba-api-interface";
