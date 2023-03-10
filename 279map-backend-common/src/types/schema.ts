@@ -1,8 +1,5 @@
 import { Auth, MapKind } from '../279map-common';
 
-// NotionDB種類
-export type Kind = 'GPX' | 'Trace' | 'Item' | 'Content' | 'Icon';
-
 export enum PublicRange {
     Public = 'Public',
     Private = 'Private'
@@ -22,16 +19,16 @@ export type MapUserTable = {
     auth_lv: Auth;
     name: string;
 }
-export type ContentsDbInfoTable = {
-    contents_db_id: string;
+export type ItemGroupTable = {
+    item_group_id: string;
     map_page_id: string;
-    kind: Kind;
-    sync_service_name: string;
+    sync_name: string;
+    map_kind: MapKind;
     last_edited_time: string;
 }
 export type TracksTable = {
     track_page_id: string;
-    contents_db_id: string;
+    item_group_id: string;
     name: string;
     last_edited_time: string;
 }
@@ -49,11 +46,10 @@ export type TrackGeoJsonTable = {
 }
 export type ItemsTable = {
     item_page_id: string;
-    contents_db_id: string;
+    map_page_id: string;
     name: string | null;
     location: {x: number; y: number;};   // Geometry
     geo_properties: string;       // GeoPropertiesのJSON文字列
-    map_kind: MapKind;
     last_edited_time: string;
 }
 export type ContentsTable = {
@@ -86,7 +82,7 @@ export type ItemContentLink = {
 
 export type OriginalIconsTable = {
     icon_page_id: string;
-    contents_db_id: string;
+    map_page_id: string;
     caption: string;
     base64: string;
     last_edited_time: string;
