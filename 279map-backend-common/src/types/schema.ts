@@ -54,7 +54,7 @@ export type ItemsTable = {
 }
 export type ContentsTable = {
     content_page_id: string;
-    contents_db_id: string;
+    map_page_id: string;
     title?: string;
     contents?: string;   // ContentsInfoのJSON文字列
     thumbnail?: string;
