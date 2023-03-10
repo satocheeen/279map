@@ -13,8 +13,7 @@ export async function getOriginalIconDefine(currentMap: types.CurrentMap): Promi
     try {
         const sql = `
         select icon_page_id, oi.caption from original_icons oi 
-        inner join contents_db_info cdi on oi.contents_db_id = cdi.contents_db_id 
-        where cdi.map_page_id = ?
+        where oi.map_page_id = ?
         `;
         const [rows] = await con.execute(sql, [pageId]);
 

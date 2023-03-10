@@ -69,8 +69,8 @@ async function getExtent(mapPageId: string, mapKind: MapKind): Promise<[number,n
         // -- POINT
         const pointExtent = await async function(){
             const sql = `
-            select MAX(ST_X(location)) as max_x, MAX(ST_Y(location)) as max_y, MIN(ST_X(location)) as min_x, MIN(ST_Y(location)) as min_y from items pc
-            inner join contents_db_info cdi on pc.contents_db_id = cdi.contents_db_id 
+            select MAX(ST_X(location)) as max_x, MAX(ST_Y(location)) as max_y, MIN(ST_X(location)) as min_x, MIN(ST_Y(location)) as min_y from items i
+            inner join item_group ig on ig.item_group_id = i.item_group_id 
             where map_page_id = ? and map_kind = ?
             `;
             const [rows] = await con.execute(sql, [mapPageId, mapKind]);
@@ -92,8 +92,8 @@ async function getExtent(mapPageId: string, mapKind: MapKind): Promise<[number,n
         const polygonExtent = await async function() {
             const sql = `
             select MIN(ST_X(ST_PointN(ST_ExteriorRing(ST_Envelope(location)), 1))) as min_x, MAX(ST_X(ST_PointN(ST_ExteriorRing(ST_Envelope(location)), 2))) as max_x, MIN(ST_Y(ST_PointN(ST_ExteriorRing(ST_Envelope(location)), 1))) as min_y, MAX(ST_Y(ST_PointN(ST_ExteriorRing(ST_Envelope(location)), 3))) as max_y 
-            from items pc
-            inner join contents_db_info cdi on pc.contents_db_id = cdi.contents_db_id 
+            from items i
+            inner join item_group ig on ig.item_group_id = i.item_group_id 
             where map_page_id = ? and map_kind = ?
             `;
             const [rows] = await con.execute(sql, [mapPageId, mapKind]);
@@ -134,54 +134,3 @@ async function getExtent(mapPageId: string, mapKind: MapKind): Promise<[number,n
         con.release();
     }
 }
-
-// /**
-//  * 指定の地図ページのカテゴリ情報を返す
-//  * @param mapPageId 
-//  */
-// async function getCategory(mapPageId: string, mapKind: MapKind): Promise<CategoryInfo[]> {
-//     const con = await ConnectionPool.getConnection();
-
-//     try {
-//         // コンテンツからカテゴリ一覧取得
-//         const sql = `
-//             SELECT map_page_id, category from contents pc
-//             INNER JOIN items itm ON pc.item_page_id = itm.item_page_id
-//             INNER JOIN contents_db_info cdi ON itm.contents_db_id = cdi .contents_db_id
-//             WHERE map_page_id = ? and map_kind = ?
-//             `;
-//         const [rows] = await con.execute(sql, [mapPageId, mapKind]);
-
-//         const categoryList = [] as string[];
-//         (rows as {map_page_id: string; category: string | null}[]).forEach(row => {
-//             if (!row.category) {
-//                 return;
-//             }
-//             const categories = JSON.parse(row.category) as string[];
-//             categories.forEach(category => {
-//                 if (categoryList.indexOf(category) === -1) {
-//                     categoryList.push(category);
-//                 }
-//             });
-//         });
-
-//         const colors = randomColor({
-//             seed: 0,
-//             count: categoryList.length,
-//             format: 'rgb',
-//         });
-//         return categoryList.map((category, index) => {
-//             return {
-//                 id: category,
-//                 title: category,
-//                 color: colors[index],
-//             }
-//         });
-        
-//     } finally {
-//         await con.commit();
-//         con.release();
-
-//     }
-
-// }

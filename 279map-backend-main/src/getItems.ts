@@ -66,10 +66,10 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
     try {
         // 位置コンテンツ
         const sql = `
-        select i.*, ST_AsGeoJSON(i.location) as geojson, cdi.map_page_id
+        select i.*, ST_AsGeoJSON(i.location) as geojson, ig.map_page_id
         from items i
-        inner join contents_db_info cdi on i.contents_db_id = cdi.contents_db_id
-        where map_page_id = ? and i.map_kind = ?
+        inner join item_group ig on ig.item_group_id = i.item_group_id 
+        where map_page_id = ? and ig.map_kind = ?
         `;
         const [rows] = await con.execute(sql, [mapPageId, mapKind]);
         const pointContents = [] as ItemDefine[];
@@ -138,7 +138,7 @@ async function selectTrackInArea(param: GetItemsParam, mapPageId: string): Promi
                     SELECT tg.track_file_id, tg.sub_id, tg.min_zoom, tg.max_zoom, ST_AsGeoJSON(geojson) as geojson, t.last_edited_time  FROM track_geojson tg
                     inner join track_files tf on tf.track_file_id = tg.track_file_id 
                     inner join tracks t on t.track_page_id = tf.track_page_id 
-                    inner join contents_db_info cdi on cdi.contents_db_id = t.contents_db_id
+                    inner join item_group ig on ig.item_group_id = t.item_group_id 
                     WHERE map_page_id= ? AND MBRIntersects(geojson, GeomFromText(?,4326)) AND min_zoom <= ? AND ? < max_zoom`;
         const [rows] = await con.execute(sql, [mapPageId, wkt, param.zoom, param.zoom]);
         
