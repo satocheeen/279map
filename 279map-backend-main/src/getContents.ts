@@ -46,18 +46,11 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
         }
         const getChildren = async(contentId: string): Promise<ContentsDefine[]> => {
             const getChildrenQuery = `
-                select c.*, i.item_page_id, i.map_kind from contents c
+                select c.*, i.item_page_id from contents c
                 inner join item_content_link icl on icl.content_page_id = c.content_page_id 
                 inner join items i on i.item_page_id = icl.item_page_id 
                 where c.parent_id = ?
                 `;
-            // const getChildrenQuery = `
-            // select c.*, i.item_page_id, i.map_kind, group_concat(i2.item_page_id) as another_item_id from contents c 
-            // left join items i on c.content_page_id = i.content_page_id 
-            // left join items i2 on c.content_page_id = i2.content_page_id and i2.item_page_id <> i.item_page_id
-            // group by c.content_page_id, i.item_page_id 
-            // having c.parent_id = ?
-            // `;
             const [rows] = await con.execute(getChildrenQuery, [contentId]);
             const children = [] as ContentsDefine[];
             for (const row of rows as RetRecord[]) {
@@ -71,11 +64,12 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
             let myRows: RetRecord[];
             if ('itemId' in target) {
                 const sql = `
-                select c.*, i.item_page_id, i.map_kind from contents c
+                select c.*, i.item_page_id, ig.map_kind from contents c
                 inner join item_content_link icl on icl.content_page_id = c.content_page_id 
                 inner join items i on i.item_page_id = icl.item_page_id 
+                inner join item_group ig on ig.item_group_id = i.item_group_id
                 group by c.content_page_id, i.item_page_id 
-                having i.item_page_id = ? and i.map_kind = ?
+                having i.item_page_id = ? and ig.map_kind = ?
                 `;
                 const [rows] = await con.execute(sql, [target.itemId, mapKind]);
                 myRows = rows as RetRecord[];
