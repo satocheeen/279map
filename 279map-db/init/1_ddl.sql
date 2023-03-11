@@ -2,12 +2,13 @@
 
 CREATE TABLE `map_page_info` (
   `map_page_id` varchar(100) NOT NULL,
-  `title` varchar(100) NOT NULL,
-  `last_edited_time` varchar(100) NOT NULL,
   `alias` varchar(100) DEFAULT NULL,
-  `default_map` enum('Real','Virtual') NOT NULL,
+  `title` varchar(100) NOT NULL,
   `use_maps` varchar(100) NOT NULL,
+  `default_map` enum('Real','Virtual') NOT NULL,
   `public_range` enum('Public','Private') NOT NULL,
+  `supplement` text,
+  `last_edited_time` varchar(100) NOT NULL,
   PRIMARY KEY (`map_page_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 

@@ -11,6 +11,7 @@ export type MapPageInfoTable = {
     use_maps: string;   // MapKindをカンマ区切り
     default_map: MapKind;
     public_range: PublicRange;
+    supplement?: string;      // JSON文字列
     last_edited_time: string;
 }
 export type MapUserTable = {
