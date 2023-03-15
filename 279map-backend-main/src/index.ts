@@ -391,6 +391,7 @@ app.all('/api/*',
             } else {
                 // 地図がprivateの場合、権限なしエラーを返却
                 res.status(403).send('user has no authentication for the map.');
+                return;
             }
         }
         next();
