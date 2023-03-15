@@ -1,7 +1,8 @@
-import { ContentAttr, GeoProperties, IconDefine } from "../279map-common";
+import { ContentAttr, GeoProperties, IconDefine, UnpointContent } from "../279map-common";
 import { CSSProperties } from "react";
 import { CategoryDefine, EventDefine, MapDefine, MapKind } from '../279map-common';
 import { CommandHookType } from '../api/useCommand';
+import { LinkContentToItemParam, RegistContentParam } from "tsunagumap-api";
 
 export type OnConnectParam = {
     result: 'success',
@@ -35,7 +36,12 @@ export type TsunaguMapProps = {
     onCategoriesLoaded?: (categories: CategoryDefine[]) => void;    // calback when categories has loaded or has changed.
     onEventsLoaded?: (events: EventDefine[]) => void;   // callback when events has loaded or has changed.
 
+    // TODO: deprecated
     onNewContentInfo?: (param: NewContentInfoParam) => void;    // callback when new content info kicked
+
+    onNewContentByManual?: (param: NewContentByManualParam) => void;
+    onLinkUnpointedContent?: (param: LinkUnpointContentParam) => void;
+
     onEditContentInfo?: (param: EditContentInfoWithAttrParam) => void;  // callback when content edit kicked
 }
 
@@ -83,6 +89,30 @@ export type NewContentInfoParam = {
     }
     mode: 'manual' | 'select-unpoint';
 }
+/**
+ * 地図上で新規コンテンツ追加が選択された場合のコールバック
+ */
+export type NewContentByManualParam = {
+    parent: {
+        itemId: string;
+    } | {
+        contentId: string;
+    }
+    registContentAPI: (param: RegistContentParam) => Promise<void>;
+}
+/**
+ * 地図上で新規コンテンツ追加→未配置コンテンツが選択された場合のコールバック
+ */
+export type LinkUnpointContentParam = {
+    parent: {
+        itemId: string;
+    } | {
+        contentId: string;
+    }
+    getUnpointDataAPI: (nextToken?: string) => Promise<{contents: UnpointContent[]; nextToken: string | undefined}>;
+    linkContentToItemAPI: (param: LinkContentToItemParam) => Promise<void>;
+}
+
 export type EditContentInfoWithAttrParam = {
     contentId: string;
     attr: ContentAttr;

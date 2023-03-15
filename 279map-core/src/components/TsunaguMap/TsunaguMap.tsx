@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback, lazy } from 'react';
 import { Provider } from 'react-redux';
 import { store } from '../../store/configureStore';
 import MapWrapper from './MapWrapper';
@@ -7,13 +7,21 @@ import './TsunaguMap.scss';
 import ConfirmDialog from '../common/confirm/ConfirmDialog';
 import ContentsModal from '../contents/ContentsModal';
 import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
-import { TsunaguMapProps } from '../../types/types';
+import { NewContentByManualParam, LinkUnpointContentParam, TsunaguMapProps } from '../../types/types';
 
-export const OwnerContext = React.createContext<TsunaguMapProps>({
+const LinkUnpointContentModal = lazy(() => import('../default/link-unpoint-content/LinkUnpointContentModal'));
+
+type OwnerContextType = TsunaguMapProps & {
+    onNewContentByManual: (param: NewContentByManualParam) => void;
+    onLinkUnpointedContent: (param: LinkUnpointContentParam) => void;
+};
+
+export const OwnerContext = React.createContext<OwnerContextType>({
     mapId: '',
     mapServerHost: '',
     iconDefine: [],
-    // mapKind: MapKind.Real,
+    onNewContentByManual: () => {},
+    onLinkUnpointedContent: () => {},
 });
 
 export default function TsunaguMap(props: TsunaguMapProps) {
@@ -23,9 +31,30 @@ export default function TsunaguMap(props: TsunaguMapProps) {
         setShowIdMap: setShowTooltipId,
     } as TooltipContextValue;
 
+    const [ linkUnpointedContentParam, setLinkUnpointedContentParam ] = useState<LinkUnpointContentParam|undefined>();
+
+    const defaultOnNewContentByManual = useCallback(() => {
+
+    }, []);
+
+    const defaultOnLinkUnpointedContent = useCallback((param: LinkUnpointContentParam) => {
+        setLinkUnpointedContentParam(param);
+    }, []);
+
+    const onCloseLinkUnpointContentModal = useCallback(() => {
+        setLinkUnpointedContentParam(undefined);
+    }, []);
+
+    const ownerContextValue = useMemo((): OwnerContextType => {
+        return Object.assign({}, props, {
+            onNewContentByManual: props.onNewContentByManual ?? defaultOnNewContentByManual,
+            onLinkUnpointedContent: props.onLinkUnpointedContent ?? defaultOnLinkUnpointedContent,
+        })
+    }, [props, defaultOnNewContentByManual, defaultOnLinkUnpointedContent]);
+
     return (
         <>
-            <OwnerContext.Provider value={props}>
+            <OwnerContext.Provider value={ownerContextValue}>
                 <TooltipContext.Provider value={tooltipContextValue}>
                     <Provider store={store}>
                         <div className={styles.TsunaguMap}>
@@ -36,6 +65,10 @@ export default function TsunaguMap(props: TsunaguMapProps) {
                     </Provider>
                 </TooltipContext.Provider>
             </OwnerContext.Provider>
+
+            {linkUnpointedContentParam &&
+                <LinkUnpointContentModal param={linkUnpointedContentParam} close={onCloseLinkUnpointContentModal} />
+            }
         </>
     );
 }
