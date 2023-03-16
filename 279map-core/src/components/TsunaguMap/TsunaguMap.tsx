@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, lazy } from 'react';
+import React, { useState, useMemo, useCallback, lazy, Suspense } from 'react';
 import { Provider } from 'react-redux';
 import { store } from '../../store/configureStore';
 import MapWrapper from './MapWrapper';
@@ -8,6 +8,7 @@ import ConfirmDialog from '../common/confirm/ConfirmDialog';
 import ContentsModal from '../contents/ContentsModal';
 import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
 import { NewContentByManualParam, LinkUnpointContentParam, TsunaguMapProps } from '../../types/types';
+import Spinner from '../common/spinner/Spinner';
 
 const LinkUnpointContentModal = lazy(() => import('../default/link-unpoint-content/LinkUnpointContentModal'));
 
@@ -67,7 +68,9 @@ export default function TsunaguMap(props: TsunaguMapProps) {
             </OwnerContext.Provider>
 
             {linkUnpointedContentParam &&
-                <LinkUnpointContentModal param={linkUnpointedContentParam} close={onCloseLinkUnpointContentModal} />
+                <Suspense fallback={<Spinner />}>
+                    <LinkUnpointContentModal param={linkUnpointedContentParam} close={onCloseLinkUnpointContentModal} />
+                </Suspense>
             }
         </>
     );
