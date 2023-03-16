@@ -21,9 +21,6 @@ type Props = {
 
     // callback when user select an item.
     onSelect?: (feature: Feature | undefined) => void;
-
-    // when true, show the add content menu button when the item has no contents.
-    showAddContentMenu?: boolean;
 }
 type ClusterMenuTarget = {
     position: Coordinate;
@@ -106,7 +103,7 @@ export default function ClusterMenuController(props: Props) {
             // 対象が複数存在する場合またはコンテンツを持たないアイテムの場合は、重畳選択メニューを表示
             if (points.length === 1) {
                 const item = itemMapRef.current[points[0].getId() as string];
-                if (props.showAddContentMenu && item.contents.length === 0) {
+                if (item.contents.length === 0) {
                     setClusterMenuInfo({
                         position: evt.coordinate,
                         targets: points,
@@ -157,7 +154,7 @@ export default function ClusterMenuController(props: Props) {
     }
 
     return (
-        <ClusterMenu map={props.map} showAddContentMenu={props.showAddContentMenu}
+        <ClusterMenu map={props.map}
             position={clusterMenuInfo.position}
             itemIds={clusterMenuInfo.targets.map(target => target.getId() as string)}
             onSelect={onClusterMenuSelected} />

@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
 import useIcon from '../../store/useIcon';
 import AddContentMenu from '../popup/AddContentMenu';
+import { Auth } from '../../279map-common';
 
 /**
  * Cluster items' menu for selecting an item.
@@ -23,8 +24,6 @@ type Props = {
 
     onSelect?: (id: string) => void;
 
-    // when true, show the menu of adding content if the item has no contents.
-    showAddContentMenu?: boolean;
 }
 
 export default function ClusterMenu(props: Props) {
@@ -57,7 +56,7 @@ export default function ClusterMenu(props: Props) {
             <div ref={elementRef} className={styles.Container}>
                 {props.itemIds.map(id => {
                     return (
-                        <MenuItem key={id} id={id} showAddContentMenu={props.showAddContentMenu} onClick={() => onItemClick(id)} />
+                        <MenuItem key={id} id={id} onClick={() => onItemClick(id)} />
                     );
                 })}
             </div>
@@ -68,7 +67,6 @@ export default function ClusterMenu(props: Props) {
 type MenuItemProp = {
     id: string;
     onClick?: () => void;
-    showAddContentMenu?: boolean;   // when true, show the menu of adding content if the item has no contents.
 }
 function MenuItem(props: MenuItemProp) {
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
@@ -100,12 +98,22 @@ function MenuItem(props: MenuItemProp) {
         return item.name;
     }, [item]);
 
+    const editableAuthLv = useSelector((state: RootState) => {
+        if (state.session.connectStatus.status !== 'connected') {
+            return false;
+        }
+        return state.session.connectStatus.connectedMap?.authLv === Auth.Edit;
+    });
+    const showAddContentMenu = useMemo(() => {
+        return editableAuthLv && !hasContent;
+    }, [editableAuthLv, hasContent]);
+
     return (
         <li className={styles.MenuItem} onClick={props.onClick}>
             <img src={iconImagePath} />
             <span className={styles.NameArea}>
                 <span>{itemName}</span>
-                {(!hasContent && props.showAddContentMenu) &&
+                {showAddContentMenu &&
                     <AddContentMenu target={{itemId: props.id}} />
                 }
             </span>

@@ -614,7 +614,7 @@ export default function MapChart() {
                 (
                     <>
                         {clusterMenuInfo &&
-                            <ClusterMenu map={mapRef.current} showAddContentMenu={true}
+                            <ClusterMenu map={mapRef.current}
                                 {...clusterMenuInfo} onSelect={onClusterMenuSelected} />
                         }
                         <PopupContainer map={mapRef.current} />
@@ -622,7 +622,7 @@ export default function MapChart() {
                         {mapMode === MapMode.Normal &&
                             <ClusterMenuController map={mapRef.current}
                                 targets={[FeatureType.STRUCTURE, FeatureType.AREA]}
-                                onSelect={onSelectItem} showAddContentMenu={true} />
+                                onSelect={onSelectItem} />
                         }
                         <DrawController map={mapRef.current} onStart={()=>{isDrawing.current=true}} onEnd={()=>{isDrawing.current=false}} />
                     </>

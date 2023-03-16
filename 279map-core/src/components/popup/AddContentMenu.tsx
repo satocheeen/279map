@@ -66,8 +66,6 @@ export default function AddContentMenu(props: Props) {
         setShowSubMenu(false); 
     }, []);
 
-    if (!onNewContentInfo) return null;
-
     return (
         // <>
         //     <PopupMenuIcon id={id.current} tooltip={caption} onClick={onClick}>
