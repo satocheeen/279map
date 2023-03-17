@@ -86,7 +86,7 @@ export default function LinkUnpointContentModal(props: Props) {
                 </div>
             </ModalBody>
             <ModalFooter>
-                <Button variant="secondary" onClick={onCancel}>
+                <Button variant="secondary" onClick={onCancel} disabled={loading}>
                     Cancel
                 </Button>
             </ModalFooter>
