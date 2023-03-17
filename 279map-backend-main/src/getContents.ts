@@ -17,9 +17,20 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
     try {
         const allContents = [] as ContentsDefine[];
 
-        const convertRecord = (row: RetRecord): ContentsDefine => {
+        const convertRecord = async(row: RetRecord): Promise<ContentsDefine> => {
+            const sql = 'select * from item_content_link where content_page_id = ?';
+            const [rows] = await con.execute(sql, [row.content_page_id]);
+            const another_item_ids =  (rows as types.schema.ItemContentLink[])
+                                        .filter(record => record.item_page_id !== row.item_page_id)
+                                        .reduce((acc, cur) => {
+                                            if (!acc.includes(cur.item_page_id)) {
+                                                return acc.concat(cur.item_page_id);
+                                            } else {
+                                                return acc;
+                                            }
+                                        }, [] as string[]);
+
             const contents = row.contents ? JSON.parse(row.contents) as types.schema.ContentsInfo: undefined;
-            const another_item_ids = [] as string[];    //TODO: row.another_item_id?.split(',') ?? [];
             let isSnsContent = false;
             let addableChild = true;
             if (row.supplement) {
@@ -54,7 +65,7 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
             const [rows] = await con.execute(getChildrenQuery, [contentId]);
             const children = [] as ContentsDefine[];
             for (const row of rows as RetRecord[]) {
-                const content = convertRecord(row);
+                const content = await convertRecord(row);
                 content.children = await getChildren(content.id);
                 children.push(content);
             }
@@ -78,7 +89,7 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
 
             }
             for (const row of myRows) {
-                const content = convertRecord(row);
+                const content = await convertRecord(row);
                 // 子孫コンテンツを取得
                 content.children = await getChildren(content.id);
                 allContents.push(content);
