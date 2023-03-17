@@ -22,7 +22,6 @@ export type PopupItem = {
 
 function hasImageItem(item: ItemDefine): boolean {
     if (item.contents.length===0) return false;
-    console.log('item.contents', item.contents);
     if (item.contents.some(c => c.hasImage)) return true;
     const hasChildOwnImage = (children: ItemContentInfo[]): boolean => {
         return children.some(child => {
@@ -45,7 +44,14 @@ export default function PointsPopup(props: Props) {
         if (props.itemIds.length === 0) {
             return undefined;
         }
-        let infos = props.itemIds.map(id => itemMap[id]);
+        let infos = props.itemIds.reduce((acc, cur) => {
+            const item = itemMap[cur];
+            if (!item) {
+                // 地図種別切り替え直後にこのルートに入る可能性がある
+                return acc;
+            }
+            return acc.concat(item);
+        }, [] as ItemDefine[])
         // フィルタがかかっている場合は、フィルタ対象のものに絞る
         if (isFiltered) {
             infos = infos.filter(info => filteredItemIdList?.includes(info.id));
