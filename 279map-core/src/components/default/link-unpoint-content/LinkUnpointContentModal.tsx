@@ -37,10 +37,12 @@ export default function LinkUnpointContentModal(props: Props) {
     }, []);
 
     const onSelect = useCallback(async(id: string) => {
+        setLoading(true);
         await props.param.linkContentToItemAPI({
             parent: props.param.parent,
             childContentId: id,
         });
+        setLoading(false);
         if (props.close) {
             props.close();
         }
