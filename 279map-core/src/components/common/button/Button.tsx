@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import styles from './Button.module.scss';
 
 type Props = {
-    variant: 'primary' | 'secondary';
+    variant: 'primary' | 'secondary' | 'link';
     onClick?: () => void;
     disabled?: boolean;
     children: (JSX.Element | string) | (JSX.Element | string)[];

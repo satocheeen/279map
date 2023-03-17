@@ -1,0 +1,37 @@
+.Container {
+    position: relative;
+    *:before, *:after {
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box
+    }
+}
+.CardArea {
+    height: 500px;
+    width: 500px;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    ul {
+        display: flex;
+        flex-wrap: wrap;
+        list-style: none;
+        padding: 0;
+
+        li {
+            flex-basis: calc(50% - 10px);
+            padding: 0.25rem;
+        }
+    }
+
+    .ReadMore {
+        width: 100%;
+        text-align: center;
+    }
+
+}
+.SpinnerArea {
+    position: absolute;
+    width: 100%;
+    top: 40%;
+    text-align: center;
+}

@@ -1,8 +1,10 @@
 // @import "~bootstrap/scss/bootstrap";
 :root {
-    --primary-bg-color: #17a2b8;
+    --primary-color: #17a2b8;
+
+    --primary-bg-color: var(--primary-color);
     --primary-text-color: #fcfcfc;
-    --primary-border-color: #17a2b8;
+    --primary-border-color: var(--primary-color);
 
     --secondary-bg-color: #fcfcfc;
     --secondary-text-color: #aaa;

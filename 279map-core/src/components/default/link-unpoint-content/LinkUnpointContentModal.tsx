@@ -2,6 +2,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from '../../common';
 import { LinkUnpointContentParam } from '../../../types/types';
 import { UnpointContent } from '../../../279map-common';
+import styles from './LinkUnpointContentModal.module.scss';
+import Card from '../../common/card/Card';
+import Spinner from '../../common/spinner/Spinner';
 
 type Props = {
     param: LinkUnpointContentParam;
@@ -16,14 +19,22 @@ type Props = {
 export default function LinkUnpointContentModal(props: Props) {
     const [ unpointContents, setUnpointContents ] = useState<UnpointContent[]>([]);
     const [ nextToken, setNextToken ] = useState<string|undefined>();
+    const [ loading, setLoading ] = useState(false);
 
-    useEffect(() => {
-        props.param.getUnpointDataAPI()
+    const readMore = useCallback(() => {
+        setLoading(true);
+        props.param.getUnpointDataAPI(nextToken)
         .then((result) => {
             setUnpointContents(result.contents);
             setNextToken(result.nextToken);
+            setLoading(false);
         })
-    }, [props.param]);
+    }, [props.param, nextToken]);
+
+    useEffect(() => {
+        readMore();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const onSelect = useCallback(async(id: string) => {
         await props.param.linkContentToItemAPI({
@@ -47,16 +58,28 @@ export default function LinkUnpointContentModal(props: Props) {
                 既存コンテンツを選択
             </ModalHeader>
             <ModalBody>
-                <div>
-                    <ul>
-                        {unpointContents.map((uc) => {
-                            return (
-                                <li key={uc.id} onClick={()=>onSelect(uc.id)}>
-                                    {uc.title}
-                                </li>
-                            ) 
-                        })}
-                    </ul>
+                <div className={styles.Container}>
+                    <div className={styles.CardArea}>
+                        <ul>
+                            {unpointContents.map((uc) => {
+                                return (
+                                    <li key={uc.id}>
+                                        <Card title={uc.title} imageUrl={uc.thumb ? 'data:' + uc.thumb : undefined} onClick={()=>onSelect(uc.id)} />
+                                    </li>
+                                ) 
+                            })}
+                        </ul>
+                        {nextToken &&
+                            <div className={styles.ReadMore}>
+                                <Button variant='link' onClick={readMore}>Read more</Button>
+                            </div>
+                        }
+                    </div>
+                    {loading &&
+                        <div className={styles.SpinnerArea}>
+                            <Spinner />
+                        </div>
+                    }
                 </div>
             </ModalBody>
             <ModalFooter>
