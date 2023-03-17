@@ -156,8 +156,13 @@ export default class Broadcaster {
      * @returns 
      */
     broadcastSameMap(req: Request, message: WebSocketMessage) {
-        const currentMap = this.getCurrentMap(req.sessionID);
+        if (!req.connect) {
+            this._logger.debug('no connect');
+            return;
+        }
+        const currentMap = this.getCurrentMap(req.connect.sessionKey);
         if (!currentMap) {
+            this._logger.debug('no currentmap');
             return;
         }
         this.#broadcast(currentMap.mapId, currentMap.mapKind, message);

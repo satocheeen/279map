@@ -479,7 +479,7 @@ const checkApiAuthLv = (needAuthLv: Auth) => {
 // 地図基本情報取得
 app.post(`/api/${GetMapInfoAPI.uri}`, 
     checkApiAuthLv(Auth.View), 
-    async(req, res) => {
+    async(req, res, next) => {
         try {
             const session = broadCaster.getSessionInfo(req.connect?.sessionKey as string);
 
@@ -496,6 +496,8 @@ app.post(`/api/${GetMapInfoAPI.uri}`,
             apiLogger.debug('result', result);
 
             res.send(result);
+
+            next();
 
         } catch(e) {    
             apiLogger.warn(e);
@@ -525,13 +527,15 @@ const checkCurrentMap = async(req: Request, res: Response, next: NextFunction) =
 app.post(`/api/${GetOriginalIconDefineAPI.uri}`, 
     checkApiAuthLv(Auth.View), 
     checkCurrentMap,
-    async(req, res) => {
+    async(req, res, next) => {
         try {
             const result = await getOriginalIconDefine(req.currentMap);
 
             apiLogger.debug('result', result);
 
             res.send(result);
+
+            next();
 
         } catch(e) {    
             apiLogger.warn(e);
@@ -547,7 +551,7 @@ app.post(`/api/${GetOriginalIconDefineAPI.uri}`,
 app.post(`/api/${GetItemsAPI.uri}`,
     checkApiAuthLv(Auth.View), 
     checkCurrentMap,
-    async(req, res) => {
+    async(req, res, next) => {
         try {
             const param = req.body as GetItemsParam;
             const result = await getItems({
@@ -568,6 +572,8 @@ app.post(`/api/${GetItemsAPI.uri}`,
 
             res.send(result);
 
+            next();
+
         } catch(e) {    
             apiLogger.warn(e);
             res.status(500).send(e);
@@ -581,7 +587,7 @@ app.post(`/api/${GetItemsAPI.uri}`,
 app.post(`/api/${GetContentsAPI.uri}`,
     checkApiAuthLv(Auth.View), 
     checkCurrentMap,
-    async(req, res) => {
+    async(req, res, next) => {
         try {
             const param = req.body as GetContentsParam;
             const result = await getContents({
@@ -593,6 +599,7 @@ app.post(`/api/${GetContentsAPI.uri}`,
 
             res.send(result);
 
+            next();
         } catch(e) {    
             apiLogger.warn(e);
             res.status(500).send(e);
@@ -606,7 +613,7 @@ app.post(`/api/${GetContentsAPI.uri}`,
 app.post(`/api/${GetCategoryAPI.uri}`,
     checkApiAuthLv(Auth.View), 
     checkCurrentMap,
-    async(req, res) => {
+    async(req, res, next) => {
         try {
             const result = await getCategory(req.currentMap);
 
@@ -614,6 +621,7 @@ app.post(`/api/${GetCategoryAPI.uri}`,
 
             res.send(result);
 
+            next();
         } catch(e) {    
             apiLogger.warn(e);
             res.status(500).send(e);
@@ -627,7 +635,7 @@ app.post(`/api/${GetCategoryAPI.uri}`,
 app.post(`/api/${GetEventsAPI.uri}`,
     checkApiAuthLv(Auth.View), 
     checkCurrentMap,
-    async(req, res) => {
+    async(req, res, next) => {
         try {
             const result = await getEvents(req.currentMap);
 
@@ -635,6 +643,7 @@ app.post(`/api/${GetEventsAPI.uri}`,
 
             res.send(result);
 
+            next();
         } catch(e) {    
             apiLogger.warn(e);
             res.status(500).send(e);
@@ -649,7 +658,7 @@ app.post(`/api/${GetEventsAPI.uri}`,
 app.post(`/api/${RegistItemAPI.uri}`,
     checkApiAuthLv(Auth.Edit), 
     checkCurrentMap,
-    async(req, res) => {
+    async(req, res, next) => {
         try {
             const param = req.body as RegistItemParam;
         
@@ -667,6 +676,7 @@ app.post(`/api/${RegistItemAPI.uri}`,
             
             res.send(id);
     
+            next();
         } catch(e) {    
             apiLogger.warn(e);
             res.status(500).send(e);
@@ -681,7 +691,7 @@ app.post(`/api/${RegistItemAPI.uri}`,
 app.post(`/api/${UpdateItemAPI.uri}`,
     checkApiAuthLv(Auth.Edit), 
     checkCurrentMap,
-    async(req, res) => {
+    async(req, res, next) => {
         try {
             const param = req.body as UpdateItemParam;
 
@@ -697,6 +707,7 @@ app.post(`/api/${UpdateItemAPI.uri}`,
             
             res.send('complete');
     
+            next();
         } catch(e) {    
             apiLogger.warn(e);
             res.status(500).send(e);
@@ -711,7 +722,7 @@ app.post(`/api/${UpdateItemAPI.uri}`,
 app.post(`/api/${RemoveItemAPI.uri}`,
     checkApiAuthLv(Auth.Edit), 
     checkCurrentMap,
-    async(req, res) => {
+    async(req, res, next) => {
         try {
             const param = req.body as RemoveItemParam;
 
@@ -728,6 +739,7 @@ app.post(`/api/${RemoveItemAPI.uri}`,
             
             res.send('complete');
     
+            next();
         } catch(e) {    
             apiLogger.warn(e);
             res.status(500).send(e);
@@ -742,7 +754,7 @@ app.post(`/api/${RemoveItemAPI.uri}`,
 app.post(`/api/${RegistContentAPI.uri}`,
     checkApiAuthLv(Auth.Edit), 
     checkCurrentMap,
-    async(req, res) => {
+    async(req, res, next) => {
         try {
             const param = req.body as RegistContentParam;
     
@@ -758,6 +770,7 @@ app.post(`/api/${RegistContentAPI.uri}`,
         
             res.send('complete');
     
+            next();
         } catch(e) {    
             apiLogger.warn(e);
             res.status(500).send(e);
@@ -772,7 +785,7 @@ app.post(`/api/${RegistContentAPI.uri}`,
 app.post(`/api/${UpdateContentAPI.uri}`,
     checkApiAuthLv(Auth.Edit), 
     checkCurrentMap,
-    async(req, res) => {
+    async(req, res, next) => {
         try {
             const param = req.body as UpdateContentParam;
     
@@ -788,6 +801,7 @@ app.post(`/api/${UpdateContentAPI.uri}`,
         
             res.send('complete');
     
+            next();
         } catch(e) {
             apiLogger.warn(e);
             res.status(500).send(e);
@@ -802,7 +816,7 @@ app.post(`/api/${UpdateContentAPI.uri}`,
 app.post(`/api/${GetUnpointDataAPI.uri}`,
     checkApiAuthLv(Auth.Edit), 
     checkCurrentMap,
-    async(req, res) => {
+    async(req, res, next) => {
         try {
             const param = req.body as GetUnpointDataParam;
 
@@ -814,6 +828,7 @@ app.post(`/api/${GetUnpointDataAPI.uri}`,
     
             res.send(result);
     
+            next();
         } catch(e) {
             apiLogger.warn(e);
             res.status(500).send(e);
@@ -828,7 +843,7 @@ app.post(`/api/${GetUnpointDataAPI.uri}`,
 app.post(`/api/${LinkContentToItemAPI.uri}`,
     checkApiAuthLv(Auth.Edit), 
     checkCurrentMap,
-    async(req, res) => {
+    async(req, res, next) => {
         try {
             const param = req.body as LinkContentToItemParam;
 
@@ -843,6 +858,8 @@ app.post(`/api/${LinkContentToItemAPI.uri}`,
             });
             
             res.send('complete');
+
+            next();
     
         } catch(e) {
             apiLogger.warn(e);
@@ -858,7 +875,7 @@ app.post(`/api/${LinkContentToItemAPI.uri}`,
 app.post(`/api/${RemoveContentAPI.uri}`,
     checkApiAuthLv(Auth.Edit), 
     checkCurrentMap,
-    async(req, res) => {
+    async(req, res, next) => {
         try {
             const param = req.body as RemoveContentParam;
 
@@ -874,6 +891,7 @@ app.post(`/api/${RemoveContentAPI.uri}`,
 
             res.send('complete');
     
+            next();
         } catch(e) {
             apiLogger.warn(e);
             res.status(500).send(e);
@@ -888,7 +906,7 @@ app.post(`/api/${RemoveContentAPI.uri}`,
 app.post(`/api/${GetSnsPreviewAPI.uri}`,
     checkApiAuthLv(Auth.Edit), 
     checkCurrentMap,
-    async(req, res) => {
+    async(req, res, next) => {
         try {
             const param = req.body as GetSnsPreviewParam;
 
@@ -896,6 +914,7 @@ app.post(`/api/${GetSnsPreviewAPI.uri}`,
     
             res.send(result);
     
+            next();
         } catch(e) {
             apiLogger.warn(e);
             res.status(500).send(e);
