@@ -64,7 +64,8 @@ export default function LinkUnpointContentModal(props: Props) {
                             {unpointContents.map((uc) => {
                                 return (
                                     <li key={uc.id}>
-                                        <Card title={uc.title} imageUrl={uc.thumb ? 'data:' + uc.thumb : undefined} onClick={()=>onSelect(uc.id)} />
+                                        <Card title={uc.title} imageUrl={uc.thumb ? 'data:' + uc.thumb : undefined} 
+                                            overview={uc.overview} onClick={()=>onSelect(uc.id)} />
                                     </li>
                                 ) 
                             })}

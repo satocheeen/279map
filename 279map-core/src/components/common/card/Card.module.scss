@@ -63,6 +63,10 @@
         .Overview {
             font-size: 80%;
             color: var(--dark-054);
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
         }
     }
 }
