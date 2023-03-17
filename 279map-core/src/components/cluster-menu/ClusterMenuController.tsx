@@ -141,6 +141,9 @@ export default function ClusterMenuController(props: Props) {
 
     }, [props, getSelectableFeatures]);
 
+    /**
+     * 重畳選択メニュー選択時のコールバック
+     */
     const onClusterMenuSelected = useCallback((id: string) => {
         const target = clusterMenuInfo?.targets.find(target => target.getId() === id);
         if (target && props.onSelect) {
@@ -148,6 +151,14 @@ export default function ClusterMenuController(props: Props) {
         }
         setClusterMenuInfo(null);
     }, [props, clusterMenuInfo]);
+
+    /**
+     * 重畳選択メニューのコンテンツ追加メニュークリック時など
+     * 重畳選択メニューを閉じる場合のコールバック
+     */
+    const onClusterMenuClosed = useCallback(() => {
+        setClusterMenuInfo(null);
+    }, []);
 
     if (!clusterMenuInfo) {
         return null;
@@ -157,6 +168,7 @@ export default function ClusterMenuController(props: Props) {
         <ClusterMenu map={props.map}
             position={clusterMenuInfo.position}
             itemIds={clusterMenuInfo.targets.map(target => target.getId() as string)}
-            onSelect={onClusterMenuSelected} />
+            onSelect={onClusterMenuSelected}
+            onClose={onClusterMenuClosed} />
 );
 }

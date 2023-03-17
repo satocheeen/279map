@@ -13,6 +13,7 @@ type Props = {
     } | {
         contentId: string;
     };
+    onClick?: () => void;   // メニュー選択時のコールバック
 }
 let maxId = 0;
 export default function AddContentMenu(props: Props) {
@@ -48,7 +49,11 @@ export default function AddContentMenu(props: Props) {
             });
         }
 
-    }, [props, onNewContentInfo]);
+        if (props.onClick) {
+            props.onClick();
+        }
+
+    }, [props, onNewContentInfo, getUnpointDataAPI, linkContentToItemAPI, onNewContentByManual, onNewContentByUnpointedContent, registContentAPI]);
 
     const caption = useMemo(() => {
         if ('itemId' in props.target) {

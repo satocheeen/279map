@@ -23,7 +23,7 @@ type Props = {
     itemIds: string[];
 
     onSelect?: (id: string) => void;
-
+    onClose?: () => void;
 }
 
 export default function ClusterMenu(props: Props) {
@@ -56,7 +56,9 @@ export default function ClusterMenu(props: Props) {
             <div ref={elementRef} className={styles.Container}>
                 {props.itemIds.map(id => {
                     return (
-                        <MenuItem key={id} id={id} onClick={() => onItemClick(id)} />
+                        <MenuItem key={id} id={id} 
+                            onClick={() => onItemClick(id)}
+                            onClose={props.onClose} />
                     );
                 })}
             </div>
@@ -67,6 +69,7 @@ export default function ClusterMenu(props: Props) {
 type MenuItemProp = {
     id: string;
     onClick?: () => void;
+    onClose?: () => void;
 }
 function MenuItem(props: MenuItemProp) {
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
@@ -108,13 +111,19 @@ function MenuItem(props: MenuItemProp) {
         return editableAuthLv && !hasContent;
     }, [editableAuthLv, hasContent]);
 
+    const onAddContentMenuClicked = useCallback(() => {
+        if (props.onClose) {
+            props.onClose();
+        }
+    }, [props]);
+
     return (
         <li className={styles.MenuItem} onClick={props.onClick}>
             <img src={iconImagePath} />
             <span className={styles.NameArea}>
                 <span>{itemName}</span>
                 {showAddContentMenu &&
-                    <AddContentMenu target={{itemId: props.id}} />
+                    <AddContentMenu target={{itemId: props.id}} onClick={onAddContentMenuClicked} />
                 }
             </span>
         </li>
