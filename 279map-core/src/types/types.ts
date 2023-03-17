@@ -32,6 +32,7 @@ export type TsunaguMapProps = {
     onMapKindChanged?: (mapKind: MapKind) => void;
     onSelect?: (targets: string[]) => void; // callback when items are selected
     onUnselect?: () => void;    // callback when items are unselected.
+    onClick?: (target: string) => void; // callback when an item is clicked.
     onModeChanged?: (mode: MapMode) => void;    // callback when map mode has changed.
     onCategoriesLoaded?: (categories: CategoryDefine[]) => void;    // calback when categories has loaded or has changed.
     onEventsLoaded?: (events: EventDefine[]) => void;   // callback when events has loaded or has changed.

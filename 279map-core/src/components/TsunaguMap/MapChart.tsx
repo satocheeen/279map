@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Map, View } from 'ol';
 import * as olControl from 'ol/control';
 import prefJson from './pref.json';
@@ -36,6 +36,7 @@ import ClusterMenu from "../cluster-menu/ClusterMenu";
 import { usePrevious } from "../../util/usePrevious";
 import usePointStyle from "../map/usePointStyle";
 import ClusterMenuController from "../cluster-menu/ClusterMenuController";
+import { OwnerContext } from "./TsunaguMap";
 
 type ClusterMenuInfo = {
     position: Coordinate;
@@ -46,6 +47,7 @@ export default function MapChart() {
     const mapRef = useRef(null as Map | null);
     const [clusterMenuInfo, setClusterMenuInfo] = useState<ClusterMenuInfo|null>(null);
     const mapMode = useSelector((state: RootState) => state.operation.mapMode);
+    const { onClick } = useContext(OwnerContext);
 
     useEffect(() => {
         setClusterMenuInfo(null);
@@ -228,10 +230,14 @@ export default function MapChart() {
         if (!feature) {
             dispatch(operationActions.unselectItem());
         } else {
-            dispatch(operationActions.setSelectItem([feature.getId() as string]));
+            const id = feature.getId() as string;
+            dispatch(operationActions.setSelectItem([id]));
+            if (onClick) {
+                onClick(id);
+            }
         }
 
-    }, [dispatch]);
+    }, [dispatch, onClick]);
 
     /**
      * 地図が切り替わったら、レイヤ再配置
@@ -593,7 +599,10 @@ export default function MapChart() {
    const onClusterMenuSelected = useCallback((id: string) => {
         setClusterMenuInfo(null);
         dispatch(operationActions.setSelectItem([id]));
-    }, [dispatch]);
+        if (onClick) {
+            onClick(id);
+        }
+    }, [dispatch, onClick]);
 
     // set the cluster distance by zoomLv.
     useEffect(() => {
