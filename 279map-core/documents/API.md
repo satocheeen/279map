@@ -12,7 +12,7 @@
 | onConnect | (result: [MapDefine](#mapdefined), command: [Command](#command)) => void | | Callback fired when connecting map success |
 | onSelect | (selectedIds: string[]) => void | | Callback fired when the pins selected |
 | onUnselect | () => void | | Callback fired when the pins unselected |
-| onClick | () => void | | Callback fired when a pin clicked |
+| onClick | (clicedIds: string[]) => void | | Callback fired when the pins clicked.  The cluster menu is not shown when the callback is defined. |
 | onModeChanged | (mode: MapMode) => void | | Callback fired when map mode has changed. |
 | onCategoriesLoaded | (categories: CategoriDefine[]) => void | | Callback fired when categories has loaded or changed. |
 | onEventsLoaded | (events: EventDefine[]) => void | | Callback fired when events has loaded or changed. |

@@ -2,11 +2,12 @@ import { FeatureType } from '../../279map-common';
 import { Map, MapBrowserEvent } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import Feature from 'ol/Feature';
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useContext } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
 import { useFilter } from '../../store/useFilter';
 import ClusterMenu from './ClusterMenu';
+import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 
 /**
  * 地図上のアイテムがクリックされた際に、
@@ -29,6 +30,7 @@ type ClusterMenuTarget = {
 
 export default function ClusterMenuController(props: Props) {
     const [clusterMenuInfo, setClusterMenuInfo] = useState<ClusterMenuTarget|null>(null);
+    const { onClick } = useContext(OwnerContext);
 
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
     const itemMapRef = useRef(itemMap);
@@ -108,14 +110,22 @@ export default function ClusterMenuController(props: Props) {
                         position: evt.coordinate,
                         targets: points,
                     });
-                } else if (props.onSelect) {
+                    return;
+                }
+                if (props.onSelect) {
                     props.onSelect(points[0]);
                 } 
-            } else {
+            } else if (!onClick) {
+                // onClick指定時は、重畳選択メニューは表示しない
                 setClusterMenuInfo({
                     position: evt.coordinate,
                     targets: points,
                 });
+            }
+            if (onClick) {
+                // onClick指定時は、クリックされたアイテムのID一覧を返す（重畳選択メニューは表示しない）
+                const ids = points.map(p => p.getId() as string);
+                onClick(ids);
             }
 
         };
@@ -139,7 +149,7 @@ export default function ClusterMenuController(props: Props) {
             props.map.un('pointermove', pointerMoveFunc);
         }
 
-    }, [props, getSelectableFeatures]);
+    }, [props, getSelectableFeatures, onClick]);
 
     /**
      * 重畳選択メニュー選択時のコールバック
