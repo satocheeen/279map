@@ -32,7 +32,7 @@ function getDescendantContents(item: ItemDefine): ItemContentInfo[] {
     }
     const contents = item.contents.reduce((acc, cur) => {
         const children = getChildren(cur);
-        return acc.concat(children);
+        return acc.concat(cur, children);
     }, [] as ItemContentInfo[]);
     return contents;
 }
