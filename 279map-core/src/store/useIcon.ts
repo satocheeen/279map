@@ -11,10 +11,10 @@ function getDefaultIconDefine(useMaps: MapKind[]): SystemIconDefine {
         id: 'default',
         imagePath: defaultIcon,
         useMaps,
-        menuViewCustomCss: {
-            filter: 'opacity(0.5) drop-shadow(0 0 0 #aaa)',
-        },
-        defaultColor: '#77f',
+        // menuViewCustomCss: {
+        //     filter: 'opacity(0.5) drop-shadow(0 0 0 #aaa)',
+        // },
+        // defaultColor: '#77f',
         type: 'system',
     }
 }
