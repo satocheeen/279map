@@ -10,6 +10,15 @@ export const ConfigAPI = {
     method: 'get',
 } as APIDefine<void, ServerConfig>;
 
+export const GetMapListAPI = {
+    uri: 'getmaplist',
+    method: 'get',
+} as APIDefine<void, MapInfo[]>;
+export type MapInfo = {
+    mapId: string;
+    name: string;
+};
+
 /**
  * get map info
  */

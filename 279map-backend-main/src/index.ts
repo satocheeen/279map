@@ -25,12 +25,13 @@ import cookieParser from 'cookie-parser';
 import { readFileSync } from 'fs';
 import { exit } from 'process';
 import { getMapId } from './getMapDefine';
-import { ConfigAPI, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
+import { ConfigAPI, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { auth } from 'express-oauth2-jwt-bearer';
 import { getMapUser } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
 import { getSessionIdFromCookies } from './session/session_utility';
 import { GetItemsParam } from '../279map-api-interface/dist';
+import { getMapList } from './api/getMapList';
 
 declare global {
     namespace Express {
@@ -214,6 +215,25 @@ app.get(`/api/${ConfigAPI.uri}`, async(_, res) => {
         } as ServerConfig)
     }
 });
+
+/**
+ * ログインユーザーがアクセス可能な地図一覧を返す。
+ * ログインしていないユーザーの場合は、Public地図のみ返す
+ */
+app.get('/api/' + GetMapListAPI.uri,
+    checkJwt,
+    async(req: Request, res: Response) => {
+        apiLogger.info('[start] getmaplist');
+
+        const userId = getUserId(req);
+        const list = await getMapList(userId);
+
+        res.send(list);
+
+        apiLogger.info('[end] getmaplist');
+    }
+);
+
 
 /**
  * mapIdを取得してrequestに格納
