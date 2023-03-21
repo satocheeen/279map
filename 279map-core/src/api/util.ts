@@ -8,9 +8,10 @@ import { ServerConfig } from "../279map-common";
  * @param host 
  * @returns 
  */
-export async function getAccessableMapList(host: string) {
+export async function getAccessableMapList(host: string, token: string | undefined) {
     const mapServer = {
         domain: host,
+        token,
     } as ServerInfo;
     try {
         const result = await callApi(mapServer, GetMapListAPI, undefined);

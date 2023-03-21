@@ -221,7 +221,20 @@ app.get(`/api/${ConfigAPI.uri}`, async(_, res) => {
  * ログインしていないユーザーの場合は、Public地図のみ返す
  */
 app.get('/api/' + GetMapListAPI.uri,
+    async(req: Request, res: Response, next: NextFunction) => {
+        if (!req.headers.authorization) {
+            // 未ログインの場合は、認証チェックしない
+            next('route');
+            return;
+
+        } else {
+            // 認証情報ある場合は、後続の認証チェック処理
+            next();
+        }
+    },
     checkJwt,
+);
+app.get('/api/' + GetMapListAPI.uri,
     async(req: Request, res: Response) => {
         apiLogger.info('[start] getmaplist');
 
