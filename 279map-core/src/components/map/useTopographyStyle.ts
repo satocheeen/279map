@@ -1,9 +1,11 @@
-import { FeatureType } from "../../279map-common";
+import { FeatureType, MapKind } from "../../279map-common";
 import { FeatureLike } from "ol/Feature";
 import { Fill, Stroke, Style } from "ol/style";
 import { useCallback } from "react";
 import { colorWithAlpha } from '../../util/CommonUtility';
 import { MapStyles } from "../../util/constant-defines";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store/configureStore";
 
 const DRAWING_COLOR = '#eebbaa'
 
@@ -40,6 +42,8 @@ type Props = {
  * @param props 
  */
 export default function useTopographyStyle(props: Props) {
+    const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
+
     const getStyleFunction = useCallback((forceStyleFunc?: (feature: FeatureLike, resolution: number, defaultStyle: Style) => Style) => {
         return (feature: FeatureLike, resolution: number) => {
             let featureType: FeatureType = feature.getProperties()['featureType'];
@@ -47,8 +51,8 @@ export default function useTopographyStyle(props: Props) {
                 featureType = props.defaultFeatureType;
             }
             if (featureType === undefined) {
-                console.warn('FeatureType undefined');
-                featureType = FeatureType.EARTH;
+                featureType = mapKind === MapKind.Virtual ? FeatureType.EARTH : FeatureType.AREA;
+                console.warn('FeatureType undefined', feature.getId(), feature.getGeometry()?.getType(), 'set', featureType);
             }
             let defaultColor;
             let zIndex;
@@ -92,7 +96,7 @@ export default function useTopographyStyle(props: Props) {
             }
             return forceStyleFunc(feature, resolution, defaultStyle);
         };
-    }, [props.defaultFeatureType, props.drawing]);
+    }, [props.defaultFeatureType, props.drawing, mapKind]);
 
     return {
         getStyleFunction,

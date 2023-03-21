@@ -377,21 +377,28 @@ export default function MapChart() {
             }) as FeatureProperties;
             featurething.setProperties(properties);
             
-            let source;
-            switch(def.geoProperties?.featureType as FeatureType) {
-                case FeatureType.STRUCTURE:
-                    source = pointContentsSourceRef.current;
-                    break;
-                case FeatureType.EARTH:
-                case FeatureType.FOREST:
-                case FeatureType.ROAD:
-                case FeatureType.AREA:
-                        source = topographyContentsSourceRef.current;
-                    break;
-                default:
-                    source = pointContentsSourceRef.current;
-            }
-            if (source === null) {
+            const source = function() {
+                const geom = featurething.getGeometry();
+                if (!geom) {
+                    return;
+                }
+                if (geom.getType() !== 'Point') {
+                    return topographyContentsSourceRef.current;
+                }
+                switch(def.geoProperties?.featureType as FeatureType) {
+                    case FeatureType.STRUCTURE:
+                        return pointContentsSourceRef.current;
+                    case FeatureType.EARTH:
+                    case FeatureType.FOREST:
+                    case FeatureType.ROAD:
+                    case FeatureType.AREA:
+                        return topographyContentsSourceRef.current;
+                    default:
+                        return pointContentsSourceRef.current;
+                }
+            }();
+
+            if (!source) {
                 console.warn('想定外エラー');
                 return;
             }
