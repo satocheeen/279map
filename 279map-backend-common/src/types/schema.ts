@@ -29,7 +29,7 @@ export type DataSourceTable = {
     map_page_id: string;
     kind: DataSourceKind;
     editable: boolean;
-    connection: DataSourceConnection;
+    connection: string;     // json.stringify(DataSourceConnection)
     last_edited_time: string;
 }
 export type MapUserTable = {
