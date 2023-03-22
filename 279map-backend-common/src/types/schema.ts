@@ -16,9 +16,10 @@ export type MapPageInfoTable = {
 }
 export enum DataSourceKind {
     VirtualItem = 'VirtualItem',
-    RealIteml = 'RealIteml',
+    RealItem = 'RealItem',
     Content = 'Content',
     RealItemContent = 'RealItemContent',
+    RealTrack = 'RealTrack',
 }
 export type DataSourceTable = {
     data_source_id: string;

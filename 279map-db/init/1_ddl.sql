@@ -18,7 +18,7 @@ CREATE TABLE `map_page_info` (
 CREATE TABLE `data_source` (
   `data_source_id` varchar(100) NOT NULL,
   `map_page_id` varchar(100) NOT NULL,
-  `kind` enum('VirtualItem','RealIteml','Content','RealItemContent') NOT NULL,
+  `kind` enum('VirtualItem','RealItem','RealTrack','Content','RealItemContent') NOT NULL,
   `editable` tinyint(1) NOT NULL DEFAULT '0',
   `connection` json NOT NULL,
   `last_edited_time` varchar(100) NOT NULL,
