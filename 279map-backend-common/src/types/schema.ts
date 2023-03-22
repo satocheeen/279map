@@ -21,12 +21,15 @@ export enum DataSourceKind {
     RealItemContent = 'RealItemContent',
     RealTrack = 'RealTrack',
 }
+export interface DataSourceConnection {
+    type: string;
+}
 export type DataSourceTable = {
     data_source_id: string;
     map_page_id: string;
     kind: DataSourceKind;
     editable: boolean;
-    connection: object;
+    connection: DataSourceConnection;
     last_edited_time: string;
 }
 export type MapUserTable = {
