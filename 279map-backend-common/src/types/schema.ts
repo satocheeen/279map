@@ -28,6 +28,7 @@ export type DataSourceTable = {
     data_source_id: string;
     map_page_id: string;
     kind: DataSourceKind;
+    name: string;
     editable: boolean;
     connection: string | DataSourceConnection;  // 登録時はstring、取得時はDataSourceConnection
     last_edited_time: string;
