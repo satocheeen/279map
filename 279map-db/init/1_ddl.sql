@@ -7,21 +7,22 @@ CREATE TABLE `map_page_info` (
   `use_maps` varchar(100) NOT NULL,
   `default_map` enum('Real','Virtual') NOT NULL,
   `public_range` enum('Public','Private') NOT NULL,
-  `supplement` text,
+  `odba_name` varchar(100) NOT NULL,
   `last_edited_time` varchar(100) NOT NULL,
   PRIMARY KEY (`map_page_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 
--- 279map_db.item_group definition
+-- 279map_db.data_source definition
 
-CREATE TABLE `item_group` (
-  `item_group_id` varchar(100) NOT NULL,
+CREATE TABLE `data_source` (
+  `data_source_id` varchar(100) NOT NULL,
   `map_page_id` varchar(100) NOT NULL,
-  `sync_name` varchar(100) NOT NULL,
-  `map_kind` enum('Real','Virtual') NOT NULL,
+  `kind` enum('VirtualItem','RealIteml','Content','RealItemContent') NOT NULL,
+  `editable` tinyint(1) NOT NULL DEFAULT '0',
+  `connection` json NOT NULL,
   `last_edited_time` varchar(100) NOT NULL,
-  PRIMARY KEY (`item_group_id`),
+  PRIMARY KEY (`data_source_id`),
   KEY `item_group_FK` (`map_page_id`),
   CONSTRAINT `item_group_FK` FOREIGN KEY (`map_page_id`) REFERENCES `map_page_info` (`map_page_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
@@ -39,13 +40,13 @@ CREATE TABLE `contents` (
   `date` datetime DEFAULT NULL,
   `parent_id` varchar(100) DEFAULT NULL,
   `supplement` text,
-  `map_page_id` varchar(100) NOT NULL,
+  `data_source_id` varchar(100) NOT NULL,
   `readonly` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`content_page_id`),
   KEY `contents_FK` (`parent_id`),
-  KEY `contents_FK_1` (`map_page_id`),
+  KEY `contents_FK_1` (`data_source_id`),
   CONSTRAINT `contents_FK` FOREIGN KEY (`parent_id`) REFERENCES `contents` (`content_page_id`) ON DELETE CASCADE,
-  CONSTRAINT `contents_FK_1` FOREIGN KEY (`map_page_id`) REFERENCES `map_page_info` (`map_page_id`) ON DELETE CASCADE
+  CONSTRAINT `contents_FK_1` FOREIGN KEY (`data_source_id`) REFERENCES `data_source` (`data_source_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 
@@ -53,14 +54,14 @@ CREATE TABLE `contents` (
 
 CREATE TABLE `items` (
   `location` geometry NOT NULL,
-  `item_group_id` varchar(100) NOT NULL,
+  `data_source_id` varchar(100) NOT NULL,
   `item_page_id` varchar(100) NOT NULL,
   `last_edited_time` varchar(100) NOT NULL,
   `geo_properties` text,
   `name` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`item_page_id`),
-  KEY `point_contents_FK` (`item_group_id`) USING BTREE,
-  CONSTRAINT `items_FK` FOREIGN KEY (`item_group_id`) REFERENCES `item_group` (`item_group_id`) ON DELETE CASCADE
+  KEY `point_contents_FK` (`data_source_id`) USING BTREE,
+  CONSTRAINT `items_FK` FOREIGN KEY (`data_source_id`) REFERENCES `data_source` (`data_source_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 
@@ -81,12 +82,12 @@ CREATE TABLE `item_content_link` (
 
 CREATE TABLE `tracks` (
   `track_page_id` varchar(100) NOT NULL,
-  `item_group_id` varchar(100) NOT NULL,
+  `data_source_id` varchar(100) NOT NULL,
   `name` varchar(100) DEFAULT NULL,
   `last_edited_time` varchar(100) NOT NULL,
   PRIMARY KEY (`track_page_id`),
-  KEY `tracks_FK` (`item_group_id`),
-  CONSTRAINT `tracks_FK` FOREIGN KEY (`item_group_id`) REFERENCES `item_group` (`item_group_id`) ON DELETE CASCADE
+  KEY `tracks_FK` (`data_source_id`),
+  CONSTRAINT `tracks_FK` FOREIGN KEY (`data_source_id`) REFERENCES `data_source` (`data_source_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 

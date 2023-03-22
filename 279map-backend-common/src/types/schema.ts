@@ -11,7 +11,21 @@ export type MapPageInfoTable = {
     use_maps: string;   // MapKindをカンマ区切り
     default_map: MapKind;
     public_range: PublicRange;
-    supplement?: string;      // JSON文字列
+    odba_name: string;
+    last_edited_time: string;
+}
+export enum DataSourceKind {
+    VirtualItem = 'VirtualItem',
+    RealIteml = 'RealIteml',
+    Content = 'Content',
+    RealItemContent = 'RealItemContent',
+}
+export type DataSourceTable = {
+    data_source_id: string;
+    map_page_id: string;
+    kind: DataSourceKind;
+    editable: boolean;
+    connection: object;
     last_edited_time: string;
 }
 export type MapUserTable = {
@@ -20,16 +34,9 @@ export type MapUserTable = {
     auth_lv: Auth;
     name: string;
 }
-export type ItemGroupTable = {
-    item_group_id: string;
-    map_page_id: string;
-    sync_name: string;
-    map_kind: MapKind;
-    last_edited_time: string;
-}
 export type TracksTable = {
     track_page_id: string;
-    item_group_id: string;
+    data_source_id: string;
     name: string;
     last_edited_time: string;
 }
@@ -47,7 +54,7 @@ export type TrackGeoJsonTable = {
 }
 export type ItemsTable = {
     item_page_id: string;
-    item_group_id: string;
+    data_source_id: string;
     name: string | null;
     location: {x: number; y: number;};   // Geometry
     geo_properties: string;       // GeoPropertiesのJSON文字列
@@ -55,7 +62,7 @@ export type ItemsTable = {
 }
 export type ContentsTable = {
     content_page_id: string;
-    map_page_id: string;
+    data_source_id: string;
     title?: string;
     contents?: string;   // ContentsInfoのJSON文字列
     thumbnail?: string;
