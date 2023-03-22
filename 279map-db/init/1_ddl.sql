@@ -19,10 +19,10 @@ CREATE TABLE `data_source` (
   `data_source_id` varchar(100) NOT NULL,
   `map_page_id` varchar(100) NOT NULL,
   `kind` enum('VirtualItem','RealItem','RealTrack','Content','RealItemContent') NOT NULL,
+  `name` varchar(100) NOT NULL,
   `editable` tinyint(1) NOT NULL DEFAULT '0',
   `connection` json NOT NULL,
   `last_edited_time` varchar(100) NOT NULL,
-  `name` varchar(100) NOT NULL,
   PRIMARY KEY (`data_source_id`),
   KEY `item_group_FK` (`map_page_id`),
   CONSTRAINT `item_group_FK` FOREIGN KEY (`map_page_id`) REFERENCES `map_page_info` (`map_page_id`) ON DELETE CASCADE
