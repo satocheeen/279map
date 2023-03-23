@@ -26,7 +26,6 @@ export async function getMapInfo(param: GetMapInfoParam): Promise<GetMapInfoResu
     const dataSources = await getDataSources(mapPageInfo.map_page_id, targetMapKind);
 
     return {
-        mapId: mapPageInfo.map_page_id,
         mapKind: targetMapKind,
         extent,
         dataSources,

@@ -42,7 +42,6 @@ export type DataSourceInfo = {
     kind: SourceKind;
 }
 export type GetMapInfoResult = {
-    mapId: string;      // id
     mapKind: MapKind;
     extent: Extent;
     dataSources: DataSourceInfo[];
