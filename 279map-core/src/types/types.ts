@@ -2,7 +2,7 @@ import { ContentAttr, GeoProperties, IconDefine, UnpointContent } from "../279ma
 import { CSSProperties } from "react";
 import { CategoryDefine, EventDefine, MapDefine, MapKind } from '../279map-common';
 import { CommandHookType } from '../api/useCommand';
-import { LinkContentToItemParam, RegistContentParam } from "tsunagumap-api";
+import { DataSourceInfo, LinkContentToItemParam, RegistContentParam } from "tsunagumap-api";
 
 export type OnConnectParam = {
     result: 'success',
@@ -12,6 +12,10 @@ export type OnConnectParam = {
     result: 'Unauthorized',
 } | {
     result: 'Forbidden',
+}
+export type OnMapLoadParam = {
+    mapKind: MapKind;
+    dataSources: DataSourceInfo[];
 }
 export type TsunaguMapProps = {
     mapId: string;
@@ -29,7 +33,7 @@ export type TsunaguMapProps = {
     filter?: FilterDefine[];
 
     onConnect?: (param: OnConnectParam) => void;
-    onMapKindChanged?: (mapKind: MapKind) => void;
+    onMapLoad?: (param: OnMapLoadParam) => void;
     onSelect?: (targets: string[]) => void; // callback when items are selected
     onUnselect?: () => void;    // callback when items are unselected.
     onClick?: (targets: string[]) => void; // callback when an items are clicked.  if set this callback, cluster menu don't be shown.

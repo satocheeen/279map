@@ -26,7 +26,7 @@ export default function MapWrapper() {
     const spinner = useSpinner();
 
     const onConnectRef = useRef<typeof ownerContext.onConnect>();
-    const onMapKindChangedRef = useRef<typeof ownerContext.onMapKindChanged>();
+    const onMapKindChangedRef = useRef<typeof ownerContext.onMapLoad>();
     const onSelectRef = useRef<typeof ownerContext.onSelect>();
     const onUnselectRef = useRef<typeof ownerContext.onUnselect>();
     const onModeChangedRef = useRef<typeof ownerContext.onModeChanged>();
@@ -47,7 +47,7 @@ export default function MapWrapper() {
 
     useEffect(() => {
         onConnectRef.current = ownerContext.onConnect;
-        onMapKindChangedRef.current = ownerContext.onMapKindChanged;
+        onMapKindChangedRef.current = ownerContext.onMapLoad;
         onSelectRef.current = ownerContext.onSelect;
         onUnselectRef.current = ownerContext.onUnselect;
         onModeChangedRef.current = ownerContext.onModeChanged;
@@ -165,7 +165,10 @@ export default function MapWrapper() {
         if (!currentMapKindInfo) return;
 
         if (onMapKindChangedRef.current) {
-            onMapKindChangedRef.current(currentMapKindInfo.mapKind);
+            onMapKindChangedRef.current({
+                mapKind: currentMapKindInfo.mapKind,
+                dataSources: currentMapKindInfo.dataSources,
+            });
         }
     }, [currentMapKindInfo]);
 

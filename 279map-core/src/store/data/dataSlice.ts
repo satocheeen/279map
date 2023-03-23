@@ -151,6 +151,7 @@ const dataSlice = createSlice({
                 }
                 itemMap[action.payload.itemId] = {
                     id: targetItem.id,
+                    dataSourceId: targetItem.dataSourceId,
                     name: targetItem.name,
                     contents: newContents,
                     position: targetItem.position,

@@ -2,29 +2,23 @@ import { CategoryDefine, FeatureType, MapKind } from '../279map-common';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { CommandHookType } from '../api/useCommand';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
-import { FilterDefine, OnConnectParam, TsunaguMapProps } from '../entry';
+import { FilterDefine, OnConnectParam, OnMapLoadParam, TsunaguMapProps } from '../entry';
 import styles from './TestMap.module.scss';
+import { DataSourceInfo } from 'tsunagumap-api';
 
 /**
  * for Development
  */
-// const mapId = 'VXNlck5vZGU6Mg==';
-const mapId = 'VXNlck5vZGU6Mw==';
-// const mapId = 'otakaramap';
+const mapId = 'test';
 const props = {
     mapServerHost: 'localhost',
     mapId,
     auth: 'hogehoge',
     iconDefine: [
         {
-            id: 'pin',
-            imagePath: '/icon/icon0066_ss.png',
+            id: 'default',
             useMaps: [MapKind.Real],
         },
-        // {
-        //     id: 'default',
-        //     useMaps: [MapKind.Real],
-        // },
         {
             id: 'house',
             imagePath: './icon/house.png',
@@ -76,9 +70,13 @@ export default function TestMap() {
 
     const [ disabledContentDialog, setDisableContentDialog ] = useState(false);
 
-    const onMapKindChanged = useCallback((mapKind: MapKind) => {
-        setMapKind(mapKind);
+    const [ dataSources, setDataSources] = useState<DataSourceInfo[]>([])
+
+    const onMapLoad = useCallback((param: OnMapLoadParam) => {
+        setMapKind(param.mapKind);
+        setDataSources(param.dataSources);
     }, []);
+
     const switchMapKind = useCallback((mapKind: MapKind) => {
         commandHook?.switchMapKind(mapKind);
     }, [commandHook]);
@@ -132,22 +130,35 @@ export default function TestMap() {
         <>
             <div className={styles.Form}>
                 <div className={styles.Col}>
-                    <h3>地図種別</h3>
-                    <label>
-                        日本地図
-                        <input type="radio" checked={mapKind===MapKind.Real} onChange={() => switchMapKind(MapKind.Real)} />
-                    </label>
-                    <label>
-                        村マップ
-                        <input type="radio" checked={mapKind===MapKind.Virtual} onChange={() => switchMapKind(MapKind.Virtual)} />
-                    </label>
+                    <div className={styles.Row}>
+                    <div className={styles.PropName}>地図種別</div>
+                        <label>
+                            日本地図
+                            <input type="radio" checked={mapKind===MapKind.Real} onChange={() => switchMapKind(MapKind.Real)} />
+                        </label>
+                        <label>
+                            村マップ
+                            <input type="radio" checked={mapKind===MapKind.Virtual} onChange={() => switchMapKind(MapKind.Virtual)} />
+                        </label>
+                    </div>
+                    <PropRadio name='disabledPopup' value={disabledPopup} onChange={setDisablePopup} />
+                    <PropRadio name='disabledLabel' value={disabledLabel} onChange={setDisableLabel} />
+                    <PropRadio name='disabledContentDialog' value={disabledContentDialog} onChange={setDisableContentDialog} />
                 </div>
-                <PropRadio name='disabledPopup' value={disabledPopup} onChange={setDisablePopup} />
-                <PropRadio name='disabledLabel' value={disabledLabel} onChange={setDisableLabel} />
-                <PropRadio name='disabledContentDialog' value={disabledContentDialog} onChange={setDisableContentDialog} />
                 <div className={styles.Col}>
-                    <h3>カテゴリフィルタ</h3>
-                    <div>
+                    <div className={styles.PropName}>データソース</div>
+                    {dataSources.map(ds => {
+                        return (
+                            <label key={ds.dataSourceId}>
+                                <input type="checkbox" />
+                                {ds.name}
+                            </label>    
+                        )
+                    })}
+                </div>
+                <div className={styles.Col}>
+                    <div className={styles.PropName}>カテゴリフィルタ</div>
+                    <div className={styles.ListArea}>
                         <label>
                             なし
                             <input type="radio" checked={filteredCategory===undefined} onChange={() => onChangeFilterCategory(undefined)} />
@@ -205,11 +216,13 @@ export default function TestMap() {
                     disabledContentDialog={disabledContentDialog}
                     filter={filter}
                     onConnect={onConnect}
-                    onMapKindChanged={onMapKindChanged}
+                    onMapLoad={onMapLoad}
                     onSelect={onSelect} onUnselect={onUnselect}
+                    onClick={(val) => onCallback('onClick', val)}
                     onModeChanged={(val) => onCallback('onModeChanged', val)}
                     onCategoriesLoaded={onCategoriesLoaded}
-                    onNewContentInfo={(val) => onCallback('onNewContentInfo', val)}
+                    onNewContentByManual={(val) => onCallback('onNewContentInfo', val)}
+                    // onLinkUnpointedContent={(val) => onCallback('onLinkUnpointedContent', val)}
                     onEditContentInfo={(val) => onCallback('onEditContentInfo', val)}
                     />
                 }
@@ -225,8 +238,8 @@ type PropRadioProps = {
 }
 function PropRadio(props: PropRadioProps) {
     return (
-        <div className={styles.Col}>
-            <h3>{props.name}</h3>
+        <div className={styles.Row}>
+            <span className={styles.PropName}>{props.name}</span>
             <label>
                 <input type="radio" checked={!props.value} onChange={() => props.onChange(false)} />
                 false

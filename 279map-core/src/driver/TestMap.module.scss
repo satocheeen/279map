@@ -1,6 +1,7 @@
 .Form {
     height: 10rem;
     display: flex;
+    flex-direction: row;
     .Col {
         display: flex;
         flex-direction: column;
@@ -9,13 +10,22 @@
         margin-right: 20px;
 
         min-width: 7rem;
-        max-width: 15rem;
+        // max-width: 15rem;
 
+        .Row {
+            display: flex;
+            flex-direction: row;
+        }
+
+        .PropName {
+            font-weight: bold;
+        }
         label {
             display: inline-block;
             margin-left: 1rem;
         }
-        div {
+        .ListArea {
+            max-width: 10rem;
             overflow: auto;
         }
     }

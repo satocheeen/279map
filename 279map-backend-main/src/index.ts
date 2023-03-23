@@ -522,7 +522,7 @@ app.post(`/api/${GetMapInfoAPI.uri}`,
 
             session.resetItems();
             session.currentMap = {
-                mapId: result.mapId,
+                mapId: param.mapId,
                 mapKind: result.mapKind,
             }
 

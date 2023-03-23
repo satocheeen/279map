@@ -3,6 +3,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { ServerInfo } from "../../types/types";
 import { connectMap, loadMapDefine } from "./sessionThunk";
 import { Extent } from 'ol/extent';
+import { DataSourceInfo } from "tsunagumap-api";
 
 type ConnectStatus = {
     status: 'connecting-map',
@@ -25,6 +26,7 @@ const sessionSlice = createSlice({
         currentMapKindInfo: undefined as undefined | {
             mapKind: MapKind;
             extent: Extent;
+            dataSources: DataSourceInfo[];
         }
     },
     reducers: {
@@ -50,6 +52,7 @@ const sessionSlice = createSlice({
             state.currentMapKindInfo = {
                 mapKind: action.payload.mapKind,
                 extent: action.payload.extent,
+                dataSources: action.payload.dataSources,
             };
         })
     }
