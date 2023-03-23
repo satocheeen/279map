@@ -172,7 +172,12 @@ export function registAPIs(app: Express, apiList: OdbaAPICallDefine<any,any>[], 
                 logger.info('[end] ' + api.define.uri);
                 logger.debug('result', result);
             
-                res.send(result);
+                if (!result) {
+                    // undefinedを返すと、main-serverが結果受信できないので。
+                    res.send('complete');
+                } else {
+                    res.send(result);
+                }
     
             } catch(e) {    
                 logger.warn(api.define.uri + ' error', e);
