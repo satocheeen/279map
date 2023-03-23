@@ -47,22 +47,60 @@ export async function getBelongingItem(con: PoolConnection, content: types.schem
     return await getBelongingItem(con, parent, mapPageId, mapKind);
 }
 
+/**
+ * 指定のコンテンツと繋がっているアイテムを返す
+ * @param con 
+ * @param content_page_id 
+ * @param mapPageId 
+ * @param mapKind 
+ * @returns 
+ */
 async function getItemHasTheContent(con: PoolConnection, content_page_id: string, mapPageId: string, mapKind: MapKind): Promise<types.schema.ItemsTable[]> {
     try {
+        const kind = getDataSourceKindsFromMapKind(mapKind, {item: true});
         const sql = `
-        select * from items i
-        inner join item_group ig on ig.item_group_id = i.item_group_id 
+        select i.* from items i
+        inner join data_source ds on ds.data_source_id = ds.data_source_id 
         inner join item_content_link icl on icl.item_page_id = i.item_page_id 
-        where icl.content_page_id = ? and ig.map_page_id = ? and ig.map_kind = ?
+        where icl.content_page_id = ? and ds.map_page_id = ? and ds.kind = in (?)
         `;
-        const [rows] = await con.execute(sql, [content_page_id, mapPageId, mapKind]);
+        const [rows] = await con.execute(sql, [content_page_id, mapPageId, kind]);
         return (rows as types.schema.ItemsTable[]);
 
     } catch(e) {
         throw 'getItemHasTheContent' + e;
 
     }
+}
 
+/**
+ * 指定の地図種別に対応するDataSourceKindを返す
+ * @param mapKind 
+ * @returns 
+ */
+export function getDataSourceKindsFromMapKind(mapKind: MapKind, contain: {item?: boolean; content?: boolean; track?: boolean}): types.schema.DataSourceKind[] {
+    const kindSet = new Set<types.schema.DataSourceKind>();
+    if (contain.item) {
+        if (mapKind === MapKind.Real) {
+            kindSet.add(types.schema.DataSourceKind.RealItem);
+            kindSet.add(types.schema.DataSourceKind.RealItemContent);
+        } else {
+            kindSet.add(types.schema.DataSourceKind.VirtualItem);
+        }
+    }
+    if (contain.content) {
+        kindSet.add(types.schema.DataSourceKind.Content);
+        if (mapKind === MapKind.Real) {
+            kindSet.add(types.schema.DataSourceKind.RealItemContent);
+        }
+    }
+    if (contain.track) {
+        if (mapKind === MapKind.Real) {
+            kindSet.add(types.schema.DataSourceKind.RealTrack);
+        }
+    }
+
+    return Array.from(kindSet);
 }
 export async function getContent(content_page_id: string): Promise<types.schema.ContentsTable|null> {
     const con = await ConnectionPool.getConnection();

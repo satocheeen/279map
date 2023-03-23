@@ -1,7 +1,9 @@
 import { types } from '279map-backend-common';
 import { ConnectionPool } from '.';
 import { MapKind } from '279map-backend-common';
-import { GetMapInfoParam, GetMapInfoResult } from '../279map-api-interface/src';
+import { DataSourceInfo, GetMapInfoParam, GetMapInfoResult, SourceKind } from '../279map-api-interface/src';
+import { getDataSourceKindsFromMapKind } from './util/utility';
+import mysql from 'mysql2/promise';
 
 /**
  * 指定の地図データページ配下のコンテンツ情報を返す
@@ -21,17 +23,15 @@ export async function getMapInfo(param: GetMapInfoParam): Promise<GetMapInfoResu
     // エクステントを取得
     const extent = await getExtent(mapPageInfo.map_page_id, targetMapKind);
 
-    // 使用地図を取得
-    const useMaps = mapPageInfo.use_maps.split(',').map(mapKindStr => {
-        return mapKindStr as MapKind;
-    });
+    // DataSourceを取得
+    const dataSources = await getDataSources(mapPageInfo.map_page_id, targetMapKind);
 
     return {
         mapId: mapPageInfo.map_page_id,
         name: mapPageInfo.title,
-        mapKind: mapKind ? mapKind : mapPageInfo.default_map,
+        mapKind: targetMapKind,
         extent,
-        useMaps,
+        dataSources,
     }
 
 }
@@ -66,14 +66,18 @@ async function getExtent(mapPageId: string, mapKind: MapKind): Promise<[number,n
 
     try {
         // 位置コンテンツ
+        const kinds = getDataSourceKindsFromMapKind(mapKind, {item: true});
         // -- POINT
         const pointExtent = await async function(){
             const sql = `
             select MAX(ST_X(location)) as max_x, MAX(ST_Y(location)) as max_y, MIN(ST_X(location)) as min_x, MIN(ST_Y(location)) as min_y from items i
-            inner join item_group ig on ig.item_group_id = i.item_group_id 
-            where map_page_id = ? and map_kind = ?
+            inner join data_source ds on ds.data_source_id = i.data_source_id 
+            where map_page_id = ? and ds.kind in (?) 
             `;
-            const [rows] = await con.execute(sql, [mapPageId, mapKind]);
+            // execute引数でパラメタを渡すと、なぜかエラーになるので、クエリを作成してから投げている
+            const query = mysql.format(sql, [mapPageId, kinds]);
+            const [rows] = await con.execute(query);
+            // const [rows] = await con.execute(sql, [mapPageId, kinds]);
             if((rows as any[]).length === 0) {
                 throw 'Extent error';
             }
@@ -93,10 +97,12 @@ async function getExtent(mapPageId: string, mapKind: MapKind): Promise<[number,n
             const sql = `
             select MIN(ST_X(ST_PointN(ST_ExteriorRing(ST_Envelope(location)), 1))) as min_x, MAX(ST_X(ST_PointN(ST_ExteriorRing(ST_Envelope(location)), 2))) as max_x, MIN(ST_Y(ST_PointN(ST_ExteriorRing(ST_Envelope(location)), 1))) as min_y, MAX(ST_Y(ST_PointN(ST_ExteriorRing(ST_Envelope(location)), 3))) as max_y 
             from items i
-            inner join item_group ig on ig.item_group_id = i.item_group_id 
-            where map_page_id = ? and map_kind = ?
+            inner join data_source ds on ds.data_source_id = i.data_source_id 
+            where map_page_id = ? and ds.kind in (?)
             `;
-            const [rows] = await con.execute(sql, [mapPageId, mapKind]);
+            const query = mysql.format(sql, [mapPageId, kinds]);
+            const [rows] = await con.execute(query);
+            // const [rows] = await con.execute(sql, [mapPageId, kinds]);
             if((rows as any[]).length === 0) {
                 throw 'Extent error';
             }
@@ -133,4 +139,57 @@ async function getExtent(mapPageId: string, mapKind: MapKind): Promise<[number,n
         await con.commit();
         con.release();
     }
+}
+
+/**
+ * 指定の地図で使用されているデータソース一覧を返す
+ * @param mapId 
+ * @param mapKind 
+ */
+async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSourceInfo[]> {
+    const con = await ConnectionPool.getConnection();
+
+    try {
+        await con.beginTransaction();
+
+        const kinds = getDataSourceKindsFromMapKind(mapKind, {item: true, content: true, track: true});
+        const sql = 'select * from data_source where map_page_id =? and kind in (?)';
+        // execute引数でパラメタを渡すと、なぜかエラーになるので、クエリを作成してから投げている
+        const query = mysql.format(sql, [mapId, kinds]);
+        const [rows] = await con.execute(query);
+
+        console.log('rows', mapId, kinds.join(','), rows);
+        const dataSources = (rows as types.schema.DataSourceTable[]).reduce((acc, row) => {
+            const sourceKind = function() {
+                switch(row.kind) {
+                    case types.schema.DataSourceKind.Content:
+                        return [SourceKind.Content];
+                    case types.schema.DataSourceKind.RealItem:
+                    case types.schema.DataSourceKind.VirtualItem:
+                        return [SourceKind.Item];
+                    case types.schema.DataSourceKind.RealItemContent:
+                        return [SourceKind.Item, SourceKind.Item];
+                    case types.schema.DataSourceKind.RealTrack:
+                        return [SourceKind.Track];
+                }
+            }();
+
+            sourceKind.forEach((kind) => {
+                acc.push({
+                    dataSourceId: row.data_source_id,
+                    name: row.name,
+                    kind,
+                });
+            });
+
+            return acc;
+        }, [] as DataSourceInfo[]);
+
+        return dataSources;
+
+    } finally {
+        await con.commit();
+        con.release();
+    }
+
 }

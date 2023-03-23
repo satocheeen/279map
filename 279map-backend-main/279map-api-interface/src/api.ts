@@ -31,12 +31,22 @@ export type GetMapInfoParam = {
     auth?: string;
     mapKind?: MapKind;
 }
+export enum SourceKind {
+    Item = 'Item',
+    Track = 'Track',
+    Content = 'Content',
+}
+export type DataSourceInfo = {
+    dataSourceId: string;
+    name: string;
+    kind: SourceKind;
+}
 export type GetMapInfoResult = {
     mapId: string;      // id
     name: string;       // 地図名
     mapKind: MapKind;
     extent: Extent;
-    useMaps: MapKind[],
+    dataSources: DataSourceInfo[];
 };
 
 /**
