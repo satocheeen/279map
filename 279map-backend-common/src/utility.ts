@@ -2,6 +2,8 @@ import proj4 from 'proj4';
 import axios from 'axios';
 import sharp from 'sharp';
 import ExifReader from 'exifreader';
+import { MapKind } from './279map-common';
+import { DataSourceKind } from './types/schema';
 
 export const sleep = (sec: number) => new Promise<void>((resolve) => {
     setTimeout(() => {
@@ -71,4 +73,34 @@ export async function getImageBase64(url: string, option: GetImageBase64Option):
             base64: ''
         };
     }
+}
+
+/**
+ * 指定の地図種別に対応するDataSourceKindを返す
+ * @param mapKind 
+ * @returns 
+ */
+export function getDataSourceKindsFromMapKind(mapKind: MapKind, contain: {item?: boolean; content?: boolean; track?: boolean}): DataSourceKind[] {
+    const kindSet = new Set<DataSourceKind>();
+    if (contain.item) {
+        if (mapKind === MapKind.Real) {
+            kindSet.add(DataSourceKind.RealItem);
+            kindSet.add(DataSourceKind.RealItemContent);
+        } else {
+            kindSet.add(DataSourceKind.VirtualItem);
+        }
+    }
+    if (contain.content) {
+        kindSet.add(DataSourceKind.Content);
+        if (mapKind === MapKind.Real) {
+            kindSet.add(DataSourceKind.RealItemContent);
+        }
+    }
+    if (contain.track) {
+        if (mapKind === MapKind.Real) {
+            kindSet.add(DataSourceKind.RealTrack);
+        }
+    }
+
+    return Array.from(kindSet);
 }
