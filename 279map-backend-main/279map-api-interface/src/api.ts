@@ -43,7 +43,6 @@ export type DataSourceInfo = {
 }
 export type GetMapInfoResult = {
     mapId: string;      // id
-    name: string;       // 地図名
     mapKind: MapKind;
     extent: Extent;
     dataSources: DataSourceInfo[];
