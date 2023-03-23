@@ -1,6 +1,6 @@
 import randomColor from "randomcolor";
 import { ConnectionPool } from "..";
-import { types } from "279map-backend-common";
+import { CurrentMap, schema } from "279map-backend-common";
 import { GetCategoryResult } from "../../279map-api-interface/src";
 import { CategoryDefine } from "279map-backend-common";
 
@@ -10,7 +10,7 @@ import { CategoryDefine } from "279map-backend-common";
  * @param param0 
  * @returns categories
  */
-export async function getCategory(currentMap: types.CurrentMap): Promise<GetCategoryResult> {
+export async function getCategory(currentMap: CurrentMap): Promise<GetCategoryResult> {
     if (!currentMap) {
         throw 'mapPageId or mapKind not defined.';
     }
@@ -28,7 +28,7 @@ export async function getCategory(currentMap: types.CurrentMap): Promise<GetCate
 
         const [rows] = await con.execute(sql, [mapPageId]);
         const categoryMap = new Map<string, CategoryDefine>();
-        (rows as types.schema.ContentsTable[]).forEach((row) => {
+        (rows as schema.ContentsTable[]).forEach((row) => {
             const categories = JSON.parse(row.category as string) as string[];
             categories.forEach(category => {
                 if (categoryMap.has(category)) {

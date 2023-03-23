@@ -1,10 +1,10 @@
 import { ConnectionPool } from ".";
-import { types } from "279map-backend-common";
+import { CurrentMap, schema } from "279map-backend-common";
 import { getBelongingItem } from "./util/utility";
 import { GetEventsResult } from "../279map-api-interface/src";
 import { EventDefine } from "279map-backend-common";
 
-export async function getEvents(currentMap: types.CurrentMap): Promise<GetEventsResult> {
+export async function getEvents(currentMap: CurrentMap): Promise<GetEventsResult> {
     if (!currentMap) {
         throw 'no currentmap';
     }
@@ -24,7 +24,7 @@ export async function getEvents(currentMap: types.CurrentMap): Promise<GetEvents
         const [rows] = await con.execute(sql, [mapPageId]);
         // filter by whether exist in the map kind
         const events = [] as EventDefine[];
-        for (const row of (rows as types.schema.ContentsTable[])) {
+        for (const row of (rows as schema.ContentsTable[])) {
             const itemList = await getBelongingItem(con, row, mapPageId, mapKind);
             if (itemList) {
                 itemList.forEach(item => {

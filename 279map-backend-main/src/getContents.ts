@@ -1,14 +1,14 @@
 import { ConnectionPool } from '.';
-import { types } from "279map-backend-common";
-import { getBelongingItem, getContent, getDataSourceKindsFromMapKind } from "./util/utility";
+import { CurrentMap, getDataSourceKindsFromMapKind, schema } from "279map-backend-common";
+import { getBelongingItem, getContent } from "./util/utility";
 import { PoolConnection } from "mysql2/promise";
 import { GetContentsParam, GetContentsResult } from '../279map-api-interface/src';
 import { ContentsDefine, MapKind } from '279map-backend-common';
 import mysql from 'mysql2/promise';
 
-type RetRecord = types.schema.ContentsTable & {item_page_id: string; /*another_item_id: string|null;*/};
+type RetRecord = schema.ContentsTable & {item_page_id: string; /*another_item_id: string|null;*/};
 
-export async function getContents({ param, currentMap }: {param: GetContentsParam; currentMap: types.CurrentMap}): Promise<GetContentsResult> {
+export async function getContents({ param, currentMap }: {param: GetContentsParam; currentMap: CurrentMap}): Promise<GetContentsResult> {
     if (!currentMap) {
         throw 'mapKind not defined.';
     }
@@ -21,7 +21,7 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
         const convertRecord = async(row: RetRecord): Promise<ContentsDefine> => {
             const sql = 'select * from item_content_link where content_page_id = ?';
             const [rows] = await con.execute(sql, [row.content_page_id]);
-            const another_item_ids =  (rows as types.schema.ItemContentLink[])
+            const another_item_ids =  (rows as schema.ItemContentLink[])
                                         .filter(record => record.item_page_id !== row.item_page_id)
                                         .reduce((acc, cur) => {
                                             if (!acc.includes(cur.item_page_id)) {
@@ -31,7 +31,7 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                                             }
                                         }, [] as string[]);
 
-            const contents = row.contents ? JSON.parse(row.contents) as types.schema.ContentsInfo: undefined;
+            const contents = row.contents ? JSON.parse(row.contents) as schema.ContentsInfo: undefined;
             let isSnsContent = false;
             let addableChild = true;
             if (row.supplement) {

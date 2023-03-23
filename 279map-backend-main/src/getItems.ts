@@ -1,14 +1,14 @@
-import { types } from '279map-backend-common';
+import { schema, CurrentMap, getDataSourceKindsFromMapKind } from '279map-backend-common';
 import { ItemContentInfo, ItemDefine, MapKind } from '279map-backend-common';
 import { getLogger } from 'log4js';
 import { ConnectionPool } from '.';
 import { GetItemsParam, GetItemsResult } from '../279map-api-interface/src';
-import { getDataSourceKindsFromMapKind, getExtentWkt } from './util/utility';
+import { getExtentWkt } from './util/utility';
 import mysql from 'mysql2/promise';
 
 const apiLogger = getLogger('api');
 
-export async function getItems({ param, currentMap }: {param:GetItemsParam; currentMap: types.CurrentMap}): Promise<GetItemsResult> {
+export async function getItems({ param, currentMap }: {param:GetItemsParam; currentMap: CurrentMap}): Promise<GetItemsResult> {
     if (!currentMap) {
         throw 'no currentMap';
     }
@@ -31,7 +31,7 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
     const getContentsInfo = async(contentPageId: string): Promise<ItemContentInfo|null> => {
         const sql = 'select * from contents c where content_page_id = ?';
         const [rows] = await con.execute(sql, [contentPageId]);
-        const myRows = rows as types.schema.ContentsTable[];
+        const myRows = rows as schema.ContentsTable[];
         if (myRows.length === 0) {
             apiLogger.warn('not founc content.', contentPageId);
             return null;
@@ -48,7 +48,7 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
     const getChildrenContentInfo = async(contentPageId: string): Promise<ItemContentInfo[]> => {
         const sql = 'select * from contents c where parent_id = ?';
         const [rows] = await con.execute(sql, [contentPageId]);
-        const myRows = rows as types.schema.ContentsTable[];
+        const myRows = rows as schema.ContentsTable[];
         if (myRows.length === 0) {
             return [];
         }
@@ -77,13 +77,13 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
         const [rows] = await con.execute(query);
         // const [rows] = await con.execute(sql, [mapPageId, mapKind]);
         const pointContents = [] as ItemDefine[];
-        for(const row of rows as (types.schema.ItemsTable & {geojson: any})[]) {
+        for(const row of rows as (schema.ItemsTable & {geojson: any})[]) {
             const contents: ItemContentInfo[] = [];
             let lastEditedTime = row.last_edited_time;
 
             const contentLinkSql = 'select * from item_content_link where item_page_id = ?';
             const [linkRows] = await con.execute(contentLinkSql, [row.item_page_id]);
-            const linkRecords = linkRows as types.schema.ItemContentLink[];
+            const linkRecords = linkRows as schema.ItemContentLink[];
             if (linkRecords.length > 0) {
                 // 配下のコンテンツID取得
                 for (const linkRecord of linkRecords) {
@@ -146,7 +146,7 @@ async function selectTrackInArea(param: GetItemsParam, mapPageId: string): Promi
                     WHERE map_page_id= ? AND MBRIntersects(geojson, GeomFromText(?,4326)) AND min_zoom <= ? AND ? < max_zoom`;
         const [rows] = await con.execute(sql, [mapPageId, wkt, param.zoom, param.zoom]);
         
-        return (rows as (types.schema.TrackGeoJsonTable & {last_edited_time: string})[]).map(row => {
+        return (rows as (schema.TrackGeoJsonTable & {last_edited_time: string})[]).map(row => {
             return {
                 id: '' + row.track_file_id + row.sub_id,
                 position: {

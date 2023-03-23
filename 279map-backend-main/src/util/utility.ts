@@ -1,5 +1,5 @@
 import { ConnectionPool } from '..';
-import { types, MapKind, Extent } from '279map-backend-common';
+import { schema, MapKind, Extent, getDataSourceKindsFromMapKind } from '279map-backend-common';
 import mysql, { PoolConnection } from 'mysql2/promise';
 
 export function getExtentWkt(ext: Extent): string {
@@ -32,7 +32,7 @@ export function convertBase64ToBinary(base64: string) {
  * @param mapKind 
  * @returns 
  */
-export async function getBelongingItem(con: PoolConnection, content: types.schema.ContentsTable, mapPageId: string, mapKind: MapKind): Promise<types.schema.ItemsTable[]|null> {
+export async function getBelongingItem(con: PoolConnection, content: schema.ContentsTable, mapPageId: string, mapKind: MapKind): Promise<schema.ItemsTable[]|null> {
     const items = await getItemHasTheContent(con, content.content_page_id, mapPageId, mapKind);
     if (items.length > 0) {
         return items;
@@ -55,7 +55,7 @@ export async function getBelongingItem(con: PoolConnection, content: types.schem
  * @param mapKind 
  * @returns 
  */
-async function getItemHasTheContent(con: PoolConnection, content_page_id: string, mapPageId: string, mapKind: MapKind): Promise<types.schema.ItemsTable[]> {
+async function getItemHasTheContent(con: PoolConnection, content_page_id: string, mapPageId: string, mapKind: MapKind): Promise<schema.ItemsTable[]> {
     try {
         const kind = getDataSourceKindsFromMapKind(mapKind, {item: true});
         const sql = `
@@ -67,7 +67,7 @@ async function getItemHasTheContent(con: PoolConnection, content_page_id: string
         const query = mysql.format(sql, [content_page_id, mapPageId, kind]);
         const [rows] = await con.execute(query);
         // const [rows] = await con.execute(sql, [content_page_id, mapPageId, kind]);
-        return (rows as types.schema.ItemsTable[]);
+        return (rows as schema.ItemsTable[]);
 
     } catch(e) {
         throw 'getItemHasTheContent' + e;
@@ -75,36 +75,7 @@ async function getItemHasTheContent(con: PoolConnection, content_page_id: string
     }
 }
 
-/**
- * 指定の地図種別に対応するDataSourceKindを返す
- * @param mapKind 
- * @returns 
- */
-export function getDataSourceKindsFromMapKind(mapKind: MapKind, contain: {item?: boolean; content?: boolean; track?: boolean}): types.schema.DataSourceKind[] {
-    const kindSet = new Set<types.schema.DataSourceKind>();
-    if (contain.item) {
-        if (mapKind === MapKind.Real) {
-            kindSet.add(types.schema.DataSourceKind.RealItem);
-            kindSet.add(types.schema.DataSourceKind.RealItemContent);
-        } else {
-            kindSet.add(types.schema.DataSourceKind.VirtualItem);
-        }
-    }
-    if (contain.content) {
-        kindSet.add(types.schema.DataSourceKind.Content);
-        if (mapKind === MapKind.Real) {
-            kindSet.add(types.schema.DataSourceKind.RealItemContent);
-        }
-    }
-    if (contain.track) {
-        if (mapKind === MapKind.Real) {
-            kindSet.add(types.schema.DataSourceKind.RealTrack);
-        }
-    }
-
-    return Array.from(kindSet);
-}
-export async function getContent(content_page_id: string): Promise<types.schema.ContentsTable|null> {
+export async function getContent(content_page_id: string): Promise<schema.ContentsTable|null> {
     const con = await ConnectionPool.getConnection();
     try {
         const sql = "select * from contents where content_page_id = ?";
@@ -112,7 +83,7 @@ export async function getContent(content_page_id: string): Promise<types.schema.
         if ((rows as []).length === 0) {
             return null;
         }
-        return (rows as types.schema.ContentsTable[])[0];
+        return (rows as schema.ContentsTable[])[0];
 
     } catch(e) {
         throw 'getContent' + e;

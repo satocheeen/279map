@@ -1,8 +1,7 @@
-import { types } from '279map-backend-common';
+import { schema, getDataSourceKindsFromMapKind } from '279map-backend-common';
 import { ConnectionPool } from '.';
 import { MapKind } from '279map-backend-common';
 import { DataSourceInfo, GetMapInfoParam, GetMapInfoResult, SourceKind } from '../279map-api-interface/src';
-import { getDataSourceKindsFromMapKind } from './util/utility';
 import mysql from 'mysql2/promise';
 
 /**
@@ -40,15 +39,15 @@ export async function getMapInfo(param: GetMapInfoParam): Promise<GetMapInfoResu
  * 指定の地図データページIDの情報を取得する
  * @param pageId Notion地図データページID または Alias
  */
-export async function getMapPageInfo(pageId: string): Promise<types.schema.MapPageInfoTable | null> {
+export async function getMapPageInfo(pageId: string): Promise<schema.MapPageInfoTable | null> {
     const con = await ConnectionPool.getConnection();
 
     try {
         const [rows] = await con.execute('SELECT * FROM map_page_info WHERE map_page_id=?', [pageId]);
-        if ((rows as types.schema.MapPageInfoTable[]).length === 0) {
+        if ((rows as schema.MapPageInfoTable[]).length === 0) {
             return null;
         }
-        const record = (rows as types.schema.MapPageInfoTable[])[0];
+        const record = (rows as schema.MapPageInfoTable[])[0];
         return record;
     } finally {
         await con.commit();
@@ -159,17 +158,17 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
         const [rows] = await con.execute(query);
 
         console.log('rows', mapId, kinds.join(','), rows);
-        const dataSources = (rows as types.schema.DataSourceTable[]).reduce((acc, row) => {
+        const dataSources = (rows as schema.DataSourceTable[]).reduce((acc, row) => {
             const sourceKind = function() {
                 switch(row.kind) {
-                    case types.schema.DataSourceKind.Content:
+                    case schema.DataSourceKind.Content:
                         return [SourceKind.Content];
-                    case types.schema.DataSourceKind.RealItem:
-                    case types.schema.DataSourceKind.VirtualItem:
+                    case schema.DataSourceKind.RealItem:
+                    case schema.DataSourceKind.VirtualItem:
                         return [SourceKind.Item];
-                    case types.schema.DataSourceKind.RealItemContent:
+                    case schema.DataSourceKind.RealItemContent:
                         return [SourceKind.Item, SourceKind.Item];
-                    case types.schema.DataSourceKind.RealTrack:
+                    case schema.DataSourceKind.RealTrack:
                         return [SourceKind.Track];
                 }
             }();

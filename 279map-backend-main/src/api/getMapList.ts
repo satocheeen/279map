@@ -1,4 +1,4 @@
-import { types } from "279map-backend-common";
+import { schema } from "279map-backend-common";
 import { ConnectionPool } from "..";
 import { MapInfo } from "../../279map-api-interface/src";
 
@@ -15,8 +15,8 @@ export async function getMapList(userId: string | undefined): Promise<MapInfo[]>
         
         // Public地図一覧取得
         const selectPublicQuery = 'select * from map_page_info where public_range = ?';
-        const [rows] = await con.execute(selectPublicQuery, [types.schema.PublicRange.Public]);
-        const records = rows as types.schema.MapPageInfoTable[];
+        const [rows] = await con.execute(selectPublicQuery, [schema.PublicRange.Public]);
+        const records = rows as schema.MapPageInfoTable[];
         const publicMapList = records.map((record): MapInfo => {
             return {
                 mapId: record.map_page_id,
@@ -35,8 +35,8 @@ export async function getMapList(userId: string | undefined): Promise<MapInfo[]>
         inner join map_user mu on mpi.map_page_id = mu.map_page_id
         where mu.user_id = ? and public_range = ?
         `;
-        const [rowsPrivate] = await con.execute(selectPrivateQuery, [userId, types.schema.PublicRange.Private]);
-        const privateMapList = (rowsPrivate as types.schema.MapPageInfoTable[]).map((record): MapInfo => {
+        const [rowsPrivate] = await con.execute(selectPrivateQuery, [userId, schema.PublicRange.Private]);
+        const privateMapList = (rowsPrivate as schema.MapPageInfoTable[]).map((record): MapInfo => {
             return {
                 mapId: record.map_page_id,
                 name: record.title,

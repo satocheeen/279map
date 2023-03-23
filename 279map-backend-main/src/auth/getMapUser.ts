@@ -1,5 +1,5 @@
 import { ConnectionPool } from "..";
-import { types } from '279map-backend-common';
+import { schema } from '279map-backend-common';
 
 /**
  * 指定の地図のユーザ情報を取得する
@@ -7,13 +7,13 @@ import { types } from '279map-backend-common';
  * @param userId 
  * @return ユーザ情報。該当するデータが存在しない場合、null。
  */
-export async function getMapUser(mapId: string, userId: string): Promise<types.schema.MapUserTable | null> {
+export async function getMapUser(mapId: string, userId: string): Promise<schema.MapUserTable | null> {
     const con = await ConnectionPool.getConnection();
     
     try {
         const sql = 'SELECT * FROM map_user WHERE map_page_id = ? AND user_id = ?';
         const [rows] = await con.execute(sql, [mapId, userId]);
-        const records = (rows as types.schema.MapUserTable[]);
+        const records = (rows as schema.MapUserTable[]);
 
         if (records.length === 0) {
             return null;

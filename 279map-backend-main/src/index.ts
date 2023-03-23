@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import mysql from 'mysql2/promise';
 import { getMapInfo } from './getMapInfo';
-import { Auth, MapKind, MapDefine, AuthMethod, ServerConfig } from '279map-backend-common';
+import { Auth, MapKind, MapDefine, AuthMethod, ServerConfig, CurrentMap, sleep } from '279map-backend-common';
 import { getItems } from './getItems';
 import session from 'express-session';
 import { configure, getLogger } from "log4js";
@@ -19,7 +19,7 @@ import { getSnsPreview } from './api/getSnsPreview';
 import SessionInfo from './session/SessionInfo';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import { getIcon } from './api/getIcon';
-import { utility, api as backendAPI, types } from '279map-backend-common';
+import { api as backendAPI, schema } from '279map-backend-common';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { readFileSync } from 'fs';
@@ -39,11 +39,11 @@ declare global {
             connect?: {
                 sessionKey: string; // SID or Token
                 mapId: string;
-                mapPageInfo?: types.schema.MapPageInfoTable;
+                mapPageInfo?: schema.MapPageInfoTable;
                 authLv?: Auth;
                 userName?: string;
             },
-            currentMap: types.CurrentMap;
+            currentMap: CurrentMap;
         }
     }
 }
@@ -142,7 +142,7 @@ const initializeDb = async() => {
             flag = false;
         } catch (e) {
             logger.warn('db cconnect failed. retry...');
-            await utility.sleep(3);
+            await sleep(3);
         }
         
     } while(flag);
@@ -325,7 +325,7 @@ app.all('/api/*',
                 return;
             }
             // 未ログインの場合は、地図がpublicか確認
-            if (mapPageInfo.public_range === types.schema.PublicRange.Private) {
+            if (mapPageInfo.public_range === schema.PublicRange.Private) {
                 // privateの場合 -> error
                 apiLogger.debug('not auth');
                 next({
@@ -418,7 +418,7 @@ app.all('/api/*',
             req.connect.userName = mapUserInfo.name;
         } else {
             // ユーザが権限を持たない場合
-            if (mapDefine.public_range === types.schema.PublicRange.Public) {
+            if (mapDefine.public_range === schema.PublicRange.Public) {
                 // 地図がPublicの場合、View権限
                 req.connect.authLv = Auth.View;
             } else {

@@ -1,6 +1,6 @@
 import { getLogger } from "log4js";
 import { ConnectionPool } from "..";
-import { types, sns, utility } from "279map-backend-common";
+import { getImageBase64, schema, sns } from "279map-backend-common";
 
 const logger = getLogger();
 
@@ -68,7 +68,7 @@ export async function updateSnsContents(mapPageId: string, content_id?: string) 
                 try {
                     let thumbnail: undefined | string;
                     if (post.media?.type === 'IMAGE') {
-                        const imageInfo = await utility.getImageBase64(post.media.url, {
+                        const imageInfo = await getImageBase64(post.media.url, {
                             size: { width: 300, height: 300 },
                         });
                         thumbnail = imageInfo.base64;
@@ -80,7 +80,7 @@ export async function updateSnsContents(mapPageId: string, content_id?: string) 
 
                     // タイトル（冒頭行 or 冒頭20文字）
                     let title: string;
-                    const contents = {} as types.schema.ContentsInfo;
+                    const contents = {} as schema.ContentsInfo;
                     if (index !== -1) {
                         title = post.text.substring(0, index);
                         contents.content = post.text.substring(index + 1);
@@ -105,7 +105,7 @@ export async function updateSnsContents(mapPageId: string, content_id?: string) 
                         parent_id: row.content_page_id,
                         supplement: JSON.stringify({type: 'SnsContent'}),
                         last_edited_time: post.date,
-                    } as types.schema.ContentsTable;
+                    } as schema.ContentsTable;
                     const sql2 = 'INSERT INTO contents SET ?';
                     await con.query(sql2, [contentValue]);
 
