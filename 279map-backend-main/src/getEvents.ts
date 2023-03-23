@@ -16,8 +16,9 @@ export async function getEvents(currentMap: types.CurrentMap): Promise<GetEvents
     try {
         // get contents which has date in the map
         const sql = `
-            select c.* from contents c 
-            where date is not null and c.map_page_id = ?
+            select c.* from contents c
+            inner join data_source ds on ds.data_source_id = c.data_source_id
+            where date is not null and ds.map_page_id = ?
             order by date
             `;
         const [rows] = await con.execute(sql, [mapPageId]);

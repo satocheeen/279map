@@ -1,6 +1,6 @@
 import { ConnectionPool } from '..';
 import { types, MapKind, Extent } from '279map-backend-common';
-import { PoolConnection } from 'mysql2/promise';
+import mysql, { PoolConnection } from 'mysql2/promise';
 
 export function getExtentWkt(ext: Extent): string {
     const [lon1, lat1, lon2, lat2] = ext;
@@ -62,9 +62,11 @@ async function getItemHasTheContent(con: PoolConnection, content_page_id: string
         select i.* from items i
         inner join data_source ds on ds.data_source_id = ds.data_source_id 
         inner join item_content_link icl on icl.item_page_id = i.item_page_id 
-        where icl.content_page_id = ? and ds.map_page_id = ? and ds.kind = in (?)
+        where icl.content_page_id = ? and ds.map_page_id = ? and ds.kind in (?)
         `;
-        const [rows] = await con.execute(sql, [content_page_id, mapPageId, kind]);
+        const query = mysql.format(sql, [content_page_id, mapPageId, kind]);
+        const [rows] = await con.execute(query);
+        // const [rows] = await con.execute(sql, [content_page_id, mapPageId, kind]);
         return (rows as types.schema.ItemsTable[]);
 
     } catch(e) {

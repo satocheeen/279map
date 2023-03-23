@@ -3,7 +3,8 @@ import { ItemContentInfo, ItemDefine, MapKind } from '279map-backend-common';
 import { getLogger } from 'log4js';
 import { ConnectionPool } from '.';
 import { GetItemsParam, GetItemsResult } from '../279map-api-interface/src';
-import { getExtentWkt } from './util/utility';
+import { getDataSourceKindsFromMapKind, getExtentWkt } from './util/utility';
+import mysql from 'mysql2/promise';
 
 const apiLogger = getLogger('api');
 
@@ -65,13 +66,16 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
     
     try {
         // 位置コンテンツ
+        const kinds = getDataSourceKindsFromMapKind(mapKind, {item: true});
         const sql = `
-        select i.*, ST_AsGeoJSON(i.location) as geojson, ig.map_page_id
+        select i.*, ST_AsGeoJSON(i.location) as geojson
         from items i
-        inner join item_group ig on ig.item_group_id = i.item_group_id 
-        where map_page_id = ? and ig.map_kind = ?
+        inner join data_source ds on ds.data_source_id = i.data_source_id 
+        where map_page_id = ? and ds.kind in (?)
         `;
-        const [rows] = await con.execute(sql, [mapPageId, mapKind]);
+        const query = mysql.format(sql, [mapPageId, kinds]);
+        const [rows] = await con.execute(query);
+        // const [rows] = await con.execute(sql, [mapPageId, mapKind]);
         const pointContents = [] as ItemDefine[];
         for(const row of rows as (types.schema.ItemsTable & {geojson: any})[]) {
             const contents: ItemContentInfo[] = [];
@@ -138,7 +142,7 @@ async function selectTrackInArea(param: GetItemsParam, mapPageId: string): Promi
                     SELECT tg.track_file_id, tg.sub_id, tg.min_zoom, tg.max_zoom, ST_AsGeoJSON(geojson) as geojson, t.last_edited_time  FROM track_geojson tg
                     inner join track_files tf on tf.track_file_id = tg.track_file_id 
                     inner join tracks t on t.track_page_id = tf.track_page_id 
-                    inner join item_group ig on ig.item_group_id = t.item_group_id 
+                    inner join data_source ds on ds.data_source_id = t.data_source_id 
                     WHERE map_page_id= ? AND MBRIntersects(geojson, GeomFromText(?,4326)) AND min_zoom <= ? AND ? < max_zoom`;
         const [rows] = await con.execute(sql, [mapPageId, wkt, param.zoom, param.zoom]);
         

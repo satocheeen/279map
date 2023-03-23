@@ -1,9 +1,10 @@
 import { ConnectionPool } from '.';
 import { types } from "279map-backend-common";
-import { getBelongingItem, getContent } from "./util/utility";
+import { getBelongingItem, getContent, getDataSourceKindsFromMapKind } from "./util/utility";
 import { PoolConnection } from "mysql2/promise";
 import { GetContentsParam, GetContentsResult } from '../279map-api-interface/src';
 import { ContentsDefine, MapKind } from '279map-backend-common';
+import mysql from 'mysql2/promise';
 
 type RetRecord = types.schema.ContentsTable & {item_page_id: string; /*another_item_id: string|null;*/};
 
@@ -74,15 +75,18 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
         for (const target of param) {
             let myRows: RetRecord[];
             if ('itemId' in target) {
+                const kinds = getDataSourceKindsFromMapKind(mapKind, { item: true });
                 const sql = `
-                select c.*, i.item_page_id, ig.map_kind from contents c
+                select c.*, i.item_page_id, ds.kind from contents c
                 inner join item_content_link icl on icl.content_page_id = c.content_page_id 
                 inner join items i on i.item_page_id = icl.item_page_id 
-                inner join item_group ig on ig.item_group_id = i.item_group_id
+                inner join data_source ds on ds.data_source_id = i.data_source_id
                 group by c.content_page_id, i.item_page_id 
-                having i.item_page_id = ? and ig.map_kind = ?
+                having i.item_page_id = ? and ds.kind in (?)
                 `;
-                const [rows] = await con.execute(sql, [target.itemId, mapKind]);
+                const query = mysql.format(sql, [target.itemId, kinds]);
+                const [rows] = await con.execute(query);
+                // const [rows] = await con.execute(sql, [target.itemId, kinds]);
                 myRows = rows as RetRecord[];
             } else {
                 myRows = await getContentInfo(con, target.contentId, currentMap.mapId,currentMap.mapKind);
