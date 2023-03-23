@@ -42,6 +42,7 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
             return {
                     id: row.content_page_id,
                     itemId: row.item_page_id,
+                    dataSourceId: row.data_source_id,
                     title: row.title ?? '',
                     date: row.date,
                     category: row.category ? JSON.parse(row.category) : [],

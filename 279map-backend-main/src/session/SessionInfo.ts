@@ -1,6 +1,5 @@
 import WebSocket from 'ws';
 import { CurrentMap, ItemDefine } from '279map-backend-common';
-import { } from '279map-backend-common';
 
 type ItemInfo = {
     id: string;

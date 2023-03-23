@@ -102,6 +102,7 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
 
             pointContents.push({
                 id: row.item_page_id,
+                dataSourceId: row.data_source_id,
                 name,
                 position: {
                     type: 'geoJson',
@@ -139,16 +140,17 @@ async function selectTrackInArea(param: GetItemsParam, mapPageId: string): Promi
     try {
         const wkt = getExtentWkt(param.extent);
         const sql = `
-                    SELECT tg.track_file_id, tg.sub_id, tg.min_zoom, tg.max_zoom, ST_AsGeoJSON(geojson) as geojson, t.last_edited_time  FROM track_geojson tg
+                    SELECT tg.track_file_id, tg.sub_id, tg.min_zoom, tg.max_zoom, ST_AsGeoJSON(geojson) as geojson, t.*  FROM track_geojson tg
                     inner join track_files tf on tf.track_file_id = tg.track_file_id 
                     inner join tracks t on t.track_page_id = tf.track_page_id 
                     inner join data_source ds on ds.data_source_id = t.data_source_id 
                     WHERE map_page_id= ? AND MBRIntersects(geojson, GeomFromText(?,4326)) AND min_zoom <= ? AND ? < max_zoom`;
         const [rows] = await con.execute(sql, [mapPageId, wkt, param.zoom, param.zoom]);
         
-        return (rows as (schema.TrackGeoJsonTable & {last_edited_time: string})[]).map(row => {
+        return (rows as (schema.TrackGeoJsonTable & schema.TracksTable)[]).map(row => {
             return {
                 id: '' + row.track_file_id + row.sub_id,
+                dataSourceId: row.data_source_id,
                 position: {
                     type: 'track',
                     min_zoom: row.min_zoom,

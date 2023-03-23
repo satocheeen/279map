@@ -12,8 +12,11 @@ services:
   odba:
     # 任意のイメージを指定
     image: 279map-backend-odba-notion:latest
+    # image: 279map-backend-odba-otakara:latest
     env_file:
       - ./.env
+      - ./.env.notion
+      # - ./.env.otakara
     ports:
       - 8082:8082
     volumes:
@@ -41,7 +44,6 @@ services:
     image: 279map-backend-main:latest
     depends_on:
       - db
-      - odba
     env_file:
       - ./.env
     ports: 
