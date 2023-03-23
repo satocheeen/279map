@@ -112,6 +112,7 @@ export type ItemContentInfo = {
 }
 export type ItemDefine = {
     id: string;
+    dataSourceId: string;
     position: Position;
     name: string;
     geoProperties?: GeoProperties;
@@ -121,6 +122,7 @@ export type ItemDefine = {
 export type ContentsDefine = {
     id: string;
     itemId: string;
+    dataSourceId: string;
     date?: Date;
     url?: string;
     title: string;
