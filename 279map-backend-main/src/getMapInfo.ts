@@ -165,7 +165,7 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
                     case schema.DataSourceKind.VirtualItem:
                         return [SourceKind.Item];
                     case schema.DataSourceKind.RealItemContent:
-                        return [SourceKind.Item, SourceKind.Item];
+                        return [SourceKind.Item, SourceKind.Content];
                     case schema.DataSourceKind.RealTrack:
                         return [SourceKind.Track];
                 }

@@ -4,7 +4,7 @@ import { CommandHookType } from '../api/useCommand';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
 import { FilterDefine, OnConnectParam, OnMapLoadParam, TsunaguMapProps } from '../entry';
 import styles from './TestMap.module.scss';
-import { DataSourceInfo } from 'tsunagumap-api';
+import { DataSourceInfo, SourceKind } from 'tsunagumap-api';
 
 /**
  * for Development
@@ -147,7 +147,7 @@ export default function TestMap() {
                 </div>
                 <div className={styles.Col}>
                     <div className={styles.PropName}>データソース</div>
-                    {dataSources.map(ds => {
+                    {dataSources.filter(ds => ds.kind !== SourceKind.Content).map(ds => {
                         return (
                             <label key={ds.dataSourceId}>
                                 <input type="checkbox" />
