@@ -62,38 +62,16 @@ export default function MapChart() {
         setClusterMenuInfo(null);
     }, [mapMode]);
 
-    // コンテンツ（建物・ポイント）レイヤ
-    // const pointContentsSourceRef = useRef(new VectorSource());
-    // const pointClusterSourceRef = useRef(new Cluster({
-    //     distance: 80,
-    //     minDistance: 20,
-    //     source: pointContentsSourceRef.current,
-    // }));
-    // const pointClusterLayerRef = useRef(new VectorLayer({
-    //     source: pointClusterSourceRef.current,
-    //     zIndex: 10,
-    //     renderBuffer: 200,
-    //     properties: {
-    //         name: 'itemLayer',
-    //     },
-    // }))
+    // スタイル設定
+    // -- コンテンツ（建物・ポイント）レイヤ
     usePointStyle({
         map: mapRef.current
     });
-    // usePointStyle({
-    //     structureLayer: pointClusterLayerRef.current,
-    // });
 
-    // コンテンツ（地形）レイヤ
-    // const topographyContentsSourceRef = useRef(new VectorSource());
-    // const topographyContentsLayerRef = useRef(new VectorLayer({
-    //     source: topographyContentsSourceRef.current,
-    //     zIndex: 2,
-    //     properties: {
-    //         name: 'topographyLayer',
-    //     },
-    // }));
-    useFilteredTopographyStyle();
+    // -- コンテンツ（地形）レイヤ
+    useFilteredTopographyStyle({
+        map: mapRef.current,
+    });
 
     // 軌跡レイヤ
     const trackLayersRef = useRef<VectorLayer<VectorSource>[]>([]); // ズームレベルごとにレイヤ管理
