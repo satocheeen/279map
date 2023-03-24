@@ -32,9 +32,7 @@ const movedFeatureCollection = new Collection<Feature<Geometry>>();
 export default function MoveItemController(props: Props) {
     const [okable, setOkable] = useState(false);
     const itemLayer = useRef(props.map.getAllLayers().find(layer => layer.getProperties()['name'] === 'itemLayer') as VectorLayer<VectorSource>);
-    const pointStyleHook = usePointStyle({
-        structureLayer: itemLayer.current,
-    });
+    const pointStyleHook = usePointStyle();
     const dispatch = useAppDispatch();
 
     const select = useMemo(() => {

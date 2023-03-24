@@ -45,9 +45,7 @@ export default function PopupContainer(props: Props) {
             return layer.getProperties()['name'] === 'itemLayer';
         }) as VectorLayer<VectorSource>;
     }, [props.map]);
-    const { pointStyleFunction } = usePointStyle({
-        structureLayer: itemLayer,
-    });
+    const { pointStyleFunction } = usePointStyle();
 
     const [ loadendFlag, setLoadendFlag ] = useState(0);
     const [ addfeatureFlag, setAddfeatureFlag ] = useState(0);

@@ -40,9 +40,7 @@ export default function SelectFeature(props: Props) {
         }) as VectorLayer<VectorSource>;
     }, [props.map]);
     const topographyStyleHook = useTopographyStyle({});
-    const pointStyleHook = usePointStyle({
-        structureLayer: itemLayer,
-    });
+    const pointStyleHook = usePointStyle();
     const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
 
     // 初期化

@@ -1,21 +1,18 @@
-import VectorSource from "ol/source/Vector";
-import VectorLayer from 'ol/layer/Vector';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useContext, useEffect } from 'react';
 import useFilterStatus from "./useFilterStatus";
 import useTopographyStyle from "./useTopographyStyle";
 import { FeatureType } from '../../279map-common';
 import { FeatureLike } from 'ol/Feature';
 import { colorWithAlpha } from '../../util/CommonUtility';
 import { Style } from 'ol/style';
-
-type Props = {
-    topographyLayer: VectorLayer<VectorSource>;
-}
+import { LayerStyle, VectorLayerMap } from "../TsunaguMap/VectorLayerMap";
+import { MapChartContext } from '../TsunaguMap/MapChart';
 
 /**
  * フィルタを加味して地形Featureのスタイルを設定するフック
  */
-export default function useFilteredTopographyStyle(props: Props) {
+export default function useFilteredTopographyStyle() {
+    const { map } = useContext(MapChartContext);
     const { getForceColor, getFilterStatus } = useFilterStatus();
 
     const topographyStyleHook = useTopographyStyle({
@@ -59,7 +56,7 @@ export default function useFilteredTopographyStyle(props: Props) {
     }, [topographyStyleHook, getFilterStatus, getForceColor]);
 
     useEffect(() => {
-        props.topographyLayer.setStyle(topographyStyleFunction);
-    }, [props.topographyLayer, topographyStyleFunction]);
+        map.setTopographyLayerStyle(topographyStyleFunction);
+    }, [map, topographyStyleFunction]);
 
 }

@@ -51,9 +51,7 @@ export default function DrawPointRadius(props: Props) {
     }, [props.map]);
 
     const draw = useRef<Draw|undefined>();
-    const pointStyleHook = usePointStyle({
-        structureLayer: itemLayer,
-    });
+    const pointStyleHook = usePointStyle();
     const styleHook = useTopographyStyle({
         defaultFeatureType: FeatureType.AREA,
         drawing: true,

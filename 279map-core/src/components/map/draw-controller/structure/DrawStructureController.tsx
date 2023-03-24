@@ -46,9 +46,11 @@ export default function DrawStructureController(props: Props) {
 
     const dispatch = useAppDispatch();
     const spinner = useSpinner();
-    const pointStyleHook = usePointStyle({
-        structureLayer: drawingLayer,
-    });
+    const pointStyleHook = usePointStyle(
+        // {
+        //     structureLayer: drawingLayer,
+        // }
+    );
 
     const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
     const searchAddressRef = useRef<SearchAddressHandler>(null);

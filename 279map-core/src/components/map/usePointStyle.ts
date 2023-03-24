@@ -1,6 +1,6 @@
 import useIcon from "../../store/useIcon";
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { FeatureLike } from "ol/Feature";
+import Feature, { FeatureLike } from "ol/Feature";
 import { Fill, Icon, Style, Text } from 'ol/style';
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
@@ -12,30 +12,31 @@ import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import { IconInfo } from "../../279map-common";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/configureStore";
+import { LayerStyle, VectorLayerMap } from "../TsunaguMap/VectorLayerMap";
+import { Geometry } from "ol/geom";
+import { MapChartContext } from "../TsunaguMap/MapChart";
 
 // 建物ラベルを表示するresolution境界値（これ以下の値の時に表示）
 const StructureLabelResolution = 0.003;
 
 const STRUCTURE_SELECTED_COLOR = '#8888ff';
 
-type Props = {
-    structureLayer: VectorLayer<VectorSource>; // 建物レイヤ
-}
-
 /**
  * 建物・地点に関するスタイルを設定するフック
  * @param props 
  * @returns 
  */
-export default function usePointStyle(props: Props) {
+export default function usePointStyle() {
+    const { map } = useContext(MapChartContext);
     const { getForceColor, getFilterStatus } = useFilterStatus();
     const { filteredItemIdList } = useFilter();
     const ownerContext = useContext(OwnerContext);
     const iconHook = useIcon();
     const mapMode = useSelector((state: RootState) => state.operation.mapMode);
 
-    const getZindex = useCallback((feature: FeatureLike): number => {
-        const pointsSource = props.structureLayer.getSource();
+    const getZindex = useCallback((feature: Feature<Geometry>): number => {
+        // featureが属するレイヤソース取得
+        const pointsSource = map.getSourceContainedTheFeature(feature);
         if (!pointsSource) {
             return 0;
         }
@@ -49,9 +50,9 @@ export default function usePointStyle(props: Props) {
         const zIndex = Math.round(Math.abs(extent[1] - maxY));
     
         return zIndex;
-    }, [props.structureLayer]);
+    }, []);
 
-    const _createStyle = useCallback((param: {iconDefine: SystemIconDefine; feature: FeatureLike; resolution: number; color?: string; opacity?: number}) => {
+    const _createStyle = useCallback((param: {iconDefine: SystemIconDefine; feature: Feature<Geometry>; resolution: number; color?: string; opacity?: number}) => {
         const type = param.feature.getGeometry()?.getType();
         if (type !== 'Point') {
             console.warn('geometry type is not point', param.feature);
@@ -83,7 +84,7 @@ export default function usePointStyle(props: Props) {
     const getDrawingStructureStyleFunction = useCallback((iconDefine: SystemIconDefine) => {
         return (feature: FeatureLike, resolution: number) => {
             return _createStyle({
-                feature,
+                feature: feature as Feature<Geometry>,
                 resolution,
                 iconDefine,
             });
@@ -148,7 +149,7 @@ export default function usePointStyle(props: Props) {
 
     }, [filteredItemIdList]);
 
-    const _createPointStyle = useCallback((feature: FeatureLike, resolution: number, forceColor?: string): Style => {
+    const _createPointStyle = useCallback((feature: Feature<Geometry>, resolution: number, forceColor?: string): Style => {
         const { mainFeature, showFeaturesLength } = _analysisFeatures(feature);
 
         const icon = mainFeature.getProperties().icon as IconInfo | undefined;
@@ -195,22 +196,23 @@ export default function usePointStyle(props: Props) {
      * 通常時に使用するスタイル
      */
     const pointStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style => {
-        const style = _createPointStyle(feature, resolution);
+        const style = _createPointStyle(feature as Feature<Geometry>, resolution);
 
         return style;
 
     }, [_createPointStyle]);
 
     const selectedStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style => {
-        const style = _createPointStyle(feature, resolution, STRUCTURE_SELECTED_COLOR);
+        const style = _createPointStyle(feature as Feature<Geometry>, resolution, STRUCTURE_SELECTED_COLOR);
 
         return style;
     }, [_createPointStyle]);
 
     useEffect(() => {
-        if (mapMode === MapMode.Normal)
-            props.structureLayer.setStyle(pointStyleFunction);
-    }, [pointStyleFunction, props.structureLayer, mapMode]);
+        if (mapMode === MapMode.Normal) {
+            map.setPointLayerStyle(pointStyleFunction);
+        }
+    }, [pointStyleFunction, mapMode]);
 
     return {
         getDrawingStructureStyleFunction,
