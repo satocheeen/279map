@@ -3,7 +3,7 @@ import * as olControl from 'ol/control';
 import { Extent } from 'ol/extent';
 import { Geometry } from 'ol/geom';
 import { defaults } from 'ol/interaction'
-import { LayerStyle, MapKey, StaticLayer, VectorLayerMap } from './VectorLayerMap';
+import { LayerType, LayerKey, StaticLayerType, VectorLayerMap } from './VectorLayerMap';
 import GeoJSON from 'ol/format/GeoJSON';
 import prefJson from './pref.json';
 import { Vector as VectorSource } from "ol/source";
@@ -48,6 +48,7 @@ export class OlMapWrapper {
     constructor(id: string, target: HTMLDivElement | undefined) {
         this._id = id;
         this._vectorLayerMap = new VectorLayerMap();
+        console.log('create OlMapWrapper', id);
 
         const map = new OlMap({
             target,
@@ -121,10 +122,10 @@ export class OlMapWrapper {
 
         } else {
             // 背景レイヤ
-            this.addLayer(StaticLayer.VirtualTopography, LayerStyle.Topography);
+            this.addLayer(StaticLayerType.VirtualTopography);
 
             // アイテムレイヤ
-            this.addLayer(StaticLayer.VirtualItem, LayerStyle.ClusterItem);
+            this.addLayer(StaticLayerType.VirtualItem);
         }
 
         this._map.getView().setMaxZoom(mapKind === MapKind.Virtual ? 10 : 18);
@@ -137,35 +138,34 @@ export class OlMapWrapper {
             return;
         }
 
+        const geom = feature.getGeometry();
+        if (!geom) {
+            return;
+        }
+
         // 追加対象のSourceを取得
         const source = (() => {
-            const geom = feature.getGeometry();
-            if (!geom) {
-                return;
-            }
-
             if (this._mapKind === MapKind.Real) {
-                // Cluster
-                const target =  this._vectorLayerMap.getSource(def.dataSourceId);
+                const layerType = geom.getType() === 'Point' ? LayerType.Cluster : LayerType.Normal;
+                const layerKey: LayerKey = {
+                    id: def.dataSourceId,
+                    layerType,
+                };
+                const target =  this._vectorLayerMap.getSource(layerKey);
                 if (target) {
                     return target;
                 }
-                if (geom.getType() === 'Point') {
-                    console.log('add cluster layer', def.dataSourceId);
-                    this.addLayer(def.dataSourceId, LayerStyle.ClusterItem);
-                    return this._vectorLayerMap.getSource(def.dataSourceId);
-                } else {
-                    console.log('add topography layer');
-                    this.addLayer(def.dataSourceId, LayerStyle.Topography);
-                    return this._vectorLayerMap.getSource(def.dataSourceId);
-                }
+
+                this.addLayer(layerKey);
+                return this._vectorLayerMap.getSource(layerKey);
+
             } else {
                 // 村マップ
                 switch(def.geoProperties?.featureType as FeatureType) {
                     case FeatureType.STRUCTURE:
-                        return this._vectorLayerMap.getSource(StaticLayer.VirtualItem);
+                        return this._vectorLayerMap.getSource(StaticLayerType.VirtualItem);
                     default:
-                        return this._vectorLayerMap.getSource(StaticLayer.VirtualTopography);
+                        return this._vectorLayerMap.getSource(StaticLayerType.VirtualTopography);
                 }
             }
         })();
@@ -179,12 +179,12 @@ export class OlMapWrapper {
         if (existFeature) {
             if (existFeature.getProperties()['lastEditedTime'] !== def.lastEditedTime) {
                 console.log('update feature');
-                existFeature.setGeometry(feature.getGeometry());
+                existFeature.setGeometry(geom);
                 existFeature.setProperties(feature.getProperties());
             }
         } else {
-            console.log('add feature', feature.getGeometry()?.getType(), source.getProperties());
             source.addFeature(feature);
+            console.log('add feature', geom.getType(), source.getProperties(), source.getFeatures().length);
         }
     }
 
@@ -236,9 +236,9 @@ export class OlMapWrapper {
         return this._map.getView().getZoom();
     }
 
-    addLayer(id: MapKey, style: LayerStyle) {
-        console.log('addLayer', this._id);
-        const layer = this._vectorLayerMap.createLayer(id, style);
+    addLayer(layerKey: LayerKey | StaticLayerType) {
+        console.log('addLayer', this._id, layerKey);
+        const layer = this._vectorLayerMap.createLayer(layerKey);
         this._map.addLayer(layer);
     }
 
@@ -255,8 +255,7 @@ export class OlMapWrapper {
      * @param style 
      */
     setPointLayerStyle(style: StyleFunction) {
-        console.log('setPointLayerStyle', this._id);
-        this._vectorLayerMap.getTheStyleLayers(LayerStyle.ClusterItem).forEach(layer => {
+        this._vectorLayerMap.getTheStyleLayers(LayerType.Cluster).forEach(layer => {
             console.log('set point style', layer.getSource()?.getFeatures().length)
             layer.setStyle(style);
         })
@@ -267,7 +266,7 @@ export class OlMapWrapper {
      * @param style 
      */
     setTopographyLayerStyle(style: StyleFunction) {
-        this._vectorLayerMap.getTheStyleLayers(LayerStyle.Topography).forEach(layer => {
+        this._vectorLayerMap.getTheStyleLayers(LayerType.Normal).forEach(layer => {
             console.log('set topography style', layer.getSource()?.getFeatures().length)
             layer.setStyle(style);
         })
@@ -288,5 +287,6 @@ export class OlMapWrapper {
     dispose() {
         this._map.dispose();
         instansMap.delete(this._id);
+        console.log('dispose OlMapWrapper', this._id);
     }
 }

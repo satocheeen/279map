@@ -1,43 +1,74 @@
 import { Cluster, Vector as VectorSource } from "ol/source";
 import VectorLayer from "ol/layer/Vector";
-import Feature, { FeatureLike } from "ol/Feature";
+import Feature from "ol/Feature";
 import { Geometry } from "ol/geom";
 
-export enum LayerStyle {
-    ClusterItem,
-    Topography,
+export enum LayerType {
+    Normal = 'Normal',
+    Cluster = 'Cluster',    // Cluster設定されたレイヤ。Pointのみ追加可能。
 }
-export enum StaticLayer {
-    VirtualItem,
-    VirtualTopography,
-    DrawingItem,
-    DrawingTopography,
+export enum StaticLayerType {
+    VirtualItem = 'VirtualItem',
+    VirtualTopography = 'VirtualTopography',
+    DrawingItem = 'DrawingItem',
+    DrawingTopography = 'DrawingTopography',
 }
-export type MapKey = string | StaticLayer;
+export type LayerKey = {
+    id: string;
+    layerType: LayerType;
+}
 
-type LayerInfo = {
+type LayerInfo = LayerKey & {
     layer: VectorLayer<VectorSource>;
-    style: LayerStyle;
 }
 /**
  * VectorレイヤとVectorソースを一元管理するクラス
  */
 export class VectorLayerMap {
-    _layerMap: Map<MapKey, LayerInfo>;
+    _layerMap: Map<string, LayerInfo>;
 
     constructor() {
-        this._layerMap = new Map<MapKey, LayerInfo>();
+        this._layerMap = new Map<string, LayerInfo>();
     }
 
-    createLayer(id: MapKey, style: LayerStyle) {
-        if (this._layerMap.has(id)) {
-            console.warn('already exist layer', id);
-            return this._layerMap.get(id)?.layer as VectorLayer<VectorSource>;
+    _convertLayerKeyFromStaticLayerType(slt: StaticLayerType): LayerKey {
+        switch(slt) {
+            case StaticLayerType.VirtualItem:
+                return {
+                    id: slt,
+                    layerType: LayerType.Cluster
+                };
+            default:
+                return {
+                    id: slt,
+                    layerType: LayerType.Normal
+                }
+        }
+    }
+
+    _convertMapKey(key: LayerKey | StaticLayerType) {
+        const layerKey = typeof key !== 'object' ? this._convertLayerKeyFromStaticLayerType(key) : key;
+        return layerKey.id + '-' + layerKey.layerType;
+    }
+
+    createLayer(key: LayerKey | StaticLayerType) {
+        let layerKey: LayerKey;
+        if (typeof key !== 'object'){
+            layerKey = this._convertLayerKeyFromStaticLayerType(key);
+        } else {
+            layerKey = key;
+        }
+
+        const mapKey = this._convertMapKey(layerKey);
+        if (this._layerMap.has(mapKey)) {
+            console.warn('already exist layer', key);
+            return this._layerMap.get(mapKey)?.layer as VectorLayer<VectorSource>;
         }
 
         const source = new VectorSource();
+        source.setProperties(layerKey);
         let layer: VectorLayer<VectorSource | Cluster>;
-        if (style === LayerStyle.ClusterItem) {
+        if (layerKey.layerType === LayerType.Cluster) {
             const clusterSource = new Cluster({
                 distance: 80,
                 minDistance: 20,
@@ -48,7 +79,7 @@ export class VectorLayerMap {
                 zIndex: 10,
                 renderBuffer: 200,
                 properties: {
-                    name: id,
+                    name: key,
                 },
             })
         
@@ -57,24 +88,28 @@ export class VectorLayerMap {
                 source,
                 // zIndex: 2,
                 properties: {
-                    name: id,
+                    name: key,
                 },
             });
     
         }
-        this._layerMap.set(id, {
+        this._layerMap.set(mapKey, {
+            id: layerKey.id,
+            layerType: layerKey.layerType,
             layer,
-            style,
         });
+        console.log('crateLayer', key, this._layerMap.size);
         return layer;
     }
 
-    getLayer(id: MapKey) {
-        return this._layerMap.get(id)?.layer;
+    getLayer(id: LayerKey) {
+        const mapKey = this._convertMapKey(id);
+        return this._layerMap.get(mapKey)?.layer;
     }
 
-    getSource(id: MapKey) {
-        const source = this._layerMap.get(id)?.layer.getSource();
+    getSource(layerKey: LayerKey | StaticLayerType) {
+        const mapKey = this._convertMapKey(layerKey);
+        const source = this._layerMap.get(mapKey)?.layer.getSource();
         if (source instanceof Cluster) {
             return source.getSource();
         } else {
@@ -82,10 +117,10 @@ export class VectorLayerMap {
         }
     }
 
-    getTheStyleLayers(style: LayerStyle) {
+    getTheStyleLayers(style: LayerType) {
         const list = [] as VectorLayer<VectorSource>[];
         this._layerMap.forEach((val) => {
-            if (val.style === style) {
+            if (val.layerType === style) {
                 list.push(val.layer);
             }
         })
@@ -134,6 +169,9 @@ export class VectorLayerMap {
 
     setClusterDistance(distance: number, minDistance: number) {
         this._layerMap.forEach((val) => {
+            if (val.layerType !== LayerType.Cluster) {
+                return;
+            }
             const source = val.layer.getSource();
             if (source instanceof Cluster) {
                 source.setDistance(distance);
@@ -143,6 +181,6 @@ export class VectorLayerMap {
     }
 
     length(): number {
-        return this._layerMap.keys.length;
+        return this._layerMap.size;
     }
 }

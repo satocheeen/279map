@@ -2,8 +2,6 @@ import useIcon from "../../store/useIcon";
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import Feature, { FeatureLike } from "ol/Feature";
 import { Fill, Icon, Style, Text } from 'ol/style';
-import VectorLayer from "ol/layer/Vector";
-import VectorSource from "ol/source/Vector";
 import { getStructureScale } from "../../util/MapUtility";
 import { MapMode, SystemIconDefine } from "../../types/types";
 import useFilterStatus from "./useFilterStatus";
@@ -12,10 +10,8 @@ import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import { IconInfo } from "../../279map-common";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/configureStore";
-import { LayerStyle, VectorLayerMap } from "../TsunaguMap/VectorLayerMap";
 import { Geometry } from "ol/geom";
-import { MapChartContext } from "../TsunaguMap/MapChart";
-import { getMapInstance, OlMapWrapper } from "../TsunaguMap/OlMapWrapper";
+import { OlMapWrapper } from "../TsunaguMap/OlMapWrapper";
 
 // 建物ラベルを表示するresolution境界値（これ以下の値の時に表示）
 const StructureLabelResolution = 0.003;

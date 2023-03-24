@@ -26,7 +26,7 @@ import ClusterMenu from "../cluster-menu/ClusterMenu";
 import { usePrevious } from "../../util/usePrevious";
 import usePointStyle from "../map/usePointStyle";
 import ClusterMenuController from "../cluster-menu/ClusterMenuController";
-import { LayerStyle, StaticLayer, VectorLayerMap } from "./VectorLayerMap";
+import { StaticLayerType, VectorLayerMap } from "./VectorLayerMap";
 import { createMapInstance, OlMapWrapper } from "./OlMapWrapper";
 
 type ClusterMenuInfo = {
@@ -39,9 +39,10 @@ type MapChartContextType = {
     instanceId: string;
     map: OlMapWrapper;
 }
-const defaultDummyMap = new OlMapWrapper('', undefined);
+const defaultDummyMapId = 'dummy';
+const defaultDummyMap = new OlMapWrapper(defaultDummyMapId, undefined);
 export const MapChartContext = React.createContext<MapChartContextType>({
-    instanceId: '',
+    instanceId: 'dummy',
     map: defaultDummyMap,
 });
 
@@ -184,6 +185,7 @@ export default function MapChart() {
             return;
         }
         console.log('map initialized.');
+        mapRef.current.dispose();
         mapRef.current = createMapInstance(instanceIdRef.current, myRef.current);
 
         const h = addListener('LoadLatestData', async() => {
@@ -218,8 +220,6 @@ export default function MapChart() {
         if (!mapKind) {
             return;
         }
-        console.log('map create start');
-
         if (mapRef.current.getLayerLength() > 0) {
             // 起動時以外の地図切り替えはアニメーション
             setFlipping(true);

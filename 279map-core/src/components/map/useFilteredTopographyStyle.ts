@@ -5,7 +5,6 @@ import { FeatureType } from '../../279map-common';
 import { FeatureLike } from 'ol/Feature';
 import { colorWithAlpha } from '../../util/CommonUtility';
 import { Style } from 'ol/style';
-import { LayerStyle, VectorLayerMap } from "../TsunaguMap/VectorLayerMap";
 import { MapChartContext } from '../TsunaguMap/MapChart';
 
 /**
