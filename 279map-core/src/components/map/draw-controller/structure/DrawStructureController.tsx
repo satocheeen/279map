@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Map, Feature } from 'ol';
 import SelectStructureDialog from './SelectStructureDialog';
 import Draw, { DrawEvent } from "ol/interaction/Draw";
@@ -16,6 +16,7 @@ import { registFeature } from '../../../../store/data/dataThunk';
 import { FeatureType, GeoProperties, MapKind } from '../../../../279map-common';
 import { SystemIconDefine } from '../../../../types/types';
 import { useSelector } from 'react-redux';
+import { MapChartContext } from '../../../TsunaguMap/MapChart';
 
 type Props = {
     map: Map;
@@ -46,10 +47,12 @@ export default function DrawStructureController(props: Props) {
 
     const dispatch = useAppDispatch();
     const spinner = useSpinner();
+    const { map } = useContext(MapChartContext);
     const pointStyleHook = usePointStyle(
-        // {
-        //     structureLayer: drawingLayer,
-        // }
+        {
+            map,
+            //     structureLayer: drawingLayer,
+        }
     );
 
     const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);

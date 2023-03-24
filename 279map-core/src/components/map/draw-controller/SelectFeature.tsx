@@ -1,5 +1,5 @@
 import { Feature, MapBrowserEvent } from 'ol';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import PromptMessageBox from './PromptMessageBox';
 import Style from 'ol/style/Style';
 import Stroke from 'ol/style/Stroke';
@@ -17,6 +17,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/configureStore';
 import { colorWithAlpha } from '../../../util/CommonUtility';
 import { MapStyles } from '../../../util/constant-defines';
+import { MapChartContext } from '../../TsunaguMap/MapChart';
 
 type Props = {
     map: Map;   // コントロール対象の地図
@@ -40,7 +41,8 @@ export default function SelectFeature(props: Props) {
         }) as VectorLayer<VectorSource>;
     }, [props.map]);
     const topographyStyleHook = useTopographyStyle({});
-    const pointStyleHook = usePointStyle();
+    const { map } = useContext(MapChartContext);
+    const pointStyleHook = usePointStyle({ map });
     const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
 
     // 初期化

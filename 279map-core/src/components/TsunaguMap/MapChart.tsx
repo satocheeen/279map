@@ -47,7 +47,7 @@ export const MapChartContext = React.createContext<MapChartContextType>({
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
-    const instanceIdRef = useRef('map=' + (++instanceCnt));
+    const instanceIdRef = useRef('map-' + (++instanceCnt));
     const mapRef = useRef<OlMapWrapper>(defaultDummyMap);
     const [clusterMenuInfo, setClusterMenuInfo] = useState<ClusterMenuInfo|null>(null);
     const mapMode = useSelector((state: RootState) => state.operation.mapMode);
@@ -76,7 +76,9 @@ export default function MapChart() {
     //         name: 'itemLayer',
     //     },
     // }))
-    usePointStyle();
+    usePointStyle({
+        map: mapRef.current
+    });
     // usePointStyle({
     //     structureLayer: pointClusterLayerRef.current,
     // });
@@ -321,7 +323,7 @@ export default function MapChart() {
         //     deleteFeatureFunc(source);
         // }
 
-    }, [geoJsonItems, getGeocoderFeature, mapKind]);
+    }, [geoJsonItems, getGeocoderFeature]);
 
     const focusItemId = useSelector((state: RootState) => state.operation.focusItemId);
     const operationMapKind = useSelector((state: RootState) => state.operation.currentMapKind);

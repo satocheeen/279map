@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Map, Collection, Feature, MapBrowserEvent } from 'ol';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
@@ -15,6 +15,7 @@ import usePointStyle from '../../usePointStyle';
 import { useSpinner } from '../../../common/spinner/useSpinner';
 import { useAppDispatch } from '../../../../store/configureStore';
 import { updateFeature } from '../../../../store/data/dataThunk';
+import { MapChartContext } from '../../../TsunaguMap/MapChart';
 
 type Props = {
     map: Map;
@@ -32,7 +33,8 @@ const movedFeatureCollection = new Collection<Feature<Geometry>>();
 export default function MoveItemController(props: Props) {
     const [okable, setOkable] = useState(false);
     const itemLayer = useRef(props.map.getAllLayers().find(layer => layer.getProperties()['name'] === 'itemLayer') as VectorLayer<VectorSource>);
-    const pointStyleHook = usePointStyle();
+    const { map } = useContext(MapChartContext);
+    const pointStyleHook = usePointStyle({ map });
     const dispatch = useAppDispatch();
 
     const select = useMemo(() => {

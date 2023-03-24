@@ -12,6 +12,7 @@ import VectorSource from 'ol/source/Vector';
 import Feature, { FeatureLike } from 'ol/Feature';
 import Style, { StyleFunction } from 'ol/style/Style';
 import VectorLayer from 'ol/layer/Vector';
+import { MapChartContext } from '../TsunaguMap/MapChart';
 
 type Props = {
     map: Map;
@@ -45,7 +46,8 @@ export default function PopupContainer(props: Props) {
             return layer.getProperties()['name'] === 'itemLayer';
         }) as VectorLayer<VectorSource>;
     }, [props.map]);
-    const { pointStyleFunction } = usePointStyle();
+    const { map } = useContext(MapChartContext);
+    const { pointStyleFunction } = usePointStyle({map});
 
     const [ loadendFlag, setLoadendFlag ] = useState(0);
     const [ addfeatureFlag, setAddfeatureFlag ] = useState(0);

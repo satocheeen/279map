@@ -15,19 +15,22 @@ import { RootState } from "../../store/configureStore";
 import { LayerStyle, VectorLayerMap } from "../TsunaguMap/VectorLayerMap";
 import { Geometry } from "ol/geom";
 import { MapChartContext } from "../TsunaguMap/MapChart";
+import { getMapInstance, OlMapWrapper } from "../TsunaguMap/OlMapWrapper";
 
 // 建物ラベルを表示するresolution境界値（これ以下の値の時に表示）
 const StructureLabelResolution = 0.003;
 
 const STRUCTURE_SELECTED_COLOR = '#8888ff';
 
+type Props = {
+    map: OlMapWrapper,
+}
 /**
  * 建物・地点に関するスタイルを設定するフック
  * @param props 
  * @returns 
  */
-export default function usePointStyle() {
-    const { map } = useContext(MapChartContext);
+export default function usePointStyle(props: Props) {
     const { getForceColor, getFilterStatus } = useFilterStatus();
     const { filteredItemIdList } = useFilter();
     const ownerContext = useContext(OwnerContext);
@@ -36,7 +39,7 @@ export default function usePointStyle() {
 
     const getZindex = useCallback((feature: Feature<Geometry>): number => {
         // featureが属するレイヤソース取得
-        const pointsSource = map.getSourceContainedTheFeature(feature);
+        const pointsSource = props.map.getSourceContainedTheFeature(feature);
         if (!pointsSource) {
             return 0;
         }
@@ -50,7 +53,7 @@ export default function usePointStyle() {
         const zIndex = Math.round(Math.abs(extent[1] - maxY));
     
         return zIndex;
-    }, []);
+    }, [props.map]);
 
     const _createStyle = useCallback((param: {iconDefine: SystemIconDefine; feature: Feature<Geometry>; resolution: number; color?: string; opacity?: number}) => {
         const type = param.feature.getGeometry()?.getType();
@@ -210,9 +213,10 @@ export default function usePointStyle() {
 
     useEffect(() => {
         if (mapMode === MapMode.Normal) {
-            map.setPointLayerStyle(pointStyleFunction);
+            // console.log('setPointLayerStyle', instanceId);
+            props.map.setPointLayerStyle(pointStyleFunction);
         }
-    }, [pointStyleFunction, mapMode]);
+    }, [pointStyleFunction, mapMode, props.map]);
 
     return {
         getDrawingStructureStyleFunction,

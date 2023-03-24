@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import SearchAddress, { SearchAddressHandler } from '../../../common/SearchAddress';
 import { GeoJsonObject } from 'geojson';
 import GeoJSON from 'ol/format/GeoJSON';
@@ -20,6 +20,7 @@ import useIcon from '../../../../store/useIcon';
 import usePointStyle from '../../usePointStyle';
 import { getDistance } from 'geolib';
 import { FeatureType } from '../../../../279map-common';
+import { MapChartContext } from '../../../TsunaguMap/MapChart';
 
 type Props = {
     map: Map;   // コントロール対象の地図
@@ -51,7 +52,8 @@ export default function DrawPointRadius(props: Props) {
     }, [props.map]);
 
     const draw = useRef<Draw|undefined>();
-    const pointStyleHook = usePointStyle();
+    const { map } = useContext(MapChartContext);
+    const pointStyleHook = usePointStyle({map});
     const styleHook = useTopographyStyle({
         defaultFeatureType: FeatureType.AREA,
         drawing: true,

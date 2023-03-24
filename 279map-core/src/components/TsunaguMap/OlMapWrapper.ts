@@ -34,6 +34,10 @@ export function createMapInstance(id: string, target: HTMLDivElement | undefined
     instansMap.set(id, map);
     return map;
 }
+
+export function getMapInstance(id: string) {
+    return instansMap.get(id);
+}
 export class OlMapWrapper {
     _id: string;
     _map: OlMap;
@@ -114,7 +118,6 @@ export class OlMapWrapper {
             ];
             this._map.setLayers(layers);
             extent = prefSource.getExtent();
-            console.log('日本地図セット')
 
         } else {
             // 背景レイヤ
@@ -122,7 +125,6 @@ export class OlMapWrapper {
 
             // アイテムレイヤ
             this.addLayer(StaticLayer.VirtualItem, LayerStyle.ClusterItem);
-            console.log('村マップセット')
         }
 
         this._map.getView().setMaxZoom(mapKind === MapKind.Virtual ? 10 : 18);
@@ -149,11 +151,11 @@ export class OlMapWrapper {
                     return target;
                 }
                 if (geom.getType() === 'Point') {
-                    console.log('add layer');
+                    console.log('add cluster layer', def.dataSourceId);
                     this.addLayer(def.dataSourceId, LayerStyle.ClusterItem);
                     return this._vectorLayerMap.getSource(def.dataSourceId);
                 } else {
-                    console.log('add layer');
+                    console.log('add topography layer');
                     this.addLayer(def.dataSourceId, LayerStyle.Topography);
                     return this._vectorLayerMap.getSource(def.dataSourceId);
                 }
@@ -235,6 +237,7 @@ export class OlMapWrapper {
     }
 
     addLayer(id: MapKey, style: LayerStyle) {
+        console.log('addLayer', this._id);
         const layer = this._vectorLayerMap.createLayer(id, style);
         this._map.addLayer(layer);
     }
@@ -252,6 +255,7 @@ export class OlMapWrapper {
      * @param style 
      */
     setPointLayerStyle(style: StyleFunction) {
+        console.log('setPointLayerStyle', this._id);
         this._vectorLayerMap.getTheStyleLayers(LayerStyle.ClusterItem).forEach(layer => {
             console.log('set point style', layer.getSource()?.getFeatures().length)
             layer.setStyle(style);
