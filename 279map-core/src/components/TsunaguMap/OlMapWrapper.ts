@@ -255,10 +255,7 @@ export class OlMapWrapper {
      * @param style 
      */
     setPointLayerStyle(style: StyleFunction) {
-        this._vectorLayerMap.getTheStyleLayers(LayerType.Cluster).forEach(layer => {
-            console.log('set point style', layer.getSource()?.getFeatures().length)
-            layer.setStyle(style);
-        })
+        this._vectorLayerMap.setPointLayerStyle(style);
     }
 
     /**
@@ -266,10 +263,7 @@ export class OlMapWrapper {
      * @param style 
      */
     setTopographyLayerStyle(style: StyleFunction) {
-        this._vectorLayerMap.getTheStyleLayers(LayerType.Normal).forEach(layer => {
-            console.log('set topography style', layer.getSource()?.getFeatures().length)
-            layer.setStyle(style);
-        })
+        this._vectorLayerMap.setTopographyLayerStyle(style);
     }
 
     addListener(type: 'moveend', listener: (event: BaseEvent) => void) {

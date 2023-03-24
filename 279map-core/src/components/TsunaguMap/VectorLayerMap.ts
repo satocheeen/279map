@@ -2,6 +2,7 @@ import { Cluster, Vector as VectorSource } from "ol/source";
 import VectorLayer from "ol/layer/Vector";
 import Feature from "ol/Feature";
 import { Geometry } from "ol/geom";
+import { StyleFunction } from "ol/style/Style";
 
 export enum LayerType {
     Normal = 'Normal',
@@ -26,6 +27,8 @@ type LayerInfo = LayerKey & {
  */
 export class VectorLayerMap {
     _layerMap: Map<string, LayerInfo>;
+    _pointLayerStyle: StyleFunction | undefined;
+    _topographyLayerStyle: StyleFunction | undefined;
 
     constructor() {
         this._layerMap = new Map<string, LayerInfo>();
@@ -82,6 +85,10 @@ export class VectorLayerMap {
                     name: key,
                 },
             })
+
+            if (this._pointLayerStyle) {
+                layer.setStyle(this._pointLayerStyle);
+            }
         
         } else {
             layer = new VectorLayer({
@@ -92,6 +99,9 @@ export class VectorLayerMap {
                 },
             });
     
+            if (this._topographyLayerStyle) {
+                layer.setStyle(this._topographyLayerStyle);
+            }
         }
         this._layerMap.set(mapKey, {
             id: layerKey.id,
@@ -160,6 +170,30 @@ export class VectorLayerMap {
         return hit;
     }
 
+    /**
+     * PointLayer(村マップの家、RealMapでの各ポイント)のスタイルを設定する
+     * @param style 
+     */
+    setPointLayerStyle(style: StyleFunction) {
+        this.getTheStyleLayers(LayerType.Cluster).forEach(layer => {
+            console.log('set point style', layer.getSource()?.getFeatures().length)
+            layer.setStyle(style);
+        });
+        this._pointLayerStyle = style;
+    }
+
+    /**
+     * TopographyLayer（村マップの地形, RealMapでのポイント以外）のスタイルを設定する
+     * @param style 
+     */
+    setTopographyLayerStyle(style: StyleFunction) {
+        this.getTheStyleLayers(LayerType.Normal).forEach(layer => {
+            console.log('set topography style', layer.getSource()?.getFeatures().length)
+            layer.setStyle(style);
+        });
+        this._topographyLayerStyle = style;
+    }
+    
     clear() {
         this._layerMap.forEach((val) => {
             val.layer.dispose();
