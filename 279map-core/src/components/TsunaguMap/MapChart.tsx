@@ -95,6 +95,7 @@ export default function MapChart() {
     const geoJsonItems = useMemo(() => {
         return Object.values(itemMap).filter(content => content.position.type === 'geoJson');
     }, [itemMap]);
+    const prevGeoJsonItems = usePrevious(geoJsonItems);
     const trackItems = useMemo(() => {
         return Object.values(itemMap).filter(content => content.position.type === 'track');
     }, [itemMap]);
@@ -282,26 +283,16 @@ export default function MapChart() {
 
         }
         // 削除
-        // TODO: 複数レイヤを考慮して削除判定
-        // const deleteFeatureFunc = () => {
-        //     const deleteFeatures = source.getFeatures().filter(feature => {
-        //         const id = feature.getId();
-        //         const exist = geoJsonItems.some(content => content.id === id);
-        //         return !exist;
-        //     });
-        //     deleteFeatures.forEach(feature => {
-        //         console.log('removeFeature', feature.getId());
-        //         source.removeFeature(feature);
-        //     });
-        // };
-        // const targetSource = VectorLayerMap.getSourceContainedTheFeature(fe)
-        // deleteFeatureFunc(pointContentsSourceRef.current);
-        // const source = VectorLayerMap.getSource('topography');
-        // if (source) {
-        //     deleteFeatureFunc(source);
-        // }
+        // 削除アイテム＝prevGeoJsonItemに存在して、geoJsonItemsに存在しないもの
+        const currentIds = geoJsonItems.map(item => item.id);
+        const deleteItems = prevGeoJsonItems?.filter(pre => {
+            return !currentIds.includes(pre.id);
+        });
+        deleteItems?.forEach(item => {
+            mapRef.current.removeFeature(item);
+        });
 
-    }, [geoJsonItems, getGeocoderFeature]);
+    }, [geoJsonItems, prevGeoJsonItems, getGeocoderFeature]);
 
     const focusItemId = useSelector((state: RootState) => state.operation.focusItemId);
     const operationMapKind = useSelector((state: RootState) => state.operation.currentMapKind);

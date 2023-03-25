@@ -132,6 +132,22 @@ export class OlMapWrapper {
         this.fit(extent);
     }
 
+    _getLayerKey(item: ItemDefine): LayerKey | StaticLayerType {
+        if (this._mapKind === MapKind.Real) {
+            const layerType = item.geoProperties?.featureType === FeatureType.STRUCTURE ? LayerType.Cluster : LayerType.Normal;
+            return {
+                id: item.dataSourceId,
+                layerType,
+            };
+        } else {
+            if (item.geoProperties?.featureType === FeatureType.STRUCTURE) {
+                return StaticLayerType.VirtualItem;
+            } else {
+                return StaticLayerType.VirtualTopography;
+            }
+        }
+    }
+
     addFeature(def: ItemDefine, feature: Feature<Geometry>) {
         if (!this._mapKind) {
             console.warn('mapKind not found.');
@@ -145,29 +161,13 @@ export class OlMapWrapper {
 
         // 追加対象のSourceを取得
         const source = (() => {
-            if (this._mapKind === MapKind.Real) {
-                const layerType = geom.getType() === 'Point' ? LayerType.Cluster : LayerType.Normal;
-                const layerKey: LayerKey = {
-                    id: def.dataSourceId,
-                    layerType,
-                };
-                const target =  this._vectorLayerMap.getSource(layerKey);
-                if (target) {
-                    return target;
-                }
-
-                this.addLayer(layerKey);
-                return this._vectorLayerMap.getSource(layerKey);
-
-            } else {
-                // 村マップ
-                switch(def.geoProperties?.featureType as FeatureType) {
-                    case FeatureType.STRUCTURE:
-                        return this._vectorLayerMap.getSource(StaticLayerType.VirtualItem);
-                    default:
-                        return this._vectorLayerMap.getSource(StaticLayerType.VirtualTopography);
-                }
+            const layerKey = this._getLayerKey(def);
+            const target =  this._vectorLayerMap.getSource(layerKey);
+            if (target) {
+                return target;
             }
+            this.addLayer(layerKey);
+            return this._vectorLayerMap.getSource(layerKey);
         })();
 
         if (!source) {
@@ -186,6 +186,21 @@ export class OlMapWrapper {
             source.addFeature(feature);
             console.log('add feature', geom.getType(), source.getProperties(), source.getFeatures().length);
         }
+    }
+
+    removeFeature(item: ItemDefine) {
+        const layerKey = this._getLayerKey(item);
+        const source = this._vectorLayerMap.getSource(layerKey);
+        if (!source) {
+            console.warn('対象sourceなし');
+            return;
+        }
+        const feature = source.getFeatureById(item.id);
+        if (!feature) {
+            console.warn('削除対象が該当sourceに存在しない', item.id);
+            return;
+        }
+        source.removeFeature(feature);
     }
 
     /**
