@@ -20,7 +20,7 @@
     "@rollup/plugin-node-resolve": "^13.0.6",
     "@rollup/plugin-strip": "^3.0.2",
     "@rollup/plugin-typescript": "^8.3.0",
-    "279map-backend-common": "^0.9.3",
+    "279map-backend-common": "^0.9.5",
     "rollup": "^2.60.0",
     "rollup-plugin-delete": "^2.0.0",
     "rollup-plugin-dts": "^4.0.1",

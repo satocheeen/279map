@@ -14,15 +14,15 @@ import 'https://unpkg.com/jsts@2.6.1/dist/jsts.min.js';
 import { Map } from 'ol';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import { FeatureType, GeoJsonPosition, GeoProperties } from '../279map-common';
+import { FeatureType, GeoProperties } from '../279map-common';
 import { getCenter as getExtentCenter } from 'ol/extent';
 
 /**
  * GeoJSONを元に対応するジオメトリを生成して返す
  * @param position 
  */
- export function createFeatureByGeoJson(position: GeoJsonPosition, geoProperties?: GeoProperties): Feature {
-    const feature = new GeoJSON().readFeatures(position.geoJson)[0];
+ export function createFeatureByGeoJson(geoJson: GeoJsonObject, geoProperties?: GeoProperties): Feature {
+    const feature = new GeoJSON().readFeatures(geoJson)[0];
     if (geoProperties?.featureType === FeatureType.ROAD) {
         const roadWidth = RoadWidth.getValueOfKey(geoProperties.width);
         convertLineToPolygon(feature, roadWidth.distance);
@@ -165,6 +165,12 @@ export function extractGeoProperty(properties: GeoJsonProperties): GeoProperties
                     featureType: prop.featureType,
                     geocoderId: properties?.geocoderId,
                 };
+            }
+        case FeatureType.TRACK:
+            return {
+                featureType: prop.featureType,
+                max_zoom: properties?.max_zoom,
+                min_zoom: properties?.min_zoom,
             }
         default:
             return {

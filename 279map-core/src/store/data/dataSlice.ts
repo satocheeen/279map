@@ -154,7 +154,7 @@ const dataSlice = createSlice({
                     dataSourceId: targetItem.dataSourceId,
                     name: targetItem.name,
                     contents: newContents,
-                    position: targetItem.position,
+                    geoJson: targetItem.geoJson,
                     geoProperties: targetItem.geoProperties,
                     lastEditedTime: targetItem.lastEditedTime,
                 }

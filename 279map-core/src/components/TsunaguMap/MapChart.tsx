@@ -15,7 +15,7 @@ import LandNameOverlay from "../map/LandNameOverlay";
 import { useFilter } from "../../store/useFilter";
 import { loadItems } from "../../store/data/dataThunk";
 import { openItemContentsPopup } from "../popup/popupThunk";
-import { FeatureType, GeoJsonPosition, MapKind } from "../../279map-common";
+import { FeatureType, MapKind } from "../../279map-common";
 import { FeatureProperties, MapMode } from "../../types/types";
 import { useAPI } from "../../api/useAPI";
 import useFilteredTopographyStyle from "../map/useFilteredTopographyStyle";
@@ -93,11 +93,11 @@ export default function MapChart() {
     }, [itemMap]);
 
     const geoJsonItems = useMemo(() => {
-        return Object.values(itemMap).filter(content => content.position.type === 'geoJson');
+        return Object.values(itemMap).filter(content => content.geoProperties.featureType !== FeatureType.TRACK);
     }, [itemMap]);
     const prevGeoJsonItems = usePrevious(geoJsonItems);
     const trackItems = useMemo(() => {
-        return Object.values(itemMap).filter(content => content.position.type === 'track');
+        return Object.values(itemMap).filter(content => content.geoProperties.featureType === FeatureType.TRACK);
     }, [itemMap]);
 
     const dispatch = useAppDispatch();
@@ -265,7 +265,7 @@ export default function MapChart() {
                 featurething = new GeoJSON().readFeatures(geoJson)[0];
 
             } else {
-                featurething = MapUtility.createFeatureByGeoJson(def.position as GeoJsonPosition, def.geoProperties);
+                featurething = MapUtility.createFeatureByGeoJson(def.geoJson, def.geoProperties);
             }
 
             if (!featurething) {

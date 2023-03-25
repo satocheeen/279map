@@ -1,5 +1,5 @@
-import { schema, CurrentMap, getDataSourceKindsFromMapKind } from '279map-backend-common';
-import { ItemContentInfo, ItemDefine, MapKind } from '279map-backend-common';
+import { schema, CurrentMap, getDataSourceKindsFromMapKind, GeoProperties } from '279map-backend-common';
+import { ItemContentInfo, ItemDefine, MapKind, FeatureType } from '279map-backend-common';
 import { getLogger } from 'log4js';
 import { ConnectionPool } from '.';
 import { GetItemsParam, GetItemsResult } from '../279map-api-interface/src';
@@ -100,15 +100,21 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
             // itemがnameを持つならname。持たないなら、コンテンツtitle.
             const name = row.name ?? '';
 
+            const geoProperties: GeoProperties = row.geo_properties ? JSON.parse(row.geo_properties)
+                                 :
+                                    {
+                                        featureType: FeatureType.STRUCTURE,
+                                    };
+            if ('radius' in geoProperties) {
+                geoProperties.featureType = FeatureType.AREA;
+            }
+
             pointContents.push({
                 id: row.item_page_id,
                 dataSourceId: row.data_source_id,
                 name,
-                position: {
-                    type: 'geoJson',
-                    geoJson: row.geojson,
-                },
-                geoProperties: row.geo_properties ? JSON.parse(row.geo_properties) : undefined,
+                geoJson: row.geojson,
+                geoProperties,
                 contents,
                 lastEditedTime,
             });
@@ -151,11 +157,11 @@ async function selectTrackInArea(param: GetItemsParam, mapPageId: string): Promi
             return {
                 id: '' + row.track_file_id + row.sub_id,
                 dataSourceId: row.data_source_id,
-                position: {
-                    type: 'track',
+                geoJson: row.geojson,
+                geoProperties: {
+                    featureType: FeatureType.TRACK,
                     min_zoom: row.min_zoom,
                     max_zoom: row.max_zoom,
-                    geojson: JSON.stringify(row.geojson),
                 },
                 name: '',
                 overview: '',
