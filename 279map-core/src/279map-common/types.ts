@@ -73,8 +73,6 @@ export type GeocoderId = {
 }
 
 export type GeoProperties = {
-    featureType?: FeatureType.STRUCTURE;
-} | {
     featureType: FeatureType.STRUCTURE;
     icon?: IconInfo;
 } | {
@@ -115,7 +113,7 @@ export type ItemDefine = {
     dataSourceId: string;
     position: Position;
     name: string;
-    geoProperties?: GeoProperties;
+    geoProperties: GeoProperties;
     lastEditedTime: string;
     contents: ItemContentInfo[];
 }
