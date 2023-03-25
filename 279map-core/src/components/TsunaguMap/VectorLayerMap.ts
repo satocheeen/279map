@@ -7,6 +7,7 @@ import { StyleFunction } from "ol/style/Style";
 export enum LayerType {
     Normal = 'Normal',
     Cluster = 'Cluster',    // Cluster設定されたレイヤ。Pointのみ追加可能。
+    Trak = 'Truck',
 }
 export enum StaticLayerType {
     VirtualItem = 'VirtualItem',
@@ -16,8 +17,15 @@ export enum StaticLayerType {
 }
 export type LayerKey = {
     id: string;
-    layerType: LayerType;
-}
+} & ({
+    layerType: LayerType.Cluster | LayerType.Normal;
+} | {
+    layerType: LayerType.Trak;
+    zoomLv: {
+        min: number;
+        max: number;
+    }
+})
 
 type LayerInfo = LayerKey & {
     layer: VectorLayer<VectorSource>;
@@ -27,8 +35,9 @@ type LayerInfo = LayerKey & {
  */
 export class VectorLayerMap {
     _layerMap: Map<string, LayerInfo>;
-    _pointLayerStyle: StyleFunction | undefined;
-    _topographyLayerStyle: StyleFunction | undefined;
+    _pointLayerStyle?: StyleFunction;
+    _topographyLayerStyle?: StyleFunction;
+    _trackLayerStyle?: StyleFunction;
 
     constructor() {
         this._layerMap = new Map<string, LayerInfo>();
@@ -49,9 +58,18 @@ export class VectorLayerMap {
         }
     }
 
+    /**
+     * _layerMapのキー値を生成する
+     * @param key 
+     * @returns _layerMapのキー値
+     */
     _convertMapKey(key: LayerKey | StaticLayerType) {
         const layerKey = typeof key !== 'object' ? this._convertLayerKeyFromStaticLayerType(key) : key;
-        return layerKey.id + '-' + layerKey.layerType;
+        if (layerKey.layerType === LayerType.Trak) {
+            return `${layerKey.id}-${layerKey.layerType}=${layerKey.zoomLv.min}-${layerKey.zoomLv.max}`;
+        } else {
+            return `${layerKey.id}-${layerKey.layerType}`;
+        }
     }
 
     createLayer(key: LayerKey | StaticLayerType) {
@@ -90,10 +108,23 @@ export class VectorLayerMap {
                 layer.setStyle(this._pointLayerStyle);
             }
         
+        } else if (layerKey.layerType === LayerType.Trak) {
+            layer = new VectorLayer({
+                source,
+                minZoom: layerKey.zoomLv?.min,
+                maxZoom: layerKey.zoomLv?.max,
+                zIndex: 5,
+                properties: {
+                    name: key,
+                },
+            });
+            if (this._trackLayerStyle) {
+                layer.setStyle(this._trackLayerStyle);
+            }
+
         } else {
             layer = new VectorLayer({
                 source,
-                // zIndex: 2,
                 properties: {
                     name: key,
                 },
@@ -103,11 +134,9 @@ export class VectorLayerMap {
                 layer.setStyle(this._topographyLayerStyle);
             }
         }
-        this._layerMap.set(mapKey, {
-            id: layerKey.id,
-            layerType: layerKey.layerType,
+        this._layerMap.set(mapKey, Object.assign(layerKey, {
             layer,
-        });
+        }));
         console.log('crateLayer', key, this._layerMap.size);
         return layer;
     }
@@ -192,6 +221,14 @@ export class VectorLayerMap {
             layer.setStyle(style);
         });
         this._topographyLayerStyle = style;
+    }
+
+    setTrackLayerStyle(style: StyleFunction) {
+        this.getTheStyleLayers(LayerType.Trak).forEach(layer => {
+            console.log('set track style', layer.getSource()?.getFeatures().length)
+            layer.setStyle(style);
+        });
+        this._trackLayerStyle = style;
     }
     
     clear() {

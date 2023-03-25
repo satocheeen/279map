@@ -13,25 +13,31 @@ import VectorLayer from "ol/layer/Vector";
 import Style, { StyleFunction } from "ol/style/Style";
 import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
-import { FeatureType, ItemDefine, MapKind } from '../../279map-common';
+import { FeatureType, GeocoderId, ItemDefine, MapKind } from '../../279map-common';
 import BaseEvent from 'ol/events/Event';
 import * as MapUtility from '../../util/MapUtility';
+import { GeoJsonObject } from 'geojson';
+import { FeatureProperties } from '../../entry';
 
 const instansMap = new Map<string, OlMapWrapper>();
-
+type Param = {
+    id: string; // instanceを特定するID
+    target?: HTMLDivElement;    // 地図を配置するDivElement。MapChartContextの初期値を仮設定するために、undefinedを許容している。
+    getGeocoderFeature?: (id: GeocoderId) => Promise<GeoJsonObject>;    // 外部から図形を取得するためのAPIFunction
+}
 /**
  * OlMapWrapperんスタンスを生成する
  * @param id instanceを特定するID
  * @param target 地図を配置するDivElement。MapChartContextの初期値を仮設定するために、undefinedを許容している。
  * @returns OlMapWrapperインスタンス
  */
-export function createMapInstance(id: string, target: HTMLDivElement | undefined) {
-    if (instansMap.has(id)) {
+export function createMapInstance(param: Param) {
+    if (instansMap.has(param.id)) {
         console.warn('already created map');
-        return instansMap.get(id) as OlMapWrapper;
+        return instansMap.get(param.id) as OlMapWrapper;
     }
-    const map = new OlMapWrapper(id, target);
-    instansMap.set(id, map);
+    const map = new OlMapWrapper(param);
+    instansMap.set(param.id, map);
     return map;
 }
 
@@ -42,16 +48,17 @@ export class OlMapWrapper {
     _id: string;
     _map: OlMap;
     _vectorLayerMap: VectorLayerMap;
-    _mapKind: MapKind | undefined;
+    _mapKind?: MapKind;
     _currentZoom: number;   // Zoomレベル変更検知用に保持
+    _getGeocoderFeature?: (id: GeocoderId) => Promise<GeoJsonObject>;
 
-    constructor(id: string, target: HTMLDivElement | undefined) {
-        this._id = id;
+    constructor(param: Param) {
+        this._id = param.id;
         this._vectorLayerMap = new VectorLayerMap();
-        console.log('create OlMapWrapper', id);
+        console.log('create OlMapWrapper', param.id);
 
         const map = new OlMap({
-            target,
+            target: param.target,
             controls: olControl.defaults({attribution: true}),
             view: new View({
                 projection: 'EPSG:4326',
@@ -134,11 +141,23 @@ export class OlMapWrapper {
 
     _getLayerKey(item: ItemDefine): LayerKey | StaticLayerType {
         if (this._mapKind === MapKind.Real) {
-            const layerType = item.geoProperties?.featureType === FeatureType.STRUCTURE ? LayerType.Cluster : LayerType.Normal;
-            return {
-                id: item.dataSourceId,
-                layerType,
-            };
+            if (item.geoProperties.featureType === FeatureType.TRACK) {
+                return {
+                    id: item.dataSourceId,
+                    layerType: LayerType.Trak,
+                    zoomLv: {
+                        min: item.geoProperties.min_zoom,
+                        max: item.geoProperties.max_zoom,
+                    }
+                };
+            } else {
+                const layerType: LayerType = item.geoProperties.featureType === FeatureType.STRUCTURE ? LayerType.Cluster : LayerType.Normal;
+                return {
+                    id: item.dataSourceId,
+                    layerType,
+                };
+            }
+
         } else {
             if (item.geoProperties?.featureType === FeatureType.STRUCTURE) {
                 return StaticLayerType.VirtualItem;
@@ -148,12 +167,45 @@ export class OlMapWrapper {
         }
     }
 
-    addFeature(def: ItemDefine, feature: Feature<Geometry>) {
+    async _createFeatureGeometryFromItemDefine(def: ItemDefine): Promise<Feature<Geometry> | undefined> {
+        let feature: Feature<Geometry>;
+        if (def.geoProperties?.featureType === FeatureType.AREA && ('geocoderId' in def.geoProperties && def.geoProperties.geocoderId)) {
+            // Geocoderの図形の場合は、Geocoder図形呼び出し
+            if (!this._getGeocoderFeature) {
+                console.warn('getGeocoderFeature not set');
+                return;
+            }
+            const geoJson = await this._getGeocoderFeature(def.geoProperties.geocoderId);
+            feature = new GeoJSON().readFeatures(geoJson)[0];
+
+        } else {
+            feature = MapUtility.createFeatureByGeoJson(def.geoJson, def.geoProperties);
+        }
+        if (!feature) {
+            console.warn('contents could not be loaded.', def.id, JSON.stringify(def));
+            return;
+        }
+        feature.setId(def.id);
+
+        const properties = Object.assign({}, def.geoProperties ? def.geoProperties : {}, {
+            name: def.name,
+            lastEditedTime: def.lastEditedTime,
+        }) as FeatureProperties;
+        feature.setProperties(properties);
+
+        return feature;
+    }
+
+    async addFeature(def: ItemDefine) {
         if (!this._mapKind) {
             console.warn('mapKind not found.');
             return;
         }
 
+        const feature = await this._createFeatureGeometryFromItemDefine(def);
+        if (!feature) {
+            return;
+        }
         const geom = feature.getGeometry();
         if (!geom) {
             return;
@@ -279,6 +331,10 @@ export class OlMapWrapper {
      */
     setTopographyLayerStyle(style: StyleFunction) {
         this._vectorLayerMap.setTopographyLayerStyle(style);
+    }
+
+    setTrackLayerStyle(style: StyleFunction) {
+        this._vectorLayerMap.setTrackLayerStyle(style);
     }
 
     addListener(type: 'moveend', listener: (event: BaseEvent) => void) {

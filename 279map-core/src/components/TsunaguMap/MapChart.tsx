@@ -40,7 +40,9 @@ type MapChartContextType = {
     map: OlMapWrapper;
 }
 const defaultDummyMapId = 'dummy';
-const defaultDummyMap = new OlMapWrapper(defaultDummyMapId, undefined);
+const defaultDummyMap = new OlMapWrapper({
+    id: defaultDummyMapId
+});
 export const MapChartContext = React.createContext<MapChartContextType>({
     instanceId: 'dummy',
     map: defaultDummyMap,
@@ -67,13 +69,15 @@ export default function MapChart() {
     usePointStyle({
         map: mapRef.current
     });
-
     // -- コンテンツ（地形）レイヤ
     useFilteredTopographyStyle({
         map: mapRef.current,
     });
+    // -- 軌跡レイヤ
+    useTrackStyle({
+        map: mapRef.current,
+    });
 
-    // 軌跡レイヤ
     const trackLayersRef = useRef<VectorLayer<VectorSource>[]>([]); // ズームレベルごとにレイヤ管理
     const isDrawing = useRef(false);    // 描画中かどうか
 
@@ -156,6 +160,7 @@ export default function MapChart() {
         loadingCurrentAreaContents.current = false;
     }, [dispatch]);
 
+    const { getGeocoderFeature } = useAPI();
     /**
      * 地図初期化
      */
@@ -165,7 +170,11 @@ export default function MapChart() {
         }
         console.log('map initialized.');
         mapRef.current.dispose();
-        mapRef.current = createMapInstance(instanceIdRef.current, myRef.current);
+        mapRef.current = createMapInstance({
+            id: instanceIdRef.current,
+            target: myRef.current,
+            getGeocoderFeature,
+        });
 
         const h = addListener('LoadLatestData', async() => {
             await loadCurrentAreaContents();
@@ -176,7 +185,7 @@ export default function MapChart() {
             mapRef.current.dispose();
             removeListener(h);
         }
-    }, [dispatch, loadCurrentAreaContents]);
+    }, [dispatch, loadCurrentAreaContents, getGeocoderFeature]);
 
     const onSelectItem = useCallback((feature: Feature | undefined) => {
         if (!feature) {
@@ -192,10 +201,6 @@ export default function MapChart() {
      * 地図が切り替わったら、レイヤ再配置
      */
     useEffect(() => {
-        // if (!mapRef.current) {
-        //     console.warn('mapRef nothing')
-        //     return;
-        // }
         if (!mapKind) {
             return;
         }
@@ -249,7 +254,6 @@ export default function MapChart() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [defaultExtent]);
 
-    const { getGeocoderFeature } = useAPI();
     /**
      * アイテムFeatureをSourceにロードする
      * @param source ロード先
@@ -258,29 +262,7 @@ export default function MapChart() {
         console.log('loadItemsToSource');
         // 追加、更新
         for (const def of geoJsonItems) {
-            let featurething;
-            if (def.geoProperties?.featureType === FeatureType.AREA && ('geocoderId' in def.geoProperties && def.geoProperties.geocoderId)) {
-                // Geocoderの図形の場合は、Geocoder図形呼び出し
-                const geoJson = await getGeocoderFeature(def.geoProperties.geocoderId);
-                featurething = new GeoJSON().readFeatures(geoJson)[0];
-
-            } else {
-                featurething = MapUtility.createFeatureByGeoJson(def.geoJson, def.geoProperties);
-            }
-
-            if (!featurething) {
-                console.warn('contents could not be loaded.', def.id, JSON.stringify(def));
-                return;
-            }
-            featurething.setId(def.id);
-            const properties = Object.assign({}, def.geoProperties ? def.geoProperties : {}, {
-                name: def.name,
-                lastEditedTime: def.lastEditedTime,
-            }) as FeatureProperties;
-            featurething.setProperties(properties);
-
-            mapRef.current.addFeature(def, featurething);
-
+            mapRef.current.addFeature(def);
         }
         // 削除
         // 削除アイテム＝prevGeoJsonItemに存在して、geoJsonItemsに存在しないもの
@@ -292,7 +274,7 @@ export default function MapChart() {
             mapRef.current.removeFeature(item);
         });
 
-    }, [geoJsonItems, prevGeoJsonItems, getGeocoderFeature]);
+    }, [geoJsonItems, prevGeoJsonItems]);
 
     const focusItemId = useSelector((state: RootState) => state.operation.focusItemId);
     const operationMapKind = useSelector((state: RootState) => state.operation.currentMapKind);
@@ -377,65 +359,36 @@ export default function MapChart() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [itemMap]);
 
-    // TODO:
-    // const trackStyleHook = useTrackStyle();
-    // useEffect(() => {
-    //     // 新たに追加された軌跡について描画する
-    //     if (mapKind !== MapKind.Real) {
-    //         return;
-    //     }
-    //     trackItems.forEach((contents) => {
-    //         if (contents.position.type !== 'track') {
-    //             return;
-    //         }
-    //         const track = contents.position;
-    //         // 指定のズーム範囲のレイヤを取得する
-    //         let targetLayer = trackLayersRef.current.find((layer): boolean => {
-    //             return track.min_zoom === layer.getMinZoom() && track.max_zoom === layer.getMaxZoom();
-    //         });
-    //         // 存在しない場合は、新規レイヤ作成
-    //         if (targetLayer === undefined) {
-    //             targetLayer = new VectorLayer({
-    //                 source: new VectorSource(),
-    //                 minZoom: track.min_zoom,
-    //                 maxZoom: track.max_zoom,
-    //                 zIndex: 1,
-    //             });
-    //             trackStyleHook.addLayer(targetLayer);
-    //             trackLayersRef.current.push(targetLayer);
-    //             mapRef.current?.addLayer(targetLayer);
-    //         }
-
-    //         // 既に描画済みの場合は何もしない
-    //         const hit = targetLayer.getSource()?.getFeatureById(contents.id);
-    //         if (hit) {
-    //             return;
-    //         }
-
-    //         // geojsonを追加
-    //         const feature = new GeoJSON().readFeatures(track.geojson)[0];
-    //         feature.setId(contents.id);
-    //         targetLayer.getSource()?.addFeature(feature);
-    //     });
-    //     // 削除
-    //     trackLayersRef.current.forEach((layer) => {
-    //         const source = layer.getSource();
-    //         if (!source) {
-    //             return;
-    //         }
-    //         const deleteFeatures = source.getFeatures().filter(feature => {
-    //             const id = feature.getId();
-    //             const exist = trackItems.some(content => content.id === id);
-    //             return !exist;
-    //         });
-    //         deleteFeatures.forEach(feature => {
-    //             source.removeFeature(feature);
-    //         });
-    //     });
+    useEffect(() => {
+        // 新たに追加された軌跡について描画する
+        if (mapKind !== MapKind.Real) {
+            return;
+        }
+        trackItems.forEach((item) => {
+            if (item.geoProperties.featureType !== FeatureType.TRACK) {
+                return;
+            }
+            mapRef.current.addFeature(item);
+        });
+        // // 削除
+        // trackLayersRef.current.forEach((layer) => {
+        //     const source = layer.getSource();
+        //     if (!source) {
+        //         return;
+        //     }
+        //     const deleteFeatures = source.getFeatures().filter(feature => {
+        //         const id = feature.getId();
+        //         const exist = trackItems.some(content => content.id === id);
+        //         return !exist;
+        //     });
+        //     deleteFeatures.forEach(feature => {
+        //         source.removeFeature(feature);
+        //     });
+        // });
 
 
-    //     // eslint-disable-next-line react-hooks/exhaustive-deps
-    // }, [trackItems]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [trackItems]);
 
     const optionClassName = useMemo(() => {
         if (flipping) {

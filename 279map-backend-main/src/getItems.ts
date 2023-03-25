@@ -105,7 +105,7 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
                                     {
                                         featureType: FeatureType.STRUCTURE,
                                     };
-            if ('radius' in geoProperties) {
+            if ('radius' in geoProperties && mapKind === MapKind.Real) {
                 geoProperties.featureType = FeatureType.AREA;
             }
 
@@ -118,6 +118,10 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
                 contents,
                 lastEditedTime,
             });
+        }
+
+        if (mapKind === MapKind.Virtual) {
+            return pointContents;
         }
 
         // 軌跡コンテンツ
