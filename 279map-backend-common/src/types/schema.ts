@@ -55,7 +55,7 @@ export type TrackGeoJsonTable = {
     sub_id: number;
     min_zoom: number;
     max_zoom: number;
-    geojson: string;
+    geojson: any;
 }
 export type ItemsTable = {
     item_page_id: string;
