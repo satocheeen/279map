@@ -78,7 +78,6 @@ export default function MapChart() {
         map: mapRef.current,
     });
 
-    const trackLayersRef = useRef<VectorLayer<VectorSource>[]>([]); // ズームレベルごとにレイヤ管理
     const isDrawing = useRef(false);    // 描画中かどうか
 
     const mapId = useSelector((state: RootState) => {
@@ -214,11 +213,6 @@ export default function MapChart() {
 
         // 現在のレイヤ、データソースを削除
         mapRef.current.clearAllLayers();
-        // trackLayersRef.current.forEach(layer => {
-        //     mapRef.current?.removeLayer(layer);
-        //     layer.getSource()?.clear();
-        // });
-        // trackLayersRef.current = [];
         
         // 初期レイヤ生成
         console.log('mapKind', mapKind);
