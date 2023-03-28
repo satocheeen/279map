@@ -8,13 +8,11 @@ import styles from './TestMap.module.scss';
 /**
  * for Development
  */
-// const mapId = 'VXNlck5vZGU6Mg==';
-const mapId = 'VXNlck5vZGU6Mw==';
-// const mapId = 'otakaramap';
+const mapId = 'otakaramap';
+const isLogin = false;
 const props = {
     mapServerHost: 'localhost',
     mapId,
-    auth: 'hogehoge',
     iconDefine: [
         {
             id: 'pin',
@@ -121,12 +119,18 @@ export default function TestMap() {
 
     const [token, setToken] = useState<string|undefined>();
     useEffect(() => {
+        if (!isLogin) return;
         setTimeout(() => {
             console.log('setToken');
             setToken(mapId);
             // setToken('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImE2S0hnVFRPMWZqRThXX1hqZWNoTyJ9.eyJpc3MiOiJodHRwczovL2Rldi1nbjVhdzhqaXVscThxcmJ6LmpwLmF1dGgwLmNvbS8iLCJzdWIiOiJhdXRoMHw2M2M4ZmMxODMyOTA1NTA4YjMzNTM3MDMiLCJhdWQiOlsiaHR0cHM6Ly8yNzltYXAuc2F0b2NoZWVlbi9hcGkiLCJodHRwczovL2Rldi1nbjVhdzhqaXVscThxcmJ6LmpwLmF1dGgwLmNvbS91c2VyaW5mbyJdLCJpYXQiOjE2NzU3MzE5NjcsImV4cCI6MTY3NTgxODM2NywiYXpwIjoiUmxXblR3OGhXV0ZQWjdCZDBnYTl0VmRhQm13SFQ1UXgiLCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIn0.ECU90vNX3o1Z8Lo7MvP_MsE-Ae2tSSsTLfsFsDfTkwp_Ypg82X_N62hedAT05dBhn9-XSlX_a9YVmguY2jEKvtBTvdy9Ah5t8TYzFrDwMds6OcRWQeKdJX_nATgVY0x9iwDvHRQbZY9Zhib1JxpaJ44e2KjZ1wMy7r1gmSSAo0E-JlFu-SQuRictobaaY9GiiWnh1NxhMvkMCdTs31fAHjOv7AakL6h0flOOPRO6Lzdy7e9ho_hnUVE0aP1qKrnJcE0gSNLzwA_oDHSuDPpsU_gO-Bh551dYWpIUYt-Sh66Sva_jcU_LFmjhyniWwWeo2HfLDryUl8sTqzuwrC1gAA');
         }, 10);
     }, []);
+
+    const showMap = useMemo(() => {
+        if (!isLogin) return true;
+        return token ? true : false;
+    }, [token]);
 
     return (
         <>
@@ -197,7 +201,7 @@ export default function TestMap() {
                 </div>
             </div>
             <div className={styles.Map}>
-                {token &&
+                {showMap &&
                     <TsunaguMap {...props}
                     token={token}
                     disabledPopup={disabledPopup}
