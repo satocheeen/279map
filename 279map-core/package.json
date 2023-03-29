@@ -1,6 +1,6 @@
 {
   "name": "279map-core",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "the core of 279map frontend",
   "author": "Satocheeen (https://satocheeen.com)",
   "license": "MPL-2.0",
@@ -17,6 +17,7 @@
     "@rollup/plugin-image": "^3.0.1",
     "@rollup/plugin-json": "^5.0.1",
     "@rollup/plugin-node-resolve": "^13.0.6",
+    "@rollup/plugin-strip": "^3.0.2",
     "@rollup/plugin-typescript": "^8.3.0",
     "@types/geojson": "^7946.0.10",
     "@typescript-eslint/eslint-plugin": "^5.44.0",
