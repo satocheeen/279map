@@ -6,18 +6,11 @@ import { dataActions } from "../data/dataSlice";
 import { loadCategories, loadEvents, loadOriginalIconDefine } from "../data/dataThunk";
 import { GetMapInfoAPI, GetMapInfoResult, WebSocketMessage } from 'tsunagumap-api';
 import { MapKind, MapDefine } from "../../279map-common";
+import { ConnectResult } from "../../types/types";
 
-export type ConnectMapResult = {
-    result: 'success',
-    connectedMap: MapDefine,
-} | {
-    result: 'Unauthorized',
-} | {
-    result: 'Forbidden',
-}
-export const connectMap = createAsyncThunk<ConnectMapResult, { mapId: string; token?: string }>(
+export const connectMap = createAsyncThunk<ConnectResult, { mapId: string; token?: string }>(
     'session/connectMapStatus',
-    async(param, { rejectWithValue, getState, dispatch }) => {
+    async(param, { getState }) => {
         const mapServer = (getState() as RootState).session.mapServer;
 
         try {
@@ -38,11 +31,17 @@ export const connectMap = createAsyncThunk<ConnectMapResult, { mapId: string; to
             if (!result.ok) {
                 if (result.status === 401) {
                     return {
-                        result: 'Unauthorized',
+                        result: 'failure',
+                        error: {
+                            type: 'Unauthorized'
+                        },
                     };
                 } else if (result.status === 403) {
                     return {
-                        result: 'Forbidden',
+                        result: 'failure',
+                        error: {
+                            type: 'Forbidden',
+                        }
                     }
                 } else {
                     throw new Error(result.statusText);
@@ -52,12 +51,18 @@ export const connectMap = createAsyncThunk<ConnectMapResult, { mapId: string; to
 
             return {
                 result: 'success',
-                connectedMap: json,
+                mapDefine: json,
             };    
 
         } catch(e) {
             console.warn('connect error', e);
-            return rejectWithValue('connect error' + e);
+            return {
+                result: 'failure',
+                error: {
+                    type: 'ConnectError',
+                    detail: e + '',
+                }
+            }
         }
     }
 )

@@ -11,12 +11,13 @@ import OverlaySpinner from '../common/spinner/OverlaySpinner';
 import { openItemContentsPopup } from '../popup/popupThunk';
 import { OwnerContext } from './TsunaguMap';
 import { sessionActions } from '../../store/session/sessionSlice';
-import { connectMap, loadMapDefine, ConnectMapResult } from '../../store/session/sessionThunk';
+import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
 import { useSpinner } from '../common/spinner/useSpinner';
 import { getContents } from '../../store/data/dataUtility';
 import { useCommand } from '../../api/useCommand';
 import { ContentAttr } from '../../279map-common';
 import styles from './MapWrapper.module.scss';
+import { ConnectResult } from '../../types/types';
 
 export default function MapWrapper() {
     const ownerContext = useContext(OwnerContext);
@@ -120,21 +121,18 @@ export default function MapWrapper() {
             token: ownerContext.token,
         }))
         .then((res) => {
-            const result = res.payload as ConnectMapResult;
+            const result = res.payload as ConnectResult;
             if (onConnectRef.current) {
                 if (result.result === 'success') {
                     onConnectRef.current({
                         result: 'success',
-                        mapDefine: result.connectedMap,
+                        mapDefine: result.mapDefine,
                         commandHook,
-                    });
-                } else if (result.result === 'Unauthorized') {
-                    onConnectRef.current({
-                        result: 'Unauthorized',
                     });
                 } else {
                     onConnectRef.current({
-                        result: 'Forbidden',
+                        result: 'failure',
+                        error: result.error,
                     });
                 }
             }
@@ -231,12 +229,20 @@ export default function MapWrapper() {
     useEffect(() => {
         if (connectStatus.status === 'connecting-map') {
             spinner.showSpinner('ロード中...')
-        } else if (connectStatus.status === 'Unauthorized') {
+        } else if (connectStatus.status === 'failure') {
             spinner.hideSpinner();
-            setErrorMessage('ログインが必要です');
-        } else if (connectStatus.status === 'Forbidden') {
-            spinner.hideSpinner();
-            setErrorMessage('この地図へのアクセス権限がありません。再ログインして問題が解決しない場合は、管理者へ問い合わせてください。');
+            const errorMessage = function(){
+                switch(connectStatus.error.type) {
+                    case 'ConnectError':
+                        return '地図サーバーに接続できません';
+                    case 'Unauthorized':
+                        return 'この地図を表示するには、ログインが必要です';
+                    case 'Forbidden':
+                        return 'この地図へのアクセス権限がありません。再ログインして問題が解決しない場合は、管理者へ問い合わせてください。';
+                }
+            }();
+            const detail = connectStatus.error.detail ? `\n${connectStatus.error.detail}` : '';
+            setErrorMessage(errorMessage + detail);
         } else if (currentMapKindInfo) {
             spinner.hideSpinner();
         }

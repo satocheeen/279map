@@ -1,6 +1,6 @@
 import { MapDefine, MapKind } from "../../279map-common";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { ServerInfo } from "../../types/types";
+import { ConnectError, ServerInfo } from "../../types/types";
 import { connectMap, loadMapDefine } from "./sessionThunk";
 import { Extent } from 'ol/extent';
 
@@ -10,7 +10,8 @@ type ConnectStatus = {
     status: 'connected',
     connectedMap: MapDefine,
 } | {
-    status: 'Unauthorized' | 'Forbidden',
+    status: 'failure',
+    error: ConnectError,
 }
 const sessionSlice = createSlice({
     name: 'session',
@@ -38,11 +39,12 @@ const sessionSlice = createSlice({
             if (action.payload.result === 'success') {
                 state.connectStatus = {
                     status: 'connected',
-                    connectedMap: action.payload.connectedMap,
+                    connectedMap: action.payload.mapDefine,
                 }
             } else {
                 state.connectStatus = {
-                    status: action.payload.result
+                    status: 'failure',
+                    error: action.payload.error,
                 }
             }
         })

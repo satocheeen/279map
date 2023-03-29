@@ -4,15 +4,23 @@ import { CategoryDefine, EventDefine, MapDefine, MapKind } from '../279map-commo
 import { CommandHookType } from '../api/useCommand';
 import { LinkContentToItemParam, RegistContentParam } from "tsunagumap-api";
 
-export type OnConnectParam = {
+export type ConnectError = {
+    type: 'Unauthorized' | 'Forbidden' | 'ConnectError';
+    detail?: string;
+}
+type ConnectSuccessResult = {
     result: 'success',
     mapDefine: MapDefine,
-    commandHook: CommandHookType,
-} | {
-    result: 'Unauthorized',
-} | {
-    result: 'Forbidden',
 }
+type ConnectFailureResult = {
+    result: 'failure',
+    error: ConnectError;
+}
+export type ConnectResult = ConnectSuccessResult | ConnectFailureResult;
+export type OnConnectParam = (ConnectSuccessResult & {
+    commandHook: CommandHookType,
+}) | ConnectFailureResult;
+
 export type TsunaguMapProps = {
     mapId: string;
     mapServerHost: string;
