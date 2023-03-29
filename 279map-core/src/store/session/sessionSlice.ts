@@ -49,10 +49,18 @@ const sessionSlice = createSlice({
             }
         })
         .addCase(loadMapDefine.fulfilled, (state, action) => {
-            state.currentMapKindInfo = {
-                mapKind: action.payload.mapKind,
-                extent: action.payload.extent,
-            };
+            if (action.payload.result === 'success') {
+                state.currentMapKindInfo = {
+                    mapKind: action.payload.mapInfo.mapKind,
+                    extent: action.payload.mapInfo.extent,
+                };
+   
+            } else {
+                state.connectStatus = {
+                    status: 'failure',
+                    error: action.payload.error,
+                }
+            }
         })
     }
 })

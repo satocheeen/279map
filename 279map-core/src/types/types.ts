@@ -2,24 +2,32 @@ import { ContentAttr, GeoProperties, IconDefine, UnpointContent } from "../279ma
 import { CSSProperties } from "react";
 import { CategoryDefine, EventDefine, MapDefine, MapKind } from '../279map-common';
 import { CommandHookType } from '../api/useCommand';
-import { LinkContentToItemParam, RegistContentParam } from "tsunagumap-api";
+import { GetMapInfoResult, LinkContentToItemParam, RegistContentParam } from "tsunagumap-api";
 
 export type ConnectError = {
-    type: 'Unauthorized' | 'Forbidden' | 'ConnectError';
+    type: 'Unauthorized' | 'Forbidden' | 'ConnectError' | 'SessionError';
     detail?: string;
 }
 type ConnectSuccessResult = {
-    result: 'success',
-    mapDefine: MapDefine,
+    result: 'success';
+    mapDefine: MapDefine;
 }
 type ConnectFailureResult = {
-    result: 'failure',
+    result: 'failure';
     error: ConnectError;
 }
 export type ConnectResult = ConnectSuccessResult | ConnectFailureResult;
 export type OnConnectParam = (ConnectSuccessResult & {
     commandHook: CommandHookType,
 }) | ConnectFailureResult;
+
+export type LoadMapDefineResult = {
+    result: 'success';
+    mapInfo: GetMapInfoResult;
+} | {
+    result: 'failure';
+    error: ConnectError;
+}
 
 export type TsunaguMapProps = {
     mapId: string;

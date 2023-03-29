@@ -6,7 +6,7 @@ import { dataActions } from "../data/dataSlice";
 import { loadCategories, loadEvents, loadOriginalIconDefine } from "../data/dataThunk";
 import { GetMapInfoAPI, GetMapInfoResult, WebSocketMessage } from 'tsunagumap-api';
 import { MapKind, MapDefine } from "../../279map-common";
-import { ConnectResult } from "../../types/types";
+import { ConnectResult, LoadMapDefineResult } from "../../types/types";
 
 export const connectMap = createAsyncThunk<ConnectResult, { mapId: string; token?: string }>(
     'session/connectMapStatus',
@@ -71,9 +71,9 @@ export const connectMap = createAsyncThunk<ConnectResult, { mapId: string; token
  * 地図定義ロード
  * @param mapKind ロードする地図種別。未指定の場合は、デフォルトの地図を読み込む。
  */
-export const loadMapDefine = createAsyncThunk<GetMapInfoResult, MapKind>(
+export const loadMapDefine = createAsyncThunk<LoadMapDefineResult, MapKind>(
     'session/loadMapDefineStatus',
-    async(param, { rejectWithValue, getState, dispatch }) => {
+    async(param, { getState, dispatch }) => {
         const session = (getState() as RootState).session;
         const mapServer = session.mapServer;
 
@@ -136,12 +136,20 @@ export const loadMapDefine = createAsyncThunk<GetMapInfoResult, MapKind>(
             dispatch(loadEvents());
             dispatch(loadCategories());
 
-            return apiResult;
+            return {
+                result: 'success',
+                mapInfo: apiResult,
+            };
 
         } catch(e) {
             console.warn('getMapInfo error', e);
-            return rejectWithValue(e);
-
+            return {
+                result: 'failure',
+                error: {
+                    type: 'SessionError',
+                    detail: e + '',
+                }
+            }
         }
     }
 );

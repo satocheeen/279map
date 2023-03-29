@@ -239,6 +239,8 @@ export default function MapWrapper() {
                         return 'この地図を表示するには、ログインが必要です';
                     case 'Forbidden':
                         return 'この地図へのアクセス権限がありません。再ログインして問題が解決しない場合は、管理者へ問い合わせてください。';
+                    case 'SessionError':
+                        return 'セッションの確立に失敗しました。再ロードしても問題が解決しない場合は、管理者へ問い合わせてください。';
                 }
             }();
             const detail = connectStatus.error.detail ? `\n${connectStatus.error.detail}` : '';
