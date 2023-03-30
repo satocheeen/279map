@@ -8,8 +8,6 @@ WORKDIR /home/node/app/backend
 
 # -- install latest npm package
 RUN npm install
-RUN npm i -D 279map-common@npm:279map-common
-RUN npm i 279map-backend-common@npm:279map-backend-common
 
 RUN npm run build
 
