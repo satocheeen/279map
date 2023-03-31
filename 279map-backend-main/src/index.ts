@@ -111,7 +111,6 @@ app.use(session({
     cookie: {
         sameSite: 'none' as boolean | "none" | "lax" | "strict" | undefined,
         secure: true,
-        domain: process.env.COOKIE_DOMAIN,
     },    
 }));
 app.use(cookieParser());
