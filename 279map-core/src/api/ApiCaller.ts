@@ -14,7 +14,6 @@ class ApiCaller {
     }
 
     async callApi<API extends APIDefine<any, any>> (api: API, param: API['param']): Promise<API['result']> {
-        let response: Response | undefined;
         try {
             const url = `https://${this._serverInfo.domain}/api/${api.uri}`;
             const res = await fetch(url, {
@@ -22,10 +21,9 @@ class ApiCaller {
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization:  param.token ? `Bearer ${param.token}` : '',
-                    SessionId: this._sid ?? '',
+                    sessionid: this._sid ?? '',
                 },
-                body: param.param ? JSON.stringify(param.param) : undefined,
-                // credentials: param.token ? undefined : 'include',
+                body: param ? JSON.stringify(param) : undefined,
             });
             if (!res.ok) {
                 const errorMessage = await res.text();

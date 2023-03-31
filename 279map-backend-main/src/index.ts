@@ -24,10 +24,10 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { readFileSync } from 'fs';
 import { exit } from 'process';
-import { getMapId } from './getMapDefine';
+import { getMapInfoByIdOrAlias } from './getMapDefine';
 import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { auth } from 'express-oauth2-jwt-bearer';
-import { getMapUser } from './auth/getMapUser';
+import { getMapUser, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
 import { getSessionIdFromCookies } from './session/session_utility';
 import { GetItemsParam } from '../279map-api-interface/dist';
@@ -75,7 +75,7 @@ if (!['None', 'Auth0', 'Direct'].includes(process.env.AUTH_METHOD)) {
     console.warn('illegal value AUTH_METHOD: ' + process.env.AUTH_METHOD);
     exit(1);
 }
-const authMethod = process.env.AUTH_METHOD as AuthMethod;
+export const authMethod = process.env.AUTH_METHOD as AuthMethod;
 
 logger.info('preparomg express');
 
@@ -238,7 +238,7 @@ app.get('/api/' + GetMapListAPI.uri,
     async(req: Request, res: Response) => {
         apiLogger.info('[start] getmaplist');
 
-        const userId = getUserId(req);
+        const userId = getUserIdByRequest(req);
         const list = await getMapList(userId);
 
         res.send(list);
@@ -249,49 +249,98 @@ app.get('/api/' + GetMapListAPI.uri,
 
 
 /**
- * mapIdを取得してrequestに格納
+ * 接続確立
+ */
+app.get('/api/connect', async(req, res) => {
+    apiLogger.info('[start] connect');
+
+    try {
+        const queryMapId = req.query.mapId;
+        if (!queryMapId || typeof queryMapId !== 'string') {
+            res.status(400).send('not set mapId');
+            return;
+        }
+        const mapInfo = await getMapInfoByIdOrAlias(queryMapId);
+        if (mapInfo === null) {
+            res.status(400).send('mapId is not found : ' + queryMapId);
+            return;
+        }
+
+        const userAccessInfo = await getUserAuthInfoInTheMap(mapInfo, req);
+        if (userAccessInfo.authLv === Auth.None) {
+            // 権限なしエラーを返却
+            res.status(403).send('user has no authentication for the map.');
+            return;
+        }
+
+        const session = broadCaster.createSession({
+            mapId: mapInfo.map_page_id,
+            mapKind: mapInfo.default_map,
+        });
+    
+        const result: ConnectResult = {
+            mapDefine: {
+                mapId: mapInfo.map_page_id,
+                name: mapInfo.title,
+                useMaps: mapInfo.use_maps.split(',').map(mapKindStr => {
+                    return mapKindStr as MapKind;
+                }),
+                defaultMapKind: mapInfo.default_map,
+                authLv: userAccessInfo.authLv,
+                userName: userAccessInfo.userName || '',
+            },
+            sid: session.sid,
+        }
+
+        res.send(result);
+        apiLogger.info('[end] connect', session.sid);
+    
+    } catch(e) {
+        apiLogger.warn('connect error', e);
+        res.status(500).send(e);
+
+    }
+});
+
+/**
+ * セッション情報を取得してrequestに格納
  */
 app.all('/api/*', 
     async(req: Request, res: Response, next: NextFunction) => {
-        let sessionKey = req.headers.authorization;
-        if (!sessionKey) {
-            sessionKey = getSessionIdFromCookies(req);
-        }
-        if (!sessionKey) {
-            sessionKey = req.sessionID;
+        const sessionKey = req.headers.sessionid;
+        console.log('req headers', req.headers);
+        if (!sessionKey || typeof sessionKey !== 'string') {
+            res.status(400).send('no connection');
+            return;
         }
         apiLogger.info('[start]', req.url, sessionKey);
 
-        if (req.url.startsWith('/api/connect')) {
-            const queryMapId = req.query.mapId;
-            if (!queryMapId || typeof queryMapId !== 'string') {
-                res.status(400).send('not set mapId');
-                return;
-            }
-            const mapId = await getMapId(queryMapId);
-            if (mapId === null) {
-                res.status(400).send('mapId is not found : ' + queryMapId);
-                return;
-            }
-            req.connect = {
-                sessionKey,
-                mapId,
-            };
-        } else {
-            const session = broadCaster.getSessionInfo(sessionKey);
-            if (!session?.currentMap) {
-                apiLogger.warn('currentMap is not found: ', sessionKey, broadCaster._sessionMap);
-                res.status(400).send('currentMap is not found: ' + sessionKey);
-                return;
-            }
-            req.connect = { 
-                sessionKey,
-                mapId: session.currentMap.mapId
-            };
+        const session = broadCaster.getSessionInfo(sessionKey);
+        if (!session?.currentMap) {
+            apiLogger.warn('currentMap is not found: ', sessionKey, broadCaster._sessionMap);
+            res.status(400).send('currentMap is not found: ' + sessionKey);
+            return;
         }
+        req.connect = { 
+            sessionKey,
+            mapId: session.currentMap.mapId
+        };
         next();
     }
 );
+
+/**
+ * 切断
+ */
+app.get('/api/disconnect', async(req, res) => {
+    if (!req.connect) {
+        res.status(400).send('no session');
+        return;
+    }
+    broadCaster.removeSession(req.connect.sessionKey);
+
+    res.send('disconnect');
+});
 
 /**
  * Authorization.
@@ -371,21 +420,6 @@ app.all('/api/*',
     },
 );
 
-const getUserId = (req: Request): string | undefined => {
-    if (authMethod === 'None') {
-        return;
-
-    } else if (authMethod === 'Auth0') {
-        if (!req.auth) {
-            return;
-        }
-        return req.auth.payload.sub;
-
-    } else {
-        // 
-        return req.headers.authorization?.replace('Bearer ', '');
-    }
-}
 /**
  * check the user's auth Level.
  * set req.connect.authLv
@@ -399,7 +433,7 @@ app.all('/api/*',
             return;
         }
 
-        const userId = getUserId(req);
+        const userId = getUserIdByRequest(req);
         if (!userId) {
             // 未ログイン（地図の公開範囲public）の場合は、View権限
             apiLogger.debug('未ログイン', mapDefine.public_range);
@@ -431,64 +465,6 @@ app.all('/api/*',
 
     }
 );
-/**
- * 接続確立
- */
-app.get('/api/connect', async(req, res, next) => {
-    apiLogger.info('[start] connect', req.connect?.sessionKey);
-    apiLogger.info('cookie', req.cookies);
-    if (!req.headers.cookie) {
-        // Cookie未設定時は、セッションに適当な値を格納することで、Cookieを作成する
-        // @ts-ignore
-        req.session.temp = 'hogehoge';
-    }
-
-    try {
-        if (!req.connect || !req.connect.mapPageInfo || !req.connect.authLv) {
-            res.status(500).send('Illegal state error');
-            return;
-        }
-
-        const session = broadCaster.createSession({
-            mapId: req.connect.mapId,
-            mapKind: req.connect.mapPageInfo.default_map,
-        });
-    
-        const result: ConnectResult = {
-            mapDefine: {
-                mapId: req.connect.mapId,
-                name: req.connect.mapPageInfo.title,
-                useMaps: req.connect.mapPageInfo.use_maps.split(',').map(mapKindStr => {
-                    return mapKindStr as MapKind;
-                }),
-                defaultMapKind: req.connect.mapPageInfo.default_map,
-                authLv: req.connect.authLv,
-                userName: req.connect.userName || '',
-            },
-            sid: session.sid,
-        }
-
-        res.send(result);
-        apiLogger.info('[end] connect', req.connect.sessionKey);
-    
-    } catch(e) {
-        apiLogger.warn('connect error', e);
-        res.status(500).send(e);
-
-    }
-});
-/**
- * 切断
- */
-app.get('/api/disconnect', async(req, res) => {
-    if (!req.connect) {
-        res.status(400).send('no session');
-        return;
-    }
-    broadCaster.removeSession(req.connect.sessionKey);
-
-    res.send('disconnect');
-});
 
 const checkApiAuthLv = (needAuthLv: Auth) => {
     return async(req: Request, res: Response, next: NextFunction) => {
