@@ -1,6 +1,7 @@
 import WebSocket from 'ws';
 import { ItemDefine } from '279map-backend-common';
 import { types } from '279map-backend-common';
+import dayjs from 'dayjs';
 
 type ItemInfo = {
     id: string;
@@ -10,6 +11,7 @@ type ItemInfo = {
 export default class SessionInfo {
     #sid: string;    // セッションID
     #ws?: WebSocket.WebSocket;   // WebSocket
+    #limit: string; // 有効期限
 
     // 現在表示中の地図
     #currentMap?: types.CurrentMap;
@@ -19,6 +21,10 @@ export default class SessionInfo {
 
     constructor(sid: string) {
         this.#sid = sid;
+        // 有効期限設定
+        const now = dayjs();
+        const tomorrowStr = now.add(1, 'day').format('YYYY-MM-DD HH:mm:ss');
+        this.#limit = tomorrowStr;
     }
 
     get sid() {

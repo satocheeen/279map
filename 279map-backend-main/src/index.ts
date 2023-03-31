@@ -449,6 +449,12 @@ app.get('/api/connect', async(req, res, next) => {
             return;
         }
 
+        const session = broadCaster.createSession();
+        session.currentMap = {
+            mapId: req.connect.mapId,
+            mapKind: req.connect.mapPageInfo.default_map,
+        };
+    
         const result: MapDefine = {
             mapId: req.connect.mapId,
             name: req.connect.mapPageInfo.title,
@@ -458,14 +464,9 @@ app.get('/api/connect', async(req, res, next) => {
             defaultMapKind: req.connect.mapPageInfo.default_map,
             authLv: req.connect.authLv,
             userName: req.connect.userName || '',
+            sid: session.sid,
         }
 
-        const session = broadCaster.addSession(req.connect.sessionKey);
-        session.currentMap = {
-            mapId: req.connect.mapId,
-            mapKind: req.connect.mapPageInfo.default_map,
-        };
-    
         res.send(result);
         apiLogger.info('[end] connect', req.connect.sessionKey);
     
@@ -520,10 +521,13 @@ app.post(`/api/${GetMapInfoAPI.uri}`,
 
             const result = await getMapInfo(param);
 
-            session.resetItems();
-            session.currentMap = {
-                mapId: result.mapId,
-                mapKind: result.mapKind,
+            // TODO
+            if (session) {
+                session.resetItems();
+                session.currentMap = {
+                    mapId: result.mapId,
+                    mapKind: result.mapKind,
+                }
             }
 
             apiLogger.debug('result', result);
@@ -544,7 +548,7 @@ app.post(`/api/${GetMapInfoAPI.uri}`,
  */
 const checkCurrentMap = async(req: Request, res: Response, next: NextFunction) => {
     const session = broadCaster.getSessionInfo(req.connect?.sessionKey as string);
-    if (!session.currentMap) {
+    if (!session?.currentMap) {
         res.status(500).send('not connect a map');
         return;
     }

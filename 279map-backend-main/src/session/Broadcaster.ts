@@ -6,6 +6,7 @@ import SessionInfo from './SessionInfo';
 import { MapKind } from '279map-backend-common';
 import { WebSocketMessage } from '../../279map-api-interface/src';
 import { getSessionIdFromCookies } from './session_utility';
+import crypto from 'crypto';
 
 /**
  * クライアントの情報を管理し、必要に応じてクライアントに通知を行うクラス
@@ -13,7 +14,7 @@ import { getSessionIdFromCookies } from './session_utility';
 export default class Broadcaster {
     _logger = getLogger('api');
     _wss: WebSocket.Server;
-    _sessionMap = {} as {[sid: string]: SessionInfo};
+    _sessionMap = new Map<string, SessionInfo>();
 
     constructor(server: Server) {
         this._wss = new WebSocket.Server({ server });
@@ -32,31 +33,33 @@ export default class Broadcaster {
 
             // WebSocketを保存
             this._logger.debug('WebSocket connect', sid, Object.keys(this._sessionMap));
-            if (this._sessionMap[sid] === undefined) {
-                // 先にhttp接続によりセッション情報が生成されているはずだが、
-                // サーバー寸断時にはこのルートにくる。
-                this._logger.warn('session recreate', sid);
-                this._sessionMap[sid] = new SessionInfo(sid);
+            const session = this._sessionMap.get(sid);
+            if (!session) {
+                return;
+                // // 先にhttp接続によりセッション情報が生成されているはずだが、
+                // // サーバー寸断時にはこのルートにくる。
+                // this._logger.warn('session recreate', sid);
+                // this._sessionMap[sid] = new SessionInfo(sid);
             }
-            this._sessionMap[sid].ws = ws;
+            session.ws = ws;
         
-            // サーバー寸断時の再接続考慮
-            ws.on('message', (message) => {
-                if (this._sessionMap[sid] === undefined) {
-                    this._logger.warn('session recreate', sid);
-                    this._sessionMap[sid] = new SessionInfo(sid);
-                    this._sessionMap[sid].ws = ws;
-                }
-                const info = JSON.parse(message.toString());
-                this._sessionMap[sid].currentMap = {
-                    mapId: info.mapId,
-                    mapKind: info.mapKind,
-                }
-            });
+            // // サーバー寸断時の再接続考慮
+            // ws.on('message', (message) => {
+            //     if (this._sessionMap[sid] === undefined) {
+            //         this._logger.warn('session recreate', sid);
+            //         this._sessionMap[sid] = new SessionInfo(sid);
+            //         this._sessionMap[sid].ws = ws;
+            //     }
+            //     const info = JSON.parse(message.toString());
+            //     this._sessionMap[sid].currentMap = {
+            //         mapId: info.mapId,
+            //         mapKind: info.mapKind,
+            //     }
+            // });
 
             ws.on('close', () => {
                 this._logger.info('Close Session', sid);
-                this._sessionMap[sid]?.resetItems();
+                this._sessionMap.get(sid)?.resetItems();
 
                 // delete this._sessionMap[sid];
                 this._logger.debug('disconnect', this._sessionMap);
@@ -64,27 +67,30 @@ export default class Broadcaster {
         });
         
     }
-    
-    addSession(sid: string): SessionInfo {
-        if (!sid) {
-            this._logger.warn('[addSession] sid not found');
-            throw '[addSession] sid not found';
-        }
-        if (this._sessionMap[sid]) {
-            this._logger.info('[addSession] session already exist', sid);
-            return this._sessionMap[sid];
-        }
-        this._logger.info('[addSession] make a new session', sid);
-        this._sessionMap[sid] = new SessionInfo(sid);
-        return this._sessionMap[sid];
-    }
 
+    createSession(): SessionInfo {
+        // SID生成
+        let sid: string | undefined;
+        do {
+            const hash = createHash();
+            if (!this._sessionMap.has(hash)) {
+                sid = hash;
+            }
+        } while(sid === undefined);
+
+        const session = new SessionInfo(sid);
+        this._sessionMap.set(sid, session);
+        this._logger.info('[createSession] make a new session', sid);
+
+        return session;
+    }
+    
     removeSession(sid: string) {
-        delete this._sessionMap[sid];
+        this._sessionMap.delete(sid);
     }
 
     getSessionInfo(sid: string) {
-        return this._sessionMap[sid];
+        return this._sessionMap.get(sid);
     }
 
     getCurrentMap(sid: string) {
@@ -168,4 +174,17 @@ export default class Broadcaster {
         this.#broadcast(currentMap.mapId, currentMap.mapKind, message);
     }
 
+}
+
+function createHash(): string {
+    // 生成するハッシュの長さ（バイト数）
+    const hashLength = 32;
+
+    // ランダムなバイト列を生成する
+    const randomBytes = crypto.randomBytes(hashLength);
+
+    // バイト列をハッシュ化する
+    const hash = crypto.createHash('sha256').update(randomBytes).digest('hex');
+
+    return hash;
 }
