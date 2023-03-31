@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import { ItemDefine } from '279map-backend-common';
+import { ItemDefine, MapKind } from '279map-backend-common';
 import { types } from '279map-backend-common';
 import dayjs from 'dayjs';
 
@@ -14,13 +14,14 @@ export default class SessionInfo {
     #limit: string; // 有効期限
 
     // 現在表示中の地図
-    #currentMap?: types.CurrentMap;
+    #currentMap: types.CurrentMap;
 
     // クライアントに送信済みのアイテム情報
     #items: ItemInfo[] = [];
 
-    constructor(sid: string) {
+    constructor(sid: string, currentMap: types.CurrentMap) {
         this.#sid = sid;
+        this.#currentMap = currentMap;
         // 有効期限設定
         const now = dayjs();
         const tomorrowStr = now.add(1, 'day').format('YYYY-MM-DD HH:mm:ss');
@@ -39,9 +40,10 @@ export default class SessionInfo {
         return this.#ws;
     }
 
-    set currentMap(currentMap: types.CurrentMap | undefined) {
-        this.#currentMap = currentMap;
+    setMapKind(mapKind: MapKind) {
+        this.#currentMap.mapKind = mapKind;
     }
+
     get currentMap() {
         return this.#currentMap;
     }

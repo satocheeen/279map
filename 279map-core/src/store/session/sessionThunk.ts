@@ -1,20 +1,20 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { callApi, getServerUrl } from "../../api/api";
 import { doCommand } from "../../util/Commander";
 import { RootState } from "../configureStore";
 import { dataActions } from "../data/dataSlice";
 import { loadCategories, loadEvents, loadOriginalIconDefine } from "../data/dataThunk";
-import { GetMapInfoAPI, GetMapInfoResult, WebSocketMessage } from 'tsunagumap-api';
-import { MapKind, MapDefine } from "../../279map-common";
-import { ConnectResult, LoadMapDefineResult } from "../../types/types";
+import { ConnectResult, GetMapInfoAPI, WebSocketMessage } from 'tsunagumap-api';
+import { MapKind } from "../../279map-common";
+import { ConnectAPIResult, LoadMapDefineResult } from "../../types/types";
+import { createAPICallerInstance, getAPICallerInstance } from "../../api/ApiCaller";
 
-export const connectMap = createAsyncThunk<ConnectResult, { mapId: string; token?: string }>(
+export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; token?: string }>(
     'session/connectMapStatus',
     async(param, { getState }) => {
         const mapServer = (getState() as RootState).session.mapServer;
 
         try {
-            const serverUrl = getServerUrl(mapServer);
+            const serverUrl = `https://${mapServer.domain}`;
     
             let url = `${serverUrl}/api/connect?mapId=${param.mapId}`;
             let headers = {};
@@ -47,11 +47,14 @@ export const connectMap = createAsyncThunk<ConnectResult, { mapId: string; token
                     throw new Error(result.statusText);
                 }
             }
-            const json = await result.json() as MapDefine;
+            const json = await result.json() as ConnectResult;
+
+            const apiCaller = createAPICallerInstance(mapServer);
+            apiCaller.setSID(json.sid);
 
             return {
                 result: 'success',
-                mapDefine: json,
+                connectResult: json,
             };    
 
         } catch(e) {
@@ -125,9 +128,8 @@ export const loadMapDefine = createAsyncThunk<LoadMapDefineResult, MapKind>(
                 });
             };
         
-            const apiResult = await callApi(mapServer, GetMapInfoAPI, {
+            const apiResult = await getAPICallerInstance()?.callApi(GetMapInfoAPI, {
                 mapKind: param,
-                mapId: session.connectStatus.connectedMap.mapId,  // TODO 廃止
             });
 
             startWss();

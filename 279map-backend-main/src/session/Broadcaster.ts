@@ -7,6 +7,7 @@ import { MapKind } from '279map-backend-common';
 import { WebSocketMessage } from '../../279map-api-interface/src';
 import { getSessionIdFromCookies } from './session_utility';
 import crypto from 'crypto';
+import { types } from '279map-backend-common';
 
 /**
  * クライアントの情報を管理し、必要に応じてクライアントに通知を行うクラス
@@ -68,7 +69,7 @@ export default class Broadcaster {
         
     }
 
-    createSession(): SessionInfo {
+    createSession(currentMap: types.CurrentMap): SessionInfo {
         // SID生成
         let sid: string | undefined;
         do {
@@ -78,7 +79,7 @@ export default class Broadcaster {
             }
         } while(sid === undefined);
 
-        const session = new SessionInfo(sid);
+        const session = new SessionInfo(sid, currentMap);
         this._sessionMap.set(sid, session);
         this._logger.info('[createSession] make a new session', sid);
 

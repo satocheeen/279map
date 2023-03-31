@@ -17,7 +17,7 @@ import { getContents } from '../../store/data/dataUtility';
 import { useCommand } from '../../api/useCommand';
 import { ContentAttr } from '../../279map-common';
 import styles from './MapWrapper.module.scss';
-import { ConnectResult } from '../../types/types';
+import { ConnectAPIResult } from '../../types/types';
 
 export default function MapWrapper() {
     const ownerContext = useContext(OwnerContext);
@@ -121,12 +121,12 @@ export default function MapWrapper() {
             token: ownerContext.token,
         }))
         .then((res) => {
-            const result = res.payload as ConnectResult;
+            const result = res.payload as ConnectAPIResult;
             if (onConnectRef.current) {
                 if (result.result === 'success') {
                     onConnectRef.current({
                         result: 'success',
-                        mapDefine: result.mapDefine,
+                        mapDefine: result.connectResult.mapDefine,
                         commandHook,
                     });
                 } else {

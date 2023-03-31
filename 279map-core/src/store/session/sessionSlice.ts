@@ -39,7 +39,7 @@ const sessionSlice = createSlice({
             if (action.payload.result === 'success') {
                 state.connectStatus = {
                     status: 'connected',
-                    connectedMap: action.payload.mapDefine,
+                    connectedMap: action.payload.connectResult.mapDefine,
                 }
             } else {
                 state.connectStatus = {

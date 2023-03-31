@@ -25,7 +25,7 @@ import cookieParser from 'cookie-parser';
 import { readFileSync } from 'fs';
 import { exit } from 'process';
 import { getMapId } from './getMapDefine';
-import { ConfigAPI, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
+import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { auth } from 'express-oauth2-jwt-bearer';
 import { getMapUser } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
@@ -141,7 +141,7 @@ const initializeDb = async() => {
             await ConnectionPool.getConnection()
             flag = false;
         } catch (e) {
-            logger.warn('db cconnect failed. retry...');
+            logger.warn('db connect failed. retry...');
             await utility.sleep(3);
         }
         
@@ -449,21 +449,22 @@ app.get('/api/connect', async(req, res, next) => {
             return;
         }
 
-        const session = broadCaster.createSession();
-        session.currentMap = {
+        const session = broadCaster.createSession({
             mapId: req.connect.mapId,
             mapKind: req.connect.mapPageInfo.default_map,
-        };
+        });
     
-        const result: MapDefine = {
-            mapId: req.connect.mapId,
-            name: req.connect.mapPageInfo.title,
-            useMaps: req.connect.mapPageInfo.use_maps.split(',').map(mapKindStr => {
-                return mapKindStr as MapKind;
-            }),
-            defaultMapKind: req.connect.mapPageInfo.default_map,
-            authLv: req.connect.authLv,
-            userName: req.connect.userName || '',
+        const result: ConnectResult = {
+            mapDefine: {
+                mapId: req.connect.mapId,
+                name: req.connect.mapPageInfo.title,
+                useMaps: req.connect.mapPageInfo.use_maps.split(',').map(mapKindStr => {
+                    return mapKindStr as MapKind;
+                }),
+                defaultMapKind: req.connect.mapPageInfo.default_map,
+                authLv: req.connect.authLv,
+                userName: req.connect.userName || '',
+            },
             sid: session.sid,
         }
 
@@ -516,18 +517,21 @@ app.post(`/api/${GetMapInfoAPI.uri}`,
     async(req, res, next) => {
         try {
             const session = broadCaster.getSessionInfo(req.connect?.sessionKey as string);
+            if (!session) {
+                throw 'no session';
+            }
 
             const param = req.body as GetMapInfoParam;
 
-            const result = await getMapInfo(param);
+            const result = await getMapInfo({
+                mapId: session.currentMap.mapId,
+                param
+            });
 
             // TODO
             if (session) {
                 session.resetItems();
-                session.currentMap = {
-                    mapId: result.mapId,
-                    mapKind: result.mapKind,
-                }
+                session.setMapKind(result.mapKind);
             }
 
             apiLogger.debug('result', result);

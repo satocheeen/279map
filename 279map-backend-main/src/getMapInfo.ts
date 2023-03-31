@@ -5,16 +5,15 @@ import { GetMapInfoParam, GetMapInfoResult } from '../279map-api-interface/src';
 
 /**
  * 指定の地図データページ配下のコンテンツ情報を返す
- * @param pageId Notion地図データページID
+ * @param mapId Notion地図データページID
  */
-export async function getMapInfo(param: GetMapInfoParam): Promise<GetMapInfoResult> {
-    const pageId = param.mapId;
+export async function getMapInfo({ param, mapId }: { param: GetMapInfoParam; mapId: string }): Promise<GetMapInfoResult> {
     const mapKind = param.mapKind;
     
-    const mapPageInfo = await getMapPageInfo(pageId);
+    const mapPageInfo = await getMapPageInfo(mapId);
     if (mapPageInfo === null) {
         // 該当地図が存在しない場合
-        throw '地図が存在しません:' + pageId;
+        throw '地図が存在しません:' + mapId;
     }
     const targetMapKind = mapKind ? mapKind : mapPageInfo.default_map;
 
@@ -27,8 +26,6 @@ export async function getMapInfo(param: GetMapInfoParam): Promise<GetMapInfoResu
     });
 
     return {
-        mapId: mapPageInfo.map_page_id,
-        name: mapPageInfo.title,
         mapKind: mapKind ? mapKind : mapPageInfo.default_map,
         extent,
         useMaps,

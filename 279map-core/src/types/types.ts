@@ -1,8 +1,8 @@
-import { ContentAttr, GeoProperties, IconDefine, UnpointContent } from "../279map-common";
+import { ContentAttr, GeoProperties, IconDefine, MapDefine, UnpointContent } from "../279map-common";
 import { CSSProperties } from "react";
-import { CategoryDefine, EventDefine, MapDefine, MapKind } from '../279map-common';
+import { CategoryDefine, EventDefine, MapKind } from '../279map-common';
 import { CommandHookType } from '../api/useCommand';
-import { GetMapInfoResult, LinkContentToItemParam, RegistContentParam } from "tsunagumap-api";
+import { ConnectResult, GetMapInfoResult, LinkContentToItemParam, RegistContentParam } from "tsunagumap-api";
 
 export type ConnectError = {
     type: 'Unauthorized' | 'Forbidden' | 'ConnectError' | 'SessionError';
@@ -10,16 +10,21 @@ export type ConnectError = {
 }
 type ConnectSuccessResult = {
     result: 'success';
-    mapDefine: MapDefine;
+    connectResult: ConnectResult;
 }
 type ConnectFailureResult = {
     result: 'failure';
     error: ConnectError;
 }
-export type ConnectResult = ConnectSuccessResult | ConnectFailureResult;
-export type OnConnectParam = (ConnectSuccessResult & {
+export type ConnectAPIResult = ConnectSuccessResult | ConnectFailureResult;
+export type OnConnectParam = {
+    result: 'success';
+    mapDefine: MapDefine;
     commandHook: CommandHookType,
-}) | ConnectFailureResult;
+}  | ConnectFailureResult;
+// export type OnConnectParam = (ConnectSuccessResult & {
+//     commandHook: CommandHookType,
+// }) | ConnectFailureResult;
 
 export type LoadMapDefineResult = {
     result: 'success';
