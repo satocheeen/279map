@@ -41,7 +41,6 @@ export type MapDefine = {
     defaultMapKind: MapKind;
     authLv: Auth;   // ユーザの接続権限
     userName: string;
-    sid: string;   // セッションID
 }
 
 /**
