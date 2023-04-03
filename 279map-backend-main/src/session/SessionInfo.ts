@@ -2,11 +2,19 @@ import WebSocket from 'ws';
 import { ItemDefine, MapKind } from '279map-backend-common';
 import { types } from '279map-backend-common';
 import dayjs from 'dayjs';
+import { getSessionMap } from './SessionMap';
 
 type ItemInfo = {
     id: string;
     lastEditedTime: string;
 };
+
+// ファイルバックアップ用データ
+export type SerializableSessionInfo = {
+    limit: string;
+    currentMap: types.CurrentMap;
+    items: ItemInfo[];
+}
 
 export default class SessionInfo {
     #sid: string;    // セッションID
@@ -42,6 +50,7 @@ export default class SessionInfo {
 
     setMapKind(mapKind: MapKind) {
         this.#currentMap.mapKind = mapKind;
+        getSessionMap().flushFile();
     }
 
     get currentMap() {
@@ -84,5 +93,13 @@ export default class SessionInfo {
 
     resetItems() {
         this.#items = [];
+    }
+
+    toSerialize(): SerializableSessionInfo {
+        return {
+            limit: this.#limit,
+            currentMap: this.#currentMap,
+            items: this.#items,
+        }
     }
 }

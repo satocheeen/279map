@@ -8,6 +8,7 @@ import { WebSocketMessage } from '../../279map-api-interface/src';
 import { getSessionIdFromCookies } from './session_utility';
 import crypto from 'crypto';
 import { types } from '279map-backend-common';
+import { getSessionMap } from './SessionMap';
 
 /**
  * クライアントの情報を管理し、必要に応じてクライアントに通知を行うクラス
@@ -15,7 +16,6 @@ import { types } from '279map-backend-common';
 export default class Broadcaster {
     _logger = getLogger('api');
     _wss: WebSocket.Server;
-    _sessionMap = new Map<string, SessionInfo>();
 
     constructor(server: Server) {
         this._wss = new WebSocket.Server({ server });
@@ -33,8 +33,8 @@ export default class Broadcaster {
             }
 
             // WebSocketを保存
-            this._logger.debug('WebSocket connect', sid, Object.keys(this._sessionMap));
-            const session = this._sessionMap.get(sid);
+            this._logger.debug('WebSocket connect', sid, Object.keys(getSessionMap()));
+            const session = getSessionMap().get(sid);
             if (!session) {
                 return;
                 // // 先にhttp接続によりセッション情報が生成されているはずだが、
@@ -60,10 +60,10 @@ export default class Broadcaster {
 
             ws.on('close', () => {
                 this._logger.info('Close Session', sid);
-                this._sessionMap.get(sid)?.resetItems();
+                getSessionMap().get(sid)?.resetItems();
 
-                // delete this._sessionMap[sid];
-                this._logger.debug('disconnect', this._sessionMap);
+                // delete getSessionMap()[sid];
+                this._logger.debug('disconnect', getSessionMap());
             });
         });
         
@@ -74,24 +74,24 @@ export default class Broadcaster {
         let sid: string | undefined;
         do {
             const hash = createHash();
-            if (!this._sessionMap.has(hash)) {
+            if (!getSessionMap().has(hash)) {
                 sid = hash;
             }
         } while(sid === undefined);
 
         const session = new SessionInfo(sid, currentMap);
-        this._sessionMap.set(sid, session);
+        getSessionMap().set(sid, session);
         this._logger.info('[createSession] make a new session', sid);
 
         return session;
     }
     
     removeSession(sid: string) {
-        this._sessionMap.delete(sid);
+        getSessionMap().delete(sid);
     }
 
     getSessionInfo(sid: string) {
-        return this._sessionMap.get(sid);
+        return getSessionMap().get(sid);
     }
 
     getCurrentMap(sid: string) {
@@ -112,7 +112,7 @@ export default class Broadcaster {
 
     broadCastUpdateItem(mapPageId: string, itemIdList: string[]) {
         // 送信済みアイテム情報から当該アイテムを除去する
-        Object.values(this._sessionMap).forEach(client => {
+        Object.values(getSessionMap()).forEach(client => {
             client.removeItems(itemIdList);
         });
         // 接続しているユーザに最新情報を取得するように通知
@@ -123,7 +123,7 @@ export default class Broadcaster {
 
     broadCastDeleteItem(mapPageId: string, itemIdList: string[]) {
         // 送信済みアイテム情報から当該アイテムを除去する
-        Object.values(this._sessionMap).forEach(client => {
+        Object.values(getSessionMap()).forEach(client => {
             client.removeItems(itemIdList);
         });
         // 接続しているユーザにアイテム削除するように通知
@@ -141,7 +141,7 @@ export default class Broadcaster {
      */
     #broadcast(mapPageId: string, mapKind: MapKind | undefined, message: WebSocketMessage) {
         this._logger.debug('broadcast', mapKind, message);
-        Object.values(this._sessionMap).forEach(client => {
+        Object.values(getSessionMap()).forEach(client => {
             if (!client.ws || !client.currentMap) {
                 return;
             }

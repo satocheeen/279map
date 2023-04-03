@@ -63,6 +63,10 @@ if (!process.env.SESSION_SECRET_KEY) {
     console.warn('not set env SESSION_SECRET_KEY');
     exit(1);
 }
+if (!process.env.SESSION_STORAGE_PATH) {
+    console.warn('not set env SESSION_STORAGE_PATH');
+    exit(1);
+}
 if (!process.env.HOST) {
     console.warn('not set env HOST');
     exit(1);
@@ -76,6 +80,7 @@ if (!['None', 'Auth0', 'Direct'].includes(process.env.AUTH_METHOD)) {
     exit(1);
 }
 export const authMethod = process.env.AUTH_METHOD as AuthMethod;
+export const SessionStoragePath = process.env.SESSION_STORAGE_PATH;
 
 logger.info('preparomg express');
 
@@ -317,7 +322,7 @@ app.all('/api/*',
 
         const session = broadCaster.getSessionInfo(sessionKey);
         if (!session?.currentMap) {
-            apiLogger.warn('currentMap is not found: ', sessionKey, broadCaster._sessionMap);
+            apiLogger.warn('currentMap is not found: ', sessionKey);
             res.status(400).send('currentMap is not found: ' + sessionKey);
             return;
         }
