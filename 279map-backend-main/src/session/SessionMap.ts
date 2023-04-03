@@ -1,20 +1,21 @@
 import SessionInfo, { SerializableSessionInfo } from "./SessionInfo";
-import { SessionStoragePath } from '..';
 import jsonfile from 'jsonfile';
 
 type SessionMapTypeForStorage = {[sid: string]: SerializableSessionInfo};
 type SessionMapType = {[sid: string]:  SessionInfo};
 
-class SessionMap {
+export default class SessionMap {
+    #sessionStoragePath: string;
     #sessionMap: SessionMapType;
 
-    constructor() {
-        const data: SessionMapTypeForStorage = jsonfile.readFileSync(SessionStoragePath, { throws: false }) || {};
+    constructor(sessionStoragePath: string) {
+        this.#sessionStoragePath = sessionStoragePath;
+        const data: SessionMapTypeForStorage = jsonfile.readFileSync(sessionStoragePath, { throws: true }) || {};
         const sessionMap: SessionMapType = {};
         Object.entries(data).forEach(entry => {
             const sid = entry[0];
             const data = entry[1];
-            sessionMap[sid] = new SessionInfo(sid, data.currentMap);
+            sessionMap[sid] = new SessionInfo(sid, data.currentMap, this.flushFile.bind(this));
         });
         this.#sessionMap = sessionMap;
     }
@@ -26,7 +27,7 @@ class SessionMap {
             const sessionInfo = entry[1];
             sessionMapForStorage[sid] = sessionInfo.toSerialize();
         });
-        jsonfile.writeFileSync(SessionStoragePath, sessionMapForStorage);
+        jsonfile.writeFileSync(this.#sessionStoragePath, sessionMapForStorage);
     }
 
     get(sid: string) {
@@ -47,8 +48,3 @@ class SessionMap {
         this.flushFile();
     }
 }
-const instance = new SessionMap();
-export function getSessionMap() {
-    return instance;
-}
-

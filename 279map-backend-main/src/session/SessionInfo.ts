@@ -2,7 +2,6 @@ import WebSocket from 'ws';
 import { ItemDefine, MapKind } from '279map-backend-common';
 import { types } from '279map-backend-common';
 import dayjs from 'dayjs';
-import { getSessionMap } from './SessionMap';
 
 type ItemInfo = {
     id: string;
@@ -27,13 +26,18 @@ export default class SessionInfo {
     // クライアントに送信済みのアイテム情報
     #items: ItemInfo[] = [];
 
-    constructor(sid: string, currentMap: types.CurrentMap) {
+    // セッション情報変更時に呼ぶ関数
+    #callbackWhenUpdated: () => void;
+
+    constructor(sid: string, currentMap: types.CurrentMap, callbackWhenUpdated: () => void) {
         this.#sid = sid;
         this.#currentMap = currentMap;
         // 有効期限設定
         const now = dayjs();
         const tomorrowStr = now.add(1, 'day').format('YYYY-MM-DD HH:mm:ss');
         this.#limit = tomorrowStr;
+
+        this.#callbackWhenUpdated = callbackWhenUpdated;
     }
 
     get sid() {
@@ -50,7 +54,7 @@ export default class SessionInfo {
 
     setMapKind(mapKind: MapKind) {
         this.#currentMap.mapKind = mapKind;
-        getSessionMap().flushFile();
+        this.#callbackWhenUpdated();
     }
 
     get currentMap() {

@@ -10,7 +10,7 @@ import { createAPICallerInstance, getAPICallerInstance } from "../../api/ApiCall
 
 export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; token?: string }>(
     'session/connectMapStatus',
-    async(param, { getState }) => {
+    async(param, { getState, dispatch }) => {
         const mapServer = (getState() as RootState).session.mapServer;
 
         try {
@@ -52,6 +52,44 @@ export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; to
             const apiCaller = createAPICallerInstance(mapServer);
             apiCaller.setSID(json.sid);
 
+            // WebSocket接続確立
+            const startWss = () => {
+                const protocol = 'wss';
+                const domain = mapServer.domain;
+
+                const wss = new WebSocket(protocol + "://" + domain);
+                wss.addEventListener('open', () => {
+                    console.log('websocket connected');
+                    // セッションIDを送信
+                    wss.send(JSON.stringify({
+                        sid: json.sid,
+                    }));
+
+                });
+                wss.addEventListener('close', () => {
+                    console.log('websocket closed');
+                    // サーバーが瞬断された可能性があるので再接続試行
+                    startWss();
+                });
+                wss.addEventListener('error', (err) => {
+                    console.warn('websocket error', err);
+                });
+                wss.addEventListener('message', (evt) => {
+                    console.log('websocket message', evt.data);
+                    const message = JSON.parse(evt.data) as WebSocketMessage;
+                    if (message.type === 'updated') {
+                        doCommand({
+                            command: "LoadLatestData",
+                            param: undefined,
+                        });
+                    } else if (message.type === 'delete') {
+                        // アイテム削除
+                        dispatch(dataActions.removeItems(message.itemPageIdList));
+                    }
+                });
+            };
+            startWss();
+
             return {
                 result: 'success',
                 connectResult: json,
@@ -88,51 +126,12 @@ export const loadMapDefine = createAsyncThunk<LoadMapDefineResult, MapKind>(
             if (session.connectStatus.status !== 'connected') {
                 throw 'no connect map.';
             }
-            const mapKind = param;
-            const mapId = session.connectStatus.connectedMap.mapId;
+            // const mapKind = param;
+            // const mapId = session.connectStatus.connectedMap.mapId;
 
-            // WebSocket通信設定
-            const startWss = () => {
-                const protocol = 'wss';
-                const domain = mapServer.domain;
-        
-                const wss = new WebSocket(protocol + "://" + domain);
-                wss.addEventListener('open', () => {
-                    console.log('websocket connected');
-                    // 現在の地図情報を送信 (サーバー寸断後の再接続時用)
-                    wss.send(JSON.stringify({
-                        mapId,
-                        mapKind,
-                    }));
-                });
-                wss.addEventListener('close', () => {
-                    console.log('websocket closed');
-                    // サーバーが瞬断された可能性があるので再接続試行
-                    startWss();
-                });
-                wss.addEventListener('error', (err) => {
-                    console.warn('websocket error', err);
-                });
-                wss.addEventListener('message', (evt) => {
-                    console.log('websocket message', evt.data);
-                    const message = JSON.parse(evt.data) as WebSocketMessage;
-                    if (message.type === 'updated') {
-                        doCommand({
-                            command: "LoadLatestData",
-                            param: undefined,
-                        });
-                    } else if (message.type === 'delete') {
-                        // アイテム削除
-                        dispatch(dataActions.removeItems(message.itemPageIdList));
-                    }
-                });
-            };
-        
             const apiResult = await getAPICallerInstance()?.callApi(GetMapInfoAPI, {
                 mapKind: param,
             });
-
-            startWss();
 
             dispatch(loadOriginalIconDefine());
             dispatch(loadEvents());

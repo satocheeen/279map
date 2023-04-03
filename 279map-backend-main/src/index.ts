@@ -67,6 +67,7 @@ if (!process.env.SESSION_STORAGE_PATH) {
     console.warn('not set env SESSION_STORAGE_PATH');
     exit(1);
 }
+const sessionStoragePath = process.env.SESSION_STORAGE_PATH;
 if (!process.env.HOST) {
     console.warn('not set env HOST');
     exit(1);
@@ -80,7 +81,6 @@ if (!['None', 'Auth0', 'Direct'].includes(process.env.AUTH_METHOD)) {
     exit(1);
 }
 export const authMethod = process.env.AUTH_METHOD as AuthMethod;
-export const SessionStoragePath = process.env.SESSION_STORAGE_PATH;
 
 logger.info('preparomg express');
 
@@ -183,7 +183,7 @@ const server = https.createServer({
 }, app);
 
 // Create WebSoskce Server
-const broadCaster = new Broadcaster(server);
+const broadCaster = new Broadcaster(server, sessionStoragePath);
 
 logger.debug('create checkJwt', process.env.AUTH0_AUDIENCE, `https://${process.env.AUTH0_DOMAIN}/`);
 const checkJwt: (req: Request, res: Response, next: NextFunction) => void = function(){
@@ -313,7 +313,6 @@ app.get('/api/connect', async(req, res) => {
 app.all('/api/*', 
     async(req: Request, res: Response, next: NextFunction) => {
         const sessionKey = req.headers.sessionid;
-        console.log('req headers', req.headers);
         if (!sessionKey || typeof sessionKey !== 'string') {
             res.status(400).send('no connection');
             return;
