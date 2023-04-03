@@ -3,7 +3,6 @@ import mysql from 'mysql2/promise';
 import { getMapInfo } from './getMapInfo';
 import { Auth, MapKind, MapDefine, AuthMethod, ServerConfig } from '279map-backend-common';
 import { getItems } from './getItems';
-import session from 'express-session';
 import { configure, getLogger } from "log4js";
 import { DbSetting, LogSetting, SessionSecretKey } from './config';
 import { getThumbnail } from './getThumbnsil';
@@ -21,7 +20,6 @@ import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import { getIcon } from './api/getIcon';
 import { utility, api as backendAPI, types } from '279map-backend-common';
 import cors from 'cors';
-import cookieParser from 'cookie-parser';
 import { readFileSync } from 'fs';
 import { exit } from 'process';
 import { getMapInfoByIdOrAlias } from './getMapDefine';
@@ -29,7 +27,6 @@ import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI
 import { auth } from 'express-oauth2-jwt-bearer';
 import { getMapUser, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { getSessionIdFromCookies } from './session/session_utility';
 import { GetItemsParam } from '../279map-api-interface/dist';
 import { getMapList } from './api/getMapList';
 
@@ -107,18 +104,6 @@ app.use(express.urlencoded({extended: true}));
 app.use(express.json({
     limit: '1mb',
 })); 
-
-/** セッション設定 */
-app.use(session({
-    secret: SessionSecretKey,
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-        sameSite: 'none' as boolean | "none" | "lax" | "strict" | undefined,
-        secure: true,
-    },    
-}));
-app.use(cookieParser());
 
 // File Service proxy
 if (process.env.FS_SERVICE_URL_PATH) {

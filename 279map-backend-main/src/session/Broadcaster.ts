@@ -5,7 +5,6 @@ import { Request } from 'express';
 import SessionInfo from './SessionInfo';
 import { MapKind } from '279map-backend-common';
 import { WebSocketMessage } from '../../279map-api-interface/src';
-import { getSessionIdFromCookies } from './session_utility';
 import crypto from 'crypto';
 import { types } from '279map-backend-common';
 import SessionMap from './SessionMap';
