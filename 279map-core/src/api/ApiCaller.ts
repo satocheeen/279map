@@ -20,7 +20,7 @@ class ApiCaller {
                 method: api.method,
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization:  param.token ? `Bearer ${param.token}` : '',
+                    Authorization:  param?.token ? `Bearer ${param.token}` : '',
                     sessionid: this._sid ?? '',
                 },
                 body: param ? JSON.stringify(param) : undefined,
