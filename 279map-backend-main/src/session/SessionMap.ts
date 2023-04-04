@@ -1,5 +1,6 @@
 import SessionInfo, { SerializableSessionInfo } from "./SessionInfo";
 import jsonfile from 'jsonfile';
+import { types } from '279map-backend-common';
 
 type SessionMapTypeForStorage = {[sid: string]: SerializableSessionInfo};
 type SessionMapType = {[sid: string]:  SessionInfo};
@@ -38,9 +39,11 @@ export default class SessionMap {
         return sid in this.#sessionMap;
     }
 
-    set(sid: string, session: SessionInfo) {
+    createSession(sid: string, currentMap: types.CurrentMap): SessionInfo {
+        const session = new SessionInfo(sid, currentMap, this.flushFile.bind(this));
         this.#sessionMap[sid] = session;
         this.flushFile();
+        return session;
     }
 
     delete(sid: string) {

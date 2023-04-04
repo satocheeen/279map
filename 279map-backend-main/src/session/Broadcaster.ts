@@ -33,7 +33,9 @@ export default class Broadcaster {
                 const info = JSON.parse(message.toString());
                 sid = info.sid as string;
                 this._logger.debug('WebSocket connect', sid);
-                this.#sessionMap.get(sid).ws = ws;
+                if (this.#sessionMap.has(sid)) {
+                    this.#sessionMap.get(sid).ws = ws;
+                }
             });
 
             ws.on('close', () => {
@@ -42,7 +44,13 @@ export default class Broadcaster {
                 this.#sessionMap.delete(sid);
             });
         });
-        
+    }
+
+    /**
+     * 有効期限切れセッションを削除する
+     */
+    removeExpiredSessions() {
+
     }
 
     createSession(currentMap: types.CurrentMap): SessionInfo {
@@ -55,10 +63,7 @@ export default class Broadcaster {
             }
         } while(sid === undefined);
 
-        const session = new SessionInfo(sid, currentMap, () => {
-            this.#sessionMap.flushFile();
-        });
-        this.#sessionMap.set(sid, session);
+        const session = this.#sessionMap.createSession(sid, currentMap);
         this._logger.info('[createSession] make a new session', sid);
 
         return session;
