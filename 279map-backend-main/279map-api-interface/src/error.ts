@@ -1,3 +1,3 @@
 export enum ErrorType {
-    SessionTimeOut,    
+    SessionTimeOut = 'SessionTimeOut',    
 }
