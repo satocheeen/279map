@@ -50,7 +50,7 @@ export default class Broadcaster {
      * 有効期限切れセッションを削除する
      */
     removeExpiredSessions() {
-
+        this.#sessionMap.removeExpiredSessions();
     }
 
     createSession(currentMap: types.CurrentMap): SessionInfo {

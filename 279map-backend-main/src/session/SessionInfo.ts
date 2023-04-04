@@ -7,12 +7,18 @@ type ItemInfo = {
     id: string;
     lastEditedTime: string;
 };
+const LIMIT_FORMAT = 'YYYY-MM-DD HH:mm:ss';
 
 // ファイルバックアップ用データ
 export type SerializableSessionInfo = {
-    limit: string;
     currentMap: types.CurrentMap;
+    limit: string;
     items: ItemInfo[];
+}
+type ConstructorParam = {
+    currentMap: types.CurrentMap;
+    limit?: string;
+    items?: ItemInfo[];
 }
 
 export default class SessionInfo {
@@ -29,13 +35,21 @@ export default class SessionInfo {
     // セッション情報変更時に呼ぶ関数
     #callbackWhenUpdated: () => void;
 
-    constructor(sid: string, currentMap: types.CurrentMap, callbackWhenUpdated: () => void) {
+    constructor(sid: string, param: ConstructorParam, callbackWhenUpdated: () => void) {
         this.#sid = sid;
-        this.#currentMap = currentMap;
+        this.#currentMap = param.currentMap;
         // 有効期限設定
-        const now = dayjs();
-        const tomorrowStr = now.add(1, 'day').format('YYYY-MM-DD HH:mm:ss');
-        this.#limit = tomorrowStr;
+        if (param.limit) {
+            this.#limit = param.limit;
+        } else {
+            const now = dayjs();
+            const tomorrowStr = now.add(30, 'minutes').format(LIMIT_FORMAT);
+            this.#limit = tomorrowStr;
+        }
+
+        if (param.items) {
+            this.#items = param.items;
+        }
 
         this.#callbackWhenUpdated = callbackWhenUpdated;
     }
@@ -97,6 +111,16 @@ export default class SessionInfo {
 
     resetItems() {
         this.#items = [];
+    }
+
+    /**
+     * セッションが有効期限切れの場合、trueを返す
+     */
+    isExpired() {
+        const now = dayjs();
+        const limit = dayjs(this.#limit, LIMIT_FORMAT);
+        const diff = now.diff(limit);
+        return diff > 0;
     }
 
     toSerialize(): SerializableSessionInfo {

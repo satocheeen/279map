@@ -1082,6 +1082,23 @@ internalApp.post('/api/broadcast', (req: Request, res: Response) => {
     res.status(201).send('broadcasted.');
 });
 
+/**
+ * 有効期限切れセッション削除（定期監視）
+ */
+const checkSessionProcess = () => {
+    try {
+        broadCaster.removeExpiredSessions();
+
+    } catch(e) {
+        logger.warn('更新チェック失敗', e);
+
+    } finally {
+        setTimeout(() => {
+            checkSessionProcess();
+        }, 1 * 60000); // 1分ごとにチェック
+    }
+}
+
 // DB接続完了してから開始
 logger.info('starting db');
 initializeDb()
@@ -1093,4 +1110,6 @@ initializeDb()
     internalApp.listen(process.env.MAIN_SERVICE_PORT, () => {
         logger.info('start internal server', process.env.MAIN_SERVICE_PORT);
     })
+    checkSessionProcess();
 });
+
