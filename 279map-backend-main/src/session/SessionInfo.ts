@@ -42,9 +42,7 @@ export default class SessionInfo {
         if (param.limit) {
             this.#limit = param.limit;
         } else {
-            const now = dayjs();
-            const tomorrowStr = now.add(30, 'minutes').format(LIMIT_FORMAT);
-            this.#limit = tomorrowStr;
+            this.#limit = this.#makeExpiredTime();
         }
 
         if (param.items) {
@@ -52,6 +50,12 @@ export default class SessionInfo {
         }
 
         this.#callbackWhenUpdated = callbackWhenUpdated;
+    }
+
+    #makeExpiredTime() {
+        const now = dayjs();
+        const expireDate = now.add(30, 'minutes').format(LIMIT_FORMAT);
+        return expireDate;
     }
 
     get sid() {
@@ -87,6 +91,7 @@ export default class SessionInfo {
                 hit.lastEditedTime = item.lastEditedTime;
             }
         });
+        this.#callbackWhenUpdated();
         // console.log('newValues', this._values.items);
     }
 
@@ -94,6 +99,12 @@ export default class SessionInfo {
         this.#items = this.#items.filter(item => {
             return !itemId.includes(item.id);
         });
+        this.#callbackWhenUpdated();
+    }
+
+    resetItems() {
+        this.#items = [];
+        this.#callbackWhenUpdated();
     }
 
     /**
@@ -109,10 +120,6 @@ export default class SessionInfo {
         return hit.lastEditedTime === item.lastEditedTime;
     }
 
-    resetItems() {
-        this.#items = [];
-    }
-
     /**
      * セッションが有効期限切れの場合、trueを返す
      */
@@ -121,6 +128,14 @@ export default class SessionInfo {
         const limit = dayjs(this.#limit, LIMIT_FORMAT);
         const diff = now.diff(limit);
         return diff > 0;
+    }
+
+    /**
+     * 有効期限切れ時間を延長する
+     */
+    extendExpire() {
+        this.#limit = this.#makeExpiredTime();
+        this.#callbackWhenUpdated();
     }
 
     toSerialize(): SerializableSessionInfo {

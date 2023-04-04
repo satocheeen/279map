@@ -522,6 +522,9 @@ const checkCurrentMap = async(req: Request, res: Response, next: NextFunction) =
         return;
     }
     req.currentMap = session.currentMap;
+
+    // extend expired time of session
+    session.extendExpire();
     next();
 }
 
