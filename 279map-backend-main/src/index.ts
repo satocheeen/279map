@@ -27,8 +27,9 @@ import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI
 import { auth } from 'express-oauth2-jwt-bearer';
 import { getMapUser, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { GetItemsParam } from '../279map-api-interface/dist';
+import { GetItemsParam } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
+import { ErrorType } from '../279map-api-interface/src/error';
 
 declare global {
     namespace Express {
@@ -517,6 +518,10 @@ app.post(`/api/${GetMapInfoAPI.uri}`,
  */
 const checkCurrentMap = async(req: Request, res: Response, next: NextFunction) => {
     const session = broadCaster.getSessionInfo(req.connect?.sessionKey as string);
+    if (!session) {
+        res.status(409).send(ErrorType.SessionTimeOut);
+        return;
+    }
     if (!session?.currentMap) {
         res.status(500).send('not connect a map');
         return;
