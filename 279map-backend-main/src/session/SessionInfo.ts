@@ -54,7 +54,8 @@ export default class SessionInfo {
 
     #makeExpiredTime() {
         const now = dayjs();
-        const expireDate = now.add(30, 'minutes').format(LIMIT_FORMAT);
+        const minutes = parseInt(process.env.SESSION_TIMEOUT_MINUTES || '60');
+        const expireDate = now.add(minutes, 'minutes').format(LIMIT_FORMAT);
         return expireDate;
     }
 
