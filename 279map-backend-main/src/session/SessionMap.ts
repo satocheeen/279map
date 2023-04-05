@@ -13,7 +13,7 @@ export default class SessionMap {
 
     constructor(sessionStoragePath: string) {
         this.#sessionStoragePath = sessionStoragePath;
-        const data: SessionMapTypeForStorage = jsonfile.readFileSync(sessionStoragePath, { throws: true }) || {};
+        const data: SessionMapTypeForStorage = jsonfile.readFileSync(sessionStoragePath, { throws: false }) || {};
         const sessionMap: SessionMapType = {};
         Object.entries(data).forEach(entry => {
             const sid = entry[0];

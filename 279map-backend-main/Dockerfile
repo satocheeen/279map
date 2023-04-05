@@ -29,6 +29,9 @@ COPY --from=build /home/node/app/backend/dist /var/www
 RUN mkdir /var/log/www
 RUN chmod 777 /var/log/www
 
+RUN mkdir /var/session
+RUN chmod 777 /var/session
+
 EXPOSE 80
 EXPOSE 8083
 
