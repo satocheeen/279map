@@ -18,6 +18,7 @@ import { useCommand } from '../../api/useCommand';
 import { ContentAttr } from '../../279map-common';
 import styles from './MapWrapper.module.scss';
 import { ConnectAPIResult } from '../../types/types';
+import { ErrorType } from 'tsunagumap-api';
 
 export default function MapWrapper() {
     const ownerContext = useContext(OwnerContext);
@@ -233,14 +234,16 @@ export default function MapWrapper() {
             spinner.hideSpinner();
             const errorMessage = function(){
                 switch(connectStatus.error.type) {
-                    case 'ConnectError':
+                    case 'UndefinedMapServer':
                         return '地図サーバーに接続できません';
-                    case 'Unauthorized':
+                    case ErrorType.UndefinedMap:
+                        return '指定の地図は存在しません';
+                    case ErrorType.Unauthorized:
                         return 'この地図を表示するには、ログインが必要です';
-                    case 'Forbidden':
+                    case ErrorType.Forbidden:
                         return 'この地図へのアクセス権限がありません。再ログインして問題が解決しない場合は、管理者へ問い合わせてください。';
-                    case 'SessionError':
-                        return 'セッションの確立に失敗しました。再ロードしても問題が解決しない場合は、管理者へ問い合わせてください。';
+                    case ErrorType.SessionTimeout:
+                        return 'しばらく操作されなかったため、セッション接続が切れました。再ロードしてください。';
                 }
             }();
             const detail = connectStatus.error.detail ? `\n${connectStatus.error.detail}` : '';

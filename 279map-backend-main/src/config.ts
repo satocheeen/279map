@@ -1,7 +1,6 @@
 import { Configuration } from "log4js";
 
 export const MapboxAccessToken = process.env.MAPBOX_ACCESS_TOKEN || '';
-export const SessionSecretKey = process.env.SESSION_SECRET_KEY || '';
 
 export const LogSetting = {
     "appenders" : {

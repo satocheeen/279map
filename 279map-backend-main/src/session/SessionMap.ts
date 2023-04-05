@@ -49,7 +49,7 @@ export default class SessionMap {
         jsonfile.writeFileSync(this.#sessionStoragePath, sessionMapForStorage);
     }
 
-    get(sid: string) {
+    get(sid: string): SessionInfo | undefined {
         return this.#sessionMap[sid];
     }
 

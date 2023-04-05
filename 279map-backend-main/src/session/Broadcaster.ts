@@ -33,8 +33,9 @@ export default class Broadcaster {
                 const info = JSON.parse(message.toString());
                 sid = info.sid as string;
                 this._logger.debug('WebSocket connect', sid);
-                if (this.#sessionMap.has(sid)) {
-                    this.#sessionMap.get(sid).ws = ws;
+                const session = this.#sessionMap.get(sid);
+                if (session) {
+                    session.ws = ws;
                 }
             });
 

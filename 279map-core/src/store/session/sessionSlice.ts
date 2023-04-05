@@ -1,6 +1,6 @@
 import { MapDefine, MapKind } from "../../279map-common";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { ConnectError, ServerInfo } from "../../types/types";
+import { ApiAccessError, ServerInfo } from "../../types/types";
 import { connectMap, loadMapDefine } from "./sessionThunk";
 import { Extent } from 'ol/extent';
 
@@ -11,7 +11,7 @@ type ConnectStatus = {
     connectedMap: MapDefine,
 } | {
     status: 'failure',
-    error: ConnectError,
+    error: ApiAccessError,
 }
 const sessionSlice = createSlice({
     name: 'session',
@@ -32,6 +32,9 @@ const sessionSlice = createSlice({
         setMapServer(state, action: PayloadAction<ServerInfo>) {
             state.mapServer = action.payload;
         },
+        updateConnectStatus(state, action: PayloadAction<ConnectStatus>) {
+            state.connectStatus = action.payload;
+        }
     },
     extraReducers: (builder) => {
         builder

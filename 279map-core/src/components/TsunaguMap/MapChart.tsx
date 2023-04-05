@@ -242,7 +242,10 @@ export default function MapChart() {
             console.warn('mapRef nothing')
             return;
         }
-        console.log('map create start');
+        if (!mapId) {
+            return;
+        }
+        console.log('map create start', mapId, mapKind);
 
         if (mapRef.current.getAllLayers().length > 0) {
             // 起動時以外の地図切り替えはアニメーション

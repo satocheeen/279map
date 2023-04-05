@@ -3,10 +3,11 @@ import { doCommand } from "../../util/Commander";
 import { RootState } from "../configureStore";
 import { dataActions } from "../data/dataSlice";
 import { loadCategories, loadEvents, loadOriginalIconDefine } from "../data/dataThunk";
-import { ConnectResult, GetMapInfoAPI, WebSocketMessage } from 'tsunagumap-api';
+import { ApiError, ConnectResult, ErrorType, GetMapInfoAPI, WebSocketMessage } from 'tsunagumap-api';
 import { MapKind } from "../../279map-common";
 import { ConnectAPIResult, LoadMapDefineResult } from "../../types/types";
 import { createAPICallerInstance, getAPICallerInstance } from "../../api/ApiCaller";
+import { sessionActions } from "./sessionSlice";
 
 export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; token?: string }>(
     'session/connectMapStatus',
@@ -29,27 +30,21 @@ export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; to
                 headers,
             });
             if (!result.ok) {
-                if (result.status === 401) {
-                    return {
-                        result: 'failure',
-                        error: {
-                            type: 'Unauthorized'
-                        },
-                    };
-                } else if (result.status === 403) {
-                    return {
-                        result: 'failure',
-                        error: {
-                            type: 'Forbidden',
-                        }
-                    }
-                } else {
-                    throw new Error(result.statusText);
+                const error: ApiError = await result.json();
+                return {
+                    result: 'failure',
+                    error,
                 }
             }
             const json = await result.json() as ConnectResult;
 
-            const apiCaller = createAPICallerInstance(mapServer);
+            const apiCaller = createAPICallerInstance(mapServer, (error: ApiError) => {
+                // コネクションエラー時
+                dispatch(sessionActions.updateConnectStatus({
+                    status: 'failure',
+                    error,
+                }));
+            });
             apiCaller.setSID(json.sid);
 
             // WebSocket接続確立
@@ -100,7 +95,7 @@ export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; to
             return {
                 result: 'failure',
                 error: {
-                    type: 'ConnectError',
+                    type: ErrorType.IllegalError,
                     detail: e + '',
                 }
             }
@@ -147,7 +142,7 @@ export const loadMapDefine = createAsyncThunk<LoadMapDefineResult, MapKind>(
             return {
                 result: 'failure',
                 error: {
-                    type: 'SessionError',
+                    type: ErrorType.IllegalError,
                     detail: e + '',
                 }
             }

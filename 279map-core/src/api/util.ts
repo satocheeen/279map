@@ -13,7 +13,7 @@ export async function getAccessableMapList(host: string, token: string | undefin
         domain: host,
         token,
     } as ServerInfo;
-    const apiCaller = createAPICallerInstance(mapServer);
+    const apiCaller = createAPICallerInstance(mapServer, () => {});
     try {
         const result = await apiCaller.callApi(GetMapListAPI, undefined);
         return result;
@@ -34,7 +34,7 @@ export async function getAuthConfig(host: string) {
     const mapServer = {
         domain: host,
     } as ServerInfo;
-    const apiCaller = createAPICallerInstance(mapServer);
+    const apiCaller = createAPICallerInstance(mapServer, () => {});
     try {
         const result = await apiCaller.callApi(ConfigAPI, undefined) as ServerConfig;
         return result;
