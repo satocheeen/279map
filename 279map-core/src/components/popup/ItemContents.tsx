@@ -67,7 +67,7 @@ export default function ItemContents(props: Props) {
     if (imageContentId) {
         return (
             <div className={styles.ImageContainer} onClick={onClick}>
-                <MyImage className={styles.Image} id={imageContentId} alt="contents" />
+                <MyImage type='thumbnail' className={styles.Image} id={imageContentId} alt="contents" />
             </div>
         )
     } else {

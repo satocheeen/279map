@@ -21,7 +21,7 @@ export default function Card(props: Props) {
     const imageElement = useMemo(() => {
         if (props.imageId) {
             return (
-                <MyImage id={props.imageId} alt="card image" />
+                <MyImage type='thumbnail' id={props.imageId} alt="card image" />
             )
         } else if (props.imageUrl) {
             return (

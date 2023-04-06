@@ -9,6 +9,7 @@ type Props = {
     className?: string;
     onClick?: () => void;
     alt: string;
+    type: 'thumbnail' | 'icon';
 }
 
 /**
