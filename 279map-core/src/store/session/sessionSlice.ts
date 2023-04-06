@@ -9,6 +9,7 @@ type ConnectStatus = {
 } | {
     status: 'connected',
     connectedMap: MapDefine,
+    sid: string,
 } | {
     status: 'failure',
     error: ApiAccessError,
@@ -43,6 +44,7 @@ const sessionSlice = createSlice({
                 state.connectStatus = {
                     status: 'connected',
                     connectedMap: action.payload.connectResult.mapDefine,
+                    sid: action.payload.connectResult.sid,
                 }
             } else {
                 state.connectStatus = {

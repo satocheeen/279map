@@ -20,6 +20,7 @@ import Spinner from "../common/spinner/Spinner";
 import { operationActions } from "../../store/operation/operationSlice";
 import { useFilter } from "../../store/useFilter";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
+import MyImage from "../common/image/MyImage";
 
 type Props = {
     itemId: string;
@@ -54,14 +55,6 @@ export default function Content(props: Props) {
     const urlType = useMemo(() => {
         return props.content.url ? CommonUtility.getUrlType(props.content.url) : undefined;
     }, [props.content]);
-
-    const imageUrl = useMemo(() => {
-        if (props.content.image) {
-            return `${apiUrl}getthumb?id=${props.content.id}`;
-        } else {
-            return undefined;
-        }
-    }, [props.content, apiUrl]);
 
     const onClick = useCallback(() => {
         switch(urlType) {
@@ -247,7 +240,7 @@ export default function Content(props: Props) {
 
         setShowSpinner(false);
 
-    }, [props.itemId, props.parentContentId, confirm, dispatch, props.content.anotherMapItemId, props.content.id]);
+    }, [props.itemId, props.parentContentId, confirm, dispatch, props.content]);
 
     const overview = useMemo(() => {
         if (!props.content.overview) {
@@ -321,9 +314,9 @@ export default function Content(props: Props) {
                     </div>
                 }
                 {
-                    imageUrl &&
+                    props.content.image &&
                         <div className={styles.ImageContainer}>
-                            <img className={styles.Image} src={imageUrl} onClick={onImageClick} alt="contents" />
+                            <MyImage className={styles.Image} id={props.content.id} onClick={onImageClick} alt="contents"/>
                         </div>
                 }
                 {
@@ -334,7 +327,7 @@ export default function Content(props: Props) {
                 }
             </>
         )
-    }, [overview, dateStr, categoryTag, showSpinner, imageUrl, props.content, onImageClick]);
+    }, [overview, dateStr, categoryTag, showSpinner, props.content, onImageClick]);
 
     return (
         <div className={styles.Item}>
