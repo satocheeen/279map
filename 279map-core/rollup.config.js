@@ -7,17 +7,23 @@ import postcss from 'rollup-plugin-postcss';
 import del from 'rollup-plugin-delete';
 import image from '@rollup/plugin-image';
 import urlResolve from 'rollup-plugin-url-resolve';
-import strip from '@rollup/plugin-strip';
+import { terser } from 'rollup-plugin-terser';
 
 const packageJson = require("./package.json");
 
 function getPlugins(name) {
   return [
-    resolve(),
+    terser({
+      format: {
+        comments: false,
+      }
+    }),
+      resolve(),
       commonjs(),
       typescript({
         tsconfig: "./tsconfig.json",
         declarationDir: name + '/types',
+        removeComments: true,
       }),
       postcss({
         extract: false,
@@ -33,7 +39,6 @@ function getPlugins(name) {
       del({ targets: name + '/*' }),
       image(),
       urlResolve(),
-      strip(),
   ]
 }
 export default [
