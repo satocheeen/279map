@@ -13,17 +13,19 @@ const packageJson = require("./package.json");
 
 function getPlugins(name) {
   return [
-    terser({
-      format: {
-        comments: false,
-      }
-    }),
+      terser({
+        format: {
+          comments: false,
+        },
+        compress: {
+          drop_console: true,
+        }
+      }),
       resolve(),
       commonjs(),
       typescript({
         tsconfig: "./tsconfig.json",
         declarationDir: name + '/types',
-        removeComments: true,
       }),
       postcss({
         extract: false,
