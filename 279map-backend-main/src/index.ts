@@ -374,12 +374,6 @@ app.all('/api/*',
         req.connect.mapPageInfo = mapPageInfo;
 
         if (!req.headers.authorization) {
-            if (authMethod === AuthMethod.Direct && (req.path === '/api/getthumb' || req.path === '/api/geticon')) {
-                // Direct認証の場合、getthumbはAuthenticatgionヘッダを付与できないので認証チェックしない
-                apiLogger.debug('skip checkJwt');
-                next('route');
-                return;
-            }
             // 未ログインの場合は、地図がpublicか確認
             if (mapPageInfo.public_range === types.schema.PublicRange.Private) {
                 // privateの場合 -> error
