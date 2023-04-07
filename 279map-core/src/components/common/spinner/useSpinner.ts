@@ -5,7 +5,7 @@ import { operationActions } from "../../../store/operation/operationSlice";
 export function useSpinner() {
     const dispatch = useDispatch();
 
-    const showSpinner = useCallback((message?: string) => {
+    const showSpinner = useCallback((message: string) => {
         dispatch(operationActions.showSpinner({
             show: true,
             message,

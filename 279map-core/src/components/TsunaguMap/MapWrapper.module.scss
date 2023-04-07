@@ -5,8 +5,10 @@
     top: 0;
     left: 0;
     background: #ffffffaa;
-    box-sizing: border-box;
-    padding-top: 50%;    
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
     text-align: center;
     white-space: pre-wrap;
 }
