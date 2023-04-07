@@ -70,7 +70,7 @@ export default function Modal(props: Props) {
             <div className={styles.Footer}>
                 {footer?.props.children}
             </div>
-            {props.spinner &&
+            {(props.spinner && props.show) &&
                 <OverlaySpinner message={typeof props.spinner === 'string' ? props.spinner : '処理中...'} />
             }
         </dialog>
