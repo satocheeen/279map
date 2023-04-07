@@ -43,10 +43,18 @@ export async function getUserAuthInfoInTheMap(mapPageInfo: types.schema.MapPageI
 
     const userId = getUserIdByRequest(req);
     if (!userId) {
-        // 未ログイン（地図の公開範囲public）の場合は、View権限
-        apiLogger.debug('未ログイン');
-        return {
-            authLv: Auth.View,
+        // 未ログインの場合
+        if (mapPageInfo.public_range === types.schema.PublicRange.Public) {
+            // 地図の公開範囲publicの場合は、View権限
+            apiLogger.debug('未ログイン-Public');
+            return {
+                authLv: Auth.View,
+            }
+        } else {
+            apiLogger.debug('未ログイン-Private');
+            return {
+                authLv: Auth.None,
+            }
         }
     }
 

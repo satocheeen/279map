@@ -244,6 +244,8 @@ export default function MapWrapper() {
                         return 'この地図へのアクセス権限がありません。再ログインして問題が解決しない場合は、管理者へ問い合わせてください。';
                     case ErrorType.SessionTimeout:
                         return 'しばらく操作されなかったため、セッション接続が切れました。再ロードしてください。';
+                    case ErrorType.IllegalError:
+                        return '想定外の問題が発生しました。再ロードしても問題が解決しない場合は、管理者へ問い合わせてください。';
                 }
             }();
             const detail = connectStatus.error.detail ? `\n${connectStatus.error.detail}` : '';
