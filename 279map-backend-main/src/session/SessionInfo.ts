@@ -1,23 +1,61 @@
 import WebSocket from 'ws';
-import { CurrentMap, ItemDefine } from '279map-backend-common';
+import { MapKind, CurrentMap, ItemDefine } from '279map-backend-common';
+import dayjs from 'dayjs';
 
 type ItemInfo = {
     id: string;
     lastEditedTime: string;
 };
+const LIMIT_FORMAT = 'YYYY-MM-DD HH:mm:ss';
+
+// ファイルバックアップ用データ
+export type SerializableSessionInfo = {
+    currentMap: CurrentMap;
+    limit: string;
+    items: ItemInfo[];
+}
+type ConstructorParam = {
+    currentMap: CurrentMap;
+    limit?: string;
+    items?: ItemInfo[];
+}
 
 export default class SessionInfo {
     #sid: string;    // セッションID
     #ws?: WebSocket.WebSocket;   // WebSocket
+    #limit: string; // 有効期限
 
     // 現在表示中の地図
-    #currentMap?: CurrentMap;
+    #currentMap: CurrentMap;
 
     // クライアントに送信済みのアイテム情報
     #items: ItemInfo[] = [];
 
-    constructor(sid: string) {
+    // セッション情報変更時に呼ぶ関数
+    #callbackWhenUpdated: () => void;
+
+    constructor(sid: string, param: ConstructorParam, callbackWhenUpdated: () => void) {
         this.#sid = sid;
+        this.#currentMap = param.currentMap;
+        // 有効期限設定
+        if (param.limit) {
+            this.#limit = param.limit;
+        } else {
+            this.#limit = this.#makeExpiredTime();
+        }
+
+        if (param.items) {
+            this.#items = param.items;
+        }
+
+        this.#callbackWhenUpdated = callbackWhenUpdated;
+    }
+
+    #makeExpiredTime() {
+        const now = dayjs();
+        const minutes = parseInt(process.env.SESSION_TIMEOUT_MINUTES || '60');
+        const expireDate = now.add(minutes, 'minutes').format(LIMIT_FORMAT);
+        return expireDate;
     }
 
     get sid() {
@@ -32,9 +70,11 @@ export default class SessionInfo {
         return this.#ws;
     }
 
-    set currentMap(currentMap: CurrentMap | undefined) {
-        this.#currentMap = currentMap;
+    setMapKind(mapKind: MapKind) {
+        this.#currentMap.mapKind = mapKind;
+        this.#callbackWhenUpdated();
     }
+
     get currentMap() {
         return this.#currentMap;
     }
@@ -51,6 +91,7 @@ export default class SessionInfo {
                 hit.lastEditedTime = item.lastEditedTime;
             }
         });
+        this.#callbackWhenUpdated();
         // console.log('newValues', this._values.items);
     }
 
@@ -58,6 +99,12 @@ export default class SessionInfo {
         this.#items = this.#items.filter(item => {
             return !itemId.includes(item.id);
         });
+        this.#callbackWhenUpdated();
+    }
+
+    resetItems() {
+        this.#items = [];
+        this.#callbackWhenUpdated();
     }
 
     /**
@@ -73,7 +120,29 @@ export default class SessionInfo {
         return hit.lastEditedTime === item.lastEditedTime;
     }
 
-    resetItems() {
-        this.#items = [];
+    /**
+     * セッションが有効期限切れの場合、trueを返す
+     */
+    isExpired() {
+        const now = dayjs();
+        const limit = dayjs(this.#limit, LIMIT_FORMAT);
+        const diff = now.diff(limit);
+        return diff > 0;
+    }
+
+    /**
+     * 有効期限切れ時間を延長する
+     */
+    extendExpire() {
+        this.#limit = this.#makeExpiredTime();
+        this.#callbackWhenUpdated();
+    }
+
+    toSerialize(): SerializableSessionInfo {
+        return {
+            limit: this.#limit,
+            currentMap: this.#currentMap,
+            items: this.#items,
+        }
     }
 }

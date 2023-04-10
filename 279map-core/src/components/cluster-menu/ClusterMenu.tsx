@@ -7,6 +7,7 @@ import { RootState } from '../../store/configureStore';
 import useIcon from '../../store/useIcon';
 import AddContentMenu from '../popup/AddContentMenu';
 import { Auth } from '../../279map-common';
+import MyImage from '../common/image/MyImage';
 
 /**
  * Cluster items' menu for selecting an item.
@@ -90,8 +91,6 @@ function MenuItem(props: MenuItemProp) {
 
     }, [getIconDefine, item]);
 
-    const iconImagePath = useMemo(() => iconDefine.imagePath, [iconDefine]);
-
     const hasContent =useMemo(() => {
         return item.contents.length > 0;
     }, [item]);
@@ -117,9 +116,16 @@ function MenuItem(props: MenuItemProp) {
         }
     }, [props]);
 
+    // const iconImagePath = useMemo(() => iconDefine.imagePath, [iconDefine]);
+
+
     return (
         <li className={styles.MenuItem} onClick={props.onClick}>
-            <img src={iconImagePath} />
+            {iconDefine.type === 'system' ?
+                <img src={iconDefine.imagePath} />
+                :
+                <MyImage id={iconDefine.id} alt={'icon' + iconDefine.caption} type='icon' />
+            }
             <span className={styles.NameArea}>
                 <span>{itemName}</span>
                 {showAddContentMenu &&

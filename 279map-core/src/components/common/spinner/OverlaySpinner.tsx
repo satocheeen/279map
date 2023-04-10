@@ -3,7 +3,7 @@ import Spinner from './Spinner';
 import styles from './OverlaySpinner.module.scss';
 
 type Props = {
-    message?: string;
+    message: string;
 }
 
 export default function OverlaySpinner(props: Props) {

@@ -3,10 +3,10 @@ import styles from './ItemContents.module.scss';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { Auth, ItemContentInfo, ItemDefine } from '../../279map-common';
-import { useAPI } from '../../api/useAPI';
 import { BsThreeDots } from 'react-icons/bs';
 import { operationActions } from '../../store/operation/operationSlice';
 import { useFilter } from '../../store/useFilter';
+import MyImage from '../common/image/MyImage';
 
 type Props = {
     item: ItemDefine;
@@ -18,7 +18,6 @@ type Props = {
  * @returns 
  */
 export default function ItemContents(props: Props) {
-    const { apiUrl } = useAPI();
 
     const dispatch = useAppDispatch();
     const { filterTargetContentIds } = useFilter();
@@ -30,7 +29,7 @@ export default function ItemContents(props: Props) {
     });
 
     // 表示する画像URL
-    const imageUrl = useMemo((): string | null => {
+    const imageContentId = useMemo((): string | null => {
         const getImageOwnerContentId = (content: ItemContentInfo) : string | undefined => {
             if ((filterTargetContentIds === undefined || filterTargetContentIds?.includes(content.id)) && content.hasImage) {
                 return content.id;
@@ -55,9 +54,9 @@ export default function ItemContents(props: Props) {
         if (!imageContentId) {
             return null;
         }
-        return `${apiUrl}getthumb?id=${imageContentId}`;
+        return imageContentId;
 
-    }, [apiUrl, props.item, filterTargetContentIds]);
+    }, [props.item, filterTargetContentIds]);
 
     const onClick = useCallback(() => {
         // if (!props.item.contents) return;
@@ -65,10 +64,10 @@ export default function ItemContents(props: Props) {
 
     }, [props.item, dispatch]);
 
-    if (imageUrl) {
+    if (imageContentId) {
         return (
             <div className={styles.ImageContainer} onClick={onClick}>
-                <img className={styles.Image} src={imageUrl} alt="contents" />
+                <MyImage type='thumbnail' className={styles.Image} id={imageContentId} alt="contents" />
             </div>
         )
     } else {

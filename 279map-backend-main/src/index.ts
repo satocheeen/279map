@@ -1,11 +1,10 @@
 import express, { NextFunction, Request, Response } from 'express';
 import mysql from 'mysql2/promise';
 import { getMapInfo } from './getMapInfo';
-import { Auth, MapKind, MapDefine, AuthMethod, ServerConfig, CurrentMap, sleep } from '279map-backend-common';
+import { Auth, MapKind, AuthMethod, ServerConfig, CurrentMap, sleep } from '279map-backend-common';
 import { getItems } from './getItems';
-import session from 'express-session';
 import { configure, getLogger } from "log4js";
-import { DbSetting, LogSetting, SessionSecretKey } from './config';
+import { DbSetting, LogSetting } from './config';
 import { getThumbnail } from './getThumbnsil';
 import { getContents } from './getContents';
 import { getEvents } from './getEvents';
@@ -21,17 +20,16 @@ import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import { getIcon } from './api/getIcon';
 import { api as backendAPI, schema } from '279map-backend-common';
 import cors from 'cors';
-import cookieParser from 'cookie-parser';
 import { readFileSync } from 'fs';
 import { exit } from 'process';
-import { getMapId } from './getMapDefine';
-import { ConfigAPI, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
+import { getMapInfoByIdOrAlias } from './getMapDefine';
+import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { auth } from 'express-oauth2-jwt-bearer';
-import { getMapUser } from './auth/getMapUser';
+import { getMapUser, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { getSessionIdFromCookies } from './session/session_utility';
-import { GetItemsParam } from '../279map-api-interface/dist';
+import { GetItemsParam } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
+import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 
 declare global {
     namespace Express {
@@ -59,10 +57,11 @@ if (!process.env.MAIN_SERVICE_PORT) {
     console.warn('not set env MAIN_SERVICE_PORT');
     exit(1);
 }
-if (!process.env.SESSION_SECRET_KEY) {
-    console.warn('not set env SESSION_SECRET_KEY');
+if (!process.env.SESSION_STORAGE_PATH) {
+    console.warn('not set env SESSION_STORAGE_PATH');
     exit(1);
 }
+const sessionStoragePath = process.env.SESSION_STORAGE_PATH;
 if (!process.env.HOST) {
     console.warn('not set env HOST');
     exit(1);
@@ -75,7 +74,7 @@ if (!['None', 'Auth0', 'Direct'].includes(process.env.AUTH_METHOD)) {
     console.warn('illegal value AUTH_METHOD: ' + process.env.AUTH_METHOD);
     exit(1);
 }
-const authMethod = process.env.AUTH_METHOD as AuthMethod;
+export const authMethod = process.env.AUTH_METHOD as AuthMethod;
 
 logger.info('preparomg express');
 
@@ -102,18 +101,6 @@ app.use(express.urlencoded({extended: true}));
 app.use(express.json({
     limit: '1mb',
 })); 
-
-/** セッション設定 */
-app.use(session({
-    secret: SessionSecretKey,
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-        sameSite: 'none' as boolean | "none" | "lax" | "strict" | undefined,
-        secure: true,
-    },
-}));
-app.use(cookieParser());
 
 // File Service proxy
 if (process.env.FS_SERVICE_URL_PATH) {
@@ -178,7 +165,7 @@ const server = https.createServer({
 }, app);
 
 // Create WebSoskce Server
-const broadCaster = new Broadcaster(server);
+const broadCaster = new Broadcaster(server, sessionStoragePath);
 
 logger.debug('create checkJwt', process.env.AUTH0_AUDIENCE, `https://${process.env.AUTH0_DOMAIN}/`);
 const checkJwt: (req: Request, res: Response, next: NextFunction) => void = function(){
@@ -238,7 +225,7 @@ app.get('/api/' + GetMapListAPI.uri,
     async(req: Request, res: Response) => {
         apiLogger.info('[start] getmaplist');
 
-        const userId = getUserId(req);
+        const userId = getUserIdByRequest(req);
         const list = await getMapList(userId);
 
         res.send(list);
@@ -249,49 +236,111 @@ app.get('/api/' + GetMapListAPI.uri,
 
 
 /**
- * mapIdを取得してrequestに格納
+ * 接続確立
+ */
+app.get('/api/connect', async(req, res) => {
+    apiLogger.info('[start] connect');
+
+    try {
+        const queryMapId = req.query.mapId;
+        if (!queryMapId || typeof queryMapId !== 'string') {
+            res.status(400).send({
+                type: ErrorType.UndefinedMap,
+                detail: 'not set mapId',
+            } as ApiError);
+            return;
+        }
+        const mapInfo = await getMapInfoByIdOrAlias(queryMapId);
+        if (mapInfo === null) {
+            res.status(400).send({
+                type: ErrorType.UndefinedMap,
+                detail: 'mapId is not found : ' + queryMapId,
+            } as ApiError);
+            return;
+        }
+
+        const userAccessInfo = await getUserAuthInfoInTheMap(mapInfo, req);
+        if (userAccessInfo.authLv === Auth.None) {
+            // 権限なしエラーを返却
+            res.status(403).send({
+                type: ErrorType.Unauthorized,
+            } as ApiError);
+            return;
+        }
+
+        const session = broadCaster.createSession({
+            mapId: mapInfo.map_page_id,
+            mapKind: mapInfo.default_map,
+        });
+    
+        const result: ConnectResult = {
+            mapDefine: {
+                mapId: mapInfo.map_page_id,
+                name: mapInfo.title,
+                useMaps: mapInfo.use_maps.split(',').map(mapKindStr => {
+                    return mapKindStr as MapKind;
+                }),
+                defaultMapKind: mapInfo.default_map,
+                authLv: userAccessInfo.authLv,
+                userName: userAccessInfo.userName || '',
+            },
+            sid: session.sid,
+        }
+
+        res.send(result);
+        apiLogger.info('[end] connect', session.sid);
+    
+    } catch(e) {
+        apiLogger.warn('connect error', e);
+        res.status(500).send({
+            type: ErrorType.IllegalError,
+            detail: e + '',
+        } as ApiError);
+
+    }
+});
+
+/**
+ * セッション情報を取得してrequestに格納
  */
 app.all('/api/*', 
     async(req: Request, res: Response, next: NextFunction) => {
-        let sessionKey = req.headers.authorization;
-        if (!sessionKey) {
-            sessionKey = getSessionIdFromCookies(req);
-        }
-        if (!sessionKey) {
-            sessionKey = req.sessionID;
+        const sessionKey = req.headers.sessionid;
+        if (!sessionKey || typeof sessionKey !== 'string') {
+            res.status(400).send({
+                type: ErrorType.IllegalError,
+                detail: 'no sessionid in headers',
+            } as ApiError);
+            return;
         }
         apiLogger.info('[start]', req.url, sessionKey);
 
-        if (req.url.startsWith('/api/connect')) {
-            const queryMapId = req.query.mapId;
-            if (!queryMapId || typeof queryMapId !== 'string') {
-                res.status(400).send('not set mapId');
-                return;
-            }
-            const mapId = await getMapId(queryMapId);
-            if (mapId === null) {
-                res.status(400).send('mapId is not found : ' + queryMapId);
-                return;
-            }
-            req.connect = {
-                sessionKey,
-                mapId,
-            };
-        } else {
-            const session = broadCaster.getSessionInfo(sessionKey);
-            if (!session?.currentMap) {
-                apiLogger.warn('currentMap is not found: ', sessionKey, broadCaster._sessionMap);
-                res.status(400).send('currentMap is not found: ' + sessionKey);
-                return;
-            }
-            req.connect = { 
-                sessionKey,
-                mapId: session.currentMap.mapId
-            };
+        const session = broadCaster.getSessionInfo(sessionKey);
+        if (!session) {
+            res.status(400).send({
+                type: ErrorType.SessionTimeout,
+                detail: 'the session not found.' + sessionKey,
+            } as ApiError);
+            return;
         }
+        req.connect = { 
+            sessionKey,
+            mapId: session.currentMap.mapId
+        };
         next();
     }
 );
+
+/**
+ * 切断
+ */
+app.get('/api/disconnect', async(req, res) => {
+    if (req.connect) {
+        broadCaster.removeSession(req.connect.sessionKey);
+    }
+
+    res.send('disconnect');
+});
 
 /**
  * Authorization.
@@ -301,8 +350,12 @@ app.all('/api/*',
 app.all('/api/*', 
     async(req: Request, res: Response, next: NextFunction) => {
         if (!req.connect) {
+            // 手前で弾かれているはずなので、ここには来ないはず
             apiLogger.error('connect not found.');
-            res.status(500).send('Illegal state error.');
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail: 'Illegal state error.  connect not found.',
+            } as ApiError);
             return;
         }
         apiLogger.info('authorization', req.connect);
@@ -312,18 +365,15 @@ app.all('/api/*',
         // 地図情報取得
         const mapPageInfo = await getMapPageInfo(mapId);
         if (!mapPageInfo) {
-            res.status(400).send('map not found.');
+            res.status(400).send({
+                type: ErrorType.UndefinedMap,
+                detail: 'map not found.',
+            } as ApiError);
             return;
         }
         req.connect.mapPageInfo = mapPageInfo;
 
         if (!req.headers.authorization) {
-            if (authMethod === AuthMethod.Direct && (req.path === '/api/getthumb' || req.path === '/api/geticon')) {
-                // Direct認証の場合、getthumbはAuthenticatgionヘッダを付与できないので認証チェックしない
-                apiLogger.debug('skip checkJwt');
-                next('route');
-                return;
-            }
             // 未ログインの場合は、地図がpublicか確認
             if (mapPageInfo.public_range === schema.PublicRange.Private) {
                 // privateの場合 -> error
@@ -347,45 +397,23 @@ app.all('/api/*',
     (err: Error, req: Request, res: Response, next: NextFunction) => {
         if (err.name === 'Unauthenticated') {
             res.status(401).send({
-                error: {
-                    name: err.name,
-                    message: err.message
-                }
-            });
+                type: ErrorType.Unauthorized,
+                detail: err.message,
+            } as ApiError);
         } else if (err.name === 'Bad Request') {
             res.status(400).send({
-                error: {
-                    name: err.name,
-                    message: err.message
-                }
-            });
+                type: ErrorType.IllegalError,
+                detail: err.message,
+            } as ApiError);
         } else {
             res.status(403).send({
-                error: {
-                    name: err.name,
-                    message: err.message,
-                    stack: err.stack,
-                }
-            });
+                type: ErrorType.Forbidden,
+                detail: err.message + err.stack,
+            } as ApiError);
         }
     },
 );
 
-const getUserId = (req: Request): string | undefined => {
-    if (authMethod === 'None') {
-        return;
-
-    } else if (authMethod === 'Auth0') {
-        if (!req.auth) {
-            return;
-        }
-        return req.auth.payload.sub;
-
-    } else {
-        // 
-        return req.headers.authorization?.replace('Bearer ', '');
-    }
-}
 /**
  * check the user's auth Level.
  * set req.connect.authLv
@@ -395,11 +423,15 @@ app.all('/api/*',
         const mapId = req.connect?.mapId;
         const mapDefine = req.connect?.mapPageInfo;
         if (!req.connect || !mapId || !mapDefine) {
-            res.status(500).send('Illegal state error');
+            // 手前で弾かれているはずなので、ここには来ないはず
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail: 'Illegal state error.',
+            } as ApiError);
             return;
         }
 
-        const userId = getUserId(req);
+        const userId = getUserIdByRequest(req);
         if (!userId) {
             // 未ログイン（地図の公開範囲public）の場合は、View権限
             apiLogger.debug('未ログイン', mapDefine.public_range);
@@ -423,7 +455,9 @@ app.all('/api/*',
                 req.connect.authLv = Auth.View;
             } else {
                 // 地図がprivateの場合、権限なしエラーを返却
-                res.status(403).send('user has no authentication for the map.');
+                res.status(403).send({
+                    type: ErrorType.Forbidden,
+                } as ApiError);
                 return;
             }
         }
@@ -431,62 +465,6 @@ app.all('/api/*',
 
     }
 );
-/**
- * 接続確立
- */
-app.get('/api/connect', async(req, res, next) => {
-    apiLogger.info('[start] connect', req.connect?.sessionKey);
-    apiLogger.info('cookie', req.cookies);
-    if (!req.headers.cookie) {
-        // Cookie未設定時は、セッションに適当な値を格納することで、Cookieを作成する
-        // @ts-ignore
-        req.session.temp = 'hogehoge';
-    }
-
-    try {
-        if (!req.connect || !req.connect.mapPageInfo || !req.connect.authLv) {
-            res.status(500).send('Illegal state error');
-            return;
-        }
-
-        const result: MapDefine = {
-            mapId: req.connect.mapId,
-            name: req.connect.mapPageInfo.title,
-            useMaps: req.connect.mapPageInfo.use_maps.split(',').map(mapKindStr => {
-                return mapKindStr as MapKind;
-            }),
-            defaultMapKind: req.connect.mapPageInfo.default_map,
-            authLv: req.connect.authLv,
-            userName: req.connect.userName || '',
-        }
-
-        const session = broadCaster.addSession(req.connect.sessionKey);
-        session.currentMap = {
-            mapId: req.connect.mapId,
-            mapKind: req.connect.mapPageInfo.default_map,
-        };
-    
-        res.send(result);
-        apiLogger.info('[end] connect', req.connect.sessionKey);
-    
-    } catch(e) {
-        apiLogger.warn('connect error', e);
-        res.status(500).send(e);
-
-    }
-});
-/**
- * 切断
- */
-app.get('/api/disconnect', async(req, res) => {
-    if (!req.connect) {
-        res.status(400).send('no session');
-        return;
-    }
-    broadCaster.removeSession(req.connect.sessionKey);
-
-    res.send('disconnect');
-});
 
 const checkApiAuthLv = (needAuthLv: Auth) => {
     return async(req: Request, res: Response, next: NextFunction) => {
@@ -502,7 +480,9 @@ const checkApiAuthLv = (needAuthLv: Auth) => {
                 allowAuthList = [];
         }
         if (!req.connect?.authLv || !allowAuthList.includes(req.connect.authLv)) {
-            res.status(403).send('the user does not have authentication using this api.');
+            res.status(403).send({
+                type: ErrorType.OperationForbidden,
+            } as ApiError);
             return;
         }
         next();
@@ -515,15 +495,21 @@ app.post(`/api/${GetMapInfoAPI.uri}`,
     async(req, res, next) => {
         try {
             const session = broadCaster.getSessionInfo(req.connect?.sessionKey as string);
+            if (!session) {
+                throw 'no session';
+            }
 
             const param = req.body as GetMapInfoParam;
 
-            const result = await getMapInfo(param);
+            const result = await getMapInfo({
+                mapId: session.currentMap.mapId,
+                param
+            });
 
-            session.resetItems();
-            session.currentMap = {
-                mapId: param.mapId,
-                mapKind: result.mapKind,
+            // TODO
+            if (session) {
+                session.resetItems();
+                session.setMapKind(result.mapKind);
             }
 
             apiLogger.debug('result', result);
@@ -534,7 +520,10 @@ app.post(`/api/${GetMapInfoAPI.uri}`,
 
         } catch(e) {    
             apiLogger.warn(e);
-            res.status(500).send(e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
         }
     }
 );
@@ -544,11 +533,16 @@ app.post(`/api/${GetMapInfoAPI.uri}`,
  */
 const checkCurrentMap = async(req: Request, res: Response, next: NextFunction) => {
     const session = broadCaster.getSessionInfo(req.connect?.sessionKey as string);
-    if (!session.currentMap) {
-        res.status(500).send('not connect a map');
+    if (!session) {
+        res.status(409).send({
+            type: ErrorType.SessionTimeout,
+        } as ApiError);
         return;
     }
     req.currentMap = session.currentMap;
+
+    // extend expired time of session
+    session.extendExpire();
     next();
 }
 
@@ -572,7 +566,10 @@ app.post(`/api/${GetOriginalIconDefineAPI.uri}`,
 
         } catch(e) {    
             apiLogger.warn(e);
-            res.status(500).send(e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
         }
     }
 );
@@ -609,7 +606,10 @@ app.post(`/api/${GetItemsAPI.uri}`,
 
         } catch(e) {    
             apiLogger.warn(e);
-            res.status(500).send(e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
         }
     }
 );
@@ -635,7 +635,10 @@ app.post(`/api/${GetContentsAPI.uri}`,
             next();
         } catch(e) {    
             apiLogger.warn(e);
-            res.status(500).send(e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
         }
     }
 );
@@ -657,7 +660,10 @@ app.post(`/api/${GetCategoryAPI.uri}`,
             next();
         } catch(e) {    
             apiLogger.warn(e);
-            res.status(500).send(e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
         }
     }
 );
@@ -679,7 +685,10 @@ app.post(`/api/${GetEventsAPI.uri}`,
             next();
         } catch(e) {    
             apiLogger.warn(e);
-            res.status(500).send(e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
         }
     }
 );
@@ -712,7 +721,10 @@ app.post(`/api/${RegistItemAPI.uri}`,
             next();
         } catch(e) {    
             apiLogger.warn(e);
-            res.status(500).send(e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
         }
     }
 );
@@ -743,7 +755,10 @@ app.post(`/api/${UpdateItemAPI.uri}`,
             next();
         } catch(e) {    
             apiLogger.warn(e);
-            res.status(500).send(e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
         }
     }
 );
@@ -775,7 +790,10 @@ app.post(`/api/${RemoveItemAPI.uri}`,
             next();
         } catch(e) {    
             apiLogger.warn(e);
-            res.status(500).send(e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
         }
     }
 );
@@ -806,7 +824,10 @@ app.post(`/api/${RegistContentAPI.uri}`,
             next();
         } catch(e) {    
             apiLogger.warn(e);
-            res.status(500).send(e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
         }
     }
 );
@@ -837,7 +858,10 @@ app.post(`/api/${UpdateContentAPI.uri}`,
             next();
         } catch(e) {
             apiLogger.warn(e);
-            res.status(500).send(e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
         }
     }
 );
@@ -864,7 +888,10 @@ app.post(`/api/${GetUnpointDataAPI.uri}`,
             next();
         } catch(e) {
             apiLogger.warn(e);
-            res.status(500).send(e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
         }
     }
 );
@@ -896,7 +923,10 @@ app.post(`/api/${LinkContentToItemAPI.uri}`,
     
         } catch(e) {
             apiLogger.warn(e);
-            res.status(500).send(e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
         }
     }
 );
@@ -927,7 +957,10 @@ app.post(`/api/${RemoveContentAPI.uri}`,
             next();
         } catch(e) {
             apiLogger.warn(e);
-            res.status(500).send(e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
         }
     }
 );
@@ -950,7 +983,10 @@ app.post(`/api/${GetSnsPreviewAPI.uri}`,
             next();
         } catch(e) {
             apiLogger.warn(e);
-            res.status(500).send(e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
         }
     }
 );
@@ -976,7 +1012,10 @@ app.get('/api/getthumb',
 
         } catch(e) {
             apiLogger.warn(e);
-            res.status(500).send(e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
         }
     }
 );
@@ -997,7 +1036,10 @@ app.get('/api/getimageurl',
 
         } catch(e) {
             apiLogger.warn(e);
-            res.status(500).send(e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
         }
     }
 );
@@ -1024,7 +1066,10 @@ app.get('/api/geticon',
 
         } catch(e) {
             apiLogger.warn(e);
-            res.status(500).send(e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
         }
     }
 );
@@ -1043,7 +1088,10 @@ app.get('/api/geocoder',
     
         } catch(e) {
             apiLogger.warn(e);
-            res.status(500).send(e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
         }
     }
 );
@@ -1062,7 +1110,10 @@ app.get('/api/getGeocoderFeature',
 
         } catch(e) {
             apiLogger.warn(e);
-            res.status(500).send(e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
         }
     }
 );
@@ -1109,6 +1160,23 @@ internalApp.post('/api/broadcast', (req: Request, res: Response) => {
     res.status(201).send('broadcasted.');
 });
 
+/**
+ * 有効期限切れセッション削除（定期監視）
+ */
+const checkSessionProcess = () => {
+    try {
+        broadCaster.removeExpiredSessions();
+
+    } catch(e) {
+        logger.warn('更新チェック失敗', e);
+
+    } finally {
+        setTimeout(() => {
+            checkSessionProcess();
+        }, 1 * 60000); // 1分ごとにチェック
+    }
+}
+
 // DB接続完了してから開始
 logger.info('starting db');
 initializeDb()
@@ -1120,4 +1188,6 @@ initializeDb()
     internalApp.listen(process.env.MAIN_SERVICE_PORT, () => {
         logger.info('start internal server', process.env.MAIN_SERVICE_PORT);
     })
+    checkSessionProcess();
 });
+

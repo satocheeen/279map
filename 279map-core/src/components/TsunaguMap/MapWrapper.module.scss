@@ -1,5 +1,14 @@
 .ErrorMessage {
-    position: relative;
-    top: 40%;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: #ffffffaa;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
     text-align: center;
+    white-space: pre-wrap;
 }

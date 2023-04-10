@@ -5,7 +5,9 @@ import { Request } from 'express';
 import SessionInfo from './SessionInfo';
 import { MapKind } from '279map-backend-common';
 import { WebSocketMessage } from '../../279map-api-interface/src';
-import { getSessionIdFromCookies } from './session_utility';
+import crypto from 'crypto';
+import { CurrentMap } from '279map-backend-common';
+import SessionMap from './SessionMap';
 
 /**
  * クライアントの情報を管理し、必要に応じてクライアントに通知を行うクラス
@@ -13,9 +15,10 @@ import { getSessionIdFromCookies } from './session_utility';
 export default class Broadcaster {
     _logger = getLogger('api');
     _wss: WebSocket.Server;
-    _sessionMap = {} as {[sid: string]: SessionInfo};
+    #sessionMap: SessionMap;
 
-    constructor(server: Server) {
+    constructor(server: Server, sessionStoragePath: string) {
+        this.#sessionMap = new SessionMap(sessionStoragePath);
         this._wss = new WebSocket.Server({ server });
 
         this._wss.on('error', (e) => {
@@ -23,68 +26,56 @@ export default class Broadcaster {
         });
 
         this._wss.on('connection', (ws, req) => {
-            // SessionID取得
-            const sid = getSessionIdFromCookies(req);
-            if (!sid) {
-                this._logger.warn('WebSocket connected failed. can not get sid.');
-                return;
-            }
-
-            // WebSocketを保存
-            this._logger.debug('WebSocket connect', sid, Object.keys(this._sessionMap));
-            if (this._sessionMap[sid] === undefined) {
-                // 先にhttp接続によりセッション情報が生成されているはずだが、
-                // サーバー寸断時にはこのルートにくる。
-                this._logger.warn('session recreate', sid);
-                this._sessionMap[sid] = new SessionInfo(sid);
-            }
-            this._sessionMap[sid].ws = ws;
-        
-            // サーバー寸断時の再接続考慮
+            // WebSocket通信確立後、フロントエンドからSessionIDが送られてくるので、
+            // SessionMapから対応するSessionInfoを取得して、ws設定
+            let sid: string | undefined;
             ws.on('message', (message) => {
-                if (this._sessionMap[sid] === undefined) {
-                    this._logger.warn('session recreate', sid);
-                    this._sessionMap[sid] = new SessionInfo(sid);
-                    this._sessionMap[sid].ws = ws;
-                }
                 const info = JSON.parse(message.toString());
-                this._sessionMap[sid].currentMap = {
-                    mapId: info.mapId,
-                    mapKind: info.mapKind,
+                sid = info.sid as string;
+                this._logger.debug('WebSocket connect', sid);
+                const session = this.#sessionMap.get(sid);
+                if (session) {
+                    session.ws = ws;
                 }
             });
 
             ws.on('close', () => {
+                if (!sid) return;
                 this._logger.info('Close Session', sid);
-                this._sessionMap[sid]?.resetItems();
-
-                // delete this._sessionMap[sid];
-                this._logger.debug('disconnect', this._sessionMap);
+                this.#sessionMap.delete(sid);
             });
         });
-        
-    }
-    
-    addSession(sid: string): SessionInfo {
-        if (!sid) {
-            this._logger.warn('[addSession] sid not found');
-            throw '[addSession] sid not found';
-        }
-        if (this._sessionMap[sid]) {
-            this._logger.info('[addSession] session already exist', sid);
-            return this._sessionMap[sid];
-        }
-        this._logger.info('[addSession] make a new session', sid);
-        this._sessionMap[sid] = new SessionInfo(sid);
-        return this._sessionMap[sid];
     }
 
+    /**
+     * 有効期限切れセッションを削除する
+     */
+    removeExpiredSessions() {
+        this.#sessionMap.removeExpiredSessions();
+    }
+
+    createSession(currentMap: CurrentMap): SessionInfo {
+        // SID生成
+        let sid: string | undefined;
+        do {
+            const hash = createHash();
+            if (!this.#sessionMap.has(hash)) {
+                sid = hash;
+            }
+        } while(sid === undefined);
+
+        const session = this.#sessionMap.createSession(sid, currentMap);
+        this._logger.info('[createSession] make a new session', sid);
+
+        return session;
+    }
+    
     removeSession(sid: string) {
-        delete this._sessionMap[sid];
+        this.#sessionMap.delete(sid);
     }
 
     getSessionInfo(sid: string) {
-        return this._sessionMap[sid];
+        return this.#sessionMap.get(sid);
     }
 
     getCurrentMap(sid: string) {
@@ -105,7 +96,7 @@ export default class Broadcaster {
 
     broadCastUpdateItem(mapPageId: string, itemIdList: string[]) {
         // 送信済みアイテム情報から当該アイテムを除去する
-        Object.values(this._sessionMap).forEach(client => {
+        Object.values(this.#sessionMap).forEach(client => {
             client.removeItems(itemIdList);
         });
         // 接続しているユーザに最新情報を取得するように通知
@@ -116,7 +107,7 @@ export default class Broadcaster {
 
     broadCastDeleteItem(mapPageId: string, itemIdList: string[]) {
         // 送信済みアイテム情報から当該アイテムを除去する
-        Object.values(this._sessionMap).forEach(client => {
+        Object.values(this.#sessionMap).forEach(client => {
             client.removeItems(itemIdList);
         });
         // 接続しているユーザにアイテム削除するように通知
@@ -134,7 +125,7 @@ export default class Broadcaster {
      */
     #broadcast(mapPageId: string, mapKind: MapKind | undefined, message: WebSocketMessage) {
         this._logger.debug('broadcast', mapKind, message);
-        Object.values(this._sessionMap).forEach(client => {
+        Object.values(this.#sessionMap).forEach(client => {
             if (!client.ws || !client.currentMap) {
                 return;
             }
@@ -168,4 +159,17 @@ export default class Broadcaster {
         this.#broadcast(currentMap.mapId, currentMap.mapKind, message);
     }
 
+}
+
+function createHash(): string {
+    // 生成するハッシュの長さ（バイト数）
+    const hashLength = 32;
+
+    // ランダムなバイト列を生成する
+    const randomBytes = crypto.randomBytes(hashLength);
+
+    // バイト列をハッシュ化する
+    const hash = crypto.createHash('sha256').update(randomBytes).digest('hex');
+
+    return hash;
 }

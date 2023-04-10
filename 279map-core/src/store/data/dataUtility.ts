@@ -1,7 +1,7 @@
 import { GetContentsAPI, GetContentsParam } from "tsunagumap-api";
 import { ContentsDefine } from "../../279map-common";
-import { callApi } from "../../api/api";
 import { ServerInfo } from "../../types/types";
+import { getAPICallerInstance } from "../../api/ApiCaller";
 
 export async function getContents(mapServer: ServerInfo, param: GetContentsParam): Promise<ContentsDefine[]> {
     try {
@@ -25,7 +25,7 @@ export async function getContents(mapServer: ServerInfo, param: GetContentsParam
                 }
             }
         });
-        const apiResult = await callApi(mapServer, GetContentsAPI, fixedParam);
+        const apiResult = await getAPICallerInstance().callApi(GetContentsAPI, fixedParam);
 
         return apiResult.contents;
 

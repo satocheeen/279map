@@ -4,3 +4,4 @@
 // coreでは、ここを直接参照している。
 
 export * from './api';
+export * from './error';
