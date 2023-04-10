@@ -263,7 +263,7 @@ export class OlMapWrapper {
         const currentZoom = this._map.getView().getZoom();
         this._map.getView().fit(ext, {
             padding: [10, 10, 10, 10],
-            maxZoom: currentZoom,
+            // maxZoom: currentZoom,
         });
         console.log('fit', ext);
     }
