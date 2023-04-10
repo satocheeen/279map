@@ -1,7 +1,7 @@
 import { ConfigAPI, GetMapListAPI } from "tsunagumap-api";
-import { callApi } from "./api";
 import { ServerInfo } from '../types/types';
 import { ServerConfig } from "../279map-common";
+import { createAPICallerInstance } from "./ApiCaller";
 
 /**
  * ユーザがアクセス可能な地図一覧を返す
@@ -13,8 +13,9 @@ export async function getAccessableMapList(host: string, token: string | undefin
         domain: host,
         token,
     } as ServerInfo;
+    const apiCaller = createAPICallerInstance(mapServer, () => {});
     try {
-        const result = await callApi(mapServer, GetMapListAPI, undefined);
+        const result = await apiCaller.callApi(GetMapListAPI, undefined);
         return result;
 
     } catch(e) {
@@ -33,8 +34,9 @@ export async function getAuthConfig(host: string) {
     const mapServer = {
         domain: host,
     } as ServerInfo;
+    const apiCaller = createAPICallerInstance(mapServer, () => {});
     try {
-        const result = await callApi(mapServer, ConfigAPI, undefined) as ServerConfig;
+        const result = await apiCaller.callApi(ConfigAPI, undefined) as ServerConfig;
         return result;
 
     } catch(e) {

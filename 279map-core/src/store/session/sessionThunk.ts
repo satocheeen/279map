@@ -1,27 +1,21 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { callApi, getServerUrl } from "../../api/api";
 import { doCommand } from "../../util/Commander";
 import { RootState } from "../configureStore";
 import { dataActions } from "../data/dataSlice";
 import { loadCategories, loadEvents, loadOriginalIconDefine } from "../data/dataThunk";
-import { GetMapInfoAPI, GetMapInfoResult, WebSocketMessage } from 'tsunagumap-api';
-import { MapKind, MapDefine } from "../../279map-common";
+import { ApiError, ConnectResult, ErrorType, GetMapInfoAPI, WebSocketMessage } from 'tsunagumap-api';
+import { MapKind } from "../../279map-common";
+import { ConnectAPIResult, LoadMapDefineResult } from "../../types/types";
+import { createAPICallerInstance, getAPICallerInstance } from "../../api/ApiCaller";
+import { sessionActions } from "./sessionSlice";
 
-export type ConnectMapResult = {
-    result: 'success',
-    connectedMap: MapDefine,
-} | {
-    result: 'Unauthorized',
-} | {
-    result: 'Forbidden',
-}
-export const connectMap = createAsyncThunk<ConnectMapResult, { mapId: string; token?: string }>(
+export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; token?: string }>(
     'session/connectMapStatus',
-    async(param, { rejectWithValue, getState, dispatch }) => {
+    async(param, { getState, dispatch }) => {
         const mapServer = (getState() as RootState).session.mapServer;
 
         try {
-            const serverUrl = getServerUrl(mapServer);
+            const serverUrl = `https://${mapServer.domain}`;
     
             let url = `${serverUrl}/api/connect?mapId=${param.mapId}`;
             let headers = {};
@@ -36,66 +30,36 @@ export const connectMap = createAsyncThunk<ConnectMapResult, { mapId: string; to
                 headers,
             });
             if (!result.ok) {
-                if (result.status === 401) {
-                    return {
-                        result: 'Unauthorized',
-                    };
-                } else if (result.status === 403) {
-                    return {
-                        result: 'Forbidden',
-                    }
-                } else {
-                    throw new Error(result.statusText);
+                const error: ApiError = await result.json();
+                return {
+                    result: 'failure',
+                    error,
                 }
             }
-            const json = await result.json() as MapDefine;
+            const json = await result.json() as ConnectResult;
 
-            return {
-                result: 'success',
-                connectedMap: json,
-            };    
+            const apiCaller = createAPICallerInstance(mapServer, (error: ApiError) => {
+                // コネクションエラー時
+                dispatch(sessionActions.updateConnectStatus({
+                    status: 'failure',
+                    error,
+                }));
+            });
+            apiCaller.setSID(json.sid);
 
-        } catch(e) {
-            console.warn('connect error', e);
-            return rejectWithValue('connect error' + e);
-        }
-    }
-)
-
-/**
- * 地図定義ロード
- * @param mapKind ロードする地図種別。未指定の場合は、デフォルトの地図を読み込む。
- */
-export const loadMapDefine = createAsyncThunk<GetMapInfoResult, MapKind>(
-    'session/loadMapDefineStatus',
-    async(param, { rejectWithValue, getState, dispatch }) => {
-        const session = (getState() as RootState).session;
-        const mapServer = session.mapServer;
-
-        try {
-            if (mapServer.domain.length === 0) {
-                throw 'no set mapserver';
-            }
-    
-            if (session.connectStatus.status !== 'connected') {
-                throw 'no connect map.';
-            }
-            const mapKind = param;
-            const mapId = session.connectStatus.connectedMap.mapId;
-
-            // WebSocket通信設定
+            // WebSocket接続確立
             const startWss = () => {
                 const protocol = 'wss';
                 const domain = mapServer.domain;
-        
+
                 const wss = new WebSocket(protocol + "://" + domain);
                 wss.addEventListener('open', () => {
                     console.log('websocket connected');
-                    // 現在の地図情報を送信 (サーバー寸断後の再接続時用)
+                    // セッションIDを送信
                     wss.send(JSON.stringify({
-                        mapId,
-                        mapKind,
+                        sid: json.sid,
                     }));
+
                 });
                 wss.addEventListener('close', () => {
                     console.log('websocket closed');
@@ -119,24 +83,69 @@ export const loadMapDefine = createAsyncThunk<GetMapInfoResult, MapKind>(
                     }
                 });
             };
-        
-            const apiResult = await callApi(mapServer, GetMapInfoAPI, {
-                mapKind: param,
-                mapId: session.connectStatus.connectedMap.mapId,  // TODO 廃止
-            });
-
             startWss();
+
+            return {
+                result: 'success',
+                connectResult: json,
+            };    
+
+        } catch(e) {
+            console.warn('connect error', e);
+            return {
+                result: 'failure',
+                error: {
+                    type: ErrorType.IllegalError,
+                    detail: e + '',
+                }
+            }
+        }
+    }
+)
+
+/**
+ * 地図定義ロード
+ * @param mapKind ロードする地図種別。未指定の場合は、デフォルトの地図を読み込む。
+ */
+export const loadMapDefine = createAsyncThunk<LoadMapDefineResult, MapKind>(
+    'session/loadMapDefineStatus',
+    async(param, { getState, dispatch }) => {
+        const session = (getState() as RootState).session;
+        const mapServer = session.mapServer;
+
+        try {
+            if (mapServer.domain.length === 0) {
+                throw 'no set mapserver';
+            }
+    
+            if (session.connectStatus.status !== 'connected') {
+                throw 'no connect map.';
+            }
+            // const mapKind = param;
+            // const mapId = session.connectStatus.connectedMap.mapId;
+
+            const apiResult = await getAPICallerInstance()?.callApi(GetMapInfoAPI, {
+                mapKind: param,
+            });
 
             dispatch(loadOriginalIconDefine());
             dispatch(loadEvents());
             dispatch(loadCategories());
 
-            return apiResult;
+            return {
+                result: 'success',
+                mapInfo: apiResult,
+            };
 
         } catch(e) {
             console.warn('getMapInfo error', e);
-            return rejectWithValue(e);
-
+            return {
+                result: 'failure',
+                error: {
+                    type: ErrorType.IllegalError,
+                    detail: e + '',
+                }
+            }
         }
     }
 );

@@ -1,6 +1,6 @@
 import { CategoryDefine, ContentsDefine, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, ServerConfig, UnpointContent } from "279map-backend-common";
 import { GeoJsonObject } from "geojson";
-import { APIDefine, ContentAttr, SnsPreviewPost } from '279map-backend-common';
+import { APIDefine, ContentAttr, SnsPreviewPost, MapDefine } from '279map-backend-common';
 
 /**
  * get common config
@@ -14,10 +14,16 @@ export const GetMapListAPI = {
     uri: 'getmaplist',
     method: 'get',
 } as APIDefine<void, MapInfo[]>;
+
 export type MapInfo = {
     mapId: string;
     name: string;
 };
+
+export type ConnectResult = {
+    mapDefine: MapDefine;
+    sid: string;   // セッションID
+}
 
 /**
  * get map info
@@ -27,8 +33,6 @@ export const GetMapInfoAPI = {
     method: 'post', 
 } as APIDefine<GetMapInfoParam, GetMapInfoResult>;
 export type GetMapInfoParam = {
-    mapId: string;  // idまたはalias
-    auth?: string;
     mapKind?: MapKind;
 }
 export enum SourceKind {

@@ -103,7 +103,7 @@ const operationSlice = createSlice({
         changeMapMode(state, action: PayloadAction<MapMode>) {
             state.mapMode = action.payload;
         },
-        showSpinner(state, action: PayloadAction<{show: true; message?: string} | { show: false }>) {
+        showSpinner(state, action: PayloadAction<{show: true; message: string} | { show: false }>) {
             state.showSpinner = action.payload.show;
             if (action.payload.show) {
                 state.spinnerMessage = action.payload.message ? action.payload.message : '';

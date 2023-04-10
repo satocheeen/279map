@@ -8,8 +8,6 @@ WORKDIR /home/node/app/backend
 
 # -- install latest npm package
 RUN npm install
-RUN npm i -D 279map-common@npm:279map-common
-RUN npm i 279map-backend-common@npm:279map-backend-common
 
 RUN npm run build
 
@@ -30,6 +28,9 @@ COPY --from=build /home/node/app/backend/dist /var/www
 
 RUN mkdir /var/log/www
 RUN chmod 777 /var/log/www
+
+RUN mkdir /var/session
+RUN chmod 777 /var/session
 
 EXPOSE 80
 EXPOSE 8083

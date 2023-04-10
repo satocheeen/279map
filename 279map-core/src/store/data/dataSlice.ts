@@ -59,8 +59,11 @@ const dataSlice = createSlice({
     extraReducers: (builder) => {
         builder
         .addCase(loadMapDefine.fulfilled, (state, action) => {
+            if (action.payload.result === 'failure') {
+                return;
+            }
             // state.mapKind = action.payload.mapKind;
-            state.extent = action.payload.extent;
+            state.extent = action.payload.mapInfo.extent;
 
             // アイテムクリア
             state.itemMap = {};

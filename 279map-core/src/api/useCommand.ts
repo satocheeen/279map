@@ -1,13 +1,13 @@
 import { useSelector } from "react-redux";
 import { useCallback } from 'react';
 import { RootState, useAppDispatch } from "../store/configureStore";
-import { callApi } from "./api";
 import { FeatureType, MapKind, UnpointContent } from '../279map-common';
 import { registContent, updateContent, linkContentToItem } from '../store/data/dataThunk';
 import useConfirm from "../components/common/confirm/useConfirm";
 import { operationActions } from "../store/operation/operationSlice";
 import { doCommand } from "../util/Commander";
 import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam } from "tsunagumap-api";
+import { getAPICallerInstance } from "./ApiCaller";
 
 /**
  * Parts側から呼び出し可能なコマンド
@@ -144,14 +144,14 @@ export function useCommand() {
     }, [dispatch]);
 
     const getSnsPreviewAPI = useCallback(async(url: string) => {
-        const res = await callApi(mapServer, GetSnsPreviewAPI, {
+        const res = await getAPICallerInstance().callApi(GetSnsPreviewAPI, {
             url,
         });
         return res;
     }, [mapServer]);
 
     const getUnpointDataAPI = useCallback(async(nextToken?: string) => {
-        const result = await callApi(mapServer, GetUnpointDataAPI, {
+        const result = await getAPICallerInstance().callApi(GetUnpointDataAPI, {
             nextToken,
         });
         return {

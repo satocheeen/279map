@@ -1,10 +1,12 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import styles from './Card.module.scss';
+import MyImage from '../image/MyImage';
 
 type Props = {
     title: string;
     breadcrumb?: string[];
     imageUrl?: string;
+    imageId?: string;
     overview?: string;
     onClick?: () => void;
 }
@@ -16,14 +18,26 @@ export default function Card(props: Props) {
         }
     }, [props]);
 
+    const imageElement = useMemo(() => {
+        if (props.imageId) {
+            return (
+                <MyImage type='thumbnail' id={props.imageId} alt="card image" />
+            )
+        } else if (props.imageUrl) {
+            return (
+                <img src={props.imageUrl} />
+            )
+        } else {
+            return (
+                <div className={styles.NoImg} />
+            )
+        }
+    }, [props.imageId, props.imageUrl])
+
     return (
         <div className={`${styles.Card} ${props.onClick ? styles.Clickable : ''}`} onClick={onClick}>
             <div className={styles.Image}>
-                {props.imageUrl ?
-                    <img src={props.imageUrl} />
-                    :
-                    <div className={styles.NoImg} />
-                }
+                {imageElement}
             </div>
             <div className={styles.Body}>
                 <nav className={styles.BreadCrumb}>
