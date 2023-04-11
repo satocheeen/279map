@@ -32,12 +32,18 @@ export async function getCategory(currentMap: CurrentMap): Promise<GetCategoryRe
             const categories = JSON.parse(row.category as string) as string[];
             categories.forEach(category => {
                 if (categoryMap.has(category)) {
-                    categoryMap.get(category)?.content_ids.push(row.content_page_id);
+                    categoryMap.get(category)?.content_ids.push({
+                        id: row.content_page_id,
+                        dataSourceId: row.data_source_id,
+                    });
                 } else {
                     const def = {
                         name: category,
                         color: '',
-                        content_ids: [row.content_page_id],
+                        content_ids: [{
+                            id: row.content_page_id,
+                            dataSourceId: row.data_source_id,
+                        }],
                     } as CategoryDefine;
                     categoryMap.set(category, def);
                 }

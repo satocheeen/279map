@@ -40,8 +40,11 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
         const row = myRows[0];
         const discendant = await getChildrenContentInfo(row.content_page_id);
         return {
-            id: row.content_page_id,
-            hasImage: row.thumbnail ? true : false,
+            id: {
+                id: row.content_page_id,
+                dataSourceId: row.data_source_id,
+            },
+        hasImage: row.thumbnail ? true : false,
             children: discendant,
         };
     }
@@ -56,7 +59,10 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
         for(const row of myRows) {
             const discendant = await getChildrenContentInfo(row.content_page_id);
             children.push({
-                id: row.content_page_id,
+                id: {
+                    id: row.content_page_id,
+                    dataSourceId: row.data_source_id,
+                },
                 hasImage: row.thumbnail ? true : false,
                 children: discendant,
             });
@@ -101,8 +107,10 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
             const name = row.name ?? '';
 
             pointContents.push({
-                id: row.item_page_id,
-                dataSourceId: row.data_source_id,
+                id: {
+                    id: row.item_page_id,
+                    dataSourceId: row.data_source_id,
+                },
                 name,
                 position: {
                     type: 'geoJson',
@@ -149,8 +157,10 @@ async function selectTrackInArea(param: GetItemsParam, mapPageId: string): Promi
         
         return (rows as (schema.TrackGeoJsonTable & schema.TracksTable)[]).map(row => {
             return {
-                id: '' + row.track_file_id + row.sub_id,
-                dataSourceId: row.data_source_id,
+                id: {
+                    id: '' + row.track_file_id + row.sub_id,
+                    dataSourceId: row.data_source_id,
+                },
                 position: {
                     type: 'track',
                     min_zoom: row.min_zoom,

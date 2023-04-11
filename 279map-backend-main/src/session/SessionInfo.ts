@@ -1,9 +1,9 @@
 import WebSocket from 'ws';
-import { MapKind, CurrentMap, ItemDefine } from '279map-backend-common';
+import { MapKind, CurrentMap, ItemDefine, DataId } from '279map-backend-common';
 import dayjs from 'dayjs';
 
 type ItemInfo = {
-    id: string;
+    id: DataId;
     lastEditedTime: string;
 };
 const LIMIT_FORMAT = 'YYYY-MM-DD HH:mm:ss';
@@ -81,7 +81,7 @@ export default class SessionInfo {
 
     addItems(items: ItemDefine[]) {
         items.forEach(item => {
-            const hit = this.#items.find(it => it.id === item.id);
+            const hit = this.#items.find(it => it.id.id === item.id.id && it.id.dataSourceId === item.id.dataSourceId);
             if (!hit) {
                 this.#items.push({
                     id: item.id,
@@ -95,9 +95,9 @@ export default class SessionInfo {
         // console.log('newValues', this._values.items);
     }
 
-    removeItems(itemId: string[]) {
+    removeItems(itemId: DataId[]) {
         this.#items = this.#items.filter(item => {
-            return !itemId.includes(item.id);
+            return !itemId.some(itemId => itemId.id === item.id.id && itemId.dataSourceId === item.id.dataSourceId);
         });
         this.#callbackWhenUpdated();
     }

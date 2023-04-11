@@ -30,8 +30,14 @@ export async function getEvents(currentMap: CurrentMap): Promise<GetEventsResult
                 itemList.forEach(item => {
                     events.push({
                         date: row.date as Date,
-                        item_id: item.item_page_id,
-                        content_id: row.content_page_id,
+                        item_id: {
+                            id: item.item_page_id,
+                            dataSourceId: item.data_source_id,
+                        },
+                        content_id: {
+                            id: row.content_page_id,
+                            dataSourceId: row.data_source_id,
+                        },
                     });
                 });
             }
