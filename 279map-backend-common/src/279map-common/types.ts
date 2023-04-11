@@ -110,8 +110,12 @@ export type ItemContentInfo = {
     hasImage: boolean;
     children: ItemContentInfo[];
 }
-export type ItemDefine = {
+type DataId = {
     id: string;
+    dataSourceId: string;
+}
+export type ItemDefine = {
+    id: DataId;
     dataSourceId: string;
     position: Position;
     name: string;
@@ -120,9 +124,8 @@ export type ItemDefine = {
     contents: ItemContentInfo[];
 }
 export type ContentsDefine = {
-    id: string;
-    itemId: string;
-    dataSourceId: string;
+    id: DataId;
+    itemId: DataId;
     date?: Date;
     url?: string;
     title: string;
@@ -130,7 +133,7 @@ export type ContentsDefine = {
     category?: string[];
     image?: boolean;    // 画像がある場合、true
     videoUrl?: string;  // 動画がある場合、そのURL
-    parentId?: string;   // 親コンテンツが存在する場合、親コンテンツのID
+    parentId?: DataId;   // 親コンテンツが存在する場合、親コンテンツのID
     children?: ContentsDefine[];    // 子コンテンツ（SNS投稿など）
     anotherMapItemId?: string; // もう片方の地図に存在する場合、そのアイテムID
     isSnsContent: boolean;  // trueの場合、SNS等から自動連係したコンテンツ
@@ -144,8 +147,8 @@ export type CategoryDefine = {
 }
 export type EventDefine = {
     date: Date;
-    item_id: string;
-    content_id: string;
+    item_id: DataId;
+    content_id: DataId;
 }
 export type IconDefine = {
     id: string;
@@ -155,7 +158,7 @@ export type IconDefine = {
 }
 
 export type UnpointContent = {
-    id: string;
+    id: DataId;
     title: string;
     thumb?: string;
     overview?: string;
