@@ -116,7 +116,6 @@ type DataId = {
 }
 export type ItemDefine = {
     id: DataId;
-    dataSourceId: string;
     position: Position;
     name: string;
     geoProperties?: GeoProperties;
