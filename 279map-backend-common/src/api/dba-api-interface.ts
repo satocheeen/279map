@@ -2,7 +2,7 @@
  * Odba container's API interface.
  */
 
-import { GeoProperties, APIDefine, ContentAttr } from "../279map-common";
+import { GeoProperties, APIDefine, ContentAttr, DataId } from "../279map-common";
 import { CurrentMap } from "../types";
 
 type CommonParam = {
@@ -32,9 +32,9 @@ export const RegistContentAPI = {
 
 export type RegistContentParam = CommonParam & {
     parent: {
-        itemId: string;
+        itemId: DataId;
     } | {
-        contentId: string;
+        contentId: DataId;
     }
 } & ContentAttr;
 
@@ -47,7 +47,7 @@ export const RemoveItemAPI = {
 } as APIDefine<RemoveItemParam, void>;
 
 export type RemoveItemParam = CommonParam & {
-    id: string; // 削除対象アイテムのID
+    id: DataId; // 削除対象アイテムのID
     onlyGeoInfo: boolean;   // trueの場合、地理情報のみ消す。配下のコンテンツは削除しない）
 }
 
@@ -60,9 +60,9 @@ export const RemoveContentAPI = {
 } as APIDefine<RemoveContentParam, void>;
 
 export type RemoveContentParam = CommonParam & {
-    id: string;
-    itemId: string;
-    parentContentId?: string;
+    id: DataId;
+    itemId: DataId;
+    parentContentId?: DataId;
     mode: 'unlink' | 'alldelete';   // コンテンツデータ自体は残す場合、unlink。コンテンツデータごと削除する場合、alldelete。
 }
 /**
@@ -74,7 +74,7 @@ export const UpdateItemAPI = {
 } as APIDefine<UpdateItemParam, void>;
 
 export type UpdateItemParam = CommonParam & {
-    id: string;
+    id: DataId;
     name?: string;  // topography only
     geometry?: GeoJSON.Geometry;
     geoProperties?: GeoProperties;
@@ -89,7 +89,7 @@ export const UpdateContentAPI = {
 } as APIDefine<UpdateContentParam, void>;
 
 export type UpdateContentParam = CommonParam & {
-    id: string;
+    id: DataId;
 } & Partial<ContentAttr>;
 
 /**
@@ -104,7 +104,7 @@ export type GetUnpointDataParam = CommonParam & {
     nextToken?: string;
 }
 export type UnpointContent = {
-    id: string;
+    id: DataId;
     title: string;
     thumb?: string;
     overview?: string;
@@ -123,18 +123,18 @@ export const LinkContentToItemAPI = {
 } as APIDefine<LinkContentToItemParam, void>;
 
 export type LinkContentToItemParam = CommonParam & {
-    childContentId: string;
+    childContentId: DataId;
     parent: {
-        itemId: string;
+        itemId: DataId;
     } | {
-        contentId: string;
+        contentId: DataId;
     }
 }
 
 export const GetImageUrlAPI = {
     uri: 'get-imageurl',
     method: 'get',
-} as APIDefine<{id: string}, string|undefined>;
+} as APIDefine<{id: DataId}, string|undefined>;
 
 /**
  * for Android

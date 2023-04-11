@@ -1,29 +1,30 @@
+import { DataId } from "../279map-common";
 import { CurrentMap } from "../types";
 import { OdbaAPIFunc } from "./api-initializer";
 import { GetUnpointDataParam, GetUnpointDataResult, LinkContentToItemParam, RegistContentParam, RegistItemParam, RemoveContentParam, RemoveItemParam, UpdateContentParam, UpdateItemParam } from "./dba-api-interface";
 
 type UpdateItemContentLinkCacheParam = {
     currentMap: CurrentMap;
-    contentId: string;
-    itemId: string;
+    contentId: DataId;
+    itemId: DataId;
 }
 
 export default abstract class OdbaInterface {
-    abstract registItemOdb: (param: RegistItemParam) => Promise<string>;
+    abstract registItemOdb: (param: RegistItemParam) => Promise<DataId>;
 
-    abstract updateItemCache: (_: {currentMap: CurrentMap, itemId: string}) => Promise<'insert' | 'update'>;
+    abstract updateItemCache: (_: {currentMap: CurrentMap, itemId: DataId}) => Promise<'insert' | 'update'>;
 
-    abstract registContentOdb: (param: RegistContentParam) => Promise<string>;
+    abstract registContentOdb: (param: RegistContentParam) => Promise<DataId>;
 
-    abstract updateContentCache: (_: {currentMap: CurrentMap, contentId: string}) => Promise<'insert' | 'update'>;
+    abstract updateContentCache: (_: {currentMap: CurrentMap, contentId: DataId}) => Promise<'insert' | 'update'>;
 
     abstract removeItemOdb: (param: RemoveItemParam) => Promise<void>;
 
-    abstract removeItemCache: (_: {currentMap: CurrentMap, itemId: string}) => Promise<void>;
+    abstract removeItemCache: (_: {currentMap: CurrentMap, itemId: DataId}) => Promise<void>;
 
-    abstract removeContentOdb: (_: {currentMap: CurrentMap, contentId: string}) => Promise<void>;
+    abstract removeContentOdb: (_: {currentMap: CurrentMap, contentId: DataId}) => Promise<void>;
 
-    abstract removeContentCache: (_: {currentMap: CurrentMap, contentId: string}) => Promise<void>;
+    abstract removeContentCache: (_: {currentMap: CurrentMap, contentId: DataId}) => Promise<void>;
 
     abstract updateItemOdb: (param: UpdateItemParam) => Promise<void>;
 
@@ -37,5 +38,5 @@ export default abstract class OdbaInterface {
 
     abstract updateItemContentLinkCache: (param: UpdateItemContentLinkCacheParam) => Promise<void>;
 
-    abstract getImageUrl: OdbaAPIFunc<{id: string}, string | undefined>;
+    abstract getImageUrl: OdbaAPIFunc<{id: DataId}, string | undefined>;
 }
