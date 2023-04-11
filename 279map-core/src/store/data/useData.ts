@@ -5,18 +5,23 @@
 import { useSelector } from "react-redux";
 import { RootState } from "../configureStore";
 import { useMemo } from 'react';
-import { ContentsDefine } from "../../279map-common";
+import { ContentsDefine, DataId } from "../../279map-common";
 
+function getMapKey(id: DataId): string {
+    return id.id + '-' + id.dataSourceId;
+}
 export default function useData() {
     const contentsList = useSelector((state: RootState) => state.data.contentsList);
 
-    // key = contentId, value = content のマップ
+    // key = contentId - contentDataSourceId, value = content のマップ
     const contentsMap = useMemo(() => {
         const map = new Map<string, ContentsDefine>();
         contentsList.forEach(content => {
-            map.set(content.id, content);
+            const key = getMapKey(content.id);
+            map.set(key, content);
             content.children?.forEach(child => {
-                map.set(child.id, child);
+                const childKey = getMapKey(child.id);
+                map.set(childKey, child);
             });
         });
         return map;
@@ -26,13 +31,14 @@ export default function useData() {
     const itemContentsMap = useMemo(() => {
         const map = new Map<string, ContentsDefine>();
         contentsList.forEach(content => {
-            map.set(content.itemId, content);
+            const key = getMapKey(content.itemId);
+            map.set(key, content);
         });
         return map;
     }, [contentsList]);
     
     return {
-        contentsMap,
-        itemContentsMap,
+        // contentsMap,
+        // itemContentsMap,
     }
 }

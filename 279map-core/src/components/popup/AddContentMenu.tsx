@@ -6,12 +6,13 @@ import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
 import { useCommand } from '../../api/useCommand';
+import { DataId } from '../../279map-common';
 
 type Props = {
     target: {
-        itemId: string;
+        itemId: DataId;
     } | {
-        contentId: string;
+        contentId: DataId;
     };
     onClick?: () => void;   // メニュー選択時のコールバック
 }

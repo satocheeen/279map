@@ -2,7 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import styles from './ItemContents.module.scss';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
-import { Auth, ItemContentInfo, ItemDefine } from '../../279map-common';
+import { Auth, DataId, ItemContentInfo, ItemDefine } from '../../279map-common';
 import { BsThreeDots } from 'react-icons/bs';
 import { operationActions } from '../../store/operation/operationSlice';
 import { useFilter } from '../../store/useFilter';
@@ -29,12 +29,12 @@ export default function ItemContents(props: Props) {
     });
 
     // 表示する画像URL
-    const imageContentId = useMemo((): string | null => {
-        const getImageOwnerContentId = (content: ItemContentInfo) : string | undefined => {
+    const imageContentId = useMemo((): DataId | null => {
+        const getImageOwnerContentId = (content: ItemContentInfo) : DataId | undefined => {
             if ((filterTargetContentIds === undefined || filterTargetContentIds?.includes(content.id)) && content.hasImage) {
                 return content.id;
             }
-            let id: string | undefined;
+            let id: DataId | undefined;
             content.children?.some(child => {
                 id = getImageOwnerContentId(child);
                 return id ? true : false;
@@ -44,7 +44,7 @@ export default function ItemContents(props: Props) {
         if (props.item.contents.length === 0) {
             return null;
         }
-        let imageContentId: string | undefined ;
+        let imageContentId: DataId | undefined ;
         for (const content of props.item.contents) {
             imageContentId = getImageOwnerContentId(content);
             if (!imageContentId) {

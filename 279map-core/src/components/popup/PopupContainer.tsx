@@ -12,18 +12,20 @@ import VectorSource from 'ol/source/Vector';
 import Feature, { FeatureLike } from 'ol/Feature';
 import Style, { StyleFunction } from 'ol/style/Style';
 import VectorLayer from 'ol/layer/Vector';
+import { DataId } from '../../279map-common';
+import { isEqualId } from '../../store/data/dataUtility';
 
 type Props = {
     map: Map;
 }
 type PopupGroup = {
     mainFeature: Feature;
-    itemIds: string[];  // ポップアップに紐づくアイテムID一覧
+    itemIds: DataId[];  // ポップアップに紐づくアイテムID一覧
 }
 
 type PopupGroupWithPosition = {
     itemPositions: GeolibInputCoordinates[];    // ポップアップ表示位置
-    itemIds: string[];  // ポップアップに紐づくアイテムID一覧
+    itemIds: DataId[];  // ポップアップに紐づくアイテムID一覧
 }
 function createKeyFromPopupInfo(param: PopupGroupWithPosition): string {
     if (!param) {
@@ -99,8 +101,14 @@ export default function PopupContainer(props: Props) {
                 const features = feature.get('features') as Feature[];
 
                 // コンテンツを持つアイテムに絞る
-                const itemIds = features.map(f => f.getId() as string).filter(id => {
-                    return hasContentsItemIdList.includes(id);
+                const itemIds = features.map((f): DataId => {
+                    // TODO: data_source_idの考慮
+                    return {
+                        id: f.getId() as string,
+                        dataSourceId: '',
+                    }
+                }).filter(id => {
+                    return hasContentsItemIdList.some(item => isEqualId(item, id));
                 });
                 if (itemIds.length === 0) {
                     return;
@@ -125,8 +133,12 @@ export default function PopupContainer(props: Props) {
             const popupInfoList = [] as PopupGroup[]; 
             source.getFeatures().forEach(feature => {
                 // コンテンツを持つアイテムに絞る
-                const id = feature.getId() as string;
-                if (!hasContentsItemIdList.includes(id)) {
+                // TODO: data_source_idの考慮
+                const id = {
+                    id: feature.getId() as string,
+                    dataSourceId: '',
+                } as DataId;
+                if (!hasContentsItemIdList.some(item => isEqualId(item, id))) {
                     return;
                 }
 

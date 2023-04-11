@@ -1,9 +1,10 @@
-import { CategoryDefine, ContentsDefine, EventDefine, ItemContentInfo, ItemDefine } from '../../279map-common';
+import { CategoryDefine, ContentsDefine, DataId, EventDefine, ItemContentInfo, ItemDefine } from '../../279map-common';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { Extent } from 'ol/extent';
 import { SystemIconDefine } from '../../types/types';
 import { loadMapDefine } from '../session/sessionThunk';
 import { loadCategories, loadContents, loadEvents, loadItems, loadOriginalIconDefine, removeContent } from './dataThunk';
+import { getMapKey } from './dataUtility';
 
 /**
  * 地図関連の情報を管理
@@ -28,13 +29,13 @@ const dataSlice = createSlice({
          * アイテム削除
          * @param 削除対象のアイテムID
          */
-        removeItems(state, action: PayloadAction<string[]>) {
+        removeItems(state, action: PayloadAction<DataId[]>) {
             if (action.payload.length === 0) {
                 return;
             }
             const itemMap = Object.assign({}, state.itemMap);
             action.payload.forEach(def => {
-                delete itemMap[def];
+                delete itemMap[getMapKey(def)];
             });
             state.itemMap = itemMap;
         },
@@ -94,7 +95,7 @@ const dataSlice = createSlice({
             }
             const itemMap = Object.assign({}, state.itemMap);
             action.payload.forEach(def => {
-                itemMap[def.id] = def;
+                itemMap[getMapKey(def.id)] = def;
             });
             state.itemMap = itemMap;
         })
@@ -122,11 +123,13 @@ const dataSlice = createSlice({
         .addCase(removeContent.fulfilled, (state, action) => {
             // 削除されたコンテンツはコンテンツ一覧から除去する
             state.contentsList = state.contentsList.filter(content => {
-                return !(content.id === action.payload.id && content.itemId === action.payload.itemId);
+                return !(
+                    (content.id.id === action.payload.id.id && content.id.dataSourceId === action.payload.id.dataSourceId) 
+                    && (content.itemId.id === action.payload.itemId.id && content.itemId.dataSourceId === action.payload.itemId.dataSourceId));
             });
             // アイテムからも除去
             const itemMap = Object.assign({}, state.itemMap);
-            const targetItem = itemMap[action.payload.itemId];
+            const targetItem = itemMap[getMapKey(action.payload.itemId)];
             if (targetItem.contents.length>0) {
                 let newContents: ItemContentInfo[];
                 if (targetItem.contents.some(c => c.id === action.payload.id)) {
@@ -152,9 +155,8 @@ const dataSlice = createSlice({
                         children: newChildren,
                     });
                 }
-                itemMap[action.payload.itemId] = {
+                itemMap[getMapKey(action.payload.itemId)] = {
                     id: targetItem.id,
-                    dataSourceId: targetItem.dataSourceId,
                     name: targetItem.name,
                     contents: newContents,
                     position: targetItem.position,

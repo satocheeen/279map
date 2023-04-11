@@ -109,7 +109,11 @@ enum Stage {
         const geoProperties = extractGeoProperty(feature.getProperties());
         const geoJson = geoProperties.featureType === FeatureType.ROAD ? geoProperties.lineJson : createGeoJson(feature);
         await dispatch(updateFeature({
-            id: selectedFeature.current?.getId() as string,
+            // TODO: data_source_id考慮
+            id: {
+                id: selectedFeature.current?.getId() as string,
+                dataSourceId: '',
+            },
             geometry: geoJson.geometry,
             geoProperties: extractGeoProperty(geoJson.properties),
         }));

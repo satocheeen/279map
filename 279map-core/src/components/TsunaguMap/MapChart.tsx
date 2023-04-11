@@ -25,7 +25,7 @@ import LandNameOverlay from "../map/LandNameOverlay";
 import { useFilter } from "../../store/useFilter";
 import { loadItems } from "../../store/data/dataThunk";
 import { openItemContentsPopup } from "../popup/popupThunk";
-import { FeatureType, GeoJsonPosition, MapKind } from "../../279map-common";
+import { DataId, FeatureType, GeoJsonPosition, MapKind } from "../../279map-common";
 import { FeatureProperties, MapMode } from "../../types/types";
 import { useAPI } from "../../api/useAPI";
 import useFilteredTopographyStyle from "../map/useFilteredTopographyStyle";
@@ -39,7 +39,7 @@ import ClusterMenuController from "../cluster-menu/ClusterMenuController";
 
 type ClusterMenuInfo = {
     position: Coordinate;
-    itemIds: string[];
+    itemIds: DataId[];
 }
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
@@ -128,7 +128,7 @@ export default function MapChart() {
         const source = new VectorSource();
         const map = mapRef.current;
         filteredItemIdList.forEach(itemId => {
-            const feature = MapUtility.getFeatureByItemId(map, itemId);
+            const feature = MapUtility.getFeatureByItemId(map, itemId.id);
             if (feature) {
                 // Cluster化している場合は、既にsourceに追加されている可能性があるので、
                 // 追加済みでない場合のみ追加
@@ -229,7 +229,10 @@ export default function MapChart() {
             dispatch(operationActions.unselectItem());
         } else {
             const id = feature.getId() as string;
-            dispatch(operationActions.setSelectItem([id]));
+            dispatch(operationActions.setSelectItem([{
+                id,
+                dataSourceId: '',   // TODO
+            }]));
         }
 
     }, [dispatch]);
@@ -373,7 +376,7 @@ export default function MapChart() {
                 console.warn('contents could not be loaded.', def.id, JSON.stringify(def));
                 return;
             }
-            featurething.setId(def.id);
+            featurething.setId(def.id.id);
             const properties = Object.assign({}, def.geoProperties ? def.geoProperties : {}, {
                 name: def.name,
                 lastEditedTime: def.lastEditedTime,
@@ -405,7 +408,7 @@ export default function MapChart() {
                 console.warn('想定外エラー');
                 return;
             }
-            const existFeature = source.getFeatureById(def.id);
+            const existFeature = source.getFeatureById(def.id.id);
             if (existFeature) {
                 if (existFeature.getProperties()['lastEditedTime'] !== def.lastEditedTime) {
                     console.log('update feature');
@@ -421,7 +424,7 @@ export default function MapChart() {
         const deleteFeatureFunc = (source: VectorSource) => {
             const deleteFeatures = source.getFeatures().filter(feature => {
                 const id = feature.getId();
-                const exist = geoJsonItems.some(content => content.id === id);
+                const exist = geoJsonItems.some(content => content.id.id === id);
                 return !exist;
             });
             deleteFeatures.forEach(feature => {
@@ -457,7 +460,7 @@ export default function MapChart() {
                 return feature2;
             };
 
-            const feature = searchFeatureFromAllLayers(focusItemId);
+            const feature = searchFeatureFromAllLayers(focusItemId.id);
     
             if (feature) {
                 resolve(feature);
@@ -466,7 +469,7 @@ export default function MapChart() {
             // featureが存在しないなら、追加されるまで待つ
             const eventSource = [] as VectorSource[];
             const eventFn = () => {
-                const feature = searchFeatureFromAllLayers(focusItemId);
+                const feature = searchFeatureFromAllLayers(focusItemId.id);
                 if (!feature) return;
 
                 eventSource.forEach(eSource => {
@@ -546,14 +549,14 @@ export default function MapChart() {
             }
 
             // 既に描画済みの場合は何もしない
-            const hit = targetLayer.getSource()?.getFeatureById(contents.id);
+            const hit = targetLayer.getSource()?.getFeatureById(contents.id.id);
             if (hit) {
                 return;
             }
 
             // geojsonを追加
             const feature = new GeoJSON().readFeatures(track.geojson)[0];
-            feature.setId(contents.id);
+            feature.setId(contents.id.id);
             targetLayer.getSource()?.addFeature(feature);
         });
         // 削除
@@ -564,7 +567,7 @@ export default function MapChart() {
             }
             const deleteFeatures = source.getFeatures().filter(feature => {
                 const id = feature.getId();
-                const exist = trackItems.some(content => content.id === id);
+                const exist = trackItems.some(content => content.id.id === id);
                 return !exist;
             });
             deleteFeatures.forEach(feature => {
@@ -601,7 +604,7 @@ export default function MapChart() {
         }
     }, [selectedItemIds]);
 
-   const onClusterMenuSelected = useCallback((id: string) => {
+   const onClusterMenuSelected = useCallback((id: DataId) => {
         setClusterMenuInfo(null);
         dispatch(operationActions.setSelectItem([id]));
     }, [dispatch]);

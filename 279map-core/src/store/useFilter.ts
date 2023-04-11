@@ -3,7 +3,7 @@ import { useSelector, shallowEqual } from "react-redux";
 import { RootState } from "./configureStore";
 import dayjs from 'dayjs';
 import { useCategory } from "./useCategory";
-import { ItemContentInfo, ItemDefine } from "../279map-common";
+import { DataId, ItemContentInfo, ItemDefine } from "../279map-common";
 import { FilterDefine } from "../entry";
 
 type FilterStatus = {
@@ -69,13 +69,13 @@ export function useFilter() {
      * フィルタが掛かっている場合に、フィルタ条件を満たすコンテンツID一覧を返す.
      * フィルタが掛かっていない場合は、undefinedを返す。
      */
-    const filterTargetContentIds = useMemo((): string[] | undefined => {
+    const filterTargetContentIds = useMemo((): DataId[] | undefined => {
         if (filter.length === 0) {
             return undefined;
         }
         // フィルタはAND条件
         // -- 1. 全コンテンツIdをセット
-        let contentsIdList = [] as string[];
+        let contentsIdList = [] as DataId[];
         Object.values(itemMap).forEach(item => {
             getDescendantContents(item).forEach(c => {
                 contentsIdList.push(c.id);
@@ -86,7 +86,7 @@ export function useFilter() {
             if (filterDef.type === 'category') {
                 const categoryInfo = categoryMap.get(filterDef.categoryName);
                 contentsIdList = contentsIdList.filter(contentId => {
-                    return categoryInfo?.content_ids.includes(contentId);
+                    return categoryInfo?.content_ids.some(id => id.id === contentId.id && id.dataSourceId === contentId.dataSourceId);
                 });
             } else if (filterDef.type === 'calendar') {
                 const date = filterDef.date;
@@ -95,7 +95,7 @@ export function useFilter() {
                     return dayjs(evt.date).format('YYYYMMDD') === dayjs(date).format('YYYYMMDD');
                 })
                 .map(evt => evt.content_id);
-                contentsIdList = contentsIdList.filter(contentId => targetEventContentIds.includes(contentId));
+                contentsIdList = contentsIdList.filter(contentId => targetEventContentIds.some(target => target.id === contentId.id && target.dataSourceId === contentId.dataSourceId));
             }
         });
         return contentsIdList;

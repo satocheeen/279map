@@ -4,15 +4,16 @@ import { RootState, useAppDispatch } from "../../store/configureStore";
 import styles from './PointsPopup.module.scss';
 import { useFilter } from "../../store/useFilter";
 import ItemContents from "./ItemContents";
-import { ContentsDefine, ItemContentInfo, ItemDefine } from "../../279map-common";
+import { ContentsDefine, DataId, ItemContentInfo, ItemDefine } from "../../279map-common";
 import { operationActions } from "../../store/operation/operationSlice";
 import SelectContentDialog from "./select-content/SelectContentDialog";
 import { useContents } from "../../store/useContents";
 import { MapMode } from "../../types/types";
+import { getMapKey } from "../../store/data/dataUtility";
 
 type Props = {
     // このポップアップにて情報表示する対象アイテム
-    itemIds: string[];
+    itemIds: DataId[];
 }
 
 export type PopupItem = {
@@ -45,7 +46,7 @@ export default function PointsPopup(props: Props) {
             return undefined;
         }
         let infos = props.itemIds.reduce((acc, cur) => {
-            const item = itemMap[cur];
+            const item = itemMap[getMapKey(cur)];
             if (!item) {
                 // 地図種別切り替え直後にこのルートに入る可能性がある
                 return acc;
@@ -110,7 +111,7 @@ export default function PointsPopup(props: Props) {
         <>
             <div className={`${styles.Popup} ${hasImage ? '' : styles.Minimum}`} onClick={onClick}>
                 <div className={styles.Contents}>
-                    <ItemContents key={target.id} item={target} />
+                    <ItemContents key={getMapKey(target.id)} item={target} />
                 </div>
                 {props.itemIds.length > 1 &&
                     <div className={styles.Number}>{contentsNum}</div>

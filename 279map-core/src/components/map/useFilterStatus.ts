@@ -25,7 +25,10 @@ export default function useFilterStatus() {
      * @return 強調表示色。強調しない場合は、undefined。
      */
     const getForceColor = useCallback((feature: FeatureLike): string | undefined => {
-        if (selectedItemIds.includes(feature.getId() as string)) {
+        if (selectedItemIds.some(itemId => {
+            // TODO: data_source_idの考慮
+            return feature.getId() as string === itemId.id;
+        })) {
             return FORCE_COLOR;
         }
 

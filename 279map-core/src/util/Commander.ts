@@ -1,4 +1,4 @@
-import { FeatureType } from "../279map-common";
+import { DataId, FeatureType } from "../279map-common";
 
 type TCallBack<T> = (param: T) => Promise<void>;
 
@@ -33,9 +33,9 @@ type CommandDefine =
     // 最新地図アイテム取得命令
     | TCommandDefine<'LoadLatestData', undefined>
     // コンテンツ情報表示 引数: contentId. 
-    | TCommandDefine<'ShowContentInfo', string>
+    | TCommandDefine<'ShowContentInfo', DataId>
     // コンテンツ情報編集 引数: contentId. 
-    | TCommandDefine<'EditContentInfo', string>
+    | TCommandDefine<'EditContentInfo', DataId>
     ;
 type TSubscription = CommandDefine['subscription'];
 type TCallback = TSubscription[1];

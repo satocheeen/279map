@@ -14,17 +14,18 @@ import { removeContent } from "../../store/data/dataThunk";
 import reactStringReplace from "react-string-replace";
 import PopupMenuIcon from "../popup/PopupMenuIcon";
 import AddContentMenu from "../popup/AddContentMenu";
-import { Auth, ContentsDefine, MapKind } from "../../279map-common";
+import { Auth, ContentsDefine, DataId, MapKind } from "../../279map-common";
 import { useAPI } from "../../api/useAPI";
 import Spinner from "../common/spinner/Spinner";
 import { operationActions } from "../../store/operation/operationSlice";
 import { useFilter } from "../../store/useFilter";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyImage from "../common/image/MyImage";
+import { getMapKey } from "../../store/data/dataUtility";
 
 type Props = {
-    itemId: string;
-    parentContentId?: string;
+    itemId: DataId;
+    parentContentId?: DataId;
     content: ContentsDefine;
     onClick?: () => void;
 }
@@ -61,7 +62,7 @@ export default function Content(props: Props) {
             case UrlType.FacebookVideo:
                 break;
             default:
-                window.open(props.content.url, props.content.id);
+                window.open(props.content.url, getMapKey(props.content.id));
         }
         if(props.onClick !== undefined){
             props.onClick();
@@ -340,7 +341,7 @@ export default function Content(props: Props) {
             {
                 props.content.children?.map(child => {
                     return (
-                        <Content key={child.id} itemId={props.itemId} parentContentId={props.content.id} content={child} />
+                        <Content key={getMapKey(child.id)} itemId={props.itemId} parentContentId={props.content.id} content={child} />
                     )
                 })
             }

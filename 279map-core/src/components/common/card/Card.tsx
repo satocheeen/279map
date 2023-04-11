@@ -1,12 +1,13 @@
 import React, { useCallback, useMemo } from 'react';
 import styles from './Card.module.scss';
 import MyImage from '../image/MyImage';
+import { DataId } from '../../../279map-common';
 
 type Props = {
     title: string;
     breadcrumb?: string[];
     imageUrl?: string;
-    imageId?: string;
+    imageId?: DataId;
     overview?: string;
     onClick?: () => void;
 }

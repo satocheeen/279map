@@ -1,7 +1,7 @@
 import { useSelector } from "react-redux";
 import { useCallback } from 'react';
 import { RootState, useAppDispatch } from "../store/configureStore";
-import { FeatureType, MapKind, UnpointContent } from '../279map-common';
+import { DataId, FeatureType, MapKind, UnpointContent } from '../279map-common';
 import { registContent, updateContent, linkContentToItem } from '../store/data/dataThunk';
 import useConfirm from "../components/common/confirm/useConfirm";
 import { operationActions } from "../store/operation/operationSlice";
@@ -29,7 +29,7 @@ export function useCommand() {
      * focus the item
      * 指定のアイテムにフォーカスする
      */
-    const focusItem = useCallback((itemId: string) => {
+    const focusItem = useCallback((itemId: DataId) => {
         dispatch(operationActions.setFocusItemId(itemId));
     }, [dispatch]);
 
