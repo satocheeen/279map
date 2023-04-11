@@ -12,10 +12,11 @@ services:
   odba:
     # 任意のイメージを指定
     image: satocheeen/279map-backend-odba-notion:0.44.3
+    depends_on:
+      - db
     env_file:
       - ./.env
       - ./.env.notion
-      # - ./.env.otakara
     ports:
       - 8082:8082
     volumes:
@@ -51,3 +52,6 @@ services:
     volumes:
         - ./log:/var/log/www
         - ./etc:/usr/local/share
+        - 279map-dev-session-volume:/var/session
+volumes:
+  279map-dev-session-volume:
