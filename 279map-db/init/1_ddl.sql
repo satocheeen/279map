@@ -17,50 +17,62 @@ CREATE TABLE `map_page_info` (
 
 CREATE TABLE `data_source` (
   `data_source_id` varchar(100) NOT NULL,
-  `map_page_id` varchar(100) NOT NULL,
   `kind` enum('VirtualItem','RealItem','RealTrack','Content','RealItemContent') NOT NULL,
   `name` varchar(100) NOT NULL,
   `editable` tinyint(1) NOT NULL DEFAULT '0',
   `connection` json NOT NULL,
   `last_edited_time` varchar(100) NOT NULL,
-  PRIMARY KEY (`data_source_id`),
-  KEY `item_group_FK` (`map_page_id`),
-  CONSTRAINT `item_group_FK` FOREIGN KEY (`map_page_id`) REFERENCES `map_page_info` (`map_page_id`) ON DELETE CASCADE
+  PRIMARY KEY (`data_source_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+
+-- 279map_db.map_datasource_link definition
+
+CREATE TABLE `map_datasource_link` (
+  `map_page_id` varchar(100) NOT NULL,
+  `data_source_id` varchar(100) NOT NULL,
+  `last_edited_time` varchar(100) NOT NULL,
+  PRIMARY KEY (`map_page_id`,`data_source_id`),
+  KEY `map_datasource_link_FK_1` (`data_source_id`),
+  CONSTRAINT `map_datasource_link_FK` FOREIGN KEY (`map_page_id`) REFERENCES `map_page_info` (`map_page_id`) ON DELETE CASCADE,
+  CONSTRAINT `map_datasource_link_FK_1` FOREIGN KEY (`data_source_id`) REFERENCES `data_source` (`data_source_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 
 -- 279map_db.contents definition
 
 CREATE TABLE `contents` (
+  `content_page_id` varchar(100) NOT NULL,
+  `data_source_id` varchar(100) NOT NULL,
+  `parent_id` varchar(100) DEFAULT NULL,
+  `parent_datasource_id` varchar(100) DEFAULT NULL,
   `title` varchar(100) DEFAULT NULL,
   `contents` text,
   `thumbnail` text,
-  `content_page_id` varchar(100) NOT NULL,
   `last_edited_time` varchar(100) NOT NULL,
   `category` text,
   `date` datetime DEFAULT NULL,
-  `parent_id` varchar(100) DEFAULT NULL,
   `supplement` text,
-  `data_source_id` varchar(100) NOT NULL,
   `readonly` tinyint(1) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`content_page_id`),
+  PRIMARY KEY (`content_page_id`,`data_source_id`),
   KEY `contents_FK` (`parent_id`),
   KEY `contents_FK_1` (`data_source_id`),
-  CONSTRAINT `contents_FK` FOREIGN KEY (`parent_id`) REFERENCES `contents` (`content_page_id`) ON DELETE CASCADE,
-  CONSTRAINT `contents_FK_1` FOREIGN KEY (`data_source_id`) REFERENCES `data_source` (`data_source_id`) ON DELETE CASCADE
+  KEY `contents_FK_2` (`parent_id`,`parent_datasource_id`),
+  CONSTRAINT `contents_FK_1` FOREIGN KEY (`data_source_id`) REFERENCES `data_source` (`data_source_id`) ON DELETE CASCADE,
+  CONSTRAINT `contents_FK_2` FOREIGN KEY (`parent_id`, `parent_datasource_id`) REFERENCES `contents` (`content_page_id`, `data_source_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 
 -- 279map_db.items definition
 
 CREATE TABLE `items` (
-  `location` geometry NOT NULL,
-  `data_source_id` varchar(100) NOT NULL,
   `item_page_id` varchar(100) NOT NULL,
-  `last_edited_time` varchar(100) NOT NULL,
+  `data_source_id` varchar(100) NOT NULL,
+  `location` geometry NOT NULL,
   `geo_properties` text,
   `name` varchar(100) DEFAULT NULL,
-  PRIMARY KEY (`item_page_id`),
+  `last_edited_time` varchar(100) NOT NULL,
+  PRIMARY KEY (`item_page_id`,`data_source_id`),
   KEY `point_contents_FK` (`data_source_id`) USING BTREE,
   CONSTRAINT `items_FK` FOREIGN KEY (`data_source_id`) REFERENCES `data_source` (`data_source_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
@@ -70,12 +82,16 @@ CREATE TABLE `items` (
 
 CREATE TABLE `item_content_link` (
   `item_page_id` varchar(100) NOT NULL,
+  `item_datasource_id` varchar(100) NOT NULL,
   `content_page_id` varchar(100) NOT NULL,
+  `content_datasource_id` varchar(100) NOT NULL,
   `last_edited_time` varchar(100) NOT NULL,
-  PRIMARY KEY (`item_page_id`,`content_page_id`),
+  PRIMARY KEY (`item_page_id`,`content_page_id`,`item_datasource_id`,`content_datasource_id`),
   KEY `item_content_link_FK_1` (`content_page_id`),
-  CONSTRAINT `item_content_link_FK` FOREIGN KEY (`item_page_id`) REFERENCES `items` (`item_page_id`) ON DELETE CASCADE,
-  CONSTRAINT `item_content_link_FK_1` FOREIGN KEY (`content_page_id`) REFERENCES `contents` (`content_page_id`) ON DELETE CASCADE
+  KEY `item_content_link_FK` (`item_page_id`,`item_datasource_id`),
+  KEY `item_content_link_FK_2` (`content_page_id`,`content_datasource_id`),
+  CONSTRAINT `item_content_link_FK` FOREIGN KEY (`item_page_id`, `item_datasource_id`) REFERENCES `items` (`item_page_id`, `data_source_id`) ON DELETE CASCADE,
+  CONSTRAINT `item_content_link_FK_2` FOREIGN KEY (`content_page_id`, `content_datasource_id`) REFERENCES `contents` (`content_page_id`, `data_source_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 
