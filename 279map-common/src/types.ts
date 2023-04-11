@@ -110,7 +110,7 @@ export type ItemContentInfo = {
     hasImage: boolean;
     children: ItemContentInfo[];
 }
-type DataId = {
+export type DataId = {
     id: string;
     dataSourceId: string;
 }
