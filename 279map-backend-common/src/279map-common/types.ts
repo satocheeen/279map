@@ -105,14 +105,15 @@ export type GeoJsonPosition = {
 }
 export type Position = GeoJsonPosition | TrackGpxDefine;
 
-export type ItemContentInfo = {
-    id: string;
-    hasImage: boolean;
-    children: ItemContentInfo[];
-}
 export type DataId = {
     id: string;
     dataSourceId: string;
+}
+
+export type ItemContentInfo = {
+    id: DataId;
+    hasImage: boolean;
+    children: ItemContentInfo[];
 }
 export type ItemDefine = {
     id: DataId;
