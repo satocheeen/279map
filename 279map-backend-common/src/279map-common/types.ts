@@ -53,7 +53,6 @@ export enum FeatureType {
     EARTH = 'EARTH',
     FOREST = 'FOREST',
     AREA = 'AREA',
-    TRACK = 'TRACK',
 }
 
 export type IconInfo = {
@@ -74,6 +73,8 @@ export type GeocoderId = {
 }
 
 export type GeoProperties = {
+    featureType?: FeatureType.STRUCTURE;
+} | {
     featureType: FeatureType.STRUCTURE;
     icon?: IconInfo;
 } | {
@@ -86,11 +87,23 @@ export type GeoProperties = {
 } | {
     featureType: FeatureType.AREA;
     geocoderId?: GeocoderId;    // OSM等で管理されているFeatureの場合
-} | {
-    featureType: FeatureType.TRACK;
+}
+
+/**
+ * 各情報の型
+ */
+export type TrackGpxDefine = {
+    type: 'track';
+    // track_id: number;
     min_zoom: number;
     max_zoom:  number;
+    geojson: string;
 }
+export type GeoJsonPosition = {
+    type: 'geoJson';
+    geoJson: GeoJsonObject;
+}
+export type Position = GeoJsonPosition | TrackGpxDefine;
 
 export type ItemContentInfo = {
     id: string;
@@ -100,9 +113,9 @@ export type ItemContentInfo = {
 export type ItemDefine = {
     id: string;
     dataSourceId: string;
+    position: Position;
     name: string;
-    geoJson: GeoJsonObject;
-    geoProperties: GeoProperties;
+    geoProperties?: GeoProperties;
     lastEditedTime: string;
     contents: ItemContentInfo[];
 }
