@@ -1,4 +1,4 @@
-import { CategoryDefine, ContentsDefine, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, ServerConfig, UnpointContent } from "279map-backend-common";
+import { CategoryDefine, ContentsDefine, DataId, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, ServerConfig, UnpointContent } from "279map-backend-common";
 import { GeoJsonObject } from "geojson";
 import { APIDefine, ContentAttr, SnsPreviewPost, MapDefine } from '279map-backend-common';
 
@@ -123,9 +123,9 @@ export const GetContentsAPI = {
 } as APIDefine<GetContentsParam, GetContentsResult>;
 
 export type GetContentsParam = ({
-    itemId: string;
+    itemId: DataId;
 } | {
-    contentId: string;
+    contentId: DataId;
     notContainChildren?: boolean;   // trueの場合、子孫は返さない
 })[];
 
@@ -156,7 +156,7 @@ export const UpdateItemAPI = {
 } as APIDefine<UpdateItemParam, void>;
 
 export type UpdateItemParam = {
-    id: string;
+    id: DataId;
     name?: string;  // only topography.  the structures' name is decided by content's name.
     geometry?: GeoJSON.Geometry;
     geoProperties?: GeoProperties;
@@ -171,7 +171,7 @@ export const RemoveItemAPI = {
 } as APIDefine<RemoveItemParam, void>;
 
 export type RemoveItemParam = {
-    id: string; // 削除対象アイテムのID
+    id: DataId; // 削除対象アイテムのID
     onlyGeoInfo: boolean;   // trueの場合、地理情報のみ消す。（Notionのページは削除しない）
 }
 
@@ -184,9 +184,9 @@ export const RegistContentAPI = {
 } as APIDefine<RegistContentParam, void>;
 export type RegistContentParam = {
     parent: {
-        itemId: string;
+        itemId: DataId;
     } | {
-        contentId: string;
+        contentId: DataId;
     }
 } & ContentAttr;
 
@@ -199,7 +199,7 @@ export const UpdateContentAPI = {
 } as APIDefine<UpdateContentParam, void>;
 
 export type UpdateContentParam = {
-    id: string;
+    id: DataId;
 } & Partial<ContentAttr>;
 
 /**
@@ -211,9 +211,9 @@ export const RemoveContentAPI = {
 } as APIDefine<RemoveContentParam, void>;
 
 export type RemoveContentParam = {
-    id: string;
-    itemId: string;
-    parentContentId?: string;
+    id: DataId;
+    itemId: DataId;
+    parentContentId?: DataId;
     mode: 'unlink' | 'alldelete';   // コンテンツデータ自体は残す場合、unlink。コンテンツデータごと削除する場合、alldelete。
 }
 
@@ -226,11 +226,11 @@ export const LinkContentToItemAPI = {
 } as APIDefine<LinkContentToItemParam, void>;
 
 export type LinkContentToItemParam = {
-    childContentId: string;
+    childContentId: DataId;
     parent: {
-        itemId: string;
+        itemId: DataId;
     } | {
-        contentId: string;
+        contentId: DataId;
     }
 }
 
@@ -286,5 +286,5 @@ export type WebSocketMessage = {
 } | {
     // 地図上のアイテムが削除された場合
     type: 'delete';
-    itemPageIdList: string[];
+    itemPageIdList: DataId[];
 }

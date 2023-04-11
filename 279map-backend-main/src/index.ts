@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import mysql from 'mysql2/promise';
 import { getMapInfo } from './getMapInfo';
-import { Auth, MapKind, AuthMethod, ServerConfig, CurrentMap, sleep } from '279map-backend-common';
+import { Auth, MapKind, AuthMethod, ServerConfig, CurrentMap, sleep, DataId } from '279map-backend-common';
 import { getItems } from './getItems';
 import { configure, getLogger } from "log4js";
 import { DbSetting, LogSetting } from './config';
@@ -1029,7 +1029,7 @@ app.get('/api/getimageurl',
     checkCurrentMap,
     async(req, res) => {
         try {
-            const param = req.query as { id: string };
+            const param = req.query as { id: DataId };
 
             // call odba
             return await backendAPI.callOdbaApi(backendAPI.GetImageUrlAPI, param);

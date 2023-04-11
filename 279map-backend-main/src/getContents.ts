@@ -129,8 +129,8 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
     }
 }
 
-async function getContentInfo(con: PoolConnection, content_page_id: string, mapPageId: string, mapKind: MapKind): Promise<RetRecord[]> {
-    const contentRec = await getContent(content_page_id);
+async function getContentInfo(con: PoolConnection, content_id: DataId, mapPageId: string, mapKind: MapKind): Promise<RetRecord[]> {
+    const contentRec = await getContent(content_id);
     if (!contentRec) {
         return [];
     }

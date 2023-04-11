@@ -1,5 +1,5 @@
 import { ConnectionPool } from '..';
-import { schema, MapKind, Extent, getDataSourceKindsFromMapKind } from '279map-backend-common';
+import { schema, MapKind, Extent, getDataSourceKindsFromMapKind, DataId } from '279map-backend-common';
 import mysql, { PoolConnection } from 'mysql2/promise';
 
 export function getExtentWkt(ext: Extent): string {
@@ -37,10 +37,13 @@ export async function getBelongingItem(con: PoolConnection, content: schema.Cont
     if (items.length > 0) {
         return items;
     }
-    if (!content.parent_id) {
+    if (!content.parent_id || !content.parent_data_sourceid) {
         return null;
     }
-    const parent = await getContent(content.parent_id);
+    const parent = await getContent({
+        id: content.parent_id,
+        dataSourceId: content.parent_data_sourceid
+    });
     if (!parent) {
         return null;
     }
@@ -75,11 +78,11 @@ async function getItemHasTheContent(con: PoolConnection, content_page_id: string
     }
 }
 
-export async function getContent(content_page_id: string): Promise<schema.ContentsTable|null> {
+export async function getContent(content_id: DataId): Promise<schema.ContentsTable|null> {
     const con = await ConnectionPool.getConnection();
     try {
-        const sql = "select * from contents where content_page_id = ?";
-        const [rows] = await con.execute(sql, [content_page_id]);
+        const sql = "select * from contents where content_page_id = ? and data_source_id = ?";
+        const [rows] = await con.execute(sql, [content_id.id, content_id.dataSourceId]);
         if ((rows as []).length === 0) {
             return null;
         }
