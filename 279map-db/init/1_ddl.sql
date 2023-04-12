@@ -102,7 +102,7 @@ CREATE TABLE `tracks` (
   `data_source_id` varchar(100) NOT NULL,
   `name` varchar(100) DEFAULT NULL,
   `last_edited_time` varchar(100) NOT NULL,
-  PRIMARY KEY (`track_page_id`),
+  PRIMARY KEY (`track_page_id`,`data_source_id`),
   KEY `tracks_FK` (`data_source_id`),
   CONSTRAINT `tracks_FK` FOREIGN KEY (`data_source_id`) REFERENCES `data_source` (`data_source_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
@@ -114,10 +114,11 @@ CREATE TABLE `track_files` (
   `track_page_id` varchar(100) NOT NULL,
   `file_name` varchar(100) NOT NULL,
   `track_file_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `data_source_id` varchar(100) NOT NULL,
   PRIMARY KEY (`track_file_id`),
-  KEY `track_files_FK` (`track_page_id`),
-  CONSTRAINT `track_files_FK` FOREIGN KEY (`track_page_id`) REFERENCES `tracks` (`track_page_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=49 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+  KEY `track_files_FK_1` (`track_page_id`,`data_source_id`),
+  CONSTRAINT `track_files_FK_1` FOREIGN KEY (`track_page_id`, `data_source_id`) REFERENCES `tracks` (`track_page_id`, `data_source_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 
 -- 279map_db.track_geojson definition
