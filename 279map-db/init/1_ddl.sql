@@ -7,7 +7,6 @@ CREATE TABLE `map_page_info` (
   `use_maps` varchar(100) NOT NULL,
   `default_map` enum('Real','Virtual') NOT NULL,
   `public_range` enum('Public','Private') NOT NULL,
-  `odba_name` varchar(100) NOT NULL,
   `last_edited_time` varchar(100) NOT NULL,
   PRIMARY KEY (`map_page_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
