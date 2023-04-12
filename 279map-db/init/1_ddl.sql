@@ -111,10 +111,10 @@ CREATE TABLE `tracks` (
 -- 279map_db.track_files definition
 
 CREATE TABLE `track_files` (
-  `track_page_id` varchar(100) NOT NULL,
-  `file_name` varchar(100) NOT NULL,
   `track_file_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `track_page_id` varchar(100) NOT NULL,
   `data_source_id` varchar(100) NOT NULL,
+  `file_name` varchar(100) NOT NULL,
   PRIMARY KEY (`track_file_id`),
   KEY `track_files_FK_1` (`track_page_id`,`data_source_id`),
   CONSTRAINT `track_files_FK_1` FOREIGN KEY (`track_page_id`, `data_source_id`) REFERENCES `tracks` (`track_page_id`, `data_source_id`) ON DELETE CASCADE

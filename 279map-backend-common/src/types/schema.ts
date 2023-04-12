@@ -52,6 +52,7 @@ export type TracksTable = {
 export type TrackFilesTable = {
     track_file_id: number;
     track_page_id: string;
+    data_source_id: string;
     file_name: string;
 }
 export type TrackGeoJsonTable = {
