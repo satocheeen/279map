@@ -77,6 +77,7 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
         select i.*, ST_AsGeoJSON(i.location) as geojson
         from items i
         inner join data_source ds on ds.data_source_id = i.data_source_id 
+        inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
         where map_page_id = ? and ds.kind in (?)
         `;
         const query = mysql.format(sql, [mapPageId, kinds]);
@@ -152,6 +153,7 @@ async function selectTrackInArea(param: GetItemsParam, mapPageId: string): Promi
                     inner join track_files tf on tf.track_file_id = tg.track_file_id 
                     inner join tracks t on t.track_page_id = tf.track_page_id 
                     inner join data_source ds on ds.data_source_id = t.data_source_id 
+                    inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
                     WHERE map_page_id= ? AND MBRIntersects(geojson, GeomFromText(?,4326)) AND min_zoom <= ? AND ? < max_zoom`;
         const [rows] = await con.execute(sql, [mapPageId, wkt, param.zoom, param.zoom]);
         

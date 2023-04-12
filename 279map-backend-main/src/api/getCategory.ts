@@ -22,8 +22,8 @@ export async function getCategory(currentMap: CurrentMap): Promise<GetCategoryRe
     try {
         const sql = `
             select c.* from contents c 
-            inner join data_source ds on ds.data_source_id = c.data_source_id
-            where category <> '[]' and ds.map_page_id = ?
+            inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
+            where category <> '[]' and mdl.map_page_id = ?
         `;
 
         const [rows] = await con.execute(sql, [mapPageId]);
