@@ -85,9 +85,9 @@ export type ContentsTable = {
 }
 export type ItemContentLink = {
     item_page_id: string;
-    item_data_source_id: string;
+    item_datasource_id: string;
     content_page_id: string;
-    content_data_source_id: string;
+    content_datasource_id: string;
     last_edited_time: string;
 }
 /**
