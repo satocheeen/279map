@@ -64,8 +64,9 @@ async function getItemHasTheContent(con: PoolConnection, content_page_id: string
         const sql = `
         select i.* from items i
         inner join data_source ds on ds.data_source_id = ds.data_source_id 
+        inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id
         inner join item_content_link icl on icl.item_page_id = i.item_page_id 
-        where icl.content_page_id = ? and ds.map_page_id = ? and ds.kind in (?)
+        where icl.content_page_id = ? and mdl.map_page_id = ? and ds.kind in (?)
         `;
         const query = mysql.format(sql, [content_page_id, mapPageId, kind]);
         const [rows] = await con.execute(query);
