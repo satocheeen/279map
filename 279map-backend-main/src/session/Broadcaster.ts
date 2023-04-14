@@ -125,7 +125,7 @@ export default class Broadcaster {
      */
     #broadcast(mapPageId: string, mapKind: MapKind | undefined, message: WebSocketMessage) {
         this._logger.debug('broadcast', mapKind, message);
-        Object.values(this.#sessionMap).forEach(client => {
+        this.#sessionMap.sessions().forEach(client => {
             if (!client.ws || !client.currentMap) {
                 return;
             }
