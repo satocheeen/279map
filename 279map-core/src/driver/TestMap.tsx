@@ -1,4 +1,4 @@
-import { CategoryDefine, FeatureType, MapKind } from '../279map-common';
+import { CategoryDefine, DataId, FeatureType, MapKind } from '../279map-common';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { CommandHookType } from '../api/useCommand';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
@@ -9,7 +9,7 @@ import { DataSourceInfo, SourceKind } from 'tsunagumap-api';
 /**
  * for Development
  */
-const mapId = 'otakaramap';
+const mapId = 'test';
 const myToken = undefined;  //'VXNlck5vZGU6MjE=';
 const props = {
     mapServerHost: 'localhost',
@@ -82,7 +82,7 @@ export default function TestMap() {
     }, [commandHook]);
 
     // callbacks
-    const onSelect = useCallback((ids: string[]) => {
+    const onSelect = useCallback((ids: DataId[]) => {
         console.log('onSelect', ids, cnt);
         setCnt(cnt + 1);
     }, [cnt]);
@@ -114,7 +114,10 @@ export default function TestMap() {
         setFocusItemId(event.target.value);
     }, []);
     const onFocusItem = useCallback(() => {
-        commandHook?.focusItem(focusItemId);
+        commandHook?.focusItem({
+            dataSourceId: '',
+            id: focusItemId,
+        });
     }, [commandHook, focusItemId]);
 
     const [token, setToken] = useState<string|undefined>();

@@ -1,10 +1,11 @@
-import { schema, CurrentMap, getDataSourceKindsFromMapKind } from '279map-backend-common';
+import { FeatureType, schema, CurrentMap, getDataSourceKindsFromMapKind } from '279map-backend-common';
 import { ItemContentInfo, ItemDefine, MapKind } from '279map-backend-common';
 import { getLogger } from 'log4js';
 import { ConnectionPool } from '.';
 import { GetItemsParam, GetItemsResult } from '../279map-api-interface/src';
 import { getExtentWkt } from './util/utility';
 import mysql from 'mysql2/promise';
+import { GeoJsonObject } from 'geojson';
 
 const apiLogger = getLogger('api');
 
@@ -113,10 +114,7 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
                     dataSourceId: row.data_source_id,
                 },
                 name,
-                position: {
-                    type: 'geoJson',
-                    geoJson: row.geojson,
-                },
+                geoJson: row.geojson,
                 geoProperties: row.geo_properties ? JSON.parse(row.geo_properties) : undefined,
                 contents,
                 lastEditedTime,
@@ -163,15 +161,13 @@ async function selectTrackInArea(param: GetItemsParam, mapPageId: string): Promi
                     id: '' + row.track_file_id + row.sub_id,
                     dataSourceId: row.data_source_id,
                 },
-                position: {
-                    type: 'track',
+                geoJson: row.geojson,
+                geoProperties: {
+                    featureType: FeatureType.TRACK,
                     min_zoom: row.min_zoom,
                     max_zoom: row.max_zoom,
-                    geojson: JSON.stringify(row.geojson),
                 },
                 name: '',
-                overview: '',
-                category: [],
                 contents: [],
                 lastEditedTime: row.last_edited_time,
             }

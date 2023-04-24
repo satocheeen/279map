@@ -143,7 +143,7 @@ export class OlMapWrapper {
         if (this._mapKind === MapKind.Real) {
             if (item.geoProperties.featureType === FeatureType.TRACK) {
                 return {
-                    id: item.dataSourceId,
+                    id: item.id.dataSourceId,
                     layerType: LayerType.Trak,
                     zoomLv: {
                         min: item.geoProperties.min_zoom,
@@ -153,7 +153,7 @@ export class OlMapWrapper {
             } else {
                 const layerType: LayerType = item.geoProperties.featureType === FeatureType.STRUCTURE ? LayerType.Cluster : LayerType.Normal;
                 return {
-                    id: item.dataSourceId,
+                    id: item.id.dataSourceId,
                     layerType,
                 };
             }
@@ -185,7 +185,7 @@ export class OlMapWrapper {
             console.warn('contents could not be loaded.', def.id, JSON.stringify(def));
             return;
         }
-        feature.setId(def.id);
+        feature.setId(def.id.id);
 
         const properties = Object.assign({}, def.geoProperties ? def.geoProperties : {}, {
             name: def.name,
@@ -227,7 +227,7 @@ export class OlMapWrapper {
             return;
         }
 
-        const existFeature = source.getFeatureById(def.id);
+        const existFeature = source.getFeatureById(def.id.id);
         if (existFeature) {
             if (existFeature.getProperties()['lastEditedTime'] !== def.lastEditedTime) {
                 console.log('update feature');
@@ -247,7 +247,7 @@ export class OlMapWrapper {
             console.warn('対象sourceなし');
             return;
         }
-        const feature = source.getFeatureById(item.id);
+        const feature = source.getFeatureById(item.id.id);
         if (!feature) {
             console.warn('削除対象が該当sourceに存在しない', item.id);
             return;
