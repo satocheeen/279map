@@ -56,7 +56,10 @@ export default function MoveItemController(props: Props) {
             for (const feature of features) {
                 // DB更新
                 await dispatch(updateFeature({
-                    id: feature.getId() as string,
+                    id: {
+                        id: feature.getId() as string,
+                        dataSourceId: '',   // TODO: data_source_id
+                    },
                     geometry: mfGeoJson.geometry,
                 }));
             }

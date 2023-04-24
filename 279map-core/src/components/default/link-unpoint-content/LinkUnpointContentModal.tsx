@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from '../../common';
 import { LinkUnpointContentParam } from '../../../types/types';
-import { UnpointContent } from '../../../279map-common';
+import { DataId, UnpointContent } from '../../../279map-common';
 import styles from './LinkUnpointContentModal.module.scss';
 import Card from '../../common/card/Card';
 import Spinner from '../../common/spinner/Spinner';
+import { getMapKey } from '../../../store/data/dataUtility';
 
 type Props = {
     param: LinkUnpointContentParam;
@@ -36,7 +37,7 @@ export default function LinkUnpointContentModal(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const onSelect = useCallback(async(id: string) => {
+    const onSelect = useCallback(async(id: DataId) => {
         setLoading(true);
         await props.param.linkContentToItemAPI({
             parent: props.param.parent,
@@ -65,7 +66,7 @@ export default function LinkUnpointContentModal(props: Props) {
                         <ul>
                             {unpointContents.map((uc) => {
                                 return (
-                                    <li key={uc.id}>
+                                    <li key={getMapKey(uc.id)}>
                                         <Card title={uc.title} imageUrl={uc.thumb ? 'data:' + uc.thumb : undefined} 
                                             overview={uc.overview} onClick={()=>onSelect(uc.id)} />
                                     </li>

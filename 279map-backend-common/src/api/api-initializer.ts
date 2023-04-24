@@ -1,4 +1,4 @@
-import { APIDefine } from "../279map-common";
+import { APIDefine, DataId } from "../279map-common";
 import { Request, Response, Express } from 'express';
 import { Logger } from "log4js";
 import { GetImageUrlAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from "./dba-api-interface";
@@ -18,7 +18,7 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
     const apiList: OdbaAPICallDefine<any,any>[] = [
         {
             define: RegistItemAPI,
-            func: async(param: OdbaAPIFuncParam<RegistItemParam>): Promise<string> => {
+            func: async(param: OdbaAPIFuncParam<RegistItemParam>): Promise<DataId> => {
                 // regist to original db
                 const itemId = await odba.registItemOdb(param.param);
 

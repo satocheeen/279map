@@ -17,8 +17,8 @@ export async function getEvents(currentMap: CurrentMap): Promise<GetEventsResult
         // get contents which has date in the map
         const sql = `
             select c.* from contents c
-            inner join data_source ds on ds.data_source_id = c.data_source_id
-            where date is not null and ds.map_page_id = ?
+            inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
+            where date is not null and mdl.map_page_id = ?
             order by date
             `;
         const [rows] = await con.execute(sql, [mapPageId]);
@@ -30,8 +30,14 @@ export async function getEvents(currentMap: CurrentMap): Promise<GetEventsResult
                 itemList.forEach(item => {
                     events.push({
                         date: row.date as Date,
-                        item_id: item.item_page_id,
-                        content_id: row.content_page_id,
+                        item_id: {
+                            id: item.item_page_id,
+                            dataSourceId: item.data_source_id,
+                        },
+                        content_id: {
+                            id: row.content_page_id,
+                            dataSourceId: row.data_source_id,
+                        },
                     });
                 });
             }

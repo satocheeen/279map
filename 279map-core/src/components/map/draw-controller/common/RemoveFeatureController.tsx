@@ -36,7 +36,11 @@ export default function RemoveFeatureController(props: Props) {
 
         // DB更新
         await dispatch(removeFeature({
-            id: feature.getId() as string,
+            // TODO: data_source_id考慮
+            id: {
+                id: feature.getId() as string,
+                dataSourceId: '',
+            },
             onlyGeoInfo: false,
         }));
 

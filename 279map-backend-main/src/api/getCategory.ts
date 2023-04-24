@@ -22,8 +22,8 @@ export async function getCategory(currentMap: CurrentMap): Promise<GetCategoryRe
     try {
         const sql = `
             select c.* from contents c 
-            inner join data_source ds on ds.data_source_id = c.data_source_id
-            where category <> '[]' and ds.map_page_id = ?
+            inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
+            where category <> '[]' and mdl.map_page_id = ?
         `;
 
         const [rows] = await con.execute(sql, [mapPageId]);
@@ -32,12 +32,18 @@ export async function getCategory(currentMap: CurrentMap): Promise<GetCategoryRe
             const categories = JSON.parse(row.category as string) as string[];
             categories.forEach(category => {
                 if (categoryMap.has(category)) {
-                    categoryMap.get(category)?.content_ids.push(row.content_page_id);
+                    categoryMap.get(category)?.content_ids.push({
+                        id: row.content_page_id,
+                        dataSourceId: row.data_source_id,
+                    });
                 } else {
                     const def = {
                         name: category,
                         color: '',
-                        content_ids: [row.content_page_id],
+                        content_ids: [{
+                            id: row.content_page_id,
+                            dataSourceId: row.data_source_id,
+                        }],
                     } as CategoryDefine;
                     categoryMap.set(category, def);
                 }

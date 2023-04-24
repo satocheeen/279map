@@ -11,7 +11,6 @@ export type MapPageInfoTable = {
     use_maps: string;   // MapKindをカンマ区切り
     default_map: MapKind;
     public_range: PublicRange;
-    odba_name: string;
     last_edited_time: string;
 }
 export enum DataSourceKind {
@@ -26,11 +25,15 @@ export interface DataSourceConnection {
 }
 export type DataSourceTable = {
     data_source_id: string;
-    map_page_id: string;
     kind: DataSourceKind;
     name: string;
     editable: boolean;
     connection: string | DataSourceConnection;  // 登録時はstring、取得時はDataSourceConnection
+    last_edited_time: string;
+}
+export type MapDataSourceLinkTable = {
+    map_page_id: string;
+    data_source_id: string;
     last_edited_time: string;
 }
 export type MapUserTable = {
@@ -48,6 +51,7 @@ export type TracksTable = {
 export type TrackFilesTable = {
     track_file_id: number;
     track_page_id: string;
+    data_source_id: string;
     file_name: string;
 }
 export type TrackGeoJsonTable = {
@@ -75,12 +79,15 @@ export type ContentsTable = {
     date?: Date;
     supplement?: string;      // ContentOptionのJSON文字列
     parent_id?: string;         // 親コンテンツID
+    parent_data_sourceid?: string;         // 親コンテンツデータソースID
     readonly: boolean;
     last_edited_time: string;
 }
 export type ItemContentLink = {
     item_page_id: string;
+    item_datasource_id: string;
     content_page_id: string;
+    content_datasource_id: string;
     last_edited_time: string;
 }
 /**

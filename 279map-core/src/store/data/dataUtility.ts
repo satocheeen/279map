@@ -1,7 +1,15 @@
 import { GetContentsAPI, GetContentsParam } from "tsunagumap-api";
-import { ContentsDefine } from "../../279map-common";
+import { ContentsDefine, DataId } from "../../279map-common";
 import { ServerInfo } from "../../types/types";
 import { getAPICallerInstance } from "../../api/ApiCaller";
+
+export function getMapKey(id: DataId): string {
+    return id.id + '-' + id.dataSourceId;
+}
+
+export function isEqualId(id1: DataId, id2: DataId): boolean {
+    return id1.id === id2.id && id1.dataSourceId === id2.dataSourceId;
+}
 
 export async function getContents(mapServer: ServerInfo, param: GetContentsParam): Promise<ContentsDefine[]> {
     try {
@@ -10,17 +18,17 @@ export async function getContents(mapServer: ServerInfo, param: GetContentsParam
         const contentIdSet = new Set<string>();
         const fixedParam = param.filter(item => {
             if ('itemId' in item) {
-                if (itemIdSet.has(item.itemId)) {
+                if (itemIdSet.has(getMapKey(item.itemId))) {
                     return false;
                 } else {
-                    itemIdSet.add(item.itemId);
+                    itemIdSet.add(getMapKey(item.itemId));
                     return true;
                 }
             } else {
-                if (contentIdSet.has(item.contentId)) {
+                if (contentIdSet.has(getMapKey(item.contentId))) {
                     return false;
                 } else {
-                    contentIdSet.add(item.contentId);
+                    contentIdSet.add(getMapKey(item.contentId));
                     return true;
                 }
             }

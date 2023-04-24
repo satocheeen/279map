@@ -7,6 +7,7 @@ import { usePrevious } from '../../util/usePrevious';
 import { RootState } from '../../store/configureStore';
 import styles from './LandNameOverlay.module.scss';
 import { FeatureType } from '../../279map-common';
+import { getMapKey } from '../../store/data/dataUtility';
 
 type Props = {
     map: Map;
@@ -48,7 +49,7 @@ export default function LandNameOverlay(props: Props) {
         }
         // 表示範囲内の地物に絞る
         return namedEarth.filter(item => {
-            const feature = topographySource.getFeatureById(item.id);
+            const feature = topographySource.getFeatureById(item.id.id);
             if (!feature) {
                 return false;
             }
@@ -77,7 +78,7 @@ export default function LandNameOverlay(props: Props) {
             if (exist) return;
 
             // 追加
-            const element = landNameRefMap[item.id];
+            const element = landNameRefMap[getMapKey(item.id)];
             if (element === undefined || element === null) {
                 return;
             }
@@ -90,7 +91,7 @@ export default function LandNameOverlay(props: Props) {
                 },
                 className: styles.LandnameOverlayContainer,
             });
-            const olFeature = topographySource?.getFeatureById(item.id);
+            const olFeature = topographySource?.getFeatureById(item.id.id);
             const geometry = olFeature?.getGeometry();
             if (!geometry) {
                 return;
@@ -101,7 +102,7 @@ export default function LandNameOverlay(props: Props) {
                 coord[1] + (coord[3] - coord[1]) / 2
             ]);
             props.map?.addOverlay(overlay);            
-            landNameOverlayMap[item.id] = overlay;
+            landNameOverlayMap[getMapKey(item.id)] = overlay;
         });
 
         prevCurrentAreaNamedEarth?.forEach(item => {
@@ -109,7 +110,7 @@ export default function LandNameOverlay(props: Props) {
             if (exist) return;
 
             // 削除
-            const overlay = landNameOverlayMap[item.id];
+            const overlay = landNameOverlayMap[getMapKey(item.id)];
             props.map?.removeOverlay(overlay);
         });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -126,8 +127,8 @@ export default function LandNameOverlay(props: Props) {
             {
                 currentAreaNamedEarth.map((item) => {
                     return (
-                        <div key={item.id}>
-                            <div className={`${styles.LandnameOverlay} ${fadeClass}`} ref={ref => landNameRefMap[item.id] = ref as HTMLDivElement}>
+                        <div key={getMapKey(item.id)}>
+                            <div className={`${styles.LandnameOverlay} ${fadeClass}`} ref={ref => landNameRefMap[getMapKey(item.id)] = ref as HTMLDivElement}>
                                 {item.name}
                             </div>
                         </div>

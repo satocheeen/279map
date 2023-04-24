@@ -1,12 +1,12 @@
 import { ConnectionPool } from '.';
-import { CurrentMap, getDataSourceKindsFromMapKind, schema } from "279map-backend-common";
+import { CurrentMap, getDataSourceKindsFromMapKind, schema, DataId } from "279map-backend-common";
 import { getBelongingItem, getContent } from "./util/utility";
 import { PoolConnection } from "mysql2/promise";
 import { GetContentsParam, GetContentsResult } from '../279map-api-interface/src';
 import { ContentsDefine, MapKind } from '279map-backend-common';
 import mysql from 'mysql2/promise';
 
-type RetRecord = schema.ContentsTable & {item_page_id: string; /*another_item_id: string|null;*/};
+type RetRecord = schema.ContentsTable & {item_page_id: string; item_data_source_id: string; /*another_item_id: string|null;*/};
 
 export async function getContents({ param, currentMap }: {param: GetContentsParam; currentMap: CurrentMap}): Promise<GetContentsResult> {
     if (!currentMap) {
@@ -24,12 +24,18 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
             const another_item_ids =  (rows as schema.ItemContentLink[])
                                         .filter(record => record.item_page_id !== row.item_page_id)
                                         .reduce((acc, cur) => {
-                                            if (!acc.includes(cur.item_page_id)) {
-                                                return acc.concat(cur.item_page_id);
+                                            const exist = acc.some(item => {
+                                                return item.id === cur.item_page_id && item.dataSourceId === cur.item_datasource_id;
+                                            });
+                                            if (!exist) {
+                                                return acc.concat({
+                                                    id: cur.item_page_id,
+                                                    dataSourceId: cur.item_datasource_id
+                                                });
                                             } else {
                                                 return acc;
                                             }
-                                        }, [] as string[]);
+                                        }, [] as DataId[]);
 
             const contents = row.contents ? JSON.parse(row.contents) as schema.ContentsInfo: undefined;
             let isSnsContent = false;
@@ -40,9 +46,14 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                 addableChild = false;
             }
             return {
-                    id: row.content_page_id,
-                    itemId: row.item_page_id,
-                    dataSourceId: row.data_source_id,
+                    id: {
+                        id: row.content_page_id,
+                        dataSourceId: row.data_source_id,
+                    },
+                    itemId: {
+                        id: row.item_page_id,
+                        dataSourceId: row.item_data_source_id,
+                    },
                     title: row.title ?? '',
                     date: row.date,
                     category: row.category ? JSON.parse(row.category) : [],
@@ -50,21 +61,24 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                     videoUrl: contents?.videoUrl,
                     overview: contents?.content,
                     url: contents?.url,
-                    parentId: row.parent_id,
+                    parentId: (row.parent_id && row.parent_data_sourceid) ? {
+                        id: row.parent_id,
+                        dataSourceId: row.parent_data_sourceid,
+                    } : undefined,
                     anotherMapItemId: another_item_ids.length === 0 ? undefined : another_item_ids[0],  // 複数存在する場合は１つだけ返す
                     isSnsContent,
                     addableChild,
                     readonly: row.readonly ? true : false,
                 };
         }
-        const getChildren = async(contentId: string): Promise<ContentsDefine[]> => {
+        const getChildren = async(contentId: DataId): Promise<ContentsDefine[]> => {
             const getChildrenQuery = `
-                select c.*, i.item_page_id from contents c
+                select c.*, i.item_page_id, i.data_sourceid as item_data_source_id from contents c
                 inner join item_content_link icl on icl.content_page_id = c.content_page_id 
                 inner join items i on i.item_page_id = icl.item_page_id 
-                where c.parent_id = ?
+                where c.parent_id = ? AND c.parent_datasource_id = ?
                 `;
-            const [rows] = await con.execute(getChildrenQuery, [contentId]);
+            const [rows] = await con.execute(getChildrenQuery, [contentId.id, contentId.dataSourceId]);
             const children = [] as ContentsDefine[];
             for (const row of rows as RetRecord[]) {
                 const content = await convertRecord(row);
@@ -115,8 +129,8 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
     }
 }
 
-async function getContentInfo(con: PoolConnection, content_page_id: string, mapPageId: string, mapKind: MapKind): Promise<RetRecord[]> {
-    const contentRec = await getContent(content_page_id);
+async function getContentInfo(con: PoolConnection, content_id: DataId, mapPageId: string, mapKind: MapKind): Promise<RetRecord[]> {
+    const contentRec = await getContent(content_id);
     if (!contentRec) {
         return [];
     }
@@ -125,11 +139,14 @@ async function getContentInfo(con: PoolConnection, content_page_id: string, mapP
         return [];
     }
     const anotherMapKind = mapKind === MapKind.Real ? MapKind.Virtual: MapKind.Real;
-    const anotherMapItems = await getBelongingItem(con, contentRec, mapPageId, anotherMapKind);
+    // const anotherMapItems = await getBelongingItem(con, contentRec, mapPageId, anotherMapKind);
     return currentMapItem.map(item => {
         return Object.assign({
             item_page_id: item.item_page_id,
-            another_item_id: anotherMapItems ? anotherMapItems[0].item_page_id : null,
+            item_data_source_id: item.data_source_id,
+            // another_item_id: anotherMapItems ? {
+            //     id: anotherMapItems[0].item_page_id,
+            //      : null,
         }, contentRec);
     });
 }

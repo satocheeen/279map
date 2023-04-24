@@ -15,7 +15,7 @@ import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
 import { useSpinner } from '../common/spinner/useSpinner';
 import { getContents } from '../../store/data/dataUtility';
 import { useCommand } from '../../api/useCommand';
-import { ContentAttr } from '../../279map-common';
+import { ContentAttr, DataId } from '../../279map-common';
 import styles from './MapWrapper.module.scss';
 import { ConnectAPIResult } from '../../types/types';
 import { ErrorType } from 'tsunagumap-api';
@@ -72,7 +72,7 @@ export default function MapWrapper() {
             await dispatch(loadEvents());
             await dispatch(loadCategories());
         });
-        const h2 = addListener('EditContentInfo', async(contentId: string) => {
+        const h2 = addListener('EditContentInfo', async(contentId: DataId) => {
             // 編集対象コンテンツをロード
             const contents = (await getContents(mapServer, [{
                 contentId,

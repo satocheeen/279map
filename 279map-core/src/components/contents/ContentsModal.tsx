@@ -7,16 +7,17 @@ import { useSelector } from 'react-redux';
 import { operationActions } from '../../store/operation/operationSlice';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import { addListener, removeListener } from '../../util/Commander';
-import { ContentsDefine } from '../../279map-common';
+import { ContentsDefine, DataId } from '../../279map-common';
 import AddContentMenu from '../popup/AddContentMenu';
 import styles from './ContentsModal.module.scss';
+import { getMapKey } from '../../store/data/dataUtility';
 
 type Target = {
     type: 'item';
-    itemId: string;
+    itemId: DataId;
 } | {
     type: 'content';
-    contentId: string;
+    contentId: DataId;
 }
 export default function ContentsModal() {
     const [show, setShow] = useState(false);
@@ -26,10 +27,10 @@ export default function ContentsModal() {
     const selectedItemIds = useSelector((state: RootState) => state.operation.selectedItemIds);
     const { disabledContentDialog } = useContext(OwnerContext);
     // set content ID when show a content.
-    const [contentId, setContentId] = useState<string|undefined>();
+    const [contentId, setContentId] = useState<DataId|undefined>();
 
     useEffect(() => {
-        const h = addListener('ShowContentInfo', async(contentId: string) => {
+        const h = addListener('ShowContentInfo', async(contentId: DataId) => {
             setContentId(contentId);
         });
 
@@ -41,7 +42,7 @@ export default function ContentsModal() {
     /**
      * show dialog when select an item.
      */
-    const itemId = useMemo((): string | undefined => {
+    const itemId = useMemo((): DataId | undefined => {
         if (disabledContentDialog) {
             return;
         }
@@ -72,7 +73,7 @@ export default function ContentsModal() {
         if (!target) return;
 
         if (target.type === 'item') {
-            const item = itemMap[target.itemId];
+            const item = itemMap[getMapKey(target.itemId)];
             if (!item) return;
     
             if (item.contents.length===0) {
@@ -116,7 +117,7 @@ export default function ContentsModal() {
         if (!target) return [];
 
         if (target.type === 'item') {
-            const item = state.data.itemMap[target.itemId];
+            const item = state.data.itemMap[getMapKey(target.itemId)];
             if (!item) return [];
             if (item.contents.length === 0) return [];
             // const contentId = item.contents.id;
@@ -158,7 +159,7 @@ export default function ContentsModal() {
             <ModalBody>
                 {contents.map((content) => {
                     return (
-                        <Content key={content.id} itemId={content.itemId}  content={content} />
+                        <Content key={getMapKey(content.id)} itemId={content.itemId}  content={content} />
                     )
                 })}
             </ModalBody>

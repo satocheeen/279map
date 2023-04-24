@@ -1,9 +1,10 @@
 import axios from 'axios';
+import { DataId } from '../279map-common';
 
 export type BroadcastItemParam = {
     mapId: string;
     operation: 'insert' | 'update' | 'delete';
-    itemIdList: string[];
+    itemIdList: DataId[];
 }
 
 export async function callBroadcast(param: BroadcastItemParam) {

@@ -68,6 +68,7 @@ async function getExtent(mapPageId: string, mapKind: MapKind): Promise<[number,n
             const sql = `
             select MAX(ST_X(location)) as max_x, MAX(ST_Y(location)) as max_y, MIN(ST_X(location)) as min_x, MIN(ST_Y(location)) as min_y from items i
             inner join data_source ds on ds.data_source_id = i.data_source_id 
+            inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
             where map_page_id = ? and ds.kind in (?) 
             `;
             // execute引数でパラメタを渡すと、なぜかエラーになるので、クエリを作成してから投げている
@@ -94,6 +95,7 @@ async function getExtent(mapPageId: string, mapKind: MapKind): Promise<[number,n
             select MIN(ST_X(ST_PointN(ST_ExteriorRing(ST_Envelope(location)), 1))) as min_x, MAX(ST_X(ST_PointN(ST_ExteriorRing(ST_Envelope(location)), 2))) as max_x, MIN(ST_Y(ST_PointN(ST_ExteriorRing(ST_Envelope(location)), 1))) as min_y, MAX(ST_Y(ST_PointN(ST_ExteriorRing(ST_Envelope(location)), 3))) as max_y 
             from items i
             inner join data_source ds on ds.data_source_id = i.data_source_id 
+            inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
             where map_page_id = ? and ds.kind in (?)
             `;
             const query = mysql.format(sql, [mapPageId, kinds]);
@@ -149,7 +151,9 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
         await con.beginTransaction();
 
         const kinds = getDataSourceKindsFromMapKind(mapKind, {item: true, content: true, track: true});
-        const sql = 'select * from data_source where map_page_id =? and kind in (?)';
+        const sql = `select * from data_source ds
+        inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
+        where map_page_id =? and kind in (?)`;
         // execute引数でパラメタを渡すと、なぜかエラーになるので、クエリを作成してから投げている
         const query = mysql.format(sql, [mapId, kinds]);
         const [rows] = await con.execute(query);

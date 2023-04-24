@@ -1,4 +1,4 @@
-import { MapKind } from "../../279map-common";
+import { DataId, MapKind } from "../../279map-common";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Extent } from "ol/extent";
 import { ConfirmParam, ConfirmResult } from "../../components/common/confirm/useConfirm";
@@ -12,16 +12,16 @@ type ViewInfo = {
 export type PopupTarget = {
     // 指定のアイテムが持つコンテンツ全てを表示する場合
     type: 'item';
-    itemId: string;
+    itemId: DataId;
     force?: boolean;   // trueの場合、コンテンツが存在しなくても、ポップアップ表示する（情報登録リンクを表示）
 } | {
     // 特定のコンテンツのみ表示する場合
     type: 'content';
-    contentId: string;
+    contentId: DataId;
 }
 type TooltipParam = {
     anchorId: string;
-    content: string;
+    content: DataId;
     modal?: boolean;    // set true when the tooltip on the dialog
 }
 
@@ -34,10 +34,10 @@ const operationSlice = createSlice({
         // 表示する地図種別を指定（この値を変更すると、地図種別が切り替わる）
         currentMapKind: null as MapKind | null,
         // フォーカスするアイテムを指定
-        focusItemId: null as string | null,
+        focusItemId: null as DataId | null,
 
         // 選択中アイテムID
-        selectedItemIds: [] as string[],
+        selectedItemIds: [] as DataId[],
 
         // // ポップアップを開いて表示する対象一覧
         // popupTargets: [] as PopupTarget[],
@@ -63,10 +63,10 @@ const operationSlice = createSlice({
         setMapKind(state, action: PayloadAction<MapKind>) {
             state.currentMapKind = action.payload;
         },
-        setFocusItemId(state, action: PayloadAction<string|null>) {
+        setFocusItemId(state, action: PayloadAction<DataId|null>) {
             state.focusItemId = action.payload;
         },
-        setSelectItem(state, action: PayloadAction<string[]>) {
+        setSelectItem(state, action: PayloadAction<DataId[]>) {
             if (JSON.stringify(state.selectedItemIds) === JSON.stringify(action.payload)) {
                 return;
             }

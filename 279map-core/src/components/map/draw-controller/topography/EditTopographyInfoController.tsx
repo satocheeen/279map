@@ -43,7 +43,11 @@ export default function EditTopographyInfoController(props: Props) {
 
         // update DB
         await dispatch(updateFeature({
-            id: selectedFeatureId.current as string,
+            // TODO: data_source_id考慮
+            id: {
+                id: selectedFeatureId.current as string,
+                dataSourceId: '',
+            },
             name,
         }));
 

@@ -1,15 +1,21 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef, useMemo } from 'react';
 import { useAPI } from '../../../api/useAPI';
 import { OwnerContext } from '../../TsunaguMap/TsunaguMap';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/configureStore';
+import { DataId } from '../../../279map-common';
 
-type Props = {
-    id: string; // サムネイル画像id（コンテンツID）
+type Props = ({
+    type: 'thumbnail';
+    id: DataId; // サムネイル画像id（コンテンツID）
+} | {
+    type: 'icon';
+    id: string;
+}) 
+& {
     className?: string;
     onClick?: () => void;
     alt: string;
-    type: 'thumbnail' | 'icon';
 }
 
 /**
@@ -29,12 +35,19 @@ export default function MyImage(props: Props) {
         return state.session.connectStatus.sid;
     });
 
+    const url = useMemo(() => {
+        if (props.type === 'thumbnail') {
+            return `${apiUrl}getthumb?id=${props.id.id}`;
+        } else {
+            return `${apiUrl}geticon?id=${props.id}`;
+        }
+    }, [props.id, props.type]);
+
     /**
      * 画像取得
      */
     useEffect(() => {
         if (!sid) return;
-        const url = `${apiUrl}getthumb?id=${props.id}`;
         fetch(url, {
             method: 'get',
             headers: {
@@ -54,7 +67,7 @@ export default function MyImage(props: Props) {
             }
         })
 
-    }, [props.id, apiUrl, sid, token]);
+    }, [url, apiUrl, sid, token]);
 
     return (
         <img ref={myRef} className={props.className} onClick={props.onClick} alt={props.alt} />

@@ -1,6 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { loadContents } from "../../store/data/dataThunk";
 import { operationActions, PopupTarget } from "../../store/operation/operationSlice";
+import { DataId } from "../../279map-common";
 
 /**
  * Thunk of Popup Operations
@@ -38,7 +39,7 @@ import { operationActions, PopupTarget } from "../../store/operation/operationSl
  * 指定のアイテムのポップアップを開く
  * @param force trueの場合、コンテンツが存在しなくても、ポップアップ表示する（情報登録リンクを表示）
  */
-export const openItemPopup = createAsyncThunk<void, {itemIds: string[], force?: boolean}>(
+export const openItemPopup = createAsyncThunk<void, {itemIds: DataId[], force?: boolean}>(
     'popup/openItemPopupStatus',
     async(target, { rejectWithValue, dispatch }) => {
         try {
@@ -62,7 +63,7 @@ export const openItemPopup = createAsyncThunk<void, {itemIds: string[], force?: 
 /**
  * 指定のコンテンツのポップアップを開く
  */
-export const openContentPopup = createAsyncThunk<void, string[]>(
+export const openContentPopup = createAsyncThunk<void, DataId[]>(
     'popup/openContentPopup',
     async(contentIds, { rejectWithValue, dispatch }) => {
         try {

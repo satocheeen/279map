@@ -15,7 +15,7 @@ import LandNameOverlay from "../map/LandNameOverlay";
 import { useFilter } from "../../store/useFilter";
 import { loadItems } from "../../store/data/dataThunk";
 import { openItemContentsPopup } from "../popup/popupThunk";
-import { FeatureType, MapKind } from "../../279map-common";
+import { DataId, FeatureType, GeoJsonPosition, MapKind } from "../../279map-common";
 import { FeatureProperties, MapMode } from "../../types/types";
 import { useAPI } from "../../api/useAPI";
 import useFilteredTopographyStyle from "../map/useFilteredTopographyStyle";
@@ -31,7 +31,7 @@ import { createMapInstance, OlMapWrapper } from "./OlMapWrapper";
 
 type ClusterMenuInfo = {
     position: Coordinate;
-    itemIds: string[];
+    itemIds: DataId[];
 }
 let instanceCnt = 0;
 
@@ -96,11 +96,13 @@ export default function MapChart() {
     }, [itemMap]);
 
     const geoJsonItems = useMemo(() => {
-        return Object.values(itemMap).filter(content => content.geoProperties.featureType !== FeatureType.TRACK);
+        return Object.values(itemMap);
+        // return Object.values(itemMap).filter(content => content.geoProperties.featureType !== FeatureType.TRACK);
     }, [itemMap]);
     const prevGeoJsonItems = usePrevious(geoJsonItems);
     const trackItems = useMemo(() => {
-        return Object.values(itemMap).filter(content => content.geoProperties.featureType === FeatureType.TRACK);
+        return [];
+        // return Object.values(itemMap).filter(content => content.geoProperties.featureType === FeatureType.TRACK);
     }, [itemMap]);
 
     const dispatch = useAppDispatch();
@@ -121,7 +123,8 @@ export default function MapChart() {
         }
         const source = new VectorSource();
         filteredItemIdList.forEach(itemId => {
-            const feature = mapRef.current.getFeatureById(itemId);
+            const feature = mapRef.current.getFeatureById(itemId.id);
+            // const feature = MapUtility.getFeatureByItemId(map, itemId.id);
             if (feature) {
                 // Cluster化している場合は、既にsourceに追加されている可能性があるので、
                 // 追加済みでない場合のみ追加
@@ -191,7 +194,10 @@ export default function MapChart() {
             dispatch(operationActions.unselectItem());
         } else {
             const id = feature.getId() as string;
-            dispatch(operationActions.setSelectItem([id]));
+            dispatch(operationActions.setSelectItem([{
+                id,
+                dataSourceId: '',   // TODO
+            }]));
         }
 
     }, [dispatch]);
@@ -359,9 +365,9 @@ export default function MapChart() {
             return;
         }
         trackItems.forEach((item) => {
-            if (item.geoProperties.featureType !== FeatureType.TRACK) {
-                return;
-            }
+            // if (item.geoProperties.featureType !== FeatureType.TRACK) {
+            //     return;
+            // }
             mapRef.current.addFeature(item);
         });
         // // 削除
@@ -409,7 +415,7 @@ export default function MapChart() {
         }
     }, [selectedItemIds]);
 
-   const onClusterMenuSelected = useCallback((id: string) => {
+   const onClusterMenuSelected = useCallback((id: DataId) => {
         setClusterMenuInfo(null);
         dispatch(operationActions.setSelectItem([id]));
     }, [dispatch]);

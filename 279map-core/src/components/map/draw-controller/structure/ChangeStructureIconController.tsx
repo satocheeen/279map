@@ -43,7 +43,11 @@ export default function ChangeStructureIconController(props: Props) {
 
         // update DB
         await dispatch(updateFeature({
-            id: selectedFeature.current.getId() as string,
+            // TODO: data_source_id
+            id: {
+                id: selectedFeature.current.getId() as string,
+                dataSourceId: '',
+            },
             geoProperties: {
                 featureType: FeatureType.STRUCTURE,
                 icon: {

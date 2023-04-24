@@ -1,4 +1,4 @@
-import { ContentAttr, GeoProperties, IconDefine, MapDefine, UnpointContent } from "../279map-common";
+import { ContentAttr, DataId, GeoProperties, IconDefine, MapDefine, UnpointContent } from "../279map-common";
 import { CSSProperties } from "react";
 import { CategoryDefine, EventDefine, MapKind } from '../279map-common';
 import { CommandHookType } from '../api/useCommand';
@@ -55,9 +55,9 @@ export type TsunaguMapProps = {
 
     onConnect?: (param: OnConnectParam) => void;
     onMapLoad?: (param: OnMapLoadParam) => void;
-    onSelect?: (targets: string[]) => void; // callback when items are selected
+    onSelect?: (targets: DataId[]) => void; // callback when items are selected
     onUnselect?: () => void;    // callback when items are unselected.
-    onClick?: (targets: string[]) => void; // callback when an items are clicked.  if set this callback, cluster menu don't be shown.
+    onClick?: (targets: DataId[]) => void; // callback when an items are clicked.  if set this callback, cluster menu don't be shown.
     onModeChanged?: (mode: MapMode) => void;    // callback when map mode has changed.
     onCategoriesLoaded?: (categories: CategoryDefine[]) => void;    // calback when categories has loaded or has changed.
     onEventsLoaded?: (events: EventDefine[]) => void;   // callback when events has loaded or has changed.
@@ -109,9 +109,9 @@ export type DefaultIconDefine = IconDefine & {
 
 export type NewContentInfoParam = {
     parent: {
-        itemId: string;
+        itemId: DataId;
     } | {
-        contentId: string;
+        contentId: DataId;
     }
     mode: 'manual' | 'select-unpoint';
 }
@@ -120,9 +120,9 @@ export type NewContentInfoParam = {
  */
 export type NewContentByManualParam = {
     parent: {
-        itemId: string;
+        itemId: DataId;
     } | {
-        contentId: string;
+        contentId: DataId;
     }
     registContentAPI: (param: RegistContentParam) => Promise<void>;
 }
@@ -131,16 +131,16 @@ export type NewContentByManualParam = {
  */
 export type LinkUnpointContentParam = {
     parent: {
-        itemId: string;
+        itemId: DataId;
     } | {
-        contentId: string;
+        contentId: DataId;
     }
     getUnpointDataAPI: (nextToken?: string) => Promise<{contents: UnpointContent[]; nextToken: string | undefined}>;
     linkContentToItemAPI: (param: LinkContentToItemParam) => Promise<void>;
 }
 
 export type EditContentInfoWithAttrParam = {
-    contentId: string;
+    contentId: DataId;
     attr: ContentAttr;
 }
 

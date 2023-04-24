@@ -110,7 +110,13 @@ export default function usePointStyle(props: Props) {
 
         let showFeaturesLength = features.length;
         if (filteredItemIdList && features.length > 1) {
-            const filteredFeature = features.filter(feature => filteredItemIdList.includes(feature.getId() as string));
+            const filteredFeature = features.filter(feature => {
+                const exist = filteredItemIdList.some(itemId => {
+                    // TODO: data_source_id考慮
+                    return (feature.getId() as string) === itemId.id;
+                });
+                return exist;
+            });
             showFeaturesLength = filteredFeature.length;
         }
 
@@ -130,7 +136,13 @@ export default function usePointStyle(props: Props) {
         // 優先2. フィルタがかかっている場合は、フィルタ条件に該当するもの
         if (filteredItemIdList && features.length > 1) {
             let mainFeature;
-            const filteredFeature = features.filter(feature => filteredItemIdList.includes(feature.getId() as string));
+            const filteredFeature = features.filter(feature => {
+                const exist = filteredItemIdList.some(itemId => {
+                    // TODO: data_source_id考慮
+                    return (feature.getId() as string) === itemId.id;
+                });
+                return exist;
+            });
             if (filteredFeature.length > 0) {
                 mainFeature = filteredFeature[0]
             }

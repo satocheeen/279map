@@ -6,8 +6,9 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
 import useIcon from '../../store/useIcon';
 import AddContentMenu from '../popup/AddContentMenu';
-import { Auth } from '../../279map-common';
+import { Auth, DataId } from '../../279map-common';
 import MyImage from '../common/image/MyImage';
+import { getMapKey } from '../../store/data/dataUtility';
 
 /**
  * Cluster items' menu for selecting an item.
@@ -21,9 +22,9 @@ type Props = {
     position: Coordinate;
 
     // the menu items' ID. 
-    itemIds: string[];
+    itemIds: DataId[];
 
-    onSelect?: (id: string) => void;
+    onSelect?: (id: DataId) => void;
     onClose?: () => void;
 }
 
@@ -46,7 +47,7 @@ export default function ClusterMenu(props: Props) {
         }
     }, [props.map, props.position]);
 
-    const onItemClick = useCallback((id: string) => {
+    const onItemClick = useCallback((id: DataId) => {
         if (props.onSelect) {
             props.onSelect(id);
         }
@@ -57,7 +58,7 @@ export default function ClusterMenu(props: Props) {
             <div ref={elementRef} className={styles.Container}>
                 {props.itemIds.map(id => {
                     return (
-                        <MenuItem key={id} id={id} 
+                        <MenuItem key={getMapKey(id)} id={id} 
                             onClick={() => onItemClick(id)}
                             onClose={props.onClose} />
                     );
@@ -68,14 +69,14 @@ export default function ClusterMenu(props: Props) {
 }
 
 type MenuItemProp = {
-    id: string;
+    id: DataId;
     onClick?: () => void;
     onClose?: () => void;
 }
 function MenuItem(props: MenuItemProp) {
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
 
-    const item = useMemo(() => itemMap[props.id], [props.id, itemMap]);
+    const item = useMemo(() => itemMap[getMapKey(props.id)], [props.id, itemMap]);
 
     const { getIconDefine } = useIcon();
 

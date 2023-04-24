@@ -3,9 +3,11 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/configureStore';
 import { doCommand } from '../../../util/Commander';
 import Card from '../../common/card/Card';
+import { DataId } from '../../../279map-common';
+import { isEqualId } from '../../../store/data/dataUtility';
 
 type Props = {
-    contentId: string;
+    contentId: DataId;
 }
 
 export default function ContentCard(props: Props) {
@@ -23,8 +25,8 @@ export default function ContentCard(props: Props) {
 
     const breadcrumb = useMemo(() => {
         if (!content?.parentId) return undefined;
-        const getAncestor = (parentId: string): string[] => {
-            const parent = contentsList.find(c => c.id === parentId);
+        const getAncestor = (parentId: DataId): string[] => {
+            const parent = contentsList.find(c => isEqualId(c.id, parentId));
             if (!parent) return [];
 
             if (parent.parentId) {

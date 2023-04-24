@@ -5,9 +5,11 @@ import ContentCard from './ContentCard';
 import { loadContents } from '../../../store/data/dataThunk';
 import styles from './SelectContentDialog.module.scss';
 import { useContents } from '../../../store/useContents';
+import { DataId } from '../../../279map-common';
+import { getMapKey } from '../../../store/data/dataUtility';
 
 type Props = {
-    itemIds: string[];
+    itemIds: DataId[];
     onCancel: () => void;
 }
 
@@ -17,7 +19,7 @@ export default function SelectContentDialog(props: Props) {
     const { getDescendantContentsIdList } = useContents();
 
     const contentIds = useMemo(() => {
-        const idList = [] as string[];
+        const idList = [] as DataId[];
         props.itemIds.forEach(id => {
             const descendants = getDescendantContentsIdList(id, true);
             if (descendants.length === 0) return;
@@ -53,7 +55,7 @@ export default function SelectContentDialog(props: Props) {
                     <ul>
                         {contentIds.map(id => {
                             return (
-                                <li key={id}>
+                                <li key={getMapKey(id)}>
                                     <ContentCard contentId={id} />
                                 </li>
                             )

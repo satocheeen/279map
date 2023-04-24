@@ -3,7 +3,7 @@ import { getLogger } from 'log4js';
 import { Server } from 'http';
 import { Request } from 'express';
 import SessionInfo from './SessionInfo';
-import { MapKind } from '279map-backend-common';
+import { MapKind, DataId } from '279map-backend-common';
 import { WebSocketMessage } from '../../279map-api-interface/src';
 import crypto from 'crypto';
 import { CurrentMap } from '279map-backend-common';
@@ -87,14 +87,14 @@ export default class Broadcaster {
      * @param mapPageId 
      * @param itemIdList 追加されたアイテムID一覧
      */
-    broadCastAddItem(mapPageId: string, itemIdList: string[]) {
+    broadCastAddItem(mapPageId: string, itemIdList: DataId[]) {
         // 接続しているユーザに最新情報を取得するように通知
         this.#broadcast(mapPageId, undefined, {
             type: 'updated',
         });
     }
 
-    broadCastUpdateItem(mapPageId: string, itemIdList: string[]) {
+    broadCastUpdateItem(mapPageId: string, itemIdList: DataId[]) {
         // 送信済みアイテム情報から当該アイテムを除去する
         Object.values(this.#sessionMap).forEach(client => {
             client.removeItems(itemIdList);
@@ -105,7 +105,7 @@ export default class Broadcaster {
         });
     }
 
-    broadCastDeleteItem(mapPageId: string, itemIdList: string[]) {
+    broadCastDeleteItem(mapPageId: string, itemIdList: DataId[]) {
         // 送信済みアイテム情報から当該アイテムを除去する
         Object.values(this.#sessionMap).forEach(client => {
             client.removeItems(itemIdList);

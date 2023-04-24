@@ -1,4 +1,4 @@
-import { FeatureType } from '../../279map-common';
+import { DataId, FeatureType } from '../../279map-common';
 import { Map, MapBrowserEvent } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import Feature from 'ol/Feature';
@@ -81,7 +81,12 @@ export default function ClusterMenuController(props: Props) {
 
         // フィルタ時はフィルタ対象外のものに絞る
         if (filteredItemIdListRef.current) {
-            points = points.filter(point => filteredItemIdListRef.current?.includes(point.getId() as string));
+            points = points.filter(point => {
+                return filteredItemIdListRef.current?.some(itemId => {
+                    // TODO: data_source_id考慮
+                    return point.getId() as string === itemId.id;
+                });
+            });
         }
 
         return points;
@@ -124,7 +129,12 @@ export default function ClusterMenuController(props: Props) {
             }
             if (onClick) {
                 // onClick指定時は、クリックされたアイテムのID一覧を返す（重畳選択メニューは表示しない）
-                const ids = points.map(p => p.getId() as string);
+                const ids = points.map((p): DataId => {
+                    return {
+                        id: p.getId() as string,
+                        dataSourceId: '',   // TODO: dataSourceID考慮
+                    };
+                });
                 onClick(ids);
             }
 
@@ -154,8 +164,9 @@ export default function ClusterMenuController(props: Props) {
     /**
      * 重畳選択メニュー選択時のコールバック
      */
-    const onClusterMenuSelected = useCallback((id: string) => {
-        const target = clusterMenuInfo?.targets.find(target => target.getId() === id);
+    const onClusterMenuSelected = useCallback((id: DataId) => {
+        // TODO: dataSourceId考慮
+        const target = clusterMenuInfo?.targets.find(target => target.getId() === id.id);
         if (target && props.onSelect) {
             props.onSelect(target);
         }
@@ -177,7 +188,12 @@ export default function ClusterMenuController(props: Props) {
     return (
         <ClusterMenu map={props.map}
             position={clusterMenuInfo.position}
-            itemIds={clusterMenuInfo.targets.map(target => target.getId() as string)}
+            itemIds={clusterMenuInfo.targets.map(target => {
+                return {
+                    id: target.getId() as string,
+                    dataSourceId: '',   // TODO: dataSourceId
+                } as DataId
+            })}
             onSelect={onClusterMenuSelected}
             onClose={onClusterMenuClosed} />
 );

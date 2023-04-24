@@ -9,7 +9,7 @@ import { DataSourceInfo, SourceKind } from 'tsunagumap-api';
 /**
  * for Development
  */
-const mapId = 'VXNlck5vZGU6MjE=';
+const mapId = 'otakaramap';
 const myToken = undefined;  //'VXNlck5vZGU6MjE=';
 const props = {
     mapServerHost: 'localhost',
