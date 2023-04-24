@@ -73,7 +73,7 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
         }
         const getChildren = async(contentId: DataId): Promise<ContentsDefine[]> => {
             const getChildrenQuery = `
-                select c.*, i.item_page_id, i.data_sourceid as item_data_source_id from contents c
+                select c.*, i.item_page_id, i.data_source_id as item_data_source_id from contents c
                 inner join item_content_link icl on icl.content_page_id = c.content_page_id 
                 inner join items i on i.item_page_id = icl.item_page_id 
                 where c.parent_id = ? AND c.parent_datasource_id = ?
@@ -92,14 +92,14 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
             if ('itemId' in target) {
                 const kinds = getDataSourceKindsFromMapKind(mapKind, { item: true });
                 const sql = `
-                select c.*, i.item_page_id, ds.kind from contents c
+                select c.*, i.item_page_id, i.data_source_id, ds.kind from contents c
                 inner join item_content_link icl on icl.content_page_id = c.content_page_id 
                 inner join items i on i.item_page_id = icl.item_page_id 
                 inner join data_source ds on ds.data_source_id = i.data_source_id
-                group by c.content_page_id, i.item_page_id 
-                having i.item_page_id = ? and ds.kind in (?)
+                group by c.content_page_id, c.data_source_id, i.item_page_id, i.data_source_id
+                having i.item_page_id = ? and i.data_source_id = ? and ds.kind in (?)
                 `;
-                const query = mysql.format(sql, [target.itemId, kinds]);
+                const query = mysql.format(sql, [target.itemId.id, target.itemId.dataSourceId, kinds]);
                 const [rows] = await con.execute(query);
                 // const [rows] = await con.execute(sql, [target.itemId, kinds]);
                 myRows = rows as RetRecord[];
