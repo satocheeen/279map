@@ -426,18 +426,18 @@ export default function MapChart() {
             {mapRef.current !== null &&
                 (
                     <MapChartContext.Provider value={mapChartContextValue}>
-                        {/* {clusterMenuInfo &&
-                            <ClusterMenu map={mapRef.current}
+                        {clusterMenuInfo &&
+                            <ClusterMenu
                                 {...clusterMenuInfo} onSelect={onClusterMenuSelected} />
-                        } */}
+                        }
                         {/* <PopupContainer map={mapRef.current} /> */}
-                        {/* <LandNameOverlay map={mapRef.current} />
+                        {/* <LandNameOverlay map={mapRef.current} /> */}
                         {mapMode === MapMode.Normal &&
-                            <ClusterMenuController map={mapRef.current}
+                            <ClusterMenuController
                                 targets={[FeatureType.STRUCTURE, FeatureType.AREA]}
                                 onSelect={onSelectItem} />
                         }
-                        <DrawController map={mapRef.current} onStart={()=>{isDrawing.current=true}} onEnd={()=>{isDrawing.current=false}} /> */}
+                        {/* <DrawController map={mapRef.current} onStart={()=>{isDrawing.current=true}} onEnd={()=>{isDrawing.current=false}} /> */}
                     </MapChartContext.Provider>
                 )
             }

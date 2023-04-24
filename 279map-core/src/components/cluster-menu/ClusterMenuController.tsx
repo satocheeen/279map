@@ -1,5 +1,5 @@
 import { DataId, FeatureType } from '../../279map-common';
-import { Map, MapBrowserEvent } from 'ol';
+import { MapBrowserEvent } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import Feature from 'ol/Feature';
 import React, { useRef, useEffect, useState, useCallback, useContext } from 'react';
@@ -8,6 +8,7 @@ import { RootState } from '../../store/configureStore';
 import { useFilter } from '../../store/useFilter';
 import ClusterMenu from './ClusterMenu';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
+import { MapChartContext } from '../TsunaguMap/MapChart';
 
 /**
  * 地図上のアイテムがクリックされた際に、
@@ -15,8 +16,6 @@ import { OwnerContext } from '../TsunaguMap/TsunaguMap';
  */
 
 type Props = {
-    map: Map;
-
     // when set targets, user can select only the targets.
     targets?: FeatureType[];
 
@@ -29,6 +28,7 @@ type ClusterMenuTarget = {
 }
 
 export default function ClusterMenuController(props: Props) {
+    const { map } = useContext(MapChartContext);
     const [clusterMenuInfo, setClusterMenuInfo] = useState<ClusterMenuTarget|null>(null);
     const { onClick } = useContext(OwnerContext);
 
@@ -51,18 +51,7 @@ export default function ClusterMenuController(props: Props) {
      */
     const getSelectableFeatures = useCallback((evt: MapBrowserEvent<any>) => {
         // クリック位置付近にあるアイテムIDを取得
-        let points = [] as Feature[];
-        props.map.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
-            const layerName = layer.getProperties()['name'];
-            if (layerName === 'itemLayer') {
-                const features = feature.get('features') as Feature[];
-                features.forEach(f => {
-                    points.push(f);
-                });
-            } else if(layerName === 'topographyLayer') {
-                points.push(feature as Feature);
-            }
-        });
+        let points = map.getNearlyFeatures(evt.pixel);
 
         if (props.targets) {
             // 対象種別指定されている場合は、対象種別のものに絞る
@@ -90,7 +79,7 @@ export default function ClusterMenuController(props: Props) {
         }
 
         return points;
-    }, [props.map, props.targets]);
+    }, [map, props.targets]);
 
     // イベントコールバック用意
     useEffect(() => {
@@ -139,7 +128,7 @@ export default function ClusterMenuController(props: Props) {
             }
 
         };
-        props.map.on('click', clickFunc);
+        map.on('click', clickFunc);
 
         // クリック可能な地図上アイテムhover時にポインター表示
         const pointerMoveFunc = (evt: MapBrowserEvent<any>) => {
@@ -147,19 +136,19 @@ export default function ClusterMenuController(props: Props) {
 
             // const isHover = hitIds.some(id => isTarget(id));
             if (points.length > 0) {
-                props.map.getTargetElement().style.cursor = 'pointer';
+                map.setCursorStyle('pointer');
             } else {
-                props.map.getTargetElement().style.cursor = '';
+                map.setCursorStyle('');
             }
         }
-        props.map.on('pointermove', pointerMoveFunc);
+        map.on('pointermove', pointerMoveFunc);
 
         return () => {
-            props.map.un('click', clickFunc);
-            props.map.un('pointermove', pointerMoveFunc);
+            map.un('click', clickFunc);
+            map.un('pointermove', pointerMoveFunc);
         }
 
-    }, [props, getSelectableFeatures, onClick]);
+    }, [props, getSelectableFeatures, onClick, map]);
 
     /**
      * 重畳選択メニュー選択時のコールバック
@@ -186,7 +175,7 @@ export default function ClusterMenuController(props: Props) {
     }
 
     return (
-        <ClusterMenu map={props.map}
+        <ClusterMenu
             position={clusterMenuInfo.position}
             itemIds={clusterMenuInfo.targets.map(target => {
                 return {

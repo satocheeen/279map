@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useMemo, useCallback } from 'react';
-import { Map, Overlay } from 'ol';
+import React, { useEffect, useRef, useMemo, useCallback, useContext } from 'react';
+import { Overlay } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import styles from './ClusterMenu.module.scss';
 import { useSelector } from 'react-redux';
@@ -9,6 +9,7 @@ import AddContentMenu from '../popup/AddContentMenu';
 import { Auth, DataId } from '../../279map-common';
 import MyImage from '../common/image/MyImage';
 import { getMapKey } from '../../store/data/dataUtility';
+import { MapChartContext } from '../TsunaguMap/MapChart';
 
 /**
  * Cluster items' menu for selecting an item.
@@ -16,8 +17,6 @@ import { getMapKey } from '../../store/data/dataUtility';
  */
 
 type Props = {
-    map: Map;
-
     // the menu position
     position: Coordinate;
 
@@ -29,6 +28,7 @@ type Props = {
 }
 
 export default function ClusterMenu(props: Props) {
+    const { map } = useContext(MapChartContext);
     const elementRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -39,13 +39,13 @@ export default function ClusterMenu(props: Props) {
             element: elementRef.current as HTMLDivElement,
             className: styles.ContainerWrapper,
         });
-        props.map.addOverlay(overlay);
+        map.addOverlay(overlay);
         overlay.setPosition(props.position);
 
         return () => {
-            props.map.removeOverlay(overlay);
+            map.removeOverlay(overlay);
         }
-    }, [props.map, props.position]);
+    }, [map, props.position]);
 
     const onItemClick = useCallback((id: DataId) => {
         if (props.onSelect) {

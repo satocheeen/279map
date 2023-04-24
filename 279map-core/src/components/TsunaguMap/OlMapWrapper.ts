@@ -1,4 +1,4 @@
-import { Feature, Map as OlMap, View } from 'ol';
+import { Feature, MapBrowserEvent, Map as OlMap, Overlay, View } from 'ol';
 import * as olControl from 'ol/control';
 import { Extent } from 'ol/extent';
 import { Geometry } from 'ol/geom';
@@ -18,6 +18,8 @@ import BaseEvent from 'ol/events/Event';
 import * as MapUtility from '../../util/MapUtility';
 import { GeoJsonObject } from 'geojson';
 import { FeatureProperties } from '../../entry';
+import { Pixel } from 'ol/pixel';
+import { getMapKey } from '../../store/data/dataUtility';
 
 const instansMap = new Map<string, OlMapWrapper>();
 type Param = {
@@ -144,7 +146,7 @@ export class OlMapWrapper {
             if (item.geoProperties.featureType === FeatureType.TRACK) {
                 return {
                     id: item.id.dataSourceId,
-                    layerType: LayerType.Trak,
+                    layerType: LayerType.Track,
                     zoomLv: {
                         min: item.geoProperties.min_zoom,
                         max: item.geoProperties.max_zoom,
@@ -185,7 +187,7 @@ export class OlMapWrapper {
             console.warn('contents could not be loaded.', def.id, JSON.stringify(def));
             return;
         }
-        feature.setId(def.id.id);
+        feature.setId(getMapKey(def.id));
 
         const properties = Object.assign({}, def.geoProperties ? def.geoProperties : {}, {
             name: def.name,
@@ -347,6 +349,47 @@ export class OlMapWrapper {
             this._map.removeLayer(layer);
         });
         this._vectorLayerMap.clear();
+    }
+
+    addOverlay(overlay: Overlay) {
+        this._map.addOverlay(overlay);
+    }
+    removeOverlay(overlay: Overlay) {
+        this._map.removeOverlay(overlay);
+    }
+    on(event: 'click'|'pointermove', listener: (evt: MapBrowserEvent<any>) => void) {
+        this._map.on(event, listener);
+    }
+    un(event: 'click'|'pointermove', listener: (evt: MapBrowserEvent<any>) => void) {
+        this._map.un(event, listener);
+    }
+
+    /**
+     * 地図Div上のマウスカーソルスタイルを変更する
+     * @param style 
+     */
+    setCursorStyle(style: 'pointer' | '') {
+        this._map.getTargetElement().style.cursor = style;
+    }
+
+    /**
+     * pixel付近に存在するFeatureを返す
+     */
+    getNearlyFeatures(pixel: Pixel): Feature[] {
+        let points = [] as Feature[];
+        this._map.forEachFeatureAtPixel(pixel, (feature, layer) => {
+            const layerInfo = this._vectorLayerMap.getLayerInfo(layer);
+            if (!layerInfo) return;
+            if (layerInfo.layerType === LayerType.Cluster) {
+                const features = feature.get('features') as Feature[];
+                features.forEach(f => {
+                    points.push(f);
+                });
+            } else {
+                points.push(feature as Feature);
+            }
+        });
+        return points;
     }
 
     dispose() {

@@ -3,11 +3,12 @@ import VectorLayer from "ol/layer/Vector";
 import Feature from "ol/Feature";
 import { Geometry } from "ol/geom";
 import { StyleFunction } from "ol/style/Style";
+import Layer from "ol/layer/Layer";
 
 export enum LayerType {
     Normal = 'Normal',
     Cluster = 'Cluster',    // Cluster設定されたレイヤ。Pointのみ追加可能。
-    Trak = 'Truck',
+    Track = 'Track',         // Track（軌跡）用レイヤ
 }
 export enum StaticLayerType {
     VirtualItem = 'VirtualItem',
@@ -20,7 +21,7 @@ export type LayerKey = {
 } & ({
     layerType: LayerType.Cluster | LayerType.Normal;
 } | {
-    layerType: LayerType.Trak;
+    layerType: LayerType.Track;
     zoomLv: {
         min: number;
         max: number;
@@ -65,7 +66,7 @@ export class VectorLayerMap {
      */
     _convertMapKey(key: LayerKey | StaticLayerType) {
         const layerKey = typeof key !== 'object' ? this._convertLayerKeyFromStaticLayerType(key) : key;
-        if (layerKey.layerType === LayerType.Trak) {
+        if (layerKey.layerType === LayerType.Track) {
             return `${layerKey.id}-${layerKey.layerType}=${layerKey.zoomLv.min}-${layerKey.zoomLv.max}`;
         } else {
             return `${layerKey.id}-${layerKey.layerType}`;
@@ -108,7 +109,7 @@ export class VectorLayerMap {
                 layer.setStyle(this._pointLayerStyle);
             }
         
-        } else if (layerKey.layerType === LayerType.Trak) {
+        } else if (layerKey.layerType === LayerType.Track) {
             layer = new VectorLayer({
                 source,
                 minZoom: layerKey.zoomLv?.min,
@@ -182,6 +183,21 @@ export class VectorLayerMap {
     }
 
     /**
+     * 指定のレイヤのLayerInfoを返す
+     * @param layer 
+     * @returns 
+     */
+    getLayerInfo(layer: Layer) {
+        let info: LayerInfo | undefined;
+        this._layerMap.forEach((val) => {
+            if (val.layer === layer) {
+                info = val;
+            }
+        });
+        return info;
+    }
+
+    /**
      * 
      * @param featureId 
      * @returns 
@@ -205,7 +221,6 @@ export class VectorLayerMap {
      */
     setPointLayerStyle(style: StyleFunction) {
         this.getTheStyleLayers(LayerType.Cluster).forEach(layer => {
-            console.log('set point style', layer.getSource()?.getFeatures().length)
             layer.setStyle(style);
         });
         this._pointLayerStyle = style;
@@ -217,15 +232,13 @@ export class VectorLayerMap {
      */
     setTopographyLayerStyle(style: StyleFunction) {
         this.getTheStyleLayers(LayerType.Normal).forEach(layer => {
-            console.log('set topography style', layer.getSource()?.getFeatures().length)
             layer.setStyle(style);
         });
         this._topographyLayerStyle = style;
     }
 
     setTrackLayerStyle(style: StyleFunction) {
-        this.getTheStyleLayers(LayerType.Trak).forEach(layer => {
-            console.log('set track style', layer.getSource()?.getFeatures().length)
+        this.getTheStyleLayers(LayerType.Track).forEach(layer => {
             layer.setStyle(style);
         });
         this._trackLayerStyle = style;
