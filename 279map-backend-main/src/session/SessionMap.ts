@@ -57,6 +57,10 @@ export default class SessionMap {
         return sid in this.#sessionMap;
     }
 
+    sessions() {
+        return Object.values(this.#sessionMap);
+    }
+
     createSession(sid: string, currentMap: CurrentMap): SessionInfo {
         const session = new SessionInfo(sid, { currentMap }, this.#flushFile.bind(this));
         this.#sessionMap[sid] = session;
