@@ -52,17 +52,12 @@ export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
     const instanceIdRef = useRef('map-' + (++instanceCnt));
     const mapRef = useRef<OlMapWrapper>(defaultDummyMap);
-    const [clusterMenuInfo, setClusterMenuInfo] = useState<ClusterMenuInfo|null>(null);
     const mapMode = useSelector((state: RootState) => state.operation.mapMode);
 
     const mapChartContextValue = {
         instanceId: instanceIdRef.current,
         map: mapRef.current,
     } as MapChartContextType;
-
-    useEffect(() => {
-        setClusterMenuInfo(null);
-    }, [mapMode]);
 
     // スタイル設定
     // -- コンテンツ（建物・ポイント）レイヤ
@@ -189,15 +184,11 @@ export default function MapChart() {
         }
     }, [dispatch, loadCurrentAreaContents, getGeocoderFeature]);
 
-    const onSelectItem = useCallback((feature: Feature | undefined) => {
+    const onSelectItem = useCallback((feature: DataId | undefined) => {
         if (!feature) {
             dispatch(operationActions.unselectItem());
         } else {
-            const id = feature.getId() as string;
-            dispatch(operationActions.setSelectItem([{
-                id,
-                dataSourceId: '',   // TODO
-            }]));
+            dispatch(operationActions.setSelectItem([feature]));
         }
 
     }, [dispatch]);
@@ -398,38 +389,12 @@ export default function MapChart() {
         }
     }, [flipping]);
 
-    // close cluster menu when zoom level is changed
-    const mapView = useSelector((state: RootState) => state.operation.mapView);
-    const prevMapView = usePrevious(mapView);
-    useEffect(() => {
-        if (mapView.zoom === prevMapView?.zoom) {
-            return;
-        }
-        setClusterMenuInfo(null);
-    }, [mapView, prevMapView]);
-
-    const selectedItemIds = useSelector((state: RootState) => state.operation.selectedItemIds);
-    useEffect(() => {
-        if (selectedItemIds.length > 0) {
-            setClusterMenuInfo(null);
-        }
-    }, [selectedItemIds]);
-
-   const onClusterMenuSelected = useCallback((id: DataId) => {
-        setClusterMenuInfo(null);
-        dispatch(operationActions.setSelectItem([id]));
-    }, [dispatch]);
-
     return (
         <div className={styles.Container}>
             <div ref={myRef} className={`${styles.Chart} ${optionClassName}`} />
             {mapRef.current !== null &&
                 (
                     <MapChartContext.Provider value={mapChartContextValue}>
-                        {clusterMenuInfo &&
-                            <ClusterMenu
-                                {...clusterMenuInfo} onSelect={onClusterMenuSelected} />
-                        }
                         {/* <PopupContainer map={mapRef.current} /> */}
                         {/* <LandNameOverlay map={mapRef.current} /> */}
                         {mapMode === MapMode.Normal &&

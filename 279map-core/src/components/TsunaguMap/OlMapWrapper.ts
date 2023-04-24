@@ -13,13 +13,13 @@ import VectorLayer from "ol/layer/Vector";
 import Style, { StyleFunction } from "ol/style/Style";
 import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
-import { FeatureType, GeocoderId, ItemDefine, MapKind } from '../../279map-common';
+import { DataId, FeatureType, GeocoderId, ItemDefine, MapKind } from '../../279map-common';
 import BaseEvent from 'ol/events/Event';
 import * as MapUtility from '../../util/MapUtility';
 import { GeoJsonObject } from 'geojson';
 import { FeatureProperties } from '../../entry';
 import { Pixel } from 'ol/pixel';
-import { getMapKey } from '../../store/data/dataUtility';
+import { convertDataIdFromFeatureId, getMapKey } from '../../store/data/dataUtility';
 
 const instansMap = new Map<string, OlMapWrapper>();
 type Param = {
@@ -373,20 +373,22 @@ export class OlMapWrapper {
     }
 
     /**
-     * pixel付近に存在するFeatureを返す
+     * pixel付近に存在するFeatureのIDを返す
      */
-    getNearlyFeatures(pixel: Pixel): Feature[] {
-        let points = [] as Feature[];
+    getNearlyFeatures(pixel: Pixel): DataId[] {
+        const points = [] as DataId[];
         this._map.forEachFeatureAtPixel(pixel, (feature, layer) => {
             const layerInfo = this._vectorLayerMap.getLayerInfo(layer);
             if (!layerInfo) return;
             if (layerInfo.layerType === LayerType.Cluster) {
                 const features = feature.get('features') as Feature[];
                 features.forEach(f => {
-                    points.push(f);
+                    const dataId = convertDataIdFromFeatureId(f.getId() as string);
+                    points.push(dataId);
                 });
             } else {
-                points.push(feature as Feature);
+                const dataId = convertDataIdFromFeatureId(feature.getId() as string);
+                points.push(dataId);
             }
         });
         return points;

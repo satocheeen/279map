@@ -4,7 +4,15 @@ import { ServerInfo } from "../../types/types";
 import { getAPICallerInstance } from "../../api/ApiCaller";
 
 export function getMapKey(id: DataId): string {
-    return id.id + '-' + id.dataSourceId;
+    return id.id + '___' + id.dataSourceId;
+}
+// TODO: featureが属するLayerから判断するようにした方が安全
+export function convertDataIdFromFeatureId(id: string): DataId {
+    const s = id.split('___');
+    return {
+        id: s[0],
+        dataSourceId: s[1],
+    }
 }
 
 export function isEqualId(id1: DataId, id2: DataId): boolean {

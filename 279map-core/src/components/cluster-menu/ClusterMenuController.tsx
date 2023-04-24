@@ -1,7 +1,6 @@
 import { DataId, FeatureType } from '../../279map-common';
 import { MapBrowserEvent } from 'ol';
 import { Coordinate } from 'ol/coordinate';
-import Feature from 'ol/Feature';
 import React, { useRef, useEffect, useState, useCallback, useContext } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
@@ -9,6 +8,8 @@ import { useFilter } from '../../store/useFilter';
 import ClusterMenu from './ClusterMenu';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import { MapChartContext } from '../TsunaguMap/MapChart';
+import { usePrevious } from '../../util/usePrevious';
+import { getMapKey, isEqualId } from '../../store/data/dataUtility';
 
 /**
  * 地図上のアイテムがクリックされた際に、
@@ -20,17 +21,18 @@ type Props = {
     targets?: FeatureType[];
 
     // callback when user select an item.
-    onSelect?: (feature: Feature | undefined) => void;
+    onSelect?: (id: DataId | undefined) => void;
 }
 type ClusterMenuTarget = {
     position: Coordinate;
-    targets: Feature[];
+    targets: DataId[];
 }
 
 export default function ClusterMenuController(props: Props) {
     const { map } = useContext(MapChartContext);
     const [clusterMenuInfo, setClusterMenuInfo] = useState<ClusterMenuTarget|null>(null);
     const { onClick } = useContext(OwnerContext);
+    const mapMode = useSelector((state: RootState) => state.operation.mapMode);
 
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
     const itemMapRef = useRef(itemMap);
@@ -44,6 +46,27 @@ export default function ClusterMenuController(props: Props) {
         filteredItemIdListRef.current = filteredItemIdList;
     }, [filteredItemIdList]);
 
+    useEffect(() => {
+        setClusterMenuInfo(null);
+    }, [mapMode]);
+
+    // close cluster menu when zoom level is changed
+    const mapView = useSelector((state: RootState) => state.operation.mapView);
+    const prevMapView = usePrevious(mapView);
+    useEffect(() => {
+        if (mapView.zoom === prevMapView?.zoom) {
+            return;
+        }
+        setClusterMenuInfo(null);
+    }, [mapView, prevMapView]);
+
+    const selectedItemIds = useSelector((state: RootState) => state.operation.selectedItemIds);
+    useEffect(() => {
+        if (selectedItemIds.length > 0) {
+            setClusterMenuInfo(null);
+        }
+    }, [selectedItemIds]);
+
     /**
      * get the selectable features.
      * クリック位置付近に存在する選択可能な地物を返す
@@ -51,12 +74,12 @@ export default function ClusterMenuController(props: Props) {
      */
     const getSelectableFeatures = useCallback((evt: MapBrowserEvent<any>) => {
         // クリック位置付近にあるアイテムIDを取得
-        let points = map.getNearlyFeatures(evt.pixel);
+        let pointIds = map.getNearlyFeatures(evt.pixel);
 
         if (props.targets) {
             // 対象種別指定されている場合は、対象種別のものに絞る
-            points = points.filter(point => {
-                const item = itemMapRef.current[point.getId() as string];
+            pointIds = pointIds.filter(point => {
+                const item = itemMapRef.current[getMapKey(point)];
                 if (!item) {
                     return false;
                 }
@@ -70,15 +93,14 @@ export default function ClusterMenuController(props: Props) {
 
         // フィルタ時はフィルタ対象外のものに絞る
         if (filteredItemIdListRef.current) {
-            points = points.filter(point => {
+            pointIds = pointIds.filter(point => {
                 return filteredItemIdListRef.current?.some(itemId => {
-                    // TODO: data_source_id考慮
-                    return point.getId() as string === itemId.id;
+                    return isEqualId(point, itemId);
                 });
             });
         }
 
-        return points;
+        return pointIds;
     }, [map, props.targets]);
 
     // イベントコールバック用意
@@ -86,9 +108,9 @@ export default function ClusterMenuController(props: Props) {
         const clickFunc =  (evt: MapBrowserEvent<any>) => {
             setClusterMenuInfo(null);
 
-            const points = getSelectableFeatures(evt);
+            const pointIds = getSelectableFeatures(evt);
 
-            if (points.length === 0) {
+            if (pointIds.length === 0) {
                 if (props.onSelect) {
                     props.onSelect(undefined);
                 }
@@ -97,34 +119,28 @@ export default function ClusterMenuController(props: Props) {
 
             // show the cluseter menu when multiple items or the item has no contents
             // 対象が複数存在する場合またはコンテンツを持たないアイテムの場合は、重畳選択メニューを表示
-            if (points.length === 1) {
-                const item = itemMapRef.current[points[0].getId() as string];
+            if (pointIds.length === 1) {
+                const item = itemMapRef.current[getMapKey(pointIds[0])];
                 if (item.contents.length === 0) {
                     setClusterMenuInfo({
                         position: evt.coordinate,
-                        targets: points,
+                        targets: pointIds,
                     });
                     return;
                 }
                 if (props.onSelect) {
-                    props.onSelect(points[0]);
+                    props.onSelect(pointIds[0]);
                 } 
             } else if (!onClick) {
                 // onClick指定時は、重畳選択メニューは表示しない
                 setClusterMenuInfo({
                     position: evt.coordinate,
-                    targets: points,
+                    targets: pointIds,
                 });
             }
             if (onClick) {
                 // onClick指定時は、クリックされたアイテムのID一覧を返す（重畳選択メニューは表示しない）
-                const ids = points.map((p): DataId => {
-                    return {
-                        id: p.getId() as string,
-                        dataSourceId: '',   // TODO: dataSourceID考慮
-                    };
-                });
-                onClick(ids);
+                onClick(pointIds);
             }
 
         };
@@ -154,8 +170,7 @@ export default function ClusterMenuController(props: Props) {
      * 重畳選択メニュー選択時のコールバック
      */
     const onClusterMenuSelected = useCallback((id: DataId) => {
-        // TODO: dataSourceId考慮
-        const target = clusterMenuInfo?.targets.find(target => target.getId() === id.id);
+        const target = clusterMenuInfo?.targets.find(target => isEqualId(target, id));
         if (target && props.onSelect) {
             props.onSelect(target);
         }
@@ -177,12 +192,7 @@ export default function ClusterMenuController(props: Props) {
     return (
         <ClusterMenu
             position={clusterMenuInfo.position}
-            itemIds={clusterMenuInfo.targets.map(target => {
-                return {
-                    id: target.getId() as string,
-                    dataSourceId: '',   // TODO: dataSourceId
-                } as DataId
-            })}
+            itemIds={clusterMenuInfo.targets}
             onSelect={onClusterMenuSelected}
             onClose={onClusterMenuClosed} />
 );
