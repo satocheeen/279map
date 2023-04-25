@@ -39,7 +39,8 @@ type GetImageBase64Option = {
     size: {
         width: number;
         height: number;
-    }
+    },
+    fit?: 'cover' | 'contain';
 }
 
 export async function getImageBase64(url: string, option: GetImageBase64Option): Promise<ImageInfo> {
@@ -50,7 +51,7 @@ export async function getImageBase64(url: string, option: GetImageBase64Option):
         const src = sharp(new Uint8Array(input));
         const format = (await src.metadata()).format;
         const buff = await src.resize(option.size.width, option.size.height, {
-            fit: 'cover',
+            fit: option.fit ?? 'cover',
             background: {r: 255, g: 255, b: 255, alpha: 0},
         }).toBuffer();
     
