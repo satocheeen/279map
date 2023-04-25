@@ -114,7 +114,7 @@ export class OlMapWrapper {
                 new VectorLayer({
                     source: prefSource,
                     maxZoom: 10,
-                    zIndex: 1,
+                    zIndex: 0,
                     style: new Style({
                         fill: new Fill({
                             color: '#F5F2E9',
