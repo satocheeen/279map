@@ -249,7 +249,7 @@ export class OlMapWrapper {
             console.warn('対象sourceなし');
             return;
         }
-        const feature = source.getFeatureById(item.id.id);
+        const feature = source.getFeatureById(getMapKey(item.id));
         if (!feature) {
             console.warn('削除対象が該当sourceに存在しない', item.id);
             return;

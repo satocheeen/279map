@@ -11,6 +11,7 @@ import { ContentsDefine, DataId } from '../../279map-common';
 import AddContentMenu from '../popup/AddContentMenu';
 import styles from './ContentsModal.module.scss';
 import { getMapKey } from '../../store/data/dataUtility';
+import { isEqualId } from '../../store/data/dataUtility';
 
 type Target = {
     type: 'item';
@@ -121,7 +122,7 @@ export default function ContentsModal() {
             if (!item) return [];
             if (item.contents.length === 0) return [];
             // const contentId = item.contents.id;
-            return state.data.contentsList.filter(cn => item.contents.some(ic => ic.id === cn.id));
+            return state.data.contentsList.filter(cn => item.contents.some(ic => isEqualId(ic.id, cn.id)));
         } else {
             return state.data.contentsList.filter(c => c.id === target.contentId);
         }
