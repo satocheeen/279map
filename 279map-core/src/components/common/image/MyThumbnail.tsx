@@ -5,14 +5,8 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/configureStore';
 import { DataId } from '../../../279map-common';
 
-type Props = ({
-    type: 'thumbnail';
+type Props = {
     id: DataId; // サムネイル画像id（コンテンツID）
-} | {
-    type: 'icon';
-    id: string;
-}) 
-& {
     className?: string;
     onClick?: () => void;
     alt: string;
@@ -20,11 +14,11 @@ type Props = ({
 
 /**
  * ヘッダー情報にセッションidを付与して画像を取得して、
- * イメージ表示するコンポーネント
+ * サムネイル表示するコンポーネント
  * @param props 
  * @returns 
  */
-export default function MyImage(props: Props) {
+export default function MyThumbnail(props: Props) {
     const myRef = useRef<HTMLImageElement>(null);
     const { apiUrl } = useAPI();
     const { token } = useContext(OwnerContext);
@@ -36,12 +30,8 @@ export default function MyImage(props: Props) {
     });
 
     const url = useMemo(() => {
-        if (props.type === 'thumbnail') {
-            return `${apiUrl}getthumb?id=${props.id.id}`;
-        } else {
-            return `${apiUrl}geticon?id=${props.id}`;
-        }
-    }, [props.id, props.type]);
+        return `${apiUrl}getthumb?id=${props.id.id}`;
+    }, [props.id]);
 
     /**
      * 画像取得

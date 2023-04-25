@@ -7,7 +7,6 @@ import { RootState } from '../../store/configureStore';
 import useIcon from '../../store/useIcon';
 import AddContentMenu from '../popup/AddContentMenu';
 import { Auth, DataId } from '../../279map-common';
-import MyImage from '../common/image/MyImage';
 import { getMapKey } from '../../store/data/dataUtility';
 import { MapChartContext } from '../TsunaguMap/MapChart';
 
@@ -125,7 +124,7 @@ function MenuItem(props: MenuItemProp) {
             {iconDefine.type === 'system' ?
                 <img src={iconDefine.imagePath} />
                 :
-                <MyImage id={iconDefine.id} alt={'icon' + iconDefine.caption} type='icon' />
+                <img src={iconDefine.imagePath} alt={'icon' + iconDefine.caption} />
             }
             <span className={styles.NameArea}>
                 <span>{itemName}</span>

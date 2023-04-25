@@ -11,7 +11,7 @@ services:
       - ./db/mysql_data:/var/lib/mysql
   odba:
     # 任意のイメージを指定
-    image: satocheeen/279map-backend-odba-notion:0.45.0
+    image: satocheeen/279map-backend-odba-notion:0.45.1
     depends_on:
       - db
     env_file:

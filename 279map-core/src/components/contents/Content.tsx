@@ -20,7 +20,7 @@ import Spinner from "../common/spinner/Spinner";
 import { operationActions } from "../../store/operation/operationSlice";
 import { useFilter } from "../../store/useFilter";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
-import MyImage from "../common/image/MyImage";
+import MyThumbnail from "../common/image/MyThumbnail";
 import { getMapKey } from "../../store/data/dataUtility";
 
 type Props = {
@@ -317,7 +317,7 @@ export default function Content(props: Props) {
                 {
                     props.content.image &&
                         <div className={styles.ImageContainer}>
-                            <MyImage type='thumbnail' className={styles.Image} id={props.content.id} onClick={onImageClick} alt="contents"/>
+                            <MyThumbnail className={styles.Image} id={props.content.id} onClick={onImageClick} alt="contents"/>
                         </div>
                 }
                 {

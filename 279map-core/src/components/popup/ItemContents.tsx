@@ -4,9 +4,8 @@ import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { Auth, DataId, ItemContentInfo, ItemDefine } from '../../279map-common';
 import { BsThreeDots } from 'react-icons/bs';
-import { operationActions } from '../../store/operation/operationSlice';
 import { useFilter } from '../../store/useFilter';
-import MyImage from '../common/image/MyImage';
+import MyThumbnail from '../common/image/MyThumbnail';
 
 type Props = {
     item: ItemDefine;
@@ -67,7 +66,7 @@ export default function ItemContents(props: Props) {
     if (imageContentId) {
         return (
             <div className={styles.ImageContainer} onClick={onClick}>
-                <MyImage type='thumbnail' className={styles.Image} id={imageContentId} alt="contents" />
+                <MyThumbnail className={styles.Image} id={imageContentId} alt="contents" />
             </div>
         )
     } else {

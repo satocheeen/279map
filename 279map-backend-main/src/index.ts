@@ -62,10 +62,6 @@ if (!process.env.SESSION_STORAGE_PATH) {
     exit(1);
 }
 const sessionStoragePath = process.env.SESSION_STORAGE_PATH;
-if (!process.env.HOST) {
-    console.warn('not set env HOST');
-    exit(1);
-}
 if (!process.env.AUTH_METHOD) {
     console.warn('not set env AUTH_METHOD');
     exit(1);
@@ -1033,36 +1029,6 @@ app.get('/api/getimageurl',
 
             // call odba
             return await backendAPI.callOdbaApi(backendAPI.GetImageUrlAPI, param);
-
-        } catch(e) {
-            apiLogger.warn(e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail : e + '',
-            } as ApiError);
-        }
-    }
-);
-
-/**
- * アイコン画像取得
- */
-app.get('/api/geticon',
-    checkApiAuthLv(Auth.View), 
-    checkCurrentMap,
-    async(req, res) => {
-        try {
-            const param = req.query as { id: string };
-
-            const result = await getIcon(param);
-            const bin = convertBase64ToBinary(result);
-            res.writeHead(200, {
-                'Content-Type': bin.contentType,
-                'Content-Length': bin.binary.length
-            });
-            res.end(bin.binary);
-
-            return false;
 
         } catch(e) {
             apiLogger.warn(e);

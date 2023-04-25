@@ -2,6 +2,7 @@ import { ConnectionPool } from "..";
 import { CurrentMap, schema } from "279map-backend-common";
 import { GetOriginalIconDefineResult } from "../../279map-api-interface/src";
 import { IconDefine, MapKind } from "279map-backend-common";
+import { getIcon } from "./getIcon";
 
 export async function getOriginalIconDefine(currentMap: CurrentMap): Promise<GetOriginalIconDefineResult> {
     const pageId = currentMap?.mapId;
@@ -17,14 +18,16 @@ export async function getOriginalIconDefine(currentMap: CurrentMap): Promise<Get
         `;
         const [rows] = await con.execute(sql, [pageId]);
 
-        const icons = (rows as schema.OriginalIconsTable[]).map((row): IconDefine => {
+
+        const icons = await Promise.all((rows as schema.OriginalIconsTable[]).map(async(row): Promise<IconDefine> => {
+            const base64 = await getIcon({id: row.icon_page_id});
             return {
                 id: row.icon_page_id,
                 caption: row.caption,
-                imagePath: `https://${process.env.HOST}/api/geticon?id=${row.icon_page_id}`,
+                imagePath: 'data:image/' + base64,
                 useMaps: [MapKind.Real, MapKind.Virtual],   // TODO:
             }
-        });
+        }));
 
         return icons;
 
