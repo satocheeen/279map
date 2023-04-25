@@ -16,9 +16,9 @@ import { useSpinner } from '../../../common/spinner/useSpinner';
 import { useAppDispatch } from '../../../../store/configureStore';
 import { updateFeature } from '../../../../store/data/dataThunk';
 import { MapChartContext } from '../../../TsunaguMap/MapChart';
+import { convertDataIdFromFeatureId } from '../../../../store/data/dataUtility';
 
 type Props = {
-    map: Map;
     close: () => void;  // 編集完了時のコールバック
 }
 
@@ -32,17 +32,17 @@ const movedFeatureCollection = new Collection<Feature<Geometry>>();
  */
 export default function MoveItemController(props: Props) {
     const [okable, setOkable] = useState(false);
-    const itemLayer = useRef(props.map.getAllLayers().find(layer => layer.getProperties()['name'] === 'itemLayer') as VectorLayer<VectorSource>);
     const { map } = useContext(MapChartContext);
     const pointStyleHook = usePointStyle({ map });
     const dispatch = useAppDispatch();
+    const targetLayers = useRef<VectorLayer<VectorSource>[]>(map.getClusterItemLayers());
 
     const select = useMemo(() => {
         return new Select({
-            layers: [itemLayer.current],
+            layers: targetLayers.current,
             style: pointStyleHook.selectedStyleFunction,
         });
-    }, [itemLayer, pointStyleHook]);
+    }, [pointStyleHook]);
 
     const [prevGeometory] = useState({} as {[id: string]: Geometry});
     const [multipleMode, setMultipleMode] = useState(false);    // 複数選択モードの場合、true
@@ -55,11 +55,9 @@ export default function MoveItemController(props: Props) {
             const features = mf.get('features') as Feature<Geometry>[];
             for (const feature of features) {
                 // DB更新
+                const id = convertDataIdFromFeatureId(feature.getId() as string);
                 await dispatch(updateFeature({
-                    id: {
-                        id: feature.getId() as string,
-                        dataSourceId: '',   // TODO: data_source_id
-                    },
+                    id,
                     geometry: mfGeoJson.geometry,
                 }));
             }
@@ -84,81 +82,85 @@ export default function MoveItemController(props: Props) {
     // 対象アイテムhover時のカーソル設定
     useEffect(() => {
         const pointerMoveEvent = (evt: MapBrowserEvent<any>) => {
-            let isHover = false;
-            props.map.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
-                const layerName = layer.getProperties()['name'];
-                if (layerName === 'itemLayer') {
-                    isHover = true;
-                }
+            const items = map.getNearlyFeatures(evt.pixel);
+            const isHover = items.some(item => {
+                const itemsLayers = map.getDataSourceLayers(item.dataSourceId);
+                return itemsLayers.some(il => {
+                    return targetLayers.current?.includes(il);
+                });
             });
+
             if (isHover) {
-                props.map.getTargetElement().style.cursor = 'pointer';
+                map.setCursorStyle('pointer');
             } else {
-                props.map.getTargetElement().style.cursor = '';
+                map.setCursorStyle('');
             }
         };
-        props.map.on('pointermove', pointerMoveEvent);
+        map.on('pointermove', pointerMoveEvent);
 
         return () => {
-            props.map.un('pointermove', pointerMoveEvent);
+            map.un('pointermove', pointerMoveEvent);
         }
 
-    }, [props.map]);
+    }, [map]);
 
     useEffect(() => {
         // 移動前の状態を記憶
-        itemLayer.current.getSource()?.getFeatures().forEach((feature) => {
-            const id = feature.getId();
-            const geometry = feature.getGeometry();
-            if (id === undefined || !geometry) {
-                return;
-            }
-            prevGeometory[id] = geometry.clone();
-        });
+        targetLayers.current.forEach(layer => {
+            layer.getSource()?.getFeatures().forEach((feature) => {
+                const id = feature.getId();
+                const geometry = feature.getGeometry();
+                if (id === undefined || !geometry) {
+                    return;
+                }
+                prevGeometory[id] = geometry.clone();
+            });
+        })
 
-    }, [itemLayer, prevGeometory]);
+    }, [prevGeometory]);
 
     // ボックス選択の初期化
     useEffect(() => {
         dragBox.on('boxend', () => {
             // Extent内の建物を選択状態にする
             const extent = dragBox.getGeometry().getExtent();
-            itemLayer.current.getSource()?.forEachFeature((feature) => {
-                const geometry = feature.getGeometry()?.clone();
-                if (!geometry) {
-                    return;
-                }
-                if (geometry.intersectsExtent(extent)) {
-                    select.getFeatures().push(feature);
-                }
-            })
+            targetLayers.current.forEach(layer => {
+                layer.getSource()?.forEachFeature((feature) => {
+                    const geometry = feature.getGeometry()?.clone();
+                    if (!geometry) {
+                        return;
+                    }
+                    if (geometry.intersectsExtent(extent)) {
+                        select.getFeatures().push(feature);
+                    }
+                })
+            });
         });
-        props.map.addInteraction(dragBox);
+        map.addInteraction(dragBox);
 
         return () => {
-            props.map.removeInteraction(dragBox);
+            map.removeInteraction(dragBox);
         };
-    }, [props.map, select]);
+    }, [map, select]);
 
     useEffect(() => {
         let translate : Translate;
         if (multipleMode) {
             // 複数選択モードの場合
             translate = new Translate({
-                layers: [itemLayer.current],
+                layers: targetLayers.current,
                 features: select.getFeatures(),
             });
-            props.map.addInteraction(select);
-            props.map.addInteraction(dragBox);
+            map.addInteraction(select);
+            map.addInteraction(dragBox);
         } else {
             // 単一モードの場合
             translate = new Translate({
-                layers: [itemLayer.current],
+                layers: targetLayers.current,
             });
-            console.log('clear');
             select.getFeatures().clear();
-            props.map.removeInteraction(select);
-            props.map.removeInteraction(dragBox);
+            map.removeInteraction(select);
+            map.removeInteraction(dragBox);
         }
 
         translate.on('translateend', (e: TranslateEvent) => {
@@ -167,11 +169,11 @@ export default function MoveItemController(props: Props) {
             });
             setOkable(true);
         });
-        props.map.addInteraction(translate);
+        map.addInteraction(translate);
 
         return () => {
-            props.map.removeInteraction(translate);
-            props.map.removeInteraction(select);
+            map.removeInteraction(translate);
+            map.removeInteraction(select);
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [multipleMode]);

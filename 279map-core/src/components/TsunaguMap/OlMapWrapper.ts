@@ -328,6 +328,23 @@ export class OlMapWrapper {
         return this._vectorLayerMap.length();
     }
 
+    /**
+     * 指定のデータソースIDに紐づくレイヤを返す。
+     * @param dataSourceId 
+     * @return レイヤ配列（Trackの場合は、複数存在しうるので）
+     */
+    getDataSourceLayers(dataSourceId: string): VectorLayer<VectorSource>[] {
+        return this._vectorLayerMap.getDataSourceLayers(dataSourceId);
+    }
+
+    /**
+     * ClusterItemのレイヤ一覧を返す
+     * @returns 
+     */
+    getClusterItemLayers(): VectorLayer<VectorSource>[] {
+        return this._vectorLayerMap.getTheStyleLayers(LayerType.Cluster);
+    }
+
     getSourceContainedTheFeature(feature: Feature<Geometry>) {
         return this._vectorLayerMap.getSourceContainedTheFeature(feature);
     }

@@ -158,6 +158,21 @@ export class VectorLayerMap {
         return this._layerMap.get(mapKey)?.layer;
     }
 
+    /**
+     * 指定のデータソースIDに紐づくレイヤを返す。
+     * @param dataSourceId 
+     * @return レイヤ配列（Trackの場合は、複数存在しうるので）
+     */
+    getDataSourceLayers(dataSourceId: string): VectorLayer<VectorSource>[] {
+        const list = [] as VectorLayer<VectorSource>[];
+        this._layerMap.forEach(layerInfo => {
+            if (layerInfo.id === dataSourceId) {
+                list.push(layerInfo.layer);
+            }
+        });
+        return list;
+    }
+
     getSource(layerKey: LayerKey | StaticLayerType) {
         const mapKey = this._convertMapKey(layerKey);
         const source = this._layerMap.get(mapKey)?.layer.getSource();
