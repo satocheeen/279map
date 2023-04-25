@@ -137,12 +137,9 @@ export default function ContentsModal() {
         setContentId(undefined);
     }, [dispatch]);
 
-    useEffect(() => {
-        // コンテンツ削除により0件になった場合、モーダルを閉じる
-        if (contents.length === 0) {
-            setShow(false);
-        }
-    }, [contents.length]);
+    if (contents.length === 0) {
+        return null;
+    }
 
     return (
         <Modal show={show} spinner={!loadied}
