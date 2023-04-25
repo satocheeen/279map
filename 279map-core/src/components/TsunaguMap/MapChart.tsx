@@ -402,7 +402,7 @@ export default function MapChart() {
                                 targets={[FeatureType.STRUCTURE, FeatureType.AREA]}
                                 onSelect={onSelectItem} />
                         }
-                        {/* <DrawController map={mapRef.current} onStart={()=>{isDrawing.current=true}} onEnd={()=>{isDrawing.current=false}} /> */}
+                        <DrawController onStart={()=>{isDrawing.current=true}} onEnd={()=>{isDrawing.current=false}} />
                     </MapChartContext.Provider>
                 )
             }

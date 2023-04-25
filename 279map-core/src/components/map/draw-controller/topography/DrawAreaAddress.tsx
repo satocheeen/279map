@@ -93,7 +93,7 @@ export function DrawAreaAddress(props: Props) {
                     cancelname='戻る'
                     cancel={onSelectAdressCanceled}>
                         <div>
-                            <SearchAddress map={props.map}
+                            <SearchAddress
                                 searchTarget={['area']}
                                 onAddress={onSelectAddress} />
                         </div>

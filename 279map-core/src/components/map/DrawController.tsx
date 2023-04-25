@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect, useState } from 'react';
+import React, { lazy, Suspense, useContext, useEffect, useState } from 'react';
 import { Map } from 'ol';
 import { addListener, removeListener } from '../../util/Commander';
 import { useDispatch } from 'react-redux';
@@ -7,6 +7,7 @@ import { MapMode } from '../../types/types';
 import OverlaySpinner from '../common/spinner/OverlaySpinner';
 import EditTopographyInfoController from './draw-controller/topography/EditTopographyInfoController';
 import { FeatureType } from '../../279map-common';
+import { MapChartContext } from '../TsunaguMap/MapChart';
 
 const DrawStructureController = lazy(() => import('./draw-controller/structure/DrawStructureController'));
 const MoveItemController = lazy(() => import('./draw-controller/structure/MoveItemController'));
@@ -17,7 +18,6 @@ const DrawRoadController = lazy(() => import('./draw-controller/topography/DrawR
 const EditTopographyController = lazy(() => import('./draw-controller/topography/EditTopographyController'));
 
 type Props = {
-    map: Map;
     onStart?: () => void;   // Drawモード開始時に実行するコールバック
     onEnd?:() => void;      // Drawモード終了時に実行するコールバック
 }
@@ -25,6 +25,7 @@ type Props = {
 export default function DrawController(props: Props) {
     const [drawController, setDrawController] = useState(undefined as JSX.Element | undefined);
     const dispatch = useDispatch();
+    const { map } = useContext(MapChartContext);
 
     useEffect(() => {
         const terminate = () => {
@@ -38,96 +39,96 @@ export default function DrawController(props: Props) {
                 dispatch(operationActions.changeMapMode(MapMode.Drawing));
                 setDrawController(
                     <Suspense fallback={<OverlaySpinner message='準備中...' />}>
-                        <DrawStructureController map={props.map} close={terminate} />
+                        <DrawStructureController close={terminate} />
                     </Suspense>
                 );
             })
         );
-        listenerH.push(
-            addListener('MoveStructure', async() => {
-                dispatch(operationActions.changeMapMode(MapMode.Drawing));
-                setDrawController(
-                    <Suspense fallback={<OverlaySpinner message='準備中...' />}>
-                        <MoveItemController map={props.map} close={terminate} />
-                    </Suspense>
-                );
-            })
-        );
-        listenerH.push(
-            addListener('ChangeStructure', async() => {
-                dispatch(operationActions.changeMapMode(MapMode.Drawing));
-                setDrawController(
-                    <Suspense fallback={<OverlaySpinner message='準備中...' />}>
-                        <ChangeStructureIconController map={props.map} close={terminate} />
-                    </Suspense>
-                );
-            })
-        );
-        listenerH.push(
-            addListener('RemoveStructure', async() => {
-                dispatch(operationActions.changeMapMode(MapMode.Drawing));
-                setDrawController(
-                    <Suspense fallback={<OverlaySpinner message='準備中...' />}>
-                        <RemoveFeatureController map={props.map} target="structure" close={terminate} />
-                    </Suspense>
-                );
-            })
-        );
-        listenerH.push(
-            addListener('DrawTopography', async(featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA) => {
-                dispatch(operationActions.changeMapMode(MapMode.Drawing));
-                setDrawController(
-                    <Suspense fallback={<OverlaySpinner message='準備中...' />}>
-                        <DrawTopographyController map={props.map} drawFeatureType={featureType} close={terminate} />
-                    </Suspense>
-                );
-            })
-        );
-        listenerH.push(
-            addListener('DrawRoad', async() => {
-                dispatch(operationActions.changeMapMode(MapMode.Drawing));
-                setDrawController(
-                    <Suspense fallback={<OverlaySpinner message='準備中...' />}>
-                        <DrawRoadController map={props.map} close={terminate} />
-                    </Suspense>
-                );
-            })
-        );
-        listenerH.push(
-            addListener('EditTopography', async() => {
-                dispatch(operationActions.changeMapMode(MapMode.Drawing));
-                setDrawController(
-                    <Suspense fallback={<OverlaySpinner message='準備中...' />}>
-                        <EditTopographyController map={props.map} close={terminate} />
-                    </Suspense>
-                );
-            })
-        );
-        listenerH.push(
-            addListener('EditTopographyInfo', async() => {
-                dispatch(operationActions.changeMapMode(MapMode.Drawing));
-                setDrawController(
-                    <Suspense fallback={<OverlaySpinner message='準備中...'/>}>
-                        <EditTopographyInfoController map={props.map} close={terminate} />
-                    </Suspense>
-                );
-            })
-        );
-        listenerH.push(
-            addListener('RemoveTopography', async() => {
-                dispatch(operationActions.changeMapMode(MapMode.Drawing));
-                setDrawController(
-                    <Suspense fallback={<OverlaySpinner  message='準備中...'/>}>
-                        <RemoveFeatureController map={props.map} target="topography" close={terminate} />
-                    </Suspense>
-                );
-            })
-        );
+        // listenerH.push(
+        //     addListener('MoveStructure', async() => {
+        //         dispatch(operationActions.changeMapMode(MapMode.Drawing));
+        //         setDrawController(
+        //             <Suspense fallback={<OverlaySpinner message='準備中...' />}>
+        //                 <MoveItemController map={map} close={terminate} />
+        //             </Suspense>
+        //         );
+        //     })
+        // );
+        // listenerH.push(
+        //     addListener('ChangeStructure', async() => {
+        //         dispatch(operationActions.changeMapMode(MapMode.Drawing));
+        //         setDrawController(
+        //             <Suspense fallback={<OverlaySpinner message='準備中...' />}>
+        //                 <ChangeStructureIconController map={map} close={terminate} />
+        //             </Suspense>
+        //         );
+        //     })
+        // );
+        // listenerH.push(
+        //     addListener('RemoveStructure', async() => {
+        //         dispatch(operationActions.changeMapMode(MapMode.Drawing));
+        //         setDrawController(
+        //             <Suspense fallback={<OverlaySpinner message='準備中...' />}>
+        //                 <RemoveFeatureController map={map} target="structure" close={terminate} />
+        //             </Suspense>
+        //         );
+        //     })
+        // );
+        // listenerH.push(
+        //     addListener('DrawTopography', async(featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA) => {
+        //         dispatch(operationActions.changeMapMode(MapMode.Drawing));
+        //         setDrawController(
+        //             <Suspense fallback={<OverlaySpinner message='準備中...' />}>
+        //                 <DrawTopographyController map={map} drawFeatureType={featureType} close={terminate} />
+        //             </Suspense>
+        //         );
+        //     })
+        // );
+        // listenerH.push(
+        //     addListener('DrawRoad', async() => {
+        //         dispatch(operationActions.changeMapMode(MapMode.Drawing));
+        //         setDrawController(
+        //             <Suspense fallback={<OverlaySpinner message='準備中...' />}>
+        //                 <DrawRoadController map={map} close={terminate} />
+        //             </Suspense>
+        //         );
+        //     })
+        // );
+        // listenerH.push(
+        //     addListener('EditTopography', async() => {
+        //         dispatch(operationActions.changeMapMode(MapMode.Drawing));
+        //         setDrawController(
+        //             <Suspense fallback={<OverlaySpinner message='準備中...' />}>
+        //                 <EditTopographyController map={map} close={terminate} />
+        //             </Suspense>
+        //         );
+        //     })
+        // );
+        // listenerH.push(
+        //     addListener('EditTopographyInfo', async() => {
+        //         dispatch(operationActions.changeMapMode(MapMode.Drawing));
+        //         setDrawController(
+        //             <Suspense fallback={<OverlaySpinner message='準備中...'/>}>
+        //                 <EditTopographyInfoController map={map} close={terminate} />
+        //             </Suspense>
+        //         );
+        //     })
+        // );
+        // listenerH.push(
+        //     addListener('RemoveTopography', async() => {
+        //         dispatch(operationActions.changeMapMode(MapMode.Drawing));
+        //         setDrawController(
+        //             <Suspense fallback={<OverlaySpinner  message='準備中...'/>}>
+        //                 <RemoveFeatureController map={map} target="topography" close={terminate} />
+        //             </Suspense>
+        //         );
+        //     })
+        // );
 
         return () => {
             listenerH.forEach(h => removeListener(h));
         }
-    }, [dispatch, props.map]);
+    }, [dispatch, map]);
 
     useEffect(() => {
         if (drawController !== undefined) {

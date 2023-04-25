@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { Map, Feature } from 'ol';
+import { Feature } from 'ol';
 import SelectStructureDialog from './SelectStructureDialog';
 import Draw, { DrawEvent } from "ol/interaction/Draw";
 import VectorSource from 'ol/source/Vector';
@@ -17,9 +17,9 @@ import { FeatureType, GeoProperties, MapKind } from '../../../../279map-common';
 import { SystemIconDefine } from '../../../../types/types';
 import { useSelector } from 'react-redux';
 import { MapChartContext } from '../../../TsunaguMap/MapChart';
+import { StaticLayerType } from '../../../TsunaguMap/VectorLayerMap';
 
 type Props = {
-    map: Map;
     close: () => void;  // 作図完了時のコールバック
 }
 
@@ -30,12 +30,6 @@ enum Stage {
     REGISTING,  // 登録中
 }
 
-// 一度きりの生成でいいもの
-const drawingSource = new VectorSource();
-const drawingLayer = new VectorLayer({
-    source: drawingSource,
-    zIndex: 10,
-});
 
 export default function DrawStructureController(props: Props) {
     const [stage, setStage] = useState(Stage.SELECTING_FEATURE);
@@ -63,27 +57,27 @@ export default function DrawStructureController(props: Props) {
         setStage(Stage.DRAWING);
     }, []);
 
+    const drawingLayer = useRef<VectorLayer<VectorSource>>();
+
     const drawReset = useCallback(() => {
         if (draw.current === null) {
             return;
         }
         draw.current.abortDrawing();
         drawingFeature.current = undefined;
-        drawingSource.clear();
-        props.map.removeInteraction(draw.current);
+        drawingLayer.current?.getSource()?.clear();
+        map.removeInteraction(draw.current);
         draw.current = null;
-    }, [props.map]);
+    }, [map]);
 
     // 初期状態
     useEffect(() => {
-        const myDrawingSource = new VectorSource();
-        props.map.addLayer(drawingLayer);
+        drawingLayer.current = map.addLayer(StaticLayerType.DrawingItem);
 
         return () => {
             // UnMount時
             drawReset();
-            myDrawingSource.clear();
-            props.map.removeLayer(drawingLayer);
+            map.removeLayer(StaticLayerType.DrawingItem);
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -92,7 +86,11 @@ export default function DrawStructureController(props: Props) {
      * Drawing開始時の処理
      */
     useEffect(() => {
-        if (stage !== Stage.DRAWING || drawingIcon.current === null) {
+        if (stage !== Stage.DRAWING || drawingIcon.current === null || !drawingLayer.current) {
+            return;
+        }
+        const drawingSource = drawingLayer.current.getSource();
+        if (!drawingSource) {
             return;
         }
         drawReset();
@@ -100,13 +98,13 @@ export default function DrawStructureController(props: Props) {
         const style = pointStyleHook.getDrawingStructureStyleFunction(drawingIcon.current);
         drawingFeature.current = undefined;
         drawingSource.clear();
-        drawingLayer.setStyle(style);
+        drawingLayer.current.setStyle(style);
         draw.current = new Draw({
             source: drawingSource,
             type,
             style,
         });
-        props.map.addInteraction(draw.current);
+        map.addInteraction(draw.current);
         draw.current.on('drawend', (event: DrawEvent) => {
             onDrawEnd(event.feature);
         });
@@ -141,16 +139,20 @@ export default function DrawStructureController(props: Props) {
 
     const onDrawEnd = useCallback((feature: Feature) => {
         if (draw.current !== null) {
-            props.map.removeInteraction(draw.current);
+            map.removeInteraction(draw.current);
         }
         console.log('drawing feature', feature);
 
         drawingFeature.current = feature;
         setStage(Stage.CONFIRM);
 
-    }, [props.map]);
+    }, [map]);
 
     const onSelectAddress= useCallback((address: GeoJsonObject) => {
+        const drawingSource = drawingLayer.current?.getSource();
+        if (!drawingSource) {
+            return;
+        }
         console.log('select', address);
         // 指定のアドレスにFeature追加
         const feature = new GeoJSON().readFeatures(address)[0];
@@ -160,10 +162,10 @@ export default function DrawStructureController(props: Props) {
         // 指定のアドレスの場所に移動
         const extent = feature.getGeometry()?.getExtent();
         if (extent)
-            props.map.getView().fit(extent);
+            map.fit(extent);
 
         onDrawEnd(feature);
-    }, [onDrawEnd, props.map]);
+    }, [onDrawEnd, map]);
 
     const onConfirmCancel = useCallback(() => {
         // DRAWモードに戻る
@@ -208,7 +210,7 @@ export default function DrawStructureController(props: Props) {
                         {mapKind === MapKind.Real &&
                             <SearchAddress
                                 ref={searchAddressRef}
-                                map={props.map} onAddress={onSelectAddress}
+                                onAddress={onSelectAddress}
                                 searchTarget={['point']}
                                 disabled={stage === Stage.CONFIRM} />
                         }

@@ -142,7 +142,18 @@ export class VectorLayerMap {
         return layer;
     }
 
-    getLayer(id: LayerKey) {
+    removeLayer(key: LayerKey | StaticLayerType) {
+        const layer = this.getLayer(key);
+        if (!layer) {
+            console.warn('not exist remove target layer', key);
+            return;
+        }
+        layer.dispose();
+        const mapKey = this._convertMapKey(key);
+        this._layerMap.delete(mapKey);
+    }
+
+    getLayer(id: LayerKey | StaticLayerType) {
         const mapKey = this._convertMapKey(id);
         return this._layerMap.get(mapKey)?.layer;
     }

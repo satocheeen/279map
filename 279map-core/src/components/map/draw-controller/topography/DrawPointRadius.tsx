@@ -139,7 +139,7 @@ export default function DrawPointRadius(props: Props) {
         });
         props.map.addInteraction(draw.current);
 
-    }, [pointStyleHook, props.map]);
+    }, [pointStyleHook, props.map, iconHook]);
 
     const startDrawCircle = useCallback(() => {
         const type = 'Circle';
@@ -283,7 +283,7 @@ export default function DrawPointRadius(props: Props) {
             <div>
                 <div className={`${styles.Phase} ${stage !== Stage.SelectCenter ? styles.Disabled : ''}`}>
                     <p>1. 任意の地点をクリックするか、住所検索してください.</p>
-                    <SearchAddress map={props.map}
+                    <SearchAddress
                         ref={searchAddressRef}
                         disabled={stage !== Stage.SelectCenter}
                         searchTarget={['point']}

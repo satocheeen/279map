@@ -1,5 +1,4 @@
 import { GeoJsonObject, Point } from 'geojson';
-import { Map } from 'ol';
 import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { ListGroup } from 'react-bootstrap';
 import Input from '../common/form/Input';
@@ -9,7 +8,6 @@ import Spinner from './spinner/Spinner';
 import { GeocoderItem, GeocoderResult } from 'tsunagumap-api';
 
 type Props = {
-    map: Map;
     disabled?: boolean; // trueの場合、住所入力不可
     defaultAddress?: string;
     onAddress?: (geoJson: GeoJsonObject) => void;

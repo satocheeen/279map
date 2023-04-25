@@ -2,7 +2,7 @@ import { Feature, MapBrowserEvent, Map as OlMap, Overlay, View } from 'ol';
 import * as olControl from 'ol/control';
 import { Extent } from 'ol/extent';
 import { Geometry } from 'ol/geom';
-import { defaults } from 'ol/interaction'
+import { Interaction, defaults } from 'ol/interaction'
 import { LayerType, LayerKey, StaticLayerType, VectorLayerMap } from './VectorLayerMap';
 import GeoJSON from 'ol/format/GeoJSON';
 import prefJson from './pref.json';
@@ -305,10 +305,23 @@ export class OlMapWrapper {
         return this._map.getView().getZoom();
     }
 
-    addLayer(layerKey: LayerKey | StaticLayerType) {
+    addLayer(layerKey: LayerKey | StaticLayerType): VectorLayer<VectorSource> {
         console.log('addLayer', this._id, layerKey);
         const layer = this._vectorLayerMap.createLayer(layerKey);
         this._map.addLayer(layer);
+        return layer;
+    }
+
+    removeLayer(layerKey: LayerKey | StaticLayerType) {
+        const layer = this._vectorLayerMap.getLayer(layerKey);
+        if (!layer) {
+            console.warn('not exist remove target layer', layerKey);
+            return;
+        }
+        this._map.removeLayer(layer);
+        this._vectorLayerMap.removeLayer(layerKey);
+
+        return layer;
     }
 
     getLayerLength(): number {
@@ -392,6 +405,14 @@ export class OlMapWrapper {
             }
         });
         return points;
+    }
+
+    addInteraction(interaction: Interaction) {
+        this._map.addInteraction(interaction);
+    }
+
+    removeInteraction(interaction: Interaction) {
+        this._map.removeInteraction(interaction);
     }
 
     dispose() {
