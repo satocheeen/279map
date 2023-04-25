@@ -14,9 +14,10 @@ type CommonParam = {
 export const RegistItemAPI = {
     uri: 'regist-item',
     method: 'post',
-} as APIDefine<RegistItemParam, string>;   // result = registed item ID
+} as APIDefine<RegistItemParam, DataId>;   // result = registed item ID
 
 export type RegistItemParam = CommonParam & {
+    dataSourceId: string;   // 登録先データソース
     name?: string;  // topography only
     geometry: GeoJSON.Geometry;
     geoProperties: GeoProperties;  // GeoProperties
