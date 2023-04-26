@@ -17,6 +17,7 @@ import { useAppDispatch } from '../../../../store/configureStore';
 import { updateFeature } from '../../../../store/data/dataThunk';
 import { MapChartContext } from '../../../TsunaguMap/MapChart';
 import { convertDataIdFromFeatureId } from '../../../../store/data/dataUtility';
+import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 
 type Props = {
     close: () => void;  // 編集完了時のコールバック
@@ -35,7 +36,7 @@ export default function MoveItemController(props: Props) {
     const { map } = useContext(MapChartContext);
     const pointStyleHook = usePointStyle({ map });
     const dispatch = useAppDispatch();
-    const targetLayers = useRef<VectorLayer<VectorSource>[]>(map.getClusterItemLayers());
+    const targetLayers = useRef<VectorLayer<VectorSource>[]>(map.getLayersOfTheType(LayerType.Point));
 
     const select = useMemo(() => {
         return new Select({

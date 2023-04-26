@@ -8,6 +8,7 @@ import Input from '../../../common/form/Input';
 import { useSpinner } from '../../../common/spinner/useSpinner';
 import PromptMessageBox from '../PromptMessageBox';
 import SelectFeature from '../SelectFeature';
+import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 
 type Props = {
     map: Map;   // コントロール対象の地図
@@ -60,8 +61,7 @@ export default function EditTopographyInfoController(props: Props) {
         case Stage.SELECTING_FEATURE:
             return (
                 <SelectFeature
-                map={props.map}
-                target="topography"
+                targetType={LayerType.Topography}
                 onOk={onSelectFeature} onCancel={onClose} />
             );
         case Stage.INPUT_NAME:

@@ -18,10 +18,10 @@ import { RootState } from '../../../store/configureStore';
 import { colorWithAlpha } from '../../../util/CommonUtility';
 import { MapStyles } from '../../../util/constant-defines';
 import { MapChartContext } from '../../TsunaguMap/MapChart';
+import { LayerType } from '../../TsunaguMap/VectorLayerMap';
 
 type Props = {
-    map: Map;   // コントロール対象の地図
-    target: 'topography' | 'structure';
+    targetType: LayerType;
     message?: string;
     onOk: (feature: Feature) => void;
     onCancel: () => void;
@@ -35,20 +35,20 @@ type Props = {
 export default function SelectFeature(props: Props) {
     const select = useRef<Select>();
     const [selectedFeature, setSelectedFeature] = useState<Feature>();
-    const itemLayer = useMemo(() => {
-        return props.map.getAllLayers().find(layer => {
-            return layer.getProperties()['name'] === 'itemLayer';
-        }) as VectorLayer<VectorSource>;
-    }, [props.map]);
     const topographyStyleHook = useTopographyStyle({});
     const { map } = useContext(MapChartContext);
     const pointStyleHook = usePointStyle({ map });
     const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
 
+    const targetLayers = useMemo((): VectorLayer<VectorSource>[] => {
+        const layers = map.getLayersOfTheType(props.targetType);
+        return layers;
+    }, [props.targetType, map]);
+
     // 初期化
     useEffect(() => {
         const styleFunction = function(){
-            if (props.target === 'topography') {
+            if (props.targetType === LayerType.Topography) {
                 const selectedStyleFunc = (feature: FeatureLike) => {
                     const featureType = feature.getProperties()['featureType'];
                     let strokeColor;
@@ -96,16 +96,12 @@ export default function SelectFeature(props: Props) {
                 return pointStyleHook.selectedStyleFunction;
             }
         }();
-        const layerName = props.target === 'topography' ? 'topographyLayer' : 'itemLayer';
-        const layer = props.map.getAllLayers().find(layer => {
-            return layer.getProperties()['name'] === layerName;
-        }) as VectorLayer<VectorSource>;
         select.current = new Select({
             condition: click,
-            layers: [layer],
+            layers: targetLayers,
             style: styleFunction,
             filter: (feature) => {
-                if (props.target === 'topography') {
+                if (props.targetType !== LayerType.Point) {
                     return true;
                 }
                 const features = feature.get('features') as FeatureLike[];
@@ -118,57 +114,46 @@ export default function SelectFeature(props: Props) {
                 setSelectedFeature(undefined);
                 return;
             }
-            if (props.target === 'structure') {
+            if (props.targetType === LayerType.Point) {
                 const features = evt.selected[0].get('features') as Feature[];
                 setSelectedFeature(features[0]);
             } else{
                 setSelectedFeature(evt.selected[0]);
             }
         });
-        props.map.addInteraction(select.current);
+        map.addInteraction(select.current);
 
         // 選択可能な地図上アイテムhover時にポインター表示
         const pointerMoveEvent = (evt: MapBrowserEvent<any>) => {
             let isHover = false;
-            props.map.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
-                const layerName = layer.getProperties()['name'];
-                if (props.target === 'structure' && layerName !== 'itemLayer') {
-                    return;
-                }
-                if (props.target === 'topography' && layerName !== 'topographyLayer') {
-                    return;
-                }
-                if (layerName === 'itemLayer') {
-                    const features = feature.get('features') as FeatureLike[];
-                    if (features.length === 1) {
-                        isHover = true;
-                        return;
-                    }
-                } else if(layerName === 'topographyLayer') {
+            const targets = map.getNearlyFeatures(evt.pixel);
+            targets.forEach(target => {
+                const layerTypes = map.getLayerTypeOfTheDataSource(target.dataSourceId);
+                if (layerTypes.includes(props.targetType)) {
                     isHover = true;
                 }
-            });
+            })
             if (isHover) {
-                props.map.getTargetElement().style.cursor = 'pointer';
+                map.setCursorStyle('pointer');
             } else {
-                props.map.getTargetElement().style.cursor = '';
+                map.setCursorStyle('');
             }
         };
-        props.map.on('pointermove', pointerMoveEvent);
+        map.on('pointermove', pointerMoveEvent);
 
 
         return () => {
             if (select.current) {
-                props.map.removeInteraction(select.current);
+                map.removeInteraction(select.current);
             }
-            props.map.un('pointermove', pointerMoveEvent);
+            map.un('pointermove', pointerMoveEvent);
         }
      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const message= useMemo(() => {
         let name: string;
-        if (props.target === 'structure') {
+        if (props.targetType === LayerType.Point) {
             if (mapKind === MapKind.Real) {
                 name = '地点';
             } else {
@@ -182,7 +167,7 @@ export default function SelectFeature(props: Props) {
             }
         }
         return props.message ? props.message : `対象の${name}を選択して、OKボタンを押下してください。`;
-    }, [props.message, props.target, mapKind]);
+    }, [props.message, props.targetType, mapKind]);
 
     const onOkClicked = useCallback(async() => {
         if (!selectedFeature) {

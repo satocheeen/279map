@@ -1,15 +1,16 @@
 import { Map } from 'ol';
 import React, { useCallback } from 'react';
 import { FeatureLike } from 'ol/Feature';
-import useConfirm, { ConfirmBtnPattern, ConfirmResult } from '../../../common/confirm/useConfirm';
+import useConfirm, { ConfirmResult } from '../../../common/confirm/useConfirm';
 import SelectFeature from '../SelectFeature';
 import { useSpinner } from '../../../common/spinner/useSpinner';
 import { useAppDispatch } from '../../../../store/configureStore';
 import { removeFeature } from '../../../../store/data/dataThunk';
+import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 
 type Props = {
     map: Map;   // コントロール対象の地図
-    target: 'topography' | 'structure';
+    target: LayerType;
     close: () => void;  // 作図完了時のコールバック
 }
 
@@ -55,8 +56,7 @@ export default function RemoveFeatureController(props: Props) {
 
     return (
         <SelectFeature
-            map={props.map}
-            target={props.target}
+            targetType={props.target}
             onOk={onRemoveOkClicked} onCancel={onCancel} />
     );
 }

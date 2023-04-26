@@ -13,7 +13,6 @@ import { getAPICallerInstance } from "./ApiCaller";
  * Parts側から呼び出し可能なコマンド
  */
 export function useCommand() {
-    const mapServer = useSelector((state: RootState) => state.session.mapServer);
     const dispatch = useAppDispatch();
     const { confirm } = useConfirm();
 
@@ -148,7 +147,7 @@ export function useCommand() {
             url,
         });
         return res;
-    }, [mapServer]);
+    }, []);
 
     const getUnpointDataAPI = useCallback(async(nextToken?: string) => {
         const result = await getAPICallerInstance().callApi(GetUnpointDataAPI, {
@@ -159,7 +158,7 @@ export function useCommand() {
             nextToken: result.nextToken,
         };
 
-    }, [mapServer]);
+    }, []);
 
     return {
         switchMapKind,

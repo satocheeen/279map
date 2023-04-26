@@ -1,5 +1,5 @@
 import { Map } from 'ol';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useContext, useRef, useState } from 'react';
 import SelectStructureDialog from './SelectStructureDialog';
 import { useSpinner } from '../../../common/spinner/useSpinner';
 import SelectFeature from '../SelectFeature';
@@ -8,9 +8,11 @@ import { updateFeature } from '../../../../store/data/dataThunk';
 import { FeatureType } from '../../../../279map-common';
 import { SystemIconDefine } from '../../../../types/types';
 import { FeatureLike } from 'ol/Feature';
+import { MapChartContext } from '../../../TsunaguMap/MapChart';
+import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
+import { convertDataIdFromFeatureId } from '../../../../store/data/dataUtility';
 
 type Props = {
-    map: Map;   // コントロール対象の地図
     close: () => void;  // 編集完了時のコールバック
 }
 
@@ -42,12 +44,9 @@ export default function ChangeStructureIconController(props: Props) {
         spinnerHook.showSpinner('更新中...');
 
         // update DB
+        const id = convertDataIdFromFeatureId(selectedFeature.current.getId() as string);
         await dispatch(updateFeature({
-            // TODO: data_source_id
-            id: {
-                id: selectedFeature.current.getId() as string,
-                dataSourceId: '',
-            },
+            id,
             geoProperties: {
                 featureType: FeatureType.STRUCTURE,
                 icon: {
@@ -64,9 +63,8 @@ export default function ChangeStructureIconController(props: Props) {
     if (stage === Stage.SELECTING_TARGET) {
         return (
             <SelectFeature
-                map={props.map}
                 message='改築する建物を選択して、OKボタンを押下してください。'
-                target="structure"
+                targetType={LayerType.Point}
                 onOk={onSelectFeature} onCancel={onCancel} />
         //    <PromptMessageBox
         //         message='改築する建物を選択して、OKボタンを押下してください。'

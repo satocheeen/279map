@@ -6,8 +6,8 @@ import { StyleFunction } from "ol/style/Style";
 import Layer from "ol/layer/Layer";
 
 export enum LayerType {
-    Normal = 'Normal',
-    Cluster = 'Cluster',    // Cluster設定されたレイヤ。Pointのみ追加可能。
+    Point = 'Point',    // Pointa用レイヤ。（Cluster設定されている）
+    Topography = 'Topography',  // 地形、AREA用レイヤ。
     Track = 'Track',         // Track（軌跡）用レイヤ
 }
 export enum StaticLayerType {
@@ -19,7 +19,7 @@ export enum StaticLayerType {
 export type LayerKey = {
     id: string;
 } & ({
-    layerType: LayerType.Cluster | LayerType.Normal;
+    layerType: LayerType.Point | LayerType.Topography;
 } | {
     layerType: LayerType.Track;
     zoomLv: {
@@ -49,12 +49,12 @@ export class VectorLayerMap {
             case StaticLayerType.VirtualItem:
                 return {
                     id: slt,
-                    layerType: LayerType.Cluster
+                    layerType: LayerType.Point
                 };
             default:
                 return {
                     id: slt,
-                    layerType: LayerType.Normal
+                    layerType: LayerType.Topography
                 }
         }
     }
@@ -90,7 +90,7 @@ export class VectorLayerMap {
         const source = new VectorSource();
         source.setProperties(layerKey);
         let layer: VectorLayer<VectorSource | Cluster>;
-        if (layerKey.layerType === LayerType.Cluster) {
+        if (layerKey.layerType === LayerType.Point) {
             const clusterSource = new Cluster({
                 distance: 80,
                 minDistance: 20,
@@ -138,7 +138,7 @@ export class VectorLayerMap {
         this._layerMap.set(mapKey, Object.assign(layerKey, {
             layer,
         }));
-        console.log('crateLayer', key, this._layerMap.size);
+        console.log('createLayer', key, this._layerMap.size);
         return layer;
     }
 
@@ -159,9 +159,24 @@ export class VectorLayerMap {
     }
 
     /**
+     * 指定のデータソースIDのLayerTypeを返す
+     * @param dataSourceId 
+     * @return レイヤ種別配列（1データソースが、Pointレイヤ、Topographyレイヤがあったり、Trackの場合は、ズームLvごとのレイヤがあるので、n個）
+     */
+    getLayerTypeOfTheDataSource(dataSourceId: string): LayerType[] {
+        const list = [] as LayerType[];
+        this._layerMap.forEach(layerInfo => {
+            if (layerInfo.id === dataSourceId) {
+                list.push(layerInfo.layerType);
+            }
+        });
+        return list;
+    }
+
+    /**
      * 指定のデータソースIDに紐づくレイヤを返す。
      * @param dataSourceId 
-     * @return レイヤ配列（Trackの場合は、複数存在しうるので）
+     * @return レイヤ配列（1データソースが、Pointレイヤ、Topographyレイヤがあったり、Trackの場合は、ズームLvごとのレイヤがあるので、n個）
      */
     getDataSourceLayers(dataSourceId: string): VectorLayer<VectorSource>[] {
         const list = [] as VectorLayer<VectorSource>[];
@@ -183,10 +198,10 @@ export class VectorLayerMap {
         }
     }
 
-    getTheStyleLayers(style: LayerType) {
+    getLayersOfTheType(layerType: LayerType) {
         const list = [] as VectorLayer<VectorSource>[];
         this._layerMap.forEach((val) => {
-            if (val.layerType === style) {
+            if (val.layerType === layerType) {
                 list.push(val.layer);
             }
         })
@@ -246,7 +261,7 @@ export class VectorLayerMap {
      * @param style 
      */
     setPointLayerStyle(style: StyleFunction) {
-        this.getTheStyleLayers(LayerType.Cluster).forEach(layer => {
+        this.getLayersOfTheType(LayerType.Point).forEach(layer => {
             layer.setStyle(style);
         });
         this._pointLayerStyle = style;
@@ -257,14 +272,14 @@ export class VectorLayerMap {
      * @param style 
      */
     setTopographyLayerStyle(style: StyleFunction) {
-        this.getTheStyleLayers(LayerType.Normal).forEach(layer => {
+        this.getLayersOfTheType(LayerType.Topography).forEach(layer => {
             layer.setStyle(style);
         });
         this._topographyLayerStyle = style;
     }
 
     setTrackLayerStyle(style: StyleFunction) {
-        this.getTheStyleLayers(LayerType.Track).forEach(layer => {
+        this.getLayersOfTheType(LayerType.Track).forEach(layer => {
             layer.setStyle(style);
         });
         this._trackLayerStyle = style;
@@ -279,7 +294,7 @@ export class VectorLayerMap {
 
     setClusterDistance(distance: number, minDistance: number) {
         this._layerMap.forEach((val) => {
-            if (val.layerType !== LayerType.Cluster) {
+            if (val.layerType !== LayerType.Point) {
                 return;
             }
             const source = val.layer.getSource();

@@ -153,7 +153,7 @@ export class OlMapWrapper {
                     }
                 };
             } else {
-                const layerType: LayerType = item.geoProperties.featureType === FeatureType.STRUCTURE ? LayerType.Cluster : LayerType.Normal;
+                const layerType: LayerType = item.geoProperties.featureType === FeatureType.STRUCTURE ? LayerType.Point : LayerType.Topography;
                 return {
                     id: item.id.dataSourceId,
                     layerType,
@@ -329,6 +329,15 @@ export class OlMapWrapper {
     }
 
     /**
+     * 指定のデータソースIDのLayerTypeを返す
+     * @param dataSourceId 
+     * @return レイヤ種別配列（1データソースが、Pointレイヤ、Topographyレイヤがあったり、Trackの場合は、ズームLvごとのレイヤがあるので、n個）
+     */
+    getLayerTypeOfTheDataSource(dataSourceId: string): LayerType[] {
+        return this._vectorLayerMap.getLayerTypeOfTheDataSource(dataSourceId);
+    }
+    
+    /**
      * 指定のデータソースIDに紐づくレイヤを返す。
      * @param dataSourceId 
      * @return レイヤ配列（Trackの場合は、複数存在しうるので）
@@ -338,11 +347,11 @@ export class OlMapWrapper {
     }
 
     /**
-     * ClusterItemのレイヤ一覧を返す
+     * 指定種別のレイヤ一覧を返す
      * @returns 
      */
-    getClusterItemLayers(): VectorLayer<VectorSource>[] {
-        return this._vectorLayerMap.getTheStyleLayers(LayerType.Cluster);
+    getLayersOfTheType(layerType: LayerType): VectorLayer<VectorSource>[] {
+        return this._vectorLayerMap.getLayersOfTheType(layerType);
     }
 
     getSourceContainedTheFeature(feature: Feature<Geometry>) {
@@ -410,7 +419,7 @@ export class OlMapWrapper {
         this._map.forEachFeatureAtPixel(pixel, (feature, layer) => {
             const layerInfo = this._vectorLayerMap.getLayerInfo(layer);
             if (!layerInfo) return;
-            if (layerInfo.layerType === LayerType.Cluster) {
+            if (layerInfo.layerType === LayerType.Point) {
                 const features = feature.get('features') as Feature[];
                 features.forEach(f => {
                     const dataId = convertDataIdFromFeatureId(f.getId() as string);

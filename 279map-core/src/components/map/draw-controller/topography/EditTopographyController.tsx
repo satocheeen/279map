@@ -16,6 +16,7 @@ import { updateFeature } from '../../../../store/data/dataThunk';
 import { FeatureType, GeoProperties } from '../../../../279map-common';
 import { FeatureLike } from 'ol/Feature';
 import { Geometry } from 'ol/geom';
+import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 
 type Props = {
     map: Map;   // コントロール対象の地図
@@ -144,8 +145,7 @@ enum Stage {
     if (stage === Stage.SELECTING_FEATURE) {
         return (
             <SelectFeature
-            map={props.map}
-            target="topography"
+            targetType={LayerType.Topography}
             onOk={onSelectFeature} onCancel={onClose} />
         )
     } else if (stage === Stage.EDITING) {
