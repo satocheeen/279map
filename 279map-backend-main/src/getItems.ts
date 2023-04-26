@@ -121,6 +121,10 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
             });
         }
 
+        if (mapKind === MapKind.Virtual) {
+            return pointContents;
+        }
+
         // 軌跡コンテンツ
         const trackContents = await selectTrackInArea(param, mapPageId);
         const contents = pointContents.concat(...trackContents);
