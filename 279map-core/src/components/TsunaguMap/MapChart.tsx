@@ -26,7 +26,7 @@ import ClusterMenu from "../cluster-menu/ClusterMenu";
 import { usePrevious } from "../../util/usePrevious";
 import usePointStyle from "../map/usePointStyle";
 import ClusterMenuController from "../cluster-menu/ClusterMenuController";
-import { StaticLayerType, VectorLayerMap } from "./VectorLayerMap";
+import { VectorLayerMap } from "./VectorLayerMap";
 import { createMapInstance, OlMapWrapper } from "./OlMapWrapper";
 
 type ClusterMenuInfo = {
@@ -82,6 +82,7 @@ export default function MapChart() {
         return state.session.connectStatus.connectedMap.mapId;
     });
     const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
+    const dataSources = useSelector((state: RootState) => state.session.currentMapKindInfo?.dataSources ?? []);
 
     const defaultExtent = useSelector((state: RootState) => state.data.extent);
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
@@ -213,10 +214,10 @@ export default function MapChart() {
         
         // 初期レイヤ生成
         console.log('mapKind', mapKind);
-        mapRef.current.initialize(mapKind);
+        mapRef.current.initialize(mapKind, dataSources);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [mapId, mapKind]);
+    }, [mapId, mapKind, dataSources]);
 
     // 地図ロード完了後にfitさせる
     useEffect(() => {

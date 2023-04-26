@@ -3,7 +3,7 @@ import * as olControl from 'ol/control';
 import { Extent } from 'ol/extent';
 import { Geometry } from 'ol/geom';
 import { Interaction, defaults } from 'ol/interaction'
-import { LayerType, LayerKey, StaticLayerType, VectorLayerMap } from './VectorLayerMap';
+import { LayerType, MyLayerDefine, VectorLayerMap } from './VectorLayerMap';
 import GeoJSON from 'ol/format/GeoJSON';
 import prefJson from './pref.json';
 import { Vector as VectorSource } from "ol/source";
@@ -20,6 +20,7 @@ import { GeoJsonObject } from 'geojson';
 import { FeatureProperties } from '../../entry';
 import { Pixel } from 'ol/pixel';
 import { convertDataIdFromFeatureId, getMapKey } from '../../store/data/dataUtility';
+import { DataSourceInfo, SourceKind } from 'tsunagumap-api';
 
 const instansMap = new Map<string, OlMapWrapper>();
 type Param = {
@@ -53,6 +54,12 @@ export class OlMapWrapper {
     _mapKind?: MapKind;
     _currentZoom: number;   // Zoomレベル変更検知用に保持
     _getGeocoderFeature?: (id: GeocoderId) => Promise<GeoJsonObject>;
+
+    // 描画用レイヤ
+    _drawingLayer = new VectorLayer<VectorSource>({
+        source: new VectorSource(),
+        zIndex: 100,
+    });
 
     constructor(param: Param) {
         this._id = param.id;
@@ -96,7 +103,7 @@ export class OlMapWrapper {
     /**
      * 地図種別に対応した初期レイヤを設定する
      */
-    initialize(mapKind: MapKind) {
+    initialize(mapKind: MapKind, dataSources: DataSourceInfo[]) {
         this._mapKind = mapKind;
         let extent: Extent =  [0, 0, 2, 2];
         if (mapKind === MapKind.Real) {
@@ -129,43 +136,82 @@ export class OlMapWrapper {
             this._map.setLayers(layers);
             extent = prefSource.getExtent();
 
-        } else {
-            // 背景レイヤ
-            this.addLayer(StaticLayerType.VirtualTopography);
+            dataSources.forEach(ds => {
+                if (ds.kind === SourceKind.Track) {
+                    [[1, 8], [8, 13], [13, 21]].forEach(zoomLv => {
+                        const layerDefine: MyLayerDefine = {
+                            type: 'MyLayer',
+                            dataSourceId: ds.dataSourceId,
+                            editable: false,
+                            layerType: LayerType.Track,
+                            zoomLv: {
+                                min: zoomLv[0],
+                                max: zoomLv[1],
+                            }
+                        };
+                        this.addLayer(layerDefine);
+                    })
 
-            // アイテムレイヤ
-            this.addLayer(StaticLayerType.VirtualItem);
+                } else if (ds.kind === SourceKind.Item) {
+                    [LayerType.Point, LayerType.Topography].forEach(layerType => {
+                        const layerDefine: MyLayerDefine = {
+                            type: 'MyLayer',
+                            dataSourceId: ds.dataSourceId,
+                            editable: ds.editable,
+                            layerType: layerType as LayerType.Point| LayerType.Topography,
+                        };
+                        this.addLayer(layerDefine);
+                    })
+                }
+            })
+
+        } else {
+            // 村マップ
+            dataSources.forEach(ds => {
+                if (ds.kind !== SourceKind.Item) {
+                    return;
+                }
+                [LayerType.Point, LayerType.Topography].forEach(layerType => {
+                    const layerDefine: MyLayerDefine = {
+                        type: 'MyLayer',
+                        dataSourceId: ds.dataSourceId,
+                        editable: ds.editable,
+                        layerType: layerType as LayerType.Point| LayerType.Topography,
+                    };
+                    this.addLayer(layerDefine);
+                })
+            });
         }
 
         this._map.getView().setMaxZoom(mapKind === MapKind.Virtual ? 10 : 18);
         this.fit(extent);
     }
 
-    _getLayerKey(item: ItemDefine): LayerKey | StaticLayerType {
-        if (this._mapKind === MapKind.Real) {
-            if (item.geoProperties.featureType === FeatureType.TRACK) {
-                return {
-                    id: item.id.dataSourceId,
-                    layerType: LayerType.Track,
-                    zoomLv: {
-                        min: item.geoProperties.min_zoom,
-                        max: item.geoProperties.max_zoom,
-                    }
-                };
-            } else {
-                const layerType: LayerType = item.geoProperties.featureType === FeatureType.STRUCTURE ? LayerType.Point : LayerType.Topography;
-                return {
-                    id: item.id.dataSourceId,
-                    layerType,
-                };
-            }
-
+    /**
+     * 指定のitemが属するVectorSourceを返す
+     * @param item 
+     */
+    _getTargetSource(item: ItemDefine): VectorSource | undefined {
+        const layerInfos = this._vectorLayerMap.getLayerInfoOfTheDataSource(item.id.dataSourceId);
+        if (item.geoProperties.featureType === FeatureType.TRACK) {
+            const minZoomLv = item.geoProperties.min_zoom;
+            const maxZoomLv = item.geoProperties.max_zoom;
+            const target = layerInfos.find(info => {
+                if (info.layerType !== LayerType.Track) {
+                    return false;
+                }
+                return info.zoomLv.min === minZoomLv && info.zoomLv.max === maxZoomLv;
+            });
+            return target?.layer.getSource() ?? undefined;
         } else {
-            if (item.geoProperties?.featureType === FeatureType.STRUCTURE) {
-                return StaticLayerType.VirtualItem;
-            } else {
-                return StaticLayerType.VirtualTopography;
-            }
+            const target = layerInfos.find(info => {
+                if (item.geoProperties.featureType === FeatureType.STRUCTURE) {
+                    return info.layerType === LayerType.Point;
+                } else {
+                    return info.layerType === LayerType.Topography;
+                }
+            });
+            return target?.layer.getSource() ?? undefined;
         }
     }
 
@@ -214,15 +260,7 @@ export class OlMapWrapper {
         }
 
         // 追加対象のSourceを取得
-        const source = (() => {
-            const layerKey = this._getLayerKey(def);
-            const target =  this._vectorLayerMap.getSource(layerKey);
-            if (target) {
-                return target;
-            }
-            this.addLayer(layerKey);
-            return this._vectorLayerMap.getSource(layerKey);
-        })();
+        const source = this._getTargetSource(def);
 
         if (!source) {
             console.warn('追加対象レイヤ見つからず', def);
@@ -243,8 +281,7 @@ export class OlMapWrapper {
     }
 
     removeFeature(item: ItemDefine) {
-        const layerKey = this._getLayerKey(item);
-        const source = this._vectorLayerMap.getSource(layerKey);
+        const source = this._getTargetSource(item);
         if (!source) {
             console.warn('対象sourceなし');
             return;
@@ -268,6 +305,19 @@ export class OlMapWrapper {
             // maxZoom: currentZoom,
         });
         console.log('fit', ext);
+    }
+
+    showDrawingLayer(style: StyleFunction | Style) {
+        this._drawingLayer.setStyle(style);
+        this._map.addLayer(this._drawingLayer);
+    }
+    hideDrawingLayer() {
+        this._drawingLayer.getSource()?.clear();
+        this._drawingLayer.setStyle();
+        this._map.removeLayer(this._drawingLayer);
+    }
+    getDrawingLayer() {
+        return this._drawingLayer;
     }
 
     getFeatureById(itemId: string): Feature<Geometry> | undefined {
@@ -305,21 +355,21 @@ export class OlMapWrapper {
         return this._map.getView().getZoom();
     }
 
-    addLayer(layerKey: LayerKey | StaticLayerType): VectorLayer<VectorSource> {
-        console.log('addLayer', this._id, layerKey);
-        const layer = this._vectorLayerMap.createLayer(layerKey);
+    addLayer(layerDefine: MyLayerDefine): VectorLayer<VectorSource> {
+        console.log('addLayer', this._id, layerDefine);
+        const layer = this._vectorLayerMap.createLayer(layerDefine);
         this._map.addLayer(layer);
         return layer;
     }
 
-    removeLayer(layerKey: LayerKey | StaticLayerType) {
-        const layer = this._vectorLayerMap.getLayer(layerKey);
+    removeLayer(layerDefine: MyLayerDefine) {
+        const layer = this._vectorLayerMap.getLayer(layerDefine);
         if (!layer) {
-            console.warn('not exist remove target layer', layerKey);
+            console.warn('not exist remove target layer', layerDefine);
             return;
         }
         this._map.removeLayer(layer);
-        this._vectorLayerMap.removeLayer(layerKey);
+        this._vectorLayerMap.removeLayer(layerDefine);
 
         return layer;
     }

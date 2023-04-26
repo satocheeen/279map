@@ -10,27 +10,34 @@ export enum LayerType {
     Topography = 'Topography',  // 地形、AREA用レイヤ。
     Track = 'Track',         // Track（軌跡）用レイヤ
 }
-export enum StaticLayerType {
-    VirtualItem = 'VirtualItem',
-    VirtualTopography = 'VirtualTopography',
-    DrawingItem = 'DrawingItem',
-    DrawingTopography = 'DrawingTopography',
-}
-export type LayerKey = {
-    id: string;
-} & ({
-    layerType: LayerType.Point | LayerType.Topography;
-} | {
-    layerType: LayerType.Track;
-    zoomLv: {
-        min: number;
-        max: number;
-    }
-})
 
-type LayerInfo = LayerKey & {
+type TemporaryLayerDefine = {
+    type: 'DrawingItem';
+    layerType: LayerType.Point;
+} | {
+    type: 'DrawingTopography';
+    layerType: LayerType.Topography;
+}
+export type MyLayerDefine = {
+    type: 'MyLayer',
+    dataSourceId: string;
+    editable: boolean;
+} & (
+    {
+        layerType: LayerType.Point | LayerType.Topography;
+    } | {
+        layerType: LayerType.Track;
+        zoomLv: {
+            min: number;
+            max: number;
+        }
+    }
+)
+export type LayerDefine = TemporaryLayerDefine | MyLayerDefine;
+type LayerInfo = LayerDefine &{
     layer: VectorLayer<VectorSource>;
 }
+
 /**
  * VectorレイヤとVectorソースを一元管理するクラス
  */
@@ -44,53 +51,30 @@ export class VectorLayerMap {
         this._layerMap = new Map<string, LayerInfo>();
     }
 
-    _convertLayerKeyFromStaticLayerType(slt: StaticLayerType): LayerKey {
-        switch(slt) {
-            case StaticLayerType.VirtualItem:
-                return {
-                    id: slt,
-                    layerType: LayerType.Point
-                };
-            default:
-                return {
-                    id: slt,
-                    layerType: LayerType.Topography
-                }
-        }
-    }
-
     /**
      * _layerMapのキー値を生成する
-     * @param key 
+     * @param layerDefine 
      * @returns _layerMapのキー値
      */
-    _convertMapKey(key: LayerKey | StaticLayerType) {
-        const layerKey = typeof key !== 'object' ? this._convertLayerKeyFromStaticLayerType(key) : key;
-        if (layerKey.layerType === LayerType.Track) {
-            return `${layerKey.id}-${layerKey.layerType}=${layerKey.zoomLv.min}-${layerKey.zoomLv.max}`;
-        } else {
-            return `${layerKey.id}-${layerKey.layerType}`;
-        }
+    _convertMapKey(layerDefine: LayerDefine) {
+        const json = JSON.parse(JSON.stringify(layerDefine));
+        if ('editable' in json) {
+            delete json.editable;
+        }        
+        return JSON.stringify(json);
     }
 
-    createLayer(key: LayerKey | StaticLayerType) {
-        let layerKey: LayerKey;
-        if (typeof key !== 'object'){
-            layerKey = this._convertLayerKeyFromStaticLayerType(key);
-        } else {
-            layerKey = key;
-        }
-
-        const mapKey = this._convertMapKey(layerKey);
+    createLayer(layerDefine: LayerDefine) {
+        const mapKey = this._convertMapKey(layerDefine);
         if (this._layerMap.has(mapKey)) {
-            console.warn('already exist layer', key);
+            console.warn('already exist layer', layerDefine);
             return this._layerMap.get(mapKey)?.layer as VectorLayer<VectorSource>;
         }
 
         const source = new VectorSource();
-        source.setProperties(layerKey);
+        source.setProperties(layerDefine);
         let layer: VectorLayer<VectorSource | Cluster>;
-        if (layerKey.layerType === LayerType.Point) {
+        if (layerDefine.layerType === LayerType.Point) {
             const clusterSource = new Cluster({
                 distance: 80,
                 minDistance: 20,
@@ -100,24 +84,18 @@ export class VectorLayerMap {
                 source: clusterSource,
                 zIndex: 10,
                 renderBuffer: 200,
-                properties: {
-                    name: key,
-                },
             })
 
             if (this._pointLayerStyle) {
                 layer.setStyle(this._pointLayerStyle);
             }
         
-        } else if (layerKey.layerType === LayerType.Track) {
+        } else if (layerDefine.layerType === LayerType.Track) {
             layer = new VectorLayer({
                 source,
-                minZoom: layerKey.zoomLv?.min,
-                maxZoom: layerKey.zoomLv?.max,
+                minZoom: layerDefine.zoomLv?.min,
+                maxZoom: layerDefine.zoomLv?.max,
                 zIndex: 5,
-                properties: {
-                    name: key,
-                },
             });
             if (this._trackLayerStyle) {
                 layer.setStyle(this._trackLayerStyle);
@@ -126,36 +104,50 @@ export class VectorLayerMap {
         } else {
             layer = new VectorLayer({
                 source,
-                properties: {
-                    name: key,
-                },
             });
     
             if (this._topographyLayerStyle) {
                 layer.setStyle(this._topographyLayerStyle);
             }
         }
-        this._layerMap.set(mapKey, Object.assign(layerKey, {
+        layer.setProperties(layerDefine);
+        this._layerMap.set(mapKey, Object.assign(layerDefine, {
             layer,
         }));
-        console.log('createLayer', key, this._layerMap.size);
+        console.log('createLayer', layerDefine, this._layerMap.size);
         return layer;
     }
 
-    removeLayer(key: LayerKey | StaticLayerType) {
-        const layer = this.getLayer(key);
+    getLayer(layerDefine: LayerDefine) {
+        const mapKey = this._convertMapKey(layerDefine);
+        return this._layerMap.get(mapKey)?.layer;
+    }
+
+    removeLayer(layerDefine: LayerDefine) {
+        const layer = this.getLayer(layerDefine);
         if (!layer) {
-            console.warn('not exist remove target layer', key);
+            console.warn('not exist remove target layer', layerDefine);
             return;
         }
         layer.dispose();
-        const mapKey = this._convertMapKey(key);
+        const mapKey = this._convertMapKey(layerDefine);
         this._layerMap.delete(mapKey);
     }
 
-    getLayer(id: LayerKey | StaticLayerType) {
-        const mapKey = this._convertMapKey(id);
-        return this._layerMap.get(mapKey)?.layer;
+    /**
+     * 指定のデータソースIDのLayerInfoを返す
+     * @param dataSourceId 
+     * @return レイヤInfo配列（1データソースが、Pointレイヤ、Topographyレイヤがあったり、Trackの場合は、ズームLvごとのレイヤがあるので、n個）
+     */
+    getLayerInfoOfTheDataSource(dataSourceId: string) {
+        const list = [] as LayerInfo[];
+        this._layerMap.forEach(layerInfo => {
+            if (layerInfo.type !== 'MyLayer') return;
+            if (layerInfo.dataSourceId === dataSourceId) {
+                list.push(layerInfo);
+            }
+        });
+        return list;
     }
 
     /**
@@ -166,7 +158,8 @@ export class VectorLayerMap {
     getLayerTypeOfTheDataSource(dataSourceId: string): LayerType[] {
         const list = [] as LayerType[];
         this._layerMap.forEach(layerInfo => {
-            if (layerInfo.id === dataSourceId) {
+            if (layerInfo.type !== 'MyLayer') return;
+            if (layerInfo.dataSourceId === dataSourceId) {
                 list.push(layerInfo.layerType);
             }
         });
@@ -181,15 +174,16 @@ export class VectorLayerMap {
     getDataSourceLayers(dataSourceId: string): VectorLayer<VectorSource>[] {
         const list = [] as VectorLayer<VectorSource>[];
         this._layerMap.forEach(layerInfo => {
-            if (layerInfo.id === dataSourceId) {
+            if (layerInfo.type !== 'MyLayer') return;
+            if (layerInfo.dataSourceId === dataSourceId) {
                 list.push(layerInfo.layer);
             }
         });
         return list;
     }
 
-    getSource(layerKey: LayerKey | StaticLayerType) {
-        const mapKey = this._convertMapKey(layerKey);
+    getSource(layerDefine: LayerDefine) {
+        const mapKey = this._convertMapKey(layerDefine);
         const source = this._layerMap.get(mapKey)?.layer.getSource();
         if (source instanceof Cluster) {
             return source.getSource();
