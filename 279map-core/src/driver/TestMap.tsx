@@ -10,7 +10,7 @@ import { DataSourceInfo, SourceKind } from 'tsunagumap-api';
  * for Development
  */
 const mapId = 'test';
-const myToken = undefined;  //'VXNlck5vZGU6MjE=';
+const myToken = 'hogehoge';//undefined;
 const props = {
     mapServerHost: 'localhost',
     mapId,
@@ -160,6 +160,9 @@ export default function TestMap() {
                             <label key={ds.dataSourceId}>
                                 <input type="checkbox" />
                                 {ds.name}
+                                {ds.editable &&
+                                    <button onClick={()=>commandHook?.drawStructure(ds.dataSourceId)}>建設</button>
+                                }
                             </label>    
                         )
                     })}
@@ -182,7 +185,6 @@ export default function TestMap() {
                     </div>
                 </div>
                 <div className={styles.Col}>
-                <button onClick={commandHook?.drawStructure}>建設</button>
                     <button onClick={commandHook?.moveStructure}>移築</button>
                     <button onClick={commandHook?.changeStructure}>改築</button>
                     <button onClick={commandHook?.removeStructure}>建物解体</button>
@@ -226,7 +228,7 @@ export default function TestMap() {
                     onConnect={onConnect}
                     onMapLoad={onMapLoad}
                     onSelect={onSelect} onUnselect={onUnselect}
-                    onClick={(val) => onCallback('onClick', val)}
+                    // onClick={(val) => onCallback('onClick', val)}
                     onModeChanged={(val) => onCallback('onModeChanged', val)}
                     onCategoriesLoaded={onCategoriesLoaded}
                     onNewContentByManual={(val) => onCallback('onNewContentInfo', val)}

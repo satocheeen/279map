@@ -20,6 +20,7 @@ import { MapChartContext } from '../../../TsunaguMap/MapChart';
 import { StaticLayerType } from '../../../TsunaguMap/VectorLayerMap';
 
 type Props = {
+    dataSourceId: string;   // 作図対象のデータソース
     close: () => void;  // 作図完了時のコールバック
 }
 
@@ -42,12 +43,7 @@ export default function DrawStructureController(props: Props) {
     const dispatch = useAppDispatch();
     const spinner = useSpinner();
     const { map } = useContext(MapChartContext);
-    const pointStyleHook = usePointStyle(
-        {
-            map,
-            //     structureLayer: drawingLayer,
-        }
-    );
+    const pointStyleHook = usePointStyle({ map });
 
     const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
     const searchAddressRef = useRef<SearchAddressHandler>(null);
@@ -122,6 +118,7 @@ export default function DrawStructureController(props: Props) {
         const geoJson = createGeoJson(drawingFeature.current);
 
         await dispatch(registFeature({
+            dataSourceId: props.dataSourceId,
             geometry: geoJson.geometry,
             geoProperties: Object.assign({}, geoJson.properties, {
                 featureType: FeatureType.STRUCTURE,

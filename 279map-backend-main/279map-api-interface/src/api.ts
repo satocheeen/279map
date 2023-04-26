@@ -44,6 +44,7 @@ export type DataSourceInfo = {
     dataSourceId: string;
     name: string;
     kind: SourceKind;
+    editable: boolean;
 }
 export type GetMapInfoResult = {
     mapKind: MapKind;
@@ -139,9 +140,10 @@ export type GetContentsResult = {
 export const RegistItemAPI = {
     uri: 'registitem',
     method: 'post',
-} as APIDefine<RegistItemParam, string>;
+} as APIDefine<RegistItemParam, DataId>;
 
 export type RegistItemParam = {
+    dataSourceId: string;   // 登録先データソース
     name?: string;  // only topography.  the structures' name is decided by content's name.
     geometry: GeoJSON.Geometry;
     geoProperties: GeoProperties;

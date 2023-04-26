@@ -10,8 +10,8 @@ type TCommandDefine<COMMAND extends string, PARAM> = {
     }
 }
 type CommandDefine = 
-    // 建設or地点登録
-    TCommandDefine<'DrawStructure', undefined>
+    // 建設or地点登録 引数: 対象のDataSourceId
+    TCommandDefine<'DrawStructure', string>
     // 移築
     | TCommandDefine<'MoveStructure', undefined>
     // 改築

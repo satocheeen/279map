@@ -20,6 +20,7 @@ enum Stage {
 type Props = {
     /** 親からもらうprops定義 */
     map: Map;
+    dataSourceId: string;
     close: () => void;  // 作図完了時のコールバック
 }
 
@@ -104,6 +105,7 @@ export default function DrawRoadController(props: Props) {
         spinnerHook.showSpinner('登録中...');
         console.log('geoJson', geoJson);
         await dispatch(registFeature({
+            dataSourceId: props.dataSourceId,
             geometry: geoJson.geometry,
             geoProperties: geoJson.properties as GeoProperties,
         }));

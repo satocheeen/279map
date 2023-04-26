@@ -17,6 +17,7 @@ import { FeatureType, GeoProperties } from '../../../../279map-common';
 
 type Props = {
     map: Map;   // コントロール対象の地図
+    dataSourceId: string;
     drawFeatureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA;
     close: () => void;  // 作図完了時のコールバック
 }
@@ -80,6 +81,7 @@ export default function DrawTopographyController(props: Props) {
         const geoJson = MapUtility.createGeoJson(drawingFeature.current);
 
         await dispatch(registFeature({
+            dataSourceId: props.dataSourceId,
             geometry: geoJson.geometry,
             geoProperties: Object.assign({}, geoJson.properties, {
                 featureType: props.drawFeatureType,

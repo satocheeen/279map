@@ -35,11 +35,11 @@ export default function DrawController(props: Props) {
     
         const listenerH = [] as number[];
         listenerH.push(
-            addListener('DrawStructure', async() => {
+            addListener('DrawStructure', async(dataSourceId: string) => {
                 dispatch(operationActions.changeMapMode(MapMode.Drawing));
                 setDrawController(
                     <Suspense fallback={<OverlaySpinner message='準備中...' />}>
-                        <DrawStructureController close={terminate} />
+                        <DrawStructureController dataSourceId={dataSourceId} close={terminate} />
                     </Suspense>
                 );
             })

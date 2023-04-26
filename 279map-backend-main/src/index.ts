@@ -703,6 +703,8 @@ app.post(`/api/${RegistItemAPI.uri}`,
             // call ODBA
             const id = await backendAPI.callOdbaApi(backendAPI.RegistItemAPI, {
                 currentMap: req.currentMap,
+                dataSourceId: param.dataSourceId,
+                name: param.name,
                 geometry: param.geometry,
                 geoProperties: param.geoProperties,
             });

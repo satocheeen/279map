@@ -37,11 +37,11 @@ export function useCommand() {
      * start the spte of drawing a structure (or a pin).
      * 建設または地点登録する
      */
-    const drawStructure = useCallback(() => {
+    const drawStructure = useCallback((dataSourceId: string) => {
         console.log('call drawStructure');
         doCommand({
             command: 'DrawStructure',
-            param: undefined,
+            param: dataSourceId,
         });
     }, []);
 
