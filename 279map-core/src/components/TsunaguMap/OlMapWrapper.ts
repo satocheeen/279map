@@ -6,7 +6,7 @@ import { Interaction, defaults } from 'ol/interaction'
 import { LayerType, MyLayerDefine, VectorLayerMap } from './VectorLayerMap';
 import GeoJSON from 'ol/format/GeoJSON';
 import prefJson from './pref.json';
-import { Vector as VectorSource } from "ol/source";
+import { Cluster, Vector as VectorSource } from "ol/source";
 import TileLayer from "ol/layer/Tile";
 import OSM from 'ol/source/OSM';
 import VectorLayer from "ol/layer/Vector";
@@ -211,7 +211,12 @@ export class OlMapWrapper {
                     return info.layerType === LayerType.Topography;
                 }
             });
-            return target?.layer.getSource() ?? undefined;
+            if (target?.layerType === LayerType.Point) {
+                const clusterSource = target.layer.getSource() as Cluster;
+                return clusterSource.getSource() ?? undefined;
+            } else {
+                return target?.layer.getSource() ?? undefined;
+            }
         }
     }
 
@@ -470,6 +475,8 @@ export class OlMapWrapper {
             const layerInfo = this._vectorLayerMap.getLayerInfo(layer);
             if (!layerInfo) return;
             if (layerInfo.layerType === LayerType.Point) {
+                console.log('layerInfo', layerInfo);
+                console.log('feature', feature);
                 const features = feature.get('features') as Feature[];
                 features.forEach(f => {
                     const dataId = convertDataIdFromFeatureId(f.getId() as string);
