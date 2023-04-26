@@ -113,7 +113,9 @@ export default class SessionInfo {
      * @returns 
      */
      isSendedItem(item: ItemDefine) {
-        const hit = this.#items.find(it => it.id === item.id);
+        const hit = this.#items.find(it => {
+            return it.id.id === item.id.id && it.id.dataSourceId === item.id.dataSourceId;
+        });
         if (!hit) {
             return false;
         }

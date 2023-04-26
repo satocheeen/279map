@@ -17,7 +17,6 @@ import { getCategory } from './api/getCategory';
 import { getSnsPreview } from './api/getSnsPreview';
 import SessionInfo from './session/SessionInfo';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
-import { getIcon } from './api/getIcon';
 import { api as backendAPI, schema } from '279map-backend-common';
 import cors from 'cors';
 import { readFileSync } from 'fs';
