@@ -19,7 +19,7 @@ class ApiCaller {
 
     async callApi<API extends APIDefine<any, any>> (api: API, param: API['param']): Promise<API['result']> {
         try {
-            const url = `https://${this._serverInfo.domain}/api/${api.uri}`;
+            const url = `http://${this._serverInfo.domain}/api/${api.uri}`;
             const res = await fetch(url, {
                 method: api.method,
                 headers: {
