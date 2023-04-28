@@ -30,9 +30,10 @@ export async function getAccessableMapList(host: string, token: string | undefin
  * @param host 
  * @returns 
  */
-export async function getAuthConfig(host: string) {
+export async function getAuthConfig(host: string, protocol: 'http' | 'https') {
     const mapServer = {
         domain: host,
+        protocol,
     } as ServerInfo;
     const apiCaller = createAPICallerInstance(mapServer, () => {});
     try {
