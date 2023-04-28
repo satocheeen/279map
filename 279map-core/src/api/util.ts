@@ -8,9 +8,10 @@ import { createAPICallerInstance } from "./ApiCaller";
  * @param host 
  * @returns 
  */
-export async function getAccessableMapList(host: string, token: string | undefined) {
+export async function getAccessableMapList(host: string, protocol: 'http' | 'https', token: string | undefined) {
     const mapServer = {
         domain: host,
+        protocol,
         token,
     } as ServerInfo;
     const apiCaller = createAPICallerInstance(mapServer, () => {});
