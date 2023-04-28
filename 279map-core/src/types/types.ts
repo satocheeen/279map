@@ -42,7 +42,7 @@ export type TsunaguMapProps = {
     mapId: string;
     mapServer: {
         host: string;
-        protocol: 'http' | 'https';
+        ssl: boolean;   // SSL通信の場合、true
     };
     token?: string;
     iconDefine?: (DefaultIconDefine | {
@@ -75,8 +75,8 @@ export type TsunaguMapProps = {
 }
 
 export type ServerInfo = {
-    protocol: 'http' | 'https';
     domain: string;
+    ssl: boolean;
     token?: string;
 }
 

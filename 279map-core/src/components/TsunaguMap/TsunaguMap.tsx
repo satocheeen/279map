@@ -21,7 +21,7 @@ export const OwnerContext = React.createContext<OwnerContextType>({
     mapId: '',
     mapServer: {
         host: '',
-        protocol: 'http',
+        ssl: false,
     },
     iconDefine: [],
     onNewContentByManual: () => {},

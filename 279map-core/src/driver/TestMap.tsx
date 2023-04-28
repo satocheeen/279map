@@ -14,7 +14,7 @@ const myToken = undefined;
 const props = {
     mapServer: {
         host: 'localhost',
-        protocol: 'http',
+        ssl: false,
     },
     mapId,
     iconDefine: [

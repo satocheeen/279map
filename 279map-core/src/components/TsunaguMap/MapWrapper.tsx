@@ -42,8 +42,8 @@ export default function MapWrapper() {
 
     useEffect(() => {
         dispatch(sessionActions.setMapServer({
-            protocol: ownerContext.mapServer.protocol,
             domain: ownerContext.mapServer.host,
+            ssl: ownerContext.mapServer.ssl,
             token: ownerContext.token,
         }));
     }, [ownerContext.mapServer, ownerContext.token, dispatch]);

@@ -19,7 +19,8 @@ class ApiCaller {
 
     async callApi<API extends APIDefine<any, any>> (api: API, param: API['param']): Promise<API['result']> {
         try {
-            const url = `${this._serverInfo.protocol}://${this._serverInfo.domain}/api/${api.uri}`;
+            const protocol = this._serverInfo.ssl ? 'https' : 'http';
+            const url = `${protocol}://${this._serverInfo.domain}/api/${api.uri}`;
             const res = await fetch(url, {
                 method: api.method,
                 headers: {
