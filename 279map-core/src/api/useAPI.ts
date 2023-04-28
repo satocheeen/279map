@@ -9,7 +9,7 @@ export function useAPI() {
     const mapServer = useSelector((state: RootState) => state.session.mapServer);
 
     const serverUrl = useMemo(() => {
-        const protocol = 'http';
+        const protocol = mapServer.protocol;
         const domain = mapServer.domain;
 
         return `${protocol}://${domain}/`;

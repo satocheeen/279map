@@ -19,7 +19,10 @@ type OwnerContextType = TsunaguMapProps & {
 
 export const OwnerContext = React.createContext<OwnerContextType>({
     mapId: '',
-    mapServerHost: '',
+    mapServer: {
+        host: '',
+        protocol: 'http',
+    },
     iconDefine: [],
     onNewContentByManual: () => {},
     onLinkUnpointedContent: () => {},

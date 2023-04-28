@@ -42,10 +42,11 @@ export default function MapWrapper() {
 
     useEffect(() => {
         dispatch(sessionActions.setMapServer({
-            domain: ownerContext.mapServerHost,
+            protocol: ownerContext.mapServer.protocol,
+            domain: ownerContext.mapServer.host,
             token: ownerContext.token,
         }));
-    }, [ownerContext.mapServerHost, ownerContext.token, dispatch]);
+    }, [ownerContext.mapServer, ownerContext.token, dispatch]);
 
     useEffect(() => {
         onConnectRef.current = ownerContext.onConnect;

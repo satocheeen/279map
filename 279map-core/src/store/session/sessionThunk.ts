@@ -15,7 +15,7 @@ export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; to
         const mapServer = (getState() as RootState).session.mapServer;
 
         try {
-            const serverUrl = `http://${mapServer.domain}`;
+            const serverUrl = `${mapServer.protocol}://${mapServer.domain}`;
     
             let url = `${serverUrl}/api/connect?mapId=${param.mapId}`;
             let headers = {};

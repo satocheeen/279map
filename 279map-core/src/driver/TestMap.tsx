@@ -9,10 +9,13 @@ import { DataSourceInfo } from 'tsunagumap-api';
 /**
  * for Development
  */
-const mapId = 'VXNlck5vZGU6MjE=';
-const myToken = undefined;  //'VXNlck5vZGU6MjE=';
+const mapId = 'test';
+const myToken = undefined;
 const props = {
-    mapServerHost: 'localhost',
+    mapServer: {
+        host: 'localhost',
+        protocol: 'http',
+    },
     mapId,
     iconDefine: [
         {
