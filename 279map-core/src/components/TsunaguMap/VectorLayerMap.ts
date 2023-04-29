@@ -34,7 +34,11 @@ export type MyLayerDefine = {
     }
 )
 export type LayerDefine = TemporaryLayerDefine | MyLayerDefine;
-type LayerInfo = LayerDefine &{
+type MyLayerInfo = LayerDefine & {
+    layer: VectorLayer<VectorSource>;
+}
+// 外にレイヤ情報を渡すための型（一時レイヤは直接返さないので）
+export type LayerInfo = Omit<MyLayerDefine, 'type'> & {
     layer: VectorLayer<VectorSource>;
 }
 
@@ -42,13 +46,13 @@ type LayerInfo = LayerDefine &{
  * VectorレイヤとVectorソースを一元管理するクラス
  */
 export class VectorLayerMap {
-    _layerMap: Map<string, LayerInfo>;
+    _layerMap: Map<string, MyLayerInfo>;
     _pointLayerStyle?: StyleFunction;
     _topographyLayerStyle?: StyleFunction;
     _trackLayerStyle?: StyleFunction;
 
     constructor() {
-        this._layerMap = new Map<string, LayerInfo>();
+        this._layerMap = new Map<string, MyLayerInfo>();
     }
 
     /**
@@ -140,7 +144,7 @@ export class VectorLayerMap {
      * @return レイヤInfo配列（1データソースが、Pointレイヤ、Topographyレイヤがあったり、Trackの場合は、ズームLvごとのレイヤがあるので、n個）
      */
     getLayerInfoOfTheDataSource(dataSourceId: string) {
-        const list = [] as LayerInfo[];
+        const list = [] as MyLayerInfo[];
         this._layerMap.forEach(layerInfo => {
             if (layerInfo.type !== 'MyLayer') return;
             if (layerInfo.dataSourceId === dataSourceId) {
@@ -192,11 +196,17 @@ export class VectorLayerMap {
         }
     }
 
-    getLayersOfTheType(layerType: LayerType) {
-        const list = [] as VectorLayer<VectorSource>[];
+    /**
+     * 指定の種別のレイヤを返す。（一時レイヤは返さない）
+     * @param layerType レイヤ種別
+     * @returns 指定種別のレイヤ情報一覧
+     */
+    getLayersOfTheType(layerType: LayerType): LayerInfo[] {
+        const list = [] as LayerInfo[];
         this._layerMap.forEach((val) => {
+            if (val.type !== 'MyLayer') return;
             if (val.layerType === layerType) {
-                list.push(val.layer);
+                list.push(val);
             }
         })
         return list;
@@ -223,7 +233,7 @@ export class VectorLayerMap {
      * @returns 
      */
     getLayerInfo(layer: Layer) {
-        let info: LayerInfo | undefined;
+        let info: MyLayerInfo | undefined;
         this._layerMap.forEach((val) => {
             if (val.layer === layer) {
                 info = val;
@@ -255,8 +265,8 @@ export class VectorLayerMap {
      * @param style 
      */
     setPointLayerStyle(style: StyleFunction) {
-        this.getLayersOfTheType(LayerType.Point).forEach(layer => {
-            layer.setStyle(style);
+        this.getLayersOfTheType(LayerType.Point).forEach(layerInfo => {
+            layerInfo.layer.setStyle(style);
         });
         this._pointLayerStyle = style;
     }
@@ -266,15 +276,15 @@ export class VectorLayerMap {
      * @param style 
      */
     setTopographyLayerStyle(style: StyleFunction) {
-        this.getLayersOfTheType(LayerType.Topography).forEach(layer => {
-            layer.setStyle(style);
+        this.getLayersOfTheType(LayerType.Topography).forEach(layerInfo => {
+            layerInfo.layer.setStyle(style);
         });
         this._topographyLayerStyle = style;
     }
 
     setTrackLayerStyle(style: StyleFunction) {
-        this.getLayersOfTheType(LayerType.Track).forEach(layer => {
-            layer.setStyle(style);
+        this.getLayersOfTheType(LayerType.Track).forEach(layerInfo => {
+            layerInfo.layer.setStyle(style);
         });
         this._trackLayerStyle = style;
     }

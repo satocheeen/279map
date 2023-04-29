@@ -3,7 +3,7 @@ import * as olControl from 'ol/control';
 import { Extent } from 'ol/extent';
 import { Geometry } from 'ol/geom';
 import { Interaction, defaults } from 'ol/interaction'
-import { LayerType, MyLayerDefine, VectorLayerMap } from './VectorLayerMap';
+import { LayerInfo, LayerType, MyLayerDefine, VectorLayerMap } from './VectorLayerMap';
 import GeoJSON from 'ol/format/GeoJSON';
 import prefJson from './pref.json';
 import { Cluster, Vector as VectorSource } from "ol/source";
@@ -405,7 +405,7 @@ export class OlMapWrapper {
      * 指定種別のレイヤ一覧を返す
      * @returns 
      */
-    getLayersOfTheType(layerType: LayerType): VectorLayer<VectorSource>[] {
+    getLayersOfTheType(layerType: LayerType): LayerInfo[] {
         return this._vectorLayerMap.getLayersOfTheType(layerType);
     }
 

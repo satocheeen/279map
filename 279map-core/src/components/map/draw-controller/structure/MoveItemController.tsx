@@ -36,7 +36,9 @@ export default function MoveItemController(props: Props) {
     const { map } = useContext(MapChartContext);
     const pointStyleHook = usePointStyle({ map });
     const dispatch = useAppDispatch();
-    const targetLayers = useRef<VectorLayer<VectorSource>[]>(map.getLayersOfTheType(LayerType.Point));
+    const targetLayers = useRef<VectorLayer<VectorSource>[]>(
+        map.getLayersOfTheType(LayerType.Point).filter(l => l.editable).map(l => l.layer)
+    );
 
     const select = useMemo(() => {
         return new Select({

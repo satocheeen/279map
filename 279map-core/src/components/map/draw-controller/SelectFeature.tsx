@@ -42,7 +42,8 @@ export default function SelectFeature(props: Props) {
 
     const targetLayers = useMemo((): VectorLayer<VectorSource>[] => {
         const layers = map.getLayersOfTheType(props.targetType);
-        return layers;
+        // 編集可能なレイヤに絞って返す
+        return layers.filter(l => l.editable).map(l => l.layer);
     }, [props.targetType, map]);
 
     // 初期化
