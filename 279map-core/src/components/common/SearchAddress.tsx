@@ -3,7 +3,6 @@ import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } 
 import { ListGroup } from 'react-bootstrap';
 import Input from '../common/form/Input';
 import { FeatureType, GeoProperties } from '../../279map-common';
-import { useAPI } from '../../api/useAPI';
 import Spinner from './spinner/Spinner';
 import { GeocoderAPI, GeocoderItem } from 'tsunagumap-api';
 import { getAPICallerInstance } from '../../api/ApiCaller';
@@ -82,7 +81,6 @@ function SearchAddress(props: Props, ref: React.ForwardedRef<SearchAddressHandle
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isIME, address]);
 
-    const { apiUrl } = useAPI();
     const search = useCallback(async() => {
         if (!searchMode) {
             return;

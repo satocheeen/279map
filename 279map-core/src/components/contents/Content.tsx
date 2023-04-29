@@ -15,13 +15,14 @@ import reactStringReplace from "react-string-replace";
 import PopupMenuIcon from "../popup/PopupMenuIcon";
 import AddContentMenu from "../popup/AddContentMenu";
 import { Auth, ContentsDefine, DataId, MapKind } from "../../279map-common";
-import { useAPI } from "../../api/useAPI";
 import Spinner from "../common/spinner/Spinner";
 import { operationActions } from "../../store/operation/operationSlice";
 import { useFilter } from "../../store/useFilter";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
 import { getMapKey } from "../../store/data/dataUtility";
+import { getAPICallerInstance } from "../../api/ApiCaller";
+import { GetImageUrlAPI } from 'tsunagumap-api';
 
 type Props = {
     itemId: DataId;
@@ -38,7 +39,6 @@ type Props = {
 export default function Content(props: Props) {
     const { confirm } = useConfirm();
     const dispatch = useAppDispatch();
-    const { apiUrl } = useAPI();
     const { filterTargetContentIds } = useFilter();
     const { onEditContentInfo, token } = useContext(OwnerContext);
 
@@ -156,26 +156,18 @@ export default function Content(props: Props) {
      */
     const [showSpinner, setShowSpinner] = useState(false);
     const onImageClick = useCallback(async() => {
-        const url = `${apiUrl}getimageurl?id=${props.content.id}`;
         setShowSpinner(true);
         try {
-            const response = await fetch(url, {
-                headers: {
-                    Authorization:  token ? `Bearer ${token}` : '',
-                },    
-                credentials: token ? undefined : 'include',
+            const imageUrl = await getAPICallerInstance().callApi(GetImageUrlAPI, {
+                id: props.content.id,
             });
-            if(!response.ok) {
-                throw response.statusText;
-            }
-            const imageUrl = await response.text();
             window.open(imageUrl, 'image' + props.content.id);
         } catch(e) {
             console.warn('getImageUrl failed.', e);
         } finally {
             setShowSpinner(false);
         }
-    }, [props.content.id, apiUrl, token]);
+    }, [props.content.id, token]);
 
     const onEdit = useCallback(() => {
         doCommand({

@@ -1,9 +1,10 @@
-import React, { useContext, useEffect, useRef, useMemo } from 'react';
-import { useAPI } from '../../../api/useAPI';
+import React, { useContext, useEffect, useRef } from 'react';
 import { OwnerContext } from '../../TsunaguMap/TsunaguMap';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/configureStore';
 import { DataId } from '../../../279map-common';
+import { getAPICallerInstance } from '../../../api/ApiCaller';
+import { GetThumbAPI } from 'tsunagumap-api';
 
 type Props = {
     id: DataId; // サムネイル画像id（コンテンツID）
@@ -20,7 +21,6 @@ type Props = {
  */
 export default function MyThumbnail(props: Props) {
     const myRef = useRef<HTMLImageElement>(null);
-    const { apiUrl } = useAPI();
     const { token } = useContext(OwnerContext);
     const sid = useSelector((state: RootState) => {
         if (state.session.connectStatus.status !== 'connected') {
@@ -29,35 +29,22 @@ export default function MyThumbnail(props: Props) {
         return state.session.connectStatus.sid;
     });
 
-    const url = useMemo(() => {
-        return `${apiUrl}getthumb?id=${props.id.id}`;
-    }, [apiUrl, props.id]);
-
     /**
      * 画像取得
      */
     useEffect(() => {
         if (!sid) return;
-        fetch(url, {
-            method: 'get',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization:  token ? `Bearer ${token}` : '',
-                sessionid: sid,
-            },
-        }).then((res) => {
-            if (!res.ok) {
-                throw new Error('get thumbnail failed.');
-            }
-            return res.blob();
-        })
-        .then((imgData) => {
+        getAPICallerInstance().callApi(GetThumbAPI, {
+            id: props.id.id,
+        }).then((imgData) => {
             if (myRef.current) {
                 myRef.current.src = URL.createObjectURL(imgData);            
             }
-        })
+        }).catch(e => {
+            console.warn('get thumbnail failed.', e);
+        });
 
-    }, [url, apiUrl, sid, token]);
+    }, [sid, token]);
 
     return (
         <img ref={myRef} className={props.className} onClick={props.onClick} alt={props.alt} />

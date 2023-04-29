@@ -40,7 +40,6 @@ class ApiCaller {
                         return key + '=' + value;
                     }).join('&');
                     myUrl += ('?' + paramStr);
-                    console.log('myUrl', myUrl);
                 }
                 res = await fetch(myUrl, {
                     method: api.method,
@@ -60,6 +59,13 @@ class ApiCaller {
                     default:
                         throw new Error(error.type + ' ' + (error.detail ?? ''));
                 }
+            }
+            if (api.resultType === 'blob') {
+                const result = await res.blob();
+                return result;
+            } else if (api.resultType === 'string') {
+                const result = await res.text();
+                return result;
             }
             const result = await res.text();
     

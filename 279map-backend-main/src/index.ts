@@ -25,7 +25,7 @@ import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI
 import { auth } from 'express-oauth2-jwt-bearer';
 import { getMapUser, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { GetItemsParam, GeocoderAPI } from '../279map-api-interface/src/api';
+import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 
@@ -988,7 +988,7 @@ app.post(`/api/${GetSnsPreviewAPI.uri}`,
  * get thumbnail
  * サムネイル画像取得
  */
-app.get('/api/getthumb',
+app.get(`/api/${GetThumbAPI.uri}`,
     checkApiAuthLv(Auth.View), 
     checkCurrentMap,
     async(req, res) => {
@@ -1017,15 +1017,16 @@ app.get('/api/getthumb',
  * get original image's url.
  * オリジナル画像URL取得
  */
-app.get('/api/getimageurl',
+app.post(`/api/${GetImageUrlAPI.uri}`,
     checkApiAuthLv(Auth.View), 
     checkCurrentMap,
     async(req, res) => {
         try {
-            const param = req.query as { id: DataId };
+            const param = req.body as { id: DataId };
 
             // call odba
-            return await backendAPI.callOdbaApi(backendAPI.GetImageUrlAPI, param);
+            const result = await backendAPI.callOdbaApi(backendAPI.GetImageUrlAPI, param);
+            res.send(result);
 
         } catch(e) {
             apiLogger.warn(e);

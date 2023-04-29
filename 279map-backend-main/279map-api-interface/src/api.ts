@@ -8,11 +8,13 @@ import { APIDefine, ContentAttr, SnsPreviewPost, MapDefine } from '279map-backen
 export const ConfigAPI = {
     uri: 'config',
     method: 'get',
+    resultType: 'json',
 } as APIDefine<void, ServerConfig>;
 
 export const GetMapListAPI = {
     uri: 'getmaplist',
     method: 'get',
+    resultType: 'json',
 } as APIDefine<void, MapInfo[]>;
 
 export type MapInfo = {
@@ -31,6 +33,7 @@ export type ConnectResult = {
 export const GetMapInfoAPI = {
     uri: 'getmapinfo',
     method: 'post', 
+    resultType: 'json',
 } as APIDefine<GetMapInfoParam, GetMapInfoResult>;
 export type GetMapInfoParam = {
     mapKind?: MapKind;
@@ -58,6 +61,7 @@ export type GetMapInfoResult = {
 export const GetOriginalIconDefineAPI = {
     uri: 'get-original-icon-define',
     method: 'post',
+    resultType: 'json',
 } as APIDefine<void, GetOriginalIconDefineResult>;
 export type GetOriginalIconDefineResult = IconDefine[];
 
@@ -67,6 +71,7 @@ export type GetOriginalIconDefineResult = IconDefine[];
 export const GetUnpointDataAPI = {
     uri: 'get-unpointdata',
     method: 'post',
+    resultType: 'json',
 } as APIDefine<GetUnpointDataParam, GetUnpointDataResult>;
 export type GetUnpointDataParam = {
     nextToken?: string;
@@ -82,6 +87,7 @@ export type GetUnpointDataResult = {
 export const GetCategoryAPI = {
     uri: 'getcategory',
     method: 'post',
+    resultType: 'json',
 } as APIDefine<undefined, GetCategoryResult>;
 export type GetCategoryResult = {
     categories: CategoryDefine[];
@@ -93,6 +99,7 @@ export type GetCategoryResult = {
 export const GetEventsAPI = {
     uri: 'getevents',
     method: 'post',
+    resultType: 'json',
 } as APIDefine<GetEventParam, GetEventsResult>;
 export type GetEventParam = {
 }
@@ -106,6 +113,7 @@ export type GetEventsResult = {
 export const GetItemsAPI = {
     uri: 'getitems',
     method: 'post',
+    resultType: 'json',
 } as APIDefine<GetItemsParam, GetItemsResult>;
 export type GetItemsParam = {
     extent: Extent;
@@ -121,6 +129,7 @@ export type GetItemsResult = {
 export const GetContentsAPI = {
     uri: 'getcontents',
     method: 'post',
+    resultType: 'json',
 } as APIDefine<GetContentsParam, GetContentsResult>;
 
 export type GetContentsParam = ({
@@ -140,6 +149,7 @@ export type GetContentsResult = {
 export const RegistItemAPI = {
     uri: 'registitem',
     method: 'post',
+    resultType: 'json',
 } as APIDefine<RegistItemParam, DataId>;
 
 export type RegistItemParam = {
@@ -155,6 +165,7 @@ export type RegistItemParam = {
 export const UpdateItemAPI = {
     uri: 'updateitem',
     method: 'post',
+    resultType: 'none',
 } as APIDefine<UpdateItemParam, void>;
 
 export type UpdateItemParam = {
@@ -170,6 +181,7 @@ export type UpdateItemParam = {
 export const RemoveItemAPI = {
     uri: 'removeitem',
     method: 'post',
+    resultType: 'none',
 } as APIDefine<RemoveItemParam, void>;
 
 export type RemoveItemParam = {
@@ -183,6 +195,7 @@ export type RemoveItemParam = {
 export const RegistContentAPI = {
     uri: 'registcontent',
     method: 'post',
+    resultType: 'none',
 } as APIDefine<RegistContentParam, void>;
 export type RegistContentParam = {
     parent: {
@@ -198,6 +211,7 @@ export type RegistContentParam = {
 export const UpdateContentAPI = {
     uri: 'updatecontent',
     method: 'post',
+    resultType: 'none',
 } as APIDefine<UpdateContentParam, void>;
 
 export type UpdateContentParam = {
@@ -210,6 +224,7 @@ export type UpdateContentParam = {
 export const RemoveContentAPI = {
     uri: 'removecontent',
     method: 'post',
+    resultType: 'none',
 } as APIDefine<RemoveContentParam, void>;
 
 export type RemoveContentParam = {
@@ -225,6 +240,7 @@ export type RemoveContentParam = {
 export const LinkContentToItemAPI = {
     uri: 'link-content2item',
     method: 'post',
+    resultType: 'none',
 } as APIDefine<LinkContentToItemParam, void>;
 
 export type LinkContentToItemParam = {
@@ -236,12 +252,29 @@ export type LinkContentToItemParam = {
     }
 }
 
+export const GetThumbAPI = {
+    uri: 'getthumb',
+    method: 'get',
+    resultType: 'blob',
+} as APIDefine<GetThumbParam, Blob>;
+export type GetThumbParam = {
+    // TODO: DataIdに変更
+    id: string;
+}
+
+export const GetImageUrlAPI = {
+    uri: 'get-imageurl',
+    method: 'post',
+    resultType: 'string',
+} as APIDefine<{id: DataId}, string|undefined>;
+
 /**
  * get sns preview
  */
 export const GetSnsPreviewAPI = {
     uri: 'getsnspreview',
     method: 'post',
+    resultType: 'json',
 } as APIDefine<GetSnsPreviewParam, GetSnsPreviewResult>;
 export type GetSnsPreviewParam = {
     url: string;
@@ -257,6 +290,7 @@ export type GetSnsPreviewResult = {
 export const GeocoderAPI = {
     uri: 'geocoder',
     method: 'post',
+    resultType: 'json',
 } as APIDefine<GeocoderParam, GeocoderResult>;
 
 export type GeocoderParam = {
