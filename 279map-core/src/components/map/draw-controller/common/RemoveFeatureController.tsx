@@ -1,4 +1,3 @@
-import { Map } from 'ol';
 import React, { useCallback } from 'react';
 import { FeatureLike } from 'ol/Feature';
 import useConfirm, { ConfirmResult } from '../../../common/confirm/useConfirm';
@@ -7,9 +6,9 @@ import { useSpinner } from '../../../common/spinner/useSpinner';
 import { useAppDispatch } from '../../../../store/configureStore';
 import { removeFeature } from '../../../../store/data/dataThunk';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
+import { convertDataIdFromFeatureId } from '../../../../store/data/dataUtility';
 
 type Props = {
-    map: Map;   // コントロール対象の地図
     target: LayerType;
     close: () => void;  // 作図完了時のコールバック
 }
@@ -35,13 +34,10 @@ export default function RemoveFeatureController(props: Props) {
 
         spinnerHook.showSpinner('削除中...');
 
+        const dataId = convertDataIdFromFeatureId(feature.getId() as string);
         // DB更新
         await dispatch(removeFeature({
-            // TODO: data_source_id考慮
-            id: {
-                id: feature.getId() as string,
-                dataSourceId: '',
-            },
+            id: dataId,
             onlyGeoInfo: false,
         }));
 

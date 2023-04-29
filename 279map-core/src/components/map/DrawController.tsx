@@ -8,6 +8,7 @@ import OverlaySpinner from '../common/spinner/OverlaySpinner';
 import EditTopographyInfoController from './draw-controller/topography/EditTopographyInfoController';
 import { FeatureType } from '../../279map-common';
 import { MapChartContext } from '../TsunaguMap/MapChart';
+import { LayerType } from '../TsunaguMap/VectorLayerMap';
 
 const DrawStructureController = lazy(() => import('./draw-controller/structure/DrawStructureController'));
 const MoveItemController = lazy(() => import('./draw-controller/structure/MoveItemController'));
@@ -64,16 +65,16 @@ export default function DrawController(props: Props) {
                 );
             })
         );
-        // listenerH.push(
-        //     addListener('RemoveStructure', async() => {
-        //         dispatch(operationActions.changeMapMode(MapMode.Drawing));
-        //         setDrawController(
-        //             <Suspense fallback={<OverlaySpinner message='準備中...' />}>
-        //                 <RemoveFeatureController map={map} target="structure" close={terminate} />
-        //             </Suspense>
-        //         );
-        //     })
-        // );
+        listenerH.push(
+            addListener('RemoveStructure', async() => {
+                dispatch(operationActions.changeMapMode(MapMode.Drawing));
+                setDrawController(
+                    <Suspense fallback={<OverlaySpinner message='準備中...' />}>
+                        <RemoveFeatureController target={LayerType.Point} close={terminate} />
+                    </Suspense>
+                );
+            })
+        );
         // listenerH.push(
         //     addListener('DrawTopography', async(featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA) => {
         //         dispatch(operationActions.changeMapMode(MapMode.Drawing));
