@@ -14,6 +14,7 @@ type CommonParam = {
 export const RegistItemAPI = {
     uri: 'regist-item',
     method: 'post',
+    resultType: 'json',
 } as APIDefine<RegistItemParam, DataId>;   // result = registed item ID
 
 export type RegistItemParam = CommonParam & {
@@ -29,6 +30,7 @@ export type RegistItemParam = CommonParam & {
 export const RegistContentAPI = {
     uri: 'regist-content',
     method: 'post',
+    resultType: 'none',
 } as APIDefine<RegistContentParam, void>;
 
 export type RegistContentParam = CommonParam & {
@@ -45,6 +47,7 @@ export type RegistContentParam = CommonParam & {
 export const RemoveItemAPI = {
     uri: 'remove-item',
     method: 'post',
+    resultType: 'none',
 } as APIDefine<RemoveItemParam, void>;
 
 export type RemoveItemParam = CommonParam & {
@@ -58,6 +61,7 @@ export type RemoveItemParam = CommonParam & {
 export const RemoveContentAPI = {
     uri: 'remove-content',
     method: 'post',
+    resultType: 'none',
 } as APIDefine<RemoveContentParam, void>;
 
 export type RemoveContentParam = CommonParam & {
@@ -72,6 +76,7 @@ export type RemoveContentParam = CommonParam & {
 export const UpdateItemAPI = {
     uri: 'update-item',
     method: 'post',
+    resultType: 'none',
 } as APIDefine<UpdateItemParam, void>;
 
 export type UpdateItemParam = CommonParam & {
@@ -87,6 +92,7 @@ export type UpdateItemParam = CommonParam & {
 export const UpdateContentAPI = {
     uri: 'update-content',
     method: 'post',
+    resultType: 'none',
 } as APIDefine<UpdateContentParam, void>;
 
 export type UpdateContentParam = CommonParam & {
@@ -99,6 +105,7 @@ export type UpdateContentParam = CommonParam & {
 export const GetUnpointDataAPI = {
     uri: 'get-unpointdata',
     method: 'post',
+    resultType: 'json',
 } as APIDefine<GetUnpointDataParam, GetUnpointDataResult>;
 
 export type GetUnpointDataParam = CommonParam & {
@@ -120,7 +127,8 @@ export type GetUnpointDataResult = {
  */
 export const LinkContentToItemAPI = {
     uri:'link-content2item',
-    method: 'post'
+    method: 'post',
+    resultType: 'none',
 } as APIDefine<LinkContentToItemParam, void>;
 
 export type LinkContentToItemParam = CommonParam & {
@@ -135,6 +143,7 @@ export type LinkContentToItemParam = CommonParam & {
 export const GetImageUrlAPI = {
     uri: 'get-imageurl',
     method: 'get',
+    resultType: 'string',
 } as APIDefine<{id: DataId}, string|undefined>;
 
 /**
