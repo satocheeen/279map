@@ -81,10 +81,13 @@ export function useCommand() {
      * start the step of drawing a land, a green field or an area.
      * 島or緑地orエリアを作成する
      */
-    const drawTopography = useCallback((featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA) => {
+    const drawTopography = useCallback((dataSourceId: string, featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA) => {
         doCommand({
             command: 'DrawTopography',
-            param: featureType,
+            param: {
+                dataSourceId, 
+                featureType,
+            }
         });
     }, []);
 

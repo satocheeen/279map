@@ -1,24 +1,19 @@
 import { GeoJsonObject } from "geojson";
-import { Feature, Map } from "ol";
-import VectorLayer from "ol/layer/Vector";
-import VectorSource from "ol/source/Vector";
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useState, useContext } from "react"
 import SearchAddress from "../../../common/SearchAddress";
-import useTopographyStyle from "../../useTopographyStyle";
 import PromptMessageBox from "../PromptMessageBox";
 import GeoJSON from 'ol/format/GeoJSON';
 import { FeatureType } from "../../../../279map-common";
+import { MapChartContext } from "../../../TsunaguMap/MapChart";
 
 type Props = {
-    map: Map;
     onCancel?: () => void;
-    onOk?: (feature: Feature) => void;
+    onOk?: () => void;
 }
 enum Stage {
     SearchAddress,
     Confirm,
 }
-const drawingSource = new VectorSource();
 
 /**
  * 住所検索からエリア図形を取得して返す
@@ -26,26 +21,13 @@ const drawingSource = new VectorSource();
  * @returns 
  */
 export function DrawAreaAddress(props: Props) {
+    const { map } = useContext(MapChartContext);
     const [stage, setStage] = useState(Stage.SearchAddress);
-    const styleHook = useTopographyStyle({
-        defaultFeatureType: FeatureType.AREA,
-    });
 
     /**
      * 初期化
      */
     useEffect(() => {
-        const drawingLayer = new VectorLayer({
-            source: drawingSource,
-            style: styleHook.getStyleFunction(),
-            zIndex: 10,
-        });
-        props.map.addLayer(drawingLayer);
-
-        return () => {
-            drawingSource.clear();
-            props.map.removeLayer(drawingLayer);
-        }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -60,30 +42,31 @@ export function DrawAreaAddress(props: Props) {
         feature.setProperties({
             featureType: FeatureType.AREA,
         });
+        const drawingSource = map.getDrawingLayer().getSource();
+        if (!drawingSource) {
+            console.warn('想定外 drawingSource not found.');
+            return;
+        }
         drawingSource.clear();
         drawingSource.addFeature(feature);
         const extent = feature.getGeometry()?.getExtent();
         if (extent)
-            props.map.getView().fit(extent, {
+            map.fit(extent, {
                 padding: [50, 50, 50, 50],
             });
         setStage(Stage.Confirm);
-    }, [props.map]);
+    }, [map]);
 
     const onConfirmAddressCancel = useCallback(() => {
+        // 書きかけ削除
+        map.getDrawingLayer().getSource()?.clear();
         setStage(Stage.SearchAddress);
-    }, []);
+    }, [map]);
 
     const onOk = useCallback(() => {
-        if (!props.onOk)
-            return;
-        
-        const feature = drawingSource.getFeatures()[0];
-        if (!feature) {
-            console.warn('no feature');
-            return;
+        if (props.onOk) {
+            props.onOk();
         }
-        props.onOk(feature);
     }, [props]);
 
     switch(stage) {

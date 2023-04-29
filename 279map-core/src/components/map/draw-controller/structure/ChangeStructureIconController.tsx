@@ -1,4 +1,3 @@
-import { Map } from 'ol';
 import React, { useCallback, useContext, useRef, useState } from 'react';
 import SelectStructureDialog from './SelectStructureDialog';
 import { useSpinner } from '../../../common/spinner/useSpinner';
@@ -8,7 +7,6 @@ import { updateFeature } from '../../../../store/data/dataThunk';
 import { FeatureType } from '../../../../279map-common';
 import { SystemIconDefine } from '../../../../types/types';
 import { FeatureLike } from 'ol/Feature';
-import { MapChartContext } from '../../../TsunaguMap/MapChart';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../store/data/dataUtility';
 

@@ -164,7 +164,17 @@ export default function TestMap() {
                                 <input type="checkbox" />
                                 {ds.name}
                                 {ds.editable &&
-                                    <button onClick={()=>commandHook?.drawStructure(ds.dataSourceId)}>建設</button>
+                                    <>
+                                        <button onClick={()=>commandHook?.drawStructure(ds.dataSourceId)}>建設</button>
+                                        {mapKind === MapKind.Real ?
+                                            <button onClick={()=>commandHook?.drawTopography(ds.dataSourceId, FeatureType.AREA)}>エリア作成</button>
+                                            :
+                                            <>
+                                                <button onClick={()=>commandHook?.drawTopography(ds.dataSourceId, FeatureType.EARTH)}>島作成</button>
+                                                <button onClick={()=>commandHook?.drawTopography(ds.dataSourceId, FeatureType.FOREST)}>緑地作成</button>
+                                            </>
+                                        }
+                                    </>
                                 }
                             </label>    
                         )
@@ -195,14 +205,11 @@ export default function TestMap() {
                 <div className={styles.Col}>
                     {mapKind === MapKind.Real ?
                         <>
-                            <button onClick={()=>commandHook?.drawTopography(FeatureType.AREA)}>エリア作成</button>
                             <button onClick={commandHook?.editTopography}>エリア編集</button>
                             <button onClick={commandHook?.removeTopography}>エリア削除</button>
                         </>
                         :
                         <>
-                            <button onClick={()=>commandHook?.drawTopography(FeatureType.EARTH)}>島作成</button>
-                            <button onClick={()=>commandHook?.drawTopography(FeatureType.FOREST)}>緑地作成</button>
                             <button onClick={commandHook?.drawRoad}>道作成</button>
                             <button onClick={commandHook?.editTopography}>地形編集</button>
                             <button onClick={commandHook?.removeTopography}>地形削除</button>

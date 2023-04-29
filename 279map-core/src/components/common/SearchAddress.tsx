@@ -5,7 +5,8 @@ import Input from '../common/form/Input';
 import { FeatureType, GeoProperties } from '../../279map-common';
 import { useAPI } from '../../api/useAPI';
 import Spinner from './spinner/Spinner';
-import { GeocoderItem, GeocoderResult } from 'tsunagumap-api';
+import { GeocoderAPI, GeocoderItem } from 'tsunagumap-api';
+import { getAPICallerInstance } from '../../api/ApiCaller';
 
 type Props = {
     disabled?: boolean; // trueの場合、住所入力不可
@@ -90,24 +91,23 @@ function SearchAddress(props: Props, ref: React.ForwardedRef<SearchAddressHandle
             setCandidates([]);
             return;
         }
-        // console.log('address', address);
 
-        // 住所検索 TODO: GeocoderAPIを使う
+        // 住所検索
         setShowSpinner(true);
         lastSearchAddress.current = address;
-        const param = 'address=' + address + '&searchTarget=' + props.searchTarget.join(',');
-        const result = await fetch(apiUrl + 'geocoder?' + param);
-
-        const searchResult = await result.json() as GeocoderResult;
+        const searchResult = await getAPICallerInstance().callApi(GeocoderAPI, {
+            address,
+            searchTarget: props.searchTarget,
+        });
 
         if (lastSearchAddress.current === address) {
-            console.log('採用', address);
+            console.log('採用', address, searchResult);
             setCandidates(searchResult);
             lastSearchAddress.current = undefined;
             setShowSpinner(false);
         }
 
-    }, [address, props.searchTarget, searchMode, apiUrl]);
+    }, [address, props.searchTarget, searchMode]);
 
     const onSelectCandidate = useCallback((item: GeocoderItem) => {
         if (props.onAddress) {

@@ -75,16 +75,16 @@ export default function DrawController(props: Props) {
                 );
             })
         );
-        // listenerH.push(
-        //     addListener('DrawTopography', async(featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA) => {
-        //         dispatch(operationActions.changeMapMode(MapMode.Drawing));
-        //         setDrawController(
-        //             <Suspense fallback={<OverlaySpinner message='準備中...' />}>
-        //                 <DrawTopographyController map={map} drawFeatureType={featureType} close={terminate} />
-        //             </Suspense>
-        //         );
-        //     })
-        // );
+        listenerH.push(
+            addListener('DrawTopography', async(param: {dataSourceId: string, featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA }) => {
+                dispatch(operationActions.changeMapMode(MapMode.Drawing));
+                setDrawController(
+                    <Suspense fallback={<OverlaySpinner message='準備中...' />}>
+                        <DrawTopographyController dataSourceId={param.dataSourceId} drawFeatureType={param.featureType} close={terminate} />
+                    </Suspense>
+                );
+            })
+        );
         // listenerH.push(
         //     addListener('DrawRoad', async() => {
         //         dispatch(operationActions.changeMapMode(MapMode.Drawing));

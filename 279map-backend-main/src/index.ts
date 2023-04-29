@@ -25,7 +25,7 @@ import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI
 import { auth } from 'express-oauth2-jwt-bearer';
 import { getMapUser, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { GetItemsParam } from '../279map-api-interface/src/api';
+import { GetItemsParam, GeocoderAPI } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 
@@ -1040,13 +1040,13 @@ app.get('/api/getimageurl',
 /**
  * 住所検索
  */
-app.get('/api/geocoder',
+app.post(`/api/${GeocoderAPI.uri}`,
     checkApiAuthLv(Auth.View), 
     checkCurrentMap,
     async(req, res) => {
         try {
-            const param = req.query as GeocoderParam;
-            const result = geocoder(param);
+            const param = req.body as GeocoderParam;
+            const result = await geocoder(param);
             res.send(result);
     
         } catch(e) {

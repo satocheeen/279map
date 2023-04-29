@@ -3,7 +3,6 @@ import { Feature } from 'ol';
 import SelectStructureDialog from './SelectStructureDialog';
 import Draw, { DrawEvent } from "ol/interaction/Draw";
 import VectorSource from 'ol/source/Vector';
-import VectorLayer from 'ol/layer/Vector';
 import { createGeoJson } from '../../../../util/MapUtility';
 import usePointStyle from '../../usePointStyle';
 import PromptMessageBox from '../PromptMessageBox';

@@ -21,7 +21,7 @@ type CommandDefine =
     // 解体（建物）
     | TCommandDefine<'RemoveStructure', undefined>
     // 島作成、緑地化、エリア登録
-    | TCommandDefine<'DrawTopography', FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA>
+    | TCommandDefine<'DrawTopography', { dataSourceId: string; featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA }>
     // 道作成
     | TCommandDefine<'DrawRoad', undefined>
     // 変更

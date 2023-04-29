@@ -21,6 +21,7 @@ import { FeatureProperties } from '../../entry';
 import { Pixel } from 'ol/pixel';
 import { convertDataIdFromFeatureId, getMapKey } from '../../store/data/dataUtility';
 import { DataSourceInfo, SourceKind } from 'tsunagumap-api';
+import { FitOptions } from 'ol/View';
 
 const instansMap = new Map<string, OlMapWrapper>();
 type Param = {
@@ -308,13 +309,13 @@ export class OlMapWrapper {
      * the map view fit on the extent
      * @param ext fit area
      */
-    fit(ext: Extent) {
+    fit(ext: Extent, opt?: FitOptions) {
         const currentZoom = this._map.getView().getZoom();
-        this._map.getView().fit(ext, {
+        const options: FitOptions = opt ?? {
             padding: [10, 10, 10, 10],
             // maxZoom: currentZoom,
-        });
-        console.log('fit', ext);
+        };
+        this._map.getView().fit(ext, options);
     }
 
     showDrawingLayer(style: StyleFunction | Style) {

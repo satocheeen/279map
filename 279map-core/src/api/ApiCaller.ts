@@ -21,15 +21,32 @@ class ApiCaller {
         try {
             const protocol = this._serverInfo.ssl ? 'https' : 'http';
             const url = `${protocol}://${this._serverInfo.domain}/api/${api.uri}`;
-            const res = await fetch(url, {
-                method: api.method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization:  this._serverInfo.token ? `Bearer ${this._serverInfo.token}` : '',
-                    sessionid: this._sid ?? '',
-                },
-                body: param ? JSON.stringify(param) : undefined,
-            });
+            const headers = {
+                'Content-Type': 'application/json',
+                Authorization:  this._serverInfo.token ? `Bearer ${this._serverInfo.token}` : '',
+                sessionid: this._sid ?? '',
+            };
+            let res: Response;
+            if (api.method === 'post') {
+                res = await fetch(url, {
+                    method: api.method,
+                    headers,
+                    body: param ? JSON.stringify(param) : undefined,
+                });
+            } else {
+                let myUrl = url;
+                if (param) {
+                    const paramStr = Object.entries(param).map(([key, value]) => {
+                        return key + '=' + value;
+                    }).join('&');
+                    myUrl += ('?' + paramStr);
+                    console.log('myUrl', myUrl);
+                }
+                res = await fetch(myUrl, {
+                    method: api.method,
+                    headers,
+                });
+            }
             if (!res.ok) {
                 const error: ApiError = await res.json();
                 switch(error.type) {

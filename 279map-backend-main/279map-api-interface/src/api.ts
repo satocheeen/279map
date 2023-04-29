@@ -256,7 +256,7 @@ export type GetSnsPreviewResult = {
  */
 export const GeocoderAPI = {
     uri: 'geocoder',
-    method: 'get',
+    method: 'post',
 } as APIDefine<GeocoderParam, GeocoderResult>;
 
 export type GeocoderParam = {
