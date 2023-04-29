@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { Map, Collection, Feature, MapBrowserEvent } from 'ol';
+import { Collection, Feature, MapBrowserEvent } from 'ol';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { DragBox, Select, Translate } from 'ol/interaction';
@@ -7,7 +7,7 @@ import {platformModifierKeyOnly} from 'ol/events/condition';
 import Geometry from 'ol/geom/Geometry';
 import PromptMessageBox from '../PromptMessageBox';
 import styles from './MoveItemController.module.scss';
-import { createGeoJson } from '../../../../util/MapUtility';
+import { containFeatureInLayer, createGeoJson } from '../../../../util/MapUtility';
 import { TranslateEvent } from 'ol/interaction/Translate';
 import "react-toggle/style.css";
 import Toggle from 'react-toggle';
@@ -85,11 +85,10 @@ export default function MoveItemController(props: Props) {
     // 対象アイテムhover時のカーソル設定
     useEffect(() => {
         const pointerMoveEvent = (evt: MapBrowserEvent<any>) => {
-            const items = map.getNearlyFeatures(evt.pixel);
-            const isHover = items.some(item => {
-                const itemsLayers = map.getDataSourceLayers(item.dataSourceId);
-                return itemsLayers.some(il => {
-                    return targetLayers.current?.includes(il);
+            const targets = map.getNearlyFeatures(evt.pixel);
+            const isHover = targets.some(target => {
+                return targetLayers.current.some(layer => {
+                    return containFeatureInLayer(target.feature, layer);
                 });
             });
 

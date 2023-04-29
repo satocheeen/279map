@@ -16,6 +16,7 @@ import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { FeatureType, GeoProperties } from '../279map-common';
 import { getCenter as getExtentCenter } from 'ol/extent';
+import { Cluster } from 'ol/source';
 
 /**
  * GeoJSONを元に対応するジオメトリを生成して返す
@@ -278,4 +279,18 @@ export function getFeatureByItemId(map: Map, itemId: string): Feature<Geometry> 
         return feature;
     });
     return feature;
+}
+
+/**
+ * 指定のfeatureが指定のlayerに含まれるか返す
+ * @param feature 
+ * @param layer 
+ * @returns 
+ */
+export function containFeatureInLayer(feature: Feature<Geometry>, layer: VectorLayer<VectorSource>): boolean {
+    let source = layer.getSource();
+    if (source instanceof Cluster) {
+        source = source.getSource();
+    }
+    return source?.hasFeature(feature) ?? false;
 }

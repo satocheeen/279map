@@ -18,7 +18,8 @@ import { RootState } from '../../../store/configureStore';
 import { colorWithAlpha } from '../../../util/CommonUtility';
 import { MapStyles } from '../../../util/constant-defines';
 import { MapChartContext } from '../../TsunaguMap/MapChart';
-import { LayerType } from '../../TsunaguMap/VectorLayerMap';
+import { LayerInfo, LayerType } from '../../TsunaguMap/VectorLayerMap';
+import { containFeatureInLayer } from '../../../util/MapUtility';
 
 type Props = {
     targetType: LayerType;
@@ -40,10 +41,10 @@ export default function SelectFeature(props: Props) {
     const pointStyleHook = usePointStyle({ map });
     const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
 
-    const targetLayers = useMemo((): VectorLayer<VectorSource>[] => {
+    const targetLayers = useMemo((): LayerInfo[] => {
         const layers = map.getLayersOfTheType(props.targetType);
         // 編集可能なレイヤに絞って返す
-        return layers.filter(l => l.editable).map(l => l.layer);
+        return layers.filter(l => l.editable);
     }, [props.targetType, map]);
 
     // 初期化
@@ -99,7 +100,7 @@ export default function SelectFeature(props: Props) {
         }();
         select.current = new Select({
             condition: click,
-            layers: targetLayers,
+            layers: targetLayers.map(l => l.layer),
             style: styleFunction,
             filter: (feature) => {
                 if (props.targetType !== LayerType.Point) {
@@ -126,14 +127,12 @@ export default function SelectFeature(props: Props) {
 
         // 選択可能な地図上アイテムhover時にポインター表示
         const pointerMoveEvent = (evt: MapBrowserEvent<any>) => {
-            let isHover = false;
             const targets = map.getNearlyFeatures(evt.pixel);
-            targets.forEach(target => {
-                const layerTypes = map.getLayerTypeOfTheDataSource(target.dataSourceId);
-                if (layerTypes.includes(props.targetType)) {
-                    isHover = true;
-                }
-            })
+            const isHover = targets.some(target => {
+                return targetLayers.some(layerInfo => {
+                    return containFeatureInLayer(target.feature, layerInfo.layer);
+                });
+            });
             if (isHover) {
                 map.setCursorStyle('pointer');
             } else {

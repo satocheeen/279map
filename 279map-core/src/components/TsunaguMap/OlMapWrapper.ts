@@ -28,6 +28,11 @@ type Param = {
     target?: HTMLDivElement;    // 地図を配置するDivElement。MapChartContextの初期値を仮設定するために、undefinedを許容している。
     getGeocoderFeature?: (id: GeocoderId) => Promise<GeoJsonObject>;    // 外部から図形を取得するためのAPIFunction
 }
+export type FeatureInfo = {
+    id: DataId;
+    feature: Feature<Geometry>;
+}
+
 /**
  * OlMapWrapperんスタンスを生成する
  * @param id instanceを特定するID
@@ -469,22 +474,26 @@ export class OlMapWrapper {
     /**
      * pixel付近に存在するFeatureのIDを返す
      */
-    getNearlyFeatures(pixel: Pixel): DataId[] {
-        const points = [] as DataId[];
+    getNearlyFeatures(pixel: Pixel): FeatureInfo[] {
+        const points = [] as FeatureInfo[];
         this._map.forEachFeatureAtPixel(pixel, (feature, layer) => {
             const layerInfo = this._vectorLayerMap.getLayerInfo(layer);
             if (!layerInfo) return;
             if (layerInfo.layerType === LayerType.Point) {
-                console.log('layerInfo', layerInfo);
-                console.log('feature', feature);
                 const features = feature.get('features') as Feature[];
                 features.forEach(f => {
                     const dataId = convertDataIdFromFeatureId(f.getId() as string);
-                    points.push(dataId);
+                    points.push({
+                        id: dataId,
+                        feature: f,
+                    });
                 });
             } else {
                 const dataId = convertDataIdFromFeatureId(feature.getId() as string);
-                points.push(dataId);
+                points.push({
+                    id: dataId,
+                    feature: feature as Feature<Geometry>,
+                });
             }
         });
         return points;

@@ -79,7 +79,7 @@ export default function ClusterMenuController(props: Props) {
         if (props.targets) {
             // 対象種別指定されている場合は、対象種別のものに絞る
             pointIds = pointIds.filter(point => {
-                const item = itemMapRef.current[getMapKey(point)];
+                const item = itemMapRef.current[getMapKey(point.id)];
                 if (!item) {
                     return false;
                 }
@@ -95,7 +95,7 @@ export default function ClusterMenuController(props: Props) {
         if (filteredItemIdListRef.current) {
             pointIds = pointIds.filter(point => {
                 return filteredItemIdListRef.current?.some(itemId => {
-                    return isEqualId(point, itemId);
+                    return isEqualId(point.id, itemId);
                 });
             });
         }
@@ -120,27 +120,27 @@ export default function ClusterMenuController(props: Props) {
             // show the cluseter menu when multiple items or the item has no contents
             // 対象が複数存在する場合またはコンテンツを持たないアイテムの場合は、重畳選択メニューを表示
             if (pointIds.length === 1) {
-                const item = itemMapRef.current[getMapKey(pointIds[0])];
+                const item = itemMapRef.current[getMapKey(pointIds[0].id)];
                 if (item.contents.length === 0) {
                     setClusterMenuInfo({
                         position: evt.coordinate,
-                        targets: pointIds,
+                        targets: pointIds.map(p => p.id),
                     });
                     return;
                 }
                 if (props.onSelect) {
-                    props.onSelect(pointIds[0]);
+                    props.onSelect(pointIds[0].id);
                 } 
             } else if (!onClick) {
                 // onClick指定時は、重畳選択メニューは表示しない
                 setClusterMenuInfo({
                     position: evt.coordinate,
-                    targets: pointIds,
+                    targets: pointIds.map(p=>p.id),
                 });
             }
             if (onClick) {
                 // onClick指定時は、クリックされたアイテムのID一覧を返す（重畳選択メニューは表示しない）
-                onClick(pointIds);
+                onClick(pointIds.map(p=>p.id));
             }
 
         };

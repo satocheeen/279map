@@ -31,7 +31,7 @@ export default function MyThumbnail(props: Props) {
 
     const url = useMemo(() => {
         return `${apiUrl}getthumb?id=${props.id.id}`;
-    }, [props.id]);
+    }, [apiUrl, props.id]);
 
     /**
      * 画像取得
