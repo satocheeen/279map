@@ -10,7 +10,7 @@ import { getContents } from './getContents';
 import { getEvents } from './getEvents';
 import Broadcaster from './session/Broadcaster';
 import proxy from 'express-http-proxy';
-import https from 'https';
+import http from 'http';
 import { convertBase64ToBinary } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
@@ -20,7 +20,6 @@ import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import { getIcon } from './api/getIcon';
 import { api as backendAPI, schema } from '279map-backend-common';
 import cors from 'cors';
-import { readFileSync } from 'fs';
 import { exit } from 'process';
 import { getMapInfoByIdOrAlias } from './getMapDefine';
 import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
@@ -79,7 +78,7 @@ export const authMethod = process.env.AUTH_METHOD as AuthMethod;
 logger.info('preparomg express');
 
 const app = express();
-const port = 443;
+const port = 80;
 
 const internalApp = express();
 
@@ -159,10 +158,7 @@ const initializeDb = async() => {
 // })
 
 // Create Web Server
-const server = https.createServer({
-    key: readFileSync(process.env.SSL_KEY_FILE || ''),
-    cert: readFileSync(process.env.SSL_CERT_FILE || ''),
-}, app);
+const server = http.createServer(app);
 
 // Create WebSoskce Server
 const broadCaster = new Broadcaster(server, sessionStoragePath);

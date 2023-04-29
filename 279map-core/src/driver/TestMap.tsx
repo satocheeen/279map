@@ -9,10 +9,13 @@ import { DataSourceInfo } from 'tsunagumap-api';
 /**
  * for Development
  */
-const mapId = 'otakaramap';
-const myToken = undefined;  //'VXNlck5vZGU6MjE=';
+const mapId = 'test';
+const myToken = undefined;
 const props = {
-    mapServerHost: 'localhost',
+    mapServer: {
+        host: 'localhost',
+        ssl: false,
+    },
     mapId,
     iconDefine: [
         {
