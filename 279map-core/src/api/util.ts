@@ -8,9 +8,10 @@ import { createAPICallerInstance } from "./ApiCaller";
  * @param host 
  * @returns 
  */
-export async function getAccessableMapList(host: string, token: string | undefined) {
+export async function getAccessableMapList(host: string, ssl: boolean, token: string | undefined) {
     const mapServer = {
         domain: host,
+        ssl,
         token,
     } as ServerInfo;
     const apiCaller = createAPICallerInstance(mapServer, () => {});
@@ -30,9 +31,10 @@ export async function getAccessableMapList(host: string, token: string | undefin
  * @param host 
  * @returns 
  */
-export async function getAuthConfig(host: string) {
+export async function getAuthConfig(host: string, ssl: boolean) {
     const mapServer = {
         domain: host,
+        ssl,
     } as ServerInfo;
     const apiCaller = createAPICallerInstance(mapServer, () => {});
     try {

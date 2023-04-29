@@ -20,7 +20,7 @@ const sessionSlice = createSlice({
     initialState: {
         mapServer: {
             domain: '',
-            ssl: true,
+            ssl: false,
         } as ServerInfo,
         connectStatus: {
             status: 'connecting-map',

@@ -12,7 +12,10 @@ import { DataSourceInfo, SourceKind } from 'tsunagumap-api';
 const mapId = 'test';
 const myToken = 'hogehoge';//undefined;
 const props = {
-    mapServerHost: 'localhost',
+    mapServer: {
+        host: 'localhost',
+        ssl: false,
+    },
     mapId,
     iconDefine: [
         {

@@ -15,7 +15,8 @@ export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; to
         const mapServer = (getState() as RootState).session.mapServer;
 
         try {
-            const serverUrl = `https://${mapServer.domain}`;
+            const protocol = mapServer.ssl ? 'https' : 'http';
+            const serverUrl = `${protocol}://${mapServer.domain}`;
     
             let url = `${serverUrl}/api/connect?mapId=${param.mapId}`;
             let headers = {};
@@ -49,7 +50,7 @@ export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; to
 
             // WebSocket接続確立
             const startWss = () => {
-                const protocol = 'wss';
+                const protocol = mapServer.ssl ? 'wss' : 'ws';
                 const domain = mapServer.domain;
 
                 const wss = new WebSocket(protocol + "://" + domain);
