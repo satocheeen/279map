@@ -142,7 +142,7 @@ export type LinkContentToItemParam = CommonParam & {
 
 export const GetImageUrlAPI = {
     uri: 'get-imageurl',
-    method: 'get',
+    method: 'post',
     resultType: 'string',
 } as APIDefine<{id: DataId}, string|undefined>;
 
