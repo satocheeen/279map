@@ -125,7 +125,6 @@ export async function getGeocoderFeature(param: GetGeocoderFeatureParam): Promis
     const result = await getFeatureById(param);
 
     return {
-        result: 'ok',
         geoJson: result,
     }
 }

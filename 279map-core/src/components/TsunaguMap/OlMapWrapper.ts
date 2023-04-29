@@ -13,21 +13,20 @@ import VectorLayer from "ol/layer/Vector";
 import Style, { StyleFunction } from "ol/style/Style";
 import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
-import { DataId, FeatureType, GeocoderId, ItemDefine, MapKind } from '../../279map-common';
+import { DataId, FeatureType, ItemDefine, MapKind } from '../../279map-common';
 import BaseEvent from 'ol/events/Event';
 import * as MapUtility from '../../util/MapUtility';
-import { GeoJsonObject } from 'geojson';
 import { FeatureProperties } from '../../entry';
 import { Pixel } from 'ol/pixel';
 import { convertDataIdFromFeatureId, getMapKey } from '../../store/data/dataUtility';
-import { DataSourceInfo, SourceKind } from 'tsunagumap-api';
+import { DataSourceInfo, GetGeocoderFeatureAPI, SourceKind } from 'tsunagumap-api';
 import { FitOptions } from 'ol/View';
+import { getAPICallerInstance } from '../../api/ApiCaller';
 
 const instansMap = new Map<string, OlMapWrapper>();
 type Param = {
     id: string; // instanceを特定するID
     target?: HTMLDivElement;    // 地図を配置するDivElement。MapChartContextの初期値を仮設定するために、undefinedを許容している。
-    getGeocoderFeature?: (id: GeocoderId) => Promise<GeoJsonObject>;    // 外部から図形を取得するためのAPIFunction
 }
 export type FeatureInfo = {
     id: DataId;
@@ -59,7 +58,6 @@ export class OlMapWrapper {
     _vectorLayerMap: VectorLayerMap;
     _mapKind?: MapKind;
     _currentZoom: number;   // Zoomレベル変更検知用に保持
-    _getGeocoderFeature?: (id: GeocoderId) => Promise<GeoJsonObject>;
 
     // 描画用レイヤ
     _drawingLayer = new VectorLayer<VectorSource>({
@@ -111,7 +109,7 @@ export class OlMapWrapper {
      */
     initialize(mapKind: MapKind, dataSources: DataSourceInfo[]) {
         this._mapKind = mapKind;
-        let extent: Extent =  [0, 0, 2, 2];
+        let extent: Extent = [0, 0, 2, 2];
         if (mapKind === MapKind.Real) {
             // 都道府県レイヤ
             const features = new GeoJSON().readFeatures(prefJson);
@@ -230,12 +228,9 @@ export class OlMapWrapper {
         let feature: Feature<Geometry>;
         if (def.geoProperties?.featureType === FeatureType.AREA && ('geocoderId' in def.geoProperties && def.geoProperties.geocoderId)) {
             // Geocoderの図形の場合は、Geocoder図形呼び出し
-            if (!this._getGeocoderFeature) {
-                console.warn('getGeocoderFeature not set');
-                return;
-            }
-            const geoJson = await this._getGeocoderFeature(def.geoProperties.geocoderId);
-            feature = new GeoJSON().readFeatures(geoJson)[0];
+            const result = await getAPICallerInstance().callApi(GetGeocoderFeatureAPI, def.geoProperties.geocoderId);
+
+            feature = new GeoJSON().readFeatures(result.geoJson)[0];
 
         } else {
             feature = MapUtility.createFeatureByGeoJson(def.geoJson, def.geoProperties);

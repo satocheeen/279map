@@ -307,10 +307,15 @@ export type GeocoderResult = GeocoderItem[];
 /**
  * get geocoder feature
  */
+export const GetGeocoderFeatureAPI = {
+    uri: 'getGeocoderFeature',
+    method: 'get',
+    resultType: 'json',
+} as APIDefine<GetGeocoderFeatureParam, GetGeoCoderFeatureResult>;
+
 export type GetGeocoderFeatureParam = GeocoderId;
 export type GetGeoCoderFeatureResult = {
-     result: 'ok';
-     geoJson: GeoJsonObject;
+    geoJson: GeoJsonObject;
 };
 
 /**

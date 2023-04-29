@@ -1,5 +1,4 @@
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import GeoJSON from 'ol/format/GeoJSON';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Cluster, Vector as VectorSource } from "ol/source";
 import VectorLayer from "ol/layer/Vector";
 import styles from './MapChart.module.scss';
@@ -17,7 +16,6 @@ import { loadItems } from "../../store/data/dataThunk";
 import { openItemContentsPopup } from "../popup/popupThunk";
 import { DataId, FeatureType, MapKind } from "../../279map-common";
 import { FeatureProperties, MapMode } from "../../types/types";
-import { useAPI } from "../../api/useAPI";
 import useFilteredTopographyStyle from "../map/useFilteredTopographyStyle";
 import useTrackStyle from "../map/useTrackStyle";
 import Feature, { FeatureLike } from "ol/Feature";
@@ -26,7 +24,6 @@ import ClusterMenu from "../cluster-menu/ClusterMenu";
 import { usePrevious } from "../../util/usePrevious";
 import usePointStyle from "../map/usePointStyle";
 import ClusterMenuController from "../cluster-menu/ClusterMenuController";
-import { VectorLayerMap } from "./VectorLayerMap";
 import { createMapInstance, OlMapWrapper } from "./OlMapWrapper";
 
 type ClusterMenuInfo = {
@@ -158,7 +155,6 @@ export default function MapChart() {
         loadingCurrentAreaContents.current = false;
     }, [dispatch]);
 
-    const { getGeocoderFeature } = useAPI();
     /**
      * 地図初期化
      */
@@ -171,7 +167,6 @@ export default function MapChart() {
         mapRef.current = createMapInstance({
             id: instanceIdRef.current,
             target: myRef.current,
-            getGeocoderFeature,
         });
 
         const h = addListener('LoadLatestData', async() => {
@@ -183,7 +178,7 @@ export default function MapChart() {
             mapRef.current.dispose();
             removeListener(h);
         }
-    }, [dispatch, loadCurrentAreaContents, getGeocoderFeature]);
+    }, [dispatch, loadCurrentAreaContents]);
 
     const onSelectItem = useCallback((feature: DataId | undefined) => {
         if (!feature) {
