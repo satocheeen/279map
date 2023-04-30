@@ -67,7 +67,11 @@ export default function RoadWidthSelecter(props: Props) {
     }
 
     const onOk = useCallback(() => {
-        // props.onOk(widthSimulateSource.current?.getFeatures()[0]);
+        if (!widthSimulateSource.current) {
+            console.warn('想定外エラー widthSimulateSource not find');
+            return;
+        }
+        props.onOk(widthSimulateSource.current.getFeatures()[0]);
     }, [props]);
 
     const message = '道幅を選択してください.';

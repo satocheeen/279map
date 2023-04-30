@@ -95,10 +95,10 @@ export function useCommand() {
      * start the step of drawing a road.
      * 道を作成する
      */
-    const drawRoad = useCallback(() => {
+    const drawRoad = useCallback((dataSourceId: string) => {
         doCommand({
             command: 'DrawRoad',
-            param: undefined,
+            param: dataSourceId,
         });
     }, []);
 

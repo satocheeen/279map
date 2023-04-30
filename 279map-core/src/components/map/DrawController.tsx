@@ -85,16 +85,16 @@ export default function DrawController(props: Props) {
                 );
             })
         );
-        // listenerH.push(
-        //     addListener('DrawRoad', async() => {
-        //         dispatch(operationActions.changeMapMode(MapMode.Drawing));
-        //         setDrawController(
-        //             <Suspense fallback={<OverlaySpinner message='準備中...' />}>
-        //                 <DrawRoadController map={map} close={terminate} />
-        //             </Suspense>
-        //         );
-        //     })
-        // );
+        listenerH.push(
+            addListener('DrawRoad', async(dataSourceId: string) => {
+                dispatch(operationActions.changeMapMode(MapMode.Drawing));
+                setDrawController(
+                    <Suspense fallback={<OverlaySpinner message='準備中...' />}>
+                        <DrawRoadController dataSourceId={dataSourceId} close={terminate} />
+                    </Suspense>
+                );
+            })
+        );
         // listenerH.push(
         //     addListener('EditTopography', async() => {
         //         dispatch(operationActions.changeMapMode(MapMode.Drawing));

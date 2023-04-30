@@ -1,8 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState, useContext } from 'react';
-import { Feature, Map } from 'ol';
+import { Feature } from 'ol';
 import OlFeature from 'ol/Feature';
 import VectorSource from 'ol/source/Vector';
-import VectorLayer from 'ol/layer/Vector';
 import Draw, { DrawEvent } from "ol/interaction/Draw";
 import useTopographyStyle from '../../useTopographyStyle';
 import PromptMessageBox from '../PromptMessageBox';

@@ -170,6 +170,7 @@ export default function TestMap() {
                                             <button onClick={()=>commandHook?.drawTopography(ds.dataSourceId, FeatureType.AREA)}>エリア作成</button>
                                             :
                                             <>
+                                                <button onClick={()=>commandHook?.drawRoad(ds.dataSourceId)}>道作成</button>
                                                 <button onClick={()=>commandHook?.drawTopography(ds.dataSourceId, FeatureType.EARTH)}>島作成</button>
                                                 <button onClick={()=>commandHook?.drawTopography(ds.dataSourceId, FeatureType.FOREST)}>緑地作成</button>
                                             </>
@@ -210,7 +211,6 @@ export default function TestMap() {
                         </>
                         :
                         <>
-                            <button onClick={commandHook?.drawRoad}>道作成</button>
                             <button onClick={commandHook?.editTopography}>地形編集</button>
                             <button onClick={commandHook?.removeTopography}>地形削除</button>
                             <button onClick={commandHook?.editTopographyInfo}>地名編集</button>
