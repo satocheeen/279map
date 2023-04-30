@@ -392,7 +392,7 @@ export default function MapChart() {
                 (
                     <MapChartContext.Provider value={mapChartContextValue}>
                         {/* <PopupContainer map={mapRef.current} /> */}
-                        {/* <LandNameOverlay map={mapRef.current} /> */}
+                        <LandNameOverlay />
                         {mapMode === MapMode.Normal &&
                             <ClusterMenuController
                                 targets={[FeatureType.STRUCTURE, FeatureType.AREA]}
