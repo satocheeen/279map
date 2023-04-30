@@ -1,6 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Map } from 'ol';
-import Feature from 'ol/Feature';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import * as MapUtility from '../../../../util/MapUtility';
 import PromptMessageBox from '../PromptMessageBox';
 import { useSpinner } from '../../../common/spinner/useSpinner';
@@ -8,15 +6,13 @@ import SelectDrawFeature, { DrawFeatureType } from './SelectDrawFeature';
 import DrawPointRadius from './DrawPointRadius';
 import { DrawAreaAddress } from './DrawAreaAddress';
 import { DrawFreeArea } from './DrawFreeArea';
-import VectorSource from 'ol/source/Vector';
-import VectorLayer from 'ol/layer/Vector';
 import useTopographyStyle from '../../useTopographyStyle';
 import { useAppDispatch } from '../../../../store/configureStore';
 import { registFeature } from '../../../../store/data/dataThunk';
 import { FeatureType, GeoProperties } from '../../../../279map-common';
+import { MapChartContext } from '../../../TsunaguMap/MapChart';
 
 type Props = {
-    map: Map;   // コントロール対象の地図
     dataSourceId: string;
     drawFeatureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA;
     close: () => void;  // 作図完了時のコールバック
@@ -34,21 +30,14 @@ enum Stage {
     SEARCH_POINT_ADDRESS, 
 }
 
-// 一度きりの生成でいいもの
-const drawingSource = new VectorSource();
-const drawingLayer = new VectorLayer({
-    source: drawingSource,
-    zIndex: 10,
-});
-
 /**
  * 島、緑地の作図コントローラ
  */
 export default function DrawTopographyController(props: Props) {
+    const { map } = useContext(MapChartContext);
     const [stage, setStage] = useState(Stage.SELECTING_FEATURE);
 
     const [geometryType, setGeometryType] = useState('Polygon');
-    const drawingFeature = useRef<Feature | undefined>(undefined);  // 描画中のFeature
 
     const dispatch = useAppDispatch();
     const spinner = useSpinner();
@@ -59,44 +48,38 @@ export default function DrawTopographyController(props: Props) {
 
     // 初期状態
     useEffect(() => {
-        props.map.addLayer(drawingLayer);
-        drawingLayer.setStyle(styleHook.getStyleFunction());
+        map.showDrawingLayer(styleHook.getStyleFunction());
 
         return () => {
             // UnMount時
-            drawingSource.clear();
-            props.map.removeLayer(drawingLayer);
+            map.hideDrawingLayer();
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+    
 
     const registFeatureFunc = useCallback(async() => {
-        if (!drawingFeature.current) {
-            console.warn('描画図形なし（想定外）');
-            return;
-        }
         spinner.showSpinner('登録中...');
 
         // DB登録
-        const geoJson = MapUtility.createGeoJson(drawingFeature.current);
+        const feature = map.getDrawingLayer().getSource()?.getFeatures()[0];
+        if (!feature) {
+            console.warn('feature not find.')
+        } else {
+            const geoJson = MapUtility.createGeoJson(feature);
 
-        await dispatch(registFeature({
-            dataSourceId: props.dataSourceId,
-            geometry: geoJson.geometry,
-            geoProperties: Object.assign({}, geoJson.properties, {
-                featureType: props.drawFeatureType,
-            } as GeoProperties),
-        }));
+            await dispatch(registFeature({
+                dataSourceId: props.dataSourceId,
+                geometry: geoJson.geometry,
+                geoProperties: Object.assign({}, geoJson.properties, {
+                    featureType: props.drawFeatureType,
+                } as GeoProperties),
+            }));
+        }
 
         spinner.hideSpinner();
         props.close();
-    }, [spinner, props, dispatch]);
-
-    const onDrawEnd = useCallback(async (feature: Feature) => {
-        drawingFeature.current = feature;
-        drawingSource.addFeature(feature);
-        registFeatureFunc();
-    }, [registFeatureFunc]);
+    }, [map, spinner, props, dispatch]);
 
     // 描画図形選択後
     const onSelectDrawFeatureType = useCallback((selected: DrawFeatureType) => {
@@ -137,23 +120,23 @@ export default function DrawTopographyController(props: Props) {
             );
         case Stage.FREE_DRAWING:
             return (
-                <DrawFreeArea map={props.map}
+                <DrawFreeArea
                     geometryType={geometryType}
                     drawFeatureType={props.drawFeatureType}
-                    onOk={(feature) => onDrawEnd(feature)}
+                    onOk={registFeatureFunc}
                     onCancel={onDrawCanceled}
                 />
             );
         case Stage.SEARCH_AREA_ADDRESS:
             return (
-                <DrawAreaAddress map={props.map} 
-                    onOk={(feature) => onDrawEnd(feature)}
+                <DrawAreaAddress 
+                    onOk={registFeatureFunc}
                     onCancel={onDrawCanceled}/>
         );
         case Stage.SEARCH_POINT_ADDRESS:
             return(
-                <DrawPointRadius map={props.map}
-                    onOk={(feature) => onDrawEnd(feature)}
+                <DrawPointRadius
+                    onOk={registFeatureFunc}
                     onCancel={onDrawCanceled}/>
             );            
     }
