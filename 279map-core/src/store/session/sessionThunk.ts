@@ -3,7 +3,7 @@ import { doCommand } from "../../util/Commander";
 import { RootState } from "../configureStore";
 import { dataActions } from "../data/dataSlice";
 import { loadCategories, loadEvents, loadOriginalIconDefine } from "../data/dataThunk";
-import { ApiError, ConnectResult, ErrorType, GetMapInfoAPI, WebSocketMessage } from 'tsunagumap-api';
+import { ApiError, ConnectAPI, ErrorType, GetMapInfoAPI, WebSocketMessage } from 'tsunagumap-api';
 import { MapKind } from "../../279map-common";
 import { ConnectAPIResult, LoadMapDefineResult } from "../../types/types";
 import { createAPICallerInstance, getAPICallerInstance } from "../../api/ApiCaller";
@@ -15,30 +15,6 @@ export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; to
         const mapServer = (getState() as RootState).session.mapServer;
 
         try {
-            const protocol = mapServer.ssl ? 'https' : 'http';
-            const serverUrl = `${protocol}://${mapServer.domain}`;
-    
-            let url = `${serverUrl}/api/connect?mapId=${param.mapId}`;
-            let headers = {};
-            if (param.token) {
-                headers = {
-                    Authorization:  param.token ? `Bearer ${param.token}` : ''
-                }
-            }
-            console.log('connectMap', param.token);
-            const result = await fetch(url, {
-                credentials: param.token ? undefined : 'include',
-                headers,
-            });
-            if (!result.ok) {
-                const error: ApiError = await result.json();
-                return {
-                    result: 'failure',
-                    error,
-                }
-            }
-            const json = await result.json() as ConnectResult;
-
             const apiCaller = createAPICallerInstance(mapServer, (error: ApiError) => {
                 // コネクションエラー時
                 dispatch(sessionActions.updateConnectStatus({
@@ -46,6 +22,10 @@ export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; to
                     error,
                 }));
             });
+            const json = await apiCaller.callApi(ConnectAPI, {
+                mapId: param.mapId,
+            });
+
             apiCaller.setSID(json.sid);
 
             // WebSocket接続確立

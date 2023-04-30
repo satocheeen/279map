@@ -282,7 +282,7 @@ export class OlMapWrapper {
             }
         } else {
             source.addFeature(feature);
-            console.log('add feature', geom.getType(), source.getProperties(), source.getFeatures().length);
+            console.log('add feature', geom.getType(), feature.getId(), feature.getProperties(), source.getFeatures().length);
         }
     }
 
