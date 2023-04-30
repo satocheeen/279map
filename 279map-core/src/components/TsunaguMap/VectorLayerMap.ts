@@ -4,6 +4,8 @@ import Feature from "ol/Feature";
 import { Geometry } from "ol/geom";
 import { StyleFunction } from "ol/style/Style";
 import Layer from "ol/layer/Layer";
+import { DataId } from "../../279map-common";
+import { getMapKey } from "../../store/data/dataUtility";
 
 export enum LayerType {
     Point = 'Point',    // Pointa用レイヤ。（Cluster設定されている）
@@ -231,12 +233,20 @@ export class VectorLayerMap {
      * @param featureId 
      * @returns 
      */
-    getFeatureById(featureId: string) {
-        // TODO: Cluster考慮
+    getFeatureById(id: DataId) {
+        const layers = this.getLayerInfoOfTheDataSource(id.dataSourceId);
+        if (layers.length === 0) {
+            return undefined;
+        }
+        const idStr = getMapKey(id);
         let hit: Feature<Geometry> | undefined;
-        this._layerMap.forEach((val) => {
-            const source = val.layer.getSource();
-            const feature = source?.getFeatureById(featureId);
+        layers.forEach((layer) => {
+            let source = layer.layer.getSource();
+            if (layer.layerType === LayerType.Point) {
+                source = (source as Cluster).getSource();
+            }
+            if (!source) return;
+            const feature = source.getFeatureById(idStr);
             if (feature) {
                 hit = feature;
             }

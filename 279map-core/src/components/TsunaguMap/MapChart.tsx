@@ -116,7 +116,7 @@ export default function MapChart() {
         }
         const source = new VectorSource();
         filteredItemIdList.forEach(itemId => {
-            const feature = mapRef.current.getFeatureById(itemId.id);
+            const feature = mapRef.current.getFeatureById(itemId);
             // const feature = MapUtility.getFeatureByItemId(map, itemId.id);
             if (feature) {
                 // Cluster化している場合は、既にsourceに追加されている可能性があるので、

@@ -330,7 +330,7 @@ export class OlMapWrapper {
         this._map.removeLayer(layer);
     }
 
-    getFeatureById(itemId: string): Feature<Geometry> | undefined {
+    getFeatureById(itemId: DataId): Feature<Geometry> | undefined {
         if (!itemId) {
             // nullやundefinedで入ってくる場合に備えて、ここで弾く。
             return undefined;
