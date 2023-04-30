@@ -60,10 +60,7 @@ export class OlMapWrapper {
     _currentZoom: number;   // Zoomレベル変更検知用に保持
 
     // 描画用レイヤ
-    _drawingLayer = new VectorLayer<VectorSource>({
-        source: new VectorSource(),
-        zIndex: 100,
-    });
+    _drawingLayers: VectorLayer<VectorSource>[] = [];
 
     constructor(param: Param) {
         this._id = param.id;
@@ -313,17 +310,27 @@ export class OlMapWrapper {
         this._map.getView().fit(ext, options);
     }
 
-    showDrawingLayer(style: StyleFunction | Style) {
-        this._drawingLayer.setStyle(style);
-        this._map.addLayer(this._drawingLayer);
+    createDrawingLayer(style?: StyleFunction | Style): VectorLayer<VectorSource> {
+        const layer = new VectorLayer<VectorSource>({
+            source: new VectorSource(),
+            zIndex: 100,
+            properties: {
+                type: 'temporary',
+            }
+        });
+        if (style) {
+            layer.setStyle(style);
+        }
+        this._map.addLayer(layer);
+        return layer;
     }
-    hideDrawingLayer() {
-        this._drawingLayer.getSource()?.clear();
-        this._drawingLayer.setStyle();
-        this._map.removeLayer(this._drawingLayer);
-    }
-    getDrawingLayer() {
-        return this._drawingLayer;
+    removeDrawingLayer(layer: VectorLayer<VectorSource>) {
+        if (layer.getProperties()['type'] !== 'temporary') {
+            console.warn('this is not a drawing layer.', layer);
+            return;
+        }
+        layer.getSource()?.clear();
+        this._map.removeLayer(layer);
     }
 
     getFeatureById(itemId: string): Feature<Geometry> | undefined {

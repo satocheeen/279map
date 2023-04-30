@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useContext } from 'react';
 import { Feature, Map } from 'ol';
 import OlFeature from 'ol/Feature';
 import VectorSource from 'ol/source/Vector';
@@ -12,6 +12,7 @@ import { useSpinner } from '../../../common/spinner/useSpinner';
 import { useAppDispatch } from '../../../../store/configureStore';
 import { registFeature } from '../../../../store/data/dataThunk';
 import { FeatureType, GeoProperties } from '../../../../279map-common';
+import { MapChartContext } from '../../../TsunaguMap/MapChart';
 
 enum Stage {
     DRAWING,        // 描画
@@ -19,17 +20,15 @@ enum Stage {
 }
 type Props = {
     /** 親からもらうprops定義 */
-    map: Map;
     dataSourceId: string;
     close: () => void;  // 作図完了時のコールバック
 }
-
-const drawingSource = new VectorSource();
 
 /**
  * 道描画コントローラ
  */
 export default function DrawRoadController(props: Props) {
+    const { map } = useContext(MapChartContext);
     const [stage, setStage] = useState(Stage.DRAWING);
 
     const draw = useRef<Draw|undefined>();
@@ -40,29 +39,26 @@ export default function DrawRoadController(props: Props) {
     const drawingFeature = useRef<OlFeature | undefined>();
     const spinnerHook = useSpinner();
     const dispatch = useAppDispatch();
+    const drawingSource = useRef<VectorSource|null>(null);
 
     /**
      * 初期化
      */
     useEffect(() => {
-        const drawingLayer = new VectorLayer({
-            source: drawingSource,
-            style: styleHook.getStyleFunction(),
-            zIndex: 10,
-        });
-        props.map.addLayer(drawingLayer);
+        const drawingLayer = map.createDrawingLayer(styleHook.getStyleFunction());
+        drawingSource.current = drawingLayer.getSource();
 
         // Drawインタラクション用意
         const newDraw =new Draw({
-            source: drawingSource,
+            source: drawingSource.current as VectorSource,
             type: 'MultiLineString',
             style: styleHook.getStyleFunction(),
             clickTolerance: 12,
         });
-        props.map.addInteraction(newDraw);
+        map.addInteraction(newDraw);
         newDraw.on('drawend', (event: DrawEvent) => {
             // 作図完了
-            props.map.removeInteraction(newDraw);
+            map.removeInteraction(newDraw);
 
             drawingFeature.current = event.feature;
             setStage(Stage.SELECT_WIDTH);
@@ -71,10 +67,9 @@ export default function DrawRoadController(props: Props) {
 
         return () => {
             if (draw.current) {
-                props.map.removeInteraction(draw.current);
+                map.removeInteraction(draw.current);
             }
-            drawingSource.clear();
-            props.map.removeLayer(drawingLayer);
+            map.removeDrawingLayer(drawingLayer);
         }
     }, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -116,7 +111,7 @@ export default function DrawRoadController(props: Props) {
 
     const onWidthSelected = useCallback(async(feature: Feature) => {
         drawingFeature.current = feature;
-        drawingSource.addFeature(feature);
+        drawingSource.current?.addFeature(feature);
         registFeatureFunc();
     }, [registFeatureFunc]);
 
@@ -133,7 +128,7 @@ export default function DrawRoadController(props: Props) {
                 return null;
             }
             return (
-                <RoadWidthSelecter map={props.map} targetRoad={drawingFeature.current} onOk={onWidthSelected} onCancel={onCanceled} />
+                <RoadWidthSelecter targetRoad={drawingFeature.current} onOk={onWidthSelected} onCancel={onCanceled} />
             );
     }
 

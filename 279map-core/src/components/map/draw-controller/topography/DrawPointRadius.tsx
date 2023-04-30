@@ -7,7 +7,7 @@ import VectorSource from 'ol/source/Vector';
 import { Form } from 'react-bootstrap';
 import Button from '../../../common/button/Button';
 import { convertKmToLonLat, getStructureScale } from '../../../../util/MapUtility';
-import { Circle } from 'ol/geom';
+import { Circle, Geometry } from 'ol/geom';
 import PromptMessageBox from '../PromptMessageBox';
 import { Draw } from 'ol/interaction';
 import { DrawEvent } from 'ol/interaction/Draw';
@@ -23,7 +23,7 @@ import { MapChartContext } from '../../../TsunaguMap/MapChart';
 
 type Props = {
     onCancel?: () => void;
-    onOk?: () => void;
+    onOk?: (feature: Feature<Geometry>) => void;
 }
 
 enum Stage {
@@ -45,7 +45,7 @@ export default function DrawPointRadius(props: Props) {
 
     const draw = useRef<Draw|undefined>();
     const { map } = useContext(MapChartContext);
-    const drawingSource = useRef<VectorSource>(map.getDrawingLayer().getSource() as VectorSource);
+    const drawingSource = useRef<VectorSource|null>(null);
     const pointStyleHook = usePointStyle({map});
     const styleHook = useTopographyStyle({
         defaultFeatureType: FeatureType.AREA,
@@ -83,12 +83,14 @@ export default function DrawPointRadius(props: Props) {
                 return defaultStyle;
             }
         });
-        map.getDrawingLayer().setStyle(style);
+        const drawingLayer = map.createDrawingLayer(style);
+        drawingSource.current = drawingLayer.getSource();
 
         return () => {
             if (draw.current) {
                 map.removeInteraction(draw.current);
             }
+            map.removeDrawingLayer(drawingLayer);
         }
     }, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -96,13 +98,17 @@ export default function DrawPointRadius(props: Props) {
 
     // ステージ変更
     const startSelectCenter = useCallback(() => {
+        if (!drawingSource.current) {
+            console.warn('想定外エラー drawingSource not find.');
+            return;
+        }
         const type = 'Point';
         const style = pointStyleHook.getDrawingStructureStyleFunction(iconHook.getIconDefine());
 
         // Circleは除去
-        const circleFeature = drawingSource.current.getFeatures().find(feature => feature.getGeometry()?.getType() === 'Circle');
+        const circleFeature = drawingSource.current?.getFeatures().find(feature => feature.getGeometry()?.getType() === 'Circle');
         if (circleFeature){
-            drawingSource.current.removeFeature(circleFeature);
+            drawingSource.current?.removeFeature(circleFeature);
         }
 
         if (draw.current) {
@@ -114,7 +120,7 @@ export default function DrawPointRadius(props: Props) {
             style,
         });
         draw.current.on('drawend', (event: DrawEvent) => {
-            drawingSource.current.clear();
+            drawingSource.current?.clear();
             const extent = event.feature.getGeometry()?.getExtent();
             if (extent) {
                 const center = extent.slice(0, 2) as [number, number];
@@ -128,8 +134,7 @@ export default function DrawPointRadius(props: Props) {
     }, [pointStyleHook, map, iconHook]);
 
     const startDrawCircle = useCallback(() => {
-        const drawingSource = map.getDrawingLayer().getSource();
-        if (!drawingSource) {
+        if (!drawingSource.current) {
             console.warn('想定外エラー drawingSource not find.');
             return;
         }
@@ -144,7 +149,7 @@ export default function DrawPointRadius(props: Props) {
         }
 
         draw.current = new Draw({
-            source: drawingSource,
+            source: drawingSource.current,
             type,
             style,
             geometryFunction: (coords, geometry) => {
@@ -169,9 +174,9 @@ export default function DrawPointRadius(props: Props) {
         draw.current.on('drawstart', (event: DrawEvent) => {
             circleFreeDrawing.current = true;
             // Circleは除去
-            const circleFeature = drawingSource.getFeatures().find(feature => feature.getGeometry()?.getType() === 'Circle');
+            const circleFeature = drawingSource.current?.getFeatures().find(feature => feature.getGeometry()?.getType() === 'Circle');
             if (circleFeature){
-                drawingSource.removeFeature(circleFeature);
+                drawingSource.current?.removeFeature(circleFeature);
             }
             console.log('drawstart');
         });
@@ -194,8 +199,8 @@ export default function DrawPointRadius(props: Props) {
 
     const onSelectAddress = useCallback((geoJson: GeoJsonObject) => {
         const feature = new GeoJSON().readFeatures(geoJson)[0];
-        drawingSource.current.clear();
-        drawingSource.current.addFeature(feature);
+        drawingSource.current?.clear();
+        drawingSource.current?.addFeature(feature);
         const extent = feature.getGeometry()?.getExtent();
         if (!extent) {
             console.warn('no extent');
@@ -228,19 +233,19 @@ export default function DrawPointRadius(props: Props) {
             return;
         }
         // Circleは除去
-        const circleFeature = drawingSource.current.getFeatures().find(feature => feature.getGeometry()?.getType() === 'Circle');
+        const circleFeature = drawingSource.current?.getFeatures().find(feature => feature.getGeometry()?.getType() === 'Circle');
         if (circleFeature){
-            drawingSource.current.removeFeature(circleFeature);
+            drawingSource.current?.removeFeature(circleFeature);
         }
 
         const r = convertKmToLonLat(centerCoordinates, radius);
         if (circleFeature) {
-            drawingSource.current.removeFeature(circleFeature);
+            drawingSource.current?.removeFeature(circleFeature);
         }
         const circle = new Feature({
             geometry: new Circle(centerCoordinates, r),
         });
-        drawingSource.current.addFeature(circle);
+        drawingSource.current?.addFeature(circle);
         setCircleFeature(circle);
 
         const extent = circle.getGeometry()?.getExtent();
@@ -262,9 +267,7 @@ export default function DrawPointRadius(props: Props) {
             console.warn('no circle');
             return;
         }
-        drawingSource.current.clear();
-        drawingSource.current.addFeature(circleFeature);
-        props.onOk();
+        props.onOk(circleFeature);
     }, [props, circleFeature]);
 
     return (

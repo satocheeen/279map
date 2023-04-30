@@ -1,40 +1,36 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useRef, useContext, useCallback, useEffect, useState } from 'react';
 import Feature from 'ol/Feature';
-import { Map } from 'ol';
 import VectorSource from 'ol/source/Vector';
-import VectorLayer from 'ol/layer/Vector';
 import useTopographyStyle, { RoadWidth } from '../../useTopographyStyle';
 import { convertLineToPolygon, extractGeoProperty } from '../../../../util/MapUtility';
 import PromptMessageBox from '../PromptMessageBox';
 import { FeatureType } from '../../../../279map-common';
+import { MapChartContext } from '../../../TsunaguMap/MapChart';
+import { Geometry } from 'ol/geom';
 
 type Props = {
-    map: Map;
     targetRoad: Feature;
     width?: RoadWidth;  // 初期値
-    onOk: (feature: Feature) => void;   // feature = 元のlineGeoJsonをプロパティに格納したポリゴン。
+    onOk: (feature: Feature<Geometry>) => void;   // feature = 元のlineGeoJsonをプロパティに格納したポリゴン。
     onCancel: () => void;
 }
 
-const widthSimulateSource = new VectorSource();
+// const widthSimulateSource = new VectorSource();
 
 /**
  * 道幅選択部品
  */
 export default function RoadWidthSelecter(props: Props) {
+    const { map } = useContext(MapChartContext);
     const [width, setWidth] = useState(props.width === undefined ? RoadWidth.M : props.width);
     const styleHook = useTopographyStyle({
         defaultFeatureType: FeatureType.ROAD,
     });
+    const widthSimulateSource = useRef<VectorSource|null>(null);
 
     useEffect(() => {
-        const widthSimulateLayer: VectorLayer<VectorSource> = new VectorLayer({
-            source: widthSimulateSource,
-            style: styleHook.getStyleFunction(),
-            zIndex: 10,
-        });
-    
-        props.map.addLayer(widthSimulateLayer);
+        const widthSimulateLayer = map.createDrawingLayer(styleHook.getStyleFunction());
+        widthSimulateSource.current = widthSimulateLayer.getSource();
 
         // 初期値幅の設定
         const properties = extractGeoProperty(props.targetRoad.getProperties());
@@ -44,7 +40,7 @@ export default function RoadWidthSelecter(props: Props) {
         }
 
         return () => {
-            props.map.removeLayer(widthSimulateLayer);
+            map.removeDrawingLayer(widthSimulateLayer);
         };
     }, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -58,8 +54,8 @@ export default function RoadWidthSelecter(props: Props) {
         tempFeature.setProperties({'width': width.key});
         console.log('tempFeature', tempFeature);
         convertLineToPolygon(tempFeature, width.distance);
-        widthSimulateSource.clear();
-        widthSimulateSource.addFeature(tempFeature);
+        widthSimulateSource.current?.clear();
+        widthSimulateSource.current?.addFeature(tempFeature);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [width]);
 
@@ -71,7 +67,7 @@ export default function RoadWidthSelecter(props: Props) {
     }
 
     const onOk = useCallback(() => {
-        props.onOk(widthSimulateSource.getFeatures()[0]);
+        // props.onOk(widthSimulateSource.current?.getFeatures()[0]);
     }, [props]);
 
     const message = '道幅を選択してください.';

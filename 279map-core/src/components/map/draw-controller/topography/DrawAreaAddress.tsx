@@ -1,14 +1,18 @@
 import { GeoJsonObject } from "geojson";
-import React, { useCallback, useEffect, useState, useContext } from "react"
+import React, { useEffect, useRef, useCallback, useState, useContext } from "react"
 import SearchAddress from "../../../common/SearchAddress";
 import PromptMessageBox from "../PromptMessageBox";
 import GeoJSON from 'ol/format/GeoJSON';
 import { FeatureType } from "../../../../279map-common";
 import { MapChartContext } from "../../../TsunaguMap/MapChart";
+import useTopographyStyle from "../../useTopographyStyle";
+import { Feature } from "ol";
+import { Geometry } from "ol/geom";
+import VectorSource from "ol/source/Vector";
 
 type Props = {
     onCancel?: () => void;
-    onOk?: () => void;
+    onOk?: (feature: Feature<Geometry>) => void;
 }
 enum Stage {
     SearchAddress,
@@ -23,11 +27,20 @@ enum Stage {
 export function DrawAreaAddress(props: Props) {
     const { map } = useContext(MapChartContext);
     const [stage, setStage] = useState(Stage.SearchAddress);
+    const styleHook = useTopographyStyle({
+        defaultFeatureType: FeatureType.AREA,
+        drawing: true,
+    });
+    const drawingSource = useRef<VectorSource|null>(null);
 
-    /**
-     * 初期化
-     */
+    // 初期化
     useEffect(() => {
+        const drawingLayer = map.createDrawingLayer(styleHook.getStyleFunction());
+        drawingSource.current = drawingLayer.getSource();
+
+        return () => {
+            map.removeDrawingLayer(drawingLayer);
+        }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -42,13 +55,8 @@ export function DrawAreaAddress(props: Props) {
         feature.setProperties({
             featureType: FeatureType.AREA,
         });
-        const drawingSource = map.getDrawingLayer().getSource();
-        if (!drawingSource) {
-            console.warn('想定外 drawingSource not found.');
-            return;
-        }
-        drawingSource.clear();
-        drawingSource.addFeature(feature);
+        drawingSource.current?.clear();
+        drawingSource.current?.addFeature(feature);
         const extent = feature.getGeometry()?.getExtent();
         if (extent)
             map.fit(extent, {
@@ -59,14 +67,18 @@ export function DrawAreaAddress(props: Props) {
 
     const onConfirmAddressCancel = useCallback(() => {
         // 書きかけ削除
-        map.getDrawingLayer().getSource()?.clear();
+        drawingSource.current?.clear();
         setStage(Stage.SearchAddress);
-    }, [map]);
+    }, []);
 
     const onOk = useCallback(() => {
-        if (props.onOk) {
-            props.onOk();
-        }
+        if (!props.onOk)
+            return;
+        
+        const feature = drawingSource.current?.getFeatures()[0];
+        if (!feature) return;
+
+        props.onOk(feature);
     }, [props]);
 
     switch(stage) {

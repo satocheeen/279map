@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import * as MapUtility from '../../../../util/MapUtility';
 import PromptMessageBox from '../PromptMessageBox';
 import { useSpinner } from '../../../common/spinner/useSpinner';
@@ -6,11 +6,12 @@ import SelectDrawFeature, { DrawFeatureType } from './SelectDrawFeature';
 import DrawPointRadius from './DrawPointRadius';
 import { DrawAreaAddress } from './DrawAreaAddress';
 import { DrawFreeArea } from './DrawFreeArea';
-import useTopographyStyle from '../../useTopographyStyle';
 import { useAppDispatch } from '../../../../store/configureStore';
 import { registFeature } from '../../../../store/data/dataThunk';
 import { FeatureType, GeoProperties } from '../../../../279map-common';
 import { MapChartContext } from '../../../TsunaguMap/MapChart';
+import { Geometry } from 'ol/geom';
+import { Feature } from 'ol';
 
 type Props = {
     dataSourceId: string;
@@ -41,28 +42,12 @@ export default function DrawTopographyController(props: Props) {
 
     const dispatch = useAppDispatch();
     const spinner = useSpinner();
-    const styleHook = useTopographyStyle({
-        defaultFeatureType: props.drawFeatureType,
-        drawing: true,
-    });
 
-    // 初期状態
-    useEffect(() => {
-        map.showDrawingLayer(styleHook.getStyleFunction());
-
-        return () => {
-            // UnMount時
-            map.hideDrawingLayer();
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-    
-
-    const registFeatureFunc = useCallback(async() => {
+    const registFeatureFunc = useCallback(async(feature: Feature<Geometry>) => {
         spinner.showSpinner('登録中...');
 
         // DB登録
-        const feature = map.getDrawingLayer().getSource()?.getFeatures()[0];
+        // const feature = map.getDrawingLayer().getSource()?.getFeatures()[0];
         if (!feature) {
             console.warn('feature not find.')
         } else {
@@ -79,7 +64,7 @@ export default function DrawTopographyController(props: Props) {
 
         spinner.hideSpinner();
         props.close();
-    }, [map, spinner, props, dispatch]);
+    }, [spinner, props, dispatch]);
 
     // 描画図形選択後
     const onSelectDrawFeatureType = useCallback((selected: DrawFeatureType) => {
@@ -123,20 +108,20 @@ export default function DrawTopographyController(props: Props) {
                 <DrawFreeArea
                     geometryType={geometryType}
                     drawFeatureType={props.drawFeatureType}
-                    onOk={registFeatureFunc}
+                    onOk={(f) => registFeatureFunc(f)}
                     onCancel={onDrawCanceled}
                 />
             );
         case Stage.SEARCH_AREA_ADDRESS:
             return (
                 <DrawAreaAddress 
-                    onOk={registFeatureFunc}
+                    onOk={(f) => registFeatureFunc(f)}
                     onCancel={onDrawCanceled}/>
         );
         case Stage.SEARCH_POINT_ADDRESS:
             return(
                 <DrawPointRadius
-                    onOk={registFeatureFunc}
+                    onOk={(f) => registFeatureFunc(f)}
                     onCancel={onDrawCanceled}/>
             );            
     }

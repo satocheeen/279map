@@ -16,6 +16,7 @@ import { FeatureType, GeoProperties, MapKind } from '../../../../279map-common';
 import { SystemIconDefine } from '../../../../types/types';
 import { useSelector } from 'react-redux';
 import { MapChartContext } from '../../../TsunaguMap/MapChart';
+import VectorLayer from 'ol/layer/Vector';
 
 type Props = {
     dataSourceId: string;   // 作図対象のデータソース
@@ -45,6 +46,8 @@ export default function DrawStructureController(props: Props) {
 
     const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
     const searchAddressRef = useRef<SearchAddressHandler>(null);
+    const drawingLayer = useRef<VectorLayer<VectorSource>>();
+    const drawingSource = useRef<VectorSource|null>(null);
 
     const onSelectedStructure = useCallback((iconDefine: SystemIconDefine) => {
         drawingIcon.current = iconDefine;
@@ -58,16 +61,20 @@ export default function DrawStructureController(props: Props) {
         draw.current.abortDrawing();
         drawingFeature.current = undefined;
         map.removeInteraction(draw.current);
-        map.hideDrawingLayer();
         draw.current = null;
     }, [map]);
 
     // 初期状態
     useEffect(() => {
+        drawingLayer.current = map.createDrawingLayer();
+        drawingSource.current = drawingLayer.current.getSource();
 
         return () => {
             // UnMount時
             drawReset();
+            if (drawingLayer.current) {
+                map.removeDrawingLayer(drawingLayer.current);
+            }
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -82,10 +89,11 @@ export default function DrawStructureController(props: Props) {
         drawReset();
         const type = 'Point';
         const style = pointStyleHook.getDrawingStructureStyleFunction(drawingIcon.current);
+        drawingLayer.current?.setStyle(style);
         drawingFeature.current = undefined;
-        map.showDrawingLayer(style);
+        map.createDrawingLayer(style);
         draw.current = new Draw({
-            source: map.getDrawingLayer().getSource() as VectorSource,
+            source: drawingSource.current as VectorSource,
             type,
             style,
         });
@@ -135,15 +143,14 @@ export default function DrawStructureController(props: Props) {
     }, [map]);
 
     const onSelectAddress= useCallback((address: GeoJsonObject) => {
-        const drawingSource = map.getDrawingLayer().getSource();
-        if (!drawingSource) {
+        if (!drawingSource.current) {
             return;
         }
         console.log('select', address);
         // 指定のアドレスにFeature追加
         const feature = new GeoJSON().readFeatures(address)[0];
-        drawingSource.clear();
-        drawingSource.addFeature(feature);
+        drawingSource.current.clear();
+        drawingSource.current.addFeature(feature);
 
         // 指定のアドレスの場所に移動
         const extent = feature.getGeometry()?.getExtent();

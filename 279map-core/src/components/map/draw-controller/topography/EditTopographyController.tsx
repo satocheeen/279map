@@ -159,7 +159,7 @@ enum Stage {
     } else {
         const target = modifyLayer.current.getSource()?.getFeatures()[0] as Feature;
         return (
-            <RoadWidthSelecter map={props.map} targetRoad={target} onOk={onWidthSelected} onCancel={onClose} />
+            <RoadWidthSelecter targetRoad={target} onOk={onWidthSelected} onCancel={onClose} />
         );
     }
 }

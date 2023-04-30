@@ -5,12 +5,15 @@ import React, { useCallback, useEffect, useMemo, useRef, useState, useContext } 
 import useTopographyStyle from "../../useTopographyStyle";
 import PromptMessageBox from "../PromptMessageBox";
 import { MapChartContext } from "../../../TsunaguMap/MapChart";
+import { Feature } from "ol";
+import { Geometry } from "ol/geom";
+import VectorSource from "ol/source/Vector";
 
 type Props = {
     geometryType: string;
     drawFeatureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA;
     onCancel?: () => void;
-    onOk?: () => void;
+    onOk?: (feature: Feature<Geometry>) => void;
 }
 enum Stage {
     Drawing,
@@ -26,21 +29,19 @@ export function DrawFreeArea(props: Props) {
         defaultFeatureType: props.drawFeatureType,
         drawing: true,
     });
+    const drawingSource = useRef<VectorSource|null>(null);
 
     /**
      * 初期化
      */
      useEffect(() => {
         const styleFunction = styleHook.getStyleFunction();
-        const source = map.getDrawingLayer().getSource();
-        if (!source) {
-            console.warn('想定外 drawing source undefined');
-            return;
-        }
+        const drawingLayer = map.createDrawingLayer(styleHook.getStyleFunction());
+        drawingSource.current = drawingLayer.getSource();
 
         // Drawインタラクション用意
         const newDraw =new Draw({
-            source,
+            source: drawingSource.current as VectorSource,
             type: props.geometryType,
             style: styleFunction,
             clickTolerance: 12,
@@ -60,6 +61,7 @@ export function DrawFreeArea(props: Props) {
 
         return () => {
             map.removeInteraction(newDraw);
+            map.removeDrawingLayer(drawingLayer);
         }
     }, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -85,14 +87,17 @@ export function DrawFreeArea(props: Props) {
         if (!props.onOk)
             return;
         
-        props.onOk();
+        const feature = drawingSource.current?.getFeatures()[0];
+        if (!feature) return;
+
+        props.onOk(feature);
     }, [props]);
 
     const onConfirmCancel = useCallback(() => {
         // 書きかけ削除
-        map.getDrawingLayer().getSource()?.clear();
+        drawingSource.current?.clear();
         setStage(Stage.Drawing);
-    }, [map]);
+    }, []);
 
     switch(stage) {
         case Stage.Drawing:
