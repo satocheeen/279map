@@ -1,5 +1,4 @@
 import React, { lazy, Suspense, useContext, useEffect, useState } from 'react';
-import { Map } from 'ol';
 import { addListener, removeListener } from '../../util/Commander';
 import { useDispatch } from 'react-redux';
 import { operationActions } from '../../store/operation/operationSlice';
@@ -26,7 +25,6 @@ type Props = {
 export default function DrawController(props: Props) {
     const [drawController, setDrawController] = useState(undefined as JSX.Element | undefined);
     const dispatch = useDispatch();
-    const { map } = useContext(MapChartContext);
 
     useEffect(() => {
         const terminate = () => {
@@ -95,16 +93,16 @@ export default function DrawController(props: Props) {
                 );
             })
         );
-        // listenerH.push(
-        //     addListener('EditTopography', async() => {
-        //         dispatch(operationActions.changeMapMode(MapMode.Drawing));
-        //         setDrawController(
-        //             <Suspense fallback={<OverlaySpinner message='準備中...' />}>
-        //                 <EditTopographyController map={map} close={terminate} />
-        //             </Suspense>
-        //         );
-        //     })
-        // );
+        listenerH.push(
+            addListener('EditTopography', async() => {
+                dispatch(operationActions.changeMapMode(MapMode.Drawing));
+                setDrawController(
+                    <Suspense fallback={<OverlaySpinner message='準備中...' />}>
+                        <EditTopographyController close={terminate} />
+                    </Suspense>
+                );
+            })
+        );
         // listenerH.push(
         //     addListener('EditTopographyInfo', async() => {
         //         dispatch(operationActions.changeMapMode(MapMode.Drawing));
@@ -129,7 +127,7 @@ export default function DrawController(props: Props) {
         return () => {
             listenerH.forEach(h => removeListener(h));
         }
-    }, [dispatch, map]);
+    }, [dispatch]);
 
     useEffect(() => {
         if (drawController !== undefined) {

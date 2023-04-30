@@ -1,9 +1,9 @@
-import { Feature, Map } from 'ol';
+import { Feature } from 'ol';
 import { Modify } from 'ol/interaction';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { Stroke, Style } from 'ol/style';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useEffect, useContext, useCallback, useRef, useState } from 'react';
 import useConfirm, { ConfirmResult } from '../../../common/confirm/useConfirm';
 import { useSpinner } from '../../../common/spinner/useSpinner';
 import { createGeoJson, extractGeoProperty, getOriginalLine } from '../../../../util/MapUtility';
@@ -17,9 +17,10 @@ import { FeatureType, GeoProperties } from '../../../../279map-common';
 import { FeatureLike } from 'ol/Feature';
 import { Geometry } from 'ol/geom';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
+import { MapChartContext } from '../../../TsunaguMap/MapChart';
+import { convertDataIdFromFeatureId } from '../../../../store/data/dataUtility';
 
 type Props = {
-    map: Map;   // コントロール対象の地図
     close: () => void;  // 作図完了時のコールバック
 }
 
@@ -33,12 +34,21 @@ enum Stage {
  * 地形編集用コントロールクラス
  */
  export default function EditTopographyController(props: Props) {
+    const { map } = useContext(MapChartContext);
     const [stage, setStage] = useState(Stage.SELECTING_FEATURE);
     const selectedFeature = useRef<FeatureLike>();
     const styleHook = useTopographyStyle({});
-    const modifyLayer = useRef(new VectorLayer({
-        source: new VectorSource(),
-        style: styleHook.getStyleFunction(() => {
+    const confirmHook = useConfirm();
+    const dispatch = useAppDispatch();
+    const spinnerHook = useSpinner();
+    const modifySource = useRef<VectorSource|null>();
+    const modify = useRef<Modify>();
+
+    /**
+     * 初期化
+     */
+    useEffect(() => {
+        const style = styleHook.getStyleFunction(() => {
             return new Style({
                 // fill: new Fill({
                 //     color: 'rgba(255, 255, 255, 0.2)'
@@ -55,15 +65,22 @@ enum Stage {
                 //     })
                 // })
             })
-        }),
-        zIndex: 2,
-    }));
-    const modify = useRef(new Modify({
-        source: modifyLayer.current.getSource() as VectorSource,
-    }));
-    const confirmHook = useConfirm();
-    const dispatch = useAppDispatch();
-    const spinnerHook = useSpinner();
+        });
+        const modifyLayer = map.createDrawingLayer(style);
+        modifySource.current = modifyLayer.getSource();
+        modify.current = new Modify({
+            source: modifyLayer.getSource() as VectorSource,
+        });
+
+        return () => {
+            map.removeDrawingLayer(modifyLayer);
+            modifySource.current?.clear();
+            if (modify.current)
+                map.removeInteraction(modify.current);
+        }
+    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const onSelectFeature = useCallback((feature: FeatureLike) => {
         console.log('select feature', feature);
@@ -77,18 +94,15 @@ enum Stage {
         } else {
             editFeature = (feature as Feature<Geometry>).clone();
         }
-        modifyLayer.current.getSource()?.addFeature(editFeature);
-        props.map.addLayer(modifyLayer.current);
+        modifySource.current?.addFeature(editFeature);
         // 編集インタラクションOn
-        props.map.addInteraction(modify.current);
+        if (modify.current)
+            map.addInteraction(modify.current);
 
         setStage(Stage.EDITING);
-    }, [props.map]);
+    }, [map]);
 
     const onClose = useCallback(() => {
-        modifyLayer.current.getSource()?.clear();
-        props.map.removeLayer(modifyLayer.current);
-        props.map.removeInteraction(modify.current);
         props.close();
     }, [props]);
 
@@ -109,12 +123,9 @@ enum Stage {
 
         const geoProperties = extractGeoProperty(feature.getProperties());
         const geoJson = geoProperties.featureType === FeatureType.ROAD ? geoProperties.lineJson : createGeoJson(feature);
+        const id = convertDataIdFromFeatureId(selectedFeature.current?.getId() as string);
         await dispatch(updateFeature({
-            // TODO: data_source_id考慮
-            id: {
-                id: selectedFeature.current?.getId() as string,
-                dataSourceId: '',
-            },
+            id,
             geometry: geoJson.geometry,
             geoProperties: extractGeoProperty(geoJson.properties),
         }));
@@ -129,7 +140,7 @@ enum Stage {
         if ((selectedFeature.current?.getProperties() as GeoProperties).featureType === FeatureType.ROAD) {
             setStage(Stage.SELECT_ROAD_WIDTH);
         } else {
-            const feature = modifyLayer.current.getSource()?.getFeatures()[0];
+            const feature = modifySource.current?.getFeatures()[0];
             if (!feature) {
                 console.warn('対象なし');
                 return;
@@ -157,7 +168,7 @@ enum Stage {
                 okname="完了" />
         );
     } else {
-        const target = modifyLayer.current.getSource()?.getFeatures()[0] as Feature;
+        const target = modifySource.current?.getFeatures()[0] as Feature;
         return (
             <RoadWidthSelecter targetRoad={target} onOk={onWidthSelected} onCancel={onClose} />
         );
