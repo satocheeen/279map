@@ -1,4 +1,3 @@
-import { Map } from 'ol';
 import { FeatureLike } from 'ol/Feature';
 import React, { useCallback, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -9,9 +8,9 @@ import { useSpinner } from '../../../common/spinner/useSpinner';
 import PromptMessageBox from '../PromptMessageBox';
 import SelectFeature from '../SelectFeature';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
+import { convertDataIdFromFeatureId } from '../../../../store/data/dataUtility';
 
 type Props = {
-    map: Map;   // コントロール対象の地図
     close: () => void;  // 作図完了時のコールバック
 }
 enum Stage {
@@ -42,13 +41,10 @@ export default function EditTopographyInfoController(props: Props) {
     const onInputOk = useCallback(async() => {
         showSpinner('更新中...');
 
+        const id = convertDataIdFromFeatureId(selectedFeatureId.current as string);
         // update DB
         await dispatch(updateFeature({
-            // TODO: data_source_id考慮
-            id: {
-                id: selectedFeatureId.current as string,
-                dataSourceId: '',
-            },
+            id,
             name,
         }));
 

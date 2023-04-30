@@ -103,16 +103,16 @@ export default function DrawController(props: Props) {
                 );
             })
         );
-        // listenerH.push(
-        //     addListener('EditTopographyInfo', async() => {
-        //         dispatch(operationActions.changeMapMode(MapMode.Drawing));
-        //         setDrawController(
-        //             <Suspense fallback={<OverlaySpinner message='準備中...'/>}>
-        //                 <EditTopographyInfoController map={map} close={terminate} />
-        //             </Suspense>
-        //         );
-        //     })
-        // );
+        listenerH.push(
+            addListener('EditTopographyInfo', async() => {
+                dispatch(operationActions.changeMapMode(MapMode.Drawing));
+                setDrawController(
+                    <Suspense fallback={<OverlaySpinner message='準備中...'/>}>
+                        <EditTopographyInfoController close={terminate} />
+                    </Suspense>
+                );
+            })
+        );
         // listenerH.push(
         //     addListener('RemoveTopography', async() => {
         //         dispatch(operationActions.changeMapMode(MapMode.Drawing));
