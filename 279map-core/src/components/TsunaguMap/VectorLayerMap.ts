@@ -11,15 +11,7 @@ export enum LayerType {
     Track = 'Track',         // Track（軌跡）用レイヤ
 }
 
-type TemporaryLayerDefine = {
-    type: 'DrawingItem';
-    layerType: LayerType.Point;
-} | {
-    type: 'DrawingTopography';
-    layerType: LayerType.Topography;
-}
-export type MyLayerDefine = {
-    type: 'MyLayer',
+export type LayerDefine = {
     dataSourceId: string;
     editable: boolean;
 } & (
@@ -33,26 +25,22 @@ export type MyLayerDefine = {
         }
     }
 )
-export type LayerDefine = TemporaryLayerDefine | MyLayerDefine;
-type MyLayerInfo = LayerDefine & {
-    layer: VectorLayer<VectorSource>;
-}
-// 外にレイヤ情報を渡すための型（一時レイヤは直接返さないので）
-export type LayerInfo = Omit<MyLayerDefine, 'type'> & {
+export type LayerInfo = LayerDefine & {
     layer: VectorLayer<VectorSource>;
 }
 
 /**
  * VectorレイヤとVectorソースを一元管理するクラス
+ * (一時レイヤは管理外)
  */
 export class VectorLayerMap {
-    _layerMap: Map<string, MyLayerInfo>;
+    _layerMap: Map<string, LayerInfo>;
     _pointLayerStyle?: StyleFunction;
     _topographyLayerStyle?: StyleFunction;
     _trackLayerStyle?: StyleFunction;
 
     constructor() {
-        this._layerMap = new Map<string, MyLayerInfo>();
+        this._layerMap = new Map<string, LayerInfo>();
     }
 
     /**
@@ -144,9 +132,8 @@ export class VectorLayerMap {
      * @return レイヤInfo配列（1データソースが、Pointレイヤ、Topographyレイヤがあったり、Trackの場合は、ズームLvごとのレイヤがあるので、n個）
      */
     getLayerInfoOfTheDataSource(dataSourceId: string) {
-        const list = [] as MyLayerInfo[];
+        const list = [] as LayerInfo[];
         this._layerMap.forEach(layerInfo => {
-            if (layerInfo.type !== 'MyLayer') return;
             if (layerInfo.dataSourceId === dataSourceId) {
                 list.push(layerInfo);
             }
@@ -162,7 +149,6 @@ export class VectorLayerMap {
     getLayerTypeOfTheDataSource(dataSourceId: string): LayerType[] {
         const list = [] as LayerType[];
         this._layerMap.forEach(layerInfo => {
-            if (layerInfo.type !== 'MyLayer') return;
             if (layerInfo.dataSourceId === dataSourceId) {
                 list.push(layerInfo.layerType);
             }
@@ -178,7 +164,6 @@ export class VectorLayerMap {
     getDataSourceLayers(dataSourceId: string): VectorLayer<VectorSource>[] {
         const list = [] as VectorLayer<VectorSource>[];
         this._layerMap.forEach(layerInfo => {
-            if (layerInfo.type !== 'MyLayer') return;
             if (layerInfo.dataSourceId === dataSourceId) {
                 list.push(layerInfo.layer);
             }
@@ -204,7 +189,6 @@ export class VectorLayerMap {
     getLayersOfTheType(layerType: LayerType): LayerInfo[] {
         const list = [] as LayerInfo[];
         this._layerMap.forEach((val) => {
-            if (val.type !== 'MyLayer') return;
             if (val.layerType === layerType) {
                 list.push(val);
             }
@@ -233,7 +217,7 @@ export class VectorLayerMap {
      * @returns 
      */
     getLayerInfo(layer: Layer) {
-        let info: MyLayerInfo | undefined;
+        let info: LayerInfo | undefined;
         this._layerMap.forEach((val) => {
             if (val.layer === layer) {
                 info = val;

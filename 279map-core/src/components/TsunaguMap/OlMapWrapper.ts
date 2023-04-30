@@ -3,7 +3,7 @@ import * as olControl from 'ol/control';
 import { Extent } from 'ol/extent';
 import { Geometry } from 'ol/geom';
 import { Interaction, defaults } from 'ol/interaction'
-import { LayerInfo, LayerType, MyLayerDefine, VectorLayerMap } from './VectorLayerMap';
+import { LayerInfo, LayerType, LayerDefine, VectorLayerMap } from './VectorLayerMap';
 import GeoJSON from 'ol/format/GeoJSON';
 import prefJson from './pref.json';
 import { Cluster, Vector as VectorSource } from "ol/source";
@@ -140,8 +140,7 @@ export class OlMapWrapper {
             dataSources.forEach(ds => {
                 if (ds.kind === SourceKind.Track) {
                     [[1, 8], [8, 13], [13, 21]].forEach(zoomLv => {
-                        const layerDefine: MyLayerDefine = {
-                            type: 'MyLayer',
+                        const layerDefine: LayerDefine = {
                             dataSourceId: ds.dataSourceId,
                             editable: false,
                             layerType: LayerType.Track,
@@ -155,8 +154,7 @@ export class OlMapWrapper {
 
                 } else if (ds.kind === SourceKind.Item) {
                     [LayerType.Point, LayerType.Topography].forEach(layerType => {
-                        const layerDefine: MyLayerDefine = {
-                            type: 'MyLayer',
+                        const layerDefine: LayerDefine = {
                             dataSourceId: ds.dataSourceId,
                             editable: ds.editable,
                             layerType: layerType as LayerType.Point| LayerType.Topography,
@@ -173,8 +171,7 @@ export class OlMapWrapper {
                     return;
                 }
                 [LayerType.Point, LayerType.Topography].forEach(layerType => {
-                    const layerDefine: MyLayerDefine = {
-                        type: 'MyLayer',
+                    const layerDefine: LayerDefine = {
                         dataSourceId: ds.dataSourceId,
                         editable: ds.editable,
                         layerType: layerType as LayerType.Point| LayerType.Topography,
@@ -368,14 +365,14 @@ export class OlMapWrapper {
         return this._map.getView().getZoom();
     }
 
-    addLayer(layerDefine: MyLayerDefine): VectorLayer<VectorSource> {
+    addLayer(layerDefine: LayerDefine): VectorLayer<VectorSource> {
         console.log('addLayer', this._id, layerDefine);
         const layer = this._vectorLayerMap.createLayer(layerDefine);
         this._map.addLayer(layer);
         return layer;
     }
 
-    removeLayer(layerDefine: MyLayerDefine) {
+    removeLayer(layerDefine: LayerDefine) {
         const layer = this._vectorLayerMap.getLayer(layerDefine);
         if (!layer) {
             console.warn('not exist remove target layer', layerDefine);
