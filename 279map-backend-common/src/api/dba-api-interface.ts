@@ -109,6 +109,7 @@ export const GetUnpointDataAPI = {
 } as APIDefine<GetUnpointDataParam, GetUnpointDataResult>;
 
 export type GetUnpointDataParam = CommonParam & {
+    dataSourceId: string;
     nextToken?: string;
 }
 export type UnpointContent = {

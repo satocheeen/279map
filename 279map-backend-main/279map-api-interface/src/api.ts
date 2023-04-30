@@ -82,6 +82,7 @@ export const GetUnpointDataAPI = {
     resultType: 'json',
 } as APIDefine<GetUnpointDataParam, GetUnpointDataResult>;
 export type GetUnpointDataParam = {
+    dataSourceId: string;
     nextToken?: string;
 }
 export type GetUnpointDataResult = {
