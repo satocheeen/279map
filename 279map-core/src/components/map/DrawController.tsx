@@ -113,16 +113,16 @@ export default function DrawController(props: Props) {
                 );
             })
         );
-        // listenerH.push(
-        //     addListener('RemoveTopography', async() => {
-        //         dispatch(operationActions.changeMapMode(MapMode.Drawing));
-        //         setDrawController(
-        //             <Suspense fallback={<OverlaySpinner  message='準備中...'/>}>
-        //                 <RemoveFeatureController map={map} target="topography" close={terminate} />
-        //             </Suspense>
-        //         );
-        //     })
-        // );
+        listenerH.push(
+            addListener('RemoveTopography', async() => {
+                dispatch(operationActions.changeMapMode(MapMode.Drawing));
+                setDrawController(
+                    <Suspense fallback={<OverlaySpinner  message='準備中...'/>}>
+                        <RemoveFeatureController target={LayerType.Topography} close={terminate} />
+                    </Suspense>
+                );
+            })
+        );
 
         return () => {
             listenerH.forEach(h => removeListener(h));
