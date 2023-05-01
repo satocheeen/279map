@@ -46,30 +46,30 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                 addableChild = false;
             }
             return {
-                    id: {
-                        id: row.content_page_id,
-                        dataSourceId: row.data_source_id,
-                    },
-                    itemId: {
-                        id: row.item_page_id,
-                        dataSourceId: row.item_data_source_id,
-                    },
-                    title: row.title ?? '',
-                    date: row.date,
-                    category: row.category ? JSON.parse(row.category) : [],
-                    image: row.thumbnail ? true : undefined,
-                    videoUrl: contents?.videoUrl,
-                    overview: contents?.content,
-                    url: contents?.url,
-                    parentId: (row.parent_id && row.parent_data_sourceid) ? {
-                        id: row.parent_id,
-                        dataSourceId: row.parent_data_sourceid,
-                    } : undefined,
-                    anotherMapItemId: another_item_ids.length === 0 ? undefined : another_item_ids[0],  // 複数存在する場合は１つだけ返す
-                    isSnsContent,
-                    addableChild,
-                    readonly: row.readonly ? true : false,
-                };
+                id: {
+                    id: row.content_page_id,
+                    dataSourceId: row.data_source_id,
+                },
+                itemId: {
+                    id: row.item_page_id,
+                    dataSourceId: row.item_data_source_id,
+                },
+                title: row.title ?? '',
+                date: row.date,
+                category: row.category ? JSON.parse(row.category) : [],
+                image: row.thumbnail ? true : undefined,
+                videoUrl: contents?.videoUrl,
+                overview: contents?.content,
+                url: contents?.url,
+                parentId: (row.parent_id && row.parent_data_sourceid) ? {
+                    id: row.parent_id,
+                    dataSourceId: row.parent_data_sourceid,
+                } : undefined,
+                anotherMapItemId: another_item_ids.length === 0 ? undefined : another_item_ids[0],  // 複数存在する場合は１つだけ返す
+                isSnsContent,
+                addableChild,
+                readonly: row.readonly ? true : false,
+            };
         }
         const getChildren = async(contentId: DataId): Promise<ContentsDefine[]> => {
             const getChildrenQuery = `
@@ -92,7 +92,7 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
             if ('itemId' in target) {
                 const kinds = getDataSourceKindsFromMapKind(mapKind, { item: true });
                 const sql = `
-                select c.*, i.item_page_id, i.data_source_id, ds.kind from contents c
+                select c.*, i.item_page_id, i.data_source_id as item_data_source_id, ds.kind from contents c
                 inner join item_content_link icl on icl.content_page_id = c.content_page_id 
                 inner join items i on i.item_page_id = icl.item_page_id 
                 inner join data_source ds on ds.data_source_id = i.data_source_id
