@@ -12,6 +12,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../store/configureStore";
 import { Geometry } from "ol/geom";
 import { OlMapWrapper } from "../TsunaguMap/OlMapWrapper";
+import { convertDataIdFromFeatureId, isEqualId } from "../../store/data/dataUtility";
 
 // 建物ラベルを表示するresolution境界値（これ以下の値の時に表示）
 const StructureLabelResolution = 0.003;
@@ -112,8 +113,8 @@ export default function usePointStyle(props: Props) {
         if (filteredItemIdList && features.length > 1) {
             const filteredFeature = features.filter(feature => {
                 const exist = filteredItemIdList.some(itemId => {
-                    // TODO: data_source_id考慮
-                    return (feature.getId() as string) === itemId.id;
+                    const id = convertDataIdFromFeatureId(feature.getId() as string);
+                    return isEqualId(id, itemId);
                 });
                 return exist;
             });
@@ -138,8 +139,8 @@ export default function usePointStyle(props: Props) {
             let mainFeature;
             const filteredFeature = features.filter(feature => {
                 const exist = filteredItemIdList.some(itemId => {
-                    // TODO: data_source_id考慮
-                    return (feature.getId() as string) === itemId.id;
+                    const id = convertDataIdFromFeatureId(feature.getId() as string);
+                    return isEqualId(id, itemId);
                 });
                 return exist;
             });

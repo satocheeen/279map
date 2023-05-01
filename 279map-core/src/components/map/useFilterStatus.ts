@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
 import { useFilter } from '../../store/useFilter';
+import { convertDataIdFromFeatureId, isEqualId } from '../../store/data/dataUtility';
 
 const FORCE_COLOR = '#8888ff';
 
@@ -26,8 +27,8 @@ export default function useFilterStatus() {
      */
     const getForceColor = useCallback((feature: FeatureLike): string | undefined => {
         if (selectedItemIds.some(itemId => {
-            // TODO: data_source_idの考慮
-            return feature.getId() as string === itemId.id;
+            const id = convertDataIdFromFeatureId(feature.getId() as string);
+            return isEqualId(id, itemId);
         })) {
             return FORCE_COLOR;
         }

@@ -70,7 +70,7 @@ export default function AddContentMenu(props: Props) {
             props.onClick();
         }
 
-    }, [props, onNewContentInfo, getUnpointDataAPI, linkContentToItemAPI, onNewContentByManual, onNewContentByUnpointedContent, registContentAPI]);
+    }, [props, contentDataSources, onNewContentInfo, getUnpointDataAPI, linkContentToItemAPI, onNewContentByManual, onNewContentByUnpointedContent, registContentAPI]);
 
     const caption = useMemo(() => {
         if ('itemId' in props.target) {
