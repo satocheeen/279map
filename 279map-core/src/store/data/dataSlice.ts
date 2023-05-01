@@ -4,7 +4,7 @@ import { Extent } from 'ol/extent';
 import { SystemIconDefine } from '../../types/types';
 import { loadMapDefine } from '../session/sessionThunk';
 import { loadCategories, loadContents, loadEvents, loadItems, loadOriginalIconDefine, removeContent } from './dataThunk';
-import { getMapKey } from './dataUtility';
+import { getMapKey, isEqualId } from './dataUtility';
 
 /**
  * 地図関連の情報を管理
@@ -103,7 +103,7 @@ const dataSlice = createSlice({
             if (action.payload.keepCurrentData) {
                 // 既存コンテンツを残す
                 const replaceData = state.contentsList.map(content => {
-                    const newContent = action.payload.contents.find(c => c.id === content.id);
+                    const newContent = action.payload.contents.find(c => isEqualId(c.id, content.id));
                     if (newContent) {
                         return newContent;
                     } else {
@@ -111,7 +111,7 @@ const dataSlice = createSlice({
                     }
                 });
                 const newData = action.payload.contents.filter(content => {
-                    const exist = state.contentsList.some(c => c.id === content.id);
+                    const exist = state.contentsList.some(c => isEqualId(c.id, content.id));
                     return !exist;
                 });
                 state.contentsList = replaceData.concat(newData);
