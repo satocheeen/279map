@@ -131,15 +131,23 @@ export type NewContentByManualParam = {
     registContentAPI: (param: RegistContentParam) => Promise<void>;
 }
 /**
- * 地図上で新規コンテンツ追加→未配置コンテンツが選択された場合のコールバック
+ * 地図上で新規コンテンツ追加→未配置コンテンツが選択された場合に、コールバック関数に渡される情報
  */
 export type LinkUnpointContentParam = {
+    // 未配置コンテンツの紐づけ先
     parent: {
-        itemId: DataId;
+        itemId: DataId; // コンテンツをアイテム直下に紐づける場合
     } | {
-        contentId: DataId;
+        contentId: DataId;  // 子コンテンツとして紐づける場合
     }
-    getUnpointDataAPI: (nextToken?: string) => Promise<{contents: UnpointContent[]; nextToken: string | undefined}>;
+    // コンテンツデータソース一覧
+    dataSources: {
+        dataSourceId: string;
+        name: string;
+    }[];
+    // 未配置コンテンツ情報取得API
+    getUnpointDataAPI: (dataSourceId: string, nextToken?: string) => Promise<{contents: UnpointContent[]; nextToken: string | undefined}>;
+    // コンテンツ紐づけAPI
     linkContentToItemAPI: (param: LinkContentToItemParam) => Promise<void>;
 }
 

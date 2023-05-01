@@ -873,6 +873,7 @@ app.post(`/api/${GetUnpointDataAPI.uri}`,
             // call ODBA
             const result = await backendAPI.callOdbaApi(backendAPI.GetUnpointDataAPI, {
                 currentMap: req.currentMap,
+                dataSourceId: param.dataSourceId,
                 nextToken: param.nextToken,
             });
     

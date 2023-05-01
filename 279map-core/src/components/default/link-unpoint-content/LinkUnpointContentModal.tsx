@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from '../../common';
 import { LinkUnpointContentParam } from '../../../types/types';
 import { DataId, UnpointContent } from '../../../279map-common';
@@ -6,6 +6,7 @@ import styles from './LinkUnpointContentModal.module.scss';
 import Card from '../../common/card/Card';
 import Spinner from '../../common/spinner/Spinner';
 import { getMapKey } from '../../../store/data/dataUtility';
+import Select from '../../common/form/Select';
 
 type Props = {
     param: LinkUnpointContentParam;
@@ -21,21 +22,38 @@ export default function LinkUnpointContentModal(props: Props) {
     const [ unpointContents, setUnpointContents ] = useState<UnpointContent[]>([]);
     const [ nextToken, setNextToken ] = useState<string|undefined>();
     const [ loading, setLoading ] = useState(false);
+    const [ targetContentDataSourceId, setTargetContentDataSourceId ] = useState<string>();
+
+    const dataSourceItems = useMemo(() => {
+        return props.param.dataSources.map(ds => {
+            return {
+                value: ds.dataSourceId,
+                name: ds.name,
+            }
+        })
+    }, [props.param.dataSources]);
+
+    const onDataSourceChanged = useCallback((dataSourceId: string | undefined) => {
+        setUnpointContents([]);
+        setTargetContentDataSourceId(dataSourceId);
+    }, []);
 
     const readMore = useCallback(() => {
+        if (!targetContentDataSourceId) return;
+
         setLoading(true);
-        props.param.getUnpointDataAPI(nextToken)
+        props.param.getUnpointDataAPI(targetContentDataSourceId, nextToken)
         .then((result) => {
             setUnpointContents(result.contents);
             setNextToken(result.nextToken);
             setLoading(false);
         })
-    }, [props.param, nextToken]);
+    }, [props.param, nextToken, targetContentDataSourceId]);
 
     useEffect(() => {
         readMore();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [targetContentDataSourceId]);
 
     const onSelect = useCallback(async(id: DataId) => {
         setLoading(true);
@@ -62,6 +80,9 @@ export default function LinkUnpointContentModal(props: Props) {
             </ModalHeader>
             <ModalBody>
                 <div className={styles.Container}>
+                    <div className={styles.ConditionArea}>
+                        <Select items={dataSourceItems} value={targetContentDataSourceId} onSelect={onDataSourceChanged} />
+                    </div>
                     <div className={styles.CardArea}>
                         <ul>
                             {unpointContents.map((uc) => {

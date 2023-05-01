@@ -152,8 +152,9 @@ export function useCommand() {
         return res;
     }, []);
 
-    const getUnpointDataAPI = useCallback(async(nextToken?: string) => {
+    const getUnpointDataAPI = useCallback(async(dataSourceId: string, nextToken?: string) => {
         const result = await getAPICallerInstance().callApi(GetUnpointDataAPI, {
+            dataSourceId,
             nextToken,
         });
         return {
