@@ -81,10 +81,10 @@ export default function ContentInfoForm(props: Props) {
         }
         getSnsPreviewAPI(props.value.url)
         .then(res => {
-            setSnsPreviewPosts(res.posts);
+            // setSnsPreviewPosts(res.posts);
         })
         .catch((e) => {
-            setErrorMessage(e);
+            setErrorMessage(''+ e);
         });
     // @ts-ignore
     }, [props.value.type, props.value.url, getSnsPreviewAPI]);
