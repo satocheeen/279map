@@ -1,0 +1,16 @@
+.Group {
+    background-color: var(--white);
+    color: var(--black);
+}
+.Item {
+    display: flex;
+    border: 1px solid var(--dark-012);
+    border-radius: 5px;
+    box-sizing: border-box;
+    padding: 5px;
+    cursor: pointer;
+
+    &:hover {
+        filter: brightness(2.5);
+    }
+}

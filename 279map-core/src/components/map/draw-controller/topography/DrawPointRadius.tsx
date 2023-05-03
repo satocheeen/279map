@@ -4,7 +4,6 @@ import { GeoJsonObject } from 'geojson';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Feature } from 'ol';
 import VectorSource from 'ol/source/Vector';
-import { Form } from 'react-bootstrap';
 import Button from '../../../common/button/Button';
 import { convertKmToLonLat, getStructureScale } from '../../../../util/MapUtility';
 import { Circle, Geometry } from 'ol/geom';
@@ -20,6 +19,8 @@ import usePointStyle from '../../usePointStyle';
 import { getDistance } from 'geolib';
 import { FeatureType } from '../../../../279map-common';
 import { MapChartContext } from '../../../TsunaguMap/MapChart';
+import FormGroup from '../../../common/form/FormGroup';
+import Input from '../../../common/form/Input';
 
 type Props = {
     onCancel?: () => void;
@@ -290,12 +291,11 @@ export default function DrawPointRadius(props: Props) {
                 </div>
                 <div className={`${styles.Phase} ${stage !== Stage.DrawCircle ? styles.Disabled : ''}`}>
                     <p>2. 円を描画するか、半径を入力してください.</p>
-                    <Form.Group>
-                        <Form.Label>半径km</Form.Label>
-                        <Form.Control type='number'
+                    <FormGroup label='半径km'>
+                        <Input type='number'
                             disabled={stage !== Stage.DrawCircle}
                             value={radius} onChange={onInputRadius} />
-                    </Form.Group>
+                    </FormGroup>
                     <Button variant="secondary"
                         onClick={()=>setStage(Stage.SelectCenter)}>戻る</Button>
                 </div>

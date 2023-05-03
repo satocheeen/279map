@@ -1,6 +1,6 @@
 import { MapKind } from '../../../../279map-common';
 import React from 'react';
-import { ListGroup } from 'react-bootstrap';
+import ListGroup from '../../../common/list/ListGroup';
 import { TbCircle, TbHexagon } from 'react-icons/tb';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../store/configureStore';
@@ -21,7 +21,7 @@ export default function SelectDrawFeature(props: Props) {
 
     return (
         <ListGroup className={styles.LiteArea}>
-            <ListGroup.Item action onClick={()=>props.onSelect(DrawFeatureType.FreePolygon)}>
+            <ListGroup.Item onClick={()=>props.onSelect(DrawFeatureType.FreePolygon)}>
                 <span className={styles.IconArea}>
                     <TbHexagon />
                 </span>
@@ -30,7 +30,7 @@ export default function SelectDrawFeature(props: Props) {
                 </span>
             </ListGroup.Item>
             {mapKind === MapKind.Virtual &&
-                <ListGroup.Item action onClick={()=>props.onSelect(DrawFeatureType.FreeCircle)}>
+                <ListGroup.Item onClick={()=>props.onSelect(DrawFeatureType.FreeCircle)}>
                     <span className={styles.IconArea}>
                         <TbCircle />
                     </span>
@@ -40,7 +40,7 @@ export default function SelectDrawFeature(props: Props) {
                 </ListGroup.Item>
             }
             {mapKind === MapKind.Real &&
-                <ListGroup.Item action onClick={()=>props.onSelect(DrawFeatureType.AddressArea)}>
+                <ListGroup.Item onClick={()=>props.onSelect(DrawFeatureType.AddressArea)}>
                     <span className={styles.IconArea}>
                         <TbHexagon />
                     </span>
@@ -50,7 +50,7 @@ export default function SelectDrawFeature(props: Props) {
                 </ListGroup.Item>
             }
             {mapKind === MapKind.Real &&
-                <ListGroup.Item action onClick={()=>props.onSelect(DrawFeatureType.AddressPointRadius)}>
+                <ListGroup.Item onClick={()=>props.onSelect(DrawFeatureType.AddressPointRadius)}>
                     <span className={styles.IconArea}>
                         <TbCircle />
                     </span>

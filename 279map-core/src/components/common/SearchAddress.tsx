@@ -1,11 +1,11 @@
 import { GeoJsonObject, Point } from 'geojson';
 import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { ListGroup } from 'react-bootstrap';
 import Input from '../common/form/Input';
 import { FeatureType, GeoProperties } from '../../279map-common';
 import Spinner from './spinner/Spinner';
 import { GeocoderAPI, GeocoderItem } from 'tsunagumap-api';
 import { getAPICallerInstance } from '../../api/ApiCaller';
+import ListGroup from './list/ListGroup';
 
 type Props = {
     disabled?: boolean; // trueの場合、住所入力不可
@@ -138,7 +138,7 @@ function SearchAddress(props: Props, ref: React.ForwardedRef<SearchAddressHandle
                 <ListGroup>
                     {candidates.map(candidate => {
                         return (
-                            <ListGroup.Item key={JSON.stringify(candidate.idInfo)} onClick={()=>onSelectCandidate(candidate)} action>
+                            <ListGroup.Item key={JSON.stringify(candidate.idInfo)} onClick={()=>onSelectCandidate(candidate)}>
                                 {candidate.name}
                             </ListGroup.Item>
                         );
