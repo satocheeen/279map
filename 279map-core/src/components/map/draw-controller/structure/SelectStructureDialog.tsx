@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Button from '../../../common/button/Button';
-import Modal, { ModalHeader, ModalBody, ModalFooter } from  '../../../common/modal/Modal';
+import Modal from  '../../../common/modal/Modal';
 import useIcon from '../../../../store/useIcon';
 import styles from './SelectStructureDialog.module.scss';
 import { MapKind } from '../../../../279map-common';
@@ -90,23 +90,23 @@ export default function SelectStructureDialog(props: Props) {
 
     return (
         <Modal show={show}>
-            <ModalHeader>
+            <Modal.Header>
                 {title}
-            </ModalHeader>
-            <ModalBody>
+            </Modal.Header>
+            <Modal.Body>
                 <div className={styles.SelectStructureDialog}>
                     <div>{message}</div>
                     {imageList}
                 </div>
-            </ModalBody>
-            <ModalFooter>
+            </Modal.Body>
+            <Modal.Footer>
                 <Button variant="secondary" onClick={onCancel}>
                         Cancel
                 </Button>
                 <Button variant="primary" onClick={onOk} disabled={okDisable}>
                         OK
                 </Button>
-            </ModalFooter>
+            </Modal.Footer>
         </Modal>
     );
 }

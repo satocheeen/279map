@@ -4,7 +4,7 @@ import styles from './ContentInfoEditDialog.module.scss';
 import { AddNewContentParam, EditContentParam } from '../../../types/types';
 import { ContentAttr } from '../../../279map-common';
 import { useCommand } from '../../../api/useCommand';
-import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from '../../common';
+import { Button, Modal } from '../../common';
 
 type Props = {
     onClose?: () => void;
@@ -108,19 +108,19 @@ export default function ContentInfoEditDialog(props: Props) {
 
     return (
         <Modal show={true} spinner={spinner}>
-            <ModalHeader>
+            <Modal.Header>
                 {title}
-            </ModalHeader>
-            <ModalBody>
+            </Modal.Header>
+            <Modal.Body>
                 <div className={styles.Content}>
                     <ContentInfoForm value={attrValue}
                         getSnsPreviewAPI={props.param.getSnsPreviewAPI} onChange={onChange} />
                 </div>
-            </ModalBody>
-            <ModalFooter>
+            </Modal.Body>
+            <Modal.Footer>
                 <Button variant="secondary" onClick={onCancel}>Cancel</Button>
                 <Button variant="primary" onClick={onOk}>OK</Button>
-            </ModalFooter>
+            </Modal.Footer>
         </Modal>
 );
 }

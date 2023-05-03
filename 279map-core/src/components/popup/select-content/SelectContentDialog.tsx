@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback, useEffect, useState } from 'react';
 import { useAppDispatch } from '../../../store/configureStore';
-import { Modal, ModalBody, ModalFooter, ModalHeader } from '../../common';
+import { Modal } from '../../common';
 import ContentCard from './ContentCard';
 import { loadContents } from '../../../store/data/dataThunk';
 import styles from './SelectContentDialog.module.scss';
@@ -49,8 +49,8 @@ export default function SelectContentDialog(props: Props) {
 
     return (
         <Modal show={show} onCloseBtnClicked={onCancel}>
-            <ModalHeader>コンテンツ選択</ModalHeader>
-            <ModalBody>
+            <Modal.Header>コンテンツ選択</Modal.Header>
+            <Modal.Body>
                 <div className={styles.Body}>
                     <ul>
                         {contentIds.map(id => {
@@ -62,8 +62,8 @@ export default function SelectContentDialog(props: Props) {
                         })}
                     </ul>
                 </div>
-            </ModalBody>
-            <ModalFooter></ModalFooter>
+            </Modal.Body>
+            <Modal.Footer></Modal.Footer>
         </Modal>
     );
 }

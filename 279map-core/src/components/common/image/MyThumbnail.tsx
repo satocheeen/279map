@@ -44,7 +44,7 @@ export default function MyThumbnail(props: Props) {
             console.warn('get thumbnail failed.', e);
         });
 
-    }, [sid, token]);
+    }, [sid, token, props.id.id]);
 
     return (
         <img ref={myRef} className={props.className} onClick={props.onClick} alt={props.alt} />

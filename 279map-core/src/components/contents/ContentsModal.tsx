@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { RootState, useAppDispatch } from '../../store/configureStore';
-import { Modal, ModalBody, ModalFooter, ModalHeader } from '../common';
+import { Modal }  from '../common';
 import { loadContents } from '../../store/data/dataThunk';
 import Content from './Content';
 import { useSelector } from 'react-redux';
@@ -146,24 +146,24 @@ export default function ContentsModal() {
             onCloseBtnClicked={onCloseBtnClicked}
             onClosed={onClosed}
             >
-            <ModalHeader>
+            <Modal.Header>
                 <div className={styles.ItemHeader}>
                     詳細
                     {itemId &&
                     <AddContentMenu target={{itemId}} />
                 }
                 </div>
-            </ModalHeader>
-            <ModalBody>
+            </Modal.Header>
+            <Modal.Body>
                 {contents.map((content) => {
                     return (
                         <Content key={getMapKey(content.id)} itemId={content.itemId}  content={content} />
                     )
                 })}
-            </ModalBody>
-            <ModalFooter>
+            </Modal.Body>
+            <Modal.Footer>
 
-            </ModalFooter>
+            </Modal.Footer>
         </Modal>
     );
 }

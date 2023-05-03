@@ -49,7 +49,7 @@ export default function useTrackStyle(props: Props) {
             // console.log('setPointLayerStyle', instanceId);
             props.map.setTrackLayerStyle(trackStyleFunction);
         }
-    }, [trackStyleFunction, props.map]);
+    }, [trackStyleFunction, props.map, mapMode]);
 
     // const addLayer = useCallback((layer: VectorLayer<VectorSource>) => {
     //     layersRef.current.push(layer);

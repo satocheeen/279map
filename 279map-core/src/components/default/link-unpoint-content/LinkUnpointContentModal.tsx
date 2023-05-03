@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from '../../common';
+import { Button, Modal } from '../../common';
 import { LinkUnpointContentParam } from '../../../types/types';
 import { DataId, UnpointContent } from '../../../279map-common';
 import styles from './LinkUnpointContentModal.module.scss';
@@ -83,10 +83,10 @@ export default function LinkUnpointContentModal(props: Props) {
 
     return (
         <Modal show={true}>
-            <ModalHeader>
+            <Modal.Header>
                 既存コンテンツを選択
-            </ModalHeader>
-            <ModalBody>
+            </Modal.Header>
+            <Modal.Body>
                 <div className={styles.Container}>
                     <div className={styles.ConditionArea}>
                         <Select items={dataSourceItems} value={targetContentDataSourceId} onSelect={onDataSourceChanged} />
@@ -121,12 +121,12 @@ export default function LinkUnpointContentModal(props: Props) {
                         </div>
                     }
                 </div>
-            </ModalBody>
-            <ModalFooter>
+            </Modal.Body>
+            <Modal.Footer>
                 <Button variant="secondary" onClick={onCancel} disabled={loading}>
                     Cancel
                 </Button>
-            </ModalFooter>
+            </Modal.Footer>
         </Modal>
     );
 }

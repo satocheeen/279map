@@ -80,23 +80,27 @@ export default function Modal(props: Props) {
 type HeaderProps = {
     children?: string | JSX.Element | JSX.Element[];
 }
-export function ModalHeader(props: HeaderProps) {
+function ModalHeader(props: HeaderProps) {
     return <></>
 };
 type HeaderItem = ReturnType<typeof ModalHeader>
+Modal.Header = ModalHeader;
 
 type BodyProps = {
     children?: JSX.Element | JSX.Element[];
 }
-export function ModalBody(props: BodyProps) {
+function ModalBody(props: BodyProps) {
     return <></>
 }
+Modal.Body = ModalBody;
+
 type BodyItem = ReturnType<typeof ModalBody>
 
 type FooterProps = {
     children?: JSX.Element | JSX.Element[];
 }
-export function ModalFooter(props: FooterProps) {
+function ModalFooter(props: FooterProps) {
     return <></>
 }
 type FooterItem = ReturnType<typeof ModalFooter>
+Modal.Footer = ModalFooter;
