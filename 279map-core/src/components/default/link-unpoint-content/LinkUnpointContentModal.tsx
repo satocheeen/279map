@@ -23,6 +23,7 @@ export default function LinkUnpointContentModal(props: Props) {
     const [ nextToken, setNextToken ] = useState<string|undefined>();
     const [ loading, setLoading ] = useState(false);
     const [ targetContentDataSourceId, setTargetContentDataSourceId ] = useState<string>();
+    const [ errorMessage, setErrorMessage ] = useState<string|undefined>();
 
     const dataSourceItems = useMemo(() => {
         return props.param.dataSources.map(ds => {
@@ -42,10 +43,17 @@ export default function LinkUnpointContentModal(props: Props) {
         if (!targetContentDataSourceId) return;
 
         setLoading(true);
+        setErrorMessage(undefined);
         props.param.getUnpointDataAPI(targetContentDataSourceId, nextToken)
         .then((result) => {
             setUnpointContents(result.contents);
             setNextToken(result.nextToken);
+        })
+        .catch(err => {
+            console.warn('getUnpointDataAPI failed.', err);
+            setErrorMessage('コンテンツ取得に失敗しました。\n' + err);
+        })
+        .finally(() => {
             setLoading(false);
         })
     }, [props.param, nextToken, targetContentDataSourceId]);
@@ -84,22 +92,29 @@ export default function LinkUnpointContentModal(props: Props) {
                         <Select items={dataSourceItems} value={targetContentDataSourceId} onSelect={onDataSourceChanged} />
                     </div>
                     <div className={styles.CardArea}>
-                        <ul>
-                            {unpointContents.map((uc) => {
-                                return (
-                                    <li key={getMapKey(uc.id)}>
-                                        <Card title={uc.title} imageUrl={uc.thumb ? 'data:' + uc.thumb : undefined} 
-                                            overview={uc.overview} onClick={()=>onSelect(uc.id)} />
-                                    </li>
-                                ) 
-                            })}
-                        </ul>
-                        {nextToken &&
-                            <div className={styles.ReadMore}>
-                                <Button variant='link' onClick={readMore}>Read more</Button>
-                            </div>
+                        {errorMessage ?
+                            <p>{errorMessage}</p>    
+                            :
+                            <>
+                                <ul>
+                                    {unpointContents.map((uc) => {
+                                        return (
+                                            <li key={getMapKey(uc.id)}>
+                                                <Card title={uc.title} imageUrl={uc.thumb ? 'data:' + uc.thumb : undefined} 
+                                                    overview={uc.overview} onClick={()=>onSelect(uc.id)} />
+                                            </li>
+                                        ) 
+                                    })}
+                                </ul>
+                                {nextToken &&
+                                    <div className={styles.ReadMore}>
+                                        <Button variant='link' onClick={readMore}>Read more</Button>
+                                    </div>
+                                }
+                            </>
                         }
                     </div>
+
                     {loading &&
                         <div className={styles.SpinnerArea}>
                             <Spinner />

@@ -13,6 +13,7 @@
     width: 500px;
     overflow-y: auto;
     overflow-x: hidden;
+    white-space: pre-wrap;
 
     ul {
         display: flex;
