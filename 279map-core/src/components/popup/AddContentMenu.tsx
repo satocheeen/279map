@@ -26,9 +26,25 @@ export default function AddContentMenu(props: Props) {
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
     const { getUnpointDataAPI, registContentAPI, linkContentToItemAPI } = useCommand();
 
-    const editableContentDataSources = useSelector((state: RootState): LinkUnpointContentParam['dataSources'] => {
-        if (!state.session.currentMapKindInfo) return [];
-        return state.session.currentMapKindInfo.dataSources
+    const dataSources = useSelector((state: RootState) => state.session.currentMapKindInfo?.dataSources ?? []);
+
+    const isEditableTarget = useMemo(() => {
+        let dataSourceId: string;
+        if ('itemId' in props.target) {
+            dataSourceId = props.target.itemId.dataSourceId;
+        } else {
+            dataSourceId = props.target.contentId.dataSourceId;
+        }
+        const dataSource = dataSources.find(ds => ds.dataSourceId === dataSourceId);
+        if (!dataSource) {
+            console.warn('想定外 target dataSource not find.', dataSourceId);
+            return false;
+        }
+        return dataSource.editable;
+    }, [props.target, dataSources]);
+
+    const editableContentDataSources = useMemo((): LinkUnpointContentParam['dataSources'] => {
+        return dataSources
                 .filter(ds => ds.editable && ds.kind === SourceKind.Content)
                 .map(ds => {
                     return {
@@ -36,7 +52,7 @@ export default function AddContentMenu(props: Props) {
                         name: ds.name,
                     }
                 });
-    });
+    }, [dataSources]);
 
     const onAddContent = useCallback((val: 'new' | 'unpoint') => {
         if (onNewContentInfo) {
@@ -85,6 +101,9 @@ export default function AddContentMenu(props: Props) {
             name: string;
             callback: () => void;
         }[];
+        if (!isEditableTarget) {
+            return items;
+        }
         if (editableContentDataSources.length > 0) {
             items.push({
                 name: '新規コンテンツ',
@@ -96,7 +115,7 @@ export default function AddContentMenu(props: Props) {
             callback: () => onAddContent('unpoint'),
         });
         return items;
-    }, [onAddContent, editableContentDataSources]);
+    }, [onAddContent, editableContentDataSources, isEditableTarget]);
 
     const onClick = useCallback(() => {
         setShowSubMenu((state) => !state);
