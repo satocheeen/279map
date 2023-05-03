@@ -1,5 +1,4 @@
 import React, { useCallback, useState, useEffect, useMemo } from 'react';
-import { Col, Form, Row } from 'react-bootstrap';
 import { ContentAttr, SnsPreviewPost } from '../../../279map-common';
 import SnsPreviewCard from './SnsPreviewCard';
 import styles from './ContentInfoForm.module.scss';
@@ -9,6 +8,9 @@ import utc from 'dayjs/plugin/utc';
 import { ImageRegister } from '../../common';
 import { GetSnsPreviewResult } from 'tsunagumap-api';
 import { useCommand } from '../../../api/useCommand';
+import FormGroup from '../../common/form/FormGroup';
+import Input from '../../common/form/Input';
+import RadioButtons from '../../common/form/RadioButtons';
 dayjs.extend(utc);
 
 type Props = {
@@ -100,45 +102,33 @@ export default function ContentInfoForm(props: Props) {
     }, [props]);
 
     return (
-        <Form className={styles.Form}>
-            <Form.Group as={Row} className="mb-3">
-                <Form.Label column sm={3}>タイトル</Form.Label>
-                <Col>
-                    <Form.Control value={props.value.title} onChange={(e) => handleChange(e.target.value, 'title')} />
-                </Col>
-            </Form.Group>
-            <Form.Group as={Row} className="mb-3">
-                <Form.Label column sm={3}>概要</Form.Label>
-                <Col>
-                    <Form.Control as="textarea" rows={3} value={props.value.overview} onChange={(e) => handleChange(e.target.value, 'overview')} />
-                </Col>
-            </Form.Group>
-            <Form.Group as={Row} className="mb-3">
-                <Form.Label column sm={3}>カテゴリ</Form.Label>
-                <Col>
-                    <CategorySelector selected={props.value.categories} onChange={onCategoryChanged} />
-                </Col>
-            </Form.Group>
-            <Form.Group as={Row} className="mb-3">
-                <Col>
-                    <Form.Check inline type='radio' id="content-type-normal" name="content-type" label="通常" checked={props.value.type === 'normal'} onChange={()=>onRadioClicked('normal')} />
-                    <Form.Check inline type='radio' id="content-type-sns" name="content-type" label="SNS連携" checked={props.value.type=== 'sns'} onChange={()=>onRadioClicked('sns')} />
-                </Col>
-            </Form.Group>
+        <form className={styles.Form}>
+            <FormGroup label='タイトル'>
+                <Input value={props.value.title} onChange={(e) => handleChange(e.target.value, 'title')} />
+            </FormGroup>
+            <FormGroup label='概要'>
+                <textarea rows={3} value={props.value.overview} onChange={(e) => handleChange(e.target.value, 'overview')} />
+            </FormGroup>
+            <FormGroup label='カテゴリ'>
+                <CategorySelector selected={props.value.categories} onChange={onCategoryChanged} />
+            </FormGroup>
+            <FormGroup label=''>
+                <RadioButtons items={[
+                    { label: '通常', value: 'normal' },
+                    { label: 'SNS', value: 'sns' },
+                ]}
+                value={props.value.type}
+                onChange={(val)=>onRadioClicked(val as 'normal' | 'sns')}
+                />
+            </FormGroup>
             {props.value.type === 'normal' ?
                 <>
-                    <Form.Group as={Row} className="mb-3">
-                        <Form.Label column sm={3}>画像</Form.Label>
-                        <Col>
-                            <ImageRegister imageUrl={props.value.imageUrl} onSelect={(evt) => handleChange(evt.imageUrl, 'imageUrl')} />
-                        </Col>
-                    </Form.Group>
-                    <Form.Group as={Row} className="mb-3">
-                        <Form.Label column sm={3}>日付</Form.Label>
-                        <Col>
-                            <Form.Control type='date' value={dateStr} onChange={onChangeDate} />
-                        </Col>
-                    </Form.Group>
+                    <FormGroup label='画像'>
+                        <ImageRegister imageUrl={props.value.imageUrl} onSelect={(evt) => handleChange(evt.imageUrl, 'imageUrl')} />
+                    </FormGroup>
+                    <FormGroup label='日付'>
+                        <Input type='date' value={dateStr} onChange={onChangeDate} />
+                    </FormGroup>
                 </>
                 :
                 <>
@@ -153,13 +143,12 @@ export default function ContentInfoForm(props: Props) {
                             </ul>
                         </ul>
                     </div>
-                    <Form.Group as={Row} className="mb-3">
-                        <Form.Label column sm={3}>URL</Form.Label>
-                        <Col>
-                            <Form.Control value={props.value.url ?? ''} placeholder="" onChange={(e) => handleChange(e.target.value, 'url')} />
+                    <FormGroup label='URL'>
+                        <>
+                            <Input value={props.value.url ?? ''} placeholder="" onChange={(e) => handleChange(e.target.value, 'url')} />
                             <p className="text-danger">{errorMessage}</p>
-                        </Col>
-                    </Form.Group>
+                        </>
+                    </FormGroup>
                     <div className={styles.PreviewArea}>
                     {
                         snsPreviewPosts.length > 0 &&
@@ -177,6 +166,6 @@ export default function ContentInfoForm(props: Props) {
                     </div>
                 </>
         }
-        </Form>
+        </form>
 );
 }
