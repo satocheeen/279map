@@ -26,7 +26,7 @@ export default function AddContentMenu(props: Props) {
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
     const { getUnpointDataAPI, registContentAPI, linkContentToItemAPI } = useCommand();
 
-    const contentDataSources = useSelector((state: RootState): LinkUnpointContentParam['dataSources'] => {
+    const editableContentDataSources = useSelector((state: RootState): LinkUnpointContentParam['dataSources'] => {
         if (!state.session.currentMapKindInfo) return [];
         return state.session.currentMapKindInfo.dataSources
                 .filter(ds => ds.editable && ds.kind === SourceKind.Content)
@@ -60,7 +60,7 @@ export default function AddContentMenu(props: Props) {
         } else {
             onNewContentByUnpointedContent({
                 parent: props.target,
-                dataSources: contentDataSources,
+                dataSources: editableContentDataSources,
                 getUnpointDataAPI,
                 linkContentToItemAPI,
             });
@@ -70,7 +70,7 @@ export default function AddContentMenu(props: Props) {
             props.onClick();
         }
 
-    }, [props, contentDataSources, onNewContentInfo, getUnpointDataAPI, linkContentToItemAPI, onNewContentByManual, onNewContentByUnpointedContent, registContentAPI]);
+    }, [props, editableContentDataSources, onNewContentInfo, getUnpointDataAPI, linkContentToItemAPI, onNewContentByManual, onNewContentByUnpointedContent, registContentAPI]);
 
     const caption = useMemo(() => {
         if ('itemId' in props.target) {
@@ -80,6 +80,24 @@ export default function AddContentMenu(props: Props) {
         }
     }, [props]);
 
+    const subMenuItems = useMemo(() => {
+        const items = [] as {
+            name: string;
+            callback: () => void;
+        }[];
+        if (editableContentDataSources.length > 0) {
+            items.push({
+                name: '新規コンテンツ',
+                callback: () => onAddContent('new'),
+            });
+        }
+        items.push({
+            name: '既存コンテンツ',
+            callback: () => onAddContent('unpoint'),
+        });
+        return items;
+    }, [onAddContent, editableContentDataSources]);
+
     const onClick = useCallback(() => {
         setShowSubMenu((state) => !state);
     }, []);
@@ -88,23 +106,31 @@ export default function AddContentMenu(props: Props) {
         setShowSubMenu(false); 
     }, []);
 
-    return (
-        // <>
-        //     <PopupMenuIcon id={id.current} tooltip={caption} onClick={onClick}>
-        //         <MdOutlineLibraryAdd />
-        //     </PopupMenuIcon>
-        //     <Tooltip anchorId={id.current} place='right' isOpen={isShowSubMenu}
-        //         onHide={onSubMenuHide} name="addContents">
-        //         <ul className={styles.SubMenu}>
-        //             <li onClick={() => onAddContent('new')}>新規作成</li>
-        //             <li onClick={() => onAddContent('unpoint')}>既存コンテンツ</li>
-        //         </ul>
-        //     </Tooltip>
-        // </>
-        <>
-            <PopupMenuIcon id={id.current} tooltip={caption} onClick={() => onAddContent('unpoint')}>
+    if (subMenuItems.length === 0) {
+        return null;
+    } else if (subMenuItems.length === 1) {
+        return (
+            <PopupMenuIcon id={id.current} tooltip={caption} onClick={subMenuItems[0].callback}>
                 <MdOutlineLibraryAdd />
             </PopupMenuIcon>
-        </>
-);
+        )
+    } else {
+        return (
+            <>
+                <PopupMenuIcon id={id.current} tooltip={caption} onClick={onClick}>
+                    <MdOutlineLibraryAdd />
+                </PopupMenuIcon>
+                <Tooltip anchorId={id.current} place='right' isOpen={isShowSubMenu}
+                    onHide={onSubMenuHide} name="addContents">
+                    <ul className={styles.SubMenu}>
+                        { subMenuItems.map((item, index) => {
+                            return (
+                                <li key={index} onClick={item.callback}>{item.name}</li>
+                            )
+                        })}
+                    </ul>
+                </Tooltip>
+            </>
+        )
+    }
 }
