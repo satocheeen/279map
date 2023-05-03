@@ -2,7 +2,7 @@ import { ContentAttr, DataId, GeoProperties, IconDefine, MapDefine, UnpointConte
 import { CSSProperties } from "react";
 import { CategoryDefine, EventDefine, MapKind } from '../279map-common';
 import { CommandHookType } from '../api/useCommand';
-import { DataSourceInfo, ApiError, ConnectResult, ErrorType, GetMapInfoResult, LinkContentToItemParam, RegistContentParam } from "tsunagumap-api";
+import { DataSourceInfo, ApiError, ConnectResult, ErrorType, GetMapInfoResult, LinkContentToItemParam, RegistContentParam, GetSnsPreviewResult, UpdateContentParam } from "tsunagumap-api";
 
 type ConnectSuccessResult = {
     result: 'success';
@@ -65,10 +65,7 @@ export type TsunaguMapProps = {
     onCategoriesLoaded?: (categories: CategoryDefine[]) => void;    // calback when categories has loaded or has changed.
     onEventsLoaded?: (events: EventDefine[]) => void;   // callback when events has loaded or has changed.
 
-    // TODO: deprecated
-    onNewContentInfo?: (param: NewContentInfoParam) => void;    // callback when new content info kicked
-
-    onNewContentByManual?: (param: NewContentByManualParam) => void;
+    onAddNewContent?: (param: AddNewContentParam) => void;
     onLinkUnpointedContent?: (param: LinkUnpointContentParam) => void;
 
     onEditContentInfo?: (param: EditContentInfoWithAttrParam) => void;  // callback when content edit kicked
@@ -122,13 +119,23 @@ export type NewContentInfoParam = {
 /**
  * 地図上で新規コンテンツ追加が選択された場合のコールバック
  */
-export type NewContentByManualParam = {
+export type AddNewContentParam = {
     parent: {
         itemId: DataId;
     } | {
         contentId: DataId;
     }
+    getSnsPreviewAPI: (url: string) => Promise<GetSnsPreviewResult>;
     registContentAPI: (param: RegistContentParam) => Promise<void>;
+}
+/**
+ * 地図上でコンテンツ編集が選択された場合のコールバック
+ */
+export type EditContentParam = {
+    contentId: DataId;
+    currentAttr: ContentAttr;
+    getSnsPreviewAPI: (url: string) => Promise<GetSnsPreviewResult>;
+    updateContentAPI: (param: UpdateContentParam) => Promise<void>;
 }
 /**
  * 地図上で新規コンテンツ追加→未配置コンテンツが選択された場合に、コールバック関数に渡される情報

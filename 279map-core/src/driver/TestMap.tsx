@@ -241,7 +241,7 @@ export default function TestMap() {
                     // onClick={(val) => onCallback('onClick', val)}
                     onModeChanged={(val) => onCallback('onModeChanged', val)}
                     onCategoriesLoaded={onCategoriesLoaded}
-                    onNewContentByManual={(val) => onCallback('onNewContentInfo', val)}
+                    // onAddNewContent={(val) => onCallback('onNewContentInfo', val)}
                     // onLinkUnpointedContent={(val) => onCallback('onLinkUnpointedContent', val)}
                     onEditContentInfo={(val) => onCallback('onEditContentInfo', val)}
                     />

@@ -7,13 +7,14 @@ import './TsunaguMap.scss';
 import ConfirmDialog from '../common/confirm/ConfirmDialog';
 import ContentsModal from '../contents/ContentsModal';
 import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
-import { NewContentByManualParam, LinkUnpointContentParam, TsunaguMapProps } from '../../types/types';
+import { AddNewContentParam, LinkUnpointContentParam, TsunaguMapProps } from '../../types/types';
 import Spinner from '../common/spinner/Spinner';
+import ContentInfoEditDialog from '../default/edit-content/ContentInfoEditDialog';
 
 const LinkUnpointContentModal = lazy(() => import('../default/link-unpoint-content/LinkUnpointContentModal'));
 
 type OwnerContextType = TsunaguMapProps & {
-    onNewContentByManual: (param: NewContentByManualParam) => void;
+    onAddNewContent: (param: AddNewContentParam) => void;
     onLinkUnpointedContent: (param: LinkUnpointContentParam) => void;
 };
 
@@ -24,7 +25,7 @@ export const OwnerContext = React.createContext<OwnerContextType>({
         ssl: false,
     },
     iconDefine: [],
-    onNewContentByManual: () => {},
+    onAddNewContent: () => {},
     onLinkUnpointedContent: () => {},
 });
 
@@ -35,11 +36,20 @@ export default function TsunaguMap(props: TsunaguMapProps) {
         setShowIdMap: setShowTooltipId,
     } as TooltipContextValue;
 
-    const [ linkUnpointedContentParam, setLinkUnpointedContentParam ] = useState<LinkUnpointContentParam|undefined>();
+    // コンテンツ登録ダイアログ表示時に値セット
+    const [ newContentByManualParam, setNewContentByManualParam ] = useState<AddNewContentParam|undefined>();
 
-    const defaultOnNewContentByManual = useCallback(() => {
-
+    const defaultOnAddNewContent = useCallback((param: AddNewContentParam) => {
+        console.log('debug1');
+        setNewContentByManualParam(param);
     }, []);
+
+    const onCloseNewContentModal = useCallback(() => {
+        setNewContentByManualParam(undefined);
+    }, []);
+
+    // 未配置コンテンツ登録ダイアログ表示時に値セット
+    const [ linkUnpointedContentParam, setLinkUnpointedContentParam ] = useState<LinkUnpointContentParam|undefined>();
 
     const defaultOnLinkUnpointedContent = useCallback((param: LinkUnpointContentParam) => {
         setLinkUnpointedContentParam(param);
@@ -51,10 +61,10 @@ export default function TsunaguMap(props: TsunaguMapProps) {
 
     const ownerContextValue = useMemo((): OwnerContextType => {
         return Object.assign({}, props, {
-            onNewContentByManual: props.onNewContentByManual ?? defaultOnNewContentByManual,
+            onAddNewContent: props.onAddNewContent ?? defaultOnAddNewContent,
             onLinkUnpointedContent: props.onLinkUnpointedContent ?? defaultOnLinkUnpointedContent,
         })
-    }, [props, defaultOnNewContentByManual, defaultOnLinkUnpointedContent]);
+    }, [props, defaultOnAddNewContent, defaultOnLinkUnpointedContent]);
 
     return (
         <>
@@ -66,15 +76,21 @@ export default function TsunaguMap(props: TsunaguMapProps) {
                         </div>
                         <ConfirmDialog />
                         <ContentsModal />
+
+                        {linkUnpointedContentParam &&
+                            <Suspense fallback={<Spinner />}>
+                                <LinkUnpointContentModal param={linkUnpointedContentParam} close={onCloseLinkUnpointContentModal} />
+                            </Suspense>
+                        }
+
+                        {newContentByManualParam &&
+                            <Suspense fallback={<Spinner />}>
+                                <ContentInfoEditDialog type='new' param={newContentByManualParam} onClose={onCloseNewContentModal} />
+                            </Suspense>
+                        }
                     </Provider>
                 </TooltipContext.Provider>
             </OwnerContext.Provider>
-
-            {linkUnpointedContentParam &&
-                <Suspense fallback={<Spinner />}>
-                    <LinkUnpointContentModal param={linkUnpointedContentParam} close={onCloseLinkUnpointContentModal} />
-                </Suspense>
-            }
-        </>
+       </>
     );
 }

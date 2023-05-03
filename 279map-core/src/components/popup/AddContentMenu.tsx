@@ -22,9 +22,9 @@ type Props = {
 let maxId = 0;
 export default function AddContentMenu(props: Props) {
     const id = useRef('add-content-menu-'+maxId++);
-    const { onNewContentInfo, onNewContentByManual, onLinkUnpointedContent: onNewContentByUnpointedContent } = useContext(OwnerContext);
+    const { onAddNewContent: onNewContentByManual, onLinkUnpointedContent: onNewContentByUnpointedContent } = useContext(OwnerContext);
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
-    const { getUnpointDataAPI, registContentAPI, linkContentToItemAPI } = useCommand();
+    const { getUnpointDataAPI, registContentAPI, linkContentToItemAPI, getSnsPreviewAPI } = useCommand();
 
     const dataSources = useSelector((state: RootState) => state.session.currentMapKindInfo?.dataSources ?? []);
 
@@ -55,23 +55,11 @@ export default function AddContentMenu(props: Props) {
     }, [dataSources]);
 
     const onAddContent = useCallback((val: 'new' | 'unpoint') => {
-        if (onNewContentInfo) {
-            const param: NewContentInfoParam = val === 'new'
-            ? {
-                parent: props.target,
-                mode: 'manual',
-            }
-            : {
-                parent: props.target,
-                mode: 'select-unpoint',
-            };
-            onNewContentInfo(param);    
-        }
-
         if (val === 'new') {
             onNewContentByManual({
                 parent: props.target,
                 registContentAPI,
+                getSnsPreviewAPI,
             });
         } else {
             onNewContentByUnpointedContent({
@@ -86,7 +74,7 @@ export default function AddContentMenu(props: Props) {
             props.onClick();
         }
 
-    }, [props, editableContentDataSources, onNewContentInfo, getUnpointDataAPI, linkContentToItemAPI, onNewContentByManual, onNewContentByUnpointedContent, registContentAPI]);
+    }, [props, editableContentDataSources, getSnsPreviewAPI, getUnpointDataAPI, linkContentToItemAPI, onNewContentByManual, onNewContentByUnpointedContent, registContentAPI]);
 
     const caption = useMemo(() => {
         if ('itemId' in props.target) {

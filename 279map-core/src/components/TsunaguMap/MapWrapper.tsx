@@ -35,7 +35,6 @@ export default function MapWrapper() {
     const onCategoriesLoadedRef = useRef<typeof ownerContext.onCategoriesLoaded>();
     const onEventsLoadedRef = useRef<typeof ownerContext.onEventsLoaded>();
 
-    const onNewContentInfoRef = useRef<typeof ownerContext.onNewContentInfo>();
     const onEditContentInfoRef = useRef<typeof ownerContext.onEditContentInfo>();
 
     const dispatch = useAppDispatch();
@@ -57,7 +56,6 @@ export default function MapWrapper() {
         onCategoriesLoadedRef.current = ownerContext.onCategoriesLoaded;
         onEventsLoadedRef.current = ownerContext.onEventsLoaded;
 
-        onNewContentInfoRef.current = ownerContext.onNewContentInfo;
         onEditContentInfoRef.current = ownerContext.onEditContentInfo;
     }, [ownerContext]);
 

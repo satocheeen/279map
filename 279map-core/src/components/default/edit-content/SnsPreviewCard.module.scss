@@ -1,0 +1,36 @@
+@import '../../../styles/global.scss';
+
+.Card {
+    border: 1px solid $secondary;
+    height: 100px;
+    // display: flex;
+}
+.ImageContainer {
+    width: 200px;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    float: left;
+
+    .Image,.Video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        cursor: pointer;
+        object-fit: cover;
+    }    
+}
+.TextContainer {
+    position: relative;
+    height: 100%;
+    padding: 5px;
+    overflow: hidden;
+    font-size: 80%;
+
+    .Date {
+        margin-bottom: .5rem;
+        color: $info;
+    }    
+}
