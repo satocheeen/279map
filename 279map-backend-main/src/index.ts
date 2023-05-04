@@ -11,7 +11,7 @@ import { getEvents } from './getEvents';
 import Broadcaster from './session/Broadcaster';
 import proxy from 'express-http-proxy';
 import http from 'http';
-import { convertBase64ToBinary } from './util/utility';
+import { convertBase64ToBinary, isEditableDataSource } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
 import { getSnsPreview } from './api/getSnsPreview';
@@ -801,6 +801,12 @@ app.post(`/api/${RegistContentAPI.uri}`,
     async(req, res, next) => {
         try {
             const param = req.body as RegistContentParam;
+
+            // check if editable datasource
+            const editable = await isEditableDataSource(param.contentDataSourceId);
+            if (!editable) {
+                throw new Error('the datasource can not edit: ' + param.contentDataSourceId);
+            }
     
             // call ODBA
             await backendAPI.callOdbaApi(backendAPI.RegistContentAPI, Object.assign({

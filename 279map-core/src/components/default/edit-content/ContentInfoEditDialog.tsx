@@ -58,6 +58,7 @@ export default function ContentInfoEditDialog(props: Props) {
                 // 新規登録
                 const apiParam = Object.assign({
                     parent: props.param.parent,
+                    contentDataSourceId: '',
                 }, attrValue);
                 await props.param.registContentAPI(apiParam);
 
