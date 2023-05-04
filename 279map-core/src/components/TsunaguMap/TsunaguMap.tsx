@@ -7,16 +7,14 @@ import './TsunaguMap.scss';
 import ConfirmDialog from '../common/confirm/ConfirmDialog';
 import ContentsModal from '../contents/ContentsModal';
 import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
-import { AddNewContentParam, LinkUnpointContentParam, TsunaguMapProps } from '../../types/types';
+import { AddNewContentParam, EditContentParam, LinkUnpointContentParam, TsunaguMapProps } from '../../types/types';
 import Spinner from '../common/spinner/Spinner';
 import ContentInfoEditDialog from '../default/edit-content/ContentInfoEditDialog';
 
 const LinkUnpointContentModal = lazy(() => import('../default/link-unpoint-content/LinkUnpointContentModal'));
 
-type OwnerContextType = TsunaguMapProps & {
-    onAddNewContent: (param: AddNewContentParam) => void;
-    onLinkUnpointedContent: (param: LinkUnpointContentParam) => void;
-};
+type SomeRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
+type OwnerContextType = SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'>;
 
 export const OwnerContext = React.createContext<OwnerContextType>({
     mapId: '',
@@ -26,6 +24,7 @@ export const OwnerContext = React.createContext<OwnerContextType>({
     },
     iconDefine: [],
     onAddNewContent: () => {},
+    onEditContent: () => {},
     onLinkUnpointedContent: () => {},
 });
 
@@ -36,35 +35,22 @@ export default function TsunaguMap(props: TsunaguMapProps) {
         setShowIdMap: setShowTooltipId,
     } as TooltipContextValue;
 
-    // コンテンツ登録ダイアログ表示時に値セット
-    const [ newContentByManualParam, setNewContentByManualParam ] = useState<AddNewContentParam|undefined>();
+    // デフォルトコンテンツ登録ダイアログ表示時に値セット
+    const [ defaultNewContentParam, setDefaultNewContentParam ] = useState<AddNewContentParam|undefined>();
 
-    const defaultOnAddNewContent = useCallback((param: AddNewContentParam) => {
-        console.log('debug1');
-        setNewContentByManualParam(param);
-    }, []);
+    // デフォルトコンテンツ編集ダイアログ表示時に値セット
+    const [ defaultEditContentParam, setDefaultEditContentParam ] = useState<EditContentParam|undefined>();
 
-    const onCloseNewContentModal = useCallback(() => {
-        setNewContentByManualParam(undefined);
-    }, []);
-
-    // 未配置コンテンツ登録ダイアログ表示時に値セット
-    const [ linkUnpointedContentParam, setLinkUnpointedContentParam ] = useState<LinkUnpointContentParam|undefined>();
-
-    const defaultOnLinkUnpointedContent = useCallback((param: LinkUnpointContentParam) => {
-        setLinkUnpointedContentParam(param);
-    }, []);
-
-    const onCloseLinkUnpointContentModal = useCallback(() => {
-        setLinkUnpointedContentParam(undefined);
-    }, []);
+    // デフォルト未配置コンテンツ登録ダイアログ表示時に値セット
+    const [ defaultLinkUnpointedContentParam, setDefaultLinkUnpointedContentParam ] = useState<LinkUnpointContentParam|undefined>();
 
     const ownerContextValue = useMemo((): OwnerContextType => {
         return Object.assign({}, props, {
-            onAddNewContent: props.onAddNewContent ?? defaultOnAddNewContent,
-            onLinkUnpointedContent: props.onLinkUnpointedContent ?? defaultOnLinkUnpointedContent,
+            onAddNewContent: props.onAddNewContent ?? function(param: AddNewContentParam){setDefaultNewContentParam(param)},
+            onEditContent: props.onEditContent ?? function(param: EditContentParam){setDefaultEditContentParam(param)},
+            onLinkUnpointedContent: props.onLinkUnpointedContent ?? function(param: LinkUnpointContentParam){setDefaultLinkUnpointedContentParam(param)},
         })
-    }, [props, defaultOnAddNewContent, defaultOnLinkUnpointedContent]);
+    }, [props]);
 
     return (
         <>
@@ -77,15 +63,19 @@ export default function TsunaguMap(props: TsunaguMapProps) {
                         <ConfirmDialog />
                         <ContentsModal />
 
-                        {linkUnpointedContentParam &&
+                        {defaultLinkUnpointedContentParam &&
                             <Suspense fallback={<Spinner />}>
-                                <LinkUnpointContentModal param={linkUnpointedContentParam} close={onCloseLinkUnpointContentModal} />
+                                <LinkUnpointContentModal param={defaultLinkUnpointedContentParam} close={()=>{setDefaultLinkUnpointedContentParam(undefined)}} />
                             </Suspense>
                         }
-
-                        {newContentByManualParam &&
+                        {defaultNewContentParam &&
                             <Suspense fallback={<Spinner />}>
-                                <ContentInfoEditDialog type='new' param={newContentByManualParam} onClose={onCloseNewContentModal} />
+                                <ContentInfoEditDialog type='new' param={defaultNewContentParam} onClose={()=>{setDefaultNewContentParam(undefined)}} />
+                            </Suspense>
+                        }
+                        {defaultEditContentParam &&
+                            <Suspense fallback={<Spinner />}>
+                                <ContentInfoEditDialog type='edit' param={defaultEditContentParam} onClose={()=>{setDefaultEditContentParam(undefined)}} />
                             </Suspense>
                         }
                     </Provider>

@@ -34,8 +34,6 @@ type CommandDefine =
     | TCommandDefine<'LoadLatestData', undefined>
     // コンテンツ情報表示 引数: contentId. 
     | TCommandDefine<'ShowContentInfo', DataId>
-    // コンテンツ情報編集 引数: contentId. 
-    | TCommandDefine<'EditContentInfo', DataId>
     ;
 type TSubscription = CommandDefine['subscription'];
 type TCallback = TSubscription[1];

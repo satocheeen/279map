@@ -35,8 +35,6 @@ export default function MapWrapper() {
     const onCategoriesLoadedRef = useRef<typeof ownerContext.onCategoriesLoaded>();
     const onEventsLoadedRef = useRef<typeof ownerContext.onEventsLoaded>();
 
-    const onEditContentInfoRef = useRef<typeof ownerContext.onEditContentInfo>();
-
     const dispatch = useAppDispatch();
 
     useEffect(() => {
@@ -55,8 +53,6 @@ export default function MapWrapper() {
         onModeChangedRef.current = ownerContext.onModeChanged;
         onCategoriesLoadedRef.current = ownerContext.onCategoriesLoaded;
         onEventsLoadedRef.current = ownerContext.onEventsLoaded;
-
-        onEditContentInfoRef.current = ownerContext.onEditContentInfo;
     }, [ownerContext]);
 
     useInitializePopup();
@@ -71,39 +67,8 @@ export default function MapWrapper() {
             await dispatch(loadEvents());
             await dispatch(loadCategories());
         });
-        const h2 = addListener('EditContentInfo', async(contentId: DataId) => {
-            // 編集対象コンテンツをロード
-            const contents = (await getContents(mapServer, [{
-                contentId,
-            }]));
-            if (!contents || contents?.length === 0) {
-                return;
-            }
-            const content = contents[0];
-            const attrValue: ContentAttr = content.url ? {
-                title: content.title,
-                overview: content.overview ?? '',
-                categories: content.category ?? [],
-                type: 'sns',
-                url: content.url,
-            } : {
-                title: content.title,
-                overview: content.overview ?? '',
-                categories: content.category ?? [],
-                type: 'normal',
-                date: content.date?.toString(),
-                imageUrl: content.image ? '/api/getthumb?id=' + content.id : undefined,
-            };
-            if (onEditContentInfoRef.current) {
-                onEditContentInfoRef.current({
-                    contentId,
-                    attr: attrValue,
-                });
-            }
-        });
         return () => {
             removeListener(h);
-            removeListener(h2);
         }
 
     }, [dispatch, mapServer]);

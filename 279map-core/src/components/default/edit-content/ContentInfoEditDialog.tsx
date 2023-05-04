@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import ContentInfoForm from './ContentInfoForm';
 import styles from './ContentInfoEditDialog.module.scss';
 import { AddNewContentParam, EditContentParam } from '../../../types/types';
@@ -6,6 +6,7 @@ import { ContentAttr } from '../../../279map-common';
 import { useCommand } from '../../../api/useCommand';
 import { Button, Modal } from '../../common';
 import { ConfirmBtnPattern } from '../../common/confirm/useConfirm';
+import Select from '../../common/form/Select';
 
 type Props = {
     onClose?: () => void;
@@ -24,34 +25,31 @@ export type AttrResult = ContentAttr;
  * アイテム情報登録・編集コンポーネント
  */
 export default function ContentInfoEditDialog(props: Props) {
-    const [attrValue, setAttrValue] = useState<ContentAttr>({
-        title: '',
-        overview: '',
-        type: 'normal',
-        categories: [],
-    });
+    const [attrValue, setAttrValue] = useState<ContentAttr>(
+        props.type === 'new' ?
+            {
+                title: '',
+                overview: '',
+                type: 'normal',
+                categories: [],
+            }
+            : props.param.currentAttr,
+    );
     const itemMap = {};
     // イベントリスナーの中で使用するため、refに格納
     const itemMapRef = useRef<typeof itemMap>();
     itemMapRef.current = itemMap;
     const [ spinner, setSpinner ] = useState<false|string>(false);
     const commandHook = useCommand();
-
-    useEffect(() => {
-        if (props.type === 'edit') {
-            setAttrValue(props.param.currentAttr);
-        } else {
-            // 値クリア
-            setAttrValue({
-                title: '',
-                overview: '',
-                type: 'normal',
-                categories: [],
-            });
-        }
-    }, [props]);
+    const [ contentDataSourceId, setContentDataSourceId ] = useState<string|undefined>(
+        props.type === 'new' ? props.param.dataSources[0]?.dataSourceId : props.param.contentId.dataSourceId
+    );
 
     const onOk = useCallback(async() => {
+        if (!contentDataSourceId) {
+            console.warn('想定外. データソースID未指定');
+            return;
+        }
         setSpinner('登録中...');
 
         try {
@@ -59,7 +57,7 @@ export default function ContentInfoEditDialog(props: Props) {
                 // 新規登録
                 const apiParam = Object.assign({
                     parent: props.param.parent,
-                    contentDataSourceId: '',
+                    contentDataSourceId,
                 }, attrValue);
                 await props.param.registContentAPI(apiParam);
 
@@ -89,7 +87,7 @@ export default function ContentInfoEditDialog(props: Props) {
             setSpinner(false);
         }
 
-    }, [props, attrValue, commandHook]);
+    }, [props, attrValue, commandHook, contentDataSourceId]);
 
     const onCancel = useCallback(() => {
         if (props.onClose) {
@@ -109,12 +107,28 @@ export default function ContentInfoEditDialog(props: Props) {
         }
     }, [props.type]);
 
+    const dataSourceItems = useMemo(() => {
+        if (props.type === 'new') {
+            return props.param.dataSources.map(ds => {
+                return {
+                    value: ds.dataSourceId,
+                    name: ds.name,
+                }
+            })
+        } else {
+            return [];
+        }
+    }, [props.type, props.param]);
+
     return (
         <Modal show={true} spinner={spinner}>
             <Modal.Header>
                 {title}
             </Modal.Header>
             <Modal.Body>
+                {dataSourceItems.length > 1 &&
+                    <Select items={dataSourceItems} value={contentDataSourceId} onSelect={(ds) => setContentDataSourceId(ds)} />
+                }
                 <div className={styles.Content}>
                     <ContentInfoForm value={attrValue}
                         getSnsPreviewAPI={props.param.getSnsPreviewAPI} onChange={onChange} />

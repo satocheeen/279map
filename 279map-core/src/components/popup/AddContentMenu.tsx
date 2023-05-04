@@ -22,7 +22,7 @@ type Props = {
 let maxId = 0;
 export default function AddContentMenu(props: Props) {
     const id = useRef('add-content-menu-'+maxId++);
-    const { onAddNewContent: onNewContentByManual, onLinkUnpointedContent: onNewContentByUnpointedContent } = useContext(OwnerContext);
+    const { onAddNewContent, onLinkUnpointedContent: onNewContentByUnpointedContent } = useContext(OwnerContext);
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
     const { getUnpointDataAPI, registContentAPI, linkContentToItemAPI, getSnsPreviewAPI } = useCommand();
 
@@ -56,8 +56,9 @@ export default function AddContentMenu(props: Props) {
 
     const onAddContent = useCallback((val: 'new' | 'unpoint') => {
         if (val === 'new') {
-            onNewContentByManual({
+            onAddNewContent({
                 parent: props.target,
+                dataSources: editableContentDataSources,
                 registContentAPI,
                 getSnsPreviewAPI,
             });
@@ -74,7 +75,7 @@ export default function AddContentMenu(props: Props) {
             props.onClick();
         }
 
-    }, [props, editableContentDataSources, getSnsPreviewAPI, getUnpointDataAPI, linkContentToItemAPI, onNewContentByManual, onNewContentByUnpointedContent, registContentAPI]);
+    }, [props, editableContentDataSources, getSnsPreviewAPI, getUnpointDataAPI, linkContentToItemAPI, onAddNewContent, onNewContentByUnpointedContent, registContentAPI]);
 
     const caption = useMemo(() => {
         if ('itemId' in props.target) {

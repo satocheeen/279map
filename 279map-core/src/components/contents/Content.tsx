@@ -14,15 +14,16 @@ import { removeContent } from "../../store/data/dataThunk";
 import reactStringReplace from "react-string-replace";
 import PopupMenuIcon from "../popup/PopupMenuIcon";
 import AddContentMenu from "../popup/AddContentMenu";
-import { Auth, ContentsDefine, DataId, MapKind } from "../../279map-common";
+import { Auth, ContentAttr, ContentsDefine, DataId, MapKind } from "../../279map-common";
 import Spinner from "../common/spinner/Spinner";
 import { operationActions } from "../../store/operation/operationSlice";
 import { useFilter } from "../../store/useFilter";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
-import { getMapKey } from "../../store/data/dataUtility";
+import { getContents, getMapKey } from "../../store/data/dataUtility";
 import { getAPICallerInstance } from "../../api/ApiCaller";
 import { GetImageUrlAPI } from 'tsunagumap-api';
+import { useCommand } from "../../api/useCommand";
 
 type Props = {
     itemId: DataId;
@@ -40,7 +41,8 @@ export default function Content(props: Props) {
     const { confirm } = useConfirm();
     const dispatch = useAppDispatch();
     const { filterTargetContentIds } = useFilter();
-    const { onEditContentInfo, token } = useContext(OwnerContext);
+    const { onEditContent }  = useContext(OwnerContext);
+    const { updateContentAPI, getSnsPreviewAPI } = useCommand();
 
     /**
      * 表示対象コンテンツかどうか。
@@ -169,12 +171,37 @@ export default function Content(props: Props) {
         }
     }, [props.content.id]);
 
-    const onEdit = useCallback(() => {
-        doCommand({
-            command: "EditContentInfo",
-            param: props.content.id,
-        });
-    }, [props.content]);
+    const mapServer = useSelector((state: RootState) => state.session.mapServer);
+    const onEdit = useCallback(async() => {
+        // 編集対象コンテンツをロード
+        const contents = (await getContents(mapServer, [{
+            contentId: props.content.id,
+        }]));
+        if (!contents || contents?.length === 0) {
+            return;
+        }
+        const content = contents[0];
+        const currentAttr: ContentAttr = content.url ? {
+            title: content.title,
+            overview: content.overview ?? '',
+            categories: content.category ?? [],
+            type: 'sns',
+            url: content.url,
+        } : {
+            title: content.title,
+            overview: content.overview ?? '',
+            categories: content.category ?? [],
+            type: 'normal',
+            date: content.date?.toString(),
+            imageUrl: content.image ? '/api/getthumb?id=' + content.id : undefined,
+        };
+        onEditContent({
+            contentId: props.content.id,
+            currentAttr,
+            getSnsPreviewAPI,
+            updateContentAPI,
+        })
+    }, [props.content, onEditContent, getSnsPreviewAPI, updateContentAPI, mapServer]);
 
     const editableAuthLv = useSelector((state: RootState) => {
         if (state.session.connectStatus.status !== 'connected') {
@@ -185,11 +212,10 @@ export default function Content(props: Props) {
     const isEditable = useMemo(() => {
         if (!editableAuthLv) return false;
         if (props.content.readonly) return false;
-        if (!onEditContentInfo) return false;
 
         // SNSコンテンツは編集不可
         return !props.content.isSnsContent;
-    }, [editableAuthLv, onEditContentInfo, props.content]);
+    }, [editableAuthLv, props.content]);
 
     const isDeletable = useMemo(() => {
         if (!editableAuthLv) return false;
@@ -202,7 +228,7 @@ export default function Content(props: Props) {
         return false;
         // if (!editableAuthLv) return false;
         // return props.content.addableChild;
-    }, [props.content, editableAuthLv]);
+    }, [/*props.content, editableAuthLv*/]);
 
     const onDelete = useCallback(async() => {
         const result = await confirm({

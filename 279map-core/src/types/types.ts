@@ -66,9 +66,8 @@ export type TsunaguMapProps = {
     onEventsLoaded?: (events: EventDefine[]) => void;   // callback when events has loaded or has changed.
 
     onAddNewContent?: (param: AddNewContentParam) => void;
+    onEditContent?: (param: EditContentParam) => void;
     onLinkUnpointedContent?: (param: LinkUnpointContentParam) => void;
-
-    onEditContentInfo?: (param: EditContentInfoWithAttrParam) => void;  // callback when content edit kicked
 }
 
 export type ServerInfo = {
@@ -125,6 +124,11 @@ export type AddNewContentParam = {
     } | {
         contentId: DataId;
     }
+    // コンテンツデータソース一覧
+    dataSources: {
+        dataSourceId: string;
+        name: string;
+    }[];
     getSnsPreviewAPI: (url: string) => Promise<GetSnsPreviewResult>;
     registContentAPI: (param: RegistContentParam) => Promise<void>;
 }
@@ -156,11 +160,6 @@ export type LinkUnpointContentParam = {
     getUnpointDataAPI: (dataSourceId: string, nextToken?: string) => Promise<{contents: UnpointContent[]; nextToken: string | undefined}>;
     // コンテンツ紐づけAPI
     linkContentToItemAPI: (param: LinkContentToItemParam) => Promise<void>;
-}
-
-export type EditContentInfoWithAttrParam = {
-    contentId: DataId;
-    attr: ContentAttr;
 }
 
 export type FilterDefine = {

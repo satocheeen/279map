@@ -243,7 +243,6 @@ export default function TestMap() {
                     onCategoriesLoaded={onCategoriesLoaded}
                     // onAddNewContent={(val) => onCallback('onNewContentInfo', val)}
                     // onLinkUnpointedContent={(val) => onCallback('onLinkUnpointedContent', val)}
-                    onEditContentInfo={(val) => onCallback('onEditContentInfo', val)}
                     />
                 }
             </div>
