@@ -211,7 +211,7 @@ export type RegistContentParam = {
         itemId: DataId;
     } | {
         contentId: DataId;
-    },
+    };
     // 登録先データソース
     contentDataSourceId: string;
 } & ContentAttr;
