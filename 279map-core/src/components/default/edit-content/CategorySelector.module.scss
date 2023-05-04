@@ -2,17 +2,23 @@
 
 .Container {
     position: relative;
+    width: 100%;
+    cursor: pointer;
 }
 /* 選択中のカテゴリ表示エリア */
 .SelectedArea {
-    min-height: 3rem;
+    min-height: 2rem;
+
+    &.Edit {
+        border: 1px solid var(--dark-012);
+    }
 }
 .CandidateList {
     position: fixed;
-    width: inherit;
-    max-width: 500px;
+    max-width: 380px;
     filter: $shadow;
     display: flex;
+    background-color: var(--dark-012);
 }
 .InputArea {
     background-color: rgba(#fff, 0);

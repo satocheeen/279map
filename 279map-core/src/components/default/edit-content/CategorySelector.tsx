@@ -84,7 +84,7 @@ export default function CategorySelector(props: Props) {
 
     return (
         <div className={styles.Container}>
-            <div className={`form-control ${styles.SelectedArea}`} onClick={onSelectedAreaClick}>
+            <div className={`${styles.SelectedArea} ${isEditMode ? styles.Edit : ''}`} onClick={onSelectedAreaClick}>
                 {props.selected.map(category => {
                     return (
                         <CategoryBadge category={category} existCategories={categories} key={category} onDeleteClick={() => onDeleteClick(category)} />
