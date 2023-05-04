@@ -1,7 +1,11 @@
 .Container {
     display: flex;
     padding: 5px;
+    align-items: flex-start;
 }
 .Label {
     min-width: 8rem;
+}
+.Input {
+    width: calc(100% - 8rem);
 }

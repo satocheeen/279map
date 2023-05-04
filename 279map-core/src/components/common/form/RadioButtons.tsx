@@ -24,7 +24,7 @@ export default function RadioButtons(props: Props) {
                 const checked = props.value === item.value;
                 return (
                     <div key={item.value} className={styles.RadioArea}>
-                        <input type='radio' id={myId} checked={checked} onClick={() => onChange(item.value)} />
+                        <input type='radio' id={myId} value={item.value} checked={checked} onChange={(e) => onChange(e.target.value)} />
                         <label htmlFor={myId}>
                             {item.label}
                         </label>
