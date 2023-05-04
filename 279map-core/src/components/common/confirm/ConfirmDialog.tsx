@@ -5,10 +5,22 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/configureStore';
 import useConfirm, { ConfirmBtnPattern, ConfirmResult } from './useConfirm';
 import styles from './ConfirmDialog.module.scss';
+import { usePrevious } from '../../../util/usePrevious';
 
 export default function ConfirmDialog() {
     const isShow = useSelector((state: RootState) => state.operation.showConfirmDialog);
-    const confirmInfo = useSelector((state: RootState) => state.operation.confirmInfo);
+    const originalConfirmInfo = useSelector((state: RootState) => state.operation.confirmInfo);
+    const prevOriginalConfirmInfo = usePrevious(originalConfirmInfo);
+
+    const confirmInfo = useMemo(() => {
+        if (isShow) {
+            return originalConfirmInfo;
+        } else {
+            // Modalがhideされるタイミングで、少し間があるので、その間にメッセージ表示されるように対処
+            return prevOriginalConfirmInfo;
+        }
+    }, [isShow, originalConfirmInfo, prevOriginalConfirmInfo]);
+
     const message = useMemo(() => confirmInfo?.message, [confirmInfo]);
     const title = useMemo(() => {
         return confirmInfo?.title ? confirmInfo.title : '確認';
@@ -75,9 +87,11 @@ export default function ConfirmDialog() {
                 <Button variant="primary" onClick={onOk}>
                     {okBtnLabel}
                 </Button>
-                <Button variant="secondary" onClick={onCancel}>
-                    {cancelBtnLabel}
-                </Button>
+                {btnPattern !== ConfirmBtnPattern.OkOnly &&
+                    <Button variant="secondary" onClick={onCancel}>
+                        {cancelBtnLabel}
+                    </Button>
+                }
             </Modal.Footer>
         </Modal>
     );

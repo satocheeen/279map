@@ -10,6 +10,7 @@ export enum ConfirmResult {
 }
 export enum ConfirmBtnPattern {
     OkCancel,
+    OkOnly,
     YesNo,
 }
 export type ConfirmParam = {

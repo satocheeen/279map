@@ -97,7 +97,7 @@ Modal.Body = ModalBody;
 type BodyItem = ReturnType<typeof ModalBody>
 
 type FooterProps = {
-    children?: JSX.Element | JSX.Element[];
+    children?: JSX.Element | (JSX.Element | false)[];
 }
 function ModalFooter(props: FooterProps) {
     return <></>

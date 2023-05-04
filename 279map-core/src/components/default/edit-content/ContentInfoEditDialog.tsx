@@ -5,6 +5,7 @@ import { AddNewContentParam, EditContentParam } from '../../../types/types';
 import { ContentAttr } from '../../../279map-common';
 import { useCommand } from '../../../api/useCommand';
 import { Button, Modal } from '../../common';
+import { ConfirmBtnPattern } from '../../common/confirm/useConfirm';
 
 type Props = {
     onClose?: () => void;
@@ -82,6 +83,7 @@ export default function ContentInfoEditDialog(props: Props) {
             console.warn(e);
             commandHook?.confirm({
                 message: '登録に失敗しました。再度実行して、うまくいかない場合は管理者へご連絡ください。',
+                btnPattern: ConfirmBtnPattern.OkOnly,
             });
         } finally {
             setSpinner(false);

@@ -132,8 +132,12 @@ export function useCommand() {
     }, []);
 
     const registContentAPI = useCallback(async(param: RegistContentParam) => {
-        await dispatch(registContent(param));
-
+        const res = await dispatch(registContent(param));
+        if ('error' in res) {
+            // @ts-ignore
+            const errorMessage = res.payload?.message ?? '';
+            throw new Error('registContentAPI failed.' + errorMessage);
+        }
     }, [dispatch]);
 
     const updateContentAPI = useCallback(async(param: UpdateContentParam) => {
