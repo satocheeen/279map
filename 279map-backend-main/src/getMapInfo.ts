@@ -180,6 +180,7 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
                     name: row.name,
                     kind,
                     editable: row.editable,
+                    linkableContent: row.linkable_content,
                 });
             });
 
