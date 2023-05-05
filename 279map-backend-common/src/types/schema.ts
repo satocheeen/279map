@@ -20,6 +20,11 @@ export enum DataSourceKind {
     RealItemContent = 'RealItemContent',
     RealTrack = 'RealTrack',
 }
+export enum DataSourceLinkableContent {
+    None = 'None',
+    Single = 'Single',  // 単一コンテンツの紐づけが可能な場合
+    Multi = 'Multi',    // 複数コンテンツの紐づけが可能な場合
+}
 export interface DataSourceConnection {
     type: string;
 }
@@ -28,6 +33,7 @@ export type DataSourceTable = {
     kind: DataSourceKind;
     name: string;
     editable: boolean;
+    linkable_content: DataSourceLinkableContent;
     connection: string | DataSourceConnection;  // 登録時はstring、取得時はDataSourceConnection
     last_edited_time: string;
 }

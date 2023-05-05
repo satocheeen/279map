@@ -19,6 +19,7 @@ CREATE TABLE `data_source` (
   `kind` enum('VirtualItem','RealItem','RealTrack','Content','RealItemContent') NOT NULL,
   `name` varchar(100) NOT NULL,
   `editable` tinyint(1) NOT NULL DEFAULT '0',
+  `linkable_content` enum('None','Single','Multi') NOT NULL DEFAULT 'None',
   `connection` json NOT NULL,
   `last_edited_time` varchar(100) NOT NULL,
   PRIMARY KEY (`data_source_id`)
