@@ -3,7 +3,7 @@ import axios from 'axios';
 import sharp from 'sharp';
 import ExifReader from 'exifreader';
 import { MapKind } from './279map-common';
-import { DataSourceKind } from './types/schema';
+import { DataSourceKind, DataSourceKindType } from './types/schema';
 
 export const sleep = (sec: number) => new Promise<void>((resolve) => {
     setTimeout(() => {
@@ -81,25 +81,21 @@ export async function getImageBase64(url: string, option: GetImageBase64Option):
  * @param mapKind 
  * @returns 
  */
-export function getDataSourceKindsFromMapKind(mapKind: MapKind, contain: {item?: boolean; content?: boolean; track?: boolean}): DataSourceKind[] {
-    const kindSet = new Set<DataSourceKind>();
+export function getDataSourceKindsFromMapKind(mapKind: MapKind, contain: {item?: boolean; content?: boolean; track?: boolean}): DataSourceKindType[] {
+    const kindSet = new Set<DataSourceKindType>();
     if (contain.item) {
         if (mapKind === MapKind.Real) {
-            kindSet.add(DataSourceKind.RealItem);
-            kindSet.add(DataSourceKind.RealItemContent);
+            kindSet.add(DataSourceKindType.RealItem);
         } else {
-            kindSet.add(DataSourceKind.VirtualItem);
+            kindSet.add(DataSourceKindType.VirtualItem);
         }
     }
     if (contain.content) {
-        kindSet.add(DataSourceKind.Content);
-        if (mapKind === MapKind.Real) {
-            kindSet.add(DataSourceKind.RealItemContent);
-        }
+        kindSet.add(DataSourceKindType.Content);
     }
     if (contain.track) {
         if (mapKind === MapKind.Real) {
-            kindSet.add(DataSourceKind.RealTrack);
+            kindSet.add(DataSourceKindType.RealTrack);
         }
     }
 

@@ -13,19 +13,26 @@ export type MapPageInfoTable = {
     public_range: PublicRange;
     last_edited_time: string;
 }
+export enum DataSourceKindType {
+    VirtualItem = 'VirtualItem',
+    RealItem = 'RealItem',
+    Content = 'Content',
+    RealTrack = 'RealTrack'
+}
 export type DataSourceKind = {
     editable: boolean;
 } & (
     {
-        type: 'VirtualItem' | 'RealItem';
+        type: DataSourceKindType.VirtualItem | DataSourceKindType.RealItem;
         linkable_content: DataSourceLinkableContent;
     } | {
-        type: 'Content';
+        type: DataSourceKindType.Content;
         linkable_content: DataSourceLinkableContent.None | DataSourceLinkableContent.Single | DataSourceLinkableContent.Multi;
     } | {
-        type: 'RealTrack';
+        type: DataSourceKindType.RealTrack;
         linkable_content: DataSourceLinkableContent;
-    })
+    }
+)
 export interface DataSourceConnection {
     type: string;
 }
