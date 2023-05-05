@@ -6,10 +6,11 @@ import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
 import { useCommand } from '../../api/useCommand';
-import { DataId } from '../../279map-common';
+import { Auth, DataId, DataSourceLinkableContent } from '../../279map-common';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
 import { SourceKind } from 'tsunagumap-api';
+import { getMapKey, isEqualId } from '../../store/data/dataUtility';
 
 type Props = {
     target: {
@@ -27,8 +28,29 @@ export default function AddContentMenu(props: Props) {
     const { getUnpointDataAPI, registContentAPI, linkContentToItemAPI, getSnsPreviewAPI } = useCommand();
 
     const dataSources = useSelector((state: RootState) => state.session.currentMapKindInfo?.dataSources ?? []);
+    const targetsChildrenLength = useSelector((state: RootState) => {
+        if ('itemId' in props.target) {
+            const item = state.data.itemMap[getMapKey(props.target.itemId)];
+            return item.contents.length;
+        } else {
+            const contentId = props.target.contentId;
+            const content = state.data.contentsList.find(content => isEqualId(content.id, contentId));
+            return content?.children?.length ??  0; 
+        }
+    })
 
-    const isEditableTarget = useMemo(() => {
+    const editableAuthLv = useSelector((state: RootState) => {
+        if (state.session.connectStatus.status !== 'connected') {
+            return false;
+        }
+        return state.session.connectStatus.connectedMap?.authLv === Auth.Edit;
+    });
+
+    /**
+     * コンテンツ追加可能かチェック
+     */
+    const isContentAddableTarget = useMemo(() => {
+        // 対象のデータソース情報取得
         let dataSourceId: string;
         if ('itemId' in props.target) {
             dataSourceId = props.target.itemId.dataSourceId;
@@ -47,9 +69,19 @@ export default function AddContentMenu(props: Props) {
                 return kind.type === SourceKind.Content;
             }
         });
+        console.log('targetDataSourceKind', targetDataSourceKind);
         if (!targetDataSourceKind) return false;
-        return targetDataSourceKind.editable;
-    }, [props.target, dataSources]);
+
+        switch(targetDataSourceKind.linkableContent) {
+            case DataSourceLinkableContent.None:
+            case DataSourceLinkableContent.AlwaysSingle:
+                return false;
+            case DataSourceLinkableContent.Multi:
+                return true;
+            case DataSourceLinkableContent.Single:
+                return targetsChildrenLength === 0;
+        }
+    }, [props.target, dataSources, targetsChildrenLength]);
 
     const editableContentDataSources = useMemo((): LinkUnpointContentParam['dataSources'] => {
         return dataSources
@@ -100,7 +132,7 @@ export default function AddContentMenu(props: Props) {
             name: string;
             callback: () => void;
         }[];
-        if (!isEditableTarget) {
+        if (!isContentAddableTarget || !editableAuthLv) {
             return items;
         }
         if (editableContentDataSources.length > 0) {
@@ -114,7 +146,7 @@ export default function AddContentMenu(props: Props) {
             callback: () => onAddContent('unpoint'),
         });
         return items;
-    }, [onAddContent, editableContentDataSources, isEditableTarget]);
+    }, [editableAuthLv, onAddContent, editableContentDataSources, isContentAddableTarget]);
 
     const onClick = useCallback(() => {
         setShowSubMenu((state) => !state);
