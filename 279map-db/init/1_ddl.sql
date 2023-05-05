@@ -66,6 +66,7 @@ CREATE TABLE `contents` (
 CREATE TABLE `items` (
   `item_page_id` varchar(100) NOT NULL,
   `data_source_id` varchar(100) NOT NULL,
+  `map_kind` enum('Real','Virtual') NOT NULL,
   `location` geometry NOT NULL,
   `geo_properties` text,
   `name` varchar(100) DEFAULT NULL,
