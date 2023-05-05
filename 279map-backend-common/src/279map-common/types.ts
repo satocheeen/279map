@@ -32,6 +32,15 @@ export enum MapKind {
 }
 
 /**
+ * データソースのコンテンツ紐づけ定義
+ */
+export enum DataSourceLinkableContent {
+    None = 'None',
+    Single = 'Single',  // 単一コンテンツの紐づけが可能な場合
+    Multi = 'Multi',    // 複数コンテンツの紐づけが可能な場合
+}
+
+/**
  * 地図定義情報
  */
 export type MapDefine = {
