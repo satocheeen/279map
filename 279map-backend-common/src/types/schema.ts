@@ -38,7 +38,7 @@ export interface DataSourceConnection {
 }
 export type DataSourceTable = {
     data_source_id: string;
-    kinds: DataSourceKind[];
+    kinds: string | DataSourceKind[];   // 登録時はstring、取得時はDataSourceKind
     name: string;
     connection: string | DataSourceConnection;  // 登録時はstring、取得時はDataSourceConnection
     last_edited_time: string;
