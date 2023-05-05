@@ -58,11 +58,11 @@ export class VectorLayerMap {
         return JSON.stringify(json);
     }
 
-    createLayer(layerDefine: LayerDefine) {
+    createLayer(layerDefine: LayerDefine): VectorLayer<VectorSource> | undefined {
         const mapKey = this._convertMapKey(layerDefine);
         if (this._layerMap.has(mapKey)) {
             console.warn('already exist layer', layerDefine);
-            return this._layerMap.get(mapKey)?.layer as VectorLayer<VectorSource>;
+            return;
         }
 
         const source = new VectorSource();
@@ -108,7 +108,7 @@ export class VectorLayerMap {
         this._layerMap.set(mapKey, Object.assign(layerDefine, {
             layer,
         }));
-        console.log('createLayer', layerDefine, this._layerMap.size);
+        console.log('createLayer', mapKey, layerDefine, this._layerMap.size);
         return layer;
     }
 

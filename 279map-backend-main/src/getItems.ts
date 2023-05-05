@@ -1,11 +1,10 @@
-import { FeatureType, schema, CurrentMap, getDataSourceKindsFromMapKind } from '279map-backend-common';
+import { FeatureType, schema, CurrentMap } from '279map-backend-common';
 import { ItemContentInfo, ItemDefine, MapKind } from '279map-backend-common';
 import { getLogger } from 'log4js';
 import { ConnectionPool } from '.';
 import { GetItemsParam, GetItemsResult } from '../279map-api-interface/src';
 import { getExtentWkt } from './util/utility';
 import mysql from 'mysql2/promise';
-import { GeoJsonObject } from 'geojson';
 
 const apiLogger = getLogger('api');
 
@@ -73,15 +72,14 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
     
     try {
         // 位置コンテンツ
-        const kinds = getDataSourceKindsFromMapKind(mapKind, {item: true});
         const sql = `
         select i.*, ST_AsGeoJSON(i.location) as geojson
         from items i
         inner join data_source ds on ds.data_source_id = i.data_source_id 
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
-        where map_page_id = ? and ds.kind in (?)
+        where map_page_id = ? and i.map_kind = ?
         `;
-        const query = mysql.format(sql, [mapPageId, kinds]);
+        const query = mysql.format(sql, [mapPageId, mapKind]);
         const [rows] = await con.execute(query);
         // const [rows] = await con.execute(sql, [mapPageId, mapKind]);
         const pointContents = [] as ItemDefine[];

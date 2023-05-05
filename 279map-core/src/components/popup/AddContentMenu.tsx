@@ -40,12 +40,22 @@ export default function AddContentMenu(props: Props) {
             console.warn('想定外 target dataSource not find.', dataSourceId);
             return false;
         }
-        return dataSource.editable;
+        const targetDataSourceKind = dataSource.kinds.find(kind => {
+            if ('itemId' in props.target) {
+                return kind.type === SourceKind.Item;
+            } else {
+                return kind.type === SourceKind.Content;
+            }
+        });
+        if (!targetDataSourceKind) return false;
+        return targetDataSourceKind.editable;
     }, [props.target, dataSources]);
 
     const editableContentDataSources = useMemo((): LinkUnpointContentParam['dataSources'] => {
         return dataSources
-                .filter(ds => ds.editable && ds.kind === SourceKind.Content)
+                .filter(ds => {
+                    return ds.kinds.some(kind => kind.editable && kind.type === SourceKind.Content);
+                })
                 .map(ds => {
                     return {
                         dataSourceId: ds.dataSourceId,

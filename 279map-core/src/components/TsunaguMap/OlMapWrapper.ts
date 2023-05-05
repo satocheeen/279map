@@ -138,45 +138,50 @@ export class OlMapWrapper {
             extent = prefSource.getExtent();
 
             dataSources.forEach(ds => {
-                if (ds.kind === SourceKind.Track) {
-                    [[1, 8], [8, 13], [13, 21]].forEach(zoomLv => {
-                        const layerDefine: LayerDefine = {
-                            dataSourceId: ds.dataSourceId,
-                            editable: false,
-                            layerType: LayerType.Track,
-                            zoomLv: {
-                                min: zoomLv[0],
-                                max: zoomLv[1],
-                            }
-                        };
-                        this.addLayer(layerDefine);
-                    })
-
-                } else if (ds.kind === SourceKind.Item) {
-                    [LayerType.Point, LayerType.Topography].forEach(layerType => {
-                        const layerDefine: LayerDefine = {
-                            dataSourceId: ds.dataSourceId,
-                            editable: ds.editable,
-                            layerType: layerType as LayerType.Point| LayerType.Topography,
-                        };
-                        this.addLayer(layerDefine);
-                    })
-                }
+                ds.kinds.forEach(kind => {
+                    if (kind.type === SourceKind.Track) {
+                        [[1, 8], [8, 13], [13, 21]].forEach(zoomLv => {
+                            const layerDefine: LayerDefine = {
+                                dataSourceId: ds.dataSourceId,
+                                editable: false,
+                                layerType: LayerType.Track,
+                                zoomLv: {
+                                    min: zoomLv[0],
+                                    max: zoomLv[1],
+                                }
+                            };
+                            this.addLayer(layerDefine);
+                        })
+    
+                    } else if (kind.type === SourceKind.Item) {
+                        [LayerType.Point, LayerType.Topography].forEach(layerType => {
+                            const layerDefine: LayerDefine = {
+                                dataSourceId: ds.dataSourceId,
+                                editable: kind.editable,
+                                layerType: layerType as LayerType.Point| LayerType.Topography,
+                            };
+                            this.addLayer(layerDefine);
+                        })
+                    }
+    
+                })
             })
 
         } else {
             // 村マップ
             dataSources.forEach(ds => {
-                if (ds.kind !== SourceKind.Item) {
-                    return;
-                }
-                [LayerType.Point, LayerType.Topography].forEach(layerType => {
-                    const layerDefine: LayerDefine = {
-                        dataSourceId: ds.dataSourceId,
-                        editable: ds.editable,
-                        layerType: layerType as LayerType.Point| LayerType.Topography,
-                    };
-                    this.addLayer(layerDefine);
+                ds.kinds.forEach(kind => {
+                    if (kind.type !== SourceKind.Item) {
+                        return;
+                    }
+                    [LayerType.Point, LayerType.Topography].forEach(layerType => {
+                        const layerDefine: LayerDefine = {
+                            dataSourceId: ds.dataSourceId,
+                            editable: kind.editable,
+                            layerType: layerType as LayerType.Point| LayerType.Topography,
+                        };
+                        this.addLayer(layerDefine);
+                    })
                 })
             });
         }
@@ -365,10 +370,12 @@ export class OlMapWrapper {
         return this._map.getView().getZoom();
     }
 
-    addLayer(layerDefine: LayerDefine): VectorLayer<VectorSource> {
+    addLayer(layerDefine: LayerDefine): VectorLayer<VectorSource> | undefined{
         console.log('addLayer', this._id, layerDefine);
         const layer = this._vectorLayerMap.createLayer(layerDefine);
-        this._map.addLayer(layer);
+        if (layer) {
+            this._map.addLayer(layer);
+        }
         return layer;
     }
 

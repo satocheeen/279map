@@ -803,7 +803,7 @@ app.post(`/api/${RegistContentAPI.uri}`,
             const param = req.body as RegistContentParam;
 
             // check if editable datasource
-            const editable = await isEditableDataSource(param.contentDataSourceId);
+            const editable = await isEditableDataSource(param.contentDataSourceId, schema.DataSourceKindType.Content);
             if (!editable) {
                 throw new Error('the datasource can not edit: ' + param.contentDataSourceId);
             }

@@ -75,29 +75,3 @@ export async function getImageBase64(url: string, option: GetImageBase64Option):
         };
     }
 }
-
-/**
- * 指定の地図種別に対応するDataSourceKindを返す
- * @param mapKind 
- * @returns 
- */
-export function getDataSourceKindsFromMapKind(mapKind: MapKind, contain: {item?: boolean; content?: boolean; track?: boolean}): DataSourceKindType[] {
-    const kindSet = new Set<DataSourceKindType>();
-    if (contain.item) {
-        if (mapKind === MapKind.Real) {
-            kindSet.add(DataSourceKindType.RealItem);
-        } else {
-            kindSet.add(DataSourceKindType.VirtualItem);
-        }
-    }
-    if (contain.content) {
-        kindSet.add(DataSourceKindType.Content);
-    }
-    if (contain.track) {
-        if (mapKind === MapKind.Real) {
-            kindSet.add(DataSourceKindType.RealTrack);
-        }
-    }
-
-    return Array.from(kindSet);
-}

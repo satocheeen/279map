@@ -54,9 +54,11 @@ export enum SourceKind {
 export type DataSourceInfo = {
     dataSourceId: string;
     name: string;
-    kind: SourceKind;
-    linkableContent: DataSourceLinkableContent;
-    editable: boolean;
+    kinds: {
+        type: SourceKind;
+        linkableContent: DataSourceLinkableContent;
+        editable: boolean;
+    }[];
 }
 export type GetMapInfoResult = {
     mapKind: MapKind;

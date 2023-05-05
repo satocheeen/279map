@@ -1,4 +1,4 @@
-import { schema, getDataSourceKindsFromMapKind } from '279map-backend-common';
+import { schema } from '279map-backend-common';
 import { ConnectionPool } from '.';
 import { MapKind } from '279map-backend-common';
 import { DataSourceInfo, GetMapInfoParam, GetMapInfoResult, SourceKind } from '../279map-api-interface/src';
@@ -62,17 +62,16 @@ async function getExtent(mapPageId: string, mapKind: MapKind): Promise<[number,n
 
     try {
         // 位置コンテンツ
-        const kinds = getDataSourceKindsFromMapKind(mapKind, {item: true});
         // -- POINT
         const pointExtent = await async function(){
             const sql = `
             select MAX(ST_X(location)) as max_x, MAX(ST_Y(location)) as max_y, MIN(ST_X(location)) as min_x, MIN(ST_Y(location)) as min_y from items i
             inner join data_source ds on ds.data_source_id = i.data_source_id 
             inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
-            where map_page_id = ? and ds.kind in (?) 
+            where map_page_id = ? and i.map_kind = ? 
             `;
             // execute引数でパラメタを渡すと、なぜかエラーになるので、クエリを作成してから投げている
-            const query = mysql.format(sql, [mapPageId, kinds]);
+            const query = mysql.format(sql, [mapPageId, mapKind]);
             const [rows] = await con.execute(query);
             // const [rows] = await con.execute(sql, [mapPageId, kinds]);
             if((rows as any[]).length === 0) {
@@ -96,9 +95,9 @@ async function getExtent(mapPageId: string, mapKind: MapKind): Promise<[number,n
             from items i
             inner join data_source ds on ds.data_source_id = i.data_source_id 
             inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
-            where map_page_id = ? and ds.kind in (?)
+            where map_page_id = ? and i.map_kind = ? 
             `;
-            const query = mysql.format(sql, [mapPageId, kinds]);
+            const query = mysql.format(sql, [mapPageId, mapKind]);
             const [rows] = await con.execute(query);
             // const [rows] = await con.execute(sql, [mapPageId, kinds]);
             if((rows as any[]).length === 0) {
@@ -150,38 +149,78 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
     try {
         await con.beginTransaction();
 
-        const kinds = getDataSourceKindsFromMapKind(mapKind, {item: true, content: true, track: true});
         const sql = `select * from data_source ds
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
-        where map_page_id =? and kind in (?)`;
+        where map_page_id =?`;
         // execute引数でパラメタを渡すと、なぜかエラーになるので、クエリを作成してから投げている
-        const query = mysql.format(sql, [mapId, kinds]);
+        const query = mysql.format(sql, [mapId]);
         const [rows] = await con.execute(query);
 
-        console.log('rows', mapId, kinds.join(','), rows);
-        const dataSources = (rows as schema.DataSourceTable[]).reduce((acc, row) => {
-            const sourceKind = function() {
-                switch(row.kind) {
-                    case schema.DataSourceKind.Content:
-                        return [SourceKind.Content];
-                    case schema.DataSourceKind.RealItem:
-                    case schema.DataSourceKind.VirtualItem:
-                        return [SourceKind.Item];
-                    case schema.DataSourceKind.RealItemContent:
-                        return [SourceKind.Item, SourceKind.Content];
-                    case schema.DataSourceKind.RealTrack:
-                        return [SourceKind.Track];
+        const dataSources = (rows as schema.DataSourceTable[]).filter(record => {
+            return (record.kinds as schema.DataSourceKind[]).some(kind => {
+                if (mapKind === MapKind.Real) {
+                    switch(kind.type) {
+                        case schema.DataSourceKindType.RealItem:
+                        case schema.DataSourceKindType.RealTrack:
+                        case schema.DataSourceKindType.Content:
+                            return true;
+                        default:
+                            return false;
+                    }
+                } else {
+                    switch(kind.type) {
+                        case schema.DataSourceKindType.VirtualItem:
+                        case schema.DataSourceKindType.Content:
+                            return true;
+                        default:
+                            return false;
+                    }
                 }
-            }();
+            })
+        }).reduce((acc, row) => {
+            const kinds = (row.kinds as schema.DataSourceKind[]).filter(kind => {
+                if (mapKind === MapKind.Real) {
+                    switch(kind.type) {
+                        case schema.DataSourceKindType.Content:
+                        case schema.DataSourceKindType.RealItem:
+                        case schema.DataSourceKindType.RealTrack:
+                            return true;
+                        default:
+                            return false;
+                    }
+                } else {
+                    switch(kind.type) {
+                        case schema.DataSourceKindType.Content:
+                        case schema.DataSourceKindType.VirtualItem:
+                            return true;
+                        default:
+                            return false;
+                    }
+                }
+            }).map((kind): DataSourceInfo['kinds'][0] => {
+                const sourceKind = function() {
+                    switch(kind.type) {
+                        case schema.DataSourceKindType.Content:
+                            return SourceKind.Content;
+                        case schema.DataSourceKindType.RealItem:
+                        case schema.DataSourceKindType.VirtualItem:
+                            return SourceKind.Item;
+                        case schema.DataSourceKindType.RealTrack:
+                            return SourceKind.Track;
+                    }
+                }();
 
-            sourceKind.forEach((kind) => {
-                acc.push({
-                    dataSourceId: row.data_source_id,
-                    name: row.name,
-                    kind,
-                    editable: row.editable,
-                    linkableContent: row.linkable_content,
-                });
+                return {
+                    type: sourceKind,
+                    editable: kind.editable,
+                    linkableContent: kind.linkable_content,
+                }
+            })
+
+            acc.push({
+                dataSourceId: row.data_source_id,
+                name: row.name,
+                kinds,
             });
 
             return acc;

@@ -1,5 +1,5 @@
 import { ConnectionPool } from '..';
-import { schema, MapKind, Extent, getDataSourceKindsFromMapKind, DataId } from '279map-backend-common';
+import { schema, MapKind, Extent, DataId } from '279map-backend-common';
 import mysql, { PoolConnection } from 'mysql2/promise';
 
 export function getExtentWkt(ext: Extent): string {
@@ -60,15 +60,14 @@ export async function getBelongingItem(con: PoolConnection, content: schema.Cont
  */
 async function getItemHasTheContent(con: PoolConnection, content_page_id: string, mapPageId: string, mapKind: MapKind): Promise<schema.ItemsTable[]> {
     try {
-        const kind = getDataSourceKindsFromMapKind(mapKind, {item: true});
         const sql = `
         select i.* from items i
         inner join data_source ds on ds.data_source_id = ds.data_source_id 
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id
         inner join item_content_link icl on icl.item_page_id = i.item_page_id 
-        where icl.content_page_id = ? and mdl.map_page_id = ? and ds.kind in (?)
+        where icl.content_page_id = ? and mdl.map_page_id = ? and i.map_kind = ?
         `;
-        const query = mysql.format(sql, [content_page_id, mapPageId, kind]);
+        const query = mysql.format(sql, [content_page_id, mapPageId, mapKind]);
         const [rows] = await con.execute(query);
         // const [rows] = await con.execute(sql, [content_page_id, mapPageId, kind]);
         return (rows as schema.ItemsTable[]);
@@ -100,9 +99,10 @@ export async function getContent(content_id: DataId): Promise<schema.ContentsTab
 /**
  * 指定のデータソースが編集可能なデータソースか返す
  * @param data_source_id 
+ * @param sourceKind
  * @return 編集可能な場合、true
  */
-export async function isEditableDataSource(data_source_id: string): Promise<boolean> {
+export async function isEditableDataSource(data_source_id: string, sourceKind: schema.DataSourceKindType): Promise<boolean> {
     const con = await ConnectionPool.getConnection();
     try {
         const sql = "select * from data_source where data_source_id = ?";
@@ -111,7 +111,11 @@ export async function isEditableDataSource(data_source_id: string): Promise<bool
             return false;
         }
         const record = (rows as schema.DataSourceTable[])[0];
-        return record.editable;
+        const target = (record.kinds as schema.DataSourceKind[]).find(kind => kind.type === sourceKind);
+        if (!target) {
+            return false;
+        }
+        return target.editable;
 
     } catch(e) {
         throw new Error('isEditableDataSource error: ' + e);

@@ -1,5 +1,5 @@
 import { ConnectionPool } from '.';
-import { CurrentMap, getDataSourceKindsFromMapKind, schema, DataId } from "279map-backend-common";
+import { CurrentMap, schema, DataId } from "279map-backend-common";
 import { getBelongingItem, getContent } from "./util/utility";
 import { PoolConnection } from "mysql2/promise";
 import { GetContentsParam, GetContentsResult } from '../279map-api-interface/src';
@@ -90,16 +90,15 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
         for (const target of param) {
             let myRows: RetRecord[];
             if ('itemId' in target) {
-                const kinds = getDataSourceKindsFromMapKind(mapKind, { item: true });
                 const sql = `
-                select c.*, i.item_page_id, i.data_source_id as item_data_source_id, ds.kind from contents c
+                select c.*, i.item_page_id, i.data_source_id as item_data_source_id, i.map_kind from contents c
                 inner join item_content_link icl on icl.content_page_id = c.content_page_id 
                 inner join items i on i.item_page_id = icl.item_page_id 
                 inner join data_source ds on ds.data_source_id = i.data_source_id
                 group by c.content_page_id, c.data_source_id, i.item_page_id, i.data_source_id
-                having i.item_page_id = ? and i.data_source_id = ? and ds.kind in (?)
+                having i.item_page_id = ? and i.data_source_id = ? and i.map_kind = ?
                 `;
-                const query = mysql.format(sql, [target.itemId.id, target.itemId.dataSourceId, kinds]);
+                const query = mysql.format(sql, [target.itemId.id, target.itemId.dataSourceId, mapKind]);
                 const [rows] = await con.execute(query);
                 // const [rows] = await con.execute(sql, [target.itemId, kinds]);
                 myRows = rows as RetRecord[];
