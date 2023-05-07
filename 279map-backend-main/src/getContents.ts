@@ -1,5 +1,5 @@
 import { ConnectionPool } from '.';
-import { CurrentMap, schema, DataId } from "279map-backend-common";
+import { CurrentMap, schema, DataId, sns } from "279map-backend-common";
 import { getAncestorItemId, getContent } from "./util/utility";
 import { GetContentsParam, GetContentsResult } from '../279map-api-interface/src';
 import { ContentsDefine } from '279map-backend-common';
@@ -20,8 +20,7 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
             let isSnsContent = false;
             let addableChild = true;
             if (row.supplement) {
-                const supplement = JSON.parse(row.supplement);
-                isSnsContent = supplement.type === 'SnsContent';
+                isSnsContent = true;
                 addableChild = false;
             }
             return {
@@ -37,9 +36,9 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                 videoUrl: contents?.videoUrl,
                 overview: contents?.content,
                 url: contents?.url,
-                parentId: (row.parent_id && row.parent_data_sourceid) ? {
+                parentId: (row.parent_id && row.parent_datasource_id) ? {
                     id: row.parent_id,
-                    dataSourceId: row.parent_data_sourceid,
+                    dataSourceId: row.parent_datasource_id,
                 } : undefined,
                 anotherMapItemId: undefined,// TODO:  // 複数存在する場合は１つだけ返す
                 isSnsContent,

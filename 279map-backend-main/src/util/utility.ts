@@ -37,12 +37,12 @@ export async function getBelongingItem(con: PoolConnection, content: schema.Cont
     if (items.length > 0) {
         return items;
     }
-    if (!content.parent_id || !content.parent_data_sourceid) {
+    if (!content.parent_id || !content.parent_datasource_id) {
         return null;
     }
     const parent = await getContent({
         id: content.parent_id,
-        dataSourceId: content.parent_data_sourceid
+        dataSourceId: content.parent_datasource_id
     });
     if (!parent) {
         return null;
@@ -157,7 +157,7 @@ export async function getAncestorItemId(con: PoolConnection | undefined, content
             return;
         }
         const contentRecord = (contentRows as schema.ContentsTable[])[0];
-        if (!contentRecord.parent_id || !contentRecord.parent_data_sourceid) {
+        if (!contentRecord.parent_id || !contentRecord.parent_datasource_id) {
             return;
         }
         const ancestor = await getAncestorItemId(
