@@ -92,7 +92,7 @@ export type ContentsTable = {
     date?: Date;
     supplement?: string;      // ContentOptionのJSON文字列
     parent_id?: string;         // 親コンテンツID
-    parent_data_sourceid?: string;         // 親コンテンツデータソースID
+    parent_datasource_id?: string;         // 親コンテンツデータソースID
     readonly: boolean;
     last_edited_time: string;
 }
