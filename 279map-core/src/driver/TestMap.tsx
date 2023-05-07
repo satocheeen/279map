@@ -73,7 +73,14 @@ export default function TestMap() {
 
     const [ disabledContentDialog, setDisableContentDialog ] = useState(false);
 
-    const [ dataSources, setDataSources] = useState<DataSourceInfo[]>([])
+    const [ dataSources, setDataSources] = useState<DataSourceInfo[]>([]);
+
+    const featureDataSources = useMemo(() => {
+        return dataSources.filter(ds => {
+            const isFeature = ds.kinds.some(kind => kind.type !== SourceKind.Content);
+            return isFeature;
+        });
+    }, [dataSources]);
 
     const onMapLoad = useCallback((param: OnMapLoadParam) => {
         setMapKind(param.mapKind);
@@ -152,18 +159,18 @@ export default function TestMap() {
                             <input type="radio" checked={mapKind===MapKind.Virtual} onChange={() => switchMapKind(MapKind.Virtual)} />
                         </label>
                     </div>
-                    <PropRadio name='disabledPopup' value={disabledPopup} onChange={setDisablePopup} />
-                    <PropRadio name='disabledLabel' value={disabledLabel} onChange={setDisableLabel} />
-                    <PropRadio name='disabledContentDialog' value={disabledContentDialog} onChange={setDisableContentDialog} />
+                    <PropRadio name='Popup' label={['enabled', 'disabled']} value={disabledPopup} onChange={setDisablePopup} />
+                    <PropRadio name='Label' label={['enabled', 'disabled']} value={disabledLabel} onChange={setDisableLabel} />
+                    <PropRadio name='ContentDialog' label={['enabled', 'disabled']} value={disabledContentDialog} onChange={setDisableContentDialog} />
                 </div>
                 <div className={styles.Col}>
                     <div className={styles.PropName}>データソース</div>
-                    {dataSources.filter(ds => ds.kind !== SourceKind.Content).map(ds => {
+                    {featureDataSources.map(ds => {
                         return (
                             <label key={ds.dataSourceId}>
                                 <input type="checkbox" />
                                 {ds.name}
-                                {ds.editable &&
+                                {ds.kinds.find(kind => kind.type === SourceKind.Item)?.editable &&
                                     <>
                                         <button onClick={()=>commandHook?.drawStructure(ds.dataSourceId)}>建設</button>
                                         {mapKind === MapKind.Real ?
@@ -254,6 +261,7 @@ type PropRadioProps = {
     name: string;
     value: boolean;
     onChange: (val: boolean) => void;
+    label: [string, string];
 }
 function PropRadio(props: PropRadioProps) {
     return (
@@ -261,11 +269,11 @@ function PropRadio(props: PropRadioProps) {
             <span className={styles.PropName}>{props.name}</span>
             <label>
                 <input type="radio" checked={!props.value} onChange={() => props.onChange(false)} />
-                false
+                {props.label[0]}
             </label>
             <label>
                 <input type="radio" checked={props.value} onChange={() => props.onChange(true)} />
-                true
+                {props.label[1]}
             </label>
         </div>
     )
