@@ -3,10 +3,14 @@ import { CurrentMap } from "../types";
 import { OdbaAPIFunc } from "./api-initializer";
 import { GetUnpointDataParam, GetUnpointDataResult, LinkContentToItemParam, RegistContentParam, RegistItemParam, RemoveContentParam, RemoveItemParam, UpdateContentParam, UpdateItemParam } from "./dba-api-interface";
 
-type UpdateItemContentLinkCacheParam = {
+type UpdateContentLinkCacheParam = {
     currentMap: CurrentMap;
     contentId: DataId;
-    itemId: DataId;
+    parent: {
+        itemId: DataId;
+    } | {
+        contentId: DataId;
+    }
 }
 
 export default abstract class OdbaInterface {
@@ -36,7 +40,7 @@ export default abstract class OdbaInterface {
 
     abstract unlinkContentOdb: (param: LinkContentToItemParam) => Promise<void>;
 
-    abstract updateItemContentLinkCache: (param: UpdateItemContentLinkCacheParam) => Promise<void>;
+    abstract updateContentLinkCache: (param: UpdateContentLinkCacheParam) => Promise<void>;
 
     abstract getImageUrl: OdbaAPIFunc<{id: DataId}, string | undefined>;
 }

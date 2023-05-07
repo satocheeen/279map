@@ -77,9 +77,12 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
                         },
                         childContentId: param.param.id,
                     })
-                    await odba.updateContentCache({
+                    await odba.updateContentLinkCache({
                         currentMap: param.param.currentMap, 
-                        contentId: param.param.parentContentId,
+                        parent: {
+                            contentId: param.param.parentContentId,
+                        },
+                        contentId: param.param.id,
                     });
                 } else {
                     // アイテムとの接続を切った場合
@@ -90,9 +93,11 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
                         },
                         childContentId: param.param.id,
                     })
-                    await odba.updateItemContentLinkCache({
+                    await odba.updateContentLinkCache({
                         currentMap: param.param.currentMap, 
-                        itemId: param.param.itemId,
+                        parent: {
+                            itemId: param.param.itemId,
+                        },
                         contentId: param.param.id,
                     });
                 }
@@ -130,18 +135,11 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
             func: async(param: OdbaAPIFuncParam<LinkContentToItemParam>): Promise<void> => {
                 await odba.linkContentOdb(param.param);
 
-                if ('itemId' in param.param.parent) {
-                    await odba.updateItemContentLinkCache({
-                        currentMap: param.param.currentMap, 
-                        itemId: param.param.parent.itemId,
-                        contentId: param.param.childContentId,
-                    })
-                } else {
-                    await odba.updateContentCache({
-                        currentMap: param.param.currentMap, 
-                        contentId: param.param.parent.contentId,
-                    });
-                }
+                await odba.updateContentLinkCache({
+                    currentMap: param.param.currentMap, 
+                    parent: param.param.parent,
+                    contentId: param.param.childContentId,
+                })
             }
         },
         {
