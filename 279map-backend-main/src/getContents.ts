@@ -1,12 +1,9 @@
 import { ConnectionPool } from '.';
 import { CurrentMap, schema, DataId } from "279map-backend-common";
-import { getBelongingItem, getContent } from "./util/utility";
-import { PoolConnection } from "mysql2/promise";
+import { getAncestorItemId, getContent } from "./util/utility";
 import { GetContentsParam, GetContentsResult } from '../279map-api-interface/src';
-import { ContentsDefine, MapKind } from '279map-backend-common';
+import { ContentsDefine } from '279map-backend-common';
 import mysql from 'mysql2/promise';
-
-type RetRecord = schema.ContentsTable & {item_page_id: string; item_data_source_id: string; /*another_item_id: string|null;*/};
 
 export async function getContents({ param, currentMap }: {param: GetContentsParam; currentMap: CurrentMap}): Promise<GetContentsResult> {
     if (!currentMap) {
@@ -18,25 +15,7 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
     try {
         const allContents = [] as ContentsDefine[];
 
-        const convertRecord = async(row: RetRecord): Promise<ContentsDefine> => {
-            const sql = 'select * from item_content_link where content_page_id = ?';
-            const [rows] = await con.execute(sql, [row.content_page_id]);
-            const another_item_ids =  (rows as schema.ItemContentLink[])
-                                        .filter(record => record.item_page_id !== row.item_page_id)
-                                        .reduce((acc, cur) => {
-                                            const exist = acc.some(item => {
-                                                return item.id === cur.item_page_id && item.dataSourceId === cur.item_datasource_id;
-                                            });
-                                            if (!exist) {
-                                                return acc.concat({
-                                                    id: cur.item_page_id,
-                                                    dataSourceId: cur.item_datasource_id
-                                                });
-                                            } else {
-                                                return acc;
-                                            }
-                                        }, [] as DataId[]);
-
+        const convertRecord = async(row: schema.ContentsTable, itemId: DataId): Promise<ContentsDefine> => {
             const contents = row.contents ? JSON.parse(row.contents) as schema.ContentsInfo: undefined;
             let isSnsContent = false;
             let addableChild = true;
@@ -50,10 +29,7 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                     id: row.content_page_id,
                     dataSourceId: row.data_source_id,
                 },
-                itemId: {
-                    id: row.item_page_id,
-                    dataSourceId: row.item_data_source_id,
-                },
+                itemId,
                 title: row.title ?? '',
                 date: row.date,
                 category: row.category ? JSON.parse(row.category) : [],
@@ -65,31 +41,31 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                     id: row.parent_id,
                     dataSourceId: row.parent_data_sourceid,
                 } : undefined,
-                anotherMapItemId: another_item_ids.length === 0 ? undefined : another_item_ids[0],  // 複数存在する場合は１つだけ返す
+                anotherMapItemId: undefined,// TODO:  // 複数存在する場合は１つだけ返す
                 isSnsContent,
                 addableChild,
                 readonly: row.readonly ? true : false,
             };
         }
-        const getChildren = async(contentId: DataId): Promise<ContentsDefine[]> => {
+        const getChildren = async(contentId: DataId, itemId: DataId): Promise<ContentsDefine[]> => {
             const getChildrenQuery = `
-                select c.*, i.item_page_id, i.data_source_id as item_data_source_id from contents c
-                inner join item_content_link icl on icl.content_page_id = c.content_page_id 
-                inner join items i on i.item_page_id = icl.item_page_id 
+                select c.* from contents c
                 where c.parent_id = ? AND c.parent_datasource_id = ?
                 `;
             const [rows] = await con.execute(getChildrenQuery, [contentId.id, contentId.dataSourceId]);
             const children = [] as ContentsDefine[];
-            for (const row of rows as RetRecord[]) {
-                const content = await convertRecord(row);
-                content.children = await getChildren(content.id);
+            for (const row of rows as schema.ContentsTable[]) {
+                const content = await convertRecord(row, itemId);
+                content.children = await getChildren(content.id, itemId);
                 children.push(content);
             }
             return children;
         }
         for (const target of param) {
-            let myRows: RetRecord[];
+            let myRows: schema.ContentsTable[];
+            let itemId: DataId;
             if ('itemId' in target) {
+                itemId = target.itemId;
                 const sql = `
                 select c.*, i.item_page_id, i.data_source_id as item_data_source_id, i.map_kind from contents c
                 inner join item_content_link icl on icl.content_page_id = c.content_page_id 
@@ -100,16 +76,22 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                 `;
                 const query = mysql.format(sql, [target.itemId.id, target.itemId.dataSourceId, mapKind]);
                 const [rows] = await con.execute(query);
-                // const [rows] = await con.execute(sql, [target.itemId, kinds]);
-                myRows = rows as RetRecord[];
+                myRows = rows as schema.ContentsTable[];
             } else {
-                myRows = await getContentInfo(con, target.contentId, currentMap.mapId,currentMap.mapKind);
-
+                // 先祖ItemIdを取得
+                const myItemId = await getAncestorItemId(con, target.contentId, currentMap);
+                if (!myItemId) {
+                    throw new Error('item not found.');
+                }
+                itemId = myItemId;
+                const contentRecord = await getContent(target.contentId);
+                myRows = contentRecord ? [contentRecord] : [];
             }
+
             for (const row of myRows) {
-                const content = await convertRecord(row);
+                const content = await convertRecord(row, itemId);
                 // 子孫コンテンツを取得
-                content.children = await getChildren(content.id);
+                content.children = await getChildren(content.id, itemId);
                 allContents.push(content);
 
             }
@@ -126,26 +108,4 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
         await con.commit();
         con.release();
     }
-}
-
-async function getContentInfo(con: PoolConnection, content_id: DataId, mapPageId: string, mapKind: MapKind): Promise<RetRecord[]> {
-    const contentRec = await getContent(content_id);
-    if (!contentRec) {
-        return [];
-    }
-    const currentMapItem = await getBelongingItem(con, contentRec, mapPageId, mapKind);
-    if (!currentMapItem) {
-        return [];
-    }
-    const anotherMapKind = mapKind === MapKind.Real ? MapKind.Virtual: MapKind.Real;
-    // const anotherMapItems = await getBelongingItem(con, contentRec, mapPageId, anotherMapKind);
-    return currentMapItem.map(item => {
-        return Object.assign({
-            item_page_id: item.item_page_id,
-            item_data_source_id: item.data_source_id,
-            // another_item_id: anotherMapItems ? {
-            //     id: anotherMapItems[0].item_page_id,
-            //      : null,
-        }, contentRec);
-    });
 }

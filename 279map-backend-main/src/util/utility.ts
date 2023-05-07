@@ -1,5 +1,5 @@
 import { ConnectionPool } from '..';
-import { schema, MapKind, Extent, DataId } from '279map-backend-common';
+import { schema, MapKind, Extent, DataId,  CurrentMap} from '279map-backend-common';
 import mysql, { PoolConnection } from 'mysql2/promise';
 
 export function getExtentWkt(ext: Extent): string {
@@ -122,6 +122,58 @@ export async function isEditableDataSource(data_source_id: string, sourceKind: s
     } finally {
         await con.commit();
         con.release();
+    }
+
+}
+
+/**
+ * 指定のコンテンツの祖先にいるアイテムIDを返す
+ * @param contentId 
+ */
+export async function getAncestorItemId(con: PoolConnection | undefined, contentId: DataId, currentMap: CurrentMap): Promise<DataId | undefined> {
+    const myCon = con ?? await ConnectionPool.getConnection();
+
+    try {
+        const sql = `
+        select * from items i
+        inner join item_content_link icl on icl.item_page_id = i.item_page_id  and icl.item_datasource_id = i.data_source_id 
+        inner join map_datasource_link mdl on mdl.data_source_id = icl.item_datasource_id 
+        where mdl.map_page_id = ? and i.map_kind = ? and icl.content_page_id = ? and icl.content_datasource_id = ?
+        `;
+        console.log('debug', currentMap.mapId, currentMap.mapKind, contentId.id, contentId.dataSourceId);
+        const [rows] = await myCon.execute(sql, [currentMap.mapId, currentMap.mapKind, contentId.id, contentId.dataSourceId]);
+        if ((rows as schema.ItemsTable[]).length > 0) {
+            const record = (rows as schema.ItemsTable[])[0];
+            return {
+                id: record.item_page_id,
+                dataSourceId: record.data_source_id,
+            };
+        }
+
+        // 対応するアイテムが存在しない場合は、親コンテンツを辿る
+        const contentQuery = 'select * from contents where content_page_id = ? and data_source_id = ?';
+        const [contentRows] = await myCon.execute(contentQuery, [contentId.id, contentId.dataSourceId]);
+        if ((contentRows as []).length === 0) {
+            return;
+        }
+        const contentRecord = (contentRows as schema.ContentsTable[])[0];
+        if (!contentRecord.parent_id || !contentRecord.parent_data_sourceid) {
+            return;
+        }
+        const ancestor = await getAncestorItemId(
+            myCon,
+            {
+                id: contentRecord.parent_id,
+                dataSourceId: contentRecord.data_source_id,
+            },
+            currentMap);
+        return ancestor;
+    
+    } finally {
+        if (!con) {
+            await myCon.commit();
+            myCon.release();
+        }
     }
 
 }
