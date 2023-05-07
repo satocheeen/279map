@@ -1,9 +1,10 @@
 import { ConnectionPool } from '.';
-import { CurrentMap, schema, DataId, sns } from "279map-backend-common";
-import { getAncestorItemId, getContent } from "./util/utility";
+import { CurrentMap, schema, DataId } from "279map-backend-common";
+import { getAncestorItemId } from "./util/utility";
 import { GetContentsParam, GetContentsResult } from '../279map-api-interface/src';
 import { ContentsDefine } from '279map-backend-common';
-import mysql from 'mysql2/promise';
+
+type ContentsDatasourceRecord = schema.ContentsTable & schema.DataSourceTable;
 
 export async function getContents({ param, currentMap }: {param: GetContentsParam; currentMap: CurrentMap}): Promise<GetContentsResult> {
     if (!currentMap) {
@@ -15,12 +16,20 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
     try {
         const allContents = [] as ContentsDefine[];
 
-        const convertRecord = async(row: schema.ContentsTable, itemId: DataId): Promise<ContentsDefine> => {
+        const convertRecord = async(row: ContentsDatasourceRecord, itemId: DataId): Promise<ContentsDefine> => {
             const contents = row.contents ? JSON.parse(row.contents) as schema.ContentsInfo: undefined;
             let isSnsContent = false;
             let addableChild = true;
+            let readonly = row.readonly;
             if (row.supplement) {
+                // SNSコンテンツの場合
                 isSnsContent = true;
+                addableChild = false;
+            }
+            const myDatasourceKind = (row.kinds as schema.DataSourceKind[]).find(kind => kind.type === schema.DataSourceKindType.Content);
+            if (!myDatasourceKind?.editable) {
+                // データソースが編集不可の場合
+                readonly = true;
                 addableChild = false;
             }
             return {
@@ -43,17 +52,18 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                 anotherMapItemId: undefined,// TODO:  // 複数存在する場合は１つだけ返す
                 isSnsContent,
                 addableChild,
-                readonly: row.readonly ? true : false,
+                readonly,
             };
         }
         const getChildren = async(contentId: DataId, itemId: DataId): Promise<ContentsDefine[]> => {
             const getChildrenQuery = `
-                select c.* from contents c
+                select c.*, ds.* from contents c
+                inner join data_source ds on ds.data_source_id = c.data_source_id
                 where c.parent_id = ? AND c.parent_datasource_id = ?
                 `;
             const [rows] = await con.execute(getChildrenQuery, [contentId.id, contentId.dataSourceId]);
             const children = [] as ContentsDefine[];
-            for (const row of rows as schema.ContentsTable[]) {
+            for (const row of rows as ContentsDatasourceRecord[]) {
                 const content = await convertRecord(row, itemId);
                 content.children = await getChildren(content.id, itemId);
                 children.push(content);
@@ -61,21 +71,24 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
             return children;
         }
         for (const target of param) {
-            let myRows: schema.ContentsTable[];
+            let myRows: ContentsDatasourceRecord[];
             let itemId: DataId;
             if ('itemId' in target) {
                 itemId = target.itemId;
+                // itemの子コンテンツを取得
+
                 const sql = `
-                select c.*, i.item_page_id, i.data_source_id as item_data_source_id, i.map_kind from contents c
-                inner join item_content_link icl on icl.content_page_id = c.content_page_id 
-                inner join items i on i.item_page_id = icl.item_page_id 
-                inner join data_source ds on ds.data_source_id = i.data_source_id
-                group by c.content_page_id, c.data_source_id, i.item_page_id, i.data_source_id
-                having i.item_page_id = ? and i.data_source_id = ? and i.map_kind = ?
+                select * from contents c 
+                inner join data_source ds on ds.data_source_id = c.data_source_id
+                where exists (
+                    select icl.* from item_content_link icl 
+                    inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id 
+                    where i.item_page_id = ? and i.data_source_id = ? and i.map_kind = ?
+                    and icl.content_page_id = c.content_page_id and icl.content_datasource_id  = c.data_source_id 
+                )
                 `;
-                const query = mysql.format(sql, [target.itemId.id, target.itemId.dataSourceId, mapKind]);
-                const [rows] = await con.execute(query);
-                myRows = rows as schema.ContentsTable[];
+                const [rows] = await con.execute(sql, [target.itemId.id, target.itemId.dataSourceId, mapKind]);
+                myRows = rows as ContentsDatasourceRecord[];
             } else {
                 // 先祖ItemIdを取得
                 const myItemId = await getAncestorItemId(con, target.contentId, currentMap);
@@ -83,8 +96,13 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                     throw new Error('item not found.');
                 }
                 itemId = myItemId;
-                const contentRecord = await getContent(target.contentId);
-                myRows = contentRecord ? [contentRecord] : [];
+                const sql = `
+                select c.*, ds.* from contents c
+                inner join data_source ds on ds.data_source_id = c.data_source_id
+                where c.content_page_id = ? and c.data_source_id = ?
+                `;
+                const [rows] = await con.execute(sql, [target.contentId.id, target.contentId.dataSourceId]);
+                myRows = rows as ContentsDatasourceRecord[];
             }
 
             for (const row of myRows) {

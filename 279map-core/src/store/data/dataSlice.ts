@@ -151,9 +151,7 @@ const dataSlice = createSlice({
                         return newChildren;
                     }
                     const newChildren = removeChild(targetItem.contents);
-                    newContents = Object.assign({}, targetItem.contents, {
-                        children: newChildren,
-                    });
+                    newContents = newChildren;
                 }
                 itemMap[getMapKey(action.payload.itemId)] = {
                     id: targetItem.id,

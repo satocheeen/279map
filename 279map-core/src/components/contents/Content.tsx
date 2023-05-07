@@ -224,30 +224,51 @@ export default function Content(props: Props) {
         return !props.content.isSnsContent;
     }, [editableAuthLv, props.content, contentDataSource]);
 
-    const itemDataSource = useSelector((state: RootState) => {
-        const dataSource = state.session.currentMapKindInfo?.dataSources.find(ds => {
-            return ds.dataSourceId === props.itemId.dataSourceId;
-        });
-        return dataSource?.kinds.find(kind => kind.type === SourceKind.Item);
+    const parentDataSource = useSelector((state: RootState) => {
+        if (props.parentContentId) {
+            const dataSource = state.session.currentMapKindInfo?.dataSources.find(ds => {
+                return ds.dataSourceId === props.parentContentId?.dataSourceId;
+            });
+            return dataSource?.kinds.find(kind => kind.type === SourceKind.Content);
+
+        } else {
+            const dataSource = state.session.currentMapKindInfo?.dataSources.find(ds => {
+                return ds.dataSourceId === props.itemId.dataSourceId;
+            });
+            return dataSource?.kinds.find(kind => kind.type === SourceKind.Item);
+        }
     });
     const isDeletable = useMemo(() => {
         if (!isEditable) return false;
 
-        // 親アイテムと１対１で結びついているコンテンツの場合は、削除付加
-        if (!props.parentContentId) {
-            if (itemDataSource?.linkableContent === DataSourceLinkableContent.AlwaysSingle) {
-                return false;
-            }
-        }
-        return true;
-    }, [isEditable, props.parentContentId, itemDataSource]);
+        // TODO: もう一方の地図で使用されている場合は削除不可にする
+
+        // 親アイテムと１対１で結びついているコンテンツの場合は、削除不可
+        return parentDataSource?.linkableContent !== DataSourceLinkableContent.AlwaysSingle;
+    }, [isEditable, parentDataSource]);
+
+    const isUnlinkable = useMemo(() => {
+        // 親アイテムの編集不可能な場合は、リンク解除不可
+        if (!parentDataSource?.editable) return false;
+
+        // 親アイテムと１対１で結びついているコンテンツの場合は、リンク解除不可
+        return parentDataSource?.linkableContent !== DataSourceLinkableContent.AlwaysSingle;
+    }, [parentDataSource])
 
     const addableChild = useMemo(() => {
-        // TODO: ひとまず、子コンテンツ追加機能Off
-        return false;
-        // if (!editableAuthLv) return false;
-        // return props.content.addableChild;
-    }, [/*props.content, editableAuthLv*/]);
+        if (!props.content.addableChild) return false;
+        if (!parentDataSource) return false;
+        switch(parentDataSource.linkableContent) {
+            case DataSourceLinkableContent.None:
+            case DataSourceLinkableContent.AlwaysSingle:
+                return false;
+            case DataSourceLinkableContent.Multi:
+                return true;
+            case DataSourceLinkableContent.Single:
+                // 既に子がいるなら追加不可能
+                return (props.content.children?.length ?? 0) === 0;
+        }
+    }, [parentDataSource, props.content]);
 
     const onDelete = useCallback(async() => {
         const result = await confirm({
@@ -257,14 +278,14 @@ export default function Content(props: Props) {
             return;
         }
         let deleteOnlyLink = true;
-        if (!props.content.readonly && !props.content.anotherMapItemId) {
-            // もう一方の地図で使用されている場合は、アイテムとのリンク除去
-            // 使用されていないならば、どうするか確認
+        if (isDeletable && isUnlinkable) {
             const result2 = await confirm({
                 message: '元データも削除しますか。\nはい→元データごと削除する\nいいえ→地図上からのみ削除する',
                 btnPattern: ConfirmBtnPattern.YesNo,
             });
             deleteOnlyLink = result2 === ConfirmResult.No;
+        } else if (!isDeletable) {
+            deleteOnlyLink = true;
         }
 
         setShowSpinner(true);
@@ -278,7 +299,7 @@ export default function Content(props: Props) {
 
         setShowSpinner(false);
 
-    }, [props.itemId, props.parentContentId, confirm, dispatch, props.content]);
+    }, [props.itemId, props.parentContentId, confirm, dispatch, props.content, isDeletable, isUnlinkable]);
 
     const overview = useMemo(() => {
         if (!props.content.overview) {
@@ -318,7 +339,7 @@ export default function Content(props: Props) {
                             <MdEdit />
                         </PopupMenuIcon>
                     }
-                    {isDeletable &&
+                    {(isDeletable || isUnlinkable) &&
                         <PopupMenuIcon tooltip="削除" onClick={onDelete}>
                             <MdDelete />
                         </PopupMenuIcon>
@@ -334,7 +355,7 @@ export default function Content(props: Props) {
                 </div>
             </div>
         )
-    }, [props.content, title, onGoToAnotherMap, addableChild, existAnoterMap, isEditable, isDeletable, onDelete, onEdit, toolTipMessage]);
+    }, [props.content, title, onGoToAnotherMap, addableChild, existAnoterMap, isEditable, isDeletable, isUnlinkable, onDelete, onEdit, toolTipMessage]);
 
     const body = useMemo(() => {
         return (
