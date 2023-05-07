@@ -8,13 +8,12 @@ import { RootState, useAppDispatch } from "../../store/configureStore";
 import CategoryBadge from "../common/CategoryBadge";
 import * as CommonUtility from '../../util/CommonUtility';
 import { CgArrowsExchangeAlt } from "react-icons/cg";
-import { doCommand } from "../../util/Commander";
 import useConfirm, { ConfirmBtnPattern, ConfirmResult } from "../common/confirm/useConfirm";
 import { removeContent } from "../../store/data/dataThunk";
 import reactStringReplace from "react-string-replace";
 import PopupMenuIcon from "../popup/PopupMenuIcon";
 import AddContentMenu from "../popup/AddContentMenu";
-import { Auth, ContentAttr, ContentsDefine, DataId, MapKind } from "../../279map-common";
+import { Auth, ContentAttr, ContentsDefine, DataId, DataSourceLinkableContent, MapKind } from "../../279map-common";
 import Spinner from "../common/spinner/Spinner";
 import { operationActions } from "../../store/operation/operationSlice";
 import { useFilter } from "../../store/useFilter";
@@ -209,7 +208,7 @@ export default function Content(props: Props) {
         }
         return state.session.connectStatus.connectedMap?.authLv === Auth.Edit
     });
-    const targetDataSource = useSelector((state: RootState) => {
+    const contentDataSource = useSelector((state: RootState) => {
         const dataSource = state.session.currentMapKindInfo?.dataSources.find(ds => {
             return ds.dataSourceId === props.content.id.dataSourceId;
         });
@@ -219,17 +218,29 @@ export default function Content(props: Props) {
         if (!editableAuthLv) return false;
         if (props.content.readonly) return false;
         // データソースが編集不可能な場合は編集付加
-        if (!targetDataSource?.editable) return false;
+        if (!contentDataSource?.editable) return false;
 
         // SNSコンテンツは編集不可
         return !props.content.isSnsContent;
-    }, [editableAuthLv, props.content, targetDataSource]);
+    }, [editableAuthLv, props.content, contentDataSource]);
 
+    const itemDataSource = useSelector((state: RootState) => {
+        const dataSource = state.session.currentMapKindInfo?.dataSources.find(ds => {
+            return ds.dataSourceId === props.itemId.dataSourceId;
+        });
+        return dataSource?.kinds.find(kind => kind.type === SourceKind.Item);
+    });
     const isDeletable = useMemo(() => {
-        if (!editableAuthLv) return false;
-        // SNSコンテンツは編集不可
-        return !props.content.isSnsContent;
-    }, [editableAuthLv, props.content]);
+        if (!isEditable) return false;
+
+        // 親アイテムと１対１で結びついているコンテンツの場合は、削除付加
+        if (!props.parentContentId) {
+            if (itemDataSource?.linkableContent === DataSourceLinkableContent.AlwaysSingle) {
+                return false;
+            }
+        }
+        return true;
+    }, [isEditable, props.parentContentId, itemDataSource]);
 
     const addableChild = useMemo(() => {
         // TODO: ひとまず、子コンテンツ追加機能Off
