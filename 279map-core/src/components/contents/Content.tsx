@@ -22,7 +22,7 @@ import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
 import { getContents, getMapKey } from "../../store/data/dataUtility";
 import { getAPICallerInstance } from "../../api/ApiCaller";
-import { GetImageUrlAPI } from 'tsunagumap-api';
+import { GetImageUrlAPI, SourceKind } from 'tsunagumap-api';
 import { useCommand } from "../../api/useCommand";
 
 type Props = {
@@ -209,13 +209,21 @@ export default function Content(props: Props) {
         }
         return state.session.connectStatus.connectedMap?.authLv === Auth.Edit
     });
+    const targetDataSource = useSelector((state: RootState) => {
+        const dataSource = state.session.currentMapKindInfo?.dataSources.find(ds => {
+            return ds.dataSourceId === props.content.id.dataSourceId;
+        });
+        return dataSource?.kinds.find(kind => kind.type === SourceKind.Content);
+    });
     const isEditable = useMemo(() => {
         if (!editableAuthLv) return false;
         if (props.content.readonly) return false;
+        // データソースが編集不可能な場合は編集付加
+        if (!targetDataSource?.editable) return false;
 
         // SNSコンテンツは編集不可
         return !props.content.isSnsContent;
-    }, [editableAuthLv, props.content]);
+    }, [editableAuthLv, props.content, targetDataSource]);
 
     const isDeletable = useMemo(() => {
         if (!editableAuthLv) return false;
