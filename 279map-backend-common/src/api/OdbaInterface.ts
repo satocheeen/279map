@@ -3,7 +3,7 @@ import { CurrentMap } from "../types";
 import { OdbaAPIFunc } from "./api-initializer";
 import { GetUnpointDataParam, GetUnpointDataResult, LinkContentToItemParam, RegistContentParam, RegistItemParam, RemoveContentParam, RemoveItemParam, UpdateContentParam, UpdateItemParam } from "./dba-api-interface";
 
-type UpdateContentLinkCacheParam = {
+export type UpdateContentLinkCacheParam = {
     currentMap: CurrentMap;
     contentId: DataId;
     parent: {
