@@ -11,7 +11,7 @@ import { getEvents } from './getEvents';
 import Broadcaster from './session/Broadcaster';
 import proxy from 'express-http-proxy';
 import http from 'http';
-import { convertBase64ToBinary, isEditableDataSource } from './util/utility';
+import { convertBase64ToBinary, isReadonlyDataSource } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
 import { getSnsPreview } from './api/getSnsPreview';
@@ -803,8 +803,8 @@ app.post(`/api/${RegistContentAPI.uri}`,
             const param = req.body as RegistContentParam;
 
             // check if editable datasource
-            const editable = await isEditableDataSource(param.contentDataSourceId, schema.DataSourceKindType.Content);
-            if (!editable) {
+            const raadonly = await isReadonlyDataSource(param.contentDataSourceId);
+            if (raadonly) {
                 throw new Error('the datasource can not edit: ' + param.contentDataSourceId);
             }
     

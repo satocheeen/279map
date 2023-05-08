@@ -209,19 +209,19 @@ export default function Content(props: Props) {
         return state.session.connectStatus.connectedMap?.authLv === Auth.Edit
     });
     const contentDataSource = useSelector((state: RootState) => {
-        const dataSource = state.session.currentMapKindInfo?.dataSources.find(ds => {
+        return state.session.currentMapKindInfo?.dataSources.find(ds => {
             return ds.dataSourceId === props.content.id.dataSourceId;
         });
-        return dataSource?.kinds.find(kind => kind.type === SourceKind.Content);
     });
     const isEditable = useMemo(() => {
         if (!editableAuthLv) return false;
-        if (props.content.readonly) return false;
-        // データソースが編集不可能な場合は編集付加
-        if (!contentDataSource?.editable) return false;
+
+        // データソースがreadonlyの場合は編集不可
+        if (contentDataSource?.readonly) return false;
 
         // SNSコンテンツは編集不可
-        return !props.content.isSnsContent;
+        if (props.content.isSnsContent) return false;
+        return true;
     }, [editableAuthLv, props.content, contentDataSource]);
 
     const parentDataSource = useSelector((state: RootState) => {
@@ -241,34 +241,43 @@ export default function Content(props: Props) {
     const isDeletable = useMemo(() => {
         if (!isEditable) return false;
 
-        // TODO: もう一方の地図で使用されている場合は削除不可にする
+        // 別の地図で使用されている場合は削除不可にする
+        if (props.content.usingAnotherMap) return false;
 
-        // 親アイテムと１対１で結びついているコンテンツの場合は、削除不可
-        return parentDataSource?.linkableContent !== DataSourceLinkableContent.AlwaysSingle;
-    }, [isEditable, parentDataSource]);
+        // 親アイテムとのペアコンテンツの場合は、削除不可
+        return parentDataSource?.linkableContent !== DataSourceLinkableContent.Pair;
+    }, [isEditable, parentDataSource, props.content.usingAnotherMap]);
 
     const isUnlinkable = useMemo(() => {
-        // 親アイテムの編集不可能な場合は、リンク解除不可
-        if (!parentDataSource?.editable) return false;
+        if (!editableAuthLv) return false;
 
-        // 親アイテムと１対１で結びついているコンテンツの場合は、リンク解除不可
-        return parentDataSource?.linkableContent !== DataSourceLinkableContent.AlwaysSingle;
-    }, [parentDataSource])
+        // SNSコンテンツの場合はリンク解除不可
+        if (props.content.isSnsContent) return false;
+
+        // 親アイテムとのペアコンテンツの場合は、リンク解除不可
+        return parentDataSource?.linkableContent !== DataSourceLinkableContent.Pair;
+    }, [parentDataSource, props.content, editableAuthLv])
 
     const addableChild = useMemo(() => {
-        if (!props.content.addableChild) return false;
-        if (!parentDataSource) return false;
-        switch(parentDataSource.linkableContent) {
-            case DataSourceLinkableContent.None:
-            case DataSourceLinkableContent.AlwaysSingle:
-                return false;
+        // SNSコンテンツの場合は子コンテンツの追加不可
+        if (props.content.isSnsContent) return false;
+
+        if (!contentDataSource) {
+            console.warn('contentのデータソース見つからず（想定外）');
+            return false;
+        }
+        const contentKind = contentDataSource.kinds.find(kind => kind.type === SourceKind.Content);
+        
+        switch(contentKind?.linkableContent) {
             case DataSourceLinkableContent.Multi:
                 return true;
             case DataSourceLinkableContent.Single:
                 // 既に子がいるなら追加不可能
                 return (props.content.children?.length ?? 0) === 0;
+            default:
+                return false;
         }
-    }, [parentDataSource, props.content]);
+    }, [contentDataSource, props.content]);
 
     const onDelete = useCallback(async() => {
         const result = await confirm({
@@ -290,7 +299,7 @@ export default function Content(props: Props) {
 
         setShowSpinner(true);
 
-        await dispatch(removeContent({
+        const res = await dispatch(removeContent({
             id: props.content.id,
             itemId: props.itemId,
             parentContentId: props.parentContentId,
@@ -298,6 +307,15 @@ export default function Content(props: Props) {
         }));
 
         setShowSpinner(false);
+
+        if ('error' in res) {
+            // @ts-ignore
+            const errorMessage = res.payload?.message ?? '';
+            await confirm({
+                message: '削除に失敗しました。\n' + errorMessage,
+                btnPattern: ConfirmBtnPattern.OkOnly,
+            });
+        }
 
     }, [props.itemId, props.parentContentId, confirm, dispatch, props.content, isDeletable, isUnlinkable]);
 

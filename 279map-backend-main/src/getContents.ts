@@ -17,7 +17,7 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
         const allContents = [] as ContentsDefine[];
 
         const convertRecord = async(row: ContentsDatasourceRecord, itemId: DataId): Promise<ContentsDefine> => {
-            const contents = row.contents ? JSON.parse(row.contents) as schema.ContentsInfo: undefined;
+            const contents = row.contents ? row.contents as schema.ContentsInfo: undefined;
             let isSnsContent = false;
             let addableChild = true;
             let readonly = row.readonly;
@@ -26,8 +26,7 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                 isSnsContent = true;
                 addableChild = false;
             }
-            const myDatasourceKind = (row.kinds as schema.DataSourceKind[]).find(kind => kind.type === schema.DataSourceKindType.Content);
-            if (!myDatasourceKind?.editable) {
+            if (row.readonly) {
                 // データソースが編集不可の場合
                 readonly = true;
                 addableChild = false;
@@ -40,7 +39,7 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                 itemId,
                 title: row.title ?? '',
                 date: row.date,
-                category: row.category ? JSON.parse(row.category) : [],
+                category: row.category ? row.category as string[] : [],
                 image: row.thumbnail ? true : undefined,
                 videoUrl: contents?.videoUrl,
                 overview: contents?.content,
@@ -49,10 +48,9 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                     id: row.parent_id,
                     dataSourceId: row.parent_datasource_id,
                 } : undefined,
+                usingAnotherMap: false, // TODO:
                 anotherMapItemId: undefined,// TODO:  // 複数存在する場合は１つだけ返す
                 isSnsContent,
-                addableChild,
-                readonly,
             };
         }
         const getChildren = async(contentId: DataId, itemId: DataId): Promise<ContentsDefine[]> => {

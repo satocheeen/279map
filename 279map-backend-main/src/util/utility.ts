@@ -102,7 +102,7 @@ export async function getContent(content_id: DataId): Promise<schema.ContentsTab
  * @param sourceKind
  * @return 編集可能な場合、true
  */
-export async function isEditableDataSource(data_source_id: string, sourceKind: schema.DataSourceKindType): Promise<boolean> {
+export async function isReadonlyDataSource(data_source_id: string): Promise<boolean> {
     const con = await ConnectionPool.getConnection();
     try {
         const sql = "select * from data_source where data_source_id = ?";
@@ -111,14 +111,10 @@ export async function isEditableDataSource(data_source_id: string, sourceKind: s
             return false;
         }
         const record = (rows as schema.DataSourceTable[])[0];
-        const target = (record.kinds as schema.DataSourceKind[]).find(kind => kind.type === sourceKind);
-        if (!target) {
-            return false;
-        }
-        return target.editable;
+        return !record.readonly;
 
     } catch(e) {
-        throw new Error('isEditableDataSource error: ' + e);
+        throw new Error('isReadonlyDataSource error: ' + e);
     } finally {
         await con.commit();
         con.release();

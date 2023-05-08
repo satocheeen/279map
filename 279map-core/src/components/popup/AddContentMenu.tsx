@@ -74,7 +74,7 @@ export default function AddContentMenu(props: Props) {
 
         switch(targetDataSourceKind.linkableContent) {
             case DataSourceLinkableContent.None:
-            case DataSourceLinkableContent.AlwaysSingle:
+            case DataSourceLinkableContent.Pair:
                 return false;
             case DataSourceLinkableContent.Multi:
                 return true;
@@ -86,7 +86,8 @@ export default function AddContentMenu(props: Props) {
     const editableContentDataSources = useMemo((): LinkUnpointContentParam['dataSources'] => {
         return dataSources
                 .filter(ds => {
-                    return ds.kinds.some(kind => kind.editable && kind.type === SourceKind.Content);
+                    if (ds.readonly) return false;
+                    return ds.kinds.some(kind => kind.type === SourceKind.Content);
                 })
                 .map(ds => {
                     return {

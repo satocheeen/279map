@@ -157,7 +157,7 @@ export class OlMapWrapper {
                         [LayerType.Point, LayerType.Topography].forEach(layerType => {
                             const layerDefine: LayerDefine = {
                                 dataSourceId: ds.dataSourceId,
-                                editable: kind.editable,
+                                editable: !ds.readonly,
                                 layerType: layerType as LayerType.Point| LayerType.Topography,
                             };
                             this.addLayer(layerDefine);
@@ -177,7 +177,7 @@ export class OlMapWrapper {
                     [LayerType.Point, LayerType.Topography].forEach(layerType => {
                         const layerDefine: LayerDefine = {
                             dataSourceId: ds.dataSourceId,
-                            editable: kind.editable,
+                            editable: !ds.readonly,
                             layerType: layerType as LayerType.Point| LayerType.Topography,
                         };
                         this.addLayer(layerDefine);

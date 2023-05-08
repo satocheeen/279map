@@ -212,7 +212,6 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
 
                 return {
                     type: sourceKind,
-                    editable: kind.editable,
                     linkableContent: kind.linkable_content,
                 }
             })
@@ -220,6 +219,7 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
             acc.push({
                 dataSourceId: row.data_source_id,
                 name: row.name,
+                readonly: row.readonly,
                 kinds,
             });
 

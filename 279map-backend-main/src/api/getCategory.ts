@@ -29,7 +29,7 @@ export async function getCategory(currentMap: CurrentMap): Promise<GetCategoryRe
         const [rows] = await con.execute(sql, [mapPageId]);
         const categoryMap = new Map<string, CategoryDefine>();
         (rows as schema.ContentsTable[]).forEach((row) => {
-            const categories = JSON.parse(row.category as string) as string[];
+            const categories = (row.category ?? []) as string[];
             categories.forEach(category => {
                 if (categoryMap.has(category)) {
                     categoryMap.get(category)?.content_ids.push({
