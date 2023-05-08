@@ -69,7 +69,6 @@ export default function AddContentMenu(props: Props) {
                 return kind.type === SourceKind.Content;
             }
         });
-        console.log('targetDataSourceKind', targetDataSourceKind);
         if (!targetDataSourceKind) return false;
 
         switch(targetDataSourceKind.linkableContent) {
@@ -83,11 +82,20 @@ export default function AddContentMenu(props: Props) {
         }
     }, [props.target, dataSources, targetsChildrenLength]);
 
-    const editableContentDataSources = useMemo((): LinkUnpointContentParam['dataSources'] => {
+    const creatableContentDataSources = useMemo((): LinkUnpointContentParam['dataSources'] => {
         return dataSources
                 .filter(ds => {
                     if (ds.readonly) return false;
-                    return ds.kinds.some(kind => kind.type === SourceKind.Content);
+                    const hasContent = ds.kinds.some(kind => {
+                        return kind.type === SourceKind.Content;
+                    });
+                    if (!hasContent) return false;
+                    // Itemとペアのコンテンツは単体作成不可能
+                    const itemKind = ds.kinds.find(kind => kind.type === SourceKind.Item);
+                    if (itemKind?.linkableContent === DataSourceLinkableContent.Pair) {
+                        return false;
+                    }
+                    return true;
                 })
                 .map(ds => {
                     return {
@@ -101,14 +109,14 @@ export default function AddContentMenu(props: Props) {
         if (val === 'new') {
             onAddNewContent({
                 parent: props.target,
-                dataSources: editableContentDataSources,
+                dataSources: creatableContentDataSources,
                 registContentAPI,
                 getSnsPreviewAPI,
             });
         } else {
             onNewContentByUnpointedContent({
                 parent: props.target,
-                dataSources: editableContentDataSources,
+                dataSources: creatableContentDataSources,
                 getUnpointDataAPI,
                 linkContentToItemAPI,
             });
@@ -118,7 +126,7 @@ export default function AddContentMenu(props: Props) {
             props.onClick();
         }
 
-    }, [props, editableContentDataSources, getSnsPreviewAPI, getUnpointDataAPI, linkContentToItemAPI, onAddNewContent, onNewContentByUnpointedContent, registContentAPI]);
+    }, [props, creatableContentDataSources, getSnsPreviewAPI, getUnpointDataAPI, linkContentToItemAPI, onAddNewContent, onNewContentByUnpointedContent, registContentAPI]);
 
     const caption = useMemo(() => {
         if ('itemId' in props.target) {
@@ -136,7 +144,7 @@ export default function AddContentMenu(props: Props) {
         if (!isContentAddableTarget || !editableAuthLv) {
             return items;
         }
-        if (editableContentDataSources.length > 0) {
+        if (creatableContentDataSources.length > 0) {
             items.push({
                 name: '新規コンテンツ',
                 callback: () => onAddContent('new'),
@@ -147,7 +155,7 @@ export default function AddContentMenu(props: Props) {
             callback: () => onAddContent('unpoint'),
         });
         return items;
-    }, [editableAuthLv, onAddContent, editableContentDataSources, isContentAddableTarget]);
+    }, [editableAuthLv, onAddContent, creatableContentDataSources, isContentAddableTarget]);
 
     const onClick = useCallback(() => {
         setShowSubMenu((state) => !state);
