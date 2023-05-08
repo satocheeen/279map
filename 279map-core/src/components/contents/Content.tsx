@@ -251,12 +251,9 @@ export default function Content(props: Props) {
     const isUnlinkable = useMemo(() => {
         if (!editableAuthLv) return false;
 
-        // SNSコンテンツの場合はリンク解除不可
-        if (props.content.isSnsContent) return false;
-
         // 親アイテムとのペアコンテンツの場合は、リンク解除不可
         return parentDataSource?.linkableContent !== DataSourceLinkableContent.Pair;
-    }, [parentDataSource, props.content, editableAuthLv])
+    }, [parentDataSource, editableAuthLv])
 
     const addableChild = useMemo(() => {
         // SNSコンテンツの場合は子コンテンツの追加不可
