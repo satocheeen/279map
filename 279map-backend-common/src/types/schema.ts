@@ -1,4 +1,5 @@
 import { Auth, DataSourceLinkableContent, MapKind } from '../279map-common';
+import { SnsOptions } from '../sns';
 
 export enum PublicRange {
     Public = 'Public',
@@ -20,24 +21,22 @@ export enum DataSourceKindType {
     RealTrack = 'RealTrack'
 }
 export type DataSourceKind = {
-    editable: boolean;
-} & (
-    {
-        type: DataSourceKindType.VirtualItem | DataSourceKindType.RealItem;
-        linkable_content: DataSourceLinkableContent;
-    } | {
-        type: DataSourceKindType.Content;
-        linkable_content: DataSourceLinkableContent.None | DataSourceLinkableContent.Single | DataSourceLinkableContent.Multi;
-    } | {
-        type: DataSourceKindType.RealTrack;
-        linkable_content: DataSourceLinkableContent;
-    }
-)
+    type: DataSourceKindType.VirtualItem | DataSourceKindType.RealItem;
+    linkable_content: DataSourceLinkableContent;
+} | {
+    type: DataSourceKindType.Content;
+    linkable_content: DataSourceLinkableContent.None | DataSourceLinkableContent.Single | DataSourceLinkableContent.Multi;
+} | {
+    type: DataSourceKindType.RealTrack;
+    linkable_content: DataSourceLinkableContent;
+}
+
 export interface DataSourceConnection {
     type: string;
 }
 export type DataSourceTable = {
     data_source_id: string;
+    readonly: boolean;
     kinds: string | DataSourceKind[];   // 登録時はstring、取得時はDataSourceKind
     name: string;
     connection: string | DataSourceConnection;  // 登録時はstring、取得時はDataSourceConnection
@@ -85,15 +84,14 @@ export type ItemsTable = {
 export type ContentsTable = {
     content_page_id: string;
     data_source_id: string;
-    title?: string;
-    contents?: string;   // ContentsInfoのJSON文字列
-    thumbnail?: string;
-    category?: string;   // Category配列のJSON文字列
-    date?: Date;
-    supplement?: string;      // ContentOptionのJSON文字列
     parent_id?: string;         // 親コンテンツID
     parent_datasource_id?: string;         // 親コンテンツデータソースID
-    readonly: boolean;
+    title?: string;
+    contents?: string | ContentsInfo;   // 登録時はstring。取得時はContentsInfo
+    thumbnail?: string;
+    category?: string | string[];   // 登録時はstring。取得時はCategory文字配列
+    date?: Date;
+    supplement?: string | SnsOptions;      // 登録時はstring、取得時はSnsOptions
     last_edited_time: string;
 }
 export type ItemContentLink = {
@@ -107,7 +105,6 @@ export type ItemContentLink = {
  * conteentsテーブル内のcontentsカラムを構成する情報
  */
  export type ContentsInfo = {
-    // date?: string;
     content?: string;
     url?: string;
     videoUrl?: string;
