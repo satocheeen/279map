@@ -1,5 +1,5 @@
 import useIcon from "../../store/useIcon";
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect } from "react";
 import Feature, { FeatureLike } from "ol/Feature";
 import { Fill, Icon, Style, Text } from 'ol/style';
 import { getStructureScale } from "../../util/MapUtility";
@@ -11,32 +11,30 @@ import { IconInfo } from "../../279map-common";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/configureStore";
 import { Geometry } from "ol/geom";
-import { OlMapWrapper } from "../TsunaguMap/OlMapWrapper";
 import { convertDataIdFromFeatureId, isEqualId } from "../../store/data/dataUtility";
+import { MapChartContext } from "../TsunaguMap/MapChart";
 
 // 建物ラベルを表示するresolution境界値（これ以下の値の時に表示）
 const StructureLabelResolution = 0.003;
 
 const STRUCTURE_SELECTED_COLOR = '#8888ff';
 
-type Props = {
-    map: OlMapWrapper,
-}
 /**
  * 建物・地点に関するスタイルを設定するフック
  * @param props 
  * @returns 
  */
-export default function usePointStyle(props: Props) {
+export default function usePointStyle() {
     const { getForceColor, getFilterStatus } = useFilterStatus();
     const { filteredItemIdList } = useFilter();
     const ownerContext = useContext(OwnerContext);
-    const iconHook = useIcon();
+    const { getIconDefine } = useIcon();
     const mapMode = useSelector((state: RootState) => state.operation.mapMode);
+    const { map } = useContext(MapChartContext);
 
     const getZindex = useCallback((feature: Feature<Geometry>): number => {
         // featureが属するレイヤソース取得
-        const pointsSource = props.map.getLayerInfoContainedTheFeature(feature)?.layer.getSource();
+        const pointsSource = map.getLayerInfoContainedTheFeature(feature)?.layer.getSource();
         if (!pointsSource) {
             return 0;
         }
@@ -50,7 +48,7 @@ export default function usePointStyle(props: Props) {
         const zIndex = Math.round(Math.abs(extent[1] - maxY));
     
         return zIndex;
-    }, [props.map]);
+    }, [map]);
 
     const _createStyle = useCallback((param: {iconDefine: SystemIconDefine; feature: Feature<Geometry>; resolution: number; color?: string; opacity?: number}) => {
         const type = param.feature.getGeometry()?.getType();
@@ -165,7 +163,7 @@ export default function usePointStyle(props: Props) {
         const { mainFeature, showFeaturesLength } = _analysisFeatures(feature);
 
         const icon = mainFeature.getProperties().icon as IconInfo | undefined;
-        const iconDefine = iconHook.getIconDefine(icon);
+        const iconDefine = getIconDefine(icon);
 
         // 色設定
         let color: string | undefined;
@@ -201,7 +199,7 @@ export default function usePointStyle(props: Props) {
         }
         return style;
 
-    }, [ownerContext.disabledLabel, _createStyle, getFilterStatus, getForceColor, _analysisFeatures, iconHook]);
+    }, [ownerContext.disabledLabel, _createStyle, getFilterStatus, getForceColor, _analysisFeatures, getIconDefine]);
 
     /**
      * the style function for ordinaly.
@@ -222,10 +220,9 @@ export default function usePointStyle(props: Props) {
 
     useEffect(() => {
         if (mapMode === MapMode.Normal) {
-            // console.log('setPointLayerStyle', instanceId);
-            props.map.setPointLayerStyle(pointStyleFunction);
+            map.setPointLayerStyle(pointStyleFunction);
         }
-    }, [pointStyleFunction, mapMode, props.map]);
+    }, [pointStyleFunction, mapMode, map]);
 
     return {
         getDrawingStructureStyleFunction,

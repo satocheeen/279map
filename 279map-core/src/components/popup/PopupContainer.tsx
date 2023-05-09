@@ -38,13 +38,8 @@ export default function PopupContainer() {
 
     const ownerContext = useContext(OwnerContext);
 
-    // const itemLayer = useMemo(() => {
-    //     return props.map.getAllLayers().find(layer => {
-    //         return layer.getProperties()['name'] === 'itemLayer';
-    //     }) as VectorLayer<VectorSource>;
-    // }, [props.map]);
     const { map } = useContext(MapChartContext);
-    const { pointStyleFunction } = usePointStyle({map});
+    const { pointStyleFunction } = usePointStyle();
 
     const [ loadendFlag, setLoadendFlag ] = useState(0);
     const [ addfeatureFlag, setAddfeatureFlag ] = useState(0);
@@ -106,7 +101,7 @@ export default function PopupContainer() {
     
                     // コンテンツを持つアイテムに絞る
                     const itemIds = features.map((f): DataId => {
-                        const id = convertDataIdFromFeatureId(f.getId() as string,);
+                        const id = convertDataIdFromFeatureId(f.getId() as string);
                         return id;
                     }).filter(id => {
                         return hasContentsItemIdList.some(item => isEqualId(item, id));
@@ -136,11 +131,7 @@ export default function PopupContainer() {
             areaSources.forEach(source => {
                 source.getFeatures().forEach(feature => {
                     // コンテンツを持つアイテムに絞る
-                    // TODO: data_source_idの考慮
-                    const id = {
-                        id: feature.getId() as string,
-                        dataSourceId: '',
-                    } as DataId;
+                    const id = convertDataIdFromFeatureId(feature.getId() as string);
                     if (!hasContentsItemIdList.some(item => isEqualId(item, id))) {
                         return;
                     }
@@ -166,14 +157,7 @@ export default function PopupContainer() {
      * ポップアップ表示位置設定
      */
     const [ regetPositionFlag, setRegetPositionFlag ] = useState(false);  // 画像ロード未完了のために位置取得できない場合に、時間を置いて再度位置取得するためのフラグ
-    const [ popupGroupWithPosition, setPopupGroupWithPosition ] = useState<PopupGroupWithPosition[]>([])
-    useEffect(() => {
-        // const itemSources = map.getLayersOfTheType(LayerType.Point).map(layerInfo => {
-        //     return layerInfo.layer.getSource() as VectorSource;
-        // });
-
-        // if (itemSources.length === 0) return;
-
+    const popupGroupWithPosition = useMemo((): PopupGroupWithPosition[] => {
         const getPopupPosition = (feature: Feature): undefined | { longitude: number; latitude: number; } => {
             // -- 中心位置取得
             const itemPosition = getFeatureCenter(feature);
@@ -184,14 +168,7 @@ export default function PopupContainer() {
 
             if (feature.getGeometry()?.getType() === 'Point') {
                 // 建物orピンの場合、アイコンの上部にポップアップを表示する
-                // const layer = map.getLayerInfoContainedTheFeature(feature)?.layer;
-                // const styleFunc = layer?.getStyleFunction();
-                // if (!styleFunc) {
-                //     console.warn('styleFunc undefined');
-                //     return;
-                // }
                 const style = pointStyleFunction(feature, map.currentResolution);
-                // const style = styleFunc(feature, map.currentResolution) as Style;
                 const image = style.getImage();
                 const pixel = map.getPixelFromCoordinate([itemPosition.longitude, itemPosition.latitude]);
                 const imageSize = image.getSize();
@@ -223,7 +200,6 @@ export default function PopupContainer() {
                 itemIds: popupGroup.itemIds,
             });
         }
-        setPopupGroupWithPosition(result);
         if (retryFlag) {
             setTimeout(() => {
                 setRegetPositionFlag(true);
@@ -231,9 +207,8 @@ export default function PopupContainer() {
         } else {
             setRegetPositionFlag(false);
         }
-
-    // pointStyleFunctionを依存関係に入れると無限ループが発生
-    }, [map, popupGroups, regetPositionFlag]);
+        return result;
+    }, [map, popupGroups, regetPositionFlag, pointStyleFunction]);
 
     // 開閉時に、zIndexを最前面に
     useEffect(() => {

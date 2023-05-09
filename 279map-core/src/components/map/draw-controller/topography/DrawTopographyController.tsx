@@ -35,7 +35,6 @@ enum Stage {
  * 島、緑地の作図コントローラ
  */
 export default function DrawTopographyController(props: Props) {
-    const { map } = useContext(MapChartContext);
     const [stage, setStage] = useState(Stage.SELECTING_FEATURE);
 
     const [geometryType, setGeometryType] = useState('Polygon');

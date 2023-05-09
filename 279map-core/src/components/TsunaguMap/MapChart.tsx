@@ -52,9 +52,7 @@ export default function MapChart() {
 
     // スタイル設定
     // -- コンテンツ（建物・ポイント）レイヤ
-    usePointStyle({
-        map: mapRef.current
-    });
+    usePointStyle();
     // -- コンテンツ（地形）レイヤ
     useFilteredTopographyStyle({
         map: mapRef.current,

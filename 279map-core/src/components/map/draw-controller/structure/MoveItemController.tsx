@@ -34,7 +34,7 @@ const movedFeatureCollection = new Collection<Feature<Geometry>>();
 export default function MoveItemController(props: Props) {
     const [okable, setOkable] = useState(false);
     const { map } = useContext(MapChartContext);
-    const pointStyleHook = usePointStyle({ map });
+    const pointStyleHook = usePointStyle();
     const dispatch = useAppDispatch();
     const targetLayers = useRef<VectorLayer<VectorSource>[]>(
         map.getLayersOfTheType(LayerType.Point).filter(l => l.editable).map(l => l.layer)

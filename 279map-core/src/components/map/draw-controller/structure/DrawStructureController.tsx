@@ -42,7 +42,7 @@ export default function DrawStructureController(props: Props) {
     const dispatch = useAppDispatch();
     const spinner = useSpinner();
     const { map } = useContext(MapChartContext);
-    const pointStyleHook = usePointStyle({ map });
+    const pointStyleHook = usePointStyle();
 
     const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
     const searchAddressRef = useRef<SearchAddressHandler>(null);
