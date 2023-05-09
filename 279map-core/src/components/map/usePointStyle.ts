@@ -36,7 +36,7 @@ export default function usePointStyle(props: Props) {
 
     const getZindex = useCallback((feature: Feature<Geometry>): number => {
         // featureが属するレイヤソース取得
-        const pointsSource = props.map.getSourceContainedTheFeature(feature);
+        const pointsSource = props.map.getLayerInfoContainedTheFeature(feature)?.layer.getSource();
         if (!pointsSource) {
             return 0;
         }

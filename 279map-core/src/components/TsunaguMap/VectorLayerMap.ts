@@ -199,15 +199,15 @@ export class VectorLayerMap {
     }
 
     /**
-     * 指定のfeatureを含んでいるsourceを返す
+     * 指定のfeatureを含んでいるレイヤ情報を返す
      * @param feature 
      */
-    getSourceContainedTheFeature(feature: Feature<Geometry>) {
-        let hit: VectorSource | undefined;
+    getLayerInfoContainedTheFeature(feature: Feature<Geometry>): LayerInfo | undefined {
+        let hit: LayerInfo | undefined;
         this._layerMap.forEach((val) => {
             const source = val.layer.getSource();
             if (source?.hasFeature(feature)) {
-                hit = source;
+                hit = val;
             }
         });
         return hit;

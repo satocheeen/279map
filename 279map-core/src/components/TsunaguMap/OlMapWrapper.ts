@@ -22,6 +22,7 @@ import { convertDataIdFromFeatureId, getMapKey } from '../../store/data/dataUtil
 import { DataSourceInfo, GetGeocoderFeatureAPI, SourceKind } from 'tsunagumap-api';
 import { FitOptions } from 'ol/View';
 import { getAPICallerInstance } from '../../api/ApiCaller';
+import { Coordinate } from 'ol/coordinate';
 
 const instansMap = new Map<string, OlMapWrapper>();
 type Param = {
@@ -421,8 +422,12 @@ export class OlMapWrapper {
         return this._vectorLayerMap.getLayersOfTheType(layerType);
     }
 
-    getSourceContainedTheFeature(feature: Feature<Geometry>) {
-        return this._vectorLayerMap.getSourceContainedTheFeature(feature);
+    /**
+     * 指定のfeatureを含んでいるレイヤ情報を返す
+     * @param feature 
+     */
+    getLayerInfoContainedTheFeature(feature: Feature<Geometry>): LayerInfo | undefined {
+        return this._vectorLayerMap.getLayerInfoContainedTheFeature(feature);
     }
 
     /**
@@ -445,8 +450,25 @@ export class OlMapWrapper {
         this._vectorLayerMap.setTrackLayerStyle(style);
     }
 
-    addListener(type: 'moveend', listener: (event: BaseEvent) => void) {
-        this._map.on(type, listener);
+    on(event: 'click' | 'moveend' | 'pointermove', listener: (evt: MapBrowserEvent<any>) => void): void {
+        // @ts-ignore
+        this._map.on(event, listener);
+    }
+    un(event: 'click' | 'moveend' | 'pointermove' | 'loadend', listener: (evt: MapBrowserEvent<any>) => void): void {
+        // @ts-ignore
+        this._map.un(event, listener);
+    }
+    once(event: 'loadend', listener: (evt: BaseEvent) => void) {
+        return this._map.once(event, listener);
+    }
+    get currentResolution() {
+        return this._map.getView().getResolution() ?? 0;
+    }
+    getPixelFromCoordinate(coordinate: Coordinate) {
+        return this._map.getPixelFromCoordinate(coordinate);
+    }
+    getCoordinateFromPixel(pixel: Pixel) {
+        return this._map.getCoordinateFromPixel(pixel);
     }
 
     clearAllLayers() {
@@ -462,12 +484,6 @@ export class OlMapWrapper {
     }
     removeOverlay(overlay: Overlay) {
         this._map.removeOverlay(overlay);
-    }
-    on(event: 'click'|'pointermove', listener: (evt: MapBrowserEvent<any>) => void) {
-        this._map.on(event, listener);
-    }
-    un(event: 'click'|'pointermove', listener: (evt: MapBrowserEvent<any>) => void) {
-        this._map.un(event, listener);
     }
 
     /**

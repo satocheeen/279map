@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Cluster, Vector as VectorSource } from "ol/source";
+import { Vector as VectorSource } from "ol/source";
 import VectorLayer from "ol/layer/Vector";
 import styles from './MapChart.module.scss';
 import { useSelector } from "react-redux";
 import { RootState, useAppDispatch } from "../../store/configureStore";
-import {buffer, Extent } from 'ol/extent';
+import { buffer } from 'ol/extent';
 import * as MapUtility from '../../util/MapUtility';
 import PopupContainer from "../popup/PopupContainer";
 import DrawController from "../map/DrawController";
@@ -15,21 +15,15 @@ import { useFilter } from "../../store/useFilter";
 import { loadItems } from "../../store/data/dataThunk";
 import { openItemContentsPopup } from "../popup/popupThunk";
 import { DataId, FeatureType, MapKind } from "../../279map-common";
-import { FeatureProperties, MapMode } from "../../types/types";
+import { MapMode } from "../../types/types";
 import useFilteredTopographyStyle from "../map/useFilteredTopographyStyle";
 import useTrackStyle from "../map/useTrackStyle";
 import Feature, { FeatureLike } from "ol/Feature";
-import { Coordinate } from "ol/coordinate";
-import ClusterMenu from "../cluster-menu/ClusterMenu";
 import { usePrevious } from "../../util/usePrevious";
 import usePointStyle from "../map/usePointStyle";
 import ClusterMenuController from "../cluster-menu/ClusterMenuController";
 import { createMapInstance, OlMapWrapper } from "./OlMapWrapper";
 
-type ClusterMenuInfo = {
-    position: Coordinate;
-    itemIds: DataId[];
-}
 let instanceCnt = 0;
 
 type MapChartContextType = {
@@ -234,7 +228,7 @@ export default function MapChart() {
         }
     
         // 地図移動時にコンテンツロード
-        mapRef.current.addListener('moveend', async() => {
+        mapRef.current.on('moveend', async() => {
             await loadCurrentAreaContents();
             updateStoreViewInfo();
         });
@@ -391,7 +385,7 @@ export default function MapChart() {
             {mapRef.current !== null &&
                 (
                     <MapChartContext.Provider value={mapChartContextValue}>
-                        {/* <PopupContainer map={mapRef.current} /> */}
+                        <PopupContainer />
                         <LandNameOverlay />
                         {mapMode === MapMode.Normal &&
                             <ClusterMenuController
