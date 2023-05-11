@@ -14,7 +14,7 @@ export default function ContentCard(props: Props) {
     const contentsList = useSelector((state: RootState) => state.data.contentsList);
 
     const content = useMemo(() => {
-        return contentsList.find((item) => item.id === props.contentId);
+        return contentsList.find((item) => isEqualId(item.id, props.contentId));
     }, [contentsList, props.contentId]);
 
    const imageContentId = useMemo(() => {
