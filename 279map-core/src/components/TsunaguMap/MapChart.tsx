@@ -41,12 +41,13 @@ export const MapChartContext = React.createContext<MapChartContextType>({
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
-    const instanceIdRef = useRef('map-' + (++instanceCnt));
+    const [instanceId, setInstanceId ] = useState('map-' + (++instanceCnt));
+    const [initialized, setInitialized] = useState(false);
     const mapRef = useRef<OlMapWrapper>(defaultDummyMap);
     const mapMode = useSelector((state: RootState) => state.operation.mapMode);
 
     const mapChartContextValue = {
-        instanceId: instanceIdRef.current,
+        instanceId,
         map: mapRef.current,
     } as MapChartContextType;
 
@@ -154,10 +155,9 @@ export default function MapChart() {
         if (myRef.current === null) {
             return;
         }
-        console.log('map initialized.');
         mapRef.current.dispose();
         mapRef.current = createMapInstance({
-            id: instanceIdRef.current,
+            id: instanceId,
             target: myRef.current,
         });
 
@@ -165,12 +165,14 @@ export default function MapChart() {
             await loadCurrentAreaContents();
         });
 
+        setInitialized(true);
+
         return () => {
             console.log('map dispose');
             mapRef.current.dispose();
             removeListener(h);
         }
-    }, [dispatch, loadCurrentAreaContents]);
+    }, [dispatch, loadCurrentAreaContents, instanceId]);
 
     const onSelectItem = useCallback((feature: DataId | undefined) => {
         if (!feature) {
@@ -380,7 +382,7 @@ export default function MapChart() {
     return (
         <div className={styles.Container}>
             <div ref={myRef} className={`${styles.Chart} ${optionClassName}`} />
-            {mapRef.current !== null &&
+            {initialized &&
                 (
                     <MapChartContext.Provider value={mapChartContextValue}>
                         <PopupContainer />

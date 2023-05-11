@@ -12,7 +12,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../store/configureStore";
 import { Geometry } from "ol/geom";
 import { convertDataIdFromFeatureId, isEqualId } from "../../store/data/dataUtility";
-import { MapChartContext } from "../TsunaguMap/MapChart";
+import { useMap } from "./useMap";
 
 // 建物ラベルを表示するresolution境界値（これ以下の値の時に表示）
 const StructureLabelResolution = 0.003;
@@ -25,14 +25,16 @@ const STRUCTURE_SELECTED_COLOR = '#8888ff';
  * @returns 
  */
 export default function usePointStyle() {
+    console.log('usePointStyle');
     const { getForceColor, getFilterStatus } = useFilterStatus();
     const { filteredItemIdList } = useFilter();
     const ownerContext = useContext(OwnerContext);
     const { getIconDefine } = useIcon();
     const mapMode = useSelector((state: RootState) => state.operation.mapMode);
-    const { map } = useContext(MapChartContext);
+    const { map } = useMap();
 
     const getZindex = useCallback((feature: Feature<Geometry>): number => {
+        if (!map) return 0;
         // featureが属するレイヤソース取得
         const pointsSource = map.getLayerInfoContainedTheFeature(feature)?.layer.getSource();
         if (!pointsSource) {
@@ -219,6 +221,8 @@ export default function usePointStyle() {
     }, [_createPointStyle]);
 
     useEffect(() => {
+        console.log('debug', map?._id, pointStyleFunction);
+        if (!map) return;
         if (mapMode === MapMode.Normal) {
             map.setPointLayerStyle(pointStyleFunction);
         }

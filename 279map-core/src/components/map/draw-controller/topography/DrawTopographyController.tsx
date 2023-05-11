@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import * as MapUtility from '../../../../util/MapUtility';
 import PromptMessageBox from '../PromptMessageBox';
 import { useSpinner } from '../../../common/spinner/useSpinner';
@@ -9,7 +9,6 @@ import { DrawFreeArea } from './DrawFreeArea';
 import { useAppDispatch } from '../../../../store/configureStore';
 import { registFeature } from '../../../../store/data/dataThunk';
 import { FeatureType, GeoProperties } from '../../../../279map-common';
-import { MapChartContext } from '../../../TsunaguMap/MapChart';
 import { Geometry } from 'ol/geom';
 import { Feature } from 'ol';
 

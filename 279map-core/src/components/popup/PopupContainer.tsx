@@ -7,10 +7,10 @@ import { getCenter } from 'geolib';
 import usePointStyle from '../map/usePointStyle';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import VectorSource from 'ol/source/Vector';
-import { MapChartContext } from '../TsunaguMap/MapChart';
 import { getMapKey } from '../../store/data/dataUtility';
 import { LayerType } from '../TsunaguMap/VectorLayerMap';
 import PopupContainerCalculator, { PopupGroupWithPosition } from './PopupContainerCalculator';
+import { useMap } from '../map/useMap';
 
 function createKeyFromPopupInfo(param: PopupGroupWithPosition): string {
     if (!param) {
@@ -26,7 +26,7 @@ export default function PopupContainer() {
 
     const ownerContext = useContext(OwnerContext);
 
-    const { map } = useContext(MapChartContext);
+    const { map } = useMap();
     const { pointStyleFunction } = usePointStyle();
 
     // コンテンツを持つアイテムID一覧
@@ -48,6 +48,7 @@ export default function PopupContainer() {
      * useMemoではなくuseCallbackで実装している。
      */
     const updatePopupGroups = useCallback(async() => {
+        if (!map) return;
         const calculator = new PopupContainerCalculator(map);
         calculator.setHasContentsItemIdList(hasContentsItemIdList);
         const popupGroups = await calculator.calculatePopupGroup();
@@ -60,6 +61,7 @@ export default function PopupContainer() {
      * 地図へのFeature追加検知して、表示するポップアップ情報を更新する。
      */
     useEffect(() => {
+        if (!map) return;
         // 画像ロード完了していないと、imagePositionの取得に失敗するので、ここでイベント検知して再描画させる
         const loadendFunc = () => {
             console.log('loadend');
@@ -81,7 +83,7 @@ export default function PopupContainer() {
             map.un('loadend', loadendFunc);
             itemLayers.forEach(itemLayer => {
                 const source = itemLayer.layer.getSource() as VectorSource;
-                source.un('addfeature', addfeatureFunc);
+                source?.un('addfeature', addfeatureFunc);
             });
         }
 
@@ -130,7 +132,7 @@ export default function PopupContainer() {
                 stopEvent: true,
                 element: elementRefMap.current[key],
             });
-            map.addOverlay(overlay);
+            map?.addOverlay(overlay);
             overlay.setPosition([position.longitude, position.latitude]);
             overlayRefMap.current[key] = overlay;
         });
@@ -159,7 +161,7 @@ export default function PopupContainer() {
             return !exist;
         });
         removeChildren.forEach(key => {
-            map.removeOverlay(overlayRefMap.current[key]);
+            map?.removeOverlay(overlayRefMap.current[key]);
             delete overlayRefMap.current[key];
         });
 

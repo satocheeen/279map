@@ -1,14 +1,14 @@
 import { GeoJsonObject } from "geojson";
-import React, { useEffect, useRef, useCallback, useState, useContext } from "react"
+import React, { useEffect, useRef, useCallback, useState } from "react"
 import SearchAddress from "../../../common/SearchAddress";
 import PromptMessageBox from "../PromptMessageBox";
 import GeoJSON from 'ol/format/GeoJSON';
 import { FeatureType } from "../../../../279map-common";
-import { MapChartContext } from "../../../TsunaguMap/MapChart";
 import useTopographyStyle from "../../useTopographyStyle";
 import { Feature } from "ol";
 import { Geometry } from "ol/geom";
 import VectorSource from "ol/source/Vector";
+import { useMap } from "../../useMap";
 
 type Props = {
     onCancel?: () => void;
@@ -25,7 +25,7 @@ enum Stage {
  * @returns 
  */
 export function DrawAreaAddress(props: Props) {
-    const { map } = useContext(MapChartContext);
+    const { map } = useMap();
     const [stage, setStage] = useState(Stage.SearchAddress);
     const styleHook = useTopographyStyle({
         defaultFeatureType: FeatureType.AREA,
@@ -35,6 +35,7 @@ export function DrawAreaAddress(props: Props) {
 
     // 初期化
     useEffect(() => {
+        if (!map) return;
         const drawingLayer = map.createDrawingLayer(styleHook.getStyleFunction());
         drawingSource.current = drawingLayer.getSource();
 
@@ -59,7 +60,7 @@ export function DrawAreaAddress(props: Props) {
         drawingSource.current?.addFeature(feature);
         const extent = feature.getGeometry()?.getExtent();
         if (extent)
-            map.fit(extent, {
+            map?.fit(extent, {
                 padding: [50, 50, 50, 50],
             });
         setStage(Stage.Confirm);

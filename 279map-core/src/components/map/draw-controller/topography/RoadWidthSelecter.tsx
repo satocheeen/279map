@@ -1,12 +1,12 @@
-import React, { useRef, useContext, useCallback, useEffect, useState } from 'react';
+import React, { useRef, useCallback, useEffect, useState } from 'react';
 import Feature from 'ol/Feature';
 import VectorSource from 'ol/source/Vector';
 import useTopographyStyle, { RoadWidth } from '../../useTopographyStyle';
 import { convertLineToPolygon, extractGeoProperty } from '../../../../util/MapUtility';
 import PromptMessageBox from '../PromptMessageBox';
 import { FeatureType } from '../../../../279map-common';
-import { MapChartContext } from '../../../TsunaguMap/MapChart';
 import { Geometry } from 'ol/geom';
+import { useMap } from '../../useMap';
 
 type Props = {
     targetRoad: Feature;
@@ -15,13 +15,11 @@ type Props = {
     onCancel: () => void;
 }
 
-// const widthSimulateSource = new VectorSource();
-
 /**
  * 道幅選択部品
  */
 export default function RoadWidthSelecter(props: Props) {
-    const { map } = useContext(MapChartContext);
+    const { map } = useMap();
     const [width, setWidth] = useState(props.width === undefined ? RoadWidth.M : props.width);
     const styleHook = useTopographyStyle({
         defaultFeatureType: FeatureType.ROAD,
@@ -29,6 +27,7 @@ export default function RoadWidthSelecter(props: Props) {
     const widthSimulateSource = useRef<VectorSource|null>(null);
 
     useEffect(() => {
+        if (!map) return;
         const widthSimulateLayer = map.createDrawingLayer(styleHook.getStyleFunction());
         widthSimulateSource.current = widthSimulateLayer.getSource();
 
@@ -44,7 +43,7 @@ export default function RoadWidthSelecter(props: Props) {
         };
     }, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    []);
+    [map]);
 
     useEffect(() => {
         // 新たな道幅で描画

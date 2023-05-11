@@ -170,7 +170,7 @@ export default function TestMap() {
                             <label key={ds.dataSourceId}>
                                 <input type="checkbox" />
                                 {ds.name}
-                                {ds.kinds.find(kind => kind.type === SourceKind.Item)?.editable &&
+                                {!ds.readonly &&
                                     <>
                                         <button onClick={()=>commandHook?.drawStructure(ds.dataSourceId)}>建設</button>
                                         {mapKind === MapKind.Real ?

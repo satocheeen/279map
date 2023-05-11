@@ -46,6 +46,7 @@ export function createMapInstance(param: Param) {
         return instansMap.get(param.id) as OlMapWrapper;
     }
     const map = new OlMapWrapper(param);
+    console.log('create map', param.id);
     instansMap.set(param.id, map);
     return map;
 }

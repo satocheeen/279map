@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState, useContext } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Feature } from 'ol';
 import OlFeature from 'ol/Feature';
 import VectorSource from 'ol/source/Vector';
@@ -11,7 +11,7 @@ import { useSpinner } from '../../../common/spinner/useSpinner';
 import { useAppDispatch } from '../../../../store/configureStore';
 import { registFeature } from '../../../../store/data/dataThunk';
 import { FeatureType, GeoProperties } from '../../../../279map-common';
-import { MapChartContext } from '../../../TsunaguMap/MapChart';
+import { useMap } from '../../useMap';
 
 enum Stage {
     DRAWING,        // 描画
@@ -27,7 +27,7 @@ type Props = {
  * 道描画コントローラ
  */
 export default function DrawRoadController(props: Props) {
-    const { map } = useContext(MapChartContext);
+    const { map } = useMap();
     const [stage, setStage] = useState(Stage.DRAWING);
 
     const draw = useRef<Draw|undefined>();
@@ -44,6 +44,7 @@ export default function DrawRoadController(props: Props) {
      * 初期化
      */
     useEffect(() => {
+        if (!map) return;
         const drawingLayer = map.createDrawingLayer(styleHook.getStyleFunction());
         drawingSource.current = drawingLayer.getSource();
 
@@ -72,7 +73,7 @@ export default function DrawRoadController(props: Props) {
         }
     }, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    []);
+    [map]);
 
     // 描画中にキャンセルボタンが押された場合
     const onCanceled = useCallback(() => {

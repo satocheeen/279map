@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Feature } from 'ol';
 import SelectStructureDialog from './SelectStructureDialog';
 import Draw, { DrawEvent } from "ol/interaction/Draw";
@@ -15,8 +15,8 @@ import { registFeature } from '../../../../store/data/dataThunk';
 import { FeatureType, GeoProperties, MapKind } from '../../../../279map-common';
 import { SystemIconDefine } from '../../../../types/types';
 import { useSelector } from 'react-redux';
-import { MapChartContext } from '../../../TsunaguMap/MapChart';
 import VectorLayer from 'ol/layer/Vector';
+import { useMap } from '../../useMap';
 
 type Props = {
     dataSourceId: string;   // 作図対象のデータソース
@@ -33,7 +33,6 @@ enum Stage {
 
 export default function DrawStructureController(props: Props) {
     const [stage, setStage] = useState(Stage.SELECTING_FEATURE);
-    // const unpointData = useRef<UnpointContent>();
     const drawingIcon = useRef<SystemIconDefine | null>(null);
 
     const draw = useRef<null | Draw>(null);
@@ -41,7 +40,7 @@ export default function DrawStructureController(props: Props) {
 
     const dispatch = useAppDispatch();
     const spinner = useSpinner();
-    const { map } = useContext(MapChartContext);
+    const { map } = useMap();
     const pointStyleHook = usePointStyle();
 
     const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
@@ -55,7 +54,7 @@ export default function DrawStructureController(props: Props) {
     }, []);
 
     const drawReset = useCallback(() => {
-        if (draw.current === null) {
+        if (draw.current === null || !map) {
             return;
         }
         draw.current.abortDrawing();
@@ -66,6 +65,8 @@ export default function DrawStructureController(props: Props) {
 
     // 初期状態
     useEffect(() => {
+        if (!map) return;
+        
         drawingLayer.current = map.createDrawingLayer();
         drawingSource.current = drawingLayer.current.getSource();
 
@@ -83,7 +84,7 @@ export default function DrawStructureController(props: Props) {
      * Drawing開始時の処理
      */
     useEffect(() => {
-        if (stage !== Stage.DRAWING || drawingIcon.current === null) {
+        if (stage !== Stage.DRAWING || drawingIcon.current === null || !map) {
             return;
         }
         drawReset();
@@ -103,7 +104,7 @@ export default function DrawStructureController(props: Props) {
         });
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [stage]);
+    }, [stage, map]);
 
     const registFeatureFunc = useCallback(async() => {
         if (!drawingFeature.current) {
@@ -132,6 +133,7 @@ export default function DrawStructureController(props: Props) {
     }, [dispatch, props, spinner]);
 
     const onDrawEnd = useCallback((feature: Feature) => {
+        if (!map) return;
         if (draw.current !== null) {
             map.removeInteraction(draw.current);
         }
@@ -143,7 +145,7 @@ export default function DrawStructureController(props: Props) {
     }, [map]);
 
     const onSelectAddress= useCallback((address: GeoJsonObject) => {
-        if (!drawingSource.current) {
+        if (!drawingSource.current || !map) {
             return;
         }
         console.log('select', address);

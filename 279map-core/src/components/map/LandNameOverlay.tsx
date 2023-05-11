@@ -1,5 +1,5 @@
 import { Overlay } from 'ol';
-import React, { useEffect, useMemo, useState, useContext } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {buffer, getSize} from 'ol/extent';
 import { usePrevious } from '../../util/usePrevious';
@@ -7,25 +7,19 @@ import { RootState } from '../../store/configureStore';
 import styles from './LandNameOverlay.module.scss';
 import { FeatureType } from '../../279map-common';
 import { getMapKey } from '../../store/data/dataUtility';
-import { MapChartContext } from '../TsunaguMap/MapChart';
+import { useMap } from './useMap';
 
 // 島名を常時表示するズームLv.境界値（この値よりも小さい場合に、常時表示）
 const LandNameShowZoomLv = 8.17
 
 export default function LandNameOverlay() {
-    const { map } = useContext(MapChartContext);
+    const { map } = useMap();
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
 
     const [landNameRefMap] = useState({} as { [id: string]: HTMLDivElement });
     const [landNameOverlayMap] = useState({} as  { [id: string]: Overlay });
 
     const mapView = useSelector((state: RootState) => state.operation.mapView);
-
-    // const topographySource = useMemo(() => {
-    //     return map.getLayersOfTheType(LayerType.Topography).map(info => {
-    //         return info.layer.getSource();
-    //     });
-    // }, [map]);
 
     // 名前を持つ島
     const namedEarth = useMemo(() => {
@@ -41,7 +35,7 @@ export default function LandNameOverlay() {
     const currentAreaNamedEarth = useMemo(() => {
         // 表示範囲内の地物に絞る
         return namedEarth.filter(item => {
-            const feature = map.getFeatureById(item.id);
+            const feature = map?.getFeatureById(item.id);
             if (!feature) {
                 return false;
             }
@@ -80,7 +74,7 @@ export default function LandNameOverlay() {
                 },
                 className: styles.LandnameOverlayContainer,
             });
-            const olFeature = map.getFeatureById(item.id);
+            const olFeature = map?.getFeatureById(item.id);
             const geometry = olFeature?.getGeometry();
             if (!geometry) {
                 return;

@@ -6,7 +6,6 @@ import { MapMode } from '../../types/types';
 import OverlaySpinner from '../common/spinner/OverlaySpinner';
 import EditTopographyInfoController from './draw-controller/topography/EditTopographyInfoController';
 import { FeatureType } from '../../279map-common';
-import { MapChartContext } from '../TsunaguMap/MapChart';
 import { LayerType } from '../TsunaguMap/VectorLayerMap';
 
 const DrawStructureController = lazy(() => import('./draw-controller/structure/DrawStructureController'));

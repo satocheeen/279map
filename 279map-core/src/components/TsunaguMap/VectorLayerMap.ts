@@ -81,6 +81,7 @@ export class VectorLayerMap {
             })
 
             if (this._pointLayerStyle) {
+                console.log('layer setStyle', this._pointLayerStyle)
                 layer.setStyle(this._pointLayerStyle);
             }
         
@@ -259,7 +260,9 @@ export class VectorLayerMap {
      * @param style 
      */
     setPointLayerStyle(style: StyleFunction) {
+        console.log('setPointLayerStyle', this._layerMap);
         this.getLayersOfTheType(LayerType.Point).forEach(layerInfo => {
+            console.log('setPointLayerStyle', style);
             layerInfo.layer.setStyle(style);
         });
         this._pointLayerStyle = style;

@@ -7,9 +7,9 @@ import { RootState } from '../../store/configureStore';
 import { useFilter } from '../../store/useFilter';
 import ClusterMenu from './ClusterMenu';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
-import { MapChartContext } from '../TsunaguMap/MapChart';
 import { usePrevious } from '../../util/usePrevious';
 import { getMapKey, isEqualId } from '../../store/data/dataUtility';
+import { useMap } from '../map/useMap';
 
 /**
  * 地図上のアイテムがクリックされた際に、
@@ -29,7 +29,7 @@ type ClusterMenuTarget = {
 }
 
 export default function ClusterMenuController(props: Props) {
-    const { map } = useContext(MapChartContext);
+    const { map } = useMap();
     const [clusterMenuInfo, setClusterMenuInfo] = useState<ClusterMenuTarget|null>(null);
     const { onClick } = useContext(OwnerContext);
     const mapMode = useSelector((state: RootState) => state.operation.mapMode);
@@ -73,6 +73,7 @@ export default function ClusterMenuController(props: Props) {
      * @params evt {MapBrowserEvent} 地図クリック時のイベント
      */
     const getSelectableFeatures = useCallback((evt: MapBrowserEvent<any>) => {
+        if (!map) return [];
         // クリック位置付近にあるアイテムIDを取得
         let pointIds = map.getNearlyFeatures(evt.pixel);
 
@@ -105,6 +106,7 @@ export default function ClusterMenuController(props: Props) {
 
     // イベントコールバック用意
     useEffect(() => {
+        if (!map) return;
         const clickFunc =  (evt: MapBrowserEvent<any>) => {
             setClusterMenuInfo(null);
 

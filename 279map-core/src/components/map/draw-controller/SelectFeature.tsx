@@ -1,5 +1,5 @@
 import { Feature, MapBrowserEvent } from 'ol';
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PromptMessageBox from './PromptMessageBox';
 import Style from 'ol/style/Style';
 import Stroke from 'ol/style/Stroke';
@@ -14,9 +14,9 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/configureStore';
 import { colorWithAlpha } from '../../../util/CommonUtility';
 import { MapStyles } from '../../../util/constant-defines';
-import { MapChartContext } from '../../TsunaguMap/MapChart';
 import { LayerInfo, LayerType } from '../../TsunaguMap/VectorLayerMap';
 import { containFeatureInLayer } from '../../../util/MapUtility';
+import { useMap } from '../useMap';
 
 type Props = {
     targetType: LayerType;
@@ -34,11 +34,12 @@ export default function SelectFeature(props: Props) {
     const select = useRef<Select>();
     const [selectedFeature, setSelectedFeature] = useState<Feature>();
     const topographyStyleHook = useTopographyStyle({});
-    const { map } = useContext(MapChartContext);
+    const { map } = useMap();
     const pointStyleHook = usePointStyle();
     const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
 
     const targetLayers = useMemo((): LayerInfo[] => {
+        if (!map) return [];
         const layers = map.getLayersOfTheType(props.targetType);
         // 編集可能なレイヤに絞って返す
         return layers.filter(l => l.editable);
@@ -46,6 +47,7 @@ export default function SelectFeature(props: Props) {
 
     // 初期化
     useEffect(() => {
+        if (!map) return;
         const styleFunction = function(){
             if (props.targetType === LayerType.Topography) {
                 const selectedStyleFunc = (feature: FeatureLike) => {
@@ -146,7 +148,7 @@ export default function SelectFeature(props: Props) {
             map.un('pointermove', pointerMoveEvent);
         }
      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [map]);
 
     const message= useMemo(() => {
         let name: string;

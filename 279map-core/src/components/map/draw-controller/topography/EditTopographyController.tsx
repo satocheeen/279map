@@ -1,9 +1,8 @@
 import { Feature } from 'ol';
 import { Modify } from 'ol/interaction';
-import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { Stroke, Style } from 'ol/style';
-import React, { useEffect, useContext, useCallback, useRef, useState } from 'react';
+import React, { useEffect, useCallback, useRef, useState } from 'react';
 import useConfirm, { ConfirmResult } from '../../../common/confirm/useConfirm';
 import { useSpinner } from '../../../common/spinner/useSpinner';
 import { createGeoJson, extractGeoProperty, getOriginalLine } from '../../../../util/MapUtility';
@@ -17,8 +16,8 @@ import { FeatureType, GeoProperties } from '../../../../279map-common';
 import { FeatureLike } from 'ol/Feature';
 import { Geometry } from 'ol/geom';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
-import { MapChartContext } from '../../../TsunaguMap/MapChart';
 import { convertDataIdFromFeatureId } from '../../../../store/data/dataUtility';
+import { useMap } from '../../useMap';
 
 type Props = {
     close: () => void;  // 作図完了時のコールバック
@@ -34,7 +33,7 @@ enum Stage {
  * 地形編集用コントロールクラス
  */
  export default function EditTopographyController(props: Props) {
-    const { map } = useContext(MapChartContext);
+    const { map } = useMap();
     const [stage, setStage] = useState(Stage.SELECTING_FEATURE);
     const selectedFeature = useRef<FeatureLike>();
     const styleHook = useTopographyStyle({});
@@ -48,6 +47,7 @@ enum Stage {
      * 初期化
      */
     useEffect(() => {
+        if (!map) return;
         const style = styleHook.getStyleFunction(() => {
             return new Style({
                 // fill: new Fill({
@@ -80,7 +80,7 @@ enum Stage {
         }
     
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [map]);
 
     const onSelectFeature = useCallback((feature: FeatureLike) => {
         console.log('select feature', feature);
@@ -97,7 +97,7 @@ enum Stage {
         modifySource.current?.addFeature(editFeature);
         // 編集インタラクションOn
         if (modify.current)
-            map.addInteraction(modify.current);
+            map?.addInteraction(modify.current);
 
         setStage(Stage.EDITING);
     }, [map]);

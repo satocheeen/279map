@@ -1,13 +1,13 @@
 import { FeatureType } from "../../../../279map-common";
 import { Draw } from "ol/interaction";
 import { DrawEvent } from "ol/interaction/Draw";
-import React, { useCallback, useEffect, useMemo, useRef, useState, useContext } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useTopographyStyle from "../../useTopographyStyle";
 import PromptMessageBox from "../PromptMessageBox";
-import { MapChartContext } from "../../../TsunaguMap/MapChart";
 import { Feature } from "ol";
 import { Geometry } from "ol/geom";
 import VectorSource from "ol/source/Vector";
+import { useMap } from "../../useMap";
 
 type Props = {
     geometryType: string;
@@ -21,7 +21,7 @@ enum Stage {
 }
 
 export function DrawFreeArea(props: Props) {
-    const { map } = useContext(MapChartContext);
+    const { map } = useMap();
     const [stage, setStage] = useState(Stage.Drawing);
     const draw = useRef<Draw>();
 
@@ -35,6 +35,7 @@ export function DrawFreeArea(props: Props) {
      * 初期化
      */
      useEffect(() => {
+        if (!map) return;
         const styleFunction = styleHook.getStyleFunction();
         const drawingLayer = map.createDrawingLayer(styleHook.getStyleFunction());
         drawingSource.current = drawingLayer.getSource();
@@ -65,12 +66,12 @@ export function DrawFreeArea(props: Props) {
         }
     }, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    []);
+    [map]);
 
     const onDrawingCanceled = useCallback(() => {
         // DrawインタラクションOff
         if (draw.current) {
-            map.removeInteraction(draw.current);
+            map?.removeInteraction(draw.current);
         }
         if (props.onCancel) {
             props.onCancel();

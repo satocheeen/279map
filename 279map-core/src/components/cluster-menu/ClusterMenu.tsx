@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo, useCallback, useContext } from 'react';
+import React, { useEffect, useRef, useMemo, useCallback } from 'react';
 import { Overlay } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import styles from './ClusterMenu.module.scss';
@@ -8,7 +8,7 @@ import useIcon from '../../store/useIcon';
 import AddContentMenu from '../popup/AddContentMenu';
 import { Auth, DataId } from '../../279map-common';
 import { getMapKey } from '../../store/data/dataUtility';
-import { MapChartContext } from '../TsunaguMap/MapChart';
+import { useMap } from '../map/useMap';
 
 /**
  * Cluster items' menu for selecting an item.
@@ -27,10 +27,11 @@ type Props = {
 }
 
 export default function ClusterMenu(props: Props) {
-    const { map } = useContext(MapChartContext);
+    const { map } = useMap();
     const elementRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        if (!map) return;
         const overlay = new Overlay({
             positioning: 'bottom-left', //OverlayPositioning.BOTTOM_CENTER,
             offset: [-45, -20],
