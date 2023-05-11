@@ -14,9 +14,12 @@ import ContentInfoEditDialog from '../default/edit-content/ContentInfoEditDialog
 const LinkUnpointContentModal = lazy(() => import('../default/link-unpoint-content/LinkUnpointContentModal'));
 
 type SomeRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
-type OwnerContextType = SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'>;
+type OwnerContextType = SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'> & {
+    mapInstanceId: string;
+};
 
 export const OwnerContext = React.createContext<OwnerContextType>({
+    mapInstanceId: '',
     mapId: '',
     mapServer: {
         host: '',
@@ -28,7 +31,9 @@ export const OwnerContext = React.createContext<OwnerContextType>({
     onLinkUnpointedContent: () => {},
 });
 
+let instanceCnt = 0;
 export default function TsunaguMap(props: TsunaguMapProps) {
+    const [instanceId ] = useState('map-' + (++instanceCnt));
     const [ showTooltipId, setShowTooltipId ] = useState<{[name: string]: string}>({});
     const tooltipContextValue = {
         showIdMap: showTooltipId,
@@ -46,11 +51,12 @@ export default function TsunaguMap(props: TsunaguMapProps) {
 
     const ownerContextValue = useMemo((): OwnerContextType => {
         return Object.assign({}, props, {
+            mapInstanceId: instanceId,
             onAddNewContent: props.onAddNewContent ?? function(param: AddNewContentParam){setDefaultNewContentParam(param)},
             onEditContent: props.onEditContent ?? function(param: EditContentParam){setDefaultEditContentParam(param)},
             onLinkUnpointedContent: props.onLinkUnpointedContent ?? function(param: LinkUnpointContentParam){setDefaultLinkUnpointedContentParam(param)},
         })
-    }, [props]);
+    }, [props, instanceId]);
 
     return (
         <>

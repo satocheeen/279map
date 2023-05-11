@@ -1,19 +1,19 @@
 import { useMemo, useContext } from 'react';
-import { MapChartContext } from "../TsunaguMap/MapChart";
 import { getMapInstance } from '../TsunaguMap/OlMapWrapper';
+import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 
 /**
  * MapChart配下のコンポーネントに対してmapインスタンスを渡すためのフック
  * @returns 
  */
 export function useMap() {
-    const { instanceId } = useContext(MapChartContext);
+    const { mapInstanceId } = useContext(OwnerContext);
 
     const map = useMemo(() => {
-        const map = getMapInstance(instanceId);
-        console.log('map update', instanceId, map);
+        const map = getMapInstance(mapInstanceId);
+        console.log('map update', mapInstanceId, map);
         return map;
-    }, [instanceId]);
+    }, [mapInstanceId]);
 
     return {
         map,

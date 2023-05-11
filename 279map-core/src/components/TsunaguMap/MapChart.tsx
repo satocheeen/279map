@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState, useContext } from "react";
 import { Vector as VectorSource } from "ol/source";
 import VectorLayer from "ol/layer/Vector";
 import styles from './MapChart.module.scss';
@@ -23,33 +23,19 @@ import { usePrevious } from "../../util/usePrevious";
 import usePointStyle from "../map/usePointStyle";
 import ClusterMenuController from "../cluster-menu/ClusterMenuController";
 import { createMapInstance, OlMapWrapper } from "./OlMapWrapper";
+import { OwnerContext } from "./TsunaguMap";
 
-let instanceCnt = 0;
-
-type MapChartContextType = {
-    instanceId: string;
-    map: OlMapWrapper;
-}
 const defaultDummyMapId = 'dummy';
 const defaultDummyMap = new OlMapWrapper({
     id: defaultDummyMapId
 });
-export const MapChartContext = React.createContext<MapChartContextType>({
-    instanceId: 'dummy',
-    map: defaultDummyMap,
-});
 
 export default function MapChart() {
+    const { mapInstanceId } = useContext(OwnerContext);
     const myRef = useRef(null as HTMLDivElement | null);
-    const [instanceId, setInstanceId ] = useState('map-' + (++instanceCnt));
     const [initialized, setInitialized] = useState(false);
     const mapRef = useRef<OlMapWrapper>(defaultDummyMap);
     const mapMode = useSelector((state: RootState) => state.operation.mapMode);
-
-    const mapChartContextValue = {
-        instanceId,
-        map: mapRef.current,
-    } as MapChartContextType;
 
     // スタイル設定
     // -- コンテンツ（建物・ポイント）レイヤ
@@ -157,7 +143,7 @@ export default function MapChart() {
         }
         mapRef.current.dispose();
         mapRef.current = createMapInstance({
-            id: instanceId,
+            id: mapInstanceId,
             target: myRef.current,
         });
 
@@ -172,7 +158,7 @@ export default function MapChart() {
             mapRef.current.dispose();
             removeListener(h);
         }
-    }, [dispatch, loadCurrentAreaContents, instanceId]);
+    }, [dispatch, loadCurrentAreaContents, mapInstanceId]);
 
     const onSelectItem = useCallback((feature: DataId | undefined) => {
         if (!feature) {
@@ -384,7 +370,7 @@ export default function MapChart() {
             <div ref={myRef} className={`${styles.Chart} ${optionClassName}`} />
             {initialized &&
                 (
-                    <MapChartContext.Provider value={mapChartContextValue}>
+                    <>
                         <PopupContainer />
                         <LandNameOverlay />
                         {mapMode === MapMode.Normal &&
@@ -393,7 +379,7 @@ export default function MapChart() {
                                 onSelect={onSelectItem} />
                         }
                         <DrawController onStart={()=>{isDrawing.current=true}} onEnd={()=>{isDrawing.current=false}} />
-                    </MapChartContext.Provider>
+                    </>
                 )
             }
         </div>
