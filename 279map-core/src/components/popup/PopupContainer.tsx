@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
 import PointsPopup from './PointsPopup';
 import { getCenter } from 'geolib';
-import usePointStyle from '../map/usePointStyle';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import VectorSource from 'ol/source/Vector';
 import { getMapKey } from '../../store/data/dataUtility';
@@ -27,16 +26,13 @@ export default function PopupContainer() {
     const ownerContext = useContext(OwnerContext);
 
     const { map } = useMap();
-    const { pointStyleFunction } = usePointStyle();
 
     // コンテンツを持つアイテムID一覧
     const hasContentsItemIdList = useMemo(() => {
         if (ownerContext.disabledPopup) {
             return [];
         }
-        console.log('itemMap', itemMap);
         const list = Object.values(itemMap).filter(item => item.contents.length>0).map(item => item.id);
-        console.log('hasContentsItemIdList', list);
         return list;
     }, [itemMap, ownerContext.disabledPopup]);
 
@@ -64,14 +60,12 @@ export default function PopupContainer() {
         if (!map) return;
         // 画像ロード完了していないと、imagePositionの取得に失敗するので、ここでイベント検知して再描画させる
         const loadendFunc = () => {
-            console.log('loadend');
             updatePopupGroups();
         }
         map.once('loadend', loadendFunc);
 
         const itemLayers = map.getLayersOfTheType(LayerType.Point);
         const addfeatureFunc = () => {
-            console.log('add feature');
             updatePopupGroups();
         }
         itemLayers.forEach(itemLayer => {
@@ -119,7 +113,6 @@ export default function PopupContainer() {
             return !exist;
         });
 
-        console.log('addChildren', addChildren);
         addChildren.forEach(target => {
             if (!target.itemPositions) return;
             const position = getCenter(target.itemPositions);

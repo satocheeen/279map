@@ -25,7 +25,6 @@ const STRUCTURE_SELECTED_COLOR = '#8888ff';
  * @returns 
  */
 export default function usePointStyle() {
-    console.log('usePointStyle');
     const { getForceColor, getFilterStatus } = useFilterStatus();
     const { filteredItemIdList } = useFilter();
     const ownerContext = useContext(OwnerContext);
@@ -221,7 +220,6 @@ export default function usePointStyle() {
     }, [_createPointStyle]);
 
     useEffect(() => {
-        console.log('debug', map?._id, pointStyleFunction);
         if (!map) return;
         if (mapMode === MapMode.Normal) {
             map.setPointLayerStyle(pointStyleFunction);

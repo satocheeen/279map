@@ -24,11 +24,8 @@ import { FitOptions } from 'ol/View';
 import { getAPICallerInstance } from '../../api/ApiCaller';
 import { Coordinate } from 'ol/coordinate';
 
+let instanceCnt = 0;
 const instansMap = new Map<string, OlMapWrapper>();
-type Param = {
-    id: string; // instanceを特定するID
-    target?: HTMLDivElement;    // 地図を配置するDivElement。MapChartContextの初期値を仮設定するために、undefinedを許容している。
-}
 export type FeatureInfo = {
     id: DataId;
     feature: Feature<Geometry>;
@@ -40,22 +37,18 @@ export type FeatureInfo = {
  * @param target 地図を配置するDivElement。MapChartContextの初期値を仮設定するために、undefinedを許容している。
  * @returns OlMapWrapperインスタンス
  */
-export function createMapInstance(param: Param) {
-    if (instansMap.has(param.id)) {
-        console.warn('already created map');
-        return instansMap.get(param.id) as OlMapWrapper;
-    }
-    const map = new OlMapWrapper(param);
-    console.log('create map', param.id);
-    instansMap.set(param.id, map);
+export function createMapInstance(target: HTMLDivElement) {
+    const map = new OlMapWrapper(target);
+    console.log('create map', map.id);
+    instansMap.set(map.id, map);
     return map;
 }
 
 export function getMapInstance(id: string) {
     return instansMap.get(id);
 }
-export class OlMapWrapper {
-    _id: string;
+class OlMapWrapper {
+    readonly id: string;
     _map: OlMap;
     _vectorLayerMap: VectorLayerMap;
     _mapKind?: MapKind;
@@ -64,13 +57,13 @@ export class OlMapWrapper {
     // 描画用レイヤ
     _drawingLayers: VectorLayer<VectorSource>[] = [];
 
-    constructor(param: Param) {
-        this._id = param.id;
+    constructor(target: HTMLDivElement) {
+        this.id = 'map-' + (++instanceCnt);
         this._vectorLayerMap = new VectorLayerMap();
-        console.log('create OlMapWrapper', param.id);
+        console.log('create OlMapWrapper', this.id);
 
         const map = new OlMap({
-            target: param.target,
+            target,
             controls: olControl.defaults({attribution: true}),
             view: new View({
                 projection: 'EPSG:4326',
@@ -373,7 +366,7 @@ export class OlMapWrapper {
     }
 
     addLayer(layerDefine: LayerDefine): VectorLayer<VectorSource> | undefined{
-        console.log('addLayer', this._id, layerDefine);
+        console.log('addLayer', this.id, layerDefine);
         const layer = this._vectorLayerMap.createLayer(layerDefine);
         if (layer) {
             this._map.addLayer(layer);
@@ -533,7 +526,9 @@ export class OlMapWrapper {
 
     dispose() {
         this._map.dispose();
-        instansMap.delete(this._id);
-        console.log('dispose OlMapWrapper', this._id);
+        instansMap.delete(this.id);
+        console.log('dispose OlMapWrapper', this.id);
     }
 }
+
+export type OlMapType = InstanceType<typeof OlMapWrapper>;

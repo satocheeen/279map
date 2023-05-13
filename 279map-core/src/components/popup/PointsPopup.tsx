@@ -62,7 +62,6 @@ export default function PointsPopup(props: Props) {
         }
         // 複数アイテムが表示対象の場合は、画像を持つもののみ表示対象
         const ownImageInfos = infos.filter(info => hasImageItem(info));
-        console.log('ownImageInfos', ownImageInfos);
         if (ownImageInfos.length === 0) {
             // 画像を持つものがない場合は、冒頭
             return infos[0];

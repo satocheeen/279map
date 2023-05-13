@@ -5,16 +5,14 @@ import { FeatureType } from '../../279map-common';
 import { FeatureLike } from 'ol/Feature';
 import { colorWithAlpha } from '../../util/CommonUtility';
 import { Style } from 'ol/style';
-import { OlMapWrapper } from '../TsunaguMap/OlMapWrapper';
+import { useMap } from './useMap';
 
-type Props = {
-    map: OlMapWrapper;
-}
 /**
  * フィルタを加味して地形Featureのスタイルを設定するフック
  */
-export default function useFilteredTopographyStyle(props: Props) {
+export default function useFilteredTopographyStyle() {
     const { getForceColor, getFilterStatus } = useFilterStatus();
+    const { map } = useMap();
 
     const topographyStyleHook = useTopographyStyle({
     });
@@ -57,7 +55,7 @@ export default function useFilteredTopographyStyle(props: Props) {
     }, [topographyStyleHook, getFilterStatus, getForceColor]);
 
     useEffect(() => {
-        props.map.setTopographyLayerStyle(topographyStyleFunction);
-    }, [props.map, topographyStyleFunction]);
+        map?.setTopographyLayerStyle(topographyStyleFunction);
+    }, [map, topographyStyleFunction]);
 
 }

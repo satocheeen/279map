@@ -3,7 +3,7 @@ import Feature from 'ol/Feature';
 import { GeolibInputCoordinates } from 'geolib/es/types';
 import { LayerType } from "../TsunaguMap/VectorLayerMap";
 import VectorSource from "ol/source/Vector";
-import { OlMapWrapper } from "../TsunaguMap/OlMapWrapper";
+import { OlMapType } from "../TsunaguMap/OlMapWrapper";
 import { convertDataIdFromFeatureId, isEqualId } from "../../store/data/dataUtility";
 import { getFeatureCenter } from "../../util/MapUtility";
 import Style from "ol/style/Style";
@@ -19,10 +19,10 @@ export type PopupGroupWithPosition = {
 }
 
 export default class PopupContainerCalculator {
-    _map: OlMapWrapper;
+    _map: OlMapType;
     _hasContentsItemIdList: DataId[] = [];
 
-    constructor(map: OlMapWrapper) {
+    constructor(map: OlMapType) {
         this._map = map;
     }
 
@@ -181,7 +181,7 @@ export default class PopupContainerCalculator {
             const pixel = this._map.getPixelFromCoordinate([itemPosition.longitude, itemPosition.latitude]);
             const imageSize = image.getSize();
             if (!imageSize || imageSize.length < 2 || !pixel || pixel.length < 2) {
-                console.log('imageSize undefined', image, imageSize);
+                // console.warn('imageSize undefined', feature.getId());
                 return;
             }
 

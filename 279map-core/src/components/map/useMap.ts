@@ -1,5 +1,5 @@
-import { useMemo, useContext } from 'react';
-import { getMapInstance } from '../TsunaguMap/OlMapWrapper';
+import { useEffect, useRef, useContext } from 'react';
+import { OlMapType, getMapInstance } from '../TsunaguMap/OlMapWrapper';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 
 /**
@@ -7,15 +7,14 @@ import { OwnerContext } from '../TsunaguMap/TsunaguMap';
  * @returns 
  */
 export function useMap() {
+    const mapRef = useRef<OlMapType>();
     const { mapInstanceId } = useContext(OwnerContext);
 
-    const map = useMemo(() => {
-        const map = getMapInstance(mapInstanceId);
-        console.log('map update', mapInstanceId, map);
-        return map;
+    useEffect(() => {
+        mapRef.current = getMapInstance(mapInstanceId);
     }, [mapInstanceId]);
 
     return {
-        map,
+        map: mapRef.current,
     }
 }

@@ -3,19 +3,17 @@ import { useCallback, useEffect, useRef } from 'react';
 import VectorSource from "ol/source/Vector";
 import { Stroke, Style } from 'ol/style';
 import VectorLayer from 'ol/layer/Vector';
-import { OlMapWrapper } from '../TsunaguMap/OlMapWrapper';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
 import { MapMode } from '../../types/types';
+import { useMap } from './useMap';
 
-type Props = {
-    map: OlMapWrapper,
-}
 /**
  * 軌跡Featureのスタイルを設定するフック
  * @param props 
  */
-export default function useTrackStyle(props: Props) {
+export default function useTrackStyle() {
+    const { map } = useMap();
     const layersRef = useRef<VectorLayer<VectorSource>[]>([]);
     const mapMode = useSelector((state: RootState) => state.operation.mapMode);
 
@@ -47,9 +45,9 @@ export default function useTrackStyle(props: Props) {
     useEffect(() => {
         if (mapMode === MapMode.Normal) {
             // console.log('setPointLayerStyle', instanceId);
-            props.map.setTrackLayerStyle(trackStyleFunction);
+            map?.setTrackLayerStyle(trackStyleFunction);
         }
-    }, [trackStyleFunction, props.map, mapMode]);
+    }, [trackStyleFunction, map, mapMode]);
 
     // const addLayer = useCallback((layer: VectorLayer<VectorSource>) => {
     //     layersRef.current.push(layer);
