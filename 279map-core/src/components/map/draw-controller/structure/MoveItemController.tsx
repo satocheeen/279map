@@ -71,13 +71,14 @@ export default function MoveItemController(props: Props) {
 
     const onCancelClicked = () => {
         // 元に戻す
-        movedFeatureCollection.forEach((feature) => {
-            const id = feature.getId();
+        movedFeatureCollection.forEach((clusteredFeature) => {
+            const features = clusteredFeature.get('features') as Feature<Geometry>[];
+            const id = features[0].getId();
             if (id === undefined) {
                 return;
             }
             const geometory = prevGeometory[id];
-            feature.setGeometry(geometory);
+            clusteredFeature.setGeometry(geometory);
         })
         props.close();
     }
@@ -109,9 +110,10 @@ export default function MoveItemController(props: Props) {
     useEffect(() => {
         // 移動前の状態を記憶
         targetLayers.current.forEach(layer => {
-            layer.getSource()?.getFeatures().forEach((feature) => {
-                const id = feature.getId();
-                const geometry = feature.getGeometry();
+            layer.getSource()?.getFeatures().forEach((clusteredFeature) => {
+                const features = clusteredFeature.get('features') as Feature<Geometry>[];
+                const id = features[0].getId();
+                const geometry = clusteredFeature.getGeometry();
                 if (id === undefined || !geometry) {
                     return;
                 }
