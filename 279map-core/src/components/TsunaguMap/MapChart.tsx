@@ -28,17 +28,17 @@ import { OlMapType, createMapInstance } from "./OlMapWrapper";
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
     const [initialized, setInitialized] = useState(false);
-    const { setMapInstanceId, mapInstanceId } = useContext(OwnerContext);
+    const { setMapInstanceId } = useContext(OwnerContext);
     const mapRef = useRef<OlMapType>();
     const mapMode = useSelector((state: RootState) => state.operation.mapMode);
 
     // スタイル設定
     // -- コンテンツ（建物・ポイント）レイヤ
-    usePointStyle();
+    const { pointStyleFunction } = usePointStyle();
     // -- コンテンツ（地形）レイヤ
-    useFilteredTopographyStyle();
+    const { topographyStyleFunction } = useFilteredTopographyStyle();
     // -- 軌跡レイヤ
-    useTrackStyle();
+    const { trackStyleFunction } = useTrackStyle();
 
     const isDrawing = useRef(false);    // 描画中かどうか
 
@@ -150,6 +150,16 @@ export default function MapChart() {
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    /**
+     * 地図スタイル設定
+     */
+    useEffect(() => {
+        mapRef.current?.setPointLayerStyle(pointStyleFunction);
+        mapRef.current?.setTopographyLayerStyle(topographyStyleFunction);
+        mapRef.current?.setTrackLayerStyle(trackStyleFunction);
+        
+    }, [pointStyleFunction, topographyStyleFunction, trackStyleFunction])
 
     const onSelectItem = useCallback((feature: DataId | undefined) => {
         if (!feature) {

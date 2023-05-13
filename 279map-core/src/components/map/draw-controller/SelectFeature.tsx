@@ -35,7 +35,7 @@ export default function SelectFeature(props: Props) {
     const [selectedFeature, setSelectedFeature] = useState<Feature>();
     const topographyStyleHook = useTopographyStyle({});
     const { map } = useMap();
-    const pointStyleHook = usePointStyle();
+    const { selectedStyleFunction } = usePointStyle();
     const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
 
     const targetLayers = useMemo((): LayerInfo[] => {
@@ -94,7 +94,7 @@ export default function SelectFeature(props: Props) {
                 }
                 return  topographyStyleHook.getStyleFunction(selectedStyleFunc);
             } else {
-                return pointStyleHook.selectedStyleFunction;
+                return selectedStyleFunction;
             }
         }();
         select.current = new Select({

@@ -1,26 +1,23 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import useFilterStatus from "./useFilterStatus";
 import useTopographyStyle from "./useTopographyStyle";
 import { FeatureType } from '../../279map-common';
 import { FeatureLike } from 'ol/Feature';
 import { colorWithAlpha } from '../../util/CommonUtility';
 import { Style } from 'ol/style';
-import { useMap } from './useMap';
 
 /**
  * フィルタを加味して地形Featureのスタイルを設定するフック
  */
 export default function useFilteredTopographyStyle() {
     const { getForceColor, getFilterStatus } = useFilterStatus();
-    const { map } = useMap();
-
-    const topographyStyleHook = useTopographyStyle({
+    const { getStyleFunction } = useTopographyStyle({
     });
 
     const topographyStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style => {
         const color = getForceColor(feature);
         const filterStatus = getFilterStatus(feature);
-        const func = topographyStyleHook.getStyleFunction((feature, resolution, defaultStyle) => {
+        const func = getStyleFunction((feature, resolution, defaultStyle) => {
             if (!color && filterStatus.status === 'Normal') {
                 return defaultStyle;
             }
@@ -52,10 +49,10 @@ export default function useFilteredTopographyStyle() {
         // TODO: 島名表示
         return style;
 
-    }, [topographyStyleHook, getFilterStatus, getForceColor]);
+    }, [getStyleFunction, getFilterStatus, getForceColor]);
 
-    useEffect(() => {
-        map?.setTopographyLayerStyle(topographyStyleFunction);
-    }, [map, topographyStyleFunction]);
+    return {
+        topographyStyleFunction,
+    }
 
 }

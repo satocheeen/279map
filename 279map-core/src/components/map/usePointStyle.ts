@@ -3,13 +3,11 @@ import { useCallback, useContext, useEffect } from "react";
 import Feature, { FeatureLike } from "ol/Feature";
 import { Fill, Icon, Style, Text } from 'ol/style';
 import { getStructureScale } from "../../util/MapUtility";
-import { MapMode, SystemIconDefine } from "../../types/types";
+import { SystemIconDefine } from "../../types/types";
 import useFilterStatus from "./useFilterStatus";
 import { useFilter } from "../../store/useFilter";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import { IconInfo } from "../../279map-common";
-import { useSelector } from "react-redux";
-import { RootState } from "../../store/configureStore";
 import { Geometry } from "ol/geom";
 import { convertDataIdFromFeatureId, isEqualId } from "../../store/data/dataUtility";
 import { useMap } from "./useMap";
@@ -27,9 +25,8 @@ const STRUCTURE_SELECTED_COLOR = '#8888ff';
 export default function usePointStyle() {
     const { getForceColor, getFilterStatus } = useFilterStatus();
     const { filteredItemIdList } = useFilter();
-    const ownerContext = useContext(OwnerContext);
+    const { disabledLabel } = useContext(OwnerContext);
     const { getIconDefine } = useIcon();
-    const mapMode = useSelector((state: RootState) => state.operation.mapMode);
     const { map } = useMap();
 
     const getZindex = useCallback((feature: Feature<Geometry>): number => {
@@ -193,14 +190,14 @@ export default function usePointStyle() {
             // 複数アイテムがまとまっている場合、まとまっている数を表示
             setClusterLabel(style, showFeaturesLength);
 
-        } else if (!ownerContext.disabledLabel && resolution <= StructureLabelResolution) {
+        } else if (!disabledLabel && resolution <= StructureLabelResolution) {
             // ラベル設定
             const text = createItemNameLabel(mainFeature);
             style.setText(text);
         }
         return style;
 
-    }, [ownerContext.disabledLabel, _createStyle, getFilterStatus, getForceColor, _analysisFeatures, getIconDefine]);
+    }, [disabledLabel, _createStyle, getFilterStatus, getForceColor, _analysisFeatures, getIconDefine]);
 
     /**
      * the style function for ordinaly.
@@ -218,13 +215,6 @@ export default function usePointStyle() {
 
         return style;
     }, [_createPointStyle]);
-
-    useEffect(() => {
-        if (!map) return;
-        if (mapMode === MapMode.Normal) {
-            map.setPointLayerStyle(pointStyleFunction);
-        }
-    }, [pointStyleFunction, mapMode, map]);
 
     return {
         getDrawingStructureStyleFunction,
