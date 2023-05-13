@@ -148,7 +148,7 @@ export default function SelectFeature(props: Props) {
             map.un('pointermove', pointerMoveEvent);
         }
      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [map]);
+    }, []);
 
     const message= useMemo(() => {
         let name: string;

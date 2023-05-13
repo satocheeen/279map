@@ -7,11 +7,15 @@ import { OwnerContext } from '../TsunaguMap/TsunaguMap';
  * @returns 
  */
 export function useMap() {
-    const mapRef = useRef<OlMapType>();
     const { mapInstanceId } = useContext(OwnerContext);
+    const mapRef = useRef<OlMapType|undefined>(getMapInstance(mapInstanceId));
 
     useEffect(() => {
         mapRef.current = getMapInstance(mapInstanceId);
+
+        return () => {
+            mapRef.current = undefined;
+        }
     }, [mapInstanceId]);
 
     return {
