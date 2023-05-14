@@ -120,6 +120,7 @@ export default class PopupContainerCalculator {
     _calculatePopupPosition(popupGroups: PopupGroup[]): Promise<PopupGroupWithPosition[]> {
         return new Promise<PopupGroupWithPosition[]>((resolve) => {
 
+            // PopupGroupに位置情報を割り当てる
             const calcPositionFunc = (myPopupGroups: PopupGroup[]): {result: PopupGroupWithPosition[], failed: PopupGroup[]} => {
                 const result = [] as PopupGroupWithPosition[];
                 const failedList = [] as PopupGroup[];
@@ -141,9 +142,9 @@ export default class PopupContainerCalculator {
             }
             const list = [] as PopupGroupWithPosition[];
             let tryCnt = 0;
-            const func = () => {
+            const func = (myPopupGroups: PopupGroup[]) => {
                 tryCnt++;
-                const result = calcPositionFunc(popupGroups);
+                const result = calcPositionFunc(myPopupGroups);
                 Array.prototype.push.apply(list, result.result);
                 if (result.failed.length === 0 || tryCnt > 3) {
                     if (result.failed.length > 0) {
@@ -151,12 +152,13 @@ export default class PopupContainerCalculator {
                     }
                     resolve(list);
                 } else {
+                    // 位置情報取得に失敗したものについて、時間を置いて再実行する
                     setTimeout(() => {
-                        func();
+                        func(result.failed);
                     }, 100);
                 }
             }
-            func();
+            func(popupGroups);
         });
     }
 
