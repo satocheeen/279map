@@ -19,7 +19,7 @@ import { operationActions } from "../../store/operation/operationSlice";
 import { useFilter } from "../../store/useFilter";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
-import { getContents, getMapKey } from "../../store/data/dataUtility";
+import { getContents, getMapKey, isEqualId } from "../../store/data/dataUtility";
 import { getAPICallerInstance } from "../../api/ApiCaller";
 import { GetImageUrlAPI, SourceKind } from 'tsunagumap-api';
 import { useCommand } from "../../api/useCommand";
@@ -51,7 +51,7 @@ export default function Content(props: Props) {
         if (filterTargetContentIds === undefined) {
             return true;
         }
-        return filterTargetContentIds.includes(props.content.id);
+        return filterTargetContentIds.some(target => isEqualId(target, props.content.id));
     }, [filterTargetContentIds, props.content]);
 
     const urlType = useMemo(() => {
@@ -403,21 +403,27 @@ export default function Content(props: Props) {
         )
     }, [overview, dateStr, categoryTag, showSpinner, props.content, onImageClick]);
 
-    return (
-        <div className={styles.Item}>
-            {isShow &&
-                <>
-                    {header}
-                    {body}
-                </>
-            }
-            {
-                props.content.children?.map(child => {
-                    return (
-                        <Content key={getMapKey(child.id)} itemId={props.itemId} parentContentId={props.content.id} content={child} />
-                    )
-                })
-            }
-        </div>
-    )
+    const children = useMemo(() => {
+        return props.content.children?.map(child => {
+            return (
+                <Content key={getMapKey(child.id)} itemId={props.itemId} parentContentId={props.content.id} content={child} />
+            )
+        })
+    }, [props.content, props.itemId]);
+
+    if (isShow) {
+        return (
+            <div className={styles.Item}>
+                {header}
+                {body}
+                {children}
+            </div>
+        )
+    } else {
+        return (
+            <>
+                {children}
+            </>
+        );
+    }
 }
