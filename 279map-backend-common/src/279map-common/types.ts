@@ -140,7 +140,8 @@ export type ContentsDefine = {
 export type CategoryDefine = {
     name: string;
     color: string;
-    content_ids: DataId[];
+    item_ids: DataId[]; // このカテゴリのコンテンツを持つアイテム一覧。対象の地図種別上のアイテムに限る。
+    content_ids: DataId[];  // このカテゴリのコンテンツ一覧。対象の地図種別上のアイテムに紐づいたコンテンツに限る。
 }
 export type EventDefine = {
     date: Date;
