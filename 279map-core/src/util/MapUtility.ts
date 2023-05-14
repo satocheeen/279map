@@ -11,7 +11,6 @@ import * as geojson from 'geojson';
 import { GeolibInputCoordinates } from 'geolib/es/types';
 import proj4 from 'proj4';
 import 'https://unpkg.com/jsts@2.6.1/dist/jsts.min.js';
-import { Map } from 'ol';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { FeatureType, GeoProperties } from '../279map-common';
@@ -244,41 +243,6 @@ export function getFeatureCenter(feature: FeatureLike): false |  { longitude: nu
         longitude: center[0],
         latitude: center[1],
     };
-}
-
-/**
- * 指定のitemIdを持つFeatureを返す
- * @param map 
- * @param itemId 
- * @returns 
- */
-export function getFeatureByItemId(map: Map, itemId: string): Feature<Geometry> | undefined {
-    if (!itemId) {
-        // なぜか、nullやundefinedで入ってくることがあるので、ここで弾く。
-        return undefined;
-    }
-    let feature: Feature | undefined;
-    map.getAllLayers().some(layer => {
-        if (!(layer instanceof VectorLayer)) {
-            return false;
-        }
-        const source =layer.getSource();
-        if (!source || !(source instanceof VectorSource)) {
-            return false;
-        }
-        if (layer.getProperties()['name'] === 'itemLayer') {
-            // cluster layer
-            feature = source.getFeatures().find(f => {
-                const features = f.get('features') as FeatureLike[];
-                const hasTarget = features.some(f2 => f2.getId() === itemId);
-                return hasTarget;
-            });
-        } else {
-            feature = source.getFeatureById(itemId) as Feature<Geometry>;
-        }
-        return feature;
-    });
-    return feature;
 }
 
 /**

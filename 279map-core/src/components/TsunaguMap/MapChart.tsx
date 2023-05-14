@@ -4,8 +4,6 @@ import VectorLayer from "ol/layer/Vector";
 import styles from './MapChart.module.scss';
 import { useSelector } from "react-redux";
 import { RootState, useAppDispatch } from "../../store/configureStore";
-import { buffer } from 'ol/extent';
-import * as MapUtility from '../../util/MapUtility';
 import PopupContainer from "../popup/PopupContainer";
 import DrawController from "../map/DrawController";
 import { addListener, removeListener } from "../../util/Commander";
@@ -75,19 +73,37 @@ export default function MapChart() {
     const [flipping, setFlipping] = useState(false);
 
     /**
+     * 全アイテムが含まれる領域でフィットさせる
+     */
+    const fitToDefaultExtent = useCallback((animation: boolean) => {
+        if (!defaultExtent || !mapRef.current) {
+            return;
+        }
+        // アイテム0件の時はフィットさせない
+        if (defaultExtent.some(i => i !== 0)) {
+            mapRef.current.fit(defaultExtent, {
+                duration: animation ? 500 : undefined,
+            });
+        }
+    }, [defaultExtent]);
+
+    /**
      * フィルタ時にフィルタ対象がExtentに入るようにする
      */
     const { filteredItemIdList } = useFilter();
-    const filteredItemIdListRef = useRef(filteredItemIdList);   // for using in map event funtion
+    const prevFilteredItemIdList = usePrevious(filteredItemIdList);
     useEffect(() => {
-        filteredItemIdListRef.current = filteredItemIdList;
-        if (!mapRef.current || !filteredItemIdList || filteredItemIdList.length === 0) {
+        if (!mapRef.current) return;
+        if (!filteredItemIdList || filteredItemIdList.length === 0) {
+            if (prevFilteredItemIdList && prevFilteredItemIdList.length > 0) {
+                // フィルタ解除された場合、全体fit
+                fitToDefaultExtent(true);
+            }
             return;
         }
         const source = new VectorSource();
         filteredItemIdList.forEach(itemId => {
             const feature = mapRef.current?.getFeatureById(itemId);
-            // const feature = MapUtility.getFeatureByItemId(map, itemId.id);
             if (feature) {
                 // Cluster化している場合は、既にsourceに追加されている可能性があるので、
                 // 追加済みでない場合のみ追加
@@ -102,10 +118,12 @@ export default function MapChart() {
             return;
         }
         const ext = source.getExtent();
-        mapRef.current.fit(ext);
+        mapRef.current.fit(ext, {
+            duration: 500,
+        });
         source.dispose();
 
-    }, [filteredItemIdList]);
+    }, [fitToDefaultExtent, prevFilteredItemIdList, filteredItemIdList]);
 
     /**
      * 現在の地図表示範囲内に存在するコンテンツをロードする
@@ -198,11 +216,7 @@ export default function MapChart() {
         if (!defaultExtent || !mapRef.current) {
             return;
         }
-        // アイテム0件の時はフィットさせない
-        if (defaultExtent.some(i => i !== 0)) {
-            const extent = buffer(defaultExtent, 0.1);
-            mapRef.current.fit(extent);
-        }
+        fitToDefaultExtent(false);
         loadCurrentAreaContents()
 
         const updateStoreViewInfo = () => {

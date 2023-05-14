@@ -301,7 +301,7 @@ class OlMapWrapper {
     fit(ext: Extent, opt?: FitOptions) {
         const currentZoom = this._map.getView().getZoom();
         const options: FitOptions = opt ?? {
-            padding: [10, 10, 10, 10],
+            padding: [50, 50, 50, 50],
             // maxZoom: currentZoom,
         };
         this._map.getView().fit(ext, options);
