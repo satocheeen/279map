@@ -195,7 +195,7 @@ export default function TestMap() {
                             なし
                             <input type="radio" checked={filteredCategory===undefined} onChange={() => onChangeFilterCategory(undefined)} />
                         </label>
-                        {categories.map(category => {
+                        {categories.filter(category => category.using).map(category => {
                             return (
                                 <label key={category.name}>
                                     {category.name}
