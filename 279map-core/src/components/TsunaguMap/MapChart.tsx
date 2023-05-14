@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState, useContext } from "react";
+import React, { useCallback, useMemo, useRef, useState, useContext } from "react";
 import { Vector as VectorSource } from "ol/source";
 import VectorLayer from "ol/layer/Vector";
 import styles from './MapChart.module.scss';
@@ -22,6 +22,8 @@ import usePointStyle from "../map/usePointStyle";
 import ClusterMenuController from "../cluster-menu/ClusterMenuController";
 import { OwnerContext } from "./TsunaguMap";
 import { OlMapType, createMapInstance } from "./OlMapWrapper";
+import { useMounted } from "../../util/useMounted";
+import { useWatch } from "../../util/useWatch";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
@@ -37,34 +39,21 @@ export default function MapChart() {
     const { topographyStyleFunction } = useFilteredTopographyStyle();
     // -- 軌跡レイヤ
     const { trackStyleFunction } = useTrackStyle();
+    /**
+     * スタイル定義が変化したら、地図スタイル設定
+     */
+    useWatch(() => {
+        mapRef.current?.setPointLayerStyle(pointStyleFunction);
+        mapRef.current?.setTopographyLayerStyle(topographyStyleFunction);
+        mapRef.current?.setTrackLayerStyle(trackStyleFunction);
+        
+    }, [pointStyleFunction, topographyStyleFunction, trackStyleFunction])
 
-    const isDrawing = useRef(false);    // 描画中かどうか
-
-    const mapId = useSelector((state: RootState) => {
-        if (state.session.connectStatus.status !== 'connected') {
-            return undefined;
-        }
-        return state.session.connectStatus.connectedMap.mapId;
-    });
     const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
     const dataSources = useSelector((state: RootState) => state.session.currentMapKindInfo?.dataSources ?? []);
 
     const defaultExtent = useSelector((state: RootState) => state.data.extent);
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
-    const itemMapRef = useRef(itemMap); // リアクティブに使用する必要のない箇所で使用する用途
-    useEffect(() => {
-        itemMapRef.current = itemMap;
-    }, [itemMap]);
-
-    const geoJsonItems = useMemo(() => {
-        return Object.values(itemMap);
-        // return Object.values(itemMap).filter(content => content.geoProperties.featureType !== FeatureType.TRACK);
-    }, [itemMap]);
-    const prevGeoJsonItems = usePrevious(geoJsonItems);
-    const trackItems = useMemo(() => {
-        return [];
-        // return Object.values(itemMap).filter(content => content.geoProperties.featureType === FeatureType.TRACK);
-    }, [itemMap]);
 
     const dispatch = useAppDispatch();
 
@@ -92,7 +81,7 @@ export default function MapChart() {
      */
     const { filteredItemIdList } = useFilter();
     const prevFilteredItemIdList = usePrevious(filteredItemIdList);
-    useEffect(() => {
+    useWatch(() => {
         if (!mapRef.current) return;
         if (!filteredItemIdList || filteredItemIdList.length === 0) {
             if (prevFilteredItemIdList && prevFilteredItemIdList.length > 0) {
@@ -123,7 +112,7 @@ export default function MapChart() {
         });
         source.dispose();
 
-    }, [fitToDefaultExtent, prevFilteredItemIdList, filteredItemIdList]);
+    }, [filteredItemIdList]);
 
     /**
      * 現在の地図表示範囲内に存在するコンテンツをロードする
@@ -148,7 +137,7 @@ export default function MapChart() {
     /**
      * 地図初期化
      */
-    useEffect(() => {
+    useMounted(() => {
         if (myRef.current === null) {
             return;
         }
@@ -159,25 +148,24 @@ export default function MapChart() {
         const h = addListener('LoadLatestData', async() => {
             await loadCurrentAreaContents();
         });
+    
+        // 地図移動時にコンテンツロード
+        const loadContentFunc = async() => {
+            await loadCurrentAreaContents();
+            const extent = map.getExtent();
+            const zoom = map.getZoom();
+            dispatch(operationActions.updateMapView({extent, zoom}));
+        };
+        map.on('moveend', loadContentFunc);
 
         setInitialized(true);
 
         return () => {
+            map.un('moveend', loadContentFunc);
             map.dispose();
             removeListener(h);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    /**
-     * 地図スタイル設定
-     */
-    useEffect(() => {
-        mapRef.current?.setPointLayerStyle(pointStyleFunction);
-        mapRef.current?.setTopographyLayerStyle(topographyStyleFunction);
-        mapRef.current?.setTrackLayerStyle(trackStyleFunction);
-        
-    }, [pointStyleFunction, topographyStyleFunction, trackStyleFunction])
+    });
 
     const onSelectItem = useCallback((feature: DataId | undefined) => {
         if (!feature) {
@@ -191,7 +179,7 @@ export default function MapChart() {
     /**
      * 地図が切り替わったら、レイヤ再配置
      */
-    useEffect(() => {
+    useWatch(() => {
         if (!mapKind || !mapRef.current) {
             return;
         }
@@ -209,38 +197,20 @@ export default function MapChart() {
         // 初期レイヤ生成
         mapRef.current.initialize(mapKind, dataSources);
 
-    }, [mapId, mapKind, dataSources]);
-
-    // 地図ロード完了後にfitさせる
-    useEffect(() => {
-        if (!defaultExtent || !mapRef.current) {
-            return;
-        }
         fitToDefaultExtent(false);
         loadCurrentAreaContents()
 
-        const updateStoreViewInfo = () => {
-            if (!mapRef.current) return;
-            const extent = mapRef.current.getExtent();
-            const zoom = mapRef.current.getZoom();
-            dispatch(operationActions.updateMapView({extent, zoom}));
-        }
-    
-        // 地図移動時にコンテンツロード
-        mapRef.current.on('moveend', async() => {
-            await loadCurrentAreaContents();
-            updateStoreViewInfo();
-        });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [defaultExtent]);
+    }, [mapKind]);
 
     /**
-     * アイテムFeatureをSourceにロードする
-     * @param source ロード先
+     * アイテムFeatureを地図に反映する
      */
-    const loadItemsToSource = useCallback(async() => {
+    const geoJsonItems = useMemo(() => {
+        return Object.values(itemMap);
+    }, [itemMap]);
+    const prevGeoJsonItems = usePrevious(geoJsonItems);
+    useWatch(() => {
         if (!mapRef.current) return;
-        console.log('loadItemsToSource');
         // 追加、更新
         for (const def of geoJsonItems) {
             mapRef.current.addFeature(def);
@@ -255,7 +225,7 @@ export default function MapChart() {
             mapRef.current?.removeFeature(item);
         });
 
-    }, [geoJsonItems, prevGeoJsonItems]);
+    }, [geoJsonItems]);
 
     const focusItemId = useSelector((state: RootState) => state.operation.focusItemId);
     const operationMapKind = useSelector((state: RootState) => state.operation.currentMapKind);
@@ -334,43 +304,6 @@ export default function MapChart() {
 
     // }, [dispatch, focusItemId, mapKind, operationMapKind]);
 
-    useEffect(() => {
-        // コンテンツを地図ソースに追加
-        loadItemsToSource();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [itemMap]);
-
-    useEffect(() => {
-        // 新たに追加された軌跡について描画する
-        if (mapKind !== MapKind.Real || !mapRef.current) {
-            return;
-        }
-        trackItems.forEach((item) => {
-            // if (item.geoProperties.featureType !== FeatureType.TRACK) {
-            //     return;
-            // }
-            mapRef.current?.addFeature(item);
-        });
-        // // 削除
-        // trackLayersRef.current.forEach((layer) => {
-        //     const source = layer.getSource();
-        //     if (!source) {
-        //         return;
-        //     }
-        //     const deleteFeatures = source.getFeatures().filter(feature => {
-        //         const id = feature.getId();
-        //         const exist = trackItems.some(content => content.id === id);
-        //         return !exist;
-        //     });
-        //     deleteFeatures.forEach(feature => {
-        //         source.removeFeature(feature);
-        //     });
-        // });
-
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [trackItems]);
-
     const optionClassName = useMemo(() => {
         if (flipping) {
             return styles.Flip;
@@ -392,7 +325,7 @@ export default function MapChart() {
                                 targets={[FeatureType.STRUCTURE, FeatureType.AREA]}
                                 onSelect={onSelectItem} />
                         }
-                        <DrawController onStart={()=>{isDrawing.current=true}} onEnd={()=>{isDrawing.current=false}} />
+                        <DrawController />
                     </>
                 )
             }
