@@ -1,7 +1,7 @@
 import { schema } from '279map-backend-common';
 import { ConnectionPool } from '.';
 import { MapKind } from '279map-backend-common';
-import { DataSourceInfo, GetMapInfoParam, GetMapInfoResult, SourceKind } from '../279map-api-interface/src';
+import { DataSourceInfo, GetMapInfoParam, GetMapInfoResult } from '../279map-api-interface/src';
 import mysql from 'mysql2/promise';
 
 /**
@@ -156,71 +156,13 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
         const query = mysql.format(sql, [mapId]);
         const [rows] = await con.execute(query);
 
-        const dataSources = (rows as schema.DataSourceTable[]).filter(record => {
-            return (record.kinds as schema.DataSourceKind[]).some(kind => {
-                if (mapKind === MapKind.Real) {
-                    switch(kind.type) {
-                        case schema.DataSourceKindType.RealItem:
-                        case schema.DataSourceKindType.RealTrack:
-                        case schema.DataSourceKindType.Content:
-                            return true;
-                        default:
-                            return false;
-                    }
-                } else {
-                    switch(kind.type) {
-                        case schema.DataSourceKindType.VirtualItem:
-                        case schema.DataSourceKindType.Content:
-                            return true;
-                        default:
-                            return false;
-                    }
-                }
-            })
-        }).reduce((acc, row) => {
-            const kinds = (row.kinds as schema.DataSourceKind[]).filter(kind => {
-                if (mapKind === MapKind.Real) {
-                    switch(kind.type) {
-                        case schema.DataSourceKindType.Content:
-                        case schema.DataSourceKindType.RealItem:
-                        case schema.DataSourceKindType.RealTrack:
-                            return true;
-                        default:
-                            return false;
-                    }
-                } else {
-                    switch(kind.type) {
-                        case schema.DataSourceKindType.Content:
-                        case schema.DataSourceKindType.VirtualItem:
-                            return true;
-                        default:
-                            return false;
-                    }
-                }
-            }).map((kind): DataSourceInfo['kinds'][0] => {
-                const sourceKind = function() {
-                    switch(kind.type) {
-                        case schema.DataSourceKindType.Content:
-                            return SourceKind.Content;
-                        case schema.DataSourceKindType.RealItem:
-                        case schema.DataSourceKindType.VirtualItem:
-                            return SourceKind.Item;
-                        case schema.DataSourceKindType.RealTrack:
-                            return SourceKind.Track;
-                    }
-                }();
-
-                return {
-                    type: sourceKind,
-                    linkableContent: kind.linkable_content,
-                }
-            })
-
+        const dataSources = (rows as schema.DataSourceTable[]).reduce((acc, row) => {
             acc.push({
                 dataSourceId: row.data_source_id,
                 name: row.name,
                 readonly: row.readonly,
-                kinds,
+                kind: row.kind,
+                linkableContent: row.linkable_content,
             });
 
             return acc;

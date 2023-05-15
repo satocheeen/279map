@@ -1,4 +1,4 @@
-import { CategoryDefine, ContentsDefine, DataId, DataSourceLinkableContent, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, ServerConfig, UnpointContent } from "279map-backend-common";
+import { CategoryDefine, ContentsDefine, DataId, DataSourceKindType, DataSourceLinkableContent, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, ServerConfig, UnpointContent } from "279map-backend-common";
 import { GeoJsonObject } from "geojson";
 import { APIDefine, ContentAttr, SnsPreviewPost, MapDefine } from '279map-backend-common';
 
@@ -46,19 +46,12 @@ export const GetMapInfoAPI = {
 export type GetMapInfoParam = {
     mapKind?: MapKind;
 }
-export enum SourceKind {
-    Item = 'Item',
-    Track = 'Track',
-    Content = 'Content',
-}
 export type DataSourceInfo = {
     dataSourceId: string;
     name: string;
     readonly: boolean;
-    kinds: {
-        type: SourceKind;
-        linkableContent: DataSourceLinkableContent;
-    }[];
+    kind: DataSourceKindType;
+    linkableContent: DataSourceLinkableContent;
 }
 export type GetMapInfoResult = {
     mapKind: MapKind;

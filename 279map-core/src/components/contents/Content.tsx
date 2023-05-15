@@ -13,7 +13,7 @@ import { removeContent } from "../../store/data/dataThunk";
 import reactStringReplace from "react-string-replace";
 import PopupMenuIcon from "../popup/PopupMenuIcon";
 import AddContentMenu from "../popup/AddContentMenu";
-import { Auth, ContentAttr, ContentsDefine, DataId, DataSourceLinkableContent, MapKind } from "../../279map-common";
+import { Auth, ContentAttr, ContentsDefine, DataId, DataSourceKindType, MapKind } from "../../279map-common";
 import Spinner from "../common/spinner/Spinner";
 import { operationActions } from "../../store/operation/operationSlice";
 import { useFilter } from "../../store/useFilter";
@@ -21,7 +21,7 @@ import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
 import { getContents, getMapKey, isEqualId } from "../../store/data/dataUtility";
 import { getAPICallerInstance } from "../../api/ApiCaller";
-import { GetImageUrlAPI, SourceKind } from 'tsunagumap-api';
+import { GetImageUrlAPI } from 'tsunagumap-api';
 import { useCommand } from "../../api/useCommand";
 
 type Props = {
@@ -224,57 +224,58 @@ export default function Content(props: Props) {
         return true;
     }, [editableAuthLv, props.content, contentDataSource]);
 
-    const parentDataSource = useSelector((state: RootState) => {
-        if (props.parentContentId) {
-            const dataSource = state.session.currentMapKindInfo?.dataSources.find(ds => {
-                return ds.dataSourceId === props.parentContentId?.dataSourceId;
-            });
-            return dataSource?.kinds.find(kind => kind.type === SourceKind.Content);
+    // const parentDataSource = useSelector((state: RootState) => {
+    //     if (props.parentContentId) {
+    //         const dataSource = state.session.currentMapKindInfo?.dataSources.find(ds => {
+    //             return ds.dataSourceId === props.parentContentId?.dataSourceId;
+    //         });
+    //         return dataSource?.kinds.find(kind => kind.type === SourceKind.Content);
 
-        } else {
-            const dataSource = state.session.currentMapKindInfo?.dataSources.find(ds => {
-                return ds.dataSourceId === props.itemId.dataSourceId;
-            });
-            return dataSource?.kinds.find(kind => kind.type === SourceKind.Item);
-        }
-    });
+    //     } else {
+    //         const dataSource = state.session.currentMapKindInfo?.dataSources.find(ds => {
+    //             return ds.dataSourceId === props.itemId.dataSourceId;
+    //         });
+    //         return dataSource?.kinds.find(kind => kind.type === SourceKind.Item);
+    //     }
+    // });
     const isDeletable = useMemo(() => {
-        if (!isEditable) return false;
+        if (!isEditable || !contentDataSource) return false;
 
         // 別の地図で使用されている場合は削除不可にする
         if (props.content.usingAnotherMap) return false;
 
-        // 親アイテムとのペアコンテンツの場合は、削除不可
-        return parentDataSource?.linkableContent !== DataSourceLinkableContent.Pair;
-    }, [isEditable, parentDataSource, props.content.usingAnotherMap]);
+        // readonly=FALSEのContentのみ削除可能
+        return contentDataSource.kind === DataSourceKindType.Content && !contentDataSource.readonly;
+
+    }, [isEditable, props.content.usingAnotherMap, contentDataSource]);
 
     const isUnlinkable = useMemo(() => {
-        if (!editableAuthLv) return false;
+        if (!editableAuthLv || !contentDataSource) return false;
+    
+        return contentDataSource.kind === DataSourceKindType.Content;
 
-        // 親アイテムとのペアコンテンツの場合は、リンク解除不可
-        return parentDataSource?.linkableContent !== DataSourceLinkableContent.Pair;
-    }, [parentDataSource, editableAuthLv])
+    }, [contentDataSource, editableAuthLv])
 
-    const addableChild = useMemo(() => {
-        // SNSコンテンツの場合は子コンテンツの追加不可
-        if (props.content.isSnsContent) return false;
+    // const addableChild = useMemo(() => {
+    //     // SNSコンテンツの場合は子コンテンツの追加不可
+    //     if (props.content.isSnsContent) return false;
 
-        if (!contentDataSource) {
-            console.warn('contentのデータソース見つからず（想定外）');
-            return false;
-        }
-        const contentKind = contentDataSource.kinds.find(kind => kind.type === SourceKind.Content);
+    //     if (!contentDataSource) {
+    //         console.warn('contentのデータソース見つからず（想定外）');
+    //         return false;
+    //     }
+    //     const contentKind = contentDataSource.kinds.find(kind => kind.type === SourceKind.Content);
         
-        switch(contentKind?.linkableContent) {
-            case DataSourceLinkableContent.Multi:
-                return true;
-            case DataSourceLinkableContent.Single:
-                // 既に子がいるなら追加不可能
-                return (props.content.children?.length ?? 0) === 0;
-            default:
-                return false;
-        }
-    }, [contentDataSource, props.content]);
+    //     switch(contentKind?.linkableContent) {
+    //         case DataSourceLinkableContent.Multi:
+    //             return true;
+    //         case DataSourceLinkableContent.Single:
+    //             // 既に子がいるなら追加不可能
+    //             return (props.content.children?.length ?? 0) === 0;
+    //         default:
+    //             return false;
+    //     }
+    // }, [contentDataSource, props.content]);
 
     const onDelete = useCallback(async() => {
         const result = await confirm({
@@ -359,9 +360,9 @@ export default function Content(props: Props) {
                             <MdDelete />
                         </PopupMenuIcon>
                     }
-                    {addableChild &&
-                        <AddContentMenu target={{contentId: props.content.id}} />
-                    }
+                    {/* {addableChild && */}
+                        <AddContentMenu target={{contentId: props.content.id, isSnsContent: props.content.isSnsContent, hasChildren: (props.content.children ?? []).length > 0}} />
+                    {/* } */}
                     {existAnoterMap &&
                         <PopupMenuIcon tooltip={toolTipMessage} onClick={onGoToAnotherMap}>
                             <CgArrowsExchangeAlt />
@@ -370,7 +371,7 @@ export default function Content(props: Props) {
                 </div>
             </div>
         )
-    }, [props.content, title, onGoToAnotherMap, addableChild, existAnoterMap, isEditable, isDeletable, isUnlinkable, onDelete, onEdit, toolTipMessage]);
+    }, [props.content, title, onGoToAnotherMap, existAnoterMap, isEditable, isDeletable, isUnlinkable, onDelete, onEdit, toolTipMessage]);
 
     const body = useMemo(() => {
         return (

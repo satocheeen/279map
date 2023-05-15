@@ -1,10 +1,10 @@
-import { CategoryDefine, DataId, FeatureType, MapKind } from '../279map-common';
+import { Auth, CategoryDefine, DataId, DataSourceKindType, FeatureType, MapKind } from '../279map-common';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { CommandHookType } from '../api/useCommand';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
 import { FilterDefine, OnConnectParam, OnMapLoadParam, TsunaguMapProps } from '../entry';
 import styles from './TestMap.module.scss';
-import { DataSourceInfo, SourceKind } from 'tsunagumap-api';
+import { DataSourceInfo } from 'tsunagumap-api';
 
 /**
  * for Development
@@ -34,11 +34,13 @@ export default function TestMap() {
     const [ cnt, setCnt ] = useState(0);
     const [ categories, setCategories ] = useState<CategoryDefine[]>([]);
     const [ commandHook, setCommandHook ] = useState<CommandHookType>();
+    const [ authLv, setAuthLv ] = useState(Auth.None);
     const onConnect = useCallback((param: OnConnectParam) => {
         console.log('connect', param);
         if (param.result === 'success') {
             setMapKind(param.mapDefine.defaultMapKind);
             setCommandHook(param.commandHook);
+            setAuthLv(param.mapDefine.authLv);
         }
         setCnt(cnt + 1);
     }, [cnt]);
@@ -77,7 +79,7 @@ export default function TestMap() {
 
     const featureDataSources = useMemo(() => {
         return dataSources.filter(ds => {
-            const isFeature = ds.kinds.some(kind => kind.type !== SourceKind.Content);
+            const isFeature = ds.kind !== DataSourceKindType.Content;
             return isFeature;
         });
     }, [dataSources]);
@@ -170,7 +172,7 @@ export default function TestMap() {
                             <label key={ds.dataSourceId}>
                                 <input type="checkbox" />
                                 {ds.name}
-                                {!ds.readonly &&
+                                {(!ds.readonly && authLv === Auth.Edit) &&
                                     <>
                                         <button onClick={()=>commandHook?.drawStructure(ds.dataSourceId)}>建設</button>
                                         {mapKind === MapKind.Real ?
@@ -205,25 +207,29 @@ export default function TestMap() {
                         })}
                     </div>
                 </div>
-                <div className={styles.Col}>
-                    <button onClick={commandHook?.moveStructure}>移築</button>
-                    <button onClick={commandHook?.changeStructure}>改築</button>
-                    <button onClick={commandHook?.removeStructure}>建物解体</button>
-                </div>
-                <div className={styles.Col}>
-                    {mapKind === MapKind.Real ?
-                        <>
-                            <button onClick={commandHook?.editTopography}>エリア編集</button>
-                            <button onClick={commandHook?.removeTopography}>エリア削除</button>
-                        </>
-                        :
-                        <>
-                            <button onClick={commandHook?.editTopography}>地形編集</button>
-                            <button onClick={commandHook?.removeTopography}>地形削除</button>
-                            <button onClick={commandHook?.editTopographyInfo}>地名編集</button>
-                        </>
-                    }
-                </div>
+                {authLv === Auth.Edit &&
+                <>
+                    <div className={styles.Col}>
+                        <button onClick={commandHook?.moveStructure}>移築</button>
+                        <button onClick={commandHook?.changeStructure}>改築</button>
+                        <button onClick={commandHook?.removeStructure}>建物解体</button>
+                    </div>
+                    <div className={styles.Col}>
+                        {mapKind === MapKind.Real ?
+                            <>
+                                <button onClick={commandHook?.editTopography}>エリア編集</button>
+                                <button onClick={commandHook?.removeTopography}>エリア削除</button>
+                            </>
+                            :
+                            <>
+                                <button onClick={commandHook?.editTopography}>地形編集</button>
+                                <button onClick={commandHook?.removeTopography}>地形削除</button>
+                                <button onClick={commandHook?.editTopographyInfo}>地名編集</button>
+                            </>
+                        }
+                    </div>
+                </>
+                }
                 <div className={styles.Col}>
                     <button onClick={callGetSnsPreview}>GetSNS</button>
                     <button onClick={confirm}>Confirm</button>

@@ -13,13 +13,13 @@ import VectorLayer from "ol/layer/Vector";
 import Style, { StyleFunction } from "ol/style/Style";
 import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
-import { DataId, FeatureType, ItemDefine, MapKind } from '../../279map-common';
+import { DataId, DataSourceKindType, FeatureType, ItemDefine, MapKind } from '../../279map-common';
 import BaseEvent from 'ol/events/Event';
 import * as MapUtility from '../../util/MapUtility';
 import { FeatureProperties } from '../../entry';
 import { Pixel } from 'ol/pixel';
 import { convertDataIdFromFeatureId, getMapKey } from '../../store/data/dataUtility';
-import { DataSourceInfo, GetGeocoderFeatureAPI, SourceKind } from 'tsunagumap-api';
+import { DataSourceInfo, GetGeocoderFeatureAPI } from 'tsunagumap-api';
 import { FitOptions } from 'ol/View';
 import { getAPICallerInstance } from '../../api/ApiCaller';
 import { Coordinate } from 'ol/coordinate';
@@ -133,42 +133,21 @@ class OlMapWrapper {
             extent = prefSource.getExtent();
 
             dataSources.forEach(ds => {
-                ds.kinds.forEach(kind => {
-                    if (kind.type === SourceKind.Track) {
-                        [[1, 8], [8, 13], [13, 21]].forEach(zoomLv => {
-                            const layerDefine: LayerDefine = {
-                                dataSourceId: ds.dataSourceId,
-                                editable: false,
-                                layerType: LayerType.Track,
-                                zoomLv: {
-                                    min: zoomLv[0],
-                                    max: zoomLv[1],
-                                }
-                            };
-                            this.addLayer(layerDefine);
-                        })
-    
-                    } else if (kind.type === SourceKind.Item) {
-                        [LayerType.Point, LayerType.Topography].forEach(layerType => {
-                            const layerDefine: LayerDefine = {
-                                dataSourceId: ds.dataSourceId,
-                                editable: !ds.readonly,
-                                layerType: layerType as LayerType.Point| LayerType.Topography,
-                            };
-                            this.addLayer(layerDefine);
-                        })
-                    }
-    
-                })
-            })
+                if (ds.kind === DataSourceKindType.Track) {
+                    [[1, 8], [8, 13], [13, 21]].forEach(zoomLv => {
+                        const layerDefine: LayerDefine = {
+                            dataSourceId: ds.dataSourceId,
+                            editable: false,
+                            layerType: LayerType.Track,
+                            zoomLv: {
+                                min: zoomLv[0],
+                                max: zoomLv[1],
+                            }
+                        };
+                        this.addLayer(layerDefine);
+                    })
 
-        } else {
-            // 村マップ
-            dataSources.forEach(ds => {
-                ds.kinds.forEach(kind => {
-                    if (kind.type !== SourceKind.Item) {
-                        return;
-                    }
+                } else if (ds.kind === DataSourceKindType.Item || ds.kind === DataSourceKindType.ItemContent) {
                     [LayerType.Point, LayerType.Topography].forEach(layerType => {
                         const layerDefine: LayerDefine = {
                             dataSourceId: ds.dataSourceId,
@@ -177,6 +156,23 @@ class OlMapWrapper {
                         };
                         this.addLayer(layerDefine);
                     })
+                }
+
+            })
+
+        } else {
+            // 村マップ
+            dataSources.forEach(ds => {
+                if (ds.kind !== DataSourceKindType.Item && ds.kind !== DataSourceKindType.ItemContent) {
+                    return;
+                }
+                [LayerType.Point, LayerType.Topography].forEach(layerType => {
+                    const layerDefine: LayerDefine = {
+                        dataSourceId: ds.dataSourceId,
+                        editable: !ds.readonly,
+                        layerType: layerType as LayerType.Point| LayerType.Topography,
+                    };
+                    this.addLayer(layerDefine);
                 })
             });
         }

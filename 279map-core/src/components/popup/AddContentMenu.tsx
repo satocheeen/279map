@@ -6,10 +6,9 @@ import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
 import { useCommand } from '../../api/useCommand';
-import { Auth, DataId, DataSourceLinkableContent } from '../../279map-common';
+import { Auth, DataId, DataSourceKindType, DataSourceLinkableContent } from '../../279map-common';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
-import { SourceKind } from 'tsunagumap-api';
 import { getMapKey, isEqualId } from '../../store/data/dataUtility';
 
 type Props = {
@@ -17,15 +16,18 @@ type Props = {
         itemId: DataId;
     } | {
         contentId: DataId;
+        isSnsContent: boolean;
+        hasChildren: boolean;
     };
     onClick?: () => void;   // メニュー選択時のコールバック
 }
 let maxId = 0;
 export default function AddContentMenu(props: Props) {
     const id = useRef('add-content-menu-'+maxId++);
-    const { onAddNewContent, onLinkUnpointedContent: onNewContentByUnpointedContent } = useContext(OwnerContext);
+    const { onAddNewContent, onLinkUnpointedContent } = useContext(OwnerContext);
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
     const { getUnpointDataAPI, registContentAPI, linkContentToItemAPI, getSnsPreviewAPI } = useCommand();
+    const itemMap = useSelector((state: RootState) => state.data.itemMap);
 
     const dataSources = useSelector((state: RootState) => state.session.currentMapKindInfo?.dataSources ?? []);
     const targetsChildrenLength = useSelector((state: RootState) => {
@@ -62,40 +64,32 @@ export default function AddContentMenu(props: Props) {
             console.warn('想定外 target dataSource not find.', dataSourceId);
             return false;
         }
-        const targetDataSourceKind = dataSource.kinds.find(kind => {
-            if ('itemId' in props.target) {
-                return kind.type === SourceKind.Item;
-            } else {
-                return kind.type === SourceKind.Content;
-            }
-        });
-        if (!targetDataSourceKind) return false;
 
-        switch(targetDataSourceKind.linkableContent) {
-            case DataSourceLinkableContent.None:
-            case DataSourceLinkableContent.Pair:
-                return false;
-            case DataSourceLinkableContent.Multi:
-                return true;
-            case DataSourceLinkableContent.Single:
-                return targetsChildrenLength === 0;
+        if (dataSource.linkableContent === DataSourceLinkableContent.None) {
+            return false;
         }
+        if ('contentId' in props.target && props.target.isSnsContent) {
+            // SNS自動連携コンテンツは子コンテンツ追加不可
+            return false;
+        }
+        if (dataSource.linkableContent === DataSourceLinkableContent.Multi) {
+            return true;
+        }
+        // linkableContent.Singleの場合は、子コンテンツの数で判断
+        if ('itemId' in props.target) {
+            const item = itemMap[getMapKey(props.target.itemId)];
+            return item?.contents.length === 0;
+        } else {
+            return !props.target.hasChildren;
+        }
+
     }, [props.target, dataSources, targetsChildrenLength]);
 
     const creatableContentDataSources = useMemo((): LinkUnpointContentParam['dataSources'] => {
         return dataSources
                 .filter(ds => {
                     if (ds.readonly) return false;
-                    const hasContent = ds.kinds.some(kind => {
-                        return kind.type === SourceKind.Content;
-                    });
-                    if (!hasContent) return false;
-                    // Itemとペアのコンテンツは単体作成不可能
-                    const itemKind = ds.kinds.find(kind => kind.type === SourceKind.Item);
-                    if (itemKind?.linkableContent === DataSourceLinkableContent.Pair) {
-                        return false;
-                    }
-                    return true;
+                    return ds.kind === DataSourceKindType.Content || ds.kind === DataSourceKindType.ItemContent;
                 })
                 .map(ds => {
                     return {
@@ -104,6 +98,40 @@ export default function AddContentMenu(props: Props) {
                     }
                 });
     }, [dataSources]);
+    const linkableContentDataSources = useMemo((): LinkUnpointContentParam['dataSources'] => {
+        return dataSources
+                .filter(ds => {
+                    return ds.kind === DataSourceKindType.Content || ds.kind === DataSourceKindType.ItemContent;
+                })
+                .map(ds => {
+                    return {
+                        dataSourceId: ds.dataSourceId,
+                        name: ds.name,
+                    }
+                });
+    }, [dataSources]);
+    // const creatableContentDataSources = useMemo((): LinkUnpointContentParam['dataSources'] => {
+    //     return dataSources
+    //             .filter(ds => {
+    //                 if (ds.readonly) return false;
+    //                 const hasContent = ds.kinds.some(kind => {
+    //                     return kind.type === SourceKind.Content;
+    //                 });
+    //                 if (!hasContent) return false;
+    //                 // Itemとペアのコンテンツは単体作成不可能
+    //                 const itemKind = ds.kinds.find(kind => kind.type === SourceKind.Item);
+    //                 if (itemKind?.linkableContent === DataSourceLinkableContent.Pair) {
+    //                     return false;
+    //                 }
+    //                 return true;
+    //             })
+    //             .map(ds => {
+    //                 return {
+    //                     dataSourceId: ds.dataSourceId,
+    //                     name: ds.name,
+    //                 }
+    //             });
+    // }, [dataSources]);
 
     const onAddContent = useCallback((val: 'new' | 'unpoint') => {
         if (val === 'new') {
@@ -114,9 +142,9 @@ export default function AddContentMenu(props: Props) {
                 getSnsPreviewAPI,
             });
         } else {
-            onNewContentByUnpointedContent({
+            onLinkUnpointedContent({
                 parent: props.target,
-                dataSources: creatableContentDataSources,
+                dataSources: linkableContentDataSources,
                 getUnpointDataAPI,
                 linkContentToItemAPI,
             });
@@ -126,7 +154,7 @@ export default function AddContentMenu(props: Props) {
             props.onClick();
         }
 
-    }, [props, creatableContentDataSources, getSnsPreviewAPI, getUnpointDataAPI, linkContentToItemAPI, onAddNewContent, onNewContentByUnpointedContent, registContentAPI]);
+    }, [props, creatableContentDataSources, linkableContentDataSources, getSnsPreviewAPI, getUnpointDataAPI, linkContentToItemAPI, onAddNewContent, onLinkUnpointedContent, registContentAPI]);
 
     const caption = useMemo(() => {
         if ('itemId' in props.target) {
@@ -144,18 +172,21 @@ export default function AddContentMenu(props: Props) {
         if (!isContentAddableTarget || !editableAuthLv) {
             return items;
         }
+        console.log('creatableContentDataSources', creatableContentDataSources);
         if (creatableContentDataSources.length > 0) {
             items.push({
                 name: '新規コンテンツ',
                 callback: () => onAddContent('new'),
             });
         }
-        items.push({
-            name: '既存コンテンツ',
-            callback: () => onAddContent('unpoint'),
-        });
+        if (linkableContentDataSources.length > 0) {
+            items.push({
+                name: '既存コンテンツ',
+                callback: () => onAddContent('unpoint'),
+            });
+        }
         return items;
-    }, [editableAuthLv, onAddContent, creatableContentDataSources, isContentAddableTarget]);
+    }, [editableAuthLv, onAddContent, creatableContentDataSources, linkableContentDataSources, isContentAddableTarget]);
 
     const onClick = useCallback(() => {
         setShowSubMenu((state) => !state);
