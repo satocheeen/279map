@@ -79,7 +79,7 @@ export default function AddContentMenu(props: Props) {
         return dataSources
                 .filter(ds => {
                     if (!ds.editable) return false;
-                    return ds.kind === DataSourceKindType.Content || ds.kind === DataSourceKindType.ItemContent;
+                    return ds.kind === DataSourceKindType.Content;
                 })
                 .map(ds => {
                     return {
@@ -91,7 +91,7 @@ export default function AddContentMenu(props: Props) {
     const linkableContentDataSources = useMemo((): LinkUnpointContentParam['dataSources'] => {
         return dataSources
                 .filter(ds => {
-                    return ds.kind === DataSourceKindType.Content || ds.kind === DataSourceKindType.ItemContent;
+                    return ds.kind === DataSourceKindType.Content;
                 })
                 .map(ds => {
                     return {
@@ -100,28 +100,6 @@ export default function AddContentMenu(props: Props) {
                     }
                 });
     }, [dataSources]);
-    // const creatableContentDataSources = useMemo((): LinkUnpointContentParam['dataSources'] => {
-    //     return dataSources
-    //             .filter(ds => {
-    //                 if (ds.readonly) return false;
-    //                 const hasContent = ds.kinds.some(kind => {
-    //                     return kind.type === SourceKind.Content;
-    //                 });
-    //                 if (!hasContent) return false;
-    //                 // Itemとペアのコンテンツは単体作成不可能
-    //                 const itemKind = ds.kinds.find(kind => kind.type === SourceKind.Item);
-    //                 if (itemKind?.linkableContent === DataSourceLinkableContent.Pair) {
-    //                     return false;
-    //                 }
-    //                 return true;
-    //             })
-    //             .map(ds => {
-    //                 return {
-    //                     dataSourceId: ds.dataSourceId,
-    //                     name: ds.name,
-    //                 }
-    //             });
-    // }, [dataSources]);
 
     const onAddContent = useCallback((val: 'new' | 'unpoint') => {
         if (val === 'new') {
