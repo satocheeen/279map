@@ -17,10 +17,16 @@ export type MapPageInfoTable = {
 export interface DataSourceConnection {
     type: string;
 }
+// 各地図での仕様形式。realでItemContent、virtualでContentになるケースなどを想定して、地図種別ごとに設定するようにしている。
+export type DataSourceKind = {
+    real?: DataSourceKindType;
+    virtual?: DataSourceKindType;
+}
 export type DataSourceTable = {
     data_source_id: string;
     name: string;
-    kind: DataSourceKindType;
+    kind_real?: DataSourceKind;
+    kind_virtual?: DataSourceKind;
     linkable_content: DataSourceLinkableContent;
     readonly: boolean;
     connection: string | DataSourceConnection;  // 登録時はstring、取得時はDataSourceConnection
