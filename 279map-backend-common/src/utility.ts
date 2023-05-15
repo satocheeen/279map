@@ -2,8 +2,6 @@ import proj4 from 'proj4';
 import axios from 'axios';
 import sharp from 'sharp';
 import ExifReader from 'exifreader';
-import { MapKind } from './279map-common';
-import { DataSourceKind, DataSourceKindType } from './types/schema';
 
 export const sleep = (sec: number) => new Promise<void>((resolve) => {
     setTimeout(() => {

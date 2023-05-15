@@ -39,7 +39,6 @@ export enum DataSourceLinkableContent {
     None = 'None',      // コンテンツが紐づけられない場合
     Single = 'Single',  // 単一コンテンツの紐づけが可能な場合
     Multi = 'Multi',    // 複数コンテンツの紐づけが可能な場合
-    Pair = 'Pair',  // 単一コンテンツが常に紐づけられている場合（アイテムとコンテンツがセットで。コンテンツのみの削除ができないケース）
 }
 
 /**

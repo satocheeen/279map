@@ -15,30 +15,20 @@ export type MapPageInfoTable = {
     last_edited_time: string;
 }
 export enum DataSourceKindType {
-    VirtualItem = 'VirtualItem',
-    RealItem = 'RealItem',
-    Content = 'Content',
-    RealTrack = 'RealTrack'
+    Item = 'Item',                  // 位置情報のみ登録されたデータソース
+    Content = 'Content',            // コンテンツのみ登録されたデータソース
+    ItemContent = 'ItemContent',    // 1レコードに位置情報とコンテンツが登録されているデータソース
+    Track = 'Track'                 // 軌跡情報が登録されたデータソース
 }
-export type DataSourceKind = {
-    type: DataSourceKindType.VirtualItem | DataSourceKindType.RealItem;
-    linkable_content: DataSourceLinkableContent;
-} | {
-    type: DataSourceKindType.Content;
-    linkable_content: DataSourceLinkableContent.None | DataSourceLinkableContent.Single | DataSourceLinkableContent.Multi;
-} | {
-    type: DataSourceKindType.RealTrack;
-    linkable_content: DataSourceLinkableContent;
-}
-
 export interface DataSourceConnection {
     type: string;
 }
 export type DataSourceTable = {
     data_source_id: string;
-    readonly: boolean;
-    kinds: string | DataSourceKind[];   // 登録時はstring、取得時はDataSourceKind
     name: string;
+    kind: DataSourceKindType;
+    linkable_content: DataSourceLinkableContent;
+    readonly: boolean;
     connection: string | DataSourceConnection;  // 登録時はstring、取得時はDataSourceConnection
     last_edited_time: string;
 }

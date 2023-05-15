@@ -16,10 +16,11 @@ CREATE TABLE `map_page_info` (
 
 CREATE TABLE `data_source` (
   `data_source_id` varchar(100) NOT NULL,
-  `kinds` json NOT NULL,
   `name` varchar(100) NOT NULL,
-  `connection` json NOT NULL,
+  `kind` enum('Item','Content','ItemContent','Track') NOT NULL,
+  `linkable_content` enum('None','Single','Multi') NOT NULL,
   `readonly` tinyint(1) NOT NULL DEFAULT '0',
+  `connection` json NOT NULL,
   `last_edited_time` varchar(100) NOT NULL,
   PRIMARY KEY (`data_source_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
