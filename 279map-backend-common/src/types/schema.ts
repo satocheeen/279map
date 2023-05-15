@@ -1,4 +1,4 @@
-import { Auth, DataSourceLinkableContent, MapKind } from '../279map-common';
+import { Auth, DataSourceKindType, DataSourceLinkableContent, MapKind } from '../279map-common';
 import { SnsOptions } from '../sns';
 
 export enum PublicRange {
@@ -13,12 +13,6 @@ export type MapPageInfoTable = {
     default_map: MapKind;
     public_range: PublicRange;
     last_edited_time: string;
-}
-export enum DataSourceKindType {
-    Item = 'Item',                  // 位置情報のみ登録されたデータソース
-    Content = 'Content',            // コンテンツのみ登録されたデータソース
-    ItemContent = 'ItemContent',    // 1レコードに位置情報とコンテンツが登録されているデータソース
-    Track = 'Track'                 // 軌跡情報が登録されたデータソース
 }
 export interface DataSourceConnection {
     type: string;

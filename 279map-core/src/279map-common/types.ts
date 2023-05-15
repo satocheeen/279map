@@ -32,6 +32,15 @@ export enum MapKind {
 }
 
 /**
+ * データソース種別
+ */
+export enum DataSourceKindType {
+    Item = 'Item',                  // 位置情報のみ登録されたデータソース
+    Content = 'Content',            // コンテンツのみ登録されたデータソース
+    ItemContent = 'ItemContent',    // 1レコードに位置情報とコンテンツが登録されているデータソース
+    Track = 'Track'                 // 軌跡情報が登録されたデータソース
+}
+/**
  * データソースのコンテンツ紐づけ定義。
  * （アイテムやコンテンツの配下に紐づけるコンテンツに関する定義）
  */
