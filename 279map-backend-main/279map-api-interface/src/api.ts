@@ -49,8 +49,9 @@ export type GetMapInfoParam = {
 export type DataSourceInfo = {
     dataSourceId: string;
     name: string;
-    readonly: boolean;
     kind: DataSourceKindType;
+    editable: boolean;
+    deletable: boolean;
     linkableContent: DataSourceLinkableContent;
 }
 export type GetMapInfoResult = {

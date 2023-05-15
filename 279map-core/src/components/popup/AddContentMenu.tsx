@@ -30,16 +30,6 @@ export default function AddContentMenu(props: Props) {
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
 
     const dataSources = useSelector((state: RootState) => state.session.currentMapKindInfo?.dataSources ?? []);
-    const targetsChildrenLength = useSelector((state: RootState) => {
-        if ('itemId' in props.target) {
-            const item = state.data.itemMap[getMapKey(props.target.itemId)];
-            return item.contents.length;
-        } else {
-            const contentId = props.target.contentId;
-            const content = state.data.contentsList.find(content => isEqualId(content.id, contentId));
-            return content?.children?.length ??  0; 
-        }
-    })
 
     const editableAuthLv = useSelector((state: RootState) => {
         if (state.session.connectStatus.status !== 'connected') {
@@ -83,12 +73,12 @@ export default function AddContentMenu(props: Props) {
             return !props.target.hasChildren;
         }
 
-    }, [props.target, dataSources, targetsChildrenLength]);
+    }, [itemMap, props.target, dataSources]);
 
     const creatableContentDataSources = useMemo((): LinkUnpointContentParam['dataSources'] => {
         return dataSources
                 .filter(ds => {
-                    if (ds.readonly) return false;
+                    if (!ds.editable) return false;
                     return ds.kind === DataSourceKindType.Content || ds.kind === DataSourceKindType.ItemContent;
                 })
                 .map(ds => {

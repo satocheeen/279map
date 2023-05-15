@@ -1,6 +1,6 @@
 import { schema } from '279map-backend-common';
 import { ConnectionPool } from '.';
-import { MapKind } from '279map-backend-common';
+import { MapKind, DataSourceKindType } from '279map-backend-common';
 import { DataSourceInfo, GetMapInfoParam, GetMapInfoResult } from '../279map-api-interface/src';
 import mysql from 'mysql2/promise';
 
@@ -157,11 +157,24 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
         const [rows] = await con.execute(query);
 
         const dataSources = (rows as schema.DataSourceTable[]).reduce((acc, row) => {
+            const kind = mapKind === MapKind.Real ? row.kind_real : row.kind_virtual;
+            if (!kind) {
+                return acc;
+            }
+            let deletable = false;
+            if (kind === DataSourceKindType.Content) {
+                // readonly=FALSEのContentのみ完全削除可能
+                const anotherMapKind = mapKind === MapKind.Virtual ? row.kind_real : row.kind_virtual;
+                if ((anotherMapKind === DataSourceKindType.Content || !anotherMapKind) && !row.readonly) {
+                    deletable = true;
+                }
+            }
             acc.push({
                 dataSourceId: row.data_source_id,
                 name: row.name,
-                readonly: row.readonly,
-                kind: row.kind,
+                kind,
+                editable: !row.readonly,
+                deletable,
                 linkableContent: row.linkable_content,
             });
 

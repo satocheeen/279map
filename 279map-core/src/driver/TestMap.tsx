@@ -172,7 +172,7 @@ export default function TestMap() {
                             <label key={ds.dataSourceId}>
                                 <input type="checkbox" />
                                 {ds.name}
-                                {(!ds.readonly && authLv === Auth.Edit) &&
+                                {(ds.editable && authLv === Auth.Edit) &&
                                     <>
                                         <button onClick={()=>commandHook?.drawStructure(ds.dataSourceId)}>建設</button>
                                         {mapKind === MapKind.Real ?

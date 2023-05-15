@@ -216,38 +216,23 @@ export default function Content(props: Props) {
     const isEditable = useMemo(() => {
         if (!editableAuthLv) return false;
 
-        // データソースがreadonlyの場合は編集不可
-        if (contentDataSource?.readonly) return false;
-
         // SNSコンテンツは編集不可
         if (props.content.isSnsContent) return false;
-        return true;
+
+        return contentDataSource?.editable;
     }, [editableAuthLv, props.content, contentDataSource]);
 
-    // const parentDataSource = useSelector((state: RootState) => {
-    //     if (props.parentContentId) {
-    //         const dataSource = state.session.currentMapKindInfo?.dataSources.find(ds => {
-    //             return ds.dataSourceId === props.parentContentId?.dataSourceId;
-    //         });
-    //         return dataSource?.kinds.find(kind => kind.type === SourceKind.Content);
-
-    //     } else {
-    //         const dataSource = state.session.currentMapKindInfo?.dataSources.find(ds => {
-    //             return ds.dataSourceId === props.itemId.dataSourceId;
-    //         });
-    //         return dataSource?.kinds.find(kind => kind.type === SourceKind.Item);
-    //     }
-    // });
     const isDeletable = useMemo(() => {
-        if (!isEditable || !contentDataSource) return false;
-
         // 別の地図で使用されている場合は削除不可にする
         if (props.content.usingAnotherMap) return false;
 
-        // readonly=FALSEのContentのみ削除可能
-        return contentDataSource.kind === DataSourceKindType.Content && !contentDataSource.readonly;
+        // SNSコンテンツは編集不可
+        if (props.content.isSnsContent) return false;
 
-    }, [isEditable, props.content.usingAnotherMap, contentDataSource]);
+        if (!contentDataSource) return false;
+        return contentDataSource.deletable;
+
+    }, [props.content.usingAnotherMap, contentDataSource, props.content.isSnsContent]);
 
     const isUnlinkable = useMemo(() => {
         if (!editableAuthLv || !contentDataSource) return false;
@@ -255,27 +240,6 @@ export default function Content(props: Props) {
         return contentDataSource.kind === DataSourceKindType.Content;
 
     }, [contentDataSource, editableAuthLv])
-
-    // const addableChild = useMemo(() => {
-    //     // SNSコンテンツの場合は子コンテンツの追加不可
-    //     if (props.content.isSnsContent) return false;
-
-    //     if (!contentDataSource) {
-    //         console.warn('contentのデータソース見つからず（想定外）');
-    //         return false;
-    //     }
-    //     const contentKind = contentDataSource.kinds.find(kind => kind.type === SourceKind.Content);
-        
-    //     switch(contentKind?.linkableContent) {
-    //         case DataSourceLinkableContent.Multi:
-    //             return true;
-    //         case DataSourceLinkableContent.Single:
-    //             // 既に子がいるなら追加不可能
-    //             return (props.content.children?.length ?? 0) === 0;
-    //         default:
-    //             return false;
-    //     }
-    // }, [contentDataSource, props.content]);
 
     const onDelete = useCallback(async() => {
         const result = await confirm({
