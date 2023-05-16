@@ -1,8 +1,6 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import styles from './ItemContents.module.scss';
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from '../../store/configureStore';
-import { Auth, DataId, ItemContentInfo, ItemDefine } from '../../279map-common';
+import { DataId, ItemContentInfo, ItemDefine } from '../../279map-common';
 import { BsThreeDots } from 'react-icons/bs';
 import { useFilter } from '../../store/useFilter';
 import MyThumbnail from '../common/image/MyThumbnail';
@@ -18,14 +16,7 @@ type Props = {
  */
 export default function ItemContents(props: Props) {
 
-    const dispatch = useAppDispatch();
     const { filterTargetContentIds } = useFilter();
-    const editable = useSelector((state: RootState) => {
-        if (state.session.connectStatus.status !== 'connected') {
-            return false;
-        }
-        return state.session.connectStatus.connectedMap.authLv === Auth.Edit
-    });
 
     // 表示する画像URL
     const imageContentId = useMemo((): DataId | null => {
@@ -57,21 +48,15 @@ export default function ItemContents(props: Props) {
 
     }, [props.item, filterTargetContentIds]);
 
-    const onClick = useCallback(() => {
-        // if (!props.item.contents) return;
-        // dispatch(operationActions.setSelectItem([props.item.id]));
-
-    }, [props.item, dispatch]);
-
     if (imageContentId) {
         return (
-            <div className={styles.ImageContainer} onClick={onClick}>
+            <div className={styles.ImageContainer}>
                 <MyThumbnail className={styles.Image} id={imageContentId} alt="contents" />
             </div>
         )
     } else {
         return (
-            <div className={styles.ThreeDots} onClick={onClick}>
+            <div className={styles.ThreeDots}>
                 <BsThreeDots />
             </div>
         )
