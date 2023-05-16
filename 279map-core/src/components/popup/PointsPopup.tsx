@@ -3,13 +3,14 @@ import { useSelector } from "react-redux";
 import { RootState, useAppDispatch } from "../../store/configureStore";
 import styles from './PointsPopup.module.scss';
 import { useFilter } from "../../store/useFilter";
-import ItemContents from "./ItemContents";
 import { ContentsDefine, DataId, ItemContentInfo, ItemDefine } from "../../279map-common";
 import { operationActions } from "../../store/operation/operationSlice";
 import SelectContentDialog from "./select-content/SelectContentDialog";
 import { useContents } from "../../store/useContents";
 import { MapMode } from "../../types/types";
-import { getMapKey } from "../../store/data/dataUtility";
+import { getMapKey, isEqualId } from "../../store/data/dataUtility";
+import MyThumbnail from "../common/image/MyThumbnail";
+import { BsThreeDots } from 'react-icons/bs';
 
 type Props = {
     // このポップアップにて情報表示する対象アイテム
@@ -35,7 +36,7 @@ function hasImageItem(item: ItemDefine): boolean {
 }
 export default function PointsPopup(props: Props) {
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
-    const { isFiltered, filteredItemIdList } = useFilter();
+    const { isFiltered, filteredItemIdList, filterTargetContentIds } = useFilter();
     const { getDescendantContentsIdList } = useContents();
 
     /**
@@ -70,6 +71,38 @@ export default function PointsPopup(props: Props) {
         return ownImageInfos[0];
     }, [props.itemIds, itemMap, filteredItemIdList, isFiltered]);
 
+    // 表示する画像URL
+    const imageContentId = useMemo((): DataId | null => {
+        if (!target) return null;
+
+        const getImageOwnerContentId = (content: ItemContentInfo) : DataId | undefined => {
+            if ((filterTargetContentIds === undefined || filterTargetContentIds?.some(filteredId => isEqualId(filteredId, content.id))) && content.hasImage) {
+                return content.id;
+            }
+            let id: DataId | undefined;
+            content.children?.some(child => {
+                id = getImageOwnerContentId(child);
+                return id ? true : false;
+            });
+            return id;
+        }
+        if (target.contents.length === 0) {
+            return null;
+        }
+        let imageContentId: DataId | undefined ;
+        for (const content of target.contents) {
+            imageContentId = getImageOwnerContentId(content);
+            if (imageContentId) {
+                break;
+            }
+        }
+        if (!imageContentId) {
+            return null;
+        }
+        return imageContentId;
+
+    }, [target, filterTargetContentIds]);
+
     // このアイテムの中に含まれるコンテンツの総数
     const contentsNum = useMemo(() => {
         return props.itemIds.reduce((acc, cur) => {
@@ -77,11 +110,6 @@ export default function PointsPopup(props: Props) {
             return acc + descendants.length;
         }, 0);
     }, [props.itemIds, getDescendantContentsIdList]);
-
-    const hasImage = useMemo(() => {
-        if (!target) return false;
-        return hasImageItem(target);
-    }, [target]);
 
     const dispatch = useAppDispatch();
     const [showSelectDialog, setShowSelectDialog] = useState(false);
@@ -108,9 +136,17 @@ export default function PointsPopup(props: Props) {
     }
     return (
         <>
-            <div className={`${styles.Popup} ${hasImage ? '' : styles.Minimum}`} onClick={onClick}>
+            <div className={`${styles.Popup} ${imageContentId ? '' : styles.Minimum}`} onClick={onClick}>
                 <div className={styles.Contents}>
-                    <ItemContents key={getMapKey(target.id)} item={target} />
+                    {imageContentId ?
+                        <div className={styles.ImageContainer}>
+                            <MyThumbnail className={styles.Image} id={imageContentId} alt="contents" />
+                        </div>
+                        :
+                        <div className={styles.ThreeDots}>
+                            <BsThreeDots />
+                        </div>
+                    }
                 </div>
                 {props.itemIds.length > 1 &&
                     <div className={styles.Number}>{contentsNum}</div>
