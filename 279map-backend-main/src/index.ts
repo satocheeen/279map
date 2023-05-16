@@ -229,67 +229,84 @@ app.get('/api/' + GetMapListAPI.uri,
 /**
  * 接続確立
  */
-app.get('/api/connect', async(req, res) => {
-    apiLogger.info('[start] connect');
-
-    try {
-        const queryMapId = req.query.mapId;
-        if (!queryMapId || typeof queryMapId !== 'string') {
-            res.status(400).send({
-                type: ErrorType.UndefinedMap,
-                detail: 'not set mapId',
+app.get('/api/connect', 
+    checkJwt,
+    (err: Error, req: Request, res: Response, next: NextFunction) => {
+        if (authMethod === 'Auth0' && !req.headers.authorization) {
+            // Auth0でauthorizationを持っていない場合は、public地図については参照可能なので、そのまま通す。
+            next();
+        } else {
+            apiLogger.warn('connect error', err);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail: err + '',
             } as ApiError);
-            return;
         }
-        const mapInfo = await getMapInfoByIdOrAlias(queryMapId);
-        if (mapInfo === null) {
-            res.status(400).send({
-                type: ErrorType.UndefinedMap,
-                detail: 'mapId is not found : ' + queryMapId,
-            } as ApiError);
-            return;
-        }
+    },
+);
+app.get('/api/connect', 
+    async(req, res) => {
+        apiLogger.info('[start] connect');
 
-        const userAccessInfo = await getUserAuthInfoInTheMap(mapInfo, req);
-        if (userAccessInfo.authLv === Auth.None) {
-            // 権限なしエラーを返却
-            res.status(403).send({
-                type: ErrorType.Unauthorized,
-            } as ApiError);
-            return;
-        }
+        try {
+            const queryMapId = req.query.mapId;
+            if (!queryMapId || typeof queryMapId !== 'string') {
+                res.status(400).send({
+                    type: ErrorType.UndefinedMap,
+                    detail: 'not set mapId',
+                } as ApiError);
+                return;
+            }
+            const mapInfo = await getMapInfoByIdOrAlias(queryMapId);
+            if (mapInfo === null) {
+                res.status(400).send({
+                    type: ErrorType.UndefinedMap,
+                    detail: 'mapId is not found : ' + queryMapId,
+                } as ApiError);
+                return;
+            }
 
-        const session = broadCaster.createSession({
-            mapId: mapInfo.map_page_id,
-            mapKind: mapInfo.default_map,
-        });
-    
-        const result: ConnectResult = {
-            mapDefine: {
+            const userAccessInfo = await getUserAuthInfoInTheMap(mapInfo, req);
+            if (userAccessInfo.authLv === Auth.None) {
+                // 権限なしエラーを返却
+                res.status(403).send({
+                    type: ErrorType.Unauthorized,
+                } as ApiError);
+                return;
+            }
+
+            const session = broadCaster.createSession({
                 mapId: mapInfo.map_page_id,
-                name: mapInfo.title,
-                useMaps: mapInfo.use_maps.split(',').map(mapKindStr => {
-                    return mapKindStr as MapKind;
-                }),
-                defaultMapKind: mapInfo.default_map,
-                authLv: userAccessInfo.authLv,
-                userName: userAccessInfo.userName || '',
-            },
-            sid: session.sid,
+                mapKind: mapInfo.default_map,
+            });
+        
+            const result: ConnectResult = {
+                mapDefine: {
+                    mapId: mapInfo.map_page_id,
+                    name: mapInfo.title,
+                    useMaps: mapInfo.use_maps.split(',').map(mapKindStr => {
+                        return mapKindStr as MapKind;
+                    }),
+                    defaultMapKind: mapInfo.default_map,
+                    authLv: userAccessInfo.authLv,
+                    userName: userAccessInfo.userName || '',
+                },
+                sid: session.sid,
+            }
+
+            res.send(result);
+            apiLogger.info('[end] connect', session.sid);
+        
+        } catch(e) {
+            apiLogger.warn('connect error', e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail: e + '',
+            } as ApiError);
+
         }
-
-        res.send(result);
-        apiLogger.info('[end] connect', session.sid);
-    
-    } catch(e) {
-        apiLogger.warn('connect error', e);
-        res.status(500).send({
-            type: ErrorType.IllegalError,
-            detail: e + '',
-        } as ApiError);
-
     }
-});
+);
 
 /**
  * セッション情報を取得してrequestに格納
