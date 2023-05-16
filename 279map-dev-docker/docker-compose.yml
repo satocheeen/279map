@@ -40,18 +40,18 @@ services:
   #       - 3000:80
   #   volumes:
   #       - ./log:/var/log/www
-  # main:
-  #   image: satocheeen/279map-backend-main:0.50.0
-  #   depends_on:
-  #     - db
-  #   env_file:
-  #     - ./.env
-  #   ports: 
-  #       - 443:443
-  #       - 8083:8083
-  #   volumes:
-  #       - ./log:/var/log/www
-  #       - ./etc:/usr/local/share
-  #       - 279map-dev-session-volume:/var/session
+  main:
+    image: satocheeen/279map-backend-main:0.52.0
+    depends_on:
+      - db
+    env_file:
+      - ./.env
+    ports: 
+        - 443:443
+        - 8083:8083
+    volumes:
+        - ./log:/var/log/www
+        - ./etc:/usr/local/share
+        - 279map-dev-session-volume:/var/session
 volumes:
   279map-dev-session-volume:
