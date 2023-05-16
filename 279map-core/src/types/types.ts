@@ -8,6 +8,7 @@ type ConnectSuccessResult = {
     result: 'success';
     connectResult: ConnectResult;
 }
+export { DataSourceInfo } from "tsunagumap-api";
 export type OnMapLoadParam = {
     mapKind: MapKind;
     dataSources: DataSourceInfo[];
