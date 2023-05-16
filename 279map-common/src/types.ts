@@ -191,3 +191,11 @@ export type SnsPreviewPost = {
     };
     date?: string;
 }
+
+export type FilterDefine = {
+    type: 'category';
+    category: string;
+} | {
+    type: 'calendar';
+    date: string;   // Date.toLocaleDateString()
+}
