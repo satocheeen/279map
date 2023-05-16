@@ -41,7 +41,7 @@ services:
   #   volumes:
   #       - ./log:/var/log/www
   main:
-    image: satocheeen/279map-backend-main:0.52.0
+    image: satocheeen/279map-backend-main:0.52.2
     depends_on:
       - db
     env_file:
@@ -51,7 +51,6 @@ services:
         - 8083:8083
     volumes:
         - ./log:/var/log/www
-        - ./etc:/usr/local/share
         - 279map-dev-session-volume:/var/session
 volumes:
   279map-dev-session-volume:
