@@ -111,7 +111,7 @@ export async function isReadonlyDataSource(data_source_id: string): Promise<bool
             return false;
         }
         const record = (rows as schema.DataSourceTable[])[0];
-        return !record.readonly;
+        return record.readonly;
 
     } catch(e) {
         throw new Error('isReadonlyDataSource error: ' + e);
