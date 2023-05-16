@@ -4,7 +4,10 @@ import { RootState } from "./configureStore";
 import dayjs from 'dayjs';
 import { useCategory } from "./useCategory";
 import { DataId, ItemContentInfo, ItemDefine } from "../279map-common";
-import { FilterDefine } from "../entry";
+import { useWatch } from "../util/useWatch";
+import { SearchAPI, SearchParam } from "tsunagumap-api";
+import { getAPICallerInstance } from "../api/ApiCaller";
+import { FilterDefine } from "279map-common";
 
 type FilterStatus = {
     status: 'Normal' | 'UnFiltered';
@@ -51,6 +54,20 @@ export function useFilter() {
     const { categoryMap } = useCategory();
 
     /**
+     * フィルタ条件が変更された場合
+     */
+    useWatch(() => {
+        if (filter.length > 0) {
+            const param: SearchParam = {
+                conditions: filter,
+            };
+            getAPICallerInstance().callApi(SearchAPI, param).then(res => {
+                console.log('search', res);
+            })
+        }
+    }, [filter]);
+
+    /**
      * 指定のtypeのフィルタがかかっていたら返す
      */
     const getTheFilter = useCallback((type: FilterDefine['type']) => {
@@ -84,7 +101,7 @@ export function useFilter() {
         // -- 2. フィルタ条件に該当しないものを外していく
         filter.forEach(filterDef => {
             if (filterDef.type === 'category') {
-                const categoryInfo = categoryMap.get(filterDef.categoryName);
+                const categoryInfo = categoryMap.get(filterDef.category);
                 contentsIdList = contentsIdList.filter(contentId => {
                     return categoryInfo?.content_ids.some(id => id.id === contentId.id && id.dataSourceId === contentId.dataSourceId);
                 });

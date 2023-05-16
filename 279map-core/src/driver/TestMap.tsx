@@ -58,7 +58,7 @@ export default function TestMap() {
         return [
             {
                 type: 'category',
-                categoryName: filteredCategory,
+                category: filteredCategory,
             }
         ];
 

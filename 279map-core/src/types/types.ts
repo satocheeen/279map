@@ -3,6 +3,7 @@ import { CSSProperties } from "react";
 import { CategoryDefine, EventDefine, MapKind } from '../279map-common';
 import { CommandHookType } from '../api/useCommand';
 import { ApiError, ConnectResult, ErrorType, GetMapInfoResult, LinkContentToItemParam, RegistContentParam, GetSnsPreviewResult, UpdateContentParam } from "tsunagumap-api";
+import { FilterDefine } from "279map-common";
 
 type ConnectSuccessResult = {
     result: 'success';
@@ -168,12 +169,4 @@ export type LinkUnpointContentParam = {
     getUnpointDataAPI: (dataSourceId: string, nextToken?: string) => Promise<{contents: UnpointContent[]; nextToken: string | undefined}>;
     // コンテンツ紐づけAPI
     linkContentToItemAPI: (param: LinkContentToItemParam) => Promise<void>;
-}
-
-export type FilterDefine = {
-    type: 'category';
-    categoryName: string;
-} | {
-    type: 'calendar';
-    date: string;   // Date.toLocaleDateString()
 }

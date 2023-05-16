@@ -25,9 +25,10 @@ import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI
 import { auth } from 'express-oauth2-jwt-bearer';
 import { getMapUser, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI } from '../279map-api-interface/src/api';
+import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
+import { search } from './api/search';
 
 declare global {
     namespace Express {
@@ -997,6 +998,31 @@ app.post(`/api/${GetSnsPreviewAPI.uri}`,
     
             res.send(result);
     
+            next();
+        } catch(e) {
+            apiLogger.warn(e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
+        }
+    }
+);
+
+/**
+ * search items and contents
+ * 検索
+ */
+app.post(`/api/${SearchAPI.uri}`,
+    checkApiAuthLv(Auth.View), 
+    checkCurrentMap,
+    async(req, res, next) => {
+        try {
+            const param = req.body as SearchParam;
+            console.log('search debug', param);
+            const result = await search(req.currentMap, param);
+            res.send(result);
+
             next();
         } catch(e) {
             apiLogger.warn(e);

@@ -1,6 +1,7 @@
 import { CategoryDefine, ContentsDefine, DataId, DataSourceKindType, DataSourceLinkableContent, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, ServerConfig, UnpointContent } from "279map-backend-common";
 import { GeoJsonObject } from "geojson";
 import { APIDefine, ContentAttr, SnsPreviewPost, MapDefine } from '279map-backend-common';
+import { FilterDefine } from "279map-common";
 
 /**
  * get common config
@@ -258,6 +259,23 @@ export type LinkContentToItemParam = {
     } | {
         contentId: DataId;
     }
+}
+
+/**
+ * search items and contents
+ */
+export const SearchAPI = {
+    uri: 'search',
+    method: 'post',
+    resultType: 'json',
+} as APIDefine<SearchParam, SearchResult>;
+
+export type SearchParam = {
+    conditions: FilterDefine[];
+}
+
+export type SearchResult = {
+    contents: DataId[]; // 検索条件に合致するコンテンツID一覧
 }
 
 export const GetThumbAPI = {

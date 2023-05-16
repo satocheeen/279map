@@ -1,0 +1,70 @@
+import { CurrentMap, schema, DataId } from "279map-backend-common";
+import { SearchParam, SearchResult } from "../../279map-api-interface/src";
+import { ConnectionPool } from "..";
+import { PoolConnection } from "mysql2/promise";
+
+export async function search(currentMap: CurrentMap, param: SearchParam): Promise<SearchResult> {
+    // 将来、ANDやOR検索になる可能性があるので、この階層でトランザクション管理している
+    const con = await ConnectionPool.getConnection();
+
+    try {
+        await con.beginTransaction();
+
+        let hitList: DataId[] = [];
+        let firstFlag = true;
+        for (const condition of param.conditions) {
+            let searchResult: DataId[];
+            if (condition.type === 'category') {
+                searchResult = await searchByCategory(con, currentMap, condition.category);
+
+            } else {
+                searchResult = [];
+            }
+            if (firstFlag) {
+                firstFlag = false;
+                continue;
+            }
+            // ANDで絞る
+            hitList = filterArrayByAND(hitList, searchResult, (a, b) => a.id === b.id && a.dataSourceId === b.dataSourceId);
+        }
+        return {
+            contents: hitList,
+        }
+    
+    } finally {
+        await con.commit();
+        con.release();
+    }
+}
+
+function filterArrayByAND<T>(arr1: T[], arr2: T[], isEqual: (a: T, b: T) => boolean) {
+    return arr1.filter(obj1 => arr2.some(obj2 => isEqual(obj1, obj2)));
+}
+
+/**
+ * 指定のカテゴリを持つコンテンツを返す
+ * @param con 
+ * @param category 
+ */
+async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, category: string): Promise<DataId[]> {
+
+    const sql = `
+    select c.* from contents c
+    where exists (
+        select icl.* from item_content_link icl 
+        inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id 
+        inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
+        where icl.content_page_id = c.content_page_id and icl.content_datasource_id  = c.data_source_id
+        and mdl.map_page_id = ? and i.map_kind = ?
+        and JSON_CONTAINS(c.category, ?) > 0
+    )
+    `;
+    const categoryParam = `["${category}"]`;
+    const [rows] = await con.execute(sql, [currentMap.mapId, currentMap.mapKind, categoryParam]);
+    return (rows as schema.ContentsTable[]).map((row): DataId => {
+        return {
+            dataSourceId: row.data_source_id,
+            id: row.content_page_id,
+        };
+    });
+}
