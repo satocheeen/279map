@@ -1,17 +1,24 @@
-import { ContentAttr, DataId, GeoProperties, IconDefine, MapDefine, UnpointContent } from "../279map-common";
+import { ContentAttr, DataId, DataSourceKindType, DataSourceLinkableContent, GeoProperties, IconDefine, MapDefine, UnpointContent } from "../279map-common";
 import { CSSProperties } from "react";
 import { CategoryDefine, EventDefine, MapKind } from '../279map-common';
 import { CommandHookType } from '../api/useCommand';
-import { DataSourceInfo, ApiError, ConnectResult, ErrorType, GetMapInfoResult, LinkContentToItemParam, RegistContentParam, GetSnsPreviewResult, UpdateContentParam } from "tsunagumap-api";
+import { ApiError, ConnectResult, ErrorType, GetMapInfoResult, LinkContentToItemParam, RegistContentParam, GetSnsPreviewResult, UpdateContentParam } from "tsunagumap-api";
 
 type ConnectSuccessResult = {
     result: 'success';
     connectResult: ConnectResult;
 }
-export { DataSourceInfo } from "tsunagumap-api";
+export type DataSource = {
+    dataSourceId: string;
+    name: string;
+    kind: DataSourceKindType;
+    editable: boolean;
+    deletable: boolean;
+    linkableContent: DataSourceLinkableContent;
+}
 export type OnMapLoadParam = {
     mapKind: MapKind;
-    dataSources: DataSourceInfo[];
+    dataSources: DataSource[];
 }
 export type ApiAccessError = {
     type: ErrorType | 'UndefinedMapServer';

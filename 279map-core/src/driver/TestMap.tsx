@@ -2,9 +2,8 @@ import { Auth, CategoryDefine, DataId, DataSourceKindType, FeatureType, MapKind 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { CommandHookType } from '../api/useCommand';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
-import { FilterDefine, OnConnectParam, OnMapLoadParam, TsunaguMapProps } from '../entry';
+import { DataSource, FilterDefine, OnConnectParam, OnMapLoadParam, TsunaguMapProps } from '../entry';
 import styles from './TestMap.module.scss';
-import { DataSourceInfo } from 'tsunagumap-api';
 
 /**
  * for Development
@@ -75,7 +74,7 @@ export default function TestMap() {
 
     const [ disabledContentDialog, setDisableContentDialog ] = useState(false);
 
-    const [ dataSources, setDataSources] = useState<DataSourceInfo[]>([]);
+    const [ dataSources, setDataSources] = useState<DataSource[]>([]);
 
     const featureDataSources = useMemo(() => {
         return dataSources.filter(ds => {
