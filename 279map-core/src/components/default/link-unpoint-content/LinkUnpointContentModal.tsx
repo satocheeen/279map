@@ -26,7 +26,6 @@ export default function LinkUnpointContentModal(props: Props) {
     const [ errorMessage, setErrorMessage ] = useState<string|undefined>();
 
     const dataSourceItems = useMemo(() => {
-        console.log('debug', props.param.dataSources);
         return props.param.dataSources.map(ds => {
             return {
                 value: ds.dataSourceId,

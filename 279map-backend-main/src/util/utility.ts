@@ -136,7 +136,6 @@ export async function getAncestorItemId(con: PoolConnection | undefined, content
         inner join map_datasource_link mdl on mdl.data_source_id = icl.item_datasource_id 
         where mdl.map_page_id = ? and i.map_kind = ? and icl.content_page_id = ? and icl.content_datasource_id = ?
         `;
-        console.log('debug', currentMap.mapId, currentMap.mapKind, contentId.id, contentId.dataSourceId);
         const [rows] = await myCon.execute(sql, [currentMap.mapId, currentMap.mapKind, contentId.id, contentId.dataSourceId]);
         if ((rows as schema.ItemsTable[]).length > 0) {
             const record = (rows as schema.ItemsTable[])[0];

@@ -1,6 +1,6 @@
-import React, { useRef, useState, useCallback, useContext, useMemo } from 'react';
+import React, { useRef, useState, useCallback, useContext, useMemo, useEffect } from 'react';
 import { MdOutlineLibraryAdd } from 'react-icons/md';
-import { LinkUnpointContentParam, NewContentInfoParam } from '../../types/types';
+import { LinkUnpointContentParam } from '../../types/types';
 import Tooltip from '../common/tooltip/Tooltip';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
@@ -9,7 +9,7 @@ import { useCommand } from '../../api/useCommand';
 import { Auth, DataId, DataSourceKindType, DataSourceLinkableContent } from '../../279map-common';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
-import { getMapKey, isEqualId } from '../../store/data/dataUtility';
+import { getMapKey } from '../../store/data/dataUtility';
 
 type Props = {
     target: {
@@ -101,7 +101,25 @@ export default function AddContentMenu(props: Props) {
                 });
     }, [dataSources]);
 
+    /**
+     * ツールチップメニュー表示時にエリア外クリックすると、ツールチップメニューを非表示にする
+     */
+    useEffect(() => {
+        const func = () => {
+            if (isShowSubMenu) {
+                setShowSubMenu(false);
+            }
+        }
+        if (isShowSubMenu) {
+            window.document.addEventListener('click', func);
+        }
+        return () => {
+            window.document.removeEventListener('click', func);
+        }
+    }, [isShowSubMenu]);
+
     const onAddContent = useCallback((val: 'new' | 'unpoint') => {
+        setShowSubMenu(false);
         if (val === 'new') {
             onAddNewContent({
                 parent: props.target,
@@ -160,10 +178,6 @@ export default function AddContentMenu(props: Props) {
         setShowSubMenu((state) => !state);
     }, []);
 
-    const onSubMenuHide = useCallback(() => {
-        setShowSubMenu(false); 
-    }, []);
-
     if (subMenuItems.length === 0) {
         return null;
     } else if (subMenuItems.length === 1) {
@@ -179,7 +193,7 @@ export default function AddContentMenu(props: Props) {
                     <MdOutlineLibraryAdd />
                 </PopupMenuIcon>
                 <Tooltip anchorId={id.current} place='right' isOpen={isShowSubMenu}
-                    onHide={onSubMenuHide} name="addContents">
+                    onHide={() => {setShowSubMenu(false)}} name="addContents">
                     <ul className={styles.SubMenu}>
                         { subMenuItems.map((item, index) => {
                             return (
