@@ -11,7 +11,6 @@ import { operationActions } from "../../store/operation/operationSlice";
 import LandNameOverlay from "../map/LandNameOverlay";
 import { useFilter } from "../../store/useFilter";
 import { loadItems } from "../../store/data/dataThunk";
-import { openItemContentsPopup } from "../popup/popupThunk";
 import { DataId, FeatureType, MapKind } from "../../279map-common";
 import { MapMode } from "../../types/types";
 import useFilteredTopographyStyle from "../map/useFilteredTopographyStyle";

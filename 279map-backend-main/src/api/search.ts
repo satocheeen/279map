@@ -22,6 +22,7 @@ export async function search(currentMap: CurrentMap, param: SearchParam): Promis
             }
             if (firstFlag) {
                 firstFlag = false;
+                hitList = searchResult;
                 continue;
             }
             // ANDで絞る

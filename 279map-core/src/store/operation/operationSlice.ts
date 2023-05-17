@@ -3,8 +3,8 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Extent } from "ol/extent";
 import { ConfirmParam, ConfirmResult } from "../../components/common/confirm/useConfirm";
 import { MapMode } from "../../types/types";
-import { FilterDefine } from "279map-common";
 import { loadMapDefine } from "../session/sessionThunk";
+import { search } from "./operationThunk";
 
 type ViewInfo = {
     extent: Extent;
@@ -40,10 +40,9 @@ const operationSlice = createSlice({
         // 選択中アイテムID
         selectedItemIds: [] as DataId[],
 
-        // // ポップアップを開いて表示する対象一覧
-        // popupTargets: [] as PopupTarget[],
+        // フィルタ
+        filteredContents: null as DataId[] | null,   // フィルタ条件に該当するコンテンツ。フィルタ未指定の場合は、null。
 
-        filter: [] as FilterDefine[],
         mapMode: MapMode.Normal,
 
         mapView: {
@@ -79,17 +78,8 @@ const operationSlice = createSlice({
             }
             state.selectedItemIds = [];
         },
-        // setPopup(state, action: PayloadAction<PopupTarget[]>) {
-        //     state.popupTargets = action.payload;
-        // },
-        // clearPopup(state) {
-        //     state.popupTargets = [];
-        // },
-        setFilter(state, action: PayloadAction<FilterDefine[]>) {
-            state.filter = action.payload;
-        },
         clearFilter(state) {
-            state.filter = [];
+            state.filteredContents = null;
         },
         updateMapView(state, action: PayloadAction<ViewInfo>) {
             state.mapView = action.payload;
@@ -124,8 +114,10 @@ const operationSlice = createSlice({
     extraReducers: (builder) => {
         builder
         .addCase(loadMapDefine.fulfilled, (state, action) => {
-            state.filter = [];
-            // state.popupTargets = [];
+            state.filteredContents = null;
+        })
+        .addCase(search.fulfilled, (state, action) => {
+            state.filteredContents = action.payload.contents;
         })
     }
 })

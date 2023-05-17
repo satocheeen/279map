@@ -10,7 +10,7 @@ import { getMapKey } from './data/dataUtility';
  */
 export function useContents() {
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
-    const { filterTargetContentIds } = useFilter();
+    const { filteredContents } = useFilter();
 
     /**
      * @params itemId {string} the item ID getting descendants' contents
@@ -24,7 +24,7 @@ export function useContents() {
         const getDecendant = (content: ItemContentInfo) => {
             const descendantList = [] as DataId[];
             content.children.forEach(child => {
-                const isPush = (filtering && filterTargetContentIds) ? filterTargetContentIds?.includes(child.id) : true;
+                const isPush = (filtering && filteredContents) ? filteredContents?.includes(child.id) : true;
                 if (isPush) {
                     descendantList.push(child.id);
                 }
@@ -39,13 +39,13 @@ export function useContents() {
             return acc.concat(decendants);
         }, [] as DataId[]);
 
-        const isPush = (filtering && filterTargetContentIds) ? filterTargetContentIds?.some((contentId)=> item.contents.some(c => c.id === contentId)) : true;
+        const isPush = (filtering && filteredContents) ? filteredContents?.some((contentId)=> item.contents.some(c => c.id === contentId)) : true;
         const idList = isPush ? item.contents.map(c => c.id) : [];
         Array.prototype.push.apply(idList, descendants);
 
         return idList;
 
-    }, [itemMap, filterTargetContentIds]);
+    }, [itemMap, filteredContents]);
 
     return {
         getDescendantContentsIdList,

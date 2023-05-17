@@ -1,13 +1,8 @@
 import { useCallback, useMemo } from "react";
 import { useSelector, shallowEqual } from "react-redux";
 import { RootState } from "./configureStore";
-import dayjs from 'dayjs';
-import { useCategory } from "./useCategory";
-import { DataId, ItemContentInfo, ItemDefine } from "../279map-common";
-import { useWatch } from "../util/useWatch";
-import { SearchAPI, SearchParam } from "tsunagumap-api";
-import { getAPICallerInstance } from "../api/ApiCaller";
-import { FilterDefine } from "279map-common";
+import { ItemContentInfo, ItemDefine } from "../279map-common";
+import { isEqualId } from "./data/dataUtility";
 
 type FilterStatus = {
     status: 'Normal' | 'UnFiltered';
@@ -43,87 +38,27 @@ function getDescendantContents(item: ItemDefine): ItemContentInfo[] {
  * フィルタ状態を判断するフック
  */
 export function useFilter() {
-    const { filter, itemMap, events } = useSelector((state: RootState) => {
+    const { filteredContents, itemMap } = useSelector((state: RootState) => {
         return {
-            filter: state.operation.filter,
+            filteredContents: state.operation.filteredContents,
             itemMap: state.data.itemMap,
-            events: state.data.events,
         }
     }, shallowEqual);
-
-    const { categoryMap } = useCategory();
-
-    /**
-     * フィルタ条件が変更された場合
-     */
-    useWatch(() => {
-        if (filter.length > 0) {
-            const param: SearchParam = {
-                conditions: filter,
-            };
-            getAPICallerInstance().callApi(SearchAPI, param).then(res => {
-                console.log('search', res);
-            })
-        }
-    }, [filter]);
-
-    /**
-     * 指定のtypeのフィルタがかかっていたら返す
-     */
-    const getTheFilter = useCallback((type: FilterDefine['type']) => {
-        return filter.filter(f => f.type === type);
-    }, [filter]);
 
     /**
      * フィルタがかかっている状態か
      */
     const isFiltered = useMemo(() => {
-        return filter.length > 0;
-    }, [filter]);
+        return filteredContents !== null;
+    }, [filteredContents]);
 
-
-    /**
-     * フィルタが掛かっている場合に、フィルタ条件を満たすコンテンツID一覧を返す.
-     * フィルタが掛かっていない場合は、undefinedを返す。
-     */
-    const filterTargetContentIds = useMemo((): DataId[] | undefined => {
-        if (filter.length === 0) {
-            return undefined;
-        }
-        // フィルタはAND条件
-        // -- 1. 全コンテンツIdをセット
-        let contentsIdList = [] as DataId[];
-        Object.values(itemMap).forEach(item => {
-            getDescendantContents(item).forEach(c => {
-                contentsIdList.push(c.id);
-            })
-        });
-        // -- 2. フィルタ条件に該当しないものを外していく
-        filter.forEach(filterDef => {
-            if (filterDef.type === 'category') {
-                const categoryInfo = categoryMap.get(filterDef.category);
-                contentsIdList = contentsIdList.filter(contentId => {
-                    return categoryInfo?.content_ids.some(id => id.id === contentId.id && id.dataSourceId === contentId.dataSourceId);
-                });
-            } else if (filterDef.type === 'calendar') {
-                const date = filterDef.date;
-                // 指定日付のイベントに紐づくコンテンツID一覧取得
-                const targetEventContentIds = events.filter(evt => {
-                    return dayjs(evt.date).format('YYYYMMDD') === dayjs(date).format('YYYYMMDD');
-                })
-                .map(evt => evt.content_id);
-                contentsIdList = contentsIdList.filter(contentId => targetEventContentIds.some(target => target.id === contentId.id && target.dataSourceId === contentId.dataSourceId));
-            }
-        });
-        return contentsIdList;
-    }, [filter, itemMap, events, categoryMap]);
 
     /**
      * 指定のアイテムのフィルタ状態を返す
      * @return フィルタ設定されていない場合、Normal。フィルタ対象の場合、Filtered。フィルタ対象外の場合、UnFiltered。
      */
     const getFilterStatus = useCallback((itemId: string): FilterStatus => {
-        if (filter.length === 0) {
+        if (!filteredContents) {
             return {
                 status: 'Normal'
             };
@@ -142,7 +77,7 @@ export function useFilter() {
         }
         const targetContentIds = getDescendantContents(target).map(c => c.id);
         const filtered = targetContentIds.some(targetContentId => {
-            return filterTargetContentIds?.includes(targetContentId);
+            return filteredContents.some(fc => isEqualId(fc, targetContentId));
         });
         if (filtered) {
             return {
@@ -154,14 +89,14 @@ export function useFilter() {
             };
         }
 
-    }, [filter, itemMap, filterTargetContentIds]);
+    }, [filteredContents, itemMap]);
 
     /**
      * フィルタのかかっているアイテムidを返す。
      * フィルタ設定されていない場合は、undefined.
      */
     const filteredItemIdList = useMemo(() => {
-        if (filterTargetContentIds === undefined) {
+        if (!filteredContents) {
             return undefined;
         }
         return Object.values(itemMap).filter(item => {
@@ -169,7 +104,7 @@ export function useFilter() {
                 return false;
             }
             const check = (content: ItemContentInfo): boolean => {
-                if (filterTargetContentIds.includes(content.id)) {
+                if (filteredContents.some(fc => isEqualId(fc, content.id))) {
                     return true;
                 }
                 if (content.children.length === 0) {
@@ -182,13 +117,12 @@ export function useFilter() {
             return item.contents.some(content => check(content));
         }).map(item => item.id);
 
-    }, [filterTargetContentIds, itemMap]);
+    }, [filteredContents, itemMap]);
 
     return {
-        getTheFilter,
         isFiltered,
         getFilterStatus,
-        filterTargetContentIds,
+        filteredContents,
         filteredItemIdList,
     }
 }

@@ -39,7 +39,7 @@ type Props = {
 export default function Content(props: Props) {
     const { confirm } = useConfirm();
     const dispatch = useAppDispatch();
-    const { filterTargetContentIds } = useFilter();
+    const { filteredContents } = useFilter();
     const { onEditContent }  = useContext(OwnerContext);
     const { updateContentAPI, getSnsPreviewAPI } = useCommand();
 
@@ -48,11 +48,11 @@ export default function Content(props: Props) {
      * （フィルタが掛かっている場合に、フィルタ対象のコンテンツのみを表示する）
      */
     const isShow = useMemo(() => {
-        if (filterTargetContentIds === undefined) {
+        if (!filteredContents) {
             return true;
         }
-        return filterTargetContentIds.some(target => isEqualId(target, props.content.id));
-    }, [filterTargetContentIds, props.content]);
+        return filteredContents.some(target => isEqualId(target, props.content.id));
+    }, [filteredContents, props.content]);
 
     const urlType = useMemo(() => {
         return props.content.url ? CommonUtility.getUrlType(props.content.url) : undefined;

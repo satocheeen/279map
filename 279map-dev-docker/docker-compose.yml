@@ -31,15 +31,15 @@ services:
   #   volumes:
   #       - ./log:/var/log/www
   #       - ./fs:/var/www/279map/photo
-  # frontend:
-  #   # 任意のイメージを指定
-  #   image: 279map-frontend:latest
-  #   env_file:
-  #     - ./.env
-  #   ports: 
-  #       - 3000:80
-  #   volumes:
-  #       - ./log:/var/log/www
+  frontend:
+    # 任意のイメージを指定
+    image: satocheeen/279map-frontend:0.48.0
+    env_file:
+      - ./.env
+    ports: 
+        - 3000:80
+    volumes:
+        - ./log:/var/log/www
   main:
     image: satocheeen/279map-backend-main:0.52.2
     depends_on:

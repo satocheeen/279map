@@ -8,17 +8,15 @@ import { usePrevious } from '../../util/usePrevious';
 import MapChart from './MapChart';
 import { operationActions, PopupTarget } from '../../store/operation/operationSlice';
 import OverlaySpinner from '../common/spinner/OverlaySpinner';
-import { openItemContentsPopup } from '../popup/popupThunk';
 import { OwnerContext } from './TsunaguMap';
 import { sessionActions } from '../../store/session/sessionSlice';
 import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
 import { useSpinner } from '../common/spinner/useSpinner';
-import { getContents } from '../../store/data/dataUtility';
 import { useCommand } from '../../api/useCommand';
-import { ContentAttr, DataId } from '../../279map-common';
 import styles from './MapWrapper.module.scss';
 import { ConnectAPIResult } from '../../types/types';
 import { ErrorType } from 'tsunagumap-api';
+import { search } from '../../store/operation/operationThunk';
 
 export default function MapWrapper() {
     const ownerContext = useContext(OwnerContext);
@@ -54,8 +52,6 @@ export default function MapWrapper() {
         onCategoriesLoadedRef.current = ownerContext.onCategoriesLoaded;
         onEventsLoadedRef.current = ownerContext.onEventsLoaded;
     }, [ownerContext]);
-
-    useInitializePopup();
 
     const mapServer = useSelector((state: RootState) => state.session.mapServer);
 
@@ -186,7 +182,7 @@ export default function MapWrapper() {
      */
     useEffect(() => {
         if (ownerContext.filter && ownerContext.filter.length > 0) {
-            dispatch(operationActions.setFilter(ownerContext.filter));
+            dispatch(search(ownerContext.filter));
         } else {
             dispatch(operationActions.clearFilter());
         }
@@ -246,41 +242,4 @@ function MySpinner() {
     return (
         <OverlaySpinner message={message} />
     )
-}
-
-function useInitializePopup() {
-    const { filterTargetContentIds } = useFilter();
-    const dispatch = useAppDispatch();
-
-    /**
-     * フィルター設定変更時の処理
-     * - フィルター設定時
-     *   - フィルター強調対象のFeatureの吹き出しを表示する
-     *   - 対象外のFeatureの吹き出しは非表示に
-     * - フィルター解除時は、一律吹き出し非表示に
-     */
-     const prevFilterTargetContentIds = usePrevious(filterTargetContentIds);
-     useEffect(() => {
-        if (prevFilterTargetContentIds && filterTargetContentIds) {
-            if (JSON.stringify(prevFilterTargetContentIds) === JSON.stringify(filterTargetContentIds)) {
-                return;
-            }
-        }
-        // フィルター対象を抽出する
-        if (filterTargetContentIds === undefined) {
-            // dispatch(operationActions.clearPopup());
-        } else {
-            const param = filterTargetContentIds.map(contentId => {
-                return {
-                    type: 'content',
-                    contentId,
-                } as PopupTarget;
-            });
-            dispatch(openItemContentsPopup(param));
-        }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filterTargetContentIds]);
-
-
 }

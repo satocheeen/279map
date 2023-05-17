@@ -36,7 +36,7 @@ function hasImageItem(item: ItemDefine): boolean {
 }
 export default function PointsPopup(props: Props) {
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
-    const { isFiltered, filteredItemIdList, filterTargetContentIds } = useFilter();
+    const { isFiltered, filteredItemIdList, filteredContents } = useFilter();
     const { getDescendantContentsIdList } = useContents();
 
     /**
@@ -76,7 +76,7 @@ export default function PointsPopup(props: Props) {
         if (!target) return null;
 
         const getImageOwnerContentId = (content: ItemContentInfo) : DataId | undefined => {
-            if ((filterTargetContentIds === undefined || filterTargetContentIds?.some(filteredId => isEqualId(filteredId, content.id))) && content.hasImage) {
+            if ((filteredContents === undefined || filteredContents?.some(filteredId => isEqualId(filteredId, content.id))) && content.hasImage) {
                 return content.id;
             }
             let id: DataId | undefined;
@@ -101,7 +101,7 @@ export default function PointsPopup(props: Props) {
         }
         return imageContentId;
 
-    }, [target, filterTargetContentIds]);
+    }, [target, filteredContents]);
 
     // このアイテムの中に含まれるコンテンツの総数
     const contentsNum = useMemo(() => {
