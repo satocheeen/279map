@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useMemo, lazy, Suspense } from 'react';
 import { Provider } from 'react-redux';
 import { store } from '../../store/configureStore';
 import MapWrapper from './MapWrapper';
@@ -9,9 +9,10 @@ import ContentsModal from '../contents/ContentsModal';
 import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
 import { AddNewContentParam, EditContentParam, LinkUnpointContentParam, TsunaguMapProps } from '../../types/types';
 import Spinner from '../common/spinner/Spinner';
-import ContentInfoEditDialog from '../default/edit-content/ContentInfoEditDialog';
+import LoadingOverlay from '../common/spinner/LoadingOverlay';
 
 const LinkUnpointContentModal = lazy(() => import('../default/link-unpoint-content/LinkUnpointContentModal'));
+const ContentInfoEditDialog = lazy(() => import('../default/edit-content/ContentInfoEditDialog'));
 
 type SomeRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 type OwnerContextType = SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'> & {
@@ -72,17 +73,17 @@ export default function TsunaguMap(props: TsunaguMapProps) {
                         <ContentsModal />
 
                         {defaultLinkUnpointedContentParam &&
-                            <Suspense fallback={<Spinner />}>
+                            <Suspense fallback={<LoadingOverlay />}>
                                 <LinkUnpointContentModal param={defaultLinkUnpointedContentParam} close={()=>{setDefaultLinkUnpointedContentParam(undefined)}} />
                             </Suspense>
                         }
                         {defaultNewContentParam &&
-                            <Suspense fallback={<Spinner />}>
+                            <Suspense fallback={<LoadingOverlay />}>
                                 <ContentInfoEditDialog type='new' param={defaultNewContentParam} onClose={()=>{setDefaultNewContentParam(undefined)}} />
                             </Suspense>
                         }
                         {defaultEditContentParam &&
-                            <Suspense fallback={<Spinner />}>
+                            <Suspense fallback={<LoadingOverlay />}>
                                 <ContentInfoEditDialog type='edit' param={defaultEditContentParam} onClose={()=>{setDefaultEditContentParam(undefined)}} />
                             </Suspense>
                         }

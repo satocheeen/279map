@@ -4,7 +4,7 @@ import VectorSource from 'ol/source/Vector';
 import { Stroke, Style } from 'ol/style';
 import React, { useEffect, useCallback, useRef, useState } from 'react';
 import useConfirm, { ConfirmResult } from '../../../common/confirm/useConfirm';
-import { useOverlay } from '../../../common/spinner/useSpinner';
+import { useOverlay } from '../../../common/spinner/useOverlay';
 import { createGeoJson, extractGeoProperty, getOriginalLine } from '../../../../util/MapUtility';
 import useTopographyStyle from '../../useTopographyStyle';
 import PromptMessageBox from '../PromptMessageBox';

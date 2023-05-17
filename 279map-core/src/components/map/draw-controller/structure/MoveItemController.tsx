@@ -12,7 +12,7 @@ import { TranslateEvent } from 'ol/interaction/Translate';
 import "react-toggle/style.css";
 import Toggle from 'react-toggle';
 import usePointStyle from '../../usePointStyle';
-import { useOverlay } from '../../../common/spinner/useSpinner';
+import { useOverlay } from '../../../common/spinner/useOverlay';
 import { useAppDispatch } from '../../../../store/configureStore';
 import { updateFeature } from '../../../../store/data/dataThunk';
 import { convertDataIdFromFeatureId } from '../../../../store/data/dataUtility';

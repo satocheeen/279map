@@ -6,7 +6,7 @@ import VectorSource from 'ol/source/Vector';
 import { createGeoJson } from '../../../../util/MapUtility';
 import usePointStyle from '../../usePointStyle';
 import PromptMessageBox from '../PromptMessageBox';
-import { useOverlay } from '../../../common/spinner/useSpinner';
+import { useOverlay } from '../../../common/spinner/useOverlay';
 import SearchAddress, { SearchAddressHandler } from '../../../common/SearchAddress';
 import { RootState, useAppDispatch } from '../../../../store/configureStore';
 import GeoJSON from 'ol/format/GeoJSON';

@@ -11,7 +11,7 @@ import { openItemContentsPopup } from '../popup/popupThunk';
 import { OwnerContext } from './TsunaguMap';
 import { sessionActions } from '../../store/session/sessionSlice';
 import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
-import { useOverlay } from '../common/spinner/useSpinner';
+import { useOverlay } from '../common/spinner/useOverlay';
 import { useCommand } from '../../api/useCommand';
 import styles from './MapWrapper.module.scss';
 import { ConnectAPIResult } from '../../types/types';

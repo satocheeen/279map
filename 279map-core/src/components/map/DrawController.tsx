@@ -1,12 +1,12 @@
-import React, { lazy, Suspense, useContext, useEffect, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { addListener, removeListener } from '../../util/Commander';
 import { useDispatch } from 'react-redux';
 import { operationActions } from '../../store/operation/operationSlice';
 import { MapMode } from '../../types/types';
-import OverlaySpinner from '../common/spinner/OverlaySpinner';
 import EditTopographyInfoController from './draw-controller/topography/EditTopographyInfoController';
 import { FeatureType } from '../../279map-common';
 import { LayerType } from '../TsunaguMap/VectorLayerMap';
+import LoadingOverlay from '../common/spinner/LoadingOverlay';
 
 const DrawStructureController = lazy(() => import('./draw-controller/structure/DrawStructureController'));
 const MoveItemController = lazy(() => import('./draw-controller/structure/MoveItemController'));
@@ -36,7 +36,7 @@ export default function DrawController(props: Props) {
             addListener('DrawStructure', async(dataSourceId: string) => {
                 dispatch(operationActions.changeMapMode(MapMode.Drawing));
                 setDrawController(
-                    <Suspense fallback={<OverlaySpinner message='準備中...' />}>
+                    <Suspense fallback={<LoadingOverlay />}>
                         <DrawStructureController dataSourceId={dataSourceId} close={terminate} />
                     </Suspense>
                 );
@@ -46,7 +46,7 @@ export default function DrawController(props: Props) {
             addListener('MoveStructure', async() => {
                 dispatch(operationActions.changeMapMode(MapMode.Drawing));
                 setDrawController(
-                    <Suspense fallback={<OverlaySpinner message='準備中...' />}>
+                    <Suspense fallback={<LoadingOverlay />}>
                         <MoveItemController close={terminate} />
                     </Suspense>
                 );
@@ -56,7 +56,7 @@ export default function DrawController(props: Props) {
             addListener('ChangeStructure', async() => {
                 dispatch(operationActions.changeMapMode(MapMode.Drawing));
                 setDrawController(
-                    <Suspense fallback={<OverlaySpinner message='準備中...' />}>
+                    <Suspense fallback={<LoadingOverlay />}>
                         <ChangeStructureIconController close={terminate} />
                     </Suspense>
                 );
@@ -66,7 +66,7 @@ export default function DrawController(props: Props) {
             addListener('RemoveStructure', async() => {
                 dispatch(operationActions.changeMapMode(MapMode.Drawing));
                 setDrawController(
-                    <Suspense fallback={<OverlaySpinner message='準備中...' />}>
+                    <Suspense fallback={<LoadingOverlay />}>
                         <RemoveFeatureController target={LayerType.Point} close={terminate} />
                     </Suspense>
                 );
@@ -76,7 +76,7 @@ export default function DrawController(props: Props) {
             addListener('DrawTopography', async(param: {dataSourceId: string, featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA }) => {
                 dispatch(operationActions.changeMapMode(MapMode.Drawing));
                 setDrawController(
-                    <Suspense fallback={<OverlaySpinner message='準備中...' />}>
+                    <Suspense fallback={<LoadingOverlay />}>
                         <DrawTopographyController dataSourceId={param.dataSourceId} drawFeatureType={param.featureType} close={terminate} />
                     </Suspense>
                 );
@@ -86,7 +86,7 @@ export default function DrawController(props: Props) {
             addListener('DrawRoad', async(dataSourceId: string) => {
                 dispatch(operationActions.changeMapMode(MapMode.Drawing));
                 setDrawController(
-                    <Suspense fallback={<OverlaySpinner message='準備中...' />}>
+                    <Suspense fallback={<LoadingOverlay />}>
                         <DrawRoadController dataSourceId={dataSourceId} close={terminate} />
                     </Suspense>
                 );
@@ -96,7 +96,7 @@ export default function DrawController(props: Props) {
             addListener('EditTopography', async() => {
                 dispatch(operationActions.changeMapMode(MapMode.Drawing));
                 setDrawController(
-                    <Suspense fallback={<OverlaySpinner message='準備中...' />}>
+                    <Suspense fallback={<LoadingOverlay />}>
                         <EditTopographyController close={terminate} />
                     </Suspense>
                 );
@@ -106,7 +106,7 @@ export default function DrawController(props: Props) {
             addListener('EditTopographyInfo', async() => {
                 dispatch(operationActions.changeMapMode(MapMode.Drawing));
                 setDrawController(
-                    <Suspense fallback={<OverlaySpinner message='準備中...'/>}>
+                    <Suspense fallback={<LoadingOverlay />}>
                         <EditTopographyInfoController close={terminate} />
                     </Suspense>
                 );
@@ -116,7 +116,7 @@ export default function DrawController(props: Props) {
             addListener('RemoveTopography', async() => {
                 dispatch(operationActions.changeMapMode(MapMode.Drawing));
                 setDrawController(
-                    <Suspense fallback={<OverlaySpinner  message='準備中...'/>}>
+                    <Suspense fallback={<LoadingOverlay />}>
                         <RemoveFeatureController target={LayerType.Topography} close={terminate} />
                     </Suspense>
                 );

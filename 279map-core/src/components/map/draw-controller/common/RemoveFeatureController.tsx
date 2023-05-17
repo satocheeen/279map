@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { FeatureLike } from 'ol/Feature';
 import useConfirm, { ConfirmResult } from '../../../common/confirm/useConfirm';
 import SelectFeature from '../SelectFeature';
-import { useOverlay } from '../../../common/spinner/useSpinner';
+import { useOverlay } from '../../../common/spinner/useOverlay';
 import { useAppDispatch } from '../../../../store/configureStore';
 import { removeFeature } from '../../../../store/data/dataThunk';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
