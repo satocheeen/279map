@@ -50,9 +50,11 @@ const operationSlice = createSlice({
             zoom: 0,
         } as ViewInfo,
 
-        // Spinner
-        showSpinner: false,
-        spinnerMessage: '',
+        // Overlay。spinner=trueまたはmessageに値がある場合に、オーバーレイ表示する
+        overlay: {
+            spinner: false,
+            message: undefined as string | undefined,
+        },
 
         // Confirm
         showConfirmDialog: false,
@@ -103,10 +105,16 @@ const operationSlice = createSlice({
         changeMapMode(state, action: PayloadAction<MapMode>) {
             state.mapMode = action.payload;
         },
-        showSpinner(state, action: PayloadAction<{show: true; message: string} | { show: false }>) {
-            state.showSpinner = action.payload.show;
-            if (action.payload.show) {
-                state.spinnerMessage = action.payload.message ? action.payload.message : '';
+        showOverlay(state, action: PayloadAction<{spinner: boolean; message?: string}>) {
+            state.overlay = {
+                spinner: action.payload.spinner,
+                message: action.payload.message,
+            };
+        },
+        hideOverlay(state) {
+            state.overlay = {
+                spinner: false,
+                message: undefined,
             }
         },
         showConfirmDialog(state, action: PayloadAction<ConfirmParam>) {

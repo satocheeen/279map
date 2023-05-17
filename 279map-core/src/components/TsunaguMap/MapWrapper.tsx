@@ -7,25 +7,27 @@ import { addListener, removeListener } from '../../util/Commander';
 import { usePrevious } from '../../util/usePrevious';
 import MapChart from './MapChart';
 import { operationActions, PopupTarget } from '../../store/operation/operationSlice';
-import OverlaySpinner from '../common/spinner/OverlaySpinner';
 import { openItemContentsPopup } from '../popup/popupThunk';
 import { OwnerContext } from './TsunaguMap';
 import { sessionActions } from '../../store/session/sessionSlice';
 import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
-import { useSpinner } from '../common/spinner/useSpinner';
-import { getContents } from '../../store/data/dataUtility';
+import { useOverlay } from '../common/spinner/useSpinner';
 import { useCommand } from '../../api/useCommand';
-import { ContentAttr, DataId } from '../../279map-common';
 import styles from './MapWrapper.module.scss';
 import { ConnectAPIResult } from '../../types/types';
 import { ErrorType } from 'tsunagumap-api';
+import Spinner from '../common/spinner/Spinner';
 
+/**
+ * 地図コンポーネント。
+ * storeはここから有効になる。
+ * @returns 
+ */
 export default function MapWrapper() {
     const ownerContext = useContext(OwnerContext);
     const connectStatus = useSelector((state: RootState) => state.session.connectStatus);
-    // const ownerMapKind = useMemo(() => ownerContext.mapKind, [ownerContext]);
     const currentMapKindInfo = useSelector((state: RootState) => state.session.currentMapKindInfo);
-    const spinner = useSpinner();
+    const spinner = useOverlay();
 
     const onConnectRef = useRef<typeof ownerContext.onConnect>();
     const onMapKindChangedRef = useRef<typeof ownerContext.onMapLoad>();
@@ -192,8 +194,6 @@ export default function MapWrapper() {
         }
     }, [ownerContext.filter, dispatch]);
 
-    const [ errorMessage, setErrorMessage ] = useState<string|undefined>();
-
     useEffect(() => {
         if (connectStatus.status === 'connecting-map') {
             spinner.showSpinner('ロード中...')
@@ -216,7 +216,7 @@ export default function MapWrapper() {
                 }
             }();
             const detail = connectStatus.error.detail ? `\n${connectStatus.error.detail}` : '';
-            setErrorMessage(errorMessage + detail);
+            spinner.showOverlayMessage(errorMessage + detail);
         } else if (currentMapKindInfo) {
             spinner.hideSpinner();
         }
@@ -227,24 +227,34 @@ export default function MapWrapper() {
             {currentMapKindInfo &&
                 <MapChart />
             }
-            {errorMessage &&
-                <div className={styles.ErrorMessage}>{errorMessage}</div>
-            }
-            <MySpinner />
+            <Overlay />
         </>
     );
 }
 
-function MySpinner() {
-    const isShow = useSelector((state: RootState) => state.operation.showSpinner);
+/**
+ * 地図の上にスピナーやメッセージをオーバーレイ表示するためのコンポーネント
+ */
+function Overlay() {
+    const isShow = useSelector((state: RootState) => state.operation.overlay.spinner || state.operation.overlay.message);
+    const showSpinner = useSelector((state: RootState) => state.operation.overlay.spinner);
     const message = useSelector((state: RootState) => {
-        return state.operation.spinnerMessage;
+        return state.operation.overlay.message ?? '';
     });
+
     if (!isShow) {
         return null;
     }
+
     return (
-        <OverlaySpinner message={message} />
+        <div className={styles.Overlay}>
+            {showSpinner &&
+                <div className={styles.GraphSpinner}>
+                    <Spinner />
+                </div>
+            }
+            <p>{message}</p>
+        </div>
     )
 }
 

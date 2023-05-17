@@ -1,25 +1,31 @@
 import { useCallback } from "react";
-import { useDispatch } from "react-redux";
 import { operationActions } from "../../../store/operation/operationSlice";
+import { useAppDispatch } from "../../../store/configureStore";
 
-export function useSpinner() {
-    const dispatch = useDispatch();
+export function useOverlay() {
+    const dispatch = useAppDispatch();
 
     const showSpinner = useCallback((message: string) => {
-        dispatch(operationActions.showSpinner({
-            show: true,
+        dispatch(operationActions.showOverlay({
+            spinner: true,
             message,
         }));
     }, [dispatch]);
 
     const hideSpinner = useCallback(() => {
-        dispatch(operationActions.showSpinner({
-            show: false,
+        dispatch(operationActions.hideOverlay());
+    }, [dispatch]);
+
+    const showOverlayMessage = useCallback((message: string) => {
+        dispatch(operationActions.showOverlay({
+            spinner: false,
+            message,
         }));
     }, [dispatch]);
 
     return {
         showSpinner,
         hideSpinner,
+        showOverlayMessage,
     }
 }
