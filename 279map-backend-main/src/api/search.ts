@@ -1,4 +1,5 @@
-import { CurrentMap, schema, DataId } from "279map-backend-common";
+import { DataId } from "279map-common";
+import { CurrentMap, schema } from '279map-backend-common';
 import { SearchParam, SearchResult } from "../../279map-api-interface/src";
 import { ConnectionPool } from "..";
 import { PoolConnection } from "mysql2/promise";

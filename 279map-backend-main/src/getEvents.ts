@@ -2,7 +2,7 @@ import { ConnectionPool } from ".";
 import { CurrentMap, schema } from "279map-backend-common";
 import { getBelongingItem } from "./util/utility";
 import { GetEventsResult } from "../279map-api-interface/src";
-import { EventDefine } from "279map-backend-common";
+import { EventDefine } from "279map-common";
 
 export async function getEvents(currentMap: CurrentMap): Promise<GetEventsResult> {
     if (!currentMap) {

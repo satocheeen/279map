@@ -17,7 +17,7 @@ flowchart RL
 			api-interface["api-interface (private)"]
 		end
 
-		subgraph 279map-backend-common
+		subgraph 279map-common
 			279map-common-backend["279map-common"]
 		end
 
@@ -26,9 +26,9 @@ flowchart RL
 		odba <--> db
 		fs["fs (option)"] <--> 279map-backend-main
 		fs <--> odba
-		279map-backend-main -. use .-> 279map-backend-common
-		odba -. use .-> 279map-backend-common
-		fs -. use .-> 279map-backend-common
+		279map-backend-main -. use .-> 279map-common
+		odba -. use .-> 279map-common
+		fs -. use .-> 279map-common
 	end
 	279map-core -.-> api-interface
 	original-db[("Original DB")] <--> odba

@@ -1,7 +1,8 @@
 import express, { NextFunction, Request, Response } from 'express';
 import mysql from 'mysql2/promise';
 import { getMapInfo } from './getMapInfo';
-import { Auth, MapKind, AuthMethod, ServerConfig, CurrentMap, sleep, DataId } from '279map-backend-common';
+import { Auth, MapKind, AuthMethod, ServerConfig, DataId } from '279map-common';
+import { api as backendAPI, schema, CurrentMap, sleep } from '279map-backend-common';
 import { getItems } from './getItems';
 import { configure, getLogger } from "log4js";
 import { DbSetting, LogSetting } from './config';
@@ -17,7 +18,6 @@ import { getCategory } from './api/getCategory';
 import { getSnsPreview } from './api/getSnsPreview';
 import SessionInfo from './session/SessionInfo';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
-import { api as backendAPI, schema } from '279map-backend-common';
 import cors from 'cors';
 import { exit } from 'process';
 import { getMapInfoByIdOrAlias } from './getMapDefine';

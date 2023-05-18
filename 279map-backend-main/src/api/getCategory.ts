@@ -2,7 +2,7 @@ import randomColor from "randomcolor";
 import { ConnectionPool } from "..";
 import { CurrentMap, schema } from "279map-backend-common";
 import { GetCategoryResult } from "../../279map-api-interface/src";
-import { CategoryDefine } from "279map-backend-common";
+import { CategoryDefine } from "279map-common";
 import { getLogger } from "log4js";
 
 const apiLogger = getLogger('api');

@@ -1,6 +1,6 @@
 import { getLogger } from "log4js";
 import { ConnectionPool } from "..";
-import { getImageBase64, schema, sns } from "279map-backend-common";
+import { getImageBase64, schema, sns } from "279map-common";
 
 const logger = getLogger();
 

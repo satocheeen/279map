@@ -1,4 +1,4 @@
-import { GeocoderId } from "279map-backend-common";
+import { GeocoderId } from "279map-common";
 import axios from "axios";
 import { GeoJsonObject } from "geojson";
 import { getLogger } from "log4js";

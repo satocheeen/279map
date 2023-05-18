@@ -1,6 +1,6 @@
 import { schema } from '279map-backend-common';
 import { ConnectionPool } from '.';
-import { MapKind, DataSourceKindType } from '279map-backend-common';
+import { MapKind, DataSourceKindType } from '279map-common';
 import { DataSourceInfo, GetMapInfoParam, GetMapInfoResult } from '../279map-api-interface/src';
 import mysql from 'mysql2/promise';
 

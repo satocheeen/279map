@@ -1,5 +1,6 @@
 import WebSocket from 'ws';
-import { MapKind, CurrentMap, ItemDefine, DataId } from '279map-backend-common';
+import { MapKind, ItemDefine, DataId } from '279map-common';
+import {CurrentMap } from '279map-backend-common';
 import dayjs from 'dayjs';
 
 type ItemInfo = {

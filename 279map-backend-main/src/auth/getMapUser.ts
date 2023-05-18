@@ -1,5 +1,6 @@
 import { ConnectionPool } from "..";
-import { Auth, schema } from '279map-backend-common';
+import { Auth } from '279map-common';
+import { schema } from '279map-backend-common';
 import { getLogger } from 'log4js';
 import { authMethod } from '..';
 import { Request } from 'express';
