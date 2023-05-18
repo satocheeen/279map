@@ -1,14 +1,34 @@
-.ErrorMessage {
+// Overlay
+$spinnerSize: 36px;
+.GraphSpinner {
     position: absolute;
-    width: 100%;
-    height: 100%;
+    z-index: 10;
+    top: calc(50% - $spinnerSize/2);
+    left: calc(50% - $spinnerSize/2);
+    width: $spinnerSize;
+    height: $spinnerSize;
+    text-align: center;
+}
+.Overlay {
+    position: absolute;
     top: 0;
     left: 0;
-    background: #ffffffaa;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(#fff, .5);
+    z-index: 2000;  // モーダルが1050なので
 
     display: flex;
     justify-content: center;
     align-items: center;
-    text-align: center;
-    white-space: pre-wrap;
+
+    p {
+        position: absolute;
+        z-index: 10;
+        top: calc(50% - $spinnerSize/2 + $spinnerSize);
+        width: 100%;
+        text-align: center;
+        white-space: pre-wrap;
+        color: #555;
+    }
 }

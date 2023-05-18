@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Provider } from 'react-redux';
 import { store } from '../../store/configureStore';
 import MapWrapper from './MapWrapper';
@@ -8,10 +8,7 @@ import ConfirmDialog from '../common/confirm/ConfirmDialog';
 import ContentsModal from '../contents/ContentsModal';
 import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
 import { AddNewContentParam, EditContentParam, LinkUnpointContentParam, TsunaguMapProps } from '../../types/types';
-import Spinner from '../common/spinner/Spinner';
-import ContentInfoEditDialog from '../default/edit-content/ContentInfoEditDialog';
-
-const LinkUnpointContentModal = lazy(() => import('../default/link-unpoint-content/LinkUnpointContentModal'));
+import DefaultComponents from '../default/DefaultComponents';
 
 type SomeRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 type OwnerContextType = SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'> & {
@@ -72,19 +69,13 @@ export default function TsunaguMap(props: TsunaguMapProps) {
                         <ContentsModal />
 
                         {defaultLinkUnpointedContentParam &&
-                            <Suspense fallback={<Spinner />}>
-                                <LinkUnpointContentModal param={defaultLinkUnpointedContentParam} close={()=>{setDefaultLinkUnpointedContentParam(undefined)}} />
-                            </Suspense>
+                            <DefaultComponents linkUnpointedContentParam={defaultLinkUnpointedContentParam} onClose={()=>{setDefaultLinkUnpointedContentParam(undefined)}} />
                         }
                         {defaultNewContentParam &&
-                            <Suspense fallback={<Spinner />}>
-                                <ContentInfoEditDialog type='new' param={defaultNewContentParam} onClose={()=>{setDefaultNewContentParam(undefined)}} />
-                            </Suspense>
+                            <DefaultComponents newContentParam={defaultNewContentParam} onClose={()=>{setDefaultNewContentParam(undefined)}} />
                         }
                         {defaultEditContentParam &&
-                            <Suspense fallback={<Spinner />}>
-                                <ContentInfoEditDialog type='edit' param={defaultEditContentParam} onClose={()=>{setDefaultEditContentParam(undefined)}} />
-                            </Suspense>
+                            <DefaultComponents editContentParam={defaultEditContentParam} onClose={()=>{setDefaultEditContentParam(undefined)}} />
                         }
                     </Provider>
                 </TooltipContext.Provider>

@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useMemo, useCallback } from 'react';
-import OverlaySpinner from '../spinner/OverlaySpinner';
+import React, { useEffect, useRef, useMemo } from 'react';
 import styles from './Modal.module.scss';
 import { MdClose } from 'react-icons/md';
+import { useOverlay } from '../spinner/useOverlay';
+import { useWatch } from '../../../util/useWatch';
 
 type Props = {
     show: boolean;
@@ -16,6 +17,7 @@ type Props = {
 export default function Modal(props: Props) {
     const myRef = useRef<HTMLDialogElement|null>(null);
     const closing = useRef(false);  // when closing dialog, seted tre.
+    const { showSpinner, hideSpinner } = useOverlay();
 
     useEffect(() => {
         if (props.show) {
@@ -54,6 +56,15 @@ export default function Modal(props: Props) {
         return props.children.find(child => child.type === ModalFooter);
     }, [props.children]);
 
+    useWatch(() => {
+        if (props.spinner && props.show) {
+            const message = typeof props.spinner === 'string' ? props.spinner : '処理中...';
+            showSpinner(message);
+        } else {
+            hideSpinner();
+        }
+    }, [props.spinner, props.show])
+
     return (
         <dialog ref={myRef} className={`${styles.Dialog} ${props.show ? styles.Show : styles.Close}`}>
             <div className={styles.Header}>
@@ -70,9 +81,6 @@ export default function Modal(props: Props) {
             <div className={styles.Footer}>
                 {footer?.props.children}
             </div>
-            {(props.spinner && props.show) &&
-                <OverlaySpinner message={typeof props.spinner === 'string' ? props.spinner : '処理中...'} />
-            }
         </dialog>
     );
 }
