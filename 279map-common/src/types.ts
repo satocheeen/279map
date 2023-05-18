@@ -198,4 +198,7 @@ export type FilterDefine = {
 } | {
     type: 'calendar';
     date: string;   // YYYY-MM-DD 形式で指定
+} | {
+    type: 'keyword';
+    keyword: string;
 }
