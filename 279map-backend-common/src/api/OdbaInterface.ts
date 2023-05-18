@@ -1,4 +1,4 @@
-import { DataId } from "../279map-common";
+import { DataId } from "279map-common";
 import { CurrentMap } from "../types";
 import { OdbaAPIFunc } from "./api-initializer";
 import { GetUnpointDataParam, GetUnpointDataResult, LinkContentToItemParam, RegistContentParam, RegistItemParam, RemoveContentParam, RemoveItemParam, UpdateContentParam, UpdateItemParam } from "./dba-api-interface";

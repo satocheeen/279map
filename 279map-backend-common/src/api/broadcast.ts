@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { DataId } from '../279map-common';
+import { DataId } from '279map-common';
 
 export type BroadcastItemParam = {
     mapId: string;

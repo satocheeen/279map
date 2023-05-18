@@ -6,4 +6,4 @@ export * as sns from './sns';
 export * from './types';
 
 export * from './utility';
-export * from './279map-common';
+export * from '279map-common';

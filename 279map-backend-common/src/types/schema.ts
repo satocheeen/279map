@@ -1,4 +1,4 @@
-import { Auth, DataSourceKindType, DataSourceLinkableContent, MapKind } from '../279map-common';
+import { Auth, DataSourceKindType, DataSourceLinkableContent, MapKind } from '279map-common';
 import { SnsOptions } from '../sns';
 
 export enum PublicRange {

@@ -1,4 +1,4 @@
-import { APIDefine } from '../279map-common';
+import { APIDefine } from '279map-common';
 import axios, { AxiosResponse } from 'axios';
 import FormData from 'form-data';
 
