@@ -51,18 +51,33 @@ export default function TestMap() {
     const onChangeFilterCategory = useCallback((category: string | undefined) => {
         setFilteredCategory(category);
     }, []);
-    const filter = useMemo((): FilterDefine[] => {
-        if (filteredCategory === undefined) {
-            return [];
+    const [ filteredDate, setFilteredDate ] = useState<string>('');
+    const filter = useMemo((): FilterDefine[] | undefined => {
+        console.log('filterDate', filteredDate)
+        if (filteredCategory === undefined && filteredDate.length === 0) {
+            return undefined;
         }
-        return [
-            {
-                type: 'category',
-                category: filteredCategory,
-            }
-        ];
+        const filter = [] as FilterDefine[];
+        if (filteredCategory) {
+            filter.push(
+                {
+                    type: 'category',
+                    category: filteredCategory,
+                }
+            );
+        }
+        if (filteredDate) {
+            filter.push(
+                {
+                    type: 'calendar',
+                    date: filteredDate,
+                }
+            )
+        }
+        console.log('filter', filter);
+        return filter;
 
-    }, [filteredCategory]);
+    }, [filteredCategory, filteredDate]);
 
     // switch mapKind
     const [ mapKind, setMapKind ] = useState(MapKind.Real);
@@ -150,7 +165,7 @@ export default function TestMap() {
             <div className={styles.Form}>
                 <div className={styles.Col}>
                     <div className={styles.Row}>
-                    <div className={styles.PropName}>地図種別</div>
+                        <div className={styles.PropName}>地図種別</div>
                         <label>
                             日本地図
                             <input type="radio" checked={mapKind===MapKind.Real} onChange={() => switchMapKind(MapKind.Real)} />
@@ -204,6 +219,15 @@ export default function TestMap() {
                                 </label>
                             )
                         })}
+                    </div>
+                </div>
+                <div className={styles.Col}>
+                    <div className={styles.Row}>
+                        <div className={styles.PropName}>カレンダーフィルタ</div>
+                        <label>
+                            カレンダー
+                            <input type="date" value={filteredDate} onChange={(evt) => setFilteredDate(evt.target.value)} />
+                        </label>
                     </div>
                 </div>
                 {authLv === Auth.Edit &&

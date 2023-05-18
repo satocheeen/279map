@@ -14,11 +14,13 @@ export async function search(currentMap: CurrentMap, param: SearchParam): Promis
         let firstFlag = true;
         for (const condition of param.conditions) {
             let searchResult: DataId[];
-            if (condition.type === 'category') {
-                searchResult = await searchByCategory(con, currentMap, condition.category);
-
-            } else {
-                searchResult = [];
+            switch(condition.type) {
+                case 'category':
+                    searchResult = await searchByCategory(con, currentMap, condition.category);
+                    break;
+                case 'calendar':
+                    searchResult = await searchByDate(con, currentMap, condition.date);
+                    break;
             }
             if (firstFlag) {
                 firstFlag = false;
@@ -68,4 +70,33 @@ async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, cat
             id: row.content_page_id,
         };
     });
+}
+
+/**
+ * 指定の日付のコンテンツを返す
+ * @param con 
+ * @param currentMap 
+ * @param date 
+ */
+async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: string): Promise<DataId[]> {
+    const sql = `
+    select c.* from contents c
+    where exists (
+        select icl.* from item_content_link icl 
+        inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id 
+        inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
+        where icl.content_page_id = c.content_page_id and icl.content_datasource_id  = c.data_source_id
+        and mdl.map_page_id = ? and i.map_kind = ?
+        and DATE_FORMAT(date,'%Y-%m-%d') = ?
+    )
+    `;
+
+    const [rows] = await con.execute(sql, [currentMap.mapId, currentMap.mapKind, date]);
+    return (rows as schema.ContentsTable[]).map((row): DataId => {
+        return {
+            dataSourceId: row.data_source_id,
+            id: row.content_page_id,
+        };
+    });
+
 }

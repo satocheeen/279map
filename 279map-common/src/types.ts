@@ -197,5 +197,5 @@ export type FilterDefine = {
     category: string;
 } | {
     type: 'calendar';
-    date: string;   // Date.toLocaleDateString()
+    date: string;   // YYYY-MM-DD 形式で指定
 }
