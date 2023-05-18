@@ -101,21 +101,32 @@ export default function FilterCondition(props: Props) {
         }
     }, [currentMode, categoryFilter, calendarFilter, keywordFilter]);
 
+    const onClear = useCallback(() => {
+        setCategory(undefined);
+        setDate('');
+        setKeyword('');
+    }, []);
+
     return (
-        <div className={styles.Container}>
-            <div className={styles.TabArea}>
-                {(['category', 'calendar', 'keyword'] as FilterDefine['type'][]).map(name => {
-                <Tab name='category' />
-                    return (
-                        <Tab key={name} name={name} active={currentMode===name}
-                            onClick={() => setCurrentMode(name)} />
-                    )
-                })}
+        <>
+            <div className={styles.Container}>
+                <div className={styles.TabArea}>
+                    {(['category', 'calendar', 'keyword'] as FilterDefine['type'][]).map(name => {
+                    <Tab name='category' />
+                        return (
+                            <Tab key={name} name={name} active={currentMode===name}
+                                onClick={() => setCurrentMode(name)} />
+                        )
+                    })}
+                </div>
+                <div className={styles.BodyArea}>
+                    {body}
+                </div>
             </div>
-            <div className={styles.BodyArea}>
-                {body}
+            <div>
+                <button onClick={onClear}>Clear</button>
             </div>
-        </div>
+        </>
     );
 }
 
