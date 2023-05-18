@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
 import useIcon from '../../store/useIcon';
 import AddContentMenu from '../popup/AddContentMenu';
-import { Auth, DataId } from '../../279map-common';
+import { Auth, DataId } from '279map-common';
 import { getMapKey } from '../../store/data/dataUtility';
 import { useMap } from '../map/useMap';
 

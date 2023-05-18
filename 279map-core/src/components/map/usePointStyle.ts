@@ -1,5 +1,5 @@
 import useIcon from "../../store/useIcon";
-import { useCallback, useContext, useEffect } from "react";
+import { useCallback, useContext } from "react";
 import Feature, { FeatureLike } from "ol/Feature";
 import { Fill, Icon, Style, Text } from 'ol/style';
 import { getStructureScale } from "../../util/MapUtility";
@@ -7,7 +7,7 @@ import { SystemIconDefine } from "../../types/types";
 import useFilterStatus from "./useFilterStatus";
 import { useFilter } from "../../store/useFilter";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
-import { IconInfo } from "../../279map-common";
+import { IconInfo } from "279map-common";
 import { Geometry } from "ol/geom";
 import { convertDataIdFromFeatureId, isEqualId } from "../../store/data/dataUtility";
 import { useMap } from "./useMap";

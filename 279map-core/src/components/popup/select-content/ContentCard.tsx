@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/configureStore';
 import { doCommand } from '../../../util/Commander';
 import Card from '../../common/card/Card';
-import { DataId } from '../../../279map-common';
+import { DataId } from '279map-common';
 import { isEqualId } from '../../../store/data/dataUtility';
 
 type Props = {

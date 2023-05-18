@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux';
 import { operationActions } from '../../store/operation/operationSlice';
 import { MapMode } from '../../types/types';
 import EditTopographyInfoController from './draw-controller/topography/EditTopographyInfoController';
-import { FeatureType } from '../../279map-common';
+import { FeatureType } from '279map-common';
 import { LayerType } from '../TsunaguMap/VectorLayerMap';
 import LoadingOverlay from '../common/spinner/LoadingOverlay';
 

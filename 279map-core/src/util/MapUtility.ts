@@ -13,7 +13,7 @@ import proj4 from 'proj4';
 import 'https://unpkg.com/jsts@2.6.1/dist/jsts.min.js';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import { FeatureType, GeoProperties } from '../279map-common';
+import { FeatureType, GeoProperties } from '279map-common';
 import { getCenter as getExtentCenter } from 'ol/extent';
 import { Cluster } from 'ol/source';
 

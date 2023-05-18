@@ -12,7 +12,7 @@ import { RootState, useAppDispatch } from '../../../../store/configureStore';
 import GeoJSON from 'ol/format/GeoJSON';
 import { GeoJsonObject } from 'geojson';
 import { registFeature } from '../../../../store/data/dataThunk';
-import { FeatureType, GeoProperties, MapKind } from '../../../../279map-common';
+import { FeatureType, GeoProperties, MapKind } from '279map-common';
 import { SystemIconDefine } from '../../../../types/types';
 import { useSelector } from 'react-redux';
 import VectorLayer from 'ol/layer/Vector';

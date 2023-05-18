@@ -1,4 +1,4 @@
-import { FeatureType } from "../../../../279map-common";
+import { FeatureType } from "279map-common";
 import { Draw } from "ol/interaction";
 import { DrawEvent } from "ol/interaction/Draw";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";

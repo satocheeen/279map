@@ -1,4 +1,4 @@
-import { SnsPreviewPost } from '../../../279map-common';
+import { SnsPreviewPost } from '279map-common';
 import dayjs from 'dayjs';
 import React, { useMemo } from 'react';
 import styles from './SnsPreviewCard.module.scss';

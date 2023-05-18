@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import ContentInfoForm from './ContentInfoForm';
 import styles from './ContentInfoEditDialog.module.scss';
 import { AddNewContentParam, EditContentParam } from '../../../types/types';
-import { ContentAttr } from '../../../279map-common';
+import { ContentAttr } from '279map-common';
 import { useCommand } from '../../../api/useCommand';
 import { Button, Modal } from '../../common';
 import { ConfirmBtnPattern } from '../../common/confirm/useConfirm';

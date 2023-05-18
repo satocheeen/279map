@@ -1,7 +1,7 @@
 import { GeoJsonObject, Point } from 'geojson';
 import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import Input from '../common/form/Input';
-import { FeatureType, GeoProperties } from '../../279map-common';
+import { FeatureType, GeoProperties } from '279map-common';
 import Spinner from './spinner/Spinner';
 import { GeocoderAPI, GeocoderItem } from 'tsunagumap-api';
 import { getAPICallerInstance } from '../../api/ApiCaller';

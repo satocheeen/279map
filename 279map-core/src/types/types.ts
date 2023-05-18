@@ -1,6 +1,6 @@
-import { ContentAttr, DataId, DataSourceKindType, DataSourceLinkableContent, GeoProperties, IconDefine, MapDefine, UnpointContent } from "../279map-common";
+import { ContentAttr, DataId, DataSourceKindType, DataSourceLinkableContent, GeoProperties, IconDefine, MapDefine, UnpointContent } from "279map-common";
 import { CSSProperties } from "react";
-import { CategoryDefine, EventDefine, MapKind } from '../279map-common';
+import { CategoryDefine, EventDefine, MapKind } from '279map-common';
 import { CommandHookType } from '../api/useCommand';
 import { ApiError, ConnectResult, ErrorType, GetMapInfoResult, LinkContentToItemParam, RegistContentParam, GetSnsPreviewResult, UpdateContentParam } from "tsunagumap-api";
 import { FilterDefine } from "279map-common";

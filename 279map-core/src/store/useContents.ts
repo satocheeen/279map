@@ -1,4 +1,4 @@
-import { DataId, ItemContentInfo } from '../279map-common';
+import { DataId, ItemContentInfo } from '279map-common';
 import { useCallback } from 'react';
 import { useSelector } from "react-redux";
 import { RootState } from "./configureStore";

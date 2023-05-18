@@ -1,4 +1,4 @@
-import { DataId } from "../../279map-common";
+import { DataId } from "279map-common";
 import Feature from 'ol/Feature';
 import { GeolibInputCoordinates } from 'geolib/es/types';
 import { LayerType } from "../TsunaguMap/VectorLayerMap";

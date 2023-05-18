@@ -8,7 +8,7 @@ import { DrawAreaAddress } from './DrawAreaAddress';
 import { DrawFreeArea } from './DrawFreeArea';
 import { useAppDispatch } from '../../../../store/configureStore';
 import { registFeature } from '../../../../store/data/dataThunk';
-import { FeatureType, GeoProperties } from '../../../../279map-common';
+import { FeatureType, GeoProperties } from '279map-common';
 import { Geometry } from 'ol/geom';
 import { Feature } from 'ol';
 

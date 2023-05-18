@@ -4,7 +4,7 @@ import { RootState } from "../configureStore";
 import { dataActions } from "../data/dataSlice";
 import { loadCategories, loadEvents, loadOriginalIconDefine } from "../data/dataThunk";
 import { ApiError, ConnectAPI, ErrorType, GetMapInfoAPI, WebSocketMessage } from 'tsunagumap-api';
-import { MapKind } from "../../279map-common";
+import { MapKind } from "279map-common";
 import { ConnectAPIResult, LoadMapDefineResult } from "../../types/types";
 import { createAPICallerInstance, getAPICallerInstance } from "../../api/ApiCaller";
 import { sessionActions } from "./sessionSlice";

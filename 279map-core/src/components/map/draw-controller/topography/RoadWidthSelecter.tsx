@@ -4,7 +4,7 @@ import VectorSource from 'ol/source/Vector';
 import useTopographyStyle, { RoadWidth } from '../../useTopographyStyle';
 import { convertLineToPolygon, extractGeoProperty } from '../../../../util/MapUtility';
 import PromptMessageBox from '../PromptMessageBox';
-import { FeatureType } from '../../../../279map-common';
+import { FeatureType } from '279map-common';
 import { Geometry } from 'ol/geom';
 import { useMap } from '../../useMap';
 

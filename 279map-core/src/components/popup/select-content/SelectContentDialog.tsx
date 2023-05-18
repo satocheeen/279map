@@ -5,7 +5,7 @@ import ContentCard from './ContentCard';
 import { loadContents } from '../../../store/data/dataThunk';
 import styles from './SelectContentDialog.module.scss';
 import { useContents } from '../../../store/useContents';
-import { DataId } from '../../../279map-common';
+import { DataId } from '279map-common';
 import { getMapKey } from '../../../store/data/dataUtility';
 
 type Props = {

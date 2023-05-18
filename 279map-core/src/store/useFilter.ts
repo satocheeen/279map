@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useSelector, shallowEqual } from "react-redux";
 import { RootState } from "./configureStore";
-import { ItemContentInfo, ItemDefine } from "../279map-common";
+import { ItemContentInfo, ItemDefine } from "279map-common";
 import { isEqualId } from "./data/dataUtility";
 
 type FilterStatus = {

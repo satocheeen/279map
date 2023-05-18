@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useCallback, useState } from "react"
 import SearchAddress from "../../../common/SearchAddress";
 import PromptMessageBox from "../PromptMessageBox";
 import GeoJSON from 'ol/format/GeoJSON';
-import { FeatureType } from "../../../../279map-common";
+import { FeatureType } from "279map-common";
 import useTopographyStyle from "../../useTopographyStyle";
 import { Feature } from "ol";
 import { Geometry } from "ol/geom";

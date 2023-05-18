@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect, useMemo } from 'react';
-import { ContentAttr, SnsPreviewPost } from '../../../279map-common';
+import { ContentAttr, SnsPreviewPost } from '279map-common';
 import SnsPreviewCard from './SnsPreviewCard';
 import styles from './ContentInfoForm.module.scss';
 import CategorySelector from './CategorySelector';

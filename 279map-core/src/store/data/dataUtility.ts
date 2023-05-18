@@ -1,5 +1,5 @@
 import { GetContentsAPI, GetContentsParam } from "tsunagumap-api";
-import { ContentsDefine, DataId } from "../../279map-common";
+import { ContentsDefine, DataId } from "279map-common";
 import { ServerInfo } from "../../types/types";
 import { getAPICallerInstance } from "../../api/ApiCaller";
 

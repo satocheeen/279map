@@ -1,6 +1,6 @@
-import { Auth, CategoryDefine, DataId, DataSourceKindType, FeatureType, MapKind } from '../279map-common';
+import { Auth, CategoryDefine, DataId, DataSourceKindType, FeatureType, MapKind } from '279map-common';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { CommandHookType } from '../api/useCommand';
+import { CommandHookType } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
 import { DataSource, FilterDefine, OnConnectParam, OnMapLoadParam, TsunaguMapProps } from '../entry';
 import styles from './TestMap.module.scss';

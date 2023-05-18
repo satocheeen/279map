@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button, Modal } from '../../common';
 import { LinkUnpointContentParam } from '../../../types/types';
-import { DataId, UnpointContent } from '../../../279map-common';
+import { DataId, UnpointContent } from '279map-common';
 import styles from './LinkUnpointContentModal.module.scss';
 import Card from '../../common/card/Card';
 import Spinner from '../../common/spinner/Spinner';

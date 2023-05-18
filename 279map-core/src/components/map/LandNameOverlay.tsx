@@ -5,7 +5,7 @@ import {buffer, getSize} from 'ol/extent';
 import { usePrevious } from '../../util/usePrevious';
 import { RootState } from '../../store/configureStore';
 import styles from './LandNameOverlay.module.scss';
-import { FeatureType } from '../../279map-common';
+import { FeatureType } from '279map-common';
 import { getMapKey } from '../../store/data/dataUtility';
 import { useMap } from './useMap';
 

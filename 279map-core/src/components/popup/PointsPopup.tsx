@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { RootState, useAppDispatch } from "../../store/configureStore";
 import styles from './PointsPopup.module.scss';
 import { useFilter } from "../../store/useFilter";
-import { ContentsDefine, DataId, ItemContentInfo, ItemDefine } from "../../279map-common";
+import { ContentsDefine, DataId, ItemContentInfo, ItemDefine } from "279map-common";
 import { operationActions } from "../../store/operation/operationSlice";
 import SelectContentDialog from "./select-content/SelectContentDialog";
 import { useContents } from "../../store/useContents";

@@ -4,7 +4,7 @@ import Feature from "ol/Feature";
 import { Geometry } from "ol/geom";
 import { StyleFunction } from "ol/style/Style";
 import Layer from "ol/layer/Layer";
-import { DataId } from "../../279map-common";
+import { DataId } from "279map-common";
 import { getMapKey } from "../../store/data/dataUtility";
 
 export enum LayerType {

@@ -1,4 +1,4 @@
-import { DataId, FeatureType } from '../../279map-common';
+import { DataId, FeatureType } from '279map-common';
 import { MapBrowserEvent } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import React, { useRef, useEffect, useState, useCallback, useContext } from 'react';

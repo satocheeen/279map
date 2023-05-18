@@ -1,4 +1,4 @@
-import { DataId, FeatureType } from "../279map-common";
+import { DataId, FeatureType } from "279map-common";
 
 type TCallBack<T> = (param: T) => Promise<void>;
 

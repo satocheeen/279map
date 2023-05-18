@@ -1,7 +1,7 @@
 import { useCallback, useContext } from 'react';
 import useFilterStatus from "./useFilterStatus";
 import useTopographyStyle from "./useTopographyStyle";
-import { FeatureType } from '../../279map-common';
+import { FeatureType } from '279map-common';
 import { FeatureLike } from 'ol/Feature';
 import { colorWithAlpha } from '../../util/CommonUtility';
 import { Style } from 'ol/style';

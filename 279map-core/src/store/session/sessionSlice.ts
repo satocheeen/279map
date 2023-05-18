@@ -1,4 +1,4 @@
-import { MapDefine, MapKind } from "../../279map-common";
+import { MapDefine, MapKind } from "279map-common";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { ApiAccessError, ServerInfo } from "../../types/types";
 import { connectMap, loadMapDefine } from "./sessionThunk";

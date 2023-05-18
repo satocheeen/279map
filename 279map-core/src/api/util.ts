@@ -1,6 +1,6 @@
 import { ConfigAPI, GetMapListAPI } from "tsunagumap-api";
 import { ServerInfo } from '../types/types';
-import { ServerConfig } from "../279map-common";
+import { ServerConfig } from "279map-common";
 import { createAPICallerInstance } from "./ApiCaller";
 
 /**

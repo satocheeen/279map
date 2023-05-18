@@ -6,7 +6,7 @@ import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
 import { useCommand } from '../../api/useCommand';
-import { Auth, DataId, DataSourceKindType, DataSourceLinkableContent } from '../../279map-common';
+import { Auth, DataId, DataSourceKindType, DataSourceLinkableContent } from '279map-common';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
 import { getMapKey } from '../../store/data/dataUtility';
