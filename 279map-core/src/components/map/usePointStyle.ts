@@ -25,7 +25,7 @@ const STRUCTURE_SELECTED_COLOR = '#8888ff';
 export default function usePointStyle() {
     const { getForceColor, getFilterStatus } = useFilterStatus();
     const { filteredItemIdList } = useFilter();
-    const { disabledLabel } = useContext(OwnerContext);
+    const { disabledLabel, filter } = useContext(OwnerContext);
     const { getIconDefine } = useIcon();
     const { map } = useMap();
 
@@ -166,6 +166,7 @@ export default function usePointStyle() {
         // 色設定
         let color: string | undefined;
         let opacity = 1;
+        let visible = true;
 
         if (forceColor) {
             color = forceColor;
@@ -174,8 +175,17 @@ export default function usePointStyle() {
             // -- フィルタ状態に応じて色設定
             color = getForceColor(mainFeature);
             const filterStatus = getFilterStatus(mainFeature);
-            opacity = filterStatus.status === 'UnFiltered' ? 0.3 : 1;
+            if (filterStatus.status === 'UnFiltered') {
+                if (filter?.unmatchView === 'hidden') {
+                    visible = false;
+                } else {
+                    opacity = 0.3;
+                }
+            }
+        }
 
+        if (!visible) {
+            return new Style();
         }
 
         const style = _createStyle({
@@ -197,7 +207,7 @@ export default function usePointStyle() {
         }
         return style;
 
-    }, [disabledLabel, _createStyle, getFilterStatus, getForceColor, _analysisFeatures, getIconDefine]);
+    }, [disabledLabel, _createStyle, getFilterStatus, getForceColor, _analysisFeatures, getIconDefine, filter]);
 
     /**
      * the style function for ordinaly.

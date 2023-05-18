@@ -185,8 +185,8 @@ export default function MapWrapper() {
      * set filter
      */
     useEffect(() => {
-        if (ownerContext.filter && ownerContext.filter.length > 0) {
-            dispatch(search(ownerContext.filter));
+        if (ownerContext.filter && ownerContext.filter.conditions.length > 0) {
+            dispatch(search(ownerContext.filter.conditions));
         } else {
             dispatch(operationActions.clearFilter());
         }

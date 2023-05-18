@@ -49,7 +49,15 @@ export default function TestMap() {
         setCategories(categories);
     }, []);
 
-    const [ filter, setFilter ] = useState<FilterDefine[]|undefined>();
+    const [ filterConditions, setFilterConditions ] = useState<FilterDefine[]|undefined>();
+    const [ filterUnmatchView, setFilterUnmatchView ] = useState<'hidden'|'translucent'>('hidden');
+    const filter = useMemo((): TsunaguMapProps['filter'] => {
+        if (!filterConditions) return;
+        return {
+            conditions: filterConditions,
+            unmatchView: filterUnmatchView,
+        }
+    }, [filterConditions, filterUnmatchView]);
 
     // switch mapKind
     const [ mapKind, setMapKind ] = useState(MapKind.Real);
@@ -177,8 +185,20 @@ export default function TestMap() {
                     })}
                 </div>
                 <div className={styles.Col}>
-                    <div className={styles.PropName}>フィルタ</div>
-                    <FilterCondition categories={categories} onChange={(filter) => setFilter(filter)} />
+                    <div className={styles.Row}>
+                        <div className={styles.PropName}>フィルタ</div>
+                        <label>
+                            非表示
+                            <input type="radio" checked={filterUnmatchView==='hidden'}
+                                    onChange={() => setFilterUnmatchView('hidden')} />
+                        </label>
+                        <label>
+                            不透明
+                            <input type="radio" checked={filterUnmatchView==='translucent'}
+                                    onChange={() => setFilterUnmatchView('translucent')} />
+                        </label>
+                    </div>
+                    <FilterCondition categories={categories} onChange={(filter) => setFilterConditions(filter)} />
                 </div>
                 {authLv === Auth.Edit &&
                 <>
