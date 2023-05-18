@@ -4,6 +4,7 @@ import { CommandHookType } from '../api/useCommand';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
 import { DataSource, FilterDefine, OnConnectParam, OnMapLoadParam, TsunaguMapProps } from '../entry';
 import styles from './TestMap.module.scss';
+import FilterCondition from './FilterCondition';
 
 /**
  * for Development
@@ -47,37 +48,8 @@ export default function TestMap() {
     const onCategoriesLoaded = useCallback((categories: CategoryDefine[]) => {
         setCategories(categories);
     }, []);
-    const [ filteredCategory, setFilteredCategory ] = useState<string| undefined>();
-    const onChangeFilterCategory = useCallback((category: string | undefined) => {
-        setFilteredCategory(category);
-    }, []);
-    const [ filteredDate, setFilteredDate ] = useState<string>('');
-    const filter = useMemo((): FilterDefine[] | undefined => {
-        console.log('filterDate', filteredDate)
-        if (filteredCategory === undefined && filteredDate.length === 0) {
-            return undefined;
-        }
-        const filter = [] as FilterDefine[];
-        if (filteredCategory) {
-            filter.push(
-                {
-                    type: 'category',
-                    category: filteredCategory,
-                }
-            );
-        }
-        if (filteredDate) {
-            filter.push(
-                {
-                    type: 'calendar',
-                    date: filteredDate,
-                }
-            )
-        }
-        console.log('filter', filter);
-        return filter;
 
-    }, [filteredCategory, filteredDate]);
+    const [ filter, setFilter ] = useState<FilterDefine[]|undefined>();
 
     // switch mapKind
     const [ mapKind, setMapKind ] = useState(MapKind.Real);
@@ -205,30 +177,8 @@ export default function TestMap() {
                     })}
                 </div>
                 <div className={styles.Col}>
-                    <div className={styles.PropName}>カテゴリフィルタ</div>
-                    <div className={styles.ListArea}>
-                        <label>
-                            なし
-                            <input type="radio" checked={filteredCategory===undefined} onChange={() => onChangeFilterCategory(undefined)} />
-                        </label>
-                        {categories.filter(category => category.using).map(category => {
-                            return (
-                                <label key={category.name}>
-                                    {category.name}
-                                    <input type="radio" checked={filteredCategory===category.name} onChange={() => onChangeFilterCategory(category.name)} />
-                                </label>
-                            )
-                        })}
-                    </div>
-                </div>
-                <div className={styles.Col}>
-                    <div className={styles.Row}>
-                        <div className={styles.PropName}>カレンダーフィルタ</div>
-                        <label>
-                            カレンダー
-                            <input type="date" value={filteredDate} onChange={(evt) => setFilteredDate(evt.target.value)} />
-                        </label>
-                    </div>
+                    <div className={styles.PropName}>フィルタ</div>
+                    <FilterCondition categories={categories} onChange={(filter) => setFilter(filter)} />
                 </div>
                 {authLv === Auth.Edit &&
                 <>

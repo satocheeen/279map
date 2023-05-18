@@ -21,6 +21,9 @@ export async function search(currentMap: CurrentMap, param: SearchParam): Promis
                 case 'calendar':
                     searchResult = await searchByDate(con, currentMap, condition.date);
                     break;
+                case 'keyword':
+                    searchResult = await searchByKeyword(con, currentMap, condition.keyword);
+                    break;
             }
             if (firstFlag) {
                 firstFlag = false;
@@ -92,6 +95,36 @@ async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: s
     `;
 
     const [rows] = await con.execute(sql, [currentMap.mapId, currentMap.mapKind, date]);
+    return (rows as schema.ContentsTable[]).map((row): DataId => {
+        return {
+            dataSourceId: row.data_source_id,
+            id: row.content_page_id,
+        };
+    });
+
+}
+
+/**
+ * 指定のキーワードを持つコンテンツを返す
+ * @param con 
+ * @param currentMap 
+ * @param keyword 
+ */
+async function searchByKeyword(con: PoolConnection, currentMap: CurrentMap, keyword: string): Promise<DataId[]> {
+    const sql = `
+    select c.* from contents c
+    where exists (
+        select icl.* from item_content_link icl 
+        inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id 
+        inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
+        where icl.content_page_id = c.content_page_id and icl.content_datasource_id  = c.data_source_id
+            and mdl.map_page_id = ? and i.map_kind = ?
+        and (JSON_SEARCH(c.contents, 'one', ?) is not null or c.title like ?)
+    )
+    `;
+
+    const keywordParam = `%${keyword}%`;
+    const [rows] = await con.execute(sql, [currentMap.mapId, currentMap.mapKind, keywordParam, keywordParam]);
     return (rows as schema.ContentsTable[]).map((row): DataId => {
         return {
             dataSourceId: row.data_source_id,

@@ -1,0 +1,23 @@
+.Container {
+    display: flex;
+}
+.TabArea {
+    width: 100px;
+
+    .Tab {
+        cursor: pointer;
+        border: 1px solid #aaa;
+
+        &.Active {
+            background-color: #eee;
+        }
+    }
+}
+.BodyArea {
+    border: 1px solid #aaa;
+    width: 250px;
+}
+.ListArea {
+    max-width: 10rem;
+    overflow: auto;
+}
