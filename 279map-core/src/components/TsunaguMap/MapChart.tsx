@@ -133,8 +133,6 @@ export default function MapChart() {
         loadingCurrentAreaContents.current = false;
     }, [dispatch]);
 
-    const operationMapKind = useSelector((state: RootState) => state.operation.currentMapKind);
-
     /**
      * 指定のitemにfitさせる
      */

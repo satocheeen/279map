@@ -1,12 +1,10 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { loadCategories, loadEvents } from '../../store/data/dataThunk';
-import { useFilter } from '../../store/useFilter';
 import { addListener, removeListener } from '../../util/Commander';
-import { usePrevious } from '../../util/usePrevious';
 import MapChart from './MapChart';
-import { operationActions, PopupTarget } from '../../store/operation/operationSlice';
+import { operationActions } from '../../store/operation/operationSlice';
 import { OwnerContext } from './TsunaguMap';
 import { sessionActions } from '../../store/session/sessionSlice';
 import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
@@ -17,6 +15,8 @@ import { ConnectAPIResult } from '../../types/types';
 import { ErrorType } from 'tsunagumap-api';
 import { search } from '../../store/operation/operationThunk';
 import Spinner from '../common/spinner/Spinner';
+import { useMounted } from '../../util/useMounted';
+import { MapKind } from '279map-common';
 
 /**
  * 地図コンポーネント。
@@ -108,21 +108,32 @@ export default function MapWrapper() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dispatch, ownerContext.mapId, ownerContext.token, mapServer]);
 
-    const currentMapKind = useSelector((state: RootState) => state.operation.currentMapKind);
     /**
-     * load map define when connected map or mapkind has changed.
+     * load map define when connected map.
      */
     useEffect(() => {
         if (connectStatus.status !== 'connected') {
             return;
         }
-        const mapKind = currentMapKind ?? connectStatus.connectedMap.defaultMapKind;
-        if (currentMapKindInfo?.mapKind === mapKind) {
-            return;
-        }
+        const mapKind = connectStatus.connectedMap.defaultMapKind;
         dispatch(loadMapDefine(mapKind));
-        // loadLatestData();
-    }, [connectStatus, currentMapKind, currentMapKindInfo, dispatch]);
+    }, [connectStatus, dispatch]);
+
+    /**
+     * load map define when mapkind has changed.
+     */
+    useMounted(() => {
+        const h = addListener('ChangeMapKind', async(mapKind: MapKind) => {
+            if (currentMapKindInfo?.mapKind === mapKind) {
+                return;
+            }
+            dispatch(loadMapDefine(mapKind));
+        });
+
+        return () => {
+            removeListener(h);
+        }
+    })
 
     useEffect(() => {
         if (!currentMapKindInfo) return;

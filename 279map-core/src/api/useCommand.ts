@@ -20,8 +20,11 @@ export function useCommand() {
      * 表示する地図種別の切り替え
      */
     const switchMapKind = useCallback((mapKind: MapKind) => {
-        dispatch(operationActions.setMapKind(mapKind));
-    }, [dispatch]);
+        doCommand({
+            command: 'ChangeMapKind',
+            param: mapKind,
+        });
+    }, []);
 
     /**
      * focus the item

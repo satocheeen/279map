@@ -139,22 +139,21 @@ export default function Content(props: Props) {
         return mapName + 'で見る';
     }, [mapKind]);
 
-    const onGoToAnotherMap = useCallback(() => {
+    const onGoToAnotherMap = useCallback(async() => {
         if (!props.content.anotherMapItemId) {
             console.warn('別地図にアイテムなし');
             return;
         }
         const anotherMap = mapKind === MapKind.Real ? MapKind.Virtual : MapKind.Real;
-        dispatch(operationActions.setMapKind(anotherMap));
+        await doCommand({
+            command: 'ChangeMapKind',
+            param: anotherMap,
+        });
         doCommand({
             command: 'FocusItem',
             param: props.content.anotherMapItemId,
         });
-        // TODO:
-        // searchParams.set('kind', anotherMap);
-        // searchParams.set('feature', props.content.anotherMapItemId);
-        // setSearchParams(searchParams);
-    }, [mapKind, props.content.anotherMapItemId, dispatch]);
+    }, [mapKind, props.content.anotherMapItemId]);
 
     /**
      * イメージロード

@@ -1,4 +1,4 @@
-import { DataId, FeatureType } from "279map-common";
+import { DataId, FeatureType, MapKind } from "279map-common";
 
 /**
  * 特定の処理を突き放し実行するための仕組み
@@ -41,6 +41,8 @@ type CommandDefine =
     | TCommandDefine<'ShowContentInfo', DataId>
     // 指定のアイテムにフォーカスする
     | TCommandDefine<'FocusItem', DataId>
+    // 地図種別を切り替える
+    | TCommandDefine<'ChangeMapKind', MapKind>
     ;
 type TSubscription = CommandDefine['subscription'];
 type TCallback = TSubscription[1];
@@ -76,8 +78,8 @@ export const doCommand = async(param: CommandSet) => {
     if (!(param.command in commandListenerListMap)) {
         return;
     }
-    for (const listenerId of commandListenerListMap[param.command]) {
+    await Promise.all(commandListenerListMap[param.command].map(listenerId => {
         const listener = listenerMap[listenerId].callback;
-        await listener(param.param as never);
-    }
+        return listener(param.param as never);
+    }));
 }

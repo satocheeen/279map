@@ -32,9 +32,6 @@ type TooltipParam = {
 const operationSlice = createSlice({
     name: 'operation',
     initialState: {
-        // 表示する地図種別を指定（この値を変更すると、地図種別が切り替わる）
-        currentMapKind: null as MapKind | null,
-
         // 選択中アイテムID
         selectedItemIds: [] as DataId[],
 
@@ -60,9 +57,6 @@ const operationSlice = createSlice({
         confirmResult: undefined as undefined | ConfirmResult,
     },
     reducers: {
-        setMapKind(state, action: PayloadAction<MapKind>) {
-            state.currentMapKind = action.payload;
-        },
         setSelectItem(state, action: PayloadAction<DataId[]>) {
             if (JSON.stringify(state.selectedItemIds) === JSON.stringify(action.payload)) {
                 return;
