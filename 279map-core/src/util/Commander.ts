@@ -1,5 +1,10 @@
 import { DataId, FeatureType } from "279map-common";
 
+/**
+ * 特定の処理を突き放し実行するための仕組み
+ * doCommandでコマンドが呼び出されると、
+ * あらかじめ登録されていたリスナーが呼び出される。
+ */
 type TCallBack<T> = (param: T) => Promise<void>;
 
 type TCommandDefine<COMMAND extends string, PARAM> = {
@@ -34,6 +39,8 @@ type CommandDefine =
     | TCommandDefine<'LoadLatestData', undefined>
     // コンテンツ情報表示 引数: contentId. 
     | TCommandDefine<'ShowContentInfo', DataId>
+    // 指定のアイテムにフォーカスする
+    | TCommandDefine<'FocusItem', DataId>
     ;
 type TSubscription = CommandDefine['subscription'];
 type TCallback = TSubscription[1];

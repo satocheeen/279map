@@ -116,15 +116,13 @@ export default function TestMap() {
     }, [commandHook]);
 
     const [ focusItemId, setFocusItemId ] = useState('');
-    const onChangeFocusItemId = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        setFocusItemId(event.target.value);
-    }, []);
+    const [ focusDataSourceId, setFocusDataSourceId ] = useState('');
     const onFocusItem = useCallback(() => {
         commandHook?.focusItem({
-            dataSourceId: '',
+            dataSourceId: focusDataSourceId,
             id: focusItemId,
         });
-    }, [commandHook, focusItemId]);
+    }, [commandHook, focusItemId, focusDataSourceId]);
 
     const [token, setToken] = useState<string|undefined>();
     useEffect(() => {
@@ -229,7 +227,14 @@ export default function TestMap() {
                 </div>
 
                 <div className={styles.Col}>
-                    <input type='text' value={focusItemId} onChange={onChangeFocusItemId} />
+                    <label>
+                        itemId
+                        <input type='text' value={focusItemId} onChange={(evt)=>{setFocusItemId(evt.target.value)}} />
+                    </label>
+                    <label>
+                        DataSourceId
+                        <input type='text' value={focusDataSourceId} onChange={(evt) => {setFocusDataSourceId(evt.target.value)}} />
+                    </label>
                     <button onClick={onFocusItem}>Focus Item</button>
                 </div>
             </div>

@@ -9,7 +9,7 @@ import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistCont
 import { getAPICallerInstance } from "./ApiCaller";
 
 /**
- * Parts側から呼び出し可能なコマンド
+ * Coreの外側から呼び出し可能なコマンド
  */
 export function useCommand() {
     const dispatch = useAppDispatch();
@@ -28,15 +28,17 @@ export function useCommand() {
      * 指定のアイテムにフォーカスする
      */
     const focusItem = useCallback((itemId: DataId) => {
-        dispatch(operationActions.setFocusItemId(itemId));
-    }, [dispatch]);
+        doCommand({
+            command: 'FocusItem',
+            param: itemId,
+        });
+    }, []);
 
     /**
      * start the spte of drawing a structure (or a pin).
      * 建設または地点登録する
      */
     const drawStructure = useCallback((dataSourceId: string) => {
-        console.log('call drawStructure');
         doCommand({
             command: 'DrawStructure',
             param: dataSourceId,

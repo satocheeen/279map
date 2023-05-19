@@ -70,7 +70,7 @@ export default function MapChart() {
         // アイテム0件の時はフィットさせない
         if (defaultExtent.some(i => i !== 0)) {
             mapRef.current.fit(defaultExtent, {
-                duration: animation ? 500 : undefined,
+                animation,
             });
         }
     }, [defaultExtent]);
@@ -107,7 +107,7 @@ export default function MapChart() {
         }
         const ext = source.getExtent();
         mapRef.current.fit(ext, {
-            duration: 500,
+            animation: true,
         });
         source.dispose();
 
@@ -133,6 +133,33 @@ export default function MapChart() {
         loadingCurrentAreaContents.current = false;
     }, [dispatch]);
 
+    const operationMapKind = useSelector((state: RootState) => state.operation.currentMapKind);
+
+    /**
+     * 指定のitemにfitさせる
+     */
+    const focusItem = useCallback((itemId: DataId) => {
+        if (!mapRef.current) {
+            return;
+        }
+        // TODO: 地図の切り替え中の場合は、切り替え完了するまで待つ
+    //     if (operationMapKind && mapKind !== operationMapKind) {
+    //         // 地図の切り替え完了していない場合
+    //         return;
+    //     }
+
+        const itemFeature = mapRef.current.getFeatureById(itemId);
+        if (!itemFeature) {
+            // TODO: アイテムが存在しない場合は、データロード中の可能性があるので、しばらく待ってからリトライ
+            return;
+        }
+
+        const ext = itemFeature.getGeometry()?.getExtent();
+        if (!ext) return;
+        mapRef.current.fit(ext, { animation: true });
+
+    }, []);
+
     /**
      * 地図初期化
      */
@@ -144,7 +171,7 @@ export default function MapChart() {
         setMapInstanceId(map.id);
         mapRef.current = map;
 
-        const h = addListener('LoadLatestData', async() => {
+        const loadLatestDataHandler = addListener('LoadLatestData', async() => {
             await loadCurrentAreaContents();
         });
     
@@ -157,12 +184,18 @@ export default function MapChart() {
         };
         map.on('moveend', loadContentFunc);
 
+        // アイテムフォーカスイベントの登録
+        const focusItemHandler = addListener('FocusItem', async(itemId: DataId) => {
+            focusItem(itemId);
+        });
+
         setInitialized(true);
 
         return () => {
             map.un('moveend', loadContentFunc);
             map.dispose();
-            removeListener(h);
+            removeListener(loadLatestDataHandler);
+            removeListener(focusItemHandler);
         }
     });
 
@@ -225,83 +258,6 @@ export default function MapChart() {
         });
 
     }, [geoJsonItems]);
-
-    const focusItemId = useSelector((state: RootState) => state.operation.focusItemId);
-    const operationMapKind = useSelector((state: RootState) => state.operation.currentMapKind);
-
-    // TODO:
-    // // 初期FitさせるFeatureが指定されていて、そのFeatureが追加されたなら、Fit
-    // useEffect(() => {
-    //     if (!focusItemId) return;
-    //     console.log('focusItemId', focusItemId);
-    //     if (operationMapKind && mapKind !== operationMapKind) {
-    //         // 地図の切り替え完了していない場合
-    //         return;
-    //     }
-
-    //     const getFeature = new Promise<FeatureLike>((resolve) => {
-    //         const searchFeatureFromAllLayers = (id: string) => {
-    //             const feature = map.getFeatureById(id);
-    //             if (feature) {
-    //                 return feature;
-    //             }
-    //             const feature2 = VectorLayerMap.getSource('topography')?.getFeatureById(id);
-    //             return feature2;
-    //         };
-
-    //         const feature = searchFeatureFromAllLayers(focusItemId);
-    
-    //         if (feature) {
-    //             resolve(feature);
-    //             return;
-    //         }
-    //         // featureが存在しないなら、追加されるまで待つ
-    //         const eventSource = [] as VectorSource[];
-    //         const eventFn = () => {
-    //             const feature = searchFeatureFromAllLayers(focusItemId);
-    //             if (!feature) return;
-
-    //             eventSource.forEach(eSource => {
-    //                 eSource.un('addfeature', eventFn);
-    //             });
-    //             resolve(feature);
-    //         };
-    //         map?.getAllLayers().forEach((layer) => {
-    //             const source = layer.getSource();
-    //             if (!source) {
-    //                 return;
-    //             }
-    //             if (!(source instanceof VectorSource)) {
-    //                 return;
-    //             }
-    //             eventSource.push(source);
-    //             source.on('addfeature', eventFn);
-    //         });
-    //     });
-
-    //     getFeature
-    //     .then((feature) => {
-    //         // 特定のFeatureが指定されている場合は、そこにfitさせる
-    //         const ext = feature.getGeometry()?.getExtent();
-    //         if (!ext) return;
-
-    //         map?.getView().fit(ext, {
-    //             duration: 1000,
-    //             callback: () => {
-    //                 // ポップアップ表示
-    //                 dispatch(openItemContentsPopup([{
-    //                     type: 'item',
-    //                     itemId: focusItemId,
-    //                 }]));
-    //             }
-    //         });
-
-    //         // fitしおわったら除去
-    //         dispatch(operationActions.setFocusItemId(null));
-
-    //     })
-
-    // }, [dispatch, focusItemId, mapKind, operationMapKind]);
 
     const optionClassName = useMemo(() => {
         if (flipping) {

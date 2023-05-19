@@ -60,9 +60,7 @@ export function DrawAreaAddress(props: Props) {
         drawingSource.current?.addFeature(feature);
         const extent = feature.getGeometry()?.getExtent();
         if (extent)
-            map?.fit(extent, {
-                padding: [50, 50, 50, 50],
-            });
+            map?.fit(extent);
         setStage(Stage.Confirm);
     }, [map]);
 

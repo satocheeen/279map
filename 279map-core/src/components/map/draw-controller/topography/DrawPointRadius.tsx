@@ -209,9 +209,7 @@ export default function DrawPointRadius(props: Props) {
             return;
         }
         if (isFit.current) {
-            map?.fit(extent, {
-                padding: [50, 50, 50, 50],
-            });
+            map?.fit(extent);
         } else {
             isFit.current = true;
         }
@@ -252,9 +250,7 @@ export default function DrawPointRadius(props: Props) {
 
         const extent = circle.getGeometry()?.getExtent();
         if (extent)
-            map?.fit(extent, {
-                padding: [50, 50, 50, 50],
-            });
+            map?.fit(extent);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [radius]);
 

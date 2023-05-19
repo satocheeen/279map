@@ -77,8 +77,11 @@ export type TsunaguMapProps = {
     onCategoriesLoaded?: (categories: CategoryDefine[]) => void;    // calback when categories has loaded or has changed.
     onEventsLoaded?: (events: EventDefine[]) => void;   // callback when events has loaded or has changed.
 
+    // callback when kick the action to create a new content
     onAddNewContent?: (param: AddNewContentParam) => void;
+    // callback when kick the action to edit a content
     onEditContent?: (param: EditContentParam) => void;
+    // callback when kick the action to link a content with an item or a content
     onLinkUnpointedContent?: (param: LinkUnpointContentParam) => void;
 }
 

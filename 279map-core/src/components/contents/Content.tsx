@@ -23,6 +23,7 @@ import { getContents, getMapKey, isEqualId } from "../../store/data/dataUtility"
 import { getAPICallerInstance } from "../../api/ApiCaller";
 import { GetImageUrlAPI } from 'tsunagumap-api';
 import { useCommand } from "../../api/useCommand";
+import { doCommand } from "../../util/Commander";
 
 type Props = {
     itemId: DataId;
@@ -145,7 +146,10 @@ export default function Content(props: Props) {
         }
         const anotherMap = mapKind === MapKind.Real ? MapKind.Virtual : MapKind.Real;
         dispatch(operationActions.setMapKind(anotherMap));
-        dispatch(operationActions.setFocusItemId(props.content.anotherMapItemId));
+        doCommand({
+            command: 'FocusItem',
+            param: props.content.anotherMapItemId,
+        });
         // TODO:
         // searchParams.set('kind', anotherMap);
         // searchParams.set('feature', props.content.anotherMapItemId);
