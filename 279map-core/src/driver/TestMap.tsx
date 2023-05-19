@@ -1,6 +1,6 @@
 import { Auth, CategoryDefine, DataId, DataSourceKindType, FeatureType, MapKind } from '279map-common';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { CommandHookType } from '../entry';
+import { CommandHookType, ServerInfo } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
 import { DataSource, FilterDefine, OnConnectParam, OnMapLoadParam, TsunaguMapProps } from '../entry';
 import styles from './TestMap.module.scss';
@@ -11,11 +11,12 @@ import FilterCondition from './FilterCondition';
  */
 const mapId = 'test';
 const myToken = 'hogehoge';//undefined;
+const myMapServer = {
+    host: 'localhost',
+    ssl: false,
+};
+
 const props = {
-    mapServer: {
-        host: 'localhost',
-        ssl: false,
-    },
     mapId,
     iconDefine: [
         {
@@ -130,12 +131,15 @@ export default function TestMap() {
         setTimeout(() => {
             console.log('setToken', myToken);
             setToken(myToken);
-        }, 10);
+        }, 500);
     }, []);
 
-    const showMap = useMemo(() => {
-        if (!myToken) return true;
-        return token ? true : false;
+    const mapServer = useMemo((): ServerInfo => {
+        return {
+            host: myMapServer.host,
+            ssl: myMapServer.ssl,
+            token,
+        }
     }, [token]);
 
     return (
@@ -239,9 +243,8 @@ export default function TestMap() {
                 </div>
             </div>
             <div className={styles.Map}>
-                {showMap &&
-                    <TsunaguMap {...props}
-                    token={token}
+                <TsunaguMap {...props}
+                    mapServer={mapServer}
                     disabledPopup={disabledPopup}
                     disabledLabel={disabledLabel}
                     disabledContentDialog={disabledContentDialog}
@@ -255,7 +258,6 @@ export default function TestMap() {
                     // onAddNewContent={(val) => onCallback('onNewContentInfo', val)}
                     // onLinkUnpointedContent={(val) => onCallback('onLinkUnpointedContent', val)}
                     />
-                }
             </div>
         </>
     );

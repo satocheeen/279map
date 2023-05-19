@@ -17,6 +17,7 @@ import { search } from '../../store/operation/operationThunk';
 import Spinner from '../common/spinner/Spinner';
 import { useMounted } from '../../util/useMounted';
 import { MapKind } from '279map-common';
+import { useWatch } from '../../util/useWatch';
 
 /**
  * 地図コンポーネント。
@@ -39,13 +40,13 @@ export default function MapWrapper() {
 
     const dispatch = useAppDispatch();
 
-    useEffect(() => {
+    useWatch(() => {
         dispatch(sessionActions.setMapServer({
-            domain: ownerContext.mapServer.host,
+            host: ownerContext.mapServer.host,
             ssl: ownerContext.mapServer.ssl,
-            token: ownerContext.token,
+            token: ownerContext.mapServer.token,
         }));
-    }, [ownerContext.mapServer, ownerContext.token, dispatch]);
+    }, [ownerContext.mapServer]);
 
     useEffect(() => {
         onConnectRef.current = ownerContext.onConnect;
@@ -77,13 +78,12 @@ export default function MapWrapper() {
     /**
      * connect to map
      */
-    useEffect(() => {
-        if (mapServer.domain.length === 0) return;
+    useWatch(() => {
+        if (mapServer.host.length === 0) return;
 
         // connect
         dispatch(connectMap({
             mapId: ownerContext.mapId,
-            token: ownerContext.token,
         }))
         .then((res) => {
             const result = res.payload as ConnectAPIResult;
@@ -101,23 +101,19 @@ export default function MapWrapper() {
                     });
                 }
             }
+            return result;
+        })
+        .then((res) => {
+            if (res.result!== 'success') {
+                return;
+            }
+            const mapKind = res.connectResult.mapDefine.defaultMapKind;
+            return dispatch(loadMapDefine(mapKind));
         })
         .catch(err => {
             console.warn('connect error', err);
         })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [dispatch, ownerContext.mapId, ownerContext.token, mapServer]);
-
-    /**
-     * load map define when connected map.
-     */
-    useEffect(() => {
-        if (connectStatus.status !== 'connected') {
-            return;
-        }
-        const mapKind = connectStatus.connectedMap.defaultMapKind;
-        dispatch(loadMapDefine(mapKind));
-    }, [connectStatus, dispatch]);
+    }, [ownerContext.mapId, mapServer]);
 
     /**
      * load map define when mapkind has changed.

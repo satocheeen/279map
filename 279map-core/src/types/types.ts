@@ -52,8 +52,8 @@ export type TsunaguMapProps = {
     mapServer: {
         host: string;
         ssl: boolean;   // SSL通信の場合、true
+        token?: string;
     };
-    token?: string;
     iconDefine?: (DefaultIconDefine | {
         // デフォルトアイコンを指定する場合に使用
         id: 'default';
@@ -86,7 +86,7 @@ export type TsunaguMapProps = {
 }
 
 export type ServerInfo = {
-    domain: string;
+    host: string;
     ssl: boolean;
     token?: string;
 }

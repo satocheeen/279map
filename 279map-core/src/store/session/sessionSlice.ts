@@ -19,7 +19,7 @@ const sessionSlice = createSlice({
     name: 'session',
     initialState: {
         mapServer: {
-            domain: '',
+            host: '',
             ssl: false,
         } as ServerInfo,
         connectStatus: {
@@ -34,10 +34,11 @@ const sessionSlice = createSlice({
     reducers: {
         setMapServer(state, action: PayloadAction<ServerInfo>) {
             state.mapServer = action.payload;
+            state.currentMapKindInfo = undefined;
         },
         updateConnectStatus(state, action: PayloadAction<ConnectStatus>) {
             state.connectStatus = action.payload;
-        }
+        },
     },
     extraReducers: (builder) => {
         builder

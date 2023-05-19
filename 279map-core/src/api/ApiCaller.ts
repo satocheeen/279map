@@ -20,7 +20,7 @@ class ApiCaller {
     async callApi<API extends APIDefine<any, any>> (api: API, param: API['param']): Promise<API['result']> {
         try {
             const protocol = this._serverInfo.ssl ? 'https' : 'http';
-            const url = `${protocol}://${this._serverInfo.domain}/api/${api.uri}`;
+            const url = `${protocol}://${this._serverInfo.host}/api/${api.uri}`;
             const headers = {
                 'Content-Type': 'application/json',
                 Authorization:  this._serverInfo.token ? `Bearer ${this._serverInfo.token}` : '',

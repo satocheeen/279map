@@ -10,7 +10,7 @@ import { createAPICallerInstance } from "./ApiCaller";
  */
 export async function getAccessableMapList(host: string, ssl: boolean, token: string | undefined) {
     const mapServer = {
-        domain: host,
+        host: host,
         ssl,
         token,
     } as ServerInfo;
@@ -33,7 +33,7 @@ export async function getAccessableMapList(host: string, ssl: boolean, token: st
  */
 export async function getAuthConfig(host: string, ssl: boolean) {
     const mapServer = {
-        domain: host,
+        host,
         ssl,
     } as ServerInfo;
     const apiCaller = createAPICallerInstance(mapServer, () => {});

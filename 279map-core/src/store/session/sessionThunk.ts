@@ -9,7 +9,7 @@ import { ConnectAPIResult, LoadMapDefineResult } from "../../types/types";
 import { createAPICallerInstance, getAPICallerInstance } from "../../api/ApiCaller";
 import { sessionActions } from "./sessionSlice";
 
-export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; token?: string }>(
+export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; }>(
     'session/connectMapStatus',
     async(param, { getState, dispatch }) => {
         const mapServer = (getState() as RootState).session.mapServer;
@@ -31,7 +31,7 @@ export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; to
             // WebSocket接続確立
             const startWss = () => {
                 const protocol = mapServer.ssl ? 'wss' : 'ws';
-                const domain = mapServer.domain;
+                const domain = mapServer.host;
 
                 const wss = new WebSocket(protocol + "://" + domain);
                 wss.addEventListener('open', () => {
@@ -95,7 +95,7 @@ export const loadMapDefine = createAsyncThunk<LoadMapDefineResult, MapKind>(
         const mapServer = session.mapServer;
 
         try {
-            if (mapServer.domain.length === 0) {
+            if (mapServer.host.length === 0) {
                 throw 'no set mapserver';
             }
     

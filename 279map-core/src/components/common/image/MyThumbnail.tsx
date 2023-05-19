@@ -21,7 +21,6 @@ type Props = {
  */
 export default function MyThumbnail(props: Props) {
     const myRef = useRef<HTMLImageElement>(null);
-    const { token } = useContext(OwnerContext);
     const sid = useSelector((state: RootState) => {
         if (state.session.connectStatus.status !== 'connected') {
             return undefined;
@@ -44,7 +43,7 @@ export default function MyThumbnail(props: Props) {
             console.warn('get thumbnail failed.', e);
         });
 
-    }, [sid, token, props.id.id]);
+    }, [sid, props.id.id]);
 
     return (
         <img ref={myRef} className={props.className} onClick={props.onClick} alt={props.alt} />
