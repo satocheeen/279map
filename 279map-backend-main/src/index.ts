@@ -97,20 +97,6 @@ app.use(express.json({
     limit: '1mb',
 })); 
 
-// File Service proxy
-if (process.env.FS_SERVICE_URL_PATH) {
-    logger.info('setup FileService', process.env.FS_SERVICE_URL_PATH);
-    app.use(process.env.FS_SERVICE_URL_PATH, proxy(process.env.FS_SERVICE_HOST + ':' + process.env.FS_SERVICE_PORT, {
-        proxyReqPathResolver(req) {
-            let newPath = '/get' + req.path;
-            if (newPath.endsWith('/')) {
-                newPath = newPath.substring(0, newPath.length - 1);
-            }
-            return newPath;
-        },
-    }));
-}
-
 // DBコネクションプーリング
 logger.debug('DbSetting', DbSetting);
 export const ConnectionPool = mysql.createPool(DbSetting);
