@@ -1,9 +1,10 @@
 import { ConnectionPool } from '.';
-import { DataId } from "279map-common";
+import { DataId, MapKind } from "279map-common";
 import { CurrentMap, schema } from "279map-backend-common";
 import { getAncestorItemId } from "./util/utility";
 import { GetContentsParam, GetContentsResult } from '../279map-api-interface/src';
 import { ContentsDefine } from '279map-common';
+import { PoolConnection } from 'mysql2/promise';
 
 type ContentsDatasourceRecord = schema.ContentsTable & schema.DataSourceTable;
 
@@ -20,23 +21,19 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
         const convertRecord = async(row: ContentsDatasourceRecord, itemId: DataId): Promise<ContentsDefine> => {
             const contents = row.contents ? row.contents as schema.ContentsInfo: undefined;
             let isSnsContent = false;
-            let addableChild = true;
-            let readonly = row.readonly;
             if (row.supplement) {
                 // SNSコンテンツの場合
                 isSnsContent = true;
-                addableChild = false;
             }
-            if (row.readonly) {
-                // データソースが編集不可の場合
-                readonly = true;
-                addableChild = false;
-            }
+            const id = {
+                id: row.content_page_id,
+                dataSourceId: row.data_source_id,
+            };
+            const anotherMapItemIds = await getAnotherMapKindItemsUsingTheContent(con, id, currentMap);
+            const usingAnotherMap = anotherMapItemIds.length > 0 ? true : await checkUsingAnotherMap(con, id, currentMap.mapId);
+
             return {
-                id: {
-                    id: row.content_page_id,
-                    dataSourceId: row.data_source_id,
-                },
+                id,
                 itemId,
                 title: row.title ?? '',
                 date: row.date,
@@ -49,8 +46,8 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                     id: row.parent_id,
                     dataSourceId: row.parent_datasource_id,
                 } : undefined,
-                usingAnotherMap: false, // TODO:
-                anotherMapItemId: undefined,// TODO:  // 複数存在する場合は１つだけ返す
+                usingAnotherMap,
+                anotherMapItemId: anotherMapItemIds.length > 0 ? anotherMapItemIds[0] : undefined,  // 複数存在する場合は１つだけ返す
                 isSnsContent,
             };
         }
@@ -124,4 +121,49 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
         await con.commit();
         con.release();
     }
+}
+
+/**
+ * 指定のコンテンツが、もう片方の地図に存在する場合に、そのItemIDを返す
+ * @param con 
+ * @param contentId 
+ * @param currentMap 
+ * @returns 
+ */
+async function getAnotherMapKindItemsUsingTheContent(con: PoolConnection, contentId: DataId, currentMap: CurrentMap): Promise<DataId[]> {
+    // もう片方の地図に存在するかチェック
+    const sql = `
+    select icl.* from item_content_link icl 
+    inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id 
+    inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
+    where icl.content_page_id = ? and icl.content_datasource_id  = ?
+    and mdl.map_page_id = ? and i.map_kind = ?
+    `;
+    const anotherMapKind = currentMap.mapKind === MapKind.Virtual ? MapKind.Real : MapKind.Virtual;
+    const [rows] = await con.execute(sql, [contentId.id, contentId.dataSourceId, currentMap.mapId, anotherMapKind]);
+
+    return (rows as schema.ItemContentLink[]).map((row): DataId => {
+        return {
+            id: row.item_page_id,
+            dataSourceId: row.item_datasource_id,
+        }
+    });
+}
+
+/**
+ * 指定のコンテンツが他の地図で使用されているかチェック
+ * @param con 
+ * @param contentId 
+ * @param mapId 
+ */
+async function checkUsingAnotherMap(con: PoolConnection, contentId: DataId, mapId: string): Promise<boolean> {
+    const sql = `
+    select icl.* from item_content_link icl 
+    inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id 
+    inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
+    where icl.content_page_id = ? and icl.content_datasource_id  = ?
+    and mdl.map_page_id <> ?
+    `;
+    const [rows] = await con.execute(sql, [contentId.id, contentId.dataSourceId, mapId]);
+    return (rows as []).length > 0;
 }
