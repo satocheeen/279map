@@ -21,3 +21,9 @@ export function colorWithAlpha(color: string, alpha: number) {
     const [r, g, b] = Array.from(olColor.asArray(color));
     return olColor.asString([r, g, b, alpha]);
 }
+
+export const sleep = (sec: number) => new Promise<void>((resolve) => {
+    setTimeout(() => {
+        resolve();
+    }, sec * 1000);
+});

@@ -127,7 +127,7 @@ export default function MapWrapper() {
             if (currentMapKindInfo?.mapKind === mapKind) {
                 return;
             }
-            dispatch(loadMapDefine(mapKind));
+            await dispatch(loadMapDefine(mapKind));
         });
 
         return () => {

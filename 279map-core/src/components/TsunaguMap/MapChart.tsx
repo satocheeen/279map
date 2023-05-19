@@ -23,6 +23,8 @@ import { OwnerContext } from "./TsunaguMap";
 import { OlMapType, createMapInstance } from "./OlMapWrapper";
 import { useMounted } from "../../util/useMounted";
 import { useWatch } from "../../util/useWatch";
+import { Geometry } from "ol/geom";
+import { sleep } from "../../util/CommonUtility";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
@@ -136,19 +138,30 @@ export default function MapChart() {
     /**
      * 指定のitemにfitさせる
      */
-    const focusItem = useCallback((itemId: DataId) => {
+    const focusItem = useCallback(async(itemId: DataId) => {
         if (!mapRef.current) {
             return;
         }
-        // TODO: 地図の切り替え中の場合は、切り替え完了するまで待つ
-    //     if (operationMapKind && mapKind !== operationMapKind) {
-    //         // 地図の切り替え完了していない場合
-    //         return;
-    //     }
 
-        const itemFeature = mapRef.current.getFeatureById(itemId);
+        const map = mapRef.current;
+        const getFeatureFunc = async() => {
+            let itemFeature: undefined | Feature<Geometry>;
+            let retryCnt = 0;
+            do {
+                itemFeature = map.getFeatureById(itemId);
+                if (!itemFeature) {
+                    // アイテムが存在しない場合は、データロード中の可能性があるので、しばらく待ってからリトライ
+                    retryCnt++;
+                    await sleep(0.5);
+                } else {
+                    return itemFeature;
+                }
+            } while(itemFeature === undefined && retryCnt < 5);
+            return itemFeature;
+        };
+        const itemFeature = await getFeatureFunc();
         if (!itemFeature) {
-            // TODO: アイテムが存在しない場合は、データロード中の可能性があるので、しばらく待ってからリトライ
+            console.warn('focusItem target not found', itemId);
             return;
         }
 
