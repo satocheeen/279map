@@ -11,6 +11,7 @@ import { MapMode } from "../../types/types";
 import { getMapKey, isEqualId } from "../../store/data/dataUtility";
 import MyThumbnail from "../common/image/MyThumbnail";
 import { BsThreeDots } from 'react-icons/bs';
+import { usePopup } from "./usePopup";
 
 type Props = {
     // このポップアップにて情報表示する対象アイテム
@@ -71,12 +72,16 @@ export default function PointsPopup(props: Props) {
         return ownImageInfos[0];
     }, [props.itemIds, itemMap, filteredItemIdList, isFiltered]);
 
+    const { popupMode } = usePopup();
+
     // 表示する画像URL
     const imageContentId = useMemo((): DataId | null => {
         if (!target) return null;
+        if (popupMode !== 'maximum') return null;
 
         const getImageOwnerContentId = (content: ItemContentInfo) : DataId | undefined => {
-            if ((filteredContents === undefined || filteredContents?.some(filteredId => isEqualId(filteredId, content.id))) && content.hasImage) {
+            const isVisible = !filteredContents || filteredContents.some(filteredId => isEqualId(filteredId, content.id));
+            if (isVisible && content.hasImage) {
                 return content.id;
             }
             let id: DataId | undefined;
@@ -101,7 +106,7 @@ export default function PointsPopup(props: Props) {
         }
         return imageContentId;
 
-    }, [target, filteredContents]);
+    }, [target, filteredContents, popupMode]);
 
     // このアイテムの中に含まれるコンテンツの総数
     const contentsNum = useMemo(() => {

@@ -1,17 +1,16 @@
 import { Overlay } from 'ol';
-import React, { useEffect, useRef, useMemo, useContext, useCallback, useState } from 'react';
+import React, { useEffect, useRef, useMemo, useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
 import PointsPopup from './PointsPopup';
 import { getCenter } from 'geolib';
-import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import VectorSource from 'ol/source/Vector';
 import { getMapKey } from '../../store/data/dataUtility';
 import { LayerType } from '../TsunaguMap/VectorLayerMap';
 import PopupContainerCalculator, { PopupGroupWithPosition } from './PopupContainerCalculator';
 import { useMap } from '../map/useMap';
-import { TsunaguMapProps } from '../../entry';
 import { useWatch } from '../../util/useWatch';
+import { usePopup } from './usePopup';
 
 function createKeyFromPopupInfo(param: PopupGroupWithPosition): string {
     if (!param) {
@@ -25,17 +24,9 @@ export default function PopupContainer() {
 
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
 
-    const ownerContext = useContext(OwnerContext);
-
+    const { popupMode } = usePopup();
+    
     const { map } = useMap();
-
-    const popupMode = useMemo((): TsunaguMapProps['popupMode'] => {
-        if (!ownerContext.popupMode) {
-            return 'maximum';
-        }
-        // TODO: 地図に対してオプション指定されている場合は、そちらを採用する
-        return ownerContext.popupMode;
-    }, [ownerContext.popupMode]);
 
     // コンテンツを持つアイテムID一覧
     const hasContentsItemIdList = useMemo(() => {
