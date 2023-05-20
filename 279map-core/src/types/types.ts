@@ -59,7 +59,13 @@ export type TsunaguMapProps = {
         id: 'default';
         useMaps: MapKind[];
     })[];
-    disabledPopup?: boolean; // when true, the map don't show popup.
+    /**
+     * ポップアップ表示モード
+     * - hidden: ポップアップ表示しない
+     * - minimum: 小さなポップアップを表示する
+     * - maximum: 大きいポップアップ（画像表示）を表示する（デフォルト）
+     */
+    popupMode?: 'hidden' | 'minimum' | 'maximum';
     disabledLabel?: boolean; // when true, the item's label hidden.
     disabledContentDialog?: boolean;    // when true, the content dialog didn't show even if you click a item.
 

@@ -10,6 +10,8 @@ import { getMapKey } from '../../store/data/dataUtility';
 import { LayerType } from '../TsunaguMap/VectorLayerMap';
 import PopupContainerCalculator, { PopupGroupWithPosition } from './PopupContainerCalculator';
 import { useMap } from '../map/useMap';
+import { TsunaguMapProps } from '../../entry';
+import { useWatch } from '../../util/useWatch';
 
 function createKeyFromPopupInfo(param: PopupGroupWithPosition): string {
     if (!param) {
@@ -27,14 +29,22 @@ export default function PopupContainer() {
 
     const { map } = useMap();
 
+    const popupMode = useMemo((): TsunaguMapProps['popupMode'] => {
+        if (!ownerContext.popupMode) {
+            return 'maximum';
+        }
+        // TODO: 地図に対してオプション指定されている場合は、そちらを採用する
+        return ownerContext.popupMode;
+    }, [ownerContext.popupMode]);
+
     // コンテンツを持つアイテムID一覧
     const hasContentsItemIdList = useMemo(() => {
-        if (ownerContext.disabledPopup) {
+        if (popupMode === 'hidden') {
             return [];
         }
         const list = Object.values(itemMap).filter(item => item.contents.length>0).map(item => item.id);
         return list;
-    }, [itemMap, ownerContext.disabledPopup]);
+    }, [itemMap, popupMode]);
 
     // 表示するポップアップ情報群
     const [popupGroups, setPopupGroups] = useState<PopupGroupWithPosition[]>([]);
@@ -82,6 +92,13 @@ export default function PopupContainer() {
         }
 
     }, [map, updatePopupGroups]);
+
+    /**
+     * コンテンツ保持アイテムが変わったら、ポップアップ情報更新
+     */
+    useWatch(() => {
+        updatePopupGroups();
+    }, [hasContentsItemIdList]);
 
     // 開閉時に、zIndexを最前面に
     useEffect(() => {

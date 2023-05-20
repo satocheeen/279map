@@ -64,7 +64,7 @@ export default function TestMap() {
     const [ mapKind, setMapKind ] = useState(MapKind.Real);
 
     // switch popup
-    const [ disabledPopup, setDisablePopup ] = useState(false);
+    const [ popupMode, setPopupMode ] = useState<TsunaguMapProps['popupMode']>('maximum');
 
     const [ disabledLabel, setDisableLabel ] = useState(false);
 
@@ -157,9 +157,16 @@ export default function TestMap() {
                             <input type="radio" checked={mapKind===MapKind.Virtual} onChange={() => switchMapKind(MapKind.Virtual)} />
                         </label>
                     </div>
-                    <PropRadio name='Popup' label={['enabled', 'disabled']} value={disabledPopup} onChange={setDisablePopup} />
-                    <PropRadio name='Label' label={['enabled', 'disabled']} value={disabledLabel} onChange={setDisableLabel} />
-                    <PropRadio name='ContentDialog' label={['enabled', 'disabled']} value={disabledContentDialog} onChange={setDisableContentDialog} />
+                    <PropRadio name='Popup'
+                        items={[{ label: 'hidden', value: 'hidden' }, {label: 'minimum', value: 'minimum' }, { label: 'maximum', value: 'maximum' }]}
+                        default='maximum'
+                        onChange={setPopupMode} />
+                    <PropRadio name='Label'
+                        items={[{ label: 'enabled', value: true }, { label: 'disabled', value: false }]}
+                        onChange={setDisableLabel} />
+                    <PropRadio name='ContentDialog'
+                        items={[{ label: 'enabled', value: true }, { label: 'disabled', value: false }]}
+                        onChange={setDisableContentDialog} />
                 </div>
                 <div className={styles.Col}>
                     <div className={styles.PropName}>データソース</div>
@@ -245,7 +252,7 @@ export default function TestMap() {
             <div className={styles.Map}>
                 <TsunaguMap {...props}
                     mapServer={mapServer}
-                    disabledPopup={disabledPopup}
+                    popupMode={popupMode}
                     disabledLabel={disabledLabel}
                     disabledContentDialog={disabledContentDialog}
                     filter={filter}
@@ -263,24 +270,33 @@ export default function TestMap() {
     );
 }
 
-type PropRadioProps = {
+type PropRadioProps<T> = {
     name: string;
-    value: boolean;
-    onChange: (val: boolean) => void;
-    label: [string, string];
+    onChange: (val: T) => void;
+    items: {
+        label: string;
+        value: T;
+    }[];
+    default?: T;
 }
-function PropRadio(props: PropRadioProps) {
+function PropRadio<T>(props: PropRadioProps<T>) {
+    const [ value, setValue ] = useState<T>(props.default ?? props.items[0].value);
+    const onChange = useCallback((val: T) => {
+        setValue(val);
+        props.onChange(val);
+    }, [props]);
+
     return (
         <div className={styles.Row}>
             <span className={styles.PropName}>{props.name}</span>
-            <label>
-                <input type="radio" checked={!props.value} onChange={() => props.onChange(false)} />
-                {props.label[0]}
-            </label>
-            <label>
-                <input type="radio" checked={props.value} onChange={() => props.onChange(true)} />
-                {props.label[1]}
-            </label>
+            {props.items.map((item, index) => {
+                return (
+                    <label key={index}>
+                        <input type="radio" checked={item.value === value} onChange={() => onChange(item.value)} />
+                        {item.label}
+                    </label>
+                );
+            })}
         </div>
     )
 }

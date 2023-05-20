@@ -7,7 +7,7 @@
 | mapId | string | * | Sets the connecting mapId or mapAlias |
 | mapServerHost | string | * | Sets the map server host |
 | iconDefine | [IconDefine](#icondefine)[] |  | Sets the icons defines using in the map.  If not set, a simple pin icon is used. |
-| disabledPopup | boolean | | Sets the `true` if you want not to show popup on the map |
+| popupMode | 'hidden' 'minimum' 'maximum' | | default is 'maximum' |
 | filter | FilterDefine[] | | Sets filter conditions, filter items on the map |
 | onConnect | (result: [MapDefine](#mapdefined), command: [Command](#command)) => void | | Callback fired when connecting map success |
 | onSelect | (selectedIds: string[]) => void | | Callback fired when the pins selected |
