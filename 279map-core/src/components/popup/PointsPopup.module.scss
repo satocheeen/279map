@@ -8,8 +8,8 @@ $radius: 5px;
     border: 1px solid white;
     bottom: 12px;
     left: -50px;
-    min-width: 300px;
-    max-width: 90vw;
+    // min-width: 200px;
+    // max-width: 200px;
     user-select: none;
     justify-content: center;
     align-items: center;
@@ -57,7 +57,7 @@ $radius: 5px;
     display: flex;
     // min-width: 300px;
     min-height: 30px;
-    max-height: calc(50vh - $radius * 2);
+    // max-height: calc(50vh - $radius * 2);
     overflow-y: auto;
     overflow-x: hidden;
 }
@@ -71,9 +71,12 @@ $radius: 5px;
     background: #fff;
 }
 .ImageContainer {
-    width: 300px;
+    width: 200px;
     position: relative;
     overflow: hidden;
+}
+.Image {
+    width: 100%;
 }
 .ThreeDots {
     display: flex;
