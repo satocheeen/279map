@@ -1,12 +1,14 @@
-import React, { useMemo, useCallback, useEffect, useState } from 'react';
-import { useAppDispatch } from '../../../store/configureStore';
+import React, { useMemo, useCallback, useState } from 'react';
+import { RootState, useAppDispatch } from '../../../store/configureStore';
 import { Modal } from '../../common';
 import ContentCard from './ContentCard';
 import { loadContents } from '../../../store/data/dataThunk';
 import styles from './SelectContentDialog.module.scss';
 import { useContents } from '../../../store/useContents';
-import { DataId } from '279map-common';
-import { getMapKey } from '../../../store/data/dataUtility';
+import { ContentsDefine, DataId } from '279map-common';
+import { getMapKey, isEqualId } from '../../../store/data/dataUtility';
+import { useWatch } from '../../../util/useWatch';
+import { useSelector } from 'react-redux';
 
 type Props = {
     itemIds: DataId[];
@@ -27,12 +29,14 @@ export default function SelectContentDialog(props: Props) {
             Array.prototype.push.apply(idList, descendants);
         });
 
-        console.log('contenIds', idList);
         return idList;
 
     }, [props.itemIds, getDescendantContentsIdList]);
 
-    useEffect(() => {
+    /**
+     * 対象コンテンツをロードする
+     */
+    useWatch(() => {
         dispatch(loadContents({
             targets: contentIds.map(id => {
                 return {
@@ -40,7 +44,17 @@ export default function SelectContentDialog(props: Props) {
                 }
             }),
         }));
-    }, [contentIds, dispatch]);
+    }, [contentIds]);
+
+    const contentsList = useSelector((state: RootState) => state.data.contentsList);
+    const contents = useMemo(() => {
+        const list = contentIds.map(id => {
+            return contentsList.find((content) => isEqualId(content.id, id));
+        }).filter(content => content !== undefined) as ContentsDefine[];
+        return list.sort((a, b) => {
+            return (a.date ?? '').localeCompare(b.date ?? '');
+        })
+    }, [contentIds, contentsList]);
 
     const onCancel = useCallback(() => {
         setShow(false);
@@ -53,10 +67,10 @@ export default function SelectContentDialog(props: Props) {
             <Modal.Body>
                 <div className={styles.Body}>
                     <ul>
-                        {contentIds.map(id => {
+                        {contents.map(content => {
                             return (
-                                <li key={getMapKey(id)}>
-                                    <ContentCard contentId={id} />
+                                <li key={getMapKey(content.id)}>
+                                    <ContentCard content={content} />
                                 </li>
                             )
                         })}

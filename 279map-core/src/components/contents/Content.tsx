@@ -15,7 +15,6 @@ import PopupMenuIcon from "../popup/PopupMenuIcon";
 import AddContentMenu from "../popup/AddContentMenu";
 import { Auth, ContentAttr, ContentsDefine, DataId, DataSourceKindType, MapKind } from "279map-common";
 import Spinner from "../common/spinner/Spinner";
-import { operationActions } from "../../store/operation/operationSlice";
 import { useFilter } from "../../store/useFilter";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
@@ -173,10 +172,9 @@ export default function Content(props: Props) {
         }
     }, [props.content.id]);
 
-    const mapServer = useSelector((state: RootState) => state.session.mapServer);
     const onEdit = useCallback(async() => {
         // 編集対象コンテンツをロード
-        const contents = (await getContents(mapServer, [{
+        const contents = (await getContents([{
             contentId: props.content.id,
         }]));
         if (!contents || contents?.length === 0) {
@@ -203,7 +201,7 @@ export default function Content(props: Props) {
             getSnsPreviewAPI,
             updateContentAPI,
         })
-    }, [props.content, onEditContent, getSnsPreviewAPI, updateContentAPI, mapServer]);
+    }, [props.content, onEditContent, getSnsPreviewAPI, updateContentAPI]);
 
     const editableAuthLv = useSelector((state: RootState) => {
         if (state.session.connectStatus.status !== 'connected') {

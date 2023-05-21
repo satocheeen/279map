@@ -3,29 +3,25 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/configureStore';
 import { doCommand } from '../../../util/Commander';
 import Card from '../../common/card/Card';
-import { DataId } from '279map-common';
+import { ContentsDefine, DataId } from '279map-common';
 import { isEqualId } from '../../../store/data/dataUtility';
 import dayjs from 'dayjs';
 
 type Props = {
-    contentId: DataId;
+    content: ContentsDefine;
 }
 
 export default function ContentCard(props: Props) {
     const contentsList = useSelector((state: RootState) => state.data.contentsList);
 
-    const content = useMemo(() => {
-        return contentsList.find((item) => isEqualId(item.id, props.contentId));
-    }, [contentsList, props.contentId]);
-
    const imageContentId = useMemo(() => {
-        if (!content?.image) return undefined;
-        return props.contentId;
+        if (!props.content?.image) return undefined;
+        return props.content.id;
 
-    }, [props.contentId, content]);
+    }, [props.content]);
 
     const breadcrumb = useMemo(() => {
-        if (!content?.parentId) return undefined;
+        if (!props.content?.parentId) return undefined;
         const getAncestor = (parentId: DataId): string[] => {
             const parent = contentsList.find(c => isEqualId(c.id, parentId));
             if (!parent) return [];
@@ -38,25 +34,24 @@ export default function ContentCard(props: Props) {
                 return [parent.title];
             }
         };
-        return getAncestor(content.parentId);
+        return getAncestor(props.content.parentId);
 
-    }, [content, contentsList]);
+    }, [props.content, contentsList]);
 
     const overview = useMemo(() => {
-        if(!content?.date) return undefined;
-        return dayjs(content.date).format('YYYY/MM/DD HH:mm');
-    }, [content]);
+        if(!props.content?.date) return undefined;
+        return dayjs(props.content.date).format('YYYY/MM/DD HH:mm');
+    }, [props.content]);
 
     const onClick = useCallback(() => {
         doCommand({
             command: 'ShowContentInfo',
-            param: props.contentId,
+            param: props.content.id,
         })
-    }, [props.contentId]);
+    }, [props.content]);
 
-    if (!content) return null;
     return (
-        <Card title={content.title} breadcrumb={breadcrumb} overview={overview}
+        <Card title={props.content.title} breadcrumb={breadcrumb} overview={overview}
          imageId={imageContentId} onClick={onClick} />
     );
 }

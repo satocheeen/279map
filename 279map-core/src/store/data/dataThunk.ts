@@ -1,7 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import { getContents } from './dataUtility';
 import { CategoryDefine, ContentsDefine, EventDefine, ItemDefine } from '279map-common';
-import { RootState } from '../configureStore';
 import { GetCategoryAPI, GetContentsParam, GetEventsAPI, GetItemsAPI, GetItemsParam, GetOriginalIconDefineAPI, GetOriginalIconDefineResult, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from 'tsunagumap-api';
 import { getAPICallerInstance } from '../../api/ApiCaller';
 
@@ -73,10 +72,9 @@ type LoadContentsResult = {
 }
 export const loadContents = createAsyncThunk<LoadContentsResult, LoadContentsParam>(
     'data/loadContentsStatus',
-    async(param, { rejectWithValue, getState }) => {
+    async(param, { rejectWithValue }) => {
         try {
-            const mapServer = (getState() as RootState).session.mapServer;
-            const result = await getContents(mapServer, param.targets);
+            const result = await getContents(param.targets);
             return {
                 contents: result,
                 keepCurrentData: param.keepCurrentData,

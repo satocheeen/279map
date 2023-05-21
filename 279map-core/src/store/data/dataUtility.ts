@@ -1,6 +1,5 @@
 import { GetContentsAPI, GetContentsParam } from "tsunagumap-api";
 import { ContentsDefine, DataId } from "279map-common";
-import { ServerInfo } from "../../types/types";
 import { getAPICallerInstance } from "../../api/ApiCaller";
 
 export function getMapKey(id: DataId): string {
@@ -21,7 +20,7 @@ export function isEqualId(id1: DataId, id2: DataId): boolean {
     return id1.id === id2.id && id1.dataSourceId === id2.dataSourceId;
 }
 
-export async function getContents(mapServer: ServerInfo, param: GetContentsParam): Promise<ContentsDefine[]> {
+export async function getContents(param: GetContentsParam): Promise<ContentsDefine[]> {
     try {
         // 重複する内容は除去する
         const itemIdSet = new Set<string>();

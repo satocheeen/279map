@@ -117,15 +117,20 @@ export default function ContentsModal() {
     const contents = useSelector((state: RootState): ContentsDefine[] => {
         if (!target) return [];
 
+        let list: ContentsDefine[];
         if (target.type === 'item') {
             const item = state.data.itemMap[getMapKey(target.itemId)];
             if (!item) return [];
             if (item.contents.length === 0) return [];
             // const contentId = item.contents.id;
-            return state.data.contentsList.filter(cn => item.contents.some(ic => isEqualId(ic.id, cn.id)));
+            list = state.data.contentsList.filter(cn => item.contents.some(ic => isEqualId(ic.id, cn.id)));
         } else {
-            return state.data.contentsList.filter(c => isEqualId(c.id, target.contentId));
+            list = state.data.contentsList.filter(c => isEqualId(c.id, target.contentId));
         }
+        return list.sort((a, b) => {
+            // 日時順にソート
+            return (a.date ?? '').localeCompare(b.date ?? '');
+        });
     })
 
     const onCloseBtnClicked = useCallback(() => {

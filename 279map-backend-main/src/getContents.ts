@@ -36,7 +36,7 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                 id,
                 itemId,
                 title: row.title ?? '',
-                date: row.date,
+                date: row.date as string,
                 category: row.category ? row.category as string[] : [],
                 image: row.thumbnail ? true : undefined,
                 videoUrl: contents?.videoUrl,
