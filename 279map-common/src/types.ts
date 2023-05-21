@@ -132,7 +132,7 @@ export type ItemDefine = {
 export type ContentsDefine = {
     id: DataId;
     itemId: DataId;
-    date?: Date;
+    date?: string;
     url?: string;
     title: string;
     overview?: string;
