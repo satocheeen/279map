@@ -78,7 +78,7 @@ export type ContentsTable = {
     contents?: string | ContentsInfo;   // 登録時はstring。取得時はContentsInfo
     thumbnail?: string;
     category?: string | string[];   // 登録時はstring。取得時はCategory文字配列
-    date?: Date;
+    date?: Date | string;   // 登録時はDate。取得時はstring
     supplement?: string | SnsOptions;      // 登録時はstring、取得時はSnsOptions
     last_edited_time: string;
 }
