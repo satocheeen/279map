@@ -5,6 +5,7 @@ import { doCommand } from '../../../util/Commander';
 import Card from '../../common/card/Card';
 import { DataId } from '279map-common';
 import { isEqualId } from '../../../store/data/dataUtility';
+import dayjs from 'dayjs';
 
 type Props = {
     contentId: DataId;
@@ -41,6 +42,11 @@ export default function ContentCard(props: Props) {
 
     }, [content, contentsList]);
 
+    const overview = useMemo(() => {
+        if(!content?.date) return undefined;
+        return dayjs(content.date).format('YYYY/MM/DD HH:mm');
+    }, [content]);
+
     const onClick = useCallback(() => {
         doCommand({
             command: 'ShowContentInfo',
@@ -50,6 +56,7 @@ export default function ContentCard(props: Props) {
 
     if (!content) return null;
     return (
-        <Card title={content.title} breadcrumb={breadcrumb} imageId={imageContentId} onClick={onClick} />
+        <Card title={content.title} breadcrumb={breadcrumb} overview={overview}
+         imageId={imageContentId} onClick={onClick} />
     );
 }
