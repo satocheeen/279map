@@ -23,7 +23,7 @@ type Target = {
 export default function ContentsModal() {
     const [show, setShow] = useState(false);
     const dispatch = useAppDispatch();
-    const [loadied, setLoaded] = useState(false);
+    const [loaded, setLoaded] = useState(false);
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
     const selectedItemIds = useSelector((state: RootState) => state.operation.selectedItemIds);
     const { disabledContentDialog } = useContext(OwnerContext);
@@ -124,7 +124,7 @@ export default function ContentsModal() {
             // const contentId = item.contents.id;
             return state.data.contentsList.filter(cn => item.contents.some(ic => isEqualId(ic.id, cn.id)));
         } else {
-            return state.data.contentsList.filter(c => c.id === target.contentId);
+            return state.data.contentsList.filter(c => isEqualId(c.id, target.contentId));
         }
     })
 
@@ -142,7 +142,7 @@ export default function ContentsModal() {
     }
 
     return (
-        <Modal show={show} spinner={!loadied}
+        <Modal show={show} spinner={!loaded}
             onCloseBtnClicked={onCloseBtnClicked}
             onClosed={onClosed}
             >
