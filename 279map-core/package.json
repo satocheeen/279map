@@ -1,6 +1,6 @@
 {
   "name": "279map-core",
-  "version": "0.10.8",
+  "version": "0.10.9",
   "description": "the core of 279map frontend",
   "author": "Satocheeen (https://satocheeen.com)",
   "license": "MPL-2.0",
@@ -50,7 +50,7 @@
     "@types/proj4": "^2.5.2",
     "@types/react": "^18.0.9",
     "@types/react-toggle": "^4.0.3",
-    "279map-common": "^0.7.2",
+    "279map-common": "^0.7.3",
     "dayjs": "^1.11.6",
     "geojson": "^0.5.0",
     "geolib": "^3.3.3",
