@@ -152,7 +152,7 @@ export type CategoryDefine = {
     content_ids: DataId[];  // このカテゴリのコンテンツ一覧（将来、廃止予定）
 }
 export type EventDefine = {
-    date: Date;
+    date: string;
     item_id: DataId;
     content_id: DataId;
 }
