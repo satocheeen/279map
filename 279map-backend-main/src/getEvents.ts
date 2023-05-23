@@ -29,7 +29,7 @@ export async function getEvents(currentMap: CurrentMap): Promise<GetEventsResult
             if (itemList) {
                 itemList.forEach(item => {
                     events.push({
-                        date: row.date as Date,
+                        date: row.date as string,
                         item_id: {
                             id: item.item_page_id,
                             dataSourceId: item.data_source_id,
