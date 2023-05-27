@@ -90,7 +90,6 @@ export default function ContentsModal() {
                         itemId: target.itemId,
                     }
                 ],
-                keepCurrentData: true,
             })).finally(() => {
                 setLoaded(true);
             });
@@ -105,7 +104,6 @@ export default function ContentsModal() {
                         contentId: target.contentId,
                     }
                 ],
-                keepCurrentData: true,
             })).finally(() => {
                 setLoaded(true);
             });

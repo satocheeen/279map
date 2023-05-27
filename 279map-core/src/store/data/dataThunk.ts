@@ -64,11 +64,9 @@ export const loadItems = createAsyncThunk<ItemDefine[], GetItemsParam>(
 )
 type LoadContentsParam = {
     targets: GetContentsParam;
-    keepCurrentData?: boolean;     // trueの場合、ストア内の既存コンテンツをそのまま残す
 }
 type LoadContentsResult = {
     contents: ContentsDefine[];
-    keepCurrentData?: boolean;     // trueの場合、ストア内の既存コンテンツをそのまま残す
 }
 export const loadContents = createAsyncThunk<LoadContentsResult, LoadContentsParam>(
     'data/loadContentsStatus',
@@ -77,7 +75,6 @@ export const loadContents = createAsyncThunk<LoadContentsResult, LoadContentsPar
             const result = await getContents(param.targets);
             return {
                 contents: result,
-                keepCurrentData: param.keepCurrentData,
             };
     
         } catch (e) {
@@ -168,7 +165,6 @@ export const updateContent = createAsyncThunk<void, UpdateContentParam>(
                 targets: [{
                     contentId: param.id,
                 }],
-                keepCurrentData: true,
             }));
     
         } catch(e) {
@@ -189,7 +185,6 @@ export const removeContent = createAsyncThunk<RemoveContentParam, RemoveContentP
                     targets: [{
                         contentId: param.parentContentId,
                     }],
-                    keepCurrentData: true,
                 }));
             }
 

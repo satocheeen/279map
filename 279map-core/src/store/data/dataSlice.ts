@@ -100,25 +100,19 @@ const dataSlice = createSlice({
             state.itemMap = itemMap;
         })
         .addCase(loadContents.fulfilled, (state, action) => {
-            if (action.payload.keepCurrentData) {
-                // 既存コンテンツを残す
-                const replaceData = state.contentsList.map(content => {
-                    const newContent = action.payload.contents.find(c => isEqualId(c.id, content.id));
-                    if (newContent) {
-                        return newContent;
-                    } else {
-                        return content;
-                    }
-                });
-                const newData = action.payload.contents.filter(content => {
-                    const exist = state.contentsList.some(c => isEqualId(c.id, content.id));
-                    return !exist;
-                });
-                state.contentsList = replaceData.concat(newData);
-            } else {
-                // 既存コンテンツを残さない
-                state.contentsList = action.payload.contents;
+            // 既存コンテンツの中に新しく取得したものが存在する場合は除去する
+            let newContentsList = state.contentsList.filter(content => {
+                return !action.payload.contents.some(newContent => isEqualId(newContent.id, content.id));
+            });
+
+            // 末尾に追加
+            newContentsList = newContentsList.concat(action.payload.contents);
+
+            // 50件以上存在する場合は、メモリ節約のため過去に保持したものは除去する
+            if (newContentsList.length > 50) {
+                newContentsList = newContentsList.slice(newContentsList.length - 50);
             }
+            state.contentsList = newContentsList;
         })
         .addCase(removeContent.fulfilled, (state, action) => {
             // 削除されたコンテンツはコンテンツ一覧から除去する
