@@ -1,8 +1,9 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
-import { getContents } from './dataUtility';
-import { CategoryDefine, ContentsDefine, EventDefine, ItemDefine } from '279map-common';
+import { getContents, isEqualId } from './dataUtility';
+import { CategoryDefine, ContentsDefine, DataId, EventDefine, ItemDefine } from '279map-common';
 import { GetCategoryAPI, GetContentsParam, GetEventsAPI, GetItemsAPI, GetItemsParam, GetOriginalIconDefineAPI, GetOriginalIconDefineResult, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from 'tsunagumap-api';
 import { getAPICallerInstance } from '../../api/ApiCaller';
+import { RootState } from '../configureStore';
 
 export const loadOriginalIconDefine = createAsyncThunk<GetOriginalIconDefineResult>(
     'data/loadOriginalIconDefineStatus',
@@ -62,20 +63,46 @@ export const loadItems = createAsyncThunk<ItemDefine[], GetItemsParam>(
         }
     }
 )
-type LoadContentsParam = {
+export type LoadContentsParam = {
     targets: GetContentsParam;
+    usingMemory?: boolean;   // trueの場合、targets内のコンテンツで、既にメモリ上に存在するものについてはサーバから再取得しない。
 }
-type LoadContentsResult = {
+export type LoadContentsResult = {
     contents: ContentsDefine[];
 }
 export const loadContents = createAsyncThunk<LoadContentsResult, LoadContentsParam>(
     'data/loadContentsStatus',
-    async(param, { rejectWithValue }) => {
+    async(param, { getState, rejectWithValue }) => {
         try {
-            const result = await getContents(param.targets);
-            return {
-                contents: result,
-            };
+            if (param.usingMemory) {
+                // 既に存在するものは取得しない
+                const currentContentsList = (getState() as RootState).data.contentsList;
+
+                const existContentIds: DataId[] = [];
+                const targets = param.targets.filter(target => {
+                    if (!('contentId' in target)) return true;
+                    const exist = currentContentsList.some(c => isEqualId(c.id, target.contentId));
+                    // 既に存在するコンテンツのidを控えておく
+                    existContentIds.push(target.contentId);
+                    return !exist;
+                });
+
+                const result = await getContents(targets);
+
+                // 既に存在するものをマージして返す
+                const existContents = currentContentsList.filter(content => {
+                    return existContentIds.some(ec => isEqualId(ec, content.id));
+                });
+                return {
+                    contents: existContents.concat(result)
+                }
+
+            } else {
+                const result = await getContents(param.targets);
+                return {
+                    contents: result,
+                };
+            }
     
         } catch (e) {
             console.warn('loadContents error', e);

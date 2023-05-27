@@ -143,7 +143,6 @@ export type GetContentsParam = ({
     itemId: DataId;
 } | {
     contentId: DataId;
-    notContainChildren?: boolean;   // trueの場合、子孫は返さない
 })[];
 
 export type GetContentsResult = {

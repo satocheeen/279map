@@ -1,9 +1,8 @@
 import { useCallback } from 'react';
 import { useAppDispatch } from "../store/configureStore";
 import { DataId, FeatureType, MapKind, UnpointContent } from '279map-common';
-import { registContent, updateContent, linkContentToItem } from '../store/data/dataThunk';
+import { registContent, updateContent, linkContentToItem, LoadContentsParam, loadContents, LoadContentsResult } from '../store/data/dataThunk';
 import useConfirm from "../components/common/confirm/useConfirm";
-import { operationActions } from "../store/operation/operationSlice";
 import { doCommand } from "../util/Commander";
 import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam } from "tsunagumap-api";
 import { getAPICallerInstance } from "./ApiCaller";
@@ -135,6 +134,16 @@ export function useCommand() {
         });
     }, []);
 
+    const loadContentsAPI = useCallback(async(param: LoadContentsParam): Promise<LoadContentsResult> => {
+        const res = await dispatch(loadContents(param));
+        if ('error' in res) {
+            // @ts-ignore
+            const errorMessage = res.payload?.message ?? '';
+            throw new Error('registContentAPI failed.' + errorMessage);
+        }
+        return res.payload;
+    }, [dispatch]);
+
     const registContentAPI = useCallback(async(param: RegistContentParam) => {
         const res = await dispatch(registContent(param));
         if ('error' in res) {
@@ -185,6 +194,7 @@ export function useCommand() {
         editTopography,
         removeTopography,
         editTopographyInfo,
+        loadContentsAPI,
         registContentAPI,
         updateContentAPI,
         linkContentToItemAPI,
