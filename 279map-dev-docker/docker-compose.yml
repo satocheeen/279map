@@ -32,7 +32,7 @@ services:
     volumes:
         - ./log:/var/log/www
   main:
-    image: satocheeen/279map-backend-main:0.52.7
+    image: satocheeen/279map-backend-main:0.52.8
     depends_on:
       - db
     env_file:
