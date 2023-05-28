@@ -1,5 +1,4 @@
-import React, { useContext, useEffect, useRef } from 'react';
-import { OwnerContext } from '../../TsunaguMap/TsunaguMap';
+import React, { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/configureStore';
 import { DataId } from '279map-common';

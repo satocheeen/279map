@@ -142,6 +142,18 @@ export default function TestMap() {
         }
     }, [token]);
 
+    const getThumbnail = useCallback(async() => {
+        if (!commandHook) {
+            console.warn('commandHook undefined');
+            return;
+        }
+        const img = await commandHook?.getThumbnail({
+            dataSourceId: '8ab78092-80f3-4ed7-82f4-ed5df3e01c1b',
+            id: '00c94264-07f5-4d56-adec-7cac9a326c7e',
+        });
+        console.log('thumb', img);
+    }, [commandHook]);
+
     return (
         <>
             <div className={styles.Form}>
@@ -235,6 +247,7 @@ export default function TestMap() {
                 <div className={styles.Col}>
                     <button onClick={callGetSnsPreview}>GetSNS</button>
                     <button onClick={confirm}>Confirm</button>
+                    <button onClick={getThumbnail}>GetThumbnail</button>
                 </div>
 
                 <div className={styles.Col}>
