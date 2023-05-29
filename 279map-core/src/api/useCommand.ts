@@ -1,12 +1,11 @@
 import { useCallback } from 'react';
-import { RootState, useAppDispatch } from "../store/configureStore";
+import { useAppDispatch } from "../store/configureStore";
 import { DataId, FeatureType, MapKind, UnpointContent } from '279map-common';
 import { registContent, updateContent, linkContentToItem, LoadContentsParam, loadContents, LoadContentsResult } from '../store/data/dataThunk';
 import useConfirm from "../components/common/confirm/useConfirm";
 import { doCommand } from "../util/Commander";
 import { GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam } from "tsunagumap-api";
 import { getAPICallerInstance } from "./ApiCaller";
-import { useSelector } from 'react-redux';
 
 /**
  * Coreの外側から呼び出し可能なコマンド
@@ -14,12 +13,6 @@ import { useSelector } from 'react-redux';
 export function useCommand() {
     const dispatch = useAppDispatch();
     const { confirm } = useConfirm();
-    const sid = useSelector((state: RootState) => {
-        if (state.session.connectStatus.status !== 'connected') {
-            return undefined;
-        }
-        return state.session.connectStatus.sid;
-    });
 
     /**
      * switch the map kind
@@ -192,14 +185,11 @@ export function useCommand() {
      * 指定のコンテンツのサムネイル画像（Blob）を取得する
      */
     const getThumbnail = useCallback(async(contentId: DataId) => {
-        if (!sid) {
-            throw new Error('no session');
-        }
         const imgData = await getAPICallerInstance().callApi(GetThumbAPI, {
             id: contentId.id,
         });
         return URL.createObjectURL(imgData);
-    }, [sid]);
+    }, []);
 
     return {
         switchMapKind,
