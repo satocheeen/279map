@@ -29,6 +29,9 @@ import { Cluster } from 'ol/source';
         return feature;
 
     } else if (geoProperties && 'radius' in geoProperties) {
+        if (geoProperties?.featureType !== FeatureType.AREA) {
+            console.warn('the item which has radius need to be AREA.', geoProperties);
+        }
         // 半径指定されている場合は、Circleを生成
         const coordinate = feature.getGeometry()?.getExtent() as Extent;
         const circle = new Feature({
