@@ -28,11 +28,16 @@ export function useCommand() {
     /**
      * focus the item
      * 指定のアイテムにフォーカスする
+     * @param itemId フォーカス対象のアイテムid
+     * @param opts フォーカスする際のオプション
      */
-    const focusItem = useCallback((itemId: DataId) => {
+    const focusItem = useCallback((itemId: DataId, opts?: {zoom?: boolean}) => {
         doCommand({
             command: 'FocusItem',
-            param: itemId,
+            param: {
+                itemId,
+                zoom: opts?.zoom,
+            }
         });
     }, []);
 

@@ -150,7 +150,9 @@ export default function Content(props: Props) {
         });
         doCommand({
             command: 'FocusItem',
-            param: props.content.anotherMapItemId,
+            param: {
+                itemId: props.content.anotherMapItemId,
+            }
         });
     }, [mapKind, props.content.anotherMapItemId]);
 

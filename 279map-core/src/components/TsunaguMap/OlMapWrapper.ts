@@ -294,12 +294,12 @@ class OlMapWrapper {
      * the map view fit on the extent
      * @param ext fit area
      */
-    fit(ext: Extent, opt?: {animation: boolean}) {
-        const currentZoom = this._map.getView().getZoom();
+    fit(ext: Extent, opt?: {animation?: boolean, zoom?: boolean}) {
+        const maxZoom = (opt?.zoom === undefined || opt.zoom) ? undefined : this._map.getView().getZoom();
         const options: FitOptions = {
             padding: [50, 50, 50, 50],
             duration: opt?.animation ? 500 : undefined,
-            // maxZoom: currentZoom,
+            maxZoom,
         };
         this._map.getView().fit(ext, options);
     }

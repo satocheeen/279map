@@ -138,7 +138,7 @@ export default function MapChart() {
     /**
      * 指定のitemにfitさせる
      */
-    const focusItem = useCallback(async(itemId: DataId) => {
+    const focusItem = useCallback(async(itemId: DataId, zoom?: boolean) => {
         if (!mapRef.current) {
             return;
         }
@@ -167,7 +167,10 @@ export default function MapChart() {
 
         const ext = itemFeature.getGeometry()?.getExtent();
         if (!ext) return;
-        mapRef.current.fit(ext, { animation: true });
+        mapRef.current.fit(ext, {
+            animation: true,
+            zoom,
+        });
 
     }, []);
 
@@ -196,8 +199,9 @@ export default function MapChart() {
         map.on('moveend', loadContentFunc);
 
         // アイテムフォーカスイベントの登録
-        const focusItemHandler = addListener('FocusItem', async(itemId: DataId) => {
-            focusItem(itemId);
+        const focusItemHandler = addListener('FocusItem', async(param: {itemId: DataId; zoom?: boolean}) => {
+            focusItem(param.itemId, param.zoom);
+            dispatch(operationActions.setSelectItem([param.itemId]));
         });
 
         setInitialized(true);

@@ -40,7 +40,7 @@ type CommandDefine =
     // コンテンツ情報表示 引数: contentId. 
     | TCommandDefine<'ShowContentInfo', DataId>
     // 指定のアイテムにフォーカスする
-    | TCommandDefine<'FocusItem', DataId>
+    | TCommandDefine<'FocusItem', {itemId: DataId; zoom?: boolean}>
     // 地図種別を切り替える
     | TCommandDefine<'ChangeMapKind', MapKind>
     ;

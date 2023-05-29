@@ -122,6 +122,8 @@ export default function TestMap() {
         commandHook?.focusItem({
             dataSourceId: focusDataSourceId,
             id: focusItemId,
+        }, {
+            zoom: false,
         });
     }, [commandHook, focusItemId, focusDataSourceId]);
 
