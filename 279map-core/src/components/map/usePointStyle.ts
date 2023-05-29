@@ -11,6 +11,8 @@ import { IconInfo } from "279map-common";
 import { Geometry } from "ol/geom";
 import { convertDataIdFromFeatureId, isEqualId } from "../../store/data/dataUtility";
 import { useMap } from "./useMap";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store/configureStore";
 
 // 建物ラベルを表示するresolution境界値（これ以下の値の時に表示）
 const StructureLabelResolution = 0.003;
@@ -28,6 +30,7 @@ export default function usePointStyle() {
     const { disabledLabel, filter } = useContext(OwnerContext);
     const { getIconDefine } = useIcon();
     const { map } = useMap();
+    const selectedItemIds = useSelector((state: RootState) => state.operation.selectedItemIds);
 
     const getZindex = useCallback((feature: Feature<Geometry>): number => {
         if (!map) return 0;
@@ -117,18 +120,19 @@ export default function usePointStyle() {
             showFeaturesLength = filteredFeature.length;
         }
 
-        // console.log('analysisFeatures', selectedFeatureRef.current);
         // 優先1. 選択状態のもの
-        // if (selectedFeatureRef.current) {
-        //     const selected = features.find(f => f === selectedFeatureRef.current);
-        //     console.log('selected', selected);
-        //     if (selected) {
-        //         return {
-        //             mainFeature: selected,
-        //             showFeaturesLength,
-        //         }
-        //     }
-        // }
+        if (selectedItemIds.length > 0) {
+            const selected = features.find(f => {
+                const id = convertDataIdFromFeatureId(f.getId() as string);
+                return selectedItemIds.some(sii => isEqualId(sii, id));
+            });
+            if (selected) {
+                return {
+                    mainFeature: selected,
+                    showFeaturesLength,
+                }
+            }
+        }
         
         // 優先2. フィルタがかかっている場合は、フィルタ条件に該当するもの
         if (filteredItemIdList && features.length > 1) {
@@ -155,7 +159,7 @@ export default function usePointStyle() {
             showFeaturesLength: features.length,
         };
 
-    }, [filteredItemIdList]);
+    }, [filteredItemIdList, selectedItemIds]);
 
     const _createPointStyle = useCallback((feature: Feature<Geometry>, resolution: number, forceColor?: string): Style => {
         const { mainFeature, showFeaturesLength } = _analysisFeatures(feature);
