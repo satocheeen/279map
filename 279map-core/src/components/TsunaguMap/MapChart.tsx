@@ -1,12 +1,11 @@
 import React, { useCallback, useMemo, useRef, useState, useContext } from "react";
 import { Vector as VectorSource } from "ol/source";
-import VectorLayer from "ol/layer/Vector";
 import styles from './MapChart.module.scss';
 import { useSelector } from "react-redux";
 import { RootState, useAppDispatch } from "../../store/configureStore";
 import PopupContainer from "../popup/PopupContainer";
 import DrawController from "../map/DrawController";
-import { addListener, removeListener } from "../../util/Commander";
+import { addListener, doCommand, removeListener } from "../../util/Commander";
 import { operationActions } from "../../store/operation/operationSlice";
 import LandNameOverlay from "../map/LandNameOverlay";
 import { useFilter } from "../../store/useFilter";
@@ -15,7 +14,7 @@ import { DataId, FeatureType, MapKind } from "279map-common";
 import { MapMode } from "../../types/types";
 import useFilteredTopographyStyle from "../map/useFilteredTopographyStyle";
 import useTrackStyle from "../map/useTrackStyle";
-import Feature, { FeatureLike } from "ol/Feature";
+import Feature from "ol/Feature";
 import { usePrevious } from "../../util/usePrevious";
 import usePointStyle from "../map/usePointStyle";
 import ClusterMenuController from "../cluster-menu/ClusterMenuController";
@@ -214,14 +213,21 @@ export default function MapChart() {
         }
     });
 
+    const { disabledContentDialog } = useContext(OwnerContext);
     const onSelectItem = useCallback((feature: DataId | undefined) => {
         if (!feature) {
             dispatch(operationActions.unselectItem());
         } else {
             dispatch(operationActions.setSelectItem([feature]));
+            // 詳細ダイアログ表示
+            if (disabledContentDialog) return;
+            doCommand({
+                command: 'ShowItemInfo',
+                param: feature,
+            });
         }
 
-    }, [dispatch]);
+    }, [dispatch, disabledContentDialog]);
 
     /**
      * 地図が切り替わったら、レイヤ再配置

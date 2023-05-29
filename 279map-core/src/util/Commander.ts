@@ -39,6 +39,8 @@ type CommandDefine =
     | TCommandDefine<'LoadLatestData', undefined>
     // コンテンツ情報表示 引数: contentId. 
     | TCommandDefine<'ShowContentInfo', DataId>
+    // アイテム情報表示 引数: itemId. 
+    | TCommandDefine<'ShowItemInfo', DataId>
     // 指定のアイテムにフォーカスする
     | TCommandDefine<'FocusItem', {itemId: DataId; zoom?: boolean}>
     // 地図種別を切り替える

@@ -1,17 +1,17 @@
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { Modal }  from '../common';
 import { loadContents } from '../../store/data/dataThunk';
 import Content from './Content';
 import { useSelector } from 'react-redux';
 import { operationActions } from '../../store/operation/operationSlice';
-import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import { addListener, removeListener } from '../../util/Commander';
 import { ContentsDefine, DataId } from '279map-common';
 import AddContentMenu from '../popup/AddContentMenu';
 import styles from './ContentsModal.module.scss';
 import { getMapKey } from '../../store/data/dataUtility';
 import { isEqualId } from '../../store/data/dataUtility';
+import { useMounted } from '../../util/useMounted';
 
 type Target = {
     type: 'item';
@@ -25,50 +25,27 @@ export default function ContentsModal() {
     const dispatch = useAppDispatch();
     const [loaded, setLoaded] = useState(false);
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
-    const selectedItemIds = useSelector((state: RootState) => state.operation.selectedItemIds);
-    const { disabledContentDialog } = useContext(OwnerContext);
-    // set content ID when show a content.
-    const [contentId, setContentId] = useState<DataId|undefined>();
+    const [target, setTarget] = useState<Target|undefined>();
 
-    useEffect(() => {
+    useMounted(() => {
         const h = addListener('ShowContentInfo', async(contentId: DataId) => {
-            setContentId(contentId);
+            setTarget({
+                type: 'content',
+                contentId,
+            });
+        });
+        const h2 = addListener('ShowItemInfo', async(itemId: DataId) => {
+            setTarget({
+                type: 'item',
+                itemId,
+            });
         });
 
         return () => {
             removeListener(h);
+            removeListener(h2);
         }
-    }, []);
-
-    /**
-     * show dialog when select an item.
-     */
-    const itemId = useMemo((): DataId | undefined => {
-        if (disabledContentDialog) {
-            return;
-        }
-        if (selectedItemIds.length === 0) {
-            return;
-        }
-        return selectedItemIds[0];
-
-    }, [disabledContentDialog, selectedItemIds]);
-
-    const target = useMemo((): Target | undefined => {
-        if (contentId) {
-            return {
-                type: 'content',
-                contentId,
-            }
-        }
-        if (itemId) {
-            return {
-                type: 'item',
-                itemId,
-            }
-        }
-
-    }, [contentId, itemId]);
+    });
 
     useEffect(() => {
         if (!target) return;
@@ -137,7 +114,7 @@ export default function ContentsModal() {
 
     const onClosed = useCallback(() => {
         dispatch(operationActions.unselectItem());
-        setContentId(undefined);
+        setTarget(undefined);
     }, [dispatch]);
 
     if (contents.length === 0) {
@@ -152,8 +129,8 @@ export default function ContentsModal() {
             <Modal.Header>
                 <div className={styles.ItemHeader}>
                     詳細
-                    {itemId &&
-                    <AddContentMenu target={{itemId}} />
+                    {target?.type === 'item' &&
+                    <AddContentMenu target={{itemId: target.itemId}} />
                 }
                 </div>
             </Modal.Header>
