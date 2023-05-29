@@ -290,6 +290,8 @@ class OlMapWrapper {
         source.removeFeature(feature);
     }
 
+    _fitting = false;
+    _fitReserve: undefined | {ext: Extent; options: FitOptions};
     /**
      * the map view fit on the extent
      * @param ext fit area
@@ -300,8 +302,22 @@ class OlMapWrapper {
             padding: [50, 50, 50, 50],
             duration: opt?.animation ? 500 : undefined,
             maxZoom,
+            callback: () => {
+                // 連続実行制御
+                this._fitting = false;
+                if (this._fitReserve) {
+                    this._map.getView().fit(this._fitReserve.ext, this._fitReserve.options);
+                    this._fitReserve = undefined;
+                }
+            }
         };
-        this._map.getView().fit(ext, options);
+        if (this._fitting) {
+            // 連続fitすると固まるので、fit処理中は待つ
+            this._fitReserve = {ext, options};
+        } else {
+            this._fitting = true;
+            this._map.getView().fit(ext, options);
+        }
     }
 
     createDrawingLayer(style?: StyleFunction | Style): VectorLayer<VectorSource> {
