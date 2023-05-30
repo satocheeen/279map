@@ -149,6 +149,20 @@ export function useCommand() {
         return res.payload;
     }, [dispatch]);
 
+    const showDetailDialog = useCallback(async(param: {type: 'item' | 'content'; id: DataId}) => {
+        if (param.type === 'content') {
+            doCommand({
+                command: 'ShowContentInfo',
+                param: param.id,
+            });
+        } else {
+            doCommand({
+                command: 'ShowItemInfo',
+                param: param.id,
+            });
+        }
+    }, []);
+
     const registContentAPI = useCallback(async(param: RegistContentParam) => {
         const res = await dispatch(registContent(param));
         if ('error' in res) {
@@ -210,6 +224,7 @@ export function useCommand() {
         removeTopography,
         editTopographyInfo,
         loadContentsAPI,
+        showDetailDialog,
         registContentAPI,
         updateContentAPI,
         linkContentToItemAPI,

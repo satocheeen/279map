@@ -73,6 +73,13 @@
 ### Returns:
 `Promise\<LoadContentsResult\>` コンテンツ情報
 
+## showDetailDialog
+指定のコンテンツまたはアイテムの詳細情報をダイアログ表示します。
+| Name | Type | Description |
+| ---- | ---- | ---- |
+| type | 'item' \| 'content' | 表示対象 |
+| id | DataId | アイテムID または コンテンツID |
+
 ## registContentAPI
 新規コンテンツを登録します。
 | Name | Type | Description |

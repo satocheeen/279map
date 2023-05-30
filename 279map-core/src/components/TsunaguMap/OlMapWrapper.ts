@@ -314,6 +314,7 @@ class OlMapWrapper {
         if (this._fitting) {
             // 連続fitすると固まるので、fit処理中は待つ
             this._fitReserve = {ext, options};
+            this._map.getView().cancelAnimations();
         } else {
             this._fitting = true;
             this._map.getView().fit(ext, options);
