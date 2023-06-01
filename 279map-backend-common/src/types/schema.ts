@@ -5,6 +5,9 @@ export enum PublicRange {
     Public = 'Public',
     Private = 'Private'
 }
+export interface MapPageOptions {
+    popupMode?: 'hidden' | 'minimum' | 'maximum';
+}
 export type MapPageInfoTable = {
     map_page_id: string;
     alias?: string;
@@ -12,6 +15,7 @@ export type MapPageInfoTable = {
     use_maps: string;   // MapKindをカンマ区切り
     default_map: MapKind;
     public_range: PublicRange;
+    options?: string | MapPageOptions;   // 登録時はstring、取得時はMapPageOptions
     last_edited_time: string;
 }
 export interface DataSourceConnection {
