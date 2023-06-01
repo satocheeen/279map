@@ -31,14 +31,16 @@ export type FeatureInfo = {
     feature: Feature<Geometry>;
 }
 
+type Device = 'pc' | 'sp';
+
 /**
- * OlMapWrapperんスタンスを生成する
+ * OlMapWrapperインスタンスを生成する
  * @param id instanceを特定するID
- * @param target 地図を配置するDivElement。MapChartContextの初期値を仮設定するために、undefinedを許容している。
+ * @param target 地図を配置するDivElement
  * @returns OlMapWrapperインスタンス
  */
-export function createMapInstance(target: HTMLDivElement) {
-    const map = new OlMapWrapper(target);
+export function createMapInstance(target: HTMLDivElement, device: Device) {
+    const map = new OlMapWrapper(target, device);
     console.log('create map', map.id);
     instansMap.set(map.id, map);
     return map;
@@ -47,24 +49,26 @@ export function createMapInstance(target: HTMLDivElement) {
 export function getMapInstance(id: string) {
     return instansMap.get(id);
 }
+const pcControls = olControl.defaults({attribution: true});
+const spControls = olControl.defaults({attribution: true, zoom: false});
 class OlMapWrapper {
     readonly id: string;
     _map: OlMap;
     _vectorLayerMap: VectorLayerMap;
     _mapKind?: MapKind;
     _currentZoom: number;   // Zoomレベル変更検知用に保持
+    _device: Device = 'pc';
 
     // 描画用レイヤ
     _drawingLayers: VectorLayer<VectorSource>[] = [];
 
-    constructor(target: HTMLDivElement) {
+    constructor(target: HTMLDivElement, device: Device) {
         this.id = 'map-' + (++instanceCnt);
         this._vectorLayerMap = new VectorLayerMap();
         console.log('create OlMapWrapper', this.id);
 
         const map = new OlMap({
             target,
-            controls: olControl.defaults({attribution: true}),
             view: new View({
                 projection: 'EPSG:4326',
                 maxZoom: 20,
@@ -86,6 +90,25 @@ class OlMapWrapper {
                 this._onZoomLvChanged();
             }
         })
+
+        this.changeDevice(device);
+    }
+
+    changeDevice(device: Device) {
+        this._device = device;
+
+        for (const ctl of this._map.getControls().getArray()) {
+            this._map.removeControl(ctl);
+        }
+        if (this._device === 'pc') {
+            pcControls.forEach(ctl => {
+                this._map.addControl(ctl)
+            })
+        } else {
+            spControls.forEach(ctl => {
+                this._map.addControl(ctl)
+            })
+        }
     }
 
     _onZoomLvChanged() {

@@ -10,7 +10,7 @@ import { operationActions } from "../../store/operation/operationSlice";
 import LandNameOverlay from "../map/LandNameOverlay";
 import { useFilter } from "../../store/useFilter";
 import { loadItems } from "../../store/data/dataThunk";
-import { DataId, FeatureType, MapKind } from "279map-common";
+import { DataId, FeatureType } from "279map-common";
 import { MapMode } from "../../types/types";
 import useFilteredTopographyStyle from "../map/useFilteredTopographyStyle";
 import useTrackStyle from "../map/useTrackStyle";
@@ -24,6 +24,7 @@ import { useMounted } from "../../util/useMounted";
 import { useWatch } from "../../util/useWatch";
 import { Geometry } from "ol/geom";
 import { sleep } from "../../util/CommonUtility";
+import useMyMedia from "../../util/useMyMedia";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
@@ -173,6 +174,7 @@ export default function MapChart() {
 
     }, []);
 
+    const { isPC } = useMyMedia();
     /**
      * 地図初期化
      */
@@ -180,7 +182,7 @@ export default function MapChart() {
         if (myRef.current === null) {
             return;
         }
-        const map = createMapInstance(myRef.current);
+        const map = createMapInstance(myRef.current, isPC ? 'pc' : 'sp');
         setMapInstanceId(map.id);
         mapRef.current = map;
 
@@ -212,6 +214,9 @@ export default function MapChart() {
             removeListener(focusItemHandler);
         }
     });
+    useWatch(() => {
+        mapRef.current?.changeDevice(isPC ? 'pc' : 'sp');
+    }, [isPC]);
 
     const { disabledContentDialog } = useContext(OwnerContext);
     const onSelectItem = useCallback((feature: DataId | undefined) => {
