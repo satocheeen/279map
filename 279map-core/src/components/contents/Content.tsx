@@ -226,6 +226,8 @@ export default function Content(props: Props) {
     }, [editableAuthLv, props.content, contentDataSource]);
 
     const isDeletable = useMemo(() => {
+        if (!editableAuthLv) return false;
+
         // 別の地図で使用されている場合は削除不可にする
         if (props.content.usingAnotherMap) return false;
 
