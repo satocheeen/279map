@@ -144,6 +144,10 @@ export type ContentsDefine = {
     usingAnotherMap: boolean;   // 他の地図（もう片方のMapKindや、全く別の地図）で使用されている場合、true。（完全削除防止用）
     anotherMapItemId?: DataId; // もう片方の地図に存在する場合、そのアイテムID
     isSnsContent: boolean;  // trueの場合、SNS等から自動連係したコンテンツ
+
+    isEditable: boolean;
+    isDeletable: boolean;
+    isUnlinkable: boolean;
 }
 export type CategoryDefine = {
     name: string;
