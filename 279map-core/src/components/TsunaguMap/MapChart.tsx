@@ -25,6 +25,7 @@ import { useWatch } from "../../util/useWatch";
 import { Geometry } from "ol/geom";
 import { sleep } from "../../util/CommonUtility";
 import useMyMedia from "../../util/useMyMedia";
+import { useOverlay } from "../common/spinner/useOverlay";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
@@ -32,6 +33,7 @@ export default function MapChart() {
     const { setMapInstanceId } = useContext(OwnerContext);
     const mapRef = useRef<OlMapType>();
     const mapMode = useSelector((state: RootState) => state.operation.mapMode);
+    const { showSpinner, hideSpinner } = useOverlay();
 
     // スタイル設定
     // -- コンテンツ（建物・ポイント）レイヤ
@@ -123,6 +125,7 @@ export default function MapChart() {
         if (!mapRef.current) return;
         if (loadingCurrentAreaContents.current) {
             // 二重起動禁止
+            console.log('二重起動禁止');
             return;
         }
         const zoom = mapRef.current.getZoom();
@@ -133,7 +136,10 @@ export default function MapChart() {
         const ext = mapRef.current.getExtent();
         await dispatch(loadItems({zoom, extent: ext}));
         loadingCurrentAreaContents.current = false;
-    }, [dispatch]);
+
+        // 初回起動時はスピナー表示しているので（MapWrapper内でshowSpinner）、ここでhideSpinnerしている
+        hideSpinner();
+    }, [dispatch, hideSpinner]);
 
     /**
      * 指定のitemにfitさせる

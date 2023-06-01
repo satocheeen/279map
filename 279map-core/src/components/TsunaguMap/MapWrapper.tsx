@@ -222,8 +222,8 @@ export default function MapWrapper() {
             }();
             const detail = connectStatus.error.detail ? `\n${connectStatus.error.detail}` : '';
             spinner.showOverlayMessage(errorMessage + detail);
-        } else if (currentMapKindInfo) {
-            spinner.hideSpinner();
+        // } else if (currentMapKindInfo) {
+        //     spinner.hideSpinner();
         }
     }, [connectStatus, currentMapKindInfo, spinner]);
 
