@@ -620,7 +620,8 @@ app.post(`/api/${GetContentsAPI.uri}`,
             const param = req.body as GetContentsParam;
             const result = await getContents({
                 param,
-                currentMap: req.currentMap
+                currentMap: req.currentMap,
+                authLv: req.connect?.authLv ?? Auth.None,
             });
 
             apiLogger.debug('result', result);

@@ -3,12 +3,12 @@ import { DataId, MapKind } from "279map-common";
 import { CurrentMap, schema } from "279map-backend-common";
 import { getAncestorItemId } from "./util/utility";
 import { GetContentsParam, GetContentsResult } from '../279map-api-interface/src';
-import { ContentsDefine } from '279map-common';
+import { ContentsDefine, Auth, DataSourceKindType } from '279map-common';
 import { PoolConnection } from 'mysql2/promise';
 
 type ContentsDatasourceRecord = schema.ContentsTable & schema.DataSourceTable;
 
-export async function getContents({ param, currentMap }: {param: GetContentsParam; currentMap: CurrentMap}): Promise<GetContentsResult> {
+export async function getContents({ param, currentMap, authLv }: {param: GetContentsParam; currentMap: CurrentMap, authLv: Auth}): Promise<GetContentsResult> {
     if (!currentMap) {
         throw 'mapKind not defined.';
     }
@@ -32,6 +32,45 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
             const anotherMapItemIds = await getAnotherMapKindItemsUsingTheContent(con, id, currentMap);
             const usingAnotherMap = anotherMapItemIds.length > 0 ? true : await checkUsingAnotherMap(con, id, currentMap.mapId);
 
+            const isEditable = function() {
+                if (authLv !== Auth.Edit) return false;
+        
+                // SNSコンテンツは編集不可
+                if (isSnsContent) return false;
+        
+                return !row.readonly;
+            }();
+
+            const isDeletable = function() {
+                if (authLv !== Auth.Edit) return false;
+        
+                // 別の地図で使用されている場合は削除不可にする
+                if (usingAnotherMap) return false;
+        
+                // SNSコンテンツは編集不可
+                if (isSnsContent) return false;
+        
+                const kind = mapKind === MapKind.Real ? row.kind_real : row.kind_virtual;
+                let deletable = false;
+                if (kind === DataSourceKindType.Content) {
+                    // readonly=FALSEのContentのみ完全削除可能
+                    const anotherMapKind = mapKind === MapKind.Virtual ? row.kind_real : row.kind_virtual;
+                    if ((anotherMapKind === DataSourceKindType.Content || !anotherMapKind) && !row.readonly) {
+                        deletable = true;
+                    }
+                }
+                return deletable;
+        
+            }();
+
+            const isUnlinkable = function() {
+                if (authLv !== Auth.Edit) return false;
+            
+                const kind = mapKind === MapKind.Real ? row.kind_real : row.kind_virtual;
+                return kind === DataSourceKindType.Content;
+        
+            }();
+        
             return {
                 id,
                 itemId,
@@ -49,6 +88,9 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                 usingAnotherMap,
                 anotherMapItemId: anotherMapItemIds.length > 0 ? anotherMapItemIds[0] : undefined,  // 複数存在する場合は１つだけ返す
                 isSnsContent,
+                isEditable,
+                isDeletable,
+                isUnlinkable,
             };
         }
         const getChildren = async(contentId: DataId, itemId: DataId): Promise<ContentsDefine[]> => {

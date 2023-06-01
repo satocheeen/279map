@@ -216,35 +216,6 @@ export default function Content(props: Props) {
             return ds.dataSourceId === props.content.id.dataSourceId;
         });
     });
-    const isEditable = useMemo(() => {
-        if (!editableAuthLv) return false;
-
-        // SNSコンテンツは編集不可
-        if (props.content.isSnsContent) return false;
-
-        return contentDataSource?.editable;
-    }, [editableAuthLv, props.content, contentDataSource]);
-
-    const isDeletable = useMemo(() => {
-        if (!editableAuthLv) return false;
-
-        // 別の地図で使用されている場合は削除不可にする
-        if (props.content.usingAnotherMap) return false;
-
-        // SNSコンテンツは編集不可
-        if (props.content.isSnsContent) return false;
-
-        if (!contentDataSource) return false;
-        return contentDataSource.deletable;
-
-    }, [props.content.usingAnotherMap, contentDataSource, props.content.isSnsContent]);
-
-    const isUnlinkable = useMemo(() => {
-        if (!editableAuthLv || !contentDataSource) return false;
-    
-        return contentDataSource.kind === DataSourceKindType.Content;
-
-    }, [contentDataSource, editableAuthLv])
 
     const onDelete = useCallback(async() => {
         const result = await confirm({
@@ -254,13 +225,13 @@ export default function Content(props: Props) {
             return;
         }
         let deleteOnlyLink = true;
-        if (isDeletable && isUnlinkable) {
+        if (props.content.isDeletable && props.content.isUnlinkable) {
             const result2 = await confirm({
                 message: '元データも削除しますか。\nはい→元データごと削除する\nいいえ→地図上からのみ削除する',
                 btnPattern: ConfirmBtnPattern.YesNo,
             });
             deleteOnlyLink = result2 === ConfirmResult.No;
-        } else if (!isDeletable) {
+        } else if (!props.content.isDeletable) {
             deleteOnlyLink = true;
         }
 
@@ -284,7 +255,7 @@ export default function Content(props: Props) {
             });
         }
 
-    }, [props.itemId, props.parentContentId, confirm, dispatch, props.content, isDeletable, isUnlinkable]);
+    }, [props.itemId, props.parentContentId, confirm, dispatch, props.content]);
 
     const overview = useMemo(() => {
         if (!props.content.overview) {
@@ -319,12 +290,12 @@ export default function Content(props: Props) {
                     {title}
                 </span>
                 <div className={styles.IconAreas}>
-                    {isEditable &&
+                    {props.content.isEditable &&
                         <PopupMenuIcon tooltip='編集' onClick={onEdit}>
                             <MdEdit />
                         </PopupMenuIcon>
                     }
-                    {(isDeletable || isUnlinkable) &&
+                    {(props.content.isDeletable || props.content.isUnlinkable) &&
                         <PopupMenuIcon tooltip="削除" onClick={onDelete}>
                             <MdDelete />
                         </PopupMenuIcon>
@@ -340,7 +311,7 @@ export default function Content(props: Props) {
                 </div>
             </div>
         )
-    }, [props.content, title, onGoToAnotherMap, existAnoterMap, isEditable, isDeletable, isUnlinkable, onDelete, onEdit, toolTipMessage]);
+    }, [props.content, title, onGoToAnotherMap, existAnoterMap, onDelete, onEdit, toolTipMessage]);
 
     const body = useMemo(() => {
         return (
