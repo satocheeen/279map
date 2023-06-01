@@ -42,6 +42,9 @@ export async function getContents(param: GetContentsParam): Promise<ContentsDefi
                 }
             }
         });
+        if (fixedParam.length === 0) {
+            return [];
+        }
         const apiResult = await getAPICallerInstance().callApi(GetContentsAPI, fixedParam);
 
         return apiResult.contents;
