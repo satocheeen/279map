@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import mysql from 'mysql2/promise';
 import { getMapInfo } from './getMapInfo';
-import { Auth, MapKind, AuthMethod, ServerConfig, DataId } from '279map-common';
+import { Auth, MapKind, AuthMethod, ServerConfig, DataId, MapPageOptions } from '279map-common';
 import { api as backendAPI, schema, CurrentMap, sleep } from '279map-backend-common';
 import { getItems } from './getItems';
 import { configure, getLogger } from "log4js";
@@ -277,6 +277,7 @@ app.get('/api/connect',
                     defaultMapKind: mapInfo.default_map,
                     authLv: userAccessInfo.authLv,
                     userName: userAccessInfo.userName || '',
+                    options: mapInfo.options as MapPageOptions,
                 },
                 sid: session.sid,
             }
