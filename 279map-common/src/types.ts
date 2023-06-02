@@ -50,6 +50,9 @@ export enum DataSourceLinkableContent {
     Multi = 'Multi',    // 複数コンテンツの紐づけが可能な場合
 }
 
+export interface MapPageOptions {
+    popupMode?: 'hidden' | 'minimum' | 'maximum';
+}
 /**
  * 地図定義情報
  */
@@ -60,6 +63,7 @@ export type MapDefine = {
     defaultMapKind: MapKind;
     authLv: Auth;   // ユーザの接続権限
     userName: string;
+    options?: MapPageOptions;
 }
 
 /**
