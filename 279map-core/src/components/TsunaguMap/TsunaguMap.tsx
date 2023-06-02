@@ -9,7 +9,6 @@ import ContentsModal from '../contents/ContentsModal';
 import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
 import { AddNewContentParam, EditContentParam, LinkUnpointContentParam, TsunaguMapProps } from '../../types/types';
 import DefaultComponents from '../default/DefaultComponents';
-import useMyMedia from '../../util/useMyMedia';
 
 type SomeRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 type OwnerContextType = SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'> & {
@@ -38,7 +37,6 @@ export default function TsunaguMap(props: TsunaguMapProps) {
         showIdMap: showTooltipId,
         setShowIdMap: setShowTooltipId,
     } as TooltipContextValue;
-    const { isPC } = useMyMedia();
 
     // デフォルトコンテンツ登録ダイアログ表示時に値セット
     const [ defaultNewContentParam, setDefaultNewContentParam ] = useState<AddNewContentParam|undefined>();
@@ -56,9 +54,8 @@ export default function TsunaguMap(props: TsunaguMapProps) {
             onAddNewContent: props.onAddNewContent ?? function(param: AddNewContentParam){setDefaultNewContentParam(param)},
             onEditContent: props.onEditContent ?? function(param: EditContentParam){setDefaultEditContentParam(param)},
             onLinkUnpointedContent: props.onLinkUnpointedContent ?? function(param: LinkUnpointContentParam){setDefaultLinkUnpointedContentParam(param)},
-            popupMode: (props.popupMode === 'maximum' && !isPC) ? 'minimum' : props.popupMode,  // SPの場合、最大化表示指定されていてもminimumに
         })
-    }, [props, mapInstanceId, isPC]);
+    }, [props, mapInstanceId]);
 
     return (
         <>
