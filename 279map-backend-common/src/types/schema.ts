@@ -1,12 +1,9 @@
-import { Auth, DataSourceKindType, DataSourceLinkableContent, MapKind } from '279map-common';
+import { Auth, DataSourceKindType, DataSourceLinkableContent, MapKind, MapPageOptions } from '279map-common';
 import { SnsOptions } from '../sns';
 
 export enum PublicRange {
     Public = 'Public',
     Private = 'Private'
-}
-export interface MapPageOptions {
-    popupMode?: 'hidden' | 'minimum' | 'maximum';
 }
 export type MapPageInfoTable = {
     map_page_id: string;
