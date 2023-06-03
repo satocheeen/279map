@@ -1,7 +1,7 @@
 import { schema } from '279map-backend-common';
 import { ConnectionPool } from '.';
-import { MapKind, DataSourceKindType } from '279map-common';
-import { DataSourceInfo, GetMapInfoParam, GetMapInfoResult } from '../279map-api-interface/src';
+import { DataSourceGroup, DataSourceInfo, MapKind, DataSourceKindType } from '279map-common';
+import { GetMapInfoParam, GetMapInfoResult } from '../279map-api-interface/src';
 import mysql from 'mysql2/promise';
 
 /**
@@ -22,12 +22,12 @@ export async function getMapInfo({ param, mapId }: { param: GetMapInfoParam; map
     const extent = await getExtent(mapPageInfo.map_page_id, targetMapKind);
 
     // DataSourceを取得
-    const dataSources = await getDataSources(mapPageInfo.map_page_id, targetMapKind);
+    const dataSourceGroups = await getDataSources(mapPageInfo.map_page_id, targetMapKind);
 
     return {
         mapKind: targetMapKind,
         extent,
-        dataSources,
+        dataSourceGroups,
     }
 
 }
@@ -143,7 +143,7 @@ async function getExtent(mapPageId: string, mapKind: MapKind): Promise<[number,n
  * @param mapId 
  * @param mapKind 
  */
-async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSourceInfo[]> {
+async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSourceGroup[]> {
     const con = await ConnectionPool.getConnection();
 
     try {
@@ -156,10 +156,11 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
         const query = mysql.format(sql, [mapId]);
         const [rows] = await con.execute(query);
 
-        const dataSources = (rows as schema.DataSourceTable[]).reduce((acc, row) => {
+        const dataSourceGroupMap = new Map<string, DataSourceInfo[]>();
+        (rows as schema.DataSourceTable[]).forEach((row) => {
             const kind = mapKind === MapKind.Real ? row.kind_real : row.kind_virtual;
             if (!kind) {
-                return acc;
+                return;
             }
             let deletable = false;
             if (kind === DataSourceKindType.Content) {
@@ -169,7 +170,12 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
                     deletable = true;
                 }
             }
-            acc.push({
+            const group = row.group ?? '';
+            if(!dataSourceGroupMap.has(group)) {
+                dataSourceGroupMap.set(group, []);
+            }
+            const infos = dataSourceGroupMap.get(group) as DataSourceInfo[];
+            infos.push({
                 dataSourceId: row.data_source_id,
                 name: row.name,
                 kind,
@@ -178,10 +184,19 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
                 linkableContent: row.linkable_content,
             });
 
-            return acc;
-        }, [] as DataSourceInfo[]);
+        });
 
-        return dataSources;
+        const result: DataSourceGroup[] = [];
+        for(const entry of dataSourceGroupMap.entries()) {
+            const group = entry[0].length === 0 ? undefined : entry[0];
+            const dataSources = entry[1];
+            result.push({
+                group,
+                dataSources,
+            });
+        }
+
+        return result;
 
     } finally {
         await con.commit();

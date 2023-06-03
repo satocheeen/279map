@@ -1,7 +1,7 @@
 import { CategoryDefine, ContentsDefine, DataId, DataSourceKindType, DataSourceLinkableContent, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, ServerConfig, UnpointContent } from "279map-common";
 import { GeoJsonObject } from "geojson";
 import { APIDefine, ContentAttr, SnsPreviewPost, MapDefine } from '279map-common';
-import { FilterDefine } from "279map-common";
+import { FilterDefine, DataSourceGroup } from "279map-common";
 
 /**
  * get common config
@@ -47,18 +47,10 @@ export const GetMapInfoAPI = {
 export type GetMapInfoParam = {
     mapKind?: MapKind;
 }
-export type DataSourceInfo = {
-    dataSourceId: string;
-    name: string;
-    kind: DataSourceKindType;
-    editable: boolean;
-    deletable: boolean;
-    linkableContent: DataSourceLinkableContent;
-}
 export type GetMapInfoResult = {
     mapKind: MapKind;
     extent: Extent;
-    dataSources: DataSourceInfo[];
+    dataSourceGroups: DataSourceGroup[];
 };
 
 /**
