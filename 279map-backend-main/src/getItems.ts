@@ -79,11 +79,15 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
         where map_page_id = ? and i.map_kind = ?
         `;
-        const query = mysql.format(sql, [mapPageId, mapKind]);
-        const [rows] = await con.execute(query);
-        // const [rows] = await con.execute(sql, [mapPageId, mapKind]);
+        const [rows] = await con.execute(sql, [mapPageId, mapKind]);
         const pointContents = [] as ItemDefine[];
         for(const row of rows as (schema.ItemsTable & {geojson: any})[]) {
+            // データソースが指定されている場合は、指定されているデータソースのもののみに絞る
+            if (param.dataSourceIds) {
+                if (!param.dataSourceIds.includes(row.data_source_id)) {
+                    continue;
+                }
+            }
             const contents: ItemContentInfo[] = [];
             let lastEditedTime = row.last_edited_time;
 
