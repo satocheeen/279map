@@ -1,4 +1,4 @@
-import { ContentAttr, DataId, DataSourceKindType, DataSourceLinkableContent, GeoProperties, IconDefine, MapDefine, UnpointContent } from "279map-common";
+import { ContentAttr, DataId, DataSourceGroup, DataSourceKindType, DataSourceLinkableContent, GeoProperties, IconDefine, MapDefine, UnpointContent } from "279map-common";
 import { CSSProperties } from "react";
 import { CategoryDefine, EventDefine, MapKind } from '279map-common';
 import { CommandHookType } from '../api/useCommand';
@@ -9,17 +9,9 @@ type ConnectSuccessResult = {
     result: 'success';
     connectResult: ConnectResult;
 }
-export type DataSource = {
-    dataSourceId: string;
-    name: string;
-    kind: DataSourceKindType;
-    editable: boolean;
-    deletable: boolean;
-    linkableContent: DataSourceLinkableContent;
-}
 export type OnMapLoadParam = {
     mapKind: MapKind;
-    dataSources: DataSource[];
+    dataSourceGroups: DataSourceGroup[];
 }
 export type ApiAccessError = {
     type: ErrorType | 'UndefinedMapServer';

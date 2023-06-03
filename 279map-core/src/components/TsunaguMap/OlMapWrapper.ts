@@ -13,13 +13,13 @@ import VectorLayer from "ol/layer/Vector";
 import Style, { StyleFunction } from "ol/style/Style";
 import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
-import { DataId, DataSourceKindType, FeatureType, ItemDefine, MapKind } from '279map-common';
+import { DataId, DataSourceKindType, FeatureType, ItemDefine, MapKind, DataSourceInfo, DataSourceGroup } from '279map-common';
 import BaseEvent from 'ol/events/Event';
 import * as MapUtility from '../../util/MapUtility';
 import { FeatureProperties } from '../../types/types';
 import { Pixel } from 'ol/pixel';
 import { convertDataIdFromFeatureId, getMapKey } from '../../store/data/dataUtility';
-import { DataSourceInfo, GetGeocoderFeatureAPI } from 'tsunagumap-api';
+import { GetGeocoderFeatureAPI } from 'tsunagumap-api';
 import { FitOptions } from 'ol/View';
 import { getAPICallerInstance } from '../../api/ApiCaller';
 import { Coordinate } from 'ol/coordinate';
@@ -122,7 +122,7 @@ class OlMapWrapper {
     /**
      * 地図種別に対応した初期レイヤを設定する
      */
-    initialize(mapKind: MapKind, dataSources: DataSourceInfo[]) {
+    initialize(mapKind: MapKind, dataSourceGroups: DataSourceGroup[]) {
         this._mapKind = mapKind;
         let extent: Extent = [0, 0, 2, 2];
         if (mapKind === MapKind.Real) {
@@ -155,22 +155,43 @@ class OlMapWrapper {
             this._map.setLayers(layers);
             extent = prefSource.getExtent();
 
-            dataSources.forEach(ds => {
-                if (ds.kind === DataSourceKindType.Track) {
-                    [[1, 8], [8, 13], [13, 21]].forEach(zoomLv => {
-                        const layerDefine: LayerDefine = {
-                            dataSourceId: ds.dataSourceId,
-                            editable: false,
-                            layerType: LayerType.Track,
-                            zoomLv: {
-                                min: zoomLv[0],
-                                max: zoomLv[1],
-                            }
-                        };
-                        this.addLayer(layerDefine);
-                    })
+            dataSourceGroups.forEach(group => {
+                group.dataSources.forEach(ds => {
+                    if (ds.kind === DataSourceKindType.Track) {
+                        [[1, 8], [8, 13], [13, 21]].forEach(zoomLv => {
+                            const layerDefine: LayerDefine = {
+                                dataSourceId: ds.dataSourceId,
+                                editable: false,
+                                layerType: LayerType.Track,
+                                zoomLv: {
+                                    min: zoomLv[0],
+                                    max: zoomLv[1],
+                                }
+                            };
+                            this.addLayer(layerDefine);
+                        })
+    
+                    } else if (ds.kind === DataSourceKindType.Item || ds.kind === DataSourceKindType.ItemContent) {
+                        [LayerType.Point, LayerType.Topography].forEach(layerType => {
+                            const layerDefine: LayerDefine = {
+                                dataSourceId: ds.dataSourceId,
+                                editable: ds.editable,
+                                layerType: layerType as LayerType.Point| LayerType.Topography,
+                            };
+                            this.addLayer(layerDefine);
+                        })
+                    }
+    
+                })
+            })
 
-                } else if (ds.kind === DataSourceKindType.Item || ds.kind === DataSourceKindType.ItemContent) {
+        } else {
+            // 村マップ
+            dataSourceGroups.forEach(group => {
+                group.dataSources.forEach(ds => {
+                    if (ds.kind !== DataSourceKindType.Item && ds.kind !== DataSourceKindType.ItemContent) {
+                        return;
+                    }
                     [LayerType.Point, LayerType.Topography].forEach(layerType => {
                         const layerDefine: LayerDefine = {
                             dataSourceId: ds.dataSourceId,
@@ -179,24 +200,7 @@ class OlMapWrapper {
                         };
                         this.addLayer(layerDefine);
                     })
-                }
-
-            })
-
-        } else {
-            // 村マップ
-            dataSources.forEach(ds => {
-                if (ds.kind !== DataSourceKindType.Item && ds.kind !== DataSourceKindType.ItemContent) {
-                    return;
-                }
-                [LayerType.Point, LayerType.Topography].forEach(layerType => {
-                    const layerDefine: LayerDefine = {
-                        dataSourceId: ds.dataSourceId,
-                        editable: ds.editable,
-                        layerType: layerType as LayerType.Point| LayerType.Topography,
-                    };
-                    this.addLayer(layerDefine);
-                })
+                });
             });
         }
 

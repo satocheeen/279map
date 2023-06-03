@@ -205,18 +205,6 @@ export default function Content(props: Props) {
         })
     }, [props.content, onEditContent, getSnsPreviewAPI, updateContentAPI]);
 
-    const editableAuthLv = useSelector((state: RootState) => {
-        if (state.session.connectStatus.status !== 'connected') {
-            return false;
-        }
-        return state.session.connectStatus.connectedMap?.authLv === Auth.Edit
-    });
-    const contentDataSource = useSelector((state: RootState) => {
-        return state.session.currentMapKindInfo?.dataSources.find(ds => {
-            return ds.dataSourceId === props.content.id.dataSourceId;
-        });
-    });
-
     const onDelete = useCallback(async() => {
         const result = await confirm({
             message: '削除してよろしいですか。'

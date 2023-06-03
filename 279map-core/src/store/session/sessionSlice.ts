@@ -1,9 +1,8 @@
-import { MapDefine, MapKind } from "279map-common";
+import { MapDefine, MapKind, DataSourceGroup } from "279map-common";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { ApiAccessError, ServerInfo } from "../../types/types";
 import { connectMap, loadMapDefine } from "./sessionThunk";
 import { Extent } from 'ol/extent';
-import { DataSourceInfo } from "tsunagumap-api";
 
 type ConnectStatus = {
     status: 'connecting-map',
@@ -28,7 +27,7 @@ const sessionSlice = createSlice({
         currentMapKindInfo: undefined as undefined | {
             mapKind: MapKind;
             extent: Extent;
-            dataSources: DataSourceInfo[];
+            dataSourceGroups: DataSourceGroup[];
         }
     },
     reducers: {
@@ -61,8 +60,8 @@ const sessionSlice = createSlice({
                 state.currentMapKindInfo = {
                     mapKind: action.payload.mapInfo.mapKind,
                     extent: action.payload.mapInfo.extent,
-                    dataSources: action.payload.mapInfo.dataSources,
-                };
+                    dataSourceGroups: action.payload.mapInfo.dataSourceGroups,
+            };
    
             } else {
                 state.connectStatus = {

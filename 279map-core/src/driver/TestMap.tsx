@@ -1,15 +1,15 @@
-import { Auth, CategoryDefine, DataId, DataSourceKindType, FeatureType, MapKind } from '279map-common';
+import { Auth, CategoryDefine, DataId, DataSourceGroup, DataSourceKindType, FeatureType, MapKind } from '279map-common';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { CommandHookType, ServerInfo } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
-import { DataSource, FilterDefine, OnConnectParam, OnMapLoadParam, TsunaguMapProps } from '../entry';
+import { FilterDefine, OnConnectParam, OnMapLoadParam, TsunaguMapProps } from '../entry';
 import styles from './TestMap.module.scss';
 import FilterCondition from './FilterCondition';
 
 /**
  * for Development
  */
-const mapId = '2022spring';
+const mapId = 'test';
 const myToken = undefined;  //'hogehoge';//undefined;
 const myMapServer = {
     host: 'localhost',
@@ -70,18 +70,24 @@ export default function TestMap() {
 
     const [ disabledContentDialog, setDisableContentDialog ] = useState(false);
 
-    const [ dataSources, setDataSources] = useState<DataSource[]>([]);
+    const [ dataSourceGroups, setDataSourceGroups] = useState<DataSourceGroup[]>([]);
 
-    const featureDataSources = useMemo(() => {
-        return dataSources.filter(ds => {
-            const isFeature = ds.kind !== DataSourceKindType.Content;
-            return isFeature;
+    const featureDataSourceGroups = useMemo(() => {
+        return dataSourceGroups.map((group): DataSourceGroup => {
+            const dataSources = group.dataSources.filter(ds => {
+                const isFeature = ds.kind !== DataSourceKindType.Content;
+                return isFeature;
+            });
+            return {
+                group: group.group,
+                dataSources,
+            }
         });
-    }, [dataSources]);
+    }, [dataSourceGroups]);
 
     const onMapLoad = useCallback((param: OnMapLoadParam) => {
         setMapKind(param.mapKind);
-        setDataSources(param.dataSources);
+        setDataSourceGroups(param.dataSourceGroups);
     }, []);
 
     const switchMapKind = useCallback((mapKind: MapKind) => {
@@ -180,26 +186,40 @@ export default function TestMap() {
                 </div>
                 <div className={styles.Col}>
                     <div className={styles.PropName}>データソース</div>
-                    {featureDataSources.map(ds => {
+                    {featureDataSourceGroups.map(group => {
                         return (
-                            <label key={ds.dataSourceId}>
-                                <input type="checkbox" />
-                                {ds.name}
-                                {(ds.editable && authLv === Auth.Edit) &&
-                                    <>
-                                        <button onClick={()=>commandHook?.drawStructure(ds.dataSourceId)}>建設</button>
-                                        {mapKind === MapKind.Real ?
-                                            <button onClick={()=>commandHook?.drawTopography(ds.dataSourceId, FeatureType.AREA)}>エリア作成</button>
-                                            :
-                                            <>
-                                                <button onClick={()=>commandHook?.drawRoad(ds.dataSourceId)}>道作成</button>
-                                                <button onClick={()=>commandHook?.drawTopography(ds.dataSourceId, FeatureType.EARTH)}>島作成</button>
-                                                <button onClick={()=>commandHook?.drawTopography(ds.dataSourceId, FeatureType.FOREST)}>緑地作成</button>
-                                            </>
-                                        }
-                                    </>
+                            <>
+                                {group.group &&
+                                    <label key={group.group}>
+                                        <input type="checkbox" />
+                                        {group.group}
+                                    </label>
                                 }
-                            </label>    
+                                {group.dataSources.map(ds => {
+                                    return (
+                                        <>
+                                            <label key={ds.dataSourceId} className={`${group.group ? styles.Child : ''}`}>
+                                                <input type="checkbox" />
+                                                {ds.name}
+                                                {(ds.editable && authLv === Auth.Edit) &&
+                                                    <>
+                                                        <button onClick={()=>commandHook?.drawStructure(ds.dataSourceId)}>建設</button>
+                                                        {mapKind === MapKind.Real ?
+                                                            <button onClick={()=>commandHook?.drawTopography(ds.dataSourceId, FeatureType.AREA)}>エリア作成</button>
+                                                            :
+                                                            <>
+                                                                <button onClick={()=>commandHook?.drawRoad(ds.dataSourceId)}>道作成</button>
+                                                                <button onClick={()=>commandHook?.drawTopography(ds.dataSourceId, FeatureType.EARTH)}>島作成</button>
+                                                                <button onClick={()=>commandHook?.drawTopography(ds.dataSourceId, FeatureType.FOREST)}>緑地作成</button>
+                                                            </>
+                                                        }
+                                                    </>
+                                                }
+                                            </label>
+                                        </>
+                                    )
+                                })}
+                            </>
                         )
                     })}
                 </div>

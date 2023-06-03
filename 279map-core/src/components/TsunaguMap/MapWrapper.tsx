@@ -135,7 +135,7 @@ export default function MapWrapper() {
         if (onMapKindChangedRef.current) {
             onMapKindChangedRef.current({
                 mapKind: currentMapKindInfo.mapKind,
-                dataSources: currentMapKindInfo.dataSources,
+                dataSourceGroups: currentMapKindInfo.dataSourceGroups,
             });
         }
     }, [currentMapKindInfo]);

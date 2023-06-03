@@ -6,7 +6,7 @@ import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
 import { useCommand } from '../../api/useCommand';
-import { Auth, DataId, DataSourceKindType, DataSourceLinkableContent } from '279map-common';
+import { Auth, DataId, DataSourceInfo, DataSourceKindType, DataSourceLinkableContent } from '279map-common';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
 import { getMapKey } from '../../store/data/dataUtility';
@@ -29,7 +29,13 @@ export default function AddContentMenu(props: Props) {
     const { getUnpointDataAPI, registContentAPI, linkContentToItemAPI, getSnsPreviewAPI } = useCommand();
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
 
-    const dataSources = useSelector((state: RootState) => state.session.currentMapKindInfo?.dataSources ?? []);
+    const dataSources = useSelector((state: RootState) => {
+        const groups = state.session.currentMapKindInfo?.dataSourceGroups;
+        if (!groups) return [];
+        return groups.reduce((acc, cur) => {
+            return acc.concat(cur.dataSources);
+        }, [] as DataSourceInfo[]);
+    });
 
     const editableAuthLv = useSelector((state: RootState) => {
         if (state.session.connectStatus.status !== 'connected') {
