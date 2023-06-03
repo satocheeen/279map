@@ -46,8 +46,9 @@
     text-align: right;
 }
 .ImageContainer {
-    width: 300px;
-    height: 200px;
+    width: 100%;
+    aspect-ratio: 3 /2;
+    object-fit: cover;
     position: relative;
     overflow: hidden;
 }

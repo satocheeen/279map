@@ -29,6 +29,13 @@
 }
 .Body {
     padding: 1rem;
+
+    width: 30vw;
+}
+@media screen and (max-width: 600px) {
+    .Body {
+        width: 80vw;
+    }
 }
 .Footer {
     text-align: right;
