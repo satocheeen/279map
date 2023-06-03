@@ -9,8 +9,8 @@ import FilterCondition from './FilterCondition';
 /**
  * for Development
  */
-const mapId = 'test';
-const myToken = 'hogehoge';//undefined;
+const mapId = '2022spring';
+const myToken = undefined;  //'hogehoge';//undefined;
 const myMapServer = {
     host: 'localhost',
     ssl: false,
@@ -64,7 +64,7 @@ export default function TestMap() {
     const [ mapKind, setMapKind ] = useState(MapKind.Real);
 
     // switch popup
-    const [ popupMode, setPopupMode ] = useState<TsunaguMapProps['popupMode']>('maximum');
+    const [ popupMode, setPopupMode ] = useState<TsunaguMapProps['popupMode']>('minimum');
 
     const [ disabledLabel, setDisableLabel ] = useState(false);
 
@@ -93,10 +93,6 @@ export default function TestMap() {
         console.log('onSelect', ids, cnt);
         setCnt(cnt + 1);
     }, [cnt]);
-
-    const onUnselect = useCallback(() => {
-        console.log('onUnselect');
-    }, []);
 
     const onCallback = useCallback((msg: string, param: any) => {
         console.log(msg, param);
@@ -273,7 +269,7 @@ export default function TestMap() {
                     filter={filter}
                     onConnect={onConnect}
                     onMapLoad={onMapLoad}
-                    onSelect={onSelect} onUnselect={onUnselect}
+                    onSelect={onSelect}
                     // onClick={(val) => onCallback('onClick', val)}
                     onModeChanged={(val) => onCallback('onModeChanged', val)}
                     onCategoriesLoaded={onCategoriesLoaded}

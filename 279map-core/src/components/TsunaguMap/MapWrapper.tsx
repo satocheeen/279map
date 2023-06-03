@@ -33,7 +33,6 @@ export default function MapWrapper() {
     const onConnectRef = useRef<typeof ownerContext.onConnect>();
     const onMapKindChangedRef = useRef<typeof ownerContext.onMapLoad>();
     const onSelectRef = useRef<typeof ownerContext.onSelect>();
-    const onUnselectRef = useRef<typeof ownerContext.onUnselect>();
     const onModeChangedRef = useRef<typeof ownerContext.onModeChanged>();
     const onCategoriesLoadedRef = useRef<typeof ownerContext.onCategoriesLoaded>();
     const onEventsLoadedRef = useRef<typeof ownerContext.onEventsLoaded>();
@@ -52,7 +51,6 @@ export default function MapWrapper() {
         onConnectRef.current = ownerContext.onConnect;
         onMapKindChangedRef.current = ownerContext.onMapLoad;
         onSelectRef.current = ownerContext.onSelect;
-        onUnselectRef.current = ownerContext.onUnselect;
         onModeChangedRef.current = ownerContext.onModeChanged;
         onCategoriesLoadedRef.current = ownerContext.onCategoriesLoaded;
         onEventsLoadedRef.current = ownerContext.onEventsLoaded;
@@ -147,14 +145,8 @@ export default function MapWrapper() {
      */
     const selectedItemIds = useSelector((state: RootState) => state.operation.selectedItemIds);
     useEffect(() => {
-        if (selectedItemIds.length > 0) {
-            if (onSelectRef.current) {
-                onSelectRef.current(selectedItemIds);
-            }
-        } else {
-            if (onUnselectRef.current) {
-                onUnselectRef.current();
-            }
+        if (onSelectRef.current) {
+            onSelectRef.current(selectedItemIds);
         }
     }, [selectedItemIds]);
 

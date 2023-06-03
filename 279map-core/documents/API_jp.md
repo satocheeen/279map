@@ -15,8 +15,7 @@
 | filter | FilterDefine[] | | 設定すると、地図上のピンが指定の条件でフィルタされます。 |
 | onConnect | (param: [OnConnectParam](#onconnectparam)) => void | | 地図への接続が成功した際のコールバック |
 | onMapLoad | (param: [OnMapLoadParam](#onmaploadparam)) => void | | 地図がロードされた際のコールバック |
-| onSelect | (targets: DataId[]) => void | | 地図上のアイテムが選択された際のコールバック |
-| onUnselect | () => void | | 地図上のアイテムの選択が解除された際のコールバック |
+| onSelect | (targets: DataId[]) => void | | 地図上のアイテムが選択された際のコールバック。選択解除された場合は、0個のtargetsを返す |
 | onClick | (targets: DataId[]) => void | | 地図上のアイテムがクリックされた際のコールバック。 このコールバックが指定されている場合は、重畳アイテム選択メニューとonSelectコールバックは無効になります。|
 | onModeChanged | (mode: MapMode) => void | | 地図表示モードが切り替わった際のコールバック |
 | onCategoriesLoaded | (categories: CategoriDefine[]) => void | | カテゴリ情報がロードされた際のコールバック。カテゴリ情報に更新があった場合も発火されます。 |

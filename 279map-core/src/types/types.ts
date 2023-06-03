@@ -77,7 +77,6 @@ export type TsunaguMapProps = {
     onConnect?: (param: OnConnectParam) => void;
     onMapLoad?: (param: OnMapLoadParam) => void;
     onSelect?: (targets: DataId[]) => void; // callback when items are selected
-    onUnselect?: () => void;    // callback when items are unselected.
     onClick?: (targets: DataId[]) => void; // callback when an items are clicked.  if set this callback, cluster menu don't be shown.
     onModeChanged?: (mode: MapMode) => void;    // callback when map mode has changed.
     onCategoriesLoaded?: (categories: CategoryDefine[]) => void;    // calback when categories has loaded or has changed.
