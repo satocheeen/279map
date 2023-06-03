@@ -21,6 +21,7 @@ export interface DataSourceConnection {
 export type DataSourceTable = {
     data_source_id: string;
     name: string;
+    group?: string;
 
     // 各地図での仕様形式。realでItemContent、virtualでContentになるケースなどを想定して、地図種別ごとに設定するようにしている。
     kind_real?: DataSourceKindType;
