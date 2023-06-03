@@ -18,6 +18,7 @@ CREATE TABLE `map_page_info` (
 CREATE TABLE `data_source` (
   `data_source_id` varchar(100) NOT NULL,
   `name` varchar(100) NOT NULL,
+  `group` varchar(100) DEFAULT NULL,
   `kind_real` enum('Item','Content','ItemContent','Track'),
   `kind_virtual` enum('Item','Content','ItemContent','Track'),
   `linkable_content` enum('None','Single','Multi') NOT NULL,
