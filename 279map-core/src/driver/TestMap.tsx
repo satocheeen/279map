@@ -164,6 +164,12 @@ export default function TestMap() {
         }, visible);
     }, [commandHook]);
 
+    const changeVisibleLayerGroup = useCallback((group: string, visible: boolean) => {
+        commandHook?.changeVisibleLayer({
+            group,
+        }, visible);
+    }, [commandHook]);
+
     return (
         <>
             <div className={styles.Form}>
@@ -197,7 +203,7 @@ export default function TestMap() {
                             <>
                                 {group.group &&
                                     <label key={group.group}>
-                                        <input type="checkbox" defaultChecked={true} />
+                                        <input type="checkbox" defaultChecked={true} onChange={(evt) => changeVisibleLayerGroup(group.group ?? '', evt.target.checked)} />
                                         {group.group}
                                     </label>
                                 }

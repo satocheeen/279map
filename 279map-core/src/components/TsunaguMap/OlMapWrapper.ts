@@ -570,13 +570,21 @@ class OlMapWrapper {
         this._map.removeInteraction(interaction);
     }
 
+    /**
+     * レイヤの表示非表示切り替え
+     * @param target 
+     * @param visible 
+     */
     changeVisibleLayer(target: { dataSourceId: string } | { group: string }, visible: boolean) {
+        let layerInfos: LayerInfo[];
         if ('dataSourceId' in target) {
-            const layerInfos = this._vectorLayerMap.getLayerInfoOfTheDataSource(target.dataSourceId);
-            layerInfos.forEach(layerInfo => {
-                layerInfo.layer.setVisible(visible);
-            })
+            layerInfos = this._vectorLayerMap.getLayerInfoOfTheDataSource(target.dataSourceId);
+        } else {
+            layerInfos = this._vectorLayerMap.getLayerInfoOfTheGroup(target.group);
         }
+        layerInfos.forEach(layerInfo => {
+            layerInfo.layer.setVisible(visible);
+        });
     }
 
     dispose() {

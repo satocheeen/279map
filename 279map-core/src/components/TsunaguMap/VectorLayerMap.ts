@@ -144,6 +144,21 @@ export class VectorLayerMap {
     }
 
     /**
+     * 指定のグループに属するLayerInfoを返す
+     * @param dataSourceId 
+     * @return レイヤInfo配列
+     */
+    getLayerInfoOfTheGroup(group: string) {
+        const list = [] as LayerInfo[];
+        this._layerMap.forEach(layerInfo => {
+            if (layerInfo.group === group) {
+                list.push(layerInfo);
+            }
+        });
+        return list;
+    }
+
+    /**
      * 指定のデータソースIDのLayerTypeを返す
      * @param dataSourceId 
      * @return レイヤ種別配列（1データソースが、Pointレイヤ、Topographyレイヤがあったり、Trackの場合は、ズームLvごとのレイヤがあるので、n個）
