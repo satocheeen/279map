@@ -65,6 +65,18 @@ export type MapDefine = {
     userName: string;
     options?: MapPageOptions;
 }
+export type DataSourceGroup = {
+    group?: string;
+    dataSources: DataSourceInfo[];
+}
+export type DataSourceInfo = {
+    dataSourceId: string;
+    name: string;
+    kind: DataSourceKindType;
+    editable: boolean;
+    deletable: boolean;
+    linkableContent: DataSourceLinkableContent;
+}
 
 /**
  * 地物種別
