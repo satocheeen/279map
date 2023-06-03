@@ -15,6 +15,7 @@ export enum LayerType {
 
 export type LayerDefine = {
     dataSourceId: string;
+    group: string;
     editable: boolean;
 } & (
     {

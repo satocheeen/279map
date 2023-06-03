@@ -46,8 +46,10 @@ export function createMapInstance(target: HTMLDivElement, device: Device) {
     return map;
 }
 
-export function getMapInstance(id: string) {
-    return instansMap.get(id);
+export function getMapInstance(id?: string) {
+    // useCommandでうまく地図を取得できないので、ひとまず現時点では１インスタンス前提で冒頭の地図を返す
+    return instansMap.values().next().value as OlMapWrapper;
+    // return instansMap.get(id);
 }
 const pcControls = olControl.defaults({attribution: true});
 const spControls = olControl.defaults({attribution: true, zoom: false});
@@ -161,6 +163,7 @@ class OlMapWrapper {
                         [[1, 8], [8, 13], [13, 21]].forEach(zoomLv => {
                             const layerDefine: LayerDefine = {
                                 dataSourceId: ds.dataSourceId,
+                                group: group.group ?? '',
                                 editable: false,
                                 layerType: LayerType.Track,
                                 zoomLv: {
@@ -175,6 +178,7 @@ class OlMapWrapper {
                         [LayerType.Point, LayerType.Topography].forEach(layerType => {
                             const layerDefine: LayerDefine = {
                                 dataSourceId: ds.dataSourceId,
+                                group: group.group ?? '',
                                 editable: ds.editable,
                                 layerType: layerType as LayerType.Point| LayerType.Topography,
                             };
@@ -195,6 +199,7 @@ class OlMapWrapper {
                     [LayerType.Point, LayerType.Topography].forEach(layerType => {
                         const layerDefine: LayerDefine = {
                             dataSourceId: ds.dataSourceId,
+                            group: group.group ?? '',
                             editable: ds.editable,
                             layerType: layerType as LayerType.Point| LayerType.Topography,
                         };
@@ -563,6 +568,15 @@ class OlMapWrapper {
 
     removeInteraction(interaction: Interaction) {
         this._map.removeInteraction(interaction);
+    }
+
+    changeVisibleLayer(target: { dataSourceId: string } | { group: string }, visible: boolean) {
+        if ('dataSourceId' in target) {
+            const layerInfos = this._vectorLayerMap.getLayerInfoOfTheDataSource(target.dataSourceId);
+            layerInfos.forEach(layerInfo => {
+                layerInfo.layer.setVisible(visible);
+            })
+        }
     }
 
     dispose() {

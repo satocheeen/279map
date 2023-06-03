@@ -6,6 +6,7 @@ import useConfirm from "../components/common/confirm/useConfirm";
 import { doCommand } from "../util/Commander";
 import { GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam } from "tsunagumap-api";
 import { getAPICallerInstance } from "./ApiCaller";
+import { getMapInstance } from '../components/TsunaguMap/OlMapWrapper';
 
 /**
  * Coreの外側から呼び出し可能なコマンド
@@ -210,6 +211,11 @@ export function useCommand() {
         return URL.createObjectURL(imgData);
     }, []);
 
+    const changeVisibleLayer = useCallback((target: { dataSourceId: string } | { group: string }, visible: boolean) => {
+        const map = getMapInstance();
+        map?.changeVisibleLayer(target, visible);
+    }, []);
+
     return {
         switchMapKind,
         focusItem,
@@ -231,6 +237,7 @@ export function useCommand() {
         getSnsPreviewAPI,
         getUnpointDataAPI,
         getThumbnail,
+        changeVisibleLayer,
     }
 }
 export type CommandHookType = ReturnType<typeof useCommand>;

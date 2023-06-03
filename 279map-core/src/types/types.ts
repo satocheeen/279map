@@ -27,9 +27,6 @@ export type OnConnectParam = {
     mapDefine: MapDefine;
     commandHook: CommandHookType,
 }  | ConnectFailureResult;
-// export type OnConnectParam = (ConnectSuccessResult & {
-//     commandHook: CommandHookType,
-// }) | ConnectFailureResult;
 
 export type LoadMapDefineResult = {
     result: 'success';

@@ -158,6 +158,12 @@ export default function TestMap() {
         console.log('thumb', img);
     }, [commandHook]);
 
+    const changeVisibleLayerDataSource = useCallback((dataSourceId: string, visible: boolean) => {
+        commandHook?.changeVisibleLayer({
+            dataSourceId,
+        }, visible);
+    }, [commandHook]);
+
     return (
         <>
             <div className={styles.Form}>
@@ -191,7 +197,7 @@ export default function TestMap() {
                             <>
                                 {group.group &&
                                     <label key={group.group}>
-                                        <input type="checkbox" />
+                                        <input type="checkbox" defaultChecked={true} />
                                         {group.group}
                                     </label>
                                 }
@@ -199,7 +205,7 @@ export default function TestMap() {
                                     return (
                                         <>
                                             <label key={ds.dataSourceId} className={`${group.group ? styles.Child : ''}`}>
-                                                <input type="checkbox" />
+                                                <input type="checkbox" defaultChecked={true} onChange={(evt) => changeVisibleLayerDataSource(ds.dataSourceId, evt.target.checked)} />
                                                 {ds.name}
                                                 {(ds.editable && authLv === Auth.Edit) &&
                                                     <>
