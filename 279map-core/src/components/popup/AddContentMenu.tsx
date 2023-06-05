@@ -30,8 +30,7 @@ export default function AddContentMenu(props: Props) {
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
 
     const dataSources = useSelector((state: RootState) => {
-        const groups = state.session.currentMapKindInfo?.dataSourceGroups;
-        if (!groups) return [];
+        const groups = state.data.dataSourceGroups;
         return groups.reduce((acc, cur) => {
             return acc.concat(cur.dataSources);
         }, [] as DataSourceInfo[]);

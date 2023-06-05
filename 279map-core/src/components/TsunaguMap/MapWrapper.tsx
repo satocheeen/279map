@@ -27,11 +27,13 @@ import { useWatch } from '../../util/useWatch';
 export default function MapWrapper() {
     const ownerContext = useContext(OwnerContext);
     const connectStatus = useSelector((state: RootState) => state.session.connectStatus);
-    const currentMapKindInfo = useSelector((state: RootState) => state.session.currentMapKindInfo);
+    const currentMapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
+    const currentDataSourceGroups = useSelector((state: RootState) => state.data.dataSourceGroups);
     const spinner = useOverlay();
 
     const onConnectRef = useRef<typeof ownerContext.onConnect>();
     const onMapKindChangedRef = useRef<typeof ownerContext.onMapLoad>();
+    const onDatasourceChangedRef = useRef<typeof ownerContext.onDatasourceChanged>();
     const onSelectRef = useRef<typeof ownerContext.onSelect>();
     const onModeChangedRef = useRef<typeof ownerContext.onModeChanged>();
     const onCategoriesLoadedRef = useRef<typeof ownerContext.onCategoriesLoaded>();
@@ -50,6 +52,7 @@ export default function MapWrapper() {
     useEffect(() => {
         onConnectRef.current = ownerContext.onConnect;
         onMapKindChangedRef.current = ownerContext.onMapLoad;
+        onDatasourceChangedRef.current = ownerContext.onDatasourceChanged;
         onSelectRef.current = ownerContext.onSelect;
         onModeChangedRef.current = ownerContext.onModeChanged;
         onCategoriesLoadedRef.current = ownerContext.onCategoriesLoaded;
@@ -118,7 +121,7 @@ export default function MapWrapper() {
      */
     useMounted(() => {
         const h = addListener('ChangeMapKind', async(mapKind: MapKind) => {
-            if (currentMapKindInfo?.mapKind === mapKind) {
+            if (currentMapKind === mapKind) {
                 return;
             }
             await dispatch(loadMapDefine(mapKind));
@@ -130,15 +133,22 @@ export default function MapWrapper() {
     })
 
     useEffect(() => {
-        if (!currentMapKindInfo) return;
+        if (!currentMapKind) return;
 
         if (onMapKindChangedRef.current) {
             onMapKindChangedRef.current({
-                mapKind: currentMapKindInfo.mapKind,
-                dataSourceGroups: currentMapKindInfo.dataSourceGroups,
+                mapKind: currentMapKind,
             });
         }
-    }, [currentMapKindInfo]);
+    }, [currentMapKind]);
+
+    useEffect(() => {
+        if (onDatasourceChangedRef.current) {
+            onDatasourceChangedRef.current({
+                dataSourceGroups: currentDataSourceGroups,
+            })
+        }
+    }, [currentDataSourceGroups]);
 
     /**
      * 選択アイテムが変更されたらコールバック
@@ -217,11 +227,11 @@ export default function MapWrapper() {
         // } else if (currentMapKindInfo) {
         //     spinner.hideSpinner();
         }
-    }, [connectStatus, currentMapKindInfo, spinner]);
+    }, [connectStatus, currentMapKind, spinner]);
 
     return (
         <>
-            {currentMapKindInfo &&
+            {currentMapKind &&
                 <MapChart />
             }
             <Overlay />

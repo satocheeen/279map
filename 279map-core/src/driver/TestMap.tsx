@@ -1,6 +1,6 @@
 import { Auth, CategoryDefine, DataId, DataSourceGroup, DataSourceKindType, FeatureType, MapKind } from '279map-common';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { CommandHookType, ServerInfo } from '../entry';
+import { CommandHookType, ServerInfo, onDatasourceChangedParam } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
 import { FilterDefine, OnConnectParam, OnMapLoadParam, TsunaguMapProps } from '../entry';
 import styles from './TestMap.module.scss';
@@ -10,7 +10,7 @@ import FilterCondition from './FilterCondition';
  * for Development
  */
 const mapId = 'test';
-const myToken = undefined;  //'hogehoge';//undefined;
+const myToken = 'hogehoge';//undefined;
 const myMapServer = {
     host: 'localhost',
     ssl: false,
@@ -87,6 +87,9 @@ export default function TestMap() {
 
     const onMapLoad = useCallback((param: OnMapLoadParam) => {
         setMapKind(param.mapKind);
+    }, []);
+
+    const onDataSourceChanged = useCallback((param: onDatasourceChangedParam) => {
         setDataSourceGroups(param.dataSourceGroups);
     }, []);
 
@@ -301,6 +304,7 @@ export default function TestMap() {
                     filter={filter}
                     onConnect={onConnect}
                     onMapLoad={onMapLoad}
+                    onDatasourceChanged={onDataSourceChanged}
                     onSelect={onSelect}
                     // onClick={(val) => onCallback('onClick', val)}
                     onModeChanged={(val) => onCallback('onModeChanged', val)}

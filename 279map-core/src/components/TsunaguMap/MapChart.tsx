@@ -53,7 +53,7 @@ export default function MapChart() {
     }, [pointStyleFunction, topographyStyleFunction, trackStyleFunction])
 
     const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
-    const dataSources = useSelector((state: RootState) => state.session.currentMapKindInfo?.dataSourceGroups ?? []);
+    const dataSources = useSelector((state: RootState) => state.data.dataSourceGroups);
 
     const defaultExtent = useSelector((state: RootState) => state.data.extent);
     const itemMap = useSelector((state: RootState) => state.data.itemMap);

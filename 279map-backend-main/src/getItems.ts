@@ -4,7 +4,6 @@ import { getLogger } from 'log4js';
 import { ConnectionPool } from '.';
 import { GetItemsParam, GetItemsResult } from '../279map-api-interface/src';
 import { getExtentWkt } from './util/utility';
-import mysql from 'mysql2/promise';
 
 const apiLogger = getLogger('api');
 

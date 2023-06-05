@@ -1,9 +1,10 @@
-import { ContentAttr, DataId, DataSourceGroup, DataSourceKindType, DataSourceLinkableContent, GeoProperties, IconDefine, MapDefine, UnpointContent } from "279map-common";
+import { ContentAttr, DataId, GeoProperties, IconDefine, MapDefine, UnpointContent } from "279map-common";
 import { CSSProperties } from "react";
 import { CategoryDefine, EventDefine, MapKind } from '279map-common';
 import { CommandHookType } from '../api/useCommand';
 import { ApiError, ConnectResult, ErrorType, GetMapInfoResult, LinkContentToItemParam, RegistContentParam, GetSnsPreviewResult, UpdateContentParam } from "tsunagumap-api";
 import { FilterDefine } from "279map-common";
+import { DataSourceGroupWithOperation } from "../store/data/dataSlice";
 
 type ConnectSuccessResult = {
     result: 'success';
@@ -11,7 +12,9 @@ type ConnectSuccessResult = {
 }
 export type OnMapLoadParam = {
     mapKind: MapKind;
-    dataSourceGroups: DataSourceGroup[];
+}
+export type onDatasourceChangedParam = {
+    dataSourceGroups: DataSourceGroupWithOperation[];
 }
 export type ApiAccessError = {
     type: ErrorType | 'UndefinedMapServer';
@@ -65,6 +68,7 @@ export type TsunaguMapProps = {
 
     onConnect?: (param: OnConnectParam) => void;
     onMapLoad?: (param: OnMapLoadParam) => void;
+    onDatasourceChanged?: (param: onDatasourceChangedParam) => void;
     onSelect?: (targets: DataId[]) => void; // callback when items are selected
     onClick?: (targets: DataId[]) => void; // callback when an items are clicked.  if set this callback, cluster menu don't be shown.
     onModeChanged?: (mode: MapMode) => void;    // callback when map mode has changed.

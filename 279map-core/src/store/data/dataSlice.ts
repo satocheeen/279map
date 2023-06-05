@@ -1,4 +1,4 @@
-import { CategoryDefine, ContentsDefine, DataId, EventDefine, ItemContentInfo, ItemDefine } from '279map-common';
+import { CategoryDefine, ContentsDefine, DataId, DataSourceInfo, EventDefine, ItemContentInfo, ItemDefine } from '279map-common';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { Extent } from 'ol/extent';
 import { SystemIconDefine } from '../../types/types';
@@ -6,10 +6,17 @@ import { loadMapDefine } from '../session/sessionThunk';
 import { loadCategories, loadContents, loadEvents, loadItems, loadOriginalIconDefine, removeContent } from './dataThunk';
 import { getMapKey, isEqualId } from './dataUtility';
 
+export type DataSourceInfoWithOperation = DataSourceInfo & {
+    visible: boolean;
+}
+export type DataSourceGroupWithOperation = {
+    name?: string;
+    visible: boolean;
+    dataSources: DataSourceInfoWithOperation[];
+}
 /**
  * 地図関連の情報を管理
  */
-
 const dataSlice = createSlice({
     name: 'data',
     initialState: {
@@ -23,6 +30,8 @@ const dataSlice = createSlice({
         events: [] as EventDefine[],    // イベント（日付を持つデータ）情報
 
         originalIconDefine: [] as SystemIconDefine[],   // DBに登録されたオリジナルアイコン
+
+        dataSourceGroups: [] as DataSourceGroupWithOperation[],
     },
     reducers: {
         /**
@@ -65,6 +74,17 @@ const dataSlice = createSlice({
             }
             // state.mapKind = action.payload.mapKind;
             state.extent = action.payload.mapInfo.extent;
+            state.dataSourceGroups = action.payload.mapInfo.dataSourceGroups.map(group => {
+                return {
+                    name: group.group,
+                    visible: true,
+                    dataSources: group.dataSources.map((ds): DataSourceInfoWithOperation => {
+                        return Object.assign({}, ds, {
+                            visible: true,
+                        })
+                    })
+                }
+            })
 
             // アイテムクリア
             state.itemMap = {};

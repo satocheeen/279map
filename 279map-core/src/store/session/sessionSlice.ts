@@ -27,7 +27,6 @@ const sessionSlice = createSlice({
         currentMapKindInfo: undefined as undefined | {
             mapKind: MapKind;
             extent: Extent;
-            dataSourceGroups: DataSourceGroup[];
         }
     },
     reducers: {
@@ -60,7 +59,6 @@ const sessionSlice = createSlice({
                 state.currentMapKindInfo = {
                     mapKind: action.payload.mapInfo.mapKind,
                     extent: action.payload.mapInfo.extent,
-                    dataSourceGroups: action.payload.mapInfo.dataSourceGroups,
             };
    
             } else {
