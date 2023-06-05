@@ -1,10 +1,10 @@
-import { ContentAttr, DataId, GeoProperties, IconDefine, MapDefine, UnpointContent } from "279map-common";
+import { ContentAttr, DataId, FeatureType, GeoProperties, IconDefine, MapDefine, UnpointContent } from "279map-common";
 import { CSSProperties } from "react";
 import { CategoryDefine, EventDefine, MapKind } from '279map-common';
-import { CommandHookType } from '../api/useCommand';
-import { ApiError, ConnectResult, ErrorType, GetMapInfoResult, LinkContentToItemParam, RegistContentParam, GetSnsPreviewResult, UpdateContentParam } from "tsunagumap-api";
+import { ApiError, ConnectResult, ErrorType, GetMapInfoResult, LinkContentToItemParam, RegistContentParam, GetSnsPreviewResult, UpdateContentParam, GetUnpointDataResult } from "tsunagumap-api";
 import { FilterDefine } from "279map-common";
 import { DataSourceGroupWithOperation } from "../store/data/dataSlice";
+import { LoadContentsParam, LoadContentsResult } from "../store/data/dataThunk";
 
 type ConnectSuccessResult = {
     result: 'success';
@@ -28,7 +28,6 @@ export type ConnectAPIResult = ConnectSuccessResult | ConnectFailureResult;
 export type OnConnectParam = {
     result: 'success';
     mapDefine: MapDefine;
-    commandHook: CommandHookType,
 }  | ConnectFailureResult;
 
 export type LoadMapDefineResult = {
@@ -81,6 +80,94 @@ export type TsunaguMapProps = {
     onEditContent?: (param: EditContentParam) => void;
     // callback when kick the action to link a content with an item or a content
     onLinkUnpointedContent?: (param: LinkUnpointContentParam) => void;
+}
+
+export interface TsunaguMapHandler {
+    /**
+     * switch the map kind
+     * 表示する地図種別の切り替え
+     */
+    switchMapKind(mapKind: MapKind): void;
+
+    /**
+     * focus the item
+     * 指定のアイテムにフォーカスする
+     * @param itemId フォーカス対象のアイテムid
+     * @param opts フォーカスする際のオプション
+     */
+    focusItem(itemId: DataId, opts?: {zoom?: boolean}): void;
+
+    /**
+     * start the spte of drawing a structure (or a pin).
+     * 建設または地点登録する
+     */
+    drawStructure(dataSourceId: string): void;
+
+    /**
+     * start the step of moving a structure (or a pin).
+     * 移築または地点移動する
+     */
+    moveStructure(): void;
+
+    /**
+     * start the step of changing a structure's icon.
+     * 改築（建物変更）する
+     */
+    changeStructure(): void;
+
+    /**
+     * start the step of removing a structure.
+     * 建物解体する
+     */
+    removeStructure(): void;
+
+    /**
+     * start the step of drawing a land, a green field or an area.
+     * 島or緑地orエリアを作成する
+     */
+    drawTopography(dataSourceId: string, featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA):void;
+
+    /**
+     * start the step of drawing a road.
+     * 道を作成する
+     */
+    drawRoad(dataSourceId: string): void;
+
+    /**
+     * start the step of modifying a topography.
+     * 地形編集する
+     */
+    editTopography(): void;
+
+    /**
+     * start the step of removing a topography.
+     * 地形削除する
+     */
+    removeTopography(): void;
+
+    editTopographyInfo(): void;
+
+    loadContentsAPI(param: LoadContentsParam): Promise<LoadContentsResult>;
+
+    showDetailDialog(param: {type: 'item' | 'content'; id: DataId}): void;
+
+    registContentAPI(param: RegistContentParam): Promise<void>;
+
+    updateContentAPI(param: UpdateContentParam): Promise<void>;
+
+    linkContentToItemAPI(param: LinkContentToItemParam): Promise<void>;
+
+    getSnsPreviewAPI(url: string): Promise<GetSnsPreviewResult>;
+
+    getUnpointDataAPI(dataSourceId: string, nextToken?: string): Promise<GetUnpointDataResult>;
+
+    /**
+     * 指定のコンテンツのサムネイル画像（Blob）を取得する
+     */
+    getThumbnail(contentId: DataId): Promise<string>;
+
+    changeVisibleLayer(target: { dataSourceId: string } | { group: string }, visible: boolean): void;
+
 }
 
 export type ServerInfo = {

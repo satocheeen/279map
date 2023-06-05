@@ -9,19 +9,19 @@ import CategoryBadge from "../common/CategoryBadge";
 import * as CommonUtility from '../../util/CommonUtility';
 import { CgArrowsExchangeAlt } from "react-icons/cg";
 import useConfirm, { ConfirmBtnPattern, ConfirmResult } from "../common/confirm/useConfirm";
-import { removeContent } from "../../store/data/dataThunk";
+import { removeContent, updateContent } from "../../store/data/dataThunk";
 import reactStringReplace from "react-string-replace";
 import PopupMenuIcon from "../popup/PopupMenuIcon";
 import AddContentMenu from "../popup/AddContentMenu";
-import { Auth, ContentAttr, ContentsDefine, DataId, DataSourceKindType, MapKind } from "279map-common";
+import { ContentAttr, ContentsDefine, DataId, MapKind } from "279map-common";
 import Spinner from "../common/spinner/Spinner";
 import { useFilter } from "../../store/useFilter";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
 import { getContents, getMapKey, isEqualId } from "../../store/data/dataUtility";
 import { getAPICallerInstance } from "../../api/ApiCaller";
-import { GetImageUrlAPI } from 'tsunagumap-api';
-import { useCommand } from "../../api/useCommand";
+import { GetImageUrlAPI, UpdateContentParam } from 'tsunagumap-api';
+import { getSnsPreviewAPI } from "../../api/ApiCaller";
 import { doCommand } from "../../util/Commander";
 
 type Props = {
@@ -41,7 +41,7 @@ export default function Content(props: Props) {
     const dispatch = useAppDispatch();
     const { filteredContents } = useFilter();
     const { onEditContent }  = useContext(OwnerContext);
-    const { updateContentAPI, getSnsPreviewAPI } = useCommand();
+    // const { updateContentAPI, getSnsPreviewAPI } = useCommand();
 
     /**
      * 表示対象コンテンツかどうか。
@@ -201,9 +201,12 @@ export default function Content(props: Props) {
             contentId: props.content.id,
             currentAttr,
             getSnsPreviewAPI,
-            updateContentAPI,
+            updateContentAPI: async(param: UpdateContentParam) => {
+                await dispatch(updateContent(param));
+        
+            },
         })
-    }, [props.content, onEditContent, getSnsPreviewAPI, updateContentAPI]);
+    }, [props.content, onEditContent, dispatch]);
 
     const onDelete = useCallback(async() => {
         const result = await confirm({

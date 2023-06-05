@@ -1,30 +1,33 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useImperativeHandle, useContext, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
-import { loadCategories, loadEvents } from '../../store/data/dataThunk';
-import { addListener, removeListener } from '../../util/Commander';
+import { LoadContentsParam, LoadContentsResult, linkContentToItem, loadCategories, loadContents, loadEvents, registContent, updateContent } from '../../store/data/dataThunk';
+import { addListener, doCommand, removeListener } from '../../util/Commander';
 import MapChart from './MapChart';
 import { operationActions } from '../../store/operation/operationSlice';
 import { OwnerContext } from './TsunaguMap';
 import { sessionActions } from '../../store/session/sessionSlice';
 import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
 import { useOverlay } from '../common/spinner/useOverlay';
-import { useCommand } from '../../api/useCommand';
 import styles from './MapWrapper.module.scss';
-import { ConnectAPIResult } from '../../types/types';
-import { ErrorType } from 'tsunagumap-api';
+import { ConnectAPIResult, TsunaguMapHandler } from '../../types/types';
+import { ErrorType, GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam } from "tsunagumap-api";
 import { search } from '../../store/operation/operationThunk';
 import Spinner from '../common/spinner/Spinner';
 import { useMounted } from '../../util/useMounted';
-import { MapKind } from '279map-common';
+import { DataId, FeatureType, MapKind, UnpointContent } from '279map-common';
 import { useWatch } from '../../util/useWatch';
+import { getAPICallerInstance } from '../../api/ApiCaller';
+import { getMapInstance } from './OlMapWrapper';
+
+type Props = {};
 
 /**
  * 地図コンポーネント。
  * storeはここから有効になる。
  * @returns 
  */
-export default function MapWrapper() {
+function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const ownerContext = useContext(OwnerContext);
     const connectStatus = useSelector((state: RootState) => state.session.connectStatus);
     const currentMapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
@@ -40,6 +43,153 @@ export default function MapWrapper() {
     const onEventsLoadedRef = useRef<typeof ownerContext.onEventsLoaded>();
 
     const dispatch = useAppDispatch();
+
+    useImperativeHandle(ref, () => ({
+        switchMapKind(mapKind: MapKind) {
+            doCommand({
+                command: 'ChangeMapKind',
+                param: mapKind,
+            });
+        },
+        focusItem(itemId: DataId, opts?: {zoom?: boolean}) {
+            doCommand({
+                command: 'FocusItem',
+                param: {
+                    itemId,
+                    zoom: opts?.zoom,
+                }
+            });
+        },
+        drawStructure(dataSourceId: string) {
+            doCommand({
+                command: 'DrawStructure',
+                param: dataSourceId,
+            });
+        },
+        moveStructure() {
+            doCommand({
+                command: 'MoveStructure',
+                param: undefined,
+            });
+        },
+        changeStructure() {
+            doCommand({
+                command: 'ChangeStructure',
+                param: undefined,
+            });
+        },
+        removeStructure() {
+            doCommand({
+                command: 'RemoveStructure',
+                param: undefined,
+            });
+        },
+        drawTopography(dataSourceId: string, featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA) {
+            doCommand({
+                command: 'DrawTopography',
+                param: {
+                    dataSourceId, 
+                    featureType,
+                }
+            });
+        },
+        drawRoad(dataSourceId: string) {
+            doCommand({
+                command: 'DrawRoad',
+                param: dataSourceId,
+            });
+        },
+        editTopography() {
+            doCommand({
+                command:'EditTopography',
+                param: undefined,
+            });
+        },
+        removeTopography() {
+            doCommand({
+                command:'RemoveTopography',
+                param: undefined,
+            });
+        },
+        editTopographyInfo() {
+            doCommand({
+                command:'EditTopographyInfo',
+                param: undefined,
+            });
+        },
+        async loadContentsAPI(param: LoadContentsParam): Promise<LoadContentsResult> {
+            const res = await dispatch(loadContents(param));
+            if ('error' in res) {
+                // @ts-ignore
+                const errorMessage = res.payload?.message ?? '';
+                throw new Error('registContentAPI failed.' + errorMessage);
+            }
+            return res.payload;
+        },
+
+        async showDetailDialog(param: {type: 'item' | 'content'; id: DataId}) {
+            if (param.type === 'content') {
+                doCommand({
+                    command: 'ShowContentInfo',
+                    param: param.id,
+                });
+            } else {
+                doCommand({
+                    command: 'ShowItemInfo',
+                    param: param.id,
+                });
+            }
+        },
+        async registContentAPI(param: RegistContentParam) {
+            const res = await dispatch(registContent(param));
+            if ('error' in res) {
+                // @ts-ignore
+                const errorMessage = res.payload?.message ?? '';
+                throw new Error('registContentAPI failed.' + errorMessage);
+            }
+        },
+        async updateContentAPI(param: UpdateContentParam) {
+            await dispatch(updateContent(param));
+        },
+        async linkContentToItemAPI(param: LinkContentToItemParam) {
+            await dispatch(linkContentToItem(param));
+        },
+    
+        async getSnsPreviewAPI(url: string) {
+            const res = await getAPICallerInstance().callApi(GetSnsPreviewAPI, {
+                url,
+            });
+            return res;
+        },
+    
+        async getUnpointDataAPI(dataSourceId: string, nextToken?: string) {
+            const result = await getAPICallerInstance().callApi(GetUnpointDataAPI, {
+                dataSourceId,
+                nextToken,
+            });
+            return {
+                contents: result.contents as UnpointContent[],
+                nextToken: result.nextToken,
+            };
+    
+        },
+    
+        /**
+         * 指定のコンテンツのサムネイル画像（Blob）を取得する
+         */
+        async getThumbnail(contentId: DataId) {
+            const imgData = await getAPICallerInstance().callApi(GetThumbAPI, {
+                id: contentId.id,
+            });
+            return URL.createObjectURL(imgData);
+        },
+    
+        changeVisibleLayer(target: { dataSourceId: string } | { group: string }, visible: boolean) {
+            const map = getMapInstance();
+            map?.changeVisibleLayer(target, visible);
+        },
+                                                        
+    }));
 
     useWatch(() => {
         dispatch(sessionActions.setMapServer({
@@ -75,7 +225,6 @@ export default function MapWrapper() {
 
     }, [dispatch, mapServer]);
 
-    const commandHook = useCommand();
     /**
      * connect to map
      */
@@ -93,7 +242,6 @@ export default function MapWrapper() {
                     onConnectRef.current({
                         result: 'success',
                         mapDefine: result.connectResult.mapDefine,
-                        commandHook,
                     });
                 } else {
                     onConnectRef.current({
@@ -264,3 +412,4 @@ function Overlay() {
         </div>
     )
 }
+export default React.forwardRef(MapWrapper);

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useImperativeHandle, useState, useMemo, useRef } from 'react';
 import { Provider } from 'react-redux';
 import { store } from '../../store/configureStore';
 import MapWrapper from './MapWrapper';
@@ -7,7 +7,7 @@ import './TsunaguMap.scss';
 import ConfirmDialog from '../common/confirm/ConfirmDialog';
 import ContentsModal from '../contents/ContentsModal';
 import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
-import { AddNewContentParam, EditContentParam, LinkUnpointContentParam, TsunaguMapProps } from '../../types/types';
+import { AddNewContentParam, EditContentParam, LinkUnpointContentParam, TsunaguMapHandler, TsunaguMapProps } from '../../types/types';
 import DefaultComponents from '../default/DefaultComponents';
 
 type SomeRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
@@ -30,7 +30,8 @@ export const OwnerContext = React.createContext<OwnerContextType>({
     setMapInstanceId: (id: string) => {},
 });
 
-export default function TsunaguMap(props: TsunaguMapProps) {
+
+function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const [mapInstanceId, setMapInstanceId ] = useState<string>('');
     const [ showTooltipId, setShowTooltipId ] = useState<{[name: string]: string}>({});
     const tooltipContextValue = {
@@ -57,13 +58,37 @@ export default function TsunaguMap(props: TsunaguMapProps) {
         })
     }, [props, mapInstanceId]);
 
+    const mapRef = useRef<TsunaguMapHandler>(null);
+    useImperativeHandle(ref, () => mapRef.current ?? {
+        switchMapKind() {},
+        focusItem() {},
+        drawStructure() {},
+        moveStructure() {},
+        changeStructure() {},
+        removeStructure() {},
+        drawTopography() {},
+        drawRoad() {},
+        editTopography() {},
+        removeTopography() {},
+        editTopographyInfo() {},
+        loadContentsAPI() { throw ''},
+        showDetailDialog() {},
+        registContentAPI() { throw ''},
+        updateContentAPI() { throw ''},
+        linkContentToItemAPI() { throw ''},
+        getSnsPreviewAPI() { throw '' },
+        getUnpointDataAPI() { throw ''},
+        getThumbnail() { throw ''},
+        changeVisibleLayer() {},
+    })
+
     return (
         <>
             <OwnerContext.Provider value={ownerContextValue}>
                 <TooltipContext.Provider value={tooltipContextValue}>
                     <Provider store={store}>
                         <div className={styles.TsunaguMap}>
-                            <MapWrapper />
+                            <MapWrapper ref={mapRef} />
                         </div>
                         <ConfirmDialog />
                         <ContentsModal />
@@ -83,3 +108,4 @@ export default function TsunaguMap(props: TsunaguMapProps) {
        </>
     );
 }
+export default React.forwardRef(TsunaguMap);

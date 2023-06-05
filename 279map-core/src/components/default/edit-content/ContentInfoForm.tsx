@@ -7,10 +7,10 @@ import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import { ImageRegister } from '../../common';
 import { GetSnsPreviewResult } from 'tsunagumap-api';
-import { useCommand } from '../../../api/useCommand';
 import FormGroup from '../../common/form/FormGroup';
 import Input from '../../common/form/Input';
 import RadioButtons from '../../common/form/RadioButtons';
+import { useWatch } from '../../../util/useWatch';
 dayjs.extend(utc);
 
 type Props = {
@@ -71,17 +71,16 @@ export default function ContentInfoForm(props: Props) {
 
     }, [props]);
 
-    const { getSnsPreviewAPI } = useCommand();
     /**
      * SNS投稿プレビュー
      */
-    useEffect(() => {
+    useWatch(() => {
         setSnsPreviewPosts([]);
         setErrorMessage('');
         if (props.value.type !== 'sns' || !props.value.url || props.value.url.length === 0) {
             return;
         }
-        getSnsPreviewAPI(props.value.url)
+        props.getSnsPreviewAPI(props.value.url)
         .then(res => {
             // setSnsPreviewPosts(res.posts);
         })
@@ -89,7 +88,7 @@ export default function ContentInfoForm(props: Props) {
             setErrorMessage(''+ e);
         });
     // @ts-ignore
-    }, [props.value.type, props.value.url, getSnsPreviewAPI]);
+    }, [props.value.type, props.value.url]);
 
     const onCategoryChanged = useCallback((categories: string[]) => {
         const newValue = Object.assign({}, props.value, {

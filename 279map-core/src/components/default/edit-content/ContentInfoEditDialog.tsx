@@ -3,9 +3,8 @@ import ContentInfoForm from './ContentInfoForm';
 import styles from './ContentInfoEditDialog.module.scss';
 import { AddNewContentParam, EditContentParam } from '../../../types/types';
 import { ContentAttr } from '279map-common';
-import { useCommand } from '../../../api/useCommand';
 import { Button, Modal } from '../../common';
-import { ConfirmBtnPattern } from '../../common/confirm/useConfirm';
+import useConfirm, { ConfirmBtnPattern } from '../../common/confirm/useConfirm';
 import Select from '../../common/form/Select';
 
 type Props = {
@@ -40,7 +39,7 @@ export default function ContentInfoEditDialog(props: Props) {
     const itemMapRef = useRef<typeof itemMap>();
     itemMapRef.current = itemMap;
     const [ spinner, setSpinner ] = useState<false|string>(false);
-    const commandHook = useCommand();
+    const { confirm } = useConfirm();
     const [ contentDataSourceId, setContentDataSourceId ] = useState<string|undefined>(
         props.type === 'new' ? props.param.dataSources[0]?.dataSourceId : props.param.contentId.dataSourceId
     );
@@ -79,7 +78,7 @@ export default function ContentInfoEditDialog(props: Props) {
 
         } catch(e) {
             console.warn(e);
-            commandHook?.confirm({
+            confirm({
                 message: '登録に失敗しました。再度実行して、うまくいかない場合は管理者へご連絡ください。',
                 btnPattern: ConfirmBtnPattern.OkOnly,
             });
@@ -87,7 +86,7 @@ export default function ContentInfoEditDialog(props: Props) {
             setSpinner(false);
         }
 
-    }, [props, attrValue, commandHook, contentDataSourceId]);
+    }, [props, attrValue, confirm, contentDataSourceId]);
 
     const onCancel = useCallback(() => {
         if (props.onClose) {

@@ -5,11 +5,13 @@ import Tooltip from '../common/tooltip/Tooltip';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
-import { useCommand } from '../../api/useCommand';
 import { Auth, DataId, DataSourceInfo, DataSourceKindType, DataSourceLinkableContent } from '279map-common';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../store/configureStore';
+import { RootState, useAppDispatch } from '../../store/configureStore';
 import { getMapKey } from '../../store/data/dataUtility';
+import { getUnpointDataAPI, getSnsPreviewAPI } from '../../api/ApiCaller';
+import { LinkContentToItemParam, RegistContentParam } from 'tsunagumap-api';
+import { linkContentToItem, registContent } from '../../store/data/dataThunk';
 
 type Props = {
     target: {
@@ -23,10 +25,11 @@ type Props = {
 }
 let maxId = 0;
 export default function AddContentMenu(props: Props) {
+    const dispatch = useAppDispatch();
     const id = useRef('add-content-menu-'+maxId++);
     const { onAddNewContent, onLinkUnpointedContent } = useContext(OwnerContext);
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
-    const { getUnpointDataAPI, registContentAPI, linkContentToItemAPI, getSnsPreviewAPI } = useCommand();
+    // const { getUnpointDataAPI, registContentAPI, linkContentToItemAPI, getSnsPreviewAPI } = useCommand();
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
 
     const dataSources = useSelector((state: RootState) => {
@@ -129,7 +132,14 @@ export default function AddContentMenu(props: Props) {
             onAddNewContent({
                 parent: props.target,
                 dataSources: creatableContentDataSources,
-                registContentAPI,
+                registContentAPI: async(param: RegistContentParam) => {
+                    const res = await dispatch(registContent(param));
+                    if ('error' in res) {
+                        // @ts-ignore
+                        const errorMessage = res.payload?.message ?? '';
+                        throw new Error('registContentAPI failed.' + errorMessage);
+                    }
+                },
                 getSnsPreviewAPI,
             });
         } else {
@@ -137,7 +147,9 @@ export default function AddContentMenu(props: Props) {
                 parent: props.target,
                 dataSources: linkableContentDataSources,
                 getUnpointDataAPI,
-                linkContentToItemAPI,
+                linkContentToItemAPI: async(param: LinkContentToItemParam) => {
+                    await dispatch(linkContentToItem(param));
+                },
             });
         }
 
@@ -145,7 +157,7 @@ export default function AddContentMenu(props: Props) {
             props.onClick();
         }
 
-    }, [props, creatableContentDataSources, linkableContentDataSources, getSnsPreviewAPI, getUnpointDataAPI, linkContentToItemAPI, onAddNewContent, onLinkUnpointedContent, registContentAPI]);
+    }, [props, creatableContentDataSources, linkableContentDataSources, dispatch, onAddNewContent, onLinkUnpointedContent]);
 
     const caption = useMemo(() => {
         if ('itemId' in props.target) {

@@ -1,6 +1,6 @@
-import { APIDefine } from '279map-common';
+import { APIDefine, UnpointContent } from '279map-common';
 import { ServerInfo } from '../types/types';
-import { ApiError, ErrorType } from 'tsunagumap-api';
+import { ApiError, ErrorType, GetSnsPreviewAPI, GetUnpointDataAPI } from 'tsunagumap-api';
 
 type ErrorCallback = (errorType: ApiError) => void;
 class ApiCaller {
@@ -100,4 +100,23 @@ export function getAPICallerInstance() {
         throw new Error('api not initialized');
     }
     return _instance;
+}
+
+export async function getUnpointDataAPI(dataSourceId: string, nextToken?: string) {
+    const result = await getAPICallerInstance().callApi(GetUnpointDataAPI, {
+        dataSourceId,
+        nextToken,
+    });
+    return {
+        contents: result.contents as UnpointContent[],
+        nextToken: result.nextToken,
+    };
+
+}
+
+export async function getSnsPreviewAPI(url: string) {
+    const res = await getAPICallerInstance().callApi(GetSnsPreviewAPI, {
+        url,
+    });
+    return res;
 }

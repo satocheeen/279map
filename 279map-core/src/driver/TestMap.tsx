@@ -1,6 +1,6 @@
 import { Auth, CategoryDefine, DataId, DataSourceGroup, DataSourceKindType, FeatureType, MapKind } from '279map-common';
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { CommandHookType, ServerInfo, onDatasourceChangedParam } from '../entry';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { ServerInfo, TsunaguMapHandler, onDatasourceChangedParam } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
 import { FilterDefine, OnConnectParam, OnMapLoadParam, TsunaguMapProps } from '../entry';
 import styles from './TestMap.module.scss';
@@ -32,15 +32,14 @@ const props = {
 } as TsunaguMapProps;
 
 export default function TestMap() {
+    const mapRef = useRef<TsunaguMapHandler>(null);
     const [ cnt, setCnt ] = useState(0);
     const [ categories, setCategories ] = useState<CategoryDefine[]>([]);
-    const [ commandHook, setCommandHook ] = useState<CommandHookType>();
     const [ authLv, setAuthLv ] = useState(Auth.None);
     const onConnect = useCallback((param: OnConnectParam) => {
         console.log('connect', param);
         if (param.result === 'success') {
             setMapKind(param.mapDefine.defaultMapKind);
-            setCommandHook(param.commandHook);
             setAuthLv(param.mapDefine.authLv);
         }
         setCnt(cnt + 1);
@@ -94,8 +93,8 @@ export default function TestMap() {
     }, []);
 
     const switchMapKind = useCallback((mapKind: MapKind) => {
-        commandHook?.switchMapKind(mapKind);
-    }, [commandHook]);
+        mapRef.current?.switchMapKind(mapKind);
+    }, []);
 
     // callbacks
     const onSelect = useCallback((ids: DataId[]) => {
@@ -108,29 +107,21 @@ export default function TestMap() {
     }, []);
 
     const callGetSnsPreview = useCallback(async() => {
-        if(!commandHook) return;
-        const result = await commandHook.getSnsPreviewAPI('https://www.instagram.com/umihiko.miya/');
+        if(!mapRef.current) return;
+        const result = await mapRef.current.getSnsPreviewAPI('https://www.instagram.com/umihiko.miya/');
         console.log('result', result);
-    }, [commandHook]);
-
-    const confirm = useCallback(async() => {
-        const result = await commandHook?.confirm({
-            message: '確認ためし',
-            title: '確認',
-        });
-        console.log('confirm result', result);
-    }, [commandHook]);
+    }, []);
 
     const [ focusItemId, setFocusItemId ] = useState('');
     const [ focusDataSourceId, setFocusDataSourceId ] = useState('');
     const onFocusItem = useCallback(() => {
-        commandHook?.focusItem({
+        mapRef.current?.focusItem({
             dataSourceId: focusDataSourceId,
             id: focusItemId,
         }, {
             zoom: false,
         });
-    }, [commandHook, focusItemId, focusDataSourceId]);
+    }, [focusItemId, focusDataSourceId]);
 
     const [token, setToken] = useState<string|undefined>();
     useEffect(() => {
@@ -150,28 +141,28 @@ export default function TestMap() {
     }, [token]);
 
     const getThumbnail = useCallback(async() => {
-        if (!commandHook) {
+        if (!mapRef.current) {
             console.warn('commandHook undefined');
             return;
         }
-        const img = await commandHook?.getThumbnail({
+        const img = await mapRef.current?.getThumbnail({
             dataSourceId: '8ab78092-80f3-4ed7-82f4-ed5df3e01c1b',
             id: '00c94264-07f5-4d56-adec-7cac9a326c7e',
         });
         console.log('thumb', img);
-    }, [commandHook]);
+    }, []);
 
     const changeVisibleLayerDataSource = useCallback((dataSourceId: string, visible: boolean) => {
-        commandHook?.changeVisibleLayer({
+        mapRef.current?.changeVisibleLayer({
             dataSourceId,
         }, visible);
-    }, [commandHook]);
+    }, []);
 
     const changeVisibleLayerGroup = useCallback((group: string, visible: boolean) => {
-        commandHook?.changeVisibleLayer({
+        mapRef.current?.changeVisibleLayer({
             group,
         }, visible);
-    }, [commandHook]);
+    }, []);
 
     return (
         <>
@@ -218,14 +209,14 @@ export default function TestMap() {
                                                 {ds.name}
                                                 {(ds.editable && authLv === Auth.Edit) &&
                                                     <>
-                                                        <button onClick={()=>commandHook?.drawStructure(ds.dataSourceId)}>建設</button>
+                                                        <button onClick={()=>mapRef.current?.drawStructure(ds.dataSourceId)}>建設</button>
                                                         {mapKind === MapKind.Real ?
-                                                            <button onClick={()=>commandHook?.drawTopography(ds.dataSourceId, FeatureType.AREA)}>エリア作成</button>
+                                                            <button onClick={()=>mapRef.current?.drawTopography(ds.dataSourceId, FeatureType.AREA)}>エリア作成</button>
                                                             :
                                                             <>
-                                                                <button onClick={()=>commandHook?.drawRoad(ds.dataSourceId)}>道作成</button>
-                                                                <button onClick={()=>commandHook?.drawTopography(ds.dataSourceId, FeatureType.EARTH)}>島作成</button>
-                                                                <button onClick={()=>commandHook?.drawTopography(ds.dataSourceId, FeatureType.FOREST)}>緑地作成</button>
+                                                                <button onClick={()=>mapRef.current?.drawRoad(ds.dataSourceId)}>道作成</button>
+                                                                <button onClick={()=>mapRef.current?.drawTopography(ds.dataSourceId, FeatureType.EARTH)}>島作成</button>
+                                                                <button onClick={()=>mapRef.current?.drawTopography(ds.dataSourceId, FeatureType.FOREST)}>緑地作成</button>
                                                             </>
                                                         }
                                                     </>
@@ -257,21 +248,21 @@ export default function TestMap() {
                 {authLv === Auth.Edit &&
                 <>
                     <div className={styles.Col}>
-                        <button onClick={commandHook?.moveStructure}>移築</button>
-                        <button onClick={commandHook?.changeStructure}>改築</button>
-                        <button onClick={commandHook?.removeStructure}>建物解体</button>
+                        <button onClick={mapRef.current?.moveStructure}>移築</button>
+                        <button onClick={mapRef.current?.changeStructure}>改築</button>
+                        <button onClick={mapRef.current?.removeStructure}>建物解体</button>
                     </div>
                     <div className={styles.Col}>
                         {mapKind === MapKind.Real ?
                             <>
-                                <button onClick={commandHook?.editTopography}>エリア編集</button>
-                                <button onClick={commandHook?.removeTopography}>エリア削除</button>
+                                <button onClick={mapRef.current?.editTopography}>エリア編集</button>
+                                <button onClick={mapRef.current?.removeTopography}>エリア削除</button>
                             </>
                             :
                             <>
-                                <button onClick={commandHook?.editTopography}>地形編集</button>
-                                <button onClick={commandHook?.removeTopography}>地形削除</button>
-                                <button onClick={commandHook?.editTopographyInfo}>地名編集</button>
+                                <button onClick={mapRef.current?.editTopography}>地形編集</button>
+                                <button onClick={mapRef.current?.removeTopography}>地形削除</button>
+                                <button onClick={mapRef.current?.editTopographyInfo}>地名編集</button>
                             </>
                         }
                     </div>
@@ -279,7 +270,6 @@ export default function TestMap() {
                 }
                 <div className={styles.Col}>
                     <button onClick={callGetSnsPreview}>GetSNS</button>
-                    <button onClick={confirm}>Confirm</button>
                     <button onClick={getThumbnail}>GetThumbnail</button>
                 </div>
 
@@ -296,7 +286,7 @@ export default function TestMap() {
                 </div>
             </div>
             <div className={styles.Map}>
-                <TsunaguMap {...props}
+                <TsunaguMap ref={mapRef} {...props}
                     mapServer={mapServer}
                     popupMode={popupMode}
                     disabledLabel={disabledLabel}
