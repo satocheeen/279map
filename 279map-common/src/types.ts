@@ -73,6 +73,7 @@ export type MapDefine = {
 }
 export type DataSourceGroup = {
     name?: string;
+    visible: boolean;
     dataSources: DataSourceInfo[];
 }
 export type DataSourceInfo = {
@@ -82,6 +83,7 @@ export type DataSourceInfo = {
     editable: boolean;
     deletable: boolean;
     linkableContent: DataSourceLinkableContent;
+    visible: boolean;
 }
 
 /**
