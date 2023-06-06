@@ -1,19 +1,11 @@
-import { CategoryDefine, ContentsDefine, DataId, DataSourceInfo, EventDefine, ItemContentInfo, ItemDefine } from '279map-common';
+import { CategoryDefine, ContentsDefine, DataId, EventDefine, ItemContentInfo, ItemDefine } from '279map-common';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { Extent } from 'ol/extent';
-import { SystemIconDefine } from '../../types/types';
+import { DataSourceGroupWithOperation, DataSourceInfoWithOperation, SystemIconDefine } from '../../types/types';
 import { loadMapDefine } from '../session/sessionThunk';
 import { loadCategories, loadContents, loadEvents, loadItems, loadOriginalIconDefine, removeContent } from './dataThunk';
 import { getMapKey, isEqualId } from './dataUtility';
 
-export type DataSourceInfoWithOperation = DataSourceInfo & {
-    visible: boolean;
-}
-export type DataSourceGroupWithOperation = {
-    name?: string;
-    visible: boolean;
-    dataSources: DataSourceInfoWithOperation[];
-}
 /**
  * 地図関連の情報を管理
  */
@@ -65,6 +57,21 @@ const dataSlice = createSlice({
             // state.contentsMap = contentsMap;
             // console.log('contentsMap', contentsMap);
         },
+        updateDatasourceVisible(state, action: PayloadAction<{target: { dataSourceId: string } | { group: string }, visible: boolean}>) {
+            state.dataSourceGroups = state.dataSourceGroups.map(group => {
+                const visible = ('group' in action.payload.target && action.payload.target.group === group.name) ? action.payload.visible : group.visible;
+                return {
+                    name: group.name,
+                    dataSources: group.dataSources.map((ds): DataSourceInfoWithOperation => {
+                        const dsVisible = ('dataSourceId' in action.payload.target && action.payload.target.dataSourceId === ds.dataSourceId) ? action.payload.visible : ds.visible;
+                        return Object.assign({}, ds, {
+                            visible: dsVisible,
+                        });
+                    }),
+                    visible,
+                }
+            })
+        }
     },
     extraReducers: (builder) => {
         builder

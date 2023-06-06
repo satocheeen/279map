@@ -26,7 +26,7 @@ export default function PopupContainer() {
 
     const { popupMode } = usePopup();
     
-    const { map } = useMap();
+    const { getMap } = useMap();
 
     // コンテンツを持つアイテムID一覧
     const hasContentsItemIdList = useMemo(() => {
@@ -45,19 +45,21 @@ export default function PopupContainer() {
      * useMemoではなくuseCallbackで実装している。
      */
     const updatePopupGroups = useCallback(async() => {
+        const map = getMap();
         if (!map) return;
         const calculator = new PopupContainerCalculator(map);
         calculator.setHasContentsItemIdList(hasContentsItemIdList);
         const popupGroups = await calculator.calculatePopupGroup();
         setPopupGroups(popupGroups);
 
-    }, [map, hasContentsItemIdList]);
+    }, [getMap, hasContentsItemIdList]);
 
     /**
      * 初期化処理。
      * 地図へのFeature追加検知して、表示するポップアップ情報を更新する。
      */
     useEffect(() => {
+        const map = getMap();
         if (!map) return;
         // 画像ロード完了していないと、imagePositionの取得に失敗するので、ここでイベント検知して再描画させる
         const loadendFunc = () => {
@@ -82,7 +84,7 @@ export default function PopupContainer() {
             });
         }
 
-    }, [map, updatePopupGroups]);
+    }, [getMap, updatePopupGroups]);
 
     /**
      * コンテンツ保持アイテムが変わったら、ポップアップ情報更新
@@ -133,7 +135,7 @@ export default function PopupContainer() {
                 stopEvent: true,
                 element: elementRefMap.current[key],
             });
-            map?.addOverlay(overlay);
+            getMap()?.addOverlay(overlay);
             overlay.setPosition([position.longitude, position.latitude]);
             overlayRefMap.current[key] = overlay;
         });
@@ -162,11 +164,11 @@ export default function PopupContainer() {
             return !exist;
         });
         removeChildren.forEach(key => {
-            map?.removeOverlay(overlayRefMap.current[key]);
+            getMap()?.removeOverlay(overlayRefMap.current[key]);
             delete overlayRefMap.current[key];
         });
 
-    }, [map, popupGroups, zoom]);
+    }, [getMap, popupGroups, zoom]);
 
     return (
         <>

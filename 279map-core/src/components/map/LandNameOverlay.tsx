@@ -13,7 +13,7 @@ import { useMap } from './useMap';
 const LandNameShowZoomLv = 8.17
 
 export default function LandNameOverlay() {
-    const { map } = useMap();
+    const { getMap } = useMap();
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
 
     const [landNameRefMap] = useState({} as { [id: string]: HTMLDivElement });
@@ -35,7 +35,7 @@ export default function LandNameOverlay() {
     const currentAreaNamedEarth = useMemo(() => {
         // 表示範囲内の地物に絞る
         return namedEarth.filter(item => {
-            const feature = map?.getFeatureById(item.id);
+            const feature = getMap()?.getFeatureById(item.id);
             if (!feature) {
                 return false;
             }
@@ -49,7 +49,7 @@ export default function LandNameOverlay() {
             const extent = buffer(mapView.extent, -(minLen/5));
             return geometry.intersectsExtent(extent);
         });
-    }, [namedEarth, mapView.extent, map]);
+    }, [namedEarth, mapView.extent, getMap]);
 
     const prevCurrentAreaNamedEarth = usePrevious(currentAreaNamedEarth);
 
@@ -74,7 +74,7 @@ export default function LandNameOverlay() {
                 },
                 className: styles.LandnameOverlayContainer,
             });
-            const olFeature = map?.getFeatureById(item.id);
+            const olFeature = getMap()?.getFeatureById(item.id);
             const geometry = olFeature?.getGeometry();
             if (!geometry) {
                 return;
@@ -84,7 +84,7 @@ export default function LandNameOverlay() {
                 coord[0] + (coord[2] - coord[0]) / 2, 
                 coord[1] + (coord[3] - coord[1]) / 2
             ]);
-            map?.addOverlay(overlay);            
+            getMap()?.addOverlay(overlay);            
             landNameOverlayMap[getMapKey(item.id)] = overlay;
         });
 
@@ -94,7 +94,7 @@ export default function LandNameOverlay() {
 
             // 削除
             const overlay = landNameOverlayMap[getMapKey(item.id)];
-            map?.removeOverlay(overlay);
+            getMap()?.removeOverlay(overlay);
         });
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentAreaNamedEarth, prevCurrentAreaNamedEarth]);

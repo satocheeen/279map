@@ -1,9 +1,8 @@
-import { ContentAttr, DataId, FeatureType, GeoProperties, IconDefine, MapDefine, UnpointContent } from "279map-common";
+import { ContentAttr, DataId, DataSourceInfo, FeatureType, GeoProperties, IconDefine, MapDefine, UnpointContent } from "279map-common";
 import { CSSProperties } from "react";
 import { CategoryDefine, EventDefine, MapKind } from '279map-common';
 import { ApiError, ConnectResult, ErrorType, GetMapInfoResult, LinkContentToItemParam, RegistContentParam, GetSnsPreviewResult, UpdateContentParam, GetUnpointDataResult } from "tsunagumap-api";
 import { FilterDefine } from "279map-common";
-import { DataSourceGroupWithOperation } from "../store/data/dataSlice";
 import { LoadContentsParam, LoadContentsResult } from "../store/data/dataThunk";
 
 type ConnectSuccessResult = {
@@ -260,4 +259,13 @@ export type LinkUnpointContentParam = {
     getUnpointDataAPI: (dataSourceId: string, nextToken?: string) => Promise<GetUnpointDataResult>;
     // コンテンツ紐づけAPI
     linkContentToItemAPI: (param: LinkContentToItemParam) => Promise<void>;
+}
+
+export type DataSourceInfoWithOperation = DataSourceInfo & {
+    visible: boolean;
+}
+export type DataSourceGroupWithOperation = {
+    name?: string;
+    visible: boolean;
+    dataSources: DataSourceInfoWithOperation[];
 }

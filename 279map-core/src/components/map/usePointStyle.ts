@@ -29,10 +29,11 @@ export default function usePointStyle() {
     const { filteredItemIdList } = useFilter();
     const { disabledLabel, filter } = useContext(OwnerContext);
     const { getIconDefine } = useIcon();
-    const { map } = useMap();
+    const { getMap } = useMap();
     const selectedItemIds = useSelector((state: RootState) => state.operation.selectedItemIds);
 
     const getZindex = useCallback((feature: Feature<Geometry>): number => {
+        const map = getMap();
         if (!map) return 0;
         // featureが属するレイヤソース取得
         const pointsSource = map.getLayerInfoContainedTheFeature(feature)?.layer.getSource();
@@ -49,7 +50,7 @@ export default function usePointStyle() {
         const zIndex = Math.round(Math.abs(extent[1] - maxY));
     
         return zIndex;
-    }, [map]);
+    }, [getMap]);
 
     const _createStyle = useCallback((param: {iconDefine: SystemIconDefine; feature: Feature<Geometry>; resolution: number; color?: string; opacity?: number}) => {
         const type = param.feature.getGeometry()?.getType();

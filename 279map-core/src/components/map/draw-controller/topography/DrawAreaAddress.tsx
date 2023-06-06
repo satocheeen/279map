@@ -25,7 +25,7 @@ enum Stage {
  * @returns 
  */
 export function DrawAreaAddress(props: Props) {
-    const { map } = useMap();
+    const { getMap } = useMap();
     const [stage, setStage] = useState(Stage.SearchAddress);
     const styleHook = useTopographyStyle({
         defaultFeatureType: FeatureType.AREA,
@@ -35,6 +35,7 @@ export function DrawAreaAddress(props: Props) {
 
     // 初期化
     useEffect(() => {
+        const map = getMap();
         if (!map) return;
         const drawingLayer = map.createDrawingLayer(styleHook.getStyleFunction());
         drawingSource.current = drawingLayer.getSource();
@@ -60,9 +61,9 @@ export function DrawAreaAddress(props: Props) {
         drawingSource.current?.addFeature(feature);
         const extent = feature.getGeometry()?.getExtent();
         if (extent)
-            map?.fit(extent);
+            getMap()?.fit(extent);
         setStage(Stage.Confirm);
-    }, [map]);
+    }, [getMap]);
 
     const onConfirmAddressCancel = useCallback(() => {
         // 書きかけ削除

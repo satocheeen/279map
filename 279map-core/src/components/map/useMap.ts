@@ -1,4 +1,4 @@
-import { useRef, useContext } from 'react';
+import { useRef, useState, useContext, useCallback } from 'react';
 import { OlMapType, getMapInstance } from '../TsunaguMap/OlMapWrapper';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import { ApiCallerType, getAPICallerInstance } from '../../api/ApiCaller';
@@ -10,20 +10,19 @@ import { useWatch } from '../../util/useWatch';
  */
 export function useMap() {
     const { mapInstanceId } = useContext(OwnerContext);
-    const mapRef = useRef<OlMapType|undefined>(getMapInstance(mapInstanceId));
     const apiRef = useRef<ApiCallerType>(getAPICallerInstance(mapInstanceId));
 
     useWatch(() => {
-        mapRef.current = getMapInstance(mapInstanceId);
         apiRef.current = getAPICallerInstance(mapInstanceId);
 
-        return () => {
-            mapRef.current = undefined;
-        }
     }, [mapInstanceId]);
 
+    const getMap = useCallback(() => {
+        return getMapInstance(mapInstanceId);
+    }, [mapInstanceId])
+
     return {
-        map: mapRef.current,
         api: apiRef.current,
+        getMap,
     }
 }

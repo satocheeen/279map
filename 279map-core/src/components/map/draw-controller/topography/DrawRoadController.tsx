@@ -27,7 +27,7 @@ type Props = {
  * 道描画コントローラ
  */
 export default function DrawRoadController(props: Props) {
-    const { map } = useMap();
+    const { getMap } = useMap();
     const [stage, setStage] = useState(Stage.DRAWING);
 
     const draw = useRef<Draw|undefined>();
@@ -44,6 +44,7 @@ export default function DrawRoadController(props: Props) {
      * 初期化
      */
     useEffect(() => {
+        const map = getMap();
         if (!map) return;
         const drawingLayer = map.createDrawingLayer(styleHook.getStyleFunction());
         drawingSource.current = drawingLayer.getSource();
@@ -73,7 +74,7 @@ export default function DrawRoadController(props: Props) {
         }
     }, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [map]);
+    [getMap]);
 
     // 描画中にキャンセルボタンが押された場合
     const onCanceled = useCallback(() => {

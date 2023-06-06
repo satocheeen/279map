@@ -21,7 +21,7 @@ enum Stage {
 }
 
 export function DrawFreeArea(props: Props) {
-    const { map } = useMap();
+    const { getMap } = useMap();
     const [stage, setStage] = useState(Stage.Drawing);
     const draw = useRef<Draw>();
 
@@ -35,6 +35,7 @@ export function DrawFreeArea(props: Props) {
      * 初期化
      */
      useEffect(() => {
+        const map = getMap();
         if (!map) return;
         const styleFunction = styleHook.getStyleFunction();
         const drawingLayer = map.createDrawingLayer(styleHook.getStyleFunction());
@@ -66,17 +67,17 @@ export function DrawFreeArea(props: Props) {
         }
     }, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [map]);
+    [getMap]);
 
     const onDrawingCanceled = useCallback(() => {
         // DrawインタラクションOff
         if (draw.current) {
-            map?.removeInteraction(draw.current);
+            getMap()?.removeInteraction(draw.current);
         }
         if (props.onCancel) {
             props.onCancel();
         }
-    }, [props, map]);
+    }, [props, getMap]);
 
     const clickMsg = useMemo(() => {
         return props.geometryType === 'Polygon'

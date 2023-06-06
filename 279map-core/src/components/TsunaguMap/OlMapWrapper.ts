@@ -573,6 +573,7 @@ class OlMapWrapper {
      * @param visible 
      */
     changeVisibleLayer(target: { dataSourceId: string } | { group: string }, visible: boolean) {
+        console.log('changeVisibleLayer id', this._id);
         let layerInfos: LayerInfo[];
         if ('dataSourceId' in target) {
             layerInfos = this._vectorLayerMap.getLayerInfoOfTheDataSource(target.dataSourceId);

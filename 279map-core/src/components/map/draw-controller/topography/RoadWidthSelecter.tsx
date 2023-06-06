@@ -19,7 +19,7 @@ type Props = {
  * 道幅選択部品
  */
 export default function RoadWidthSelecter(props: Props) {
-    const { map } = useMap();
+    const { getMap } = useMap();
     const [width, setWidth] = useState(props.width === undefined ? RoadWidth.M : props.width);
     const styleHook = useTopographyStyle({
         defaultFeatureType: FeatureType.ROAD,
@@ -27,6 +27,7 @@ export default function RoadWidthSelecter(props: Props) {
     const widthSimulateSource = useRef<VectorSource|null>(null);
 
     useEffect(() => {
+        const map = getMap();
         if (!map) return;
         const widthSimulateLayer = map.createDrawingLayer(styleHook.getStyleFunction());
         widthSimulateSource.current = widthSimulateLayer.getSource();
@@ -43,7 +44,7 @@ export default function RoadWidthSelecter(props: Props) {
         };
     }, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [map]);
+    [getMap]);
 
     useEffect(() => {
         // 新たな道幅で描画

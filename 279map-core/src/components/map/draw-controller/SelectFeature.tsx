@@ -34,19 +34,21 @@ export default function SelectFeature(props: Props) {
     const select = useRef<Select>();
     const [selectedFeature, setSelectedFeature] = useState<Feature>();
     const topographyStyleHook = useTopographyStyle({});
-    const { map } = useMap();
+    const { getMap } = useMap();
     const { selectedStyleFunction } = usePointStyle();
     const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
 
     const targetLayers = useMemo((): LayerInfo[] => {
+        const map = getMap();
         if (!map) return [];
         const layers = map.getLayersOfTheType(props.targetType);
         // 編集可能なレイヤに絞って返す
         return layers.filter(l => l.editable);
-    }, [props.targetType, map]);
+    }, [props.targetType, getMap]);
 
     // 初期化
     useEffect(() => {
+        const map = getMap();
         if (!map) return;
         const styleFunction = function(){
             if (props.targetType === LayerType.Topography) {

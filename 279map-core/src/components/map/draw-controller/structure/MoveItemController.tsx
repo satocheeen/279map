@@ -33,11 +33,11 @@ const movedFeatureCollection = new Collection<Feature<Geometry>>();
  */
 export default function MoveItemController(props: Props) {
     const [okable, setOkable] = useState(false);
-    const { map } = useMap();
+    const { getMap } = useMap();
     const pointStyleHook = usePointStyle();
     const dispatch = useAppDispatch();
     const targetLayers = useRef<VectorLayer<VectorSource>[]>(
-        !map ? [] : map.getLayersOfTheType(LayerType.Point).filter(l => l.editable).map(l => l.layer)
+        (getMap()?.getLayersOfTheType(LayerType.Point) ?? []).filter(l => l.editable).map(l => l.layer)
     );
 
     const select = useMemo(() => {
@@ -86,7 +86,7 @@ export default function MoveItemController(props: Props) {
     // 対象アイテムhover時のカーソル設定
     useEffect(() => {
         const pointerMoveEvent = (evt: MapBrowserEvent<any>) => {
-            const targets = map?.getNearlyFeatures(evt.pixel) ?? [];
+            const targets = getMap()?.getNearlyFeatures(evt.pixel) ?? [];
             const isHover = targets.some(target => {
                 return targetLayers.current.some(layer => {
                     return containFeatureInLayer(target.feature, layer);
@@ -94,18 +94,18 @@ export default function MoveItemController(props: Props) {
             });
 
             if (isHover) {
-                map?.setCursorStyle('pointer');
+                getMap()?.setCursorStyle('pointer');
             } else {
-                map?.setCursorStyle('');
+                getMap()?.setCursorStyle('');
             }
         };
-        map?.on('pointermove', pointerMoveEvent);
+        getMap()?.on('pointermove', pointerMoveEvent);
 
         return () => {
-            map?.un('pointermove', pointerMoveEvent);
+            getMap()?.un('pointermove', pointerMoveEvent);
         }
 
-    }, [map]);
+    }, [getMap]);
 
     useEffect(() => {
         // 移動前の状態を記憶
@@ -140,12 +140,12 @@ export default function MoveItemController(props: Props) {
                 })
             });
         });
-        map?.addInteraction(dragBox);
+        getMap()?.addInteraction(dragBox);
 
         return () => {
-            map?.removeInteraction(dragBox);
+            getMap()?.removeInteraction(dragBox);
         };
-    }, [map, select]);
+    }, [getMap, select]);
 
     useEffect(() => {
         let translate : Translate;
@@ -155,16 +155,16 @@ export default function MoveItemController(props: Props) {
                 layers: targetLayers.current,
                 features: select.getFeatures(),
             });
-            map?.addInteraction(select);
-            map?.addInteraction(dragBox);
+            getMap()?.addInteraction(select);
+            getMap()?.addInteraction(dragBox);
         } else {
             // 単一モードの場合
             translate = new Translate({
                 layers: targetLayers.current,
             });
             select.getFeatures().clear();
-            map?.removeInteraction(select);
-            map?.removeInteraction(dragBox);
+            getMap()?.removeInteraction(select);
+            getMap()?.removeInteraction(dragBox);
         }
 
         translate.on('translateend', (e: TranslateEvent) => {
@@ -173,11 +173,11 @@ export default function MoveItemController(props: Props) {
             });
             setOkable(true);
         });
-        map?.addInteraction(translate);
+        getMap()?.addInteraction(translate);
 
         return () => {
-            map?.removeInteraction(translate);
-            map?.removeInteraction(select);
+            getMap()?.removeInteraction(translate);
+            getMap()?.removeInteraction(select);
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [multipleMode]);

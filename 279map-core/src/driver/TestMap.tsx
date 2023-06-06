@@ -1,6 +1,6 @@
-import { Auth, CategoryDefine, DataId, DataSourceGroup, DataSourceKindType, FeatureType, MapKind } from '279map-common';
+import { Auth, CategoryDefine, DataId, DataSourceKindType, FeatureType, MapKind } from '279map-common';
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { ServerInfo, TsunaguMapHandler, onDatasourceChangedParam } from '../entry';
+import { DataSourceGroupWithOperation, ServerInfo, TsunaguMapHandler, onDatasourceChangedParam } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
 import { FilterDefine, OnConnectParam, OnMapLoadParam, TsunaguMapProps } from '../entry';
 import styles from './TestMap.module.scss';
@@ -69,18 +69,17 @@ export default function TestMap() {
 
     const [ disabledContentDialog, setDisableContentDialog ] = useState(false);
 
-    const [ dataSourceGroups, setDataSourceGroups] = useState<DataSourceGroup[]>([]);
+    const [ dataSourceGroups, setDataSourceGroups] = useState<DataSourceGroupWithOperation[]>([]);
 
     const featureDataSourceGroups = useMemo(() => {
-        return dataSourceGroups.map((group): DataSourceGroup => {
+        return dataSourceGroups.map((group): DataSourceGroupWithOperation => {
             const dataSources = group.dataSources.filter(ds => {
                 const isFeature = ds.kind !== DataSourceKindType.Content;
                 return isFeature;
             });
-            return {
-                group: group.group,
+            return Object.assign({}, group, {
                 dataSources,
-            }
+            });
         });
     }, [dataSourceGroups]);
 
@@ -89,6 +88,7 @@ export default function TestMap() {
     }, []);
 
     const onDataSourceChanged = useCallback((param: onDatasourceChangedParam) => {
+        console.log('onDataSourceChanged', param.dataSourceGroups)
         setDataSourceGroups(param.dataSourceGroups);
     }, []);
 
@@ -195,16 +195,16 @@ export default function TestMap() {
                     {featureDataSourceGroups.map(group => {
                         return (
                             <>
-                                {group.group &&
-                                    <label key={group.group}>
-                                        <input type="checkbox" defaultChecked={true} onChange={(evt) => changeVisibleLayerGroup(group.group ?? '', evt.target.checked)} />
-                                        {group.group}
+                                {group.name &&
+                                    <label key={group.name}>
+                                        <input type="checkbox" defaultChecked={true} onChange={(evt) => changeVisibleLayerGroup(group.name ?? '', evt.target.checked)} />
+                                        {group.name}
                                     </label>
                                 }
                                 {group.dataSources.map(ds => {
                                     return (
                                         <>
-                                            <label key={ds.dataSourceId} className={`${group.group ? styles.Child : ''}`}>
+                                            <label key={ds.dataSourceId} className={`${group.name ? styles.Child : ''}`}>
                                                 <input type="checkbox" defaultChecked={true} onChange={(evt) => changeVisibleLayerDataSource(ds.dataSourceId, evt.target.checked)} />
                                                 {ds.name}
                                                 {(ds.editable && authLv === Auth.Edit) &&

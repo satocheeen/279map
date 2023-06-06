@@ -40,7 +40,7 @@ export default function DrawStructureController(props: Props) {
 
     const dispatch = useAppDispatch();
     const spinner = useOverlay();
-    const { map } = useMap();
+    const { getMap } = useMap();
     const pointStyleHook = usePointStyle();
 
     const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
@@ -54,6 +54,7 @@ export default function DrawStructureController(props: Props) {
     }, []);
 
     const drawReset = useCallback(() => {
+        const map = getMap();
         if (draw.current === null || !map) {
             return;
         }
@@ -61,10 +62,11 @@ export default function DrawStructureController(props: Props) {
         drawingFeature.current = undefined;
         map.removeInteraction(draw.current);
         draw.current = null;
-    }, [map]);
+    }, [getMap]);
 
     // 初期状態
     useEffect(() => {
+        const map = getMap();
         if (!map) return;
         
         drawingLayer.current = map.createDrawingLayer();
@@ -84,6 +86,8 @@ export default function DrawStructureController(props: Props) {
      * Drawing開始時の処理
      */
     useEffect(() => {
+        const map = getMap();
+        if (!map) return;
         if (stage !== Stage.DRAWING || drawingIcon.current === null || !map) {
             return;
         }
@@ -104,7 +108,7 @@ export default function DrawStructureController(props: Props) {
         });
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [stage, map]);
+    }, [stage, getMap]);
 
     const registFeatureFunc = useCallback(async() => {
         if (!drawingFeature.current) {
@@ -133,6 +137,8 @@ export default function DrawStructureController(props: Props) {
     }, [dispatch, props, spinner]);
 
     const onDrawEnd = useCallback((feature: Feature) => {
+        const map = getMap();
+        if (!map) return;
         if (!map) return;
         if (draw.current !== null) {
             map.removeInteraction(draw.current);
@@ -142,9 +148,11 @@ export default function DrawStructureController(props: Props) {
         drawingFeature.current = feature;
         setStage(Stage.CONFIRM);
 
-    }, [map]);
+    }, [getMap]);
 
     const onSelectAddress= useCallback((address: GeoJsonObject) => {
+        const map = getMap();
+        if (!map) return;
         if (!drawingSource.current || !map) {
             return;
         }
@@ -160,7 +168,7 @@ export default function DrawStructureController(props: Props) {
             map.fit(extent);
 
         onDrawEnd(feature);
-    }, [onDrawEnd, map]);
+    }, [onDrawEnd, getMap]);
 
     const onConfirmCancel = useCallback(() => {
         // DRAWモードに戻る

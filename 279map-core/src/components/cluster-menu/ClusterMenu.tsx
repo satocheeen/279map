@@ -27,10 +27,11 @@ type Props = {
 }
 
 export default function ClusterMenu(props: Props) {
-    const { map } = useMap();
+    const { getMap } = useMap();
     const elementRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        const map = getMap();
         if (!map) return;
         const overlay = new Overlay({
             positioning: 'bottom-left', //OverlayPositioning.BOTTOM_CENTER,
@@ -45,7 +46,7 @@ export default function ClusterMenu(props: Props) {
         return () => {
             map.removeOverlay(overlay);
         }
-    }, [map, props.position]);
+    }, [getMap, props.position]);
 
     const onItemClick = useCallback((id: DataId) => {
         if (props.onSelect) {
