@@ -14,7 +14,7 @@ export async function getAccessableMapList(host: string, ssl: boolean, token: st
         ssl,
         token,
     } as ServerInfo;
-    const apiCaller = createAPICallerInstance(mapServer, () => {});
+    const apiCaller = createAPICallerInstance('no-instance', mapServer, () => {});
     try {
         const result = await apiCaller.callApi(GetMapListAPI, undefined);
         return result;
@@ -36,7 +36,7 @@ export async function getAuthConfig(host: string, ssl: boolean) {
         host,
         ssl,
     } as ServerInfo;
-    const apiCaller = createAPICallerInstance(mapServer, () => {});
+    const apiCaller = createAPICallerInstance('no-instance', mapServer, () => {});
     try {
         const result = await apiCaller.callApi(ConfigAPI, undefined) as ServerConfig;
         return result;

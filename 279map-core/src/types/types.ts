@@ -257,7 +257,7 @@ export type LinkUnpointContentParam = {
         name: string;
     }[];
     // 未配置コンテンツ情報取得API
-    getUnpointDataAPI: (dataSourceId: string, nextToken?: string) => Promise<{contents: UnpointContent[]; nextToken: string | undefined}>;
+    getUnpointDataAPI: (dataSourceId: string, nextToken?: string) => Promise<GetUnpointDataResult>;
     // コンテンツ紐づけAPI
     linkContentToItemAPI: (param: LinkContentToItemParam) => Promise<void>;
 }

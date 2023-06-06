@@ -5,13 +5,13 @@ import Tooltip from '../common/tooltip/Tooltip';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
-import { Auth, DataId, DataSourceInfo, DataSourceKindType, DataSourceLinkableContent } from '279map-common';
+import { Auth, DataId, DataSourceInfo, DataSourceKindType, DataSourceLinkableContent, UnpointContent } from '279map-common';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { getMapKey } from '../../store/data/dataUtility';
-import { getUnpointDataAPI, getSnsPreviewAPI } from '../../api/ApiCaller';
-import { LinkContentToItemParam, RegistContentParam } from 'tsunagumap-api';
+import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam } from 'tsunagumap-api';
 import { linkContentToItem, registContent } from '../../store/data/dataThunk';
+import { useMap } from '../map/useMap';
 
 type Props = {
     target: {
@@ -29,8 +29,8 @@ export default function AddContentMenu(props: Props) {
     const id = useRef('add-content-menu-'+maxId++);
     const { onAddNewContent, onLinkUnpointedContent } = useContext(OwnerContext);
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
-    // const { getUnpointDataAPI, registContentAPI, linkContentToItemAPI, getSnsPreviewAPI } = useCommand();
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
+    const { api } = useMap();
 
     const dataSources = useSelector((state: RootState) => {
         const groups = state.data.dataSourceGroups;
@@ -140,13 +140,24 @@ export default function AddContentMenu(props: Props) {
                         throw new Error('registContentAPI failed.' + errorMessage);
                     }
                 },
-                getSnsPreviewAPI,
+                getSnsPreviewAPI: async(url: string) => {
+                    const res = await api.callApi(GetSnsPreviewAPI, {
+                        url,
+                    });
+                    return res;
+                },
             });
         } else {
             onLinkUnpointedContent({
                 parent: props.target,
                 dataSources: linkableContentDataSources,
-                getUnpointDataAPI,
+                getUnpointDataAPI: async(dataSourceId: string, nextToken?: string) => {
+                    const result = await api.callApi(GetUnpointDataAPI, {
+                        dataSourceId,
+                        nextToken,
+                    });
+                    return result;
+                },
                 linkContentToItemAPI: async(param: LinkContentToItemParam) => {
                     await dispatch(linkContentToItem(param));
                 },
@@ -157,7 +168,7 @@ export default function AddContentMenu(props: Props) {
             props.onClick();
         }
 
-    }, [props, creatableContentDataSources, linkableContentDataSources, dispatch, onAddNewContent, onLinkUnpointedContent]);
+    }, [api, props, creatableContentDataSources, linkableContentDataSources, dispatch, onAddNewContent, onLinkUnpointedContent]);
 
     const caption = useMemo(() => {
         if ('itemId' in props.target) {

@@ -1,19 +1,23 @@
-import { APIDefine, UnpointContent } from '279map-common';
+import { APIDefine, ContentsDefine } from '279map-common';
 import { ServerInfo } from '../types/types';
-import { ApiError, ErrorType, GetSnsPreviewAPI, GetUnpointDataAPI } from 'tsunagumap-api';
+import { ApiError, ErrorType, GetContentsAPI, GetContentsParam } from 'tsunagumap-api';
+import { getMapKey } from '../store/data/dataUtility';
 
 type ErrorCallback = (errorType: ApiError) => void;
 class ApiCaller {
-    _serverInfo: ServerInfo;
-    _sid?: string;   // 特定地図とのセッション確立後
+    readonly _id: string;    // インスタンスID
+    readonly _serverInfo: ServerInfo;
+    _sid?: string;   // セッションID。特定地図とのセッション確立後にサーバーから返される値。
     _sessionFailureCallback: ErrorCallback;    // リロードが必要なエラーが発生した場合のコールバック
 
-    constructor(serverInfo: ServerInfo,  sessionFailureCallback: ErrorCallback) {
+    constructor(id: string, serverInfo: ServerInfo,  sessionFailureCallback: ErrorCallback) {
+        this._id = id;
         this._serverInfo = serverInfo;
         this._sessionFailureCallback = sessionFailureCallback;
     }
 
     setSID(sid: string) {
+        console.log('setSID', this._id, sid);
         this._sid = sid;
     }
 
@@ -81,42 +85,65 @@ class ApiCaller {
             }
     
         } catch (e) {
-            console.warn('connecting server failed.', e);
+            console.warn('callApi failed.', this._id, e);
             throw e;
         }
     }
-}
 
-let _instance: ApiCaller | undefined = undefined;
-// TODO: 地図idを受け取ってinstance管理するようにする
-export function createAPICallerInstance(serverInfo: ServerInfo, errorCallback: ErrorCallback) {
-    _instance = new ApiCaller(serverInfo, errorCallback);
-    return _instance;
-}
-
-// TODO: 引数に地図ID
-export function getAPICallerInstance() {
-    if (!_instance) {
-        throw new Error('api not initialized');
+    async getContents(param: GetContentsParam): Promise<ContentsDefine[]> {
+        try {
+            // 重複する内容は除去する
+            const itemIdSet = new Set<string>();
+            const contentIdSet = new Set<string>();
+            const fixedParam = param.filter(item => {
+                if ('itemId' in item) {
+                    if (itemIdSet.has(getMapKey(item.itemId))) {
+                        return false;
+                    } else {
+                        itemIdSet.add(getMapKey(item.itemId));
+                        return true;
+                    }
+                } else {
+                    if (contentIdSet.has(getMapKey(item.contentId))) {
+                        return false;
+                    } else {
+                        contentIdSet.add(getMapKey(item.contentId));
+                        return true;
+                    }
+                }
+            });
+            if (fixedParam.length === 0) {
+                return [];
+            }
+            const apiResult = await this.callApi(GetContentsAPI, fixedParam);
+    
+            return apiResult.contents;
+    
+        } catch (e) {
+            console.warn('getContents error', e);
+            throw new Error('getContents failed.');
+        }
+    
     }
-    return _instance;
-}
-
-export async function getUnpointDataAPI(dataSourceId: string, nextToken?: string) {
-    const result = await getAPICallerInstance().callApi(GetUnpointDataAPI, {
-        dataSourceId,
-        nextToken,
-    });
-    return {
-        contents: result.contents as UnpointContent[],
-        nextToken: result.nextToken,
-    };
 
 }
 
-export async function getSnsPreviewAPI(url: string) {
-    const res = await getAPICallerInstance().callApi(GetSnsPreviewAPI, {
-        url,
-    });
-    return res;
+const instansMap = new Map<string, ApiCaller>();
+export function createAPICallerInstance(id: string, serverInfo: ServerInfo, errorCallback: ErrorCallback) {
+    console.log('create api', id);
+    const instance = new ApiCaller(id, serverInfo, errorCallback);
+    instansMap.set(id, instance);
+    return instance;
 }
+
+export function getAPICallerInstance(id: string) {
+    if (!instansMap.has(id)) {
+        console.warn('no api instance', id);
+        return createAPICallerInstance('dummy', {
+            host: '',
+            ssl: false,
+        }, () => {});
+    }
+    return instansMap.get(id) as ApiCaller;
+}
+export type ApiCallerType = InstanceType<typeof ApiCaller>;

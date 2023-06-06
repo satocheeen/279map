@@ -1,5 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
-import { getContents, isEqualId } from './dataUtility';
+import { isEqualId } from './dataUtility';
 import { CategoryDefine, ContentsDefine, DataId, EventDefine, ItemDefine } from '279map-common';
 import { GetCategoryAPI, GetContentsParam, GetEventsAPI, GetItemsAPI, GetItemsParam, GetOriginalIconDefineAPI, GetOriginalIconDefineResult, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from 'tsunagumap-api';
 import { getAPICallerInstance } from '../../api/ApiCaller';
@@ -7,9 +7,9 @@ import { RootState } from '../configureStore';
 
 export const loadOriginalIconDefine = createAsyncThunk<GetOriginalIconDefineResult>(
     'data/loadOriginalIconDefineStatus',
-    async(_, { rejectWithValue }) => {
+    async(_, { rejectWithValue, getState }) => {
         try {
-            const apiResult = await getAPICallerInstance().callApi(GetOriginalIconDefineAPI, undefined);
+            const apiResult = await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(GetOriginalIconDefineAPI, undefined);
             return apiResult;
         } catch(e) {
             console.warn('getOriginalIconDefine error', e);
@@ -20,9 +20,9 @@ export const loadOriginalIconDefine = createAsyncThunk<GetOriginalIconDefineResu
 // イベント情報ロード
 export const loadEvents = createAsyncThunk<EventDefine[]>(
     'data/loadEventsStatus',
-    async(_, { rejectWithValue }) => {
+    async(_, { rejectWithValue, getState }) => {
         try {
-            const apiResult = await getAPICallerInstance().callApi(GetEventsAPI, {});
+            const apiResult = await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(GetEventsAPI, {});
 
             return apiResult.events;
     
@@ -34,9 +34,9 @@ export const loadEvents = createAsyncThunk<EventDefine[]>(
 )
 export const loadCategories = createAsyncThunk<CategoryDefine[]>(
     'data/loadCategoriesStatus',
-    async(_, { rejectWithValue }) => {
+    async(_, { rejectWithValue, getState }) => {
         try {
-            const apiResult = await getAPICallerInstance().callApi(GetCategoryAPI, undefined);
+            const apiResult = await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(GetCategoryAPI, undefined);
 
             return apiResult.categories;
     
@@ -53,7 +53,7 @@ export const loadItems = createAsyncThunk<ItemDefine[], GetItemsParam>(
     'data/loadItemsStatus',
     async(param, { rejectWithValue, getState  }) => {
         try {
-            const apiResult = await getAPICallerInstance().callApi(GetItemsAPI, param);
+            const apiResult = await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(GetItemsAPI, param);
 
             return apiResult.items;
     
@@ -87,7 +87,7 @@ export const loadContents = createAsyncThunk<LoadContentsResult, LoadContentsPar
                     return !exist;
                 });
 
-                const result = await getContents(targets);
+                const result = await getAPICallerInstance((getState() as RootState).session.instanceId).getContents(targets);
 
                 // 既に存在するものをマージして返す
                 const existContents = currentContentsList.filter(content => {
@@ -98,7 +98,7 @@ export const loadContents = createAsyncThunk<LoadContentsResult, LoadContentsPar
                 }
 
             } else {
-                const result = await getContents(param.targets);
+                const result = await getAPICallerInstance((getState() as RootState).session.instanceId).getContents(param.targets);
                 return {
                     contents: result,
                 };
@@ -113,9 +113,9 @@ export const loadContents = createAsyncThunk<LoadContentsResult, LoadContentsPar
 )
 export const registFeature = createAsyncThunk<void, RegistItemParam>(
     'data/registFeatureStatus',
-    async(param, { rejectWithValue }) => {
+    async(param, { rejectWithValue, getState }) => {
         try {
-            await getAPICallerInstance().callApi(RegistItemAPI, param);
+            await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(RegistItemAPI, param);
 
         } catch (e) {
             console.warn('registFeature error', e);
@@ -125,9 +125,9 @@ export const registFeature = createAsyncThunk<void, RegistItemParam>(
 )
 export const updateFeature = createAsyncThunk<void, UpdateItemParam>(
     'data/updateFeatureStatus',
-    async(param, { rejectWithValue }) => {
+    async(param, { rejectWithValue, getState }) => {
         try {
-            await getAPICallerInstance().callApi(UpdateItemAPI, param);
+            await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(UpdateItemAPI, param);
 
         } catch (e) {
             console.warn('updateFeature error', e);
@@ -137,9 +137,9 @@ export const updateFeature = createAsyncThunk<void, UpdateItemParam>(
 )
 export const removeFeature = createAsyncThunk<void, RemoveItemParam>(
     'data/removeFeatureStatus',
-    async(param, { rejectWithValue }) => {
+    async(param, { rejectWithValue, getState }) => {
         try {
-            await getAPICallerInstance().callApi(RemoveItemAPI, param);
+            await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(RemoveItemAPI, param);
 
         } catch (e) {
             console.warn('removeFeature error', e);
@@ -150,9 +150,9 @@ export const removeFeature = createAsyncThunk<void, RemoveItemParam>(
 )
 export const registContent = createAsyncThunk<void, RegistContentParam>(
     'data/registContentStatus',
-    async(param, { rejectWithValue, dispatch }) => {
+    async(param, { rejectWithValue, dispatch, getState }) => {
         try {
-            await getAPICallerInstance().callApi(RegistContentAPI, param);
+            await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(RegistContentAPI, param);
 
             // 最新コンテンツロード
             await dispatch(loadContents({
@@ -167,9 +167,9 @@ export const registContent = createAsyncThunk<void, RegistContentParam>(
 )
 export const linkContentToItem = createAsyncThunk<void, LinkContentToItemParam>(
     'data/linkContentToItemStatus',
-    async(param, { rejectWithValue, dispatch }) => {
+    async(param, { rejectWithValue, dispatch, getState }) => {
         try {
-            await getAPICallerInstance().callApi(LinkContentToItemAPI, param);
+            await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(LinkContentToItemAPI, param);
 
             // 最新コンテンツロード
             await dispatch(loadContents({
@@ -184,9 +184,9 @@ export const linkContentToItem = createAsyncThunk<void, LinkContentToItemParam>(
 )
 export const updateContent = createAsyncThunk<void, UpdateContentParam>(
     'data/updateContentStatus',
-    async(param, { rejectWithValue, dispatch }) => {
+    async(param, { rejectWithValue, dispatch, getState }) => {
         try {
-            await getAPICallerInstance().callApi(UpdateContentAPI, param);
+            await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(UpdateContentAPI, param);
             // 最新コンテンツロード
             await dispatch(loadContents({
                 targets: [{
@@ -202,9 +202,9 @@ export const updateContent = createAsyncThunk<void, UpdateContentParam>(
 )
 export const removeContent = createAsyncThunk<RemoveContentParam, RemoveContentParam>(
     'data/removeContentStatus',
-    async(param, { rejectWithValue, dispatch }) => {
+    async(param, { rejectWithValue, dispatch, getState }) => {
         try {
-            await getAPICallerInstance().callApi(RemoveContentAPI, param);
+            await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(RemoveContentAPI, param);
 
             if (param.parentContentId) {
                 // 最新コンテンツロード

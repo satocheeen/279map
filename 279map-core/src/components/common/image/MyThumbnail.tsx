@@ -2,8 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/configureStore';
 import { DataId } from '279map-common';
-import { getAPICallerInstance } from '../../../api/ApiCaller';
 import { GetThumbAPI } from 'tsunagumap-api';
+import { useMap } from '../../map/useMap';
 
 type Props = {
     id: DataId; // サムネイル画像id（コンテンツID）
@@ -26,13 +26,14 @@ export default function MyThumbnail(props: Props) {
         }
         return state.session.connectStatus.sid;
     });
+    const { api } = useMap();
 
     /**
      * 画像取得
      */
     useEffect(() => {
         if (!sid) return;
-        getAPICallerInstance().callApi(GetThumbAPI, {
+        api.callApi(GetThumbAPI, {
             id: props.id.id,
         }).then((imgData) => {
             if (myRef.current) {
@@ -42,7 +43,7 @@ export default function MyThumbnail(props: Props) {
             console.warn('get thumbnail failed.', e);
         });
 
-    }, [sid, props.id.id]);
+    }, [api, sid, props.id.id]);
 
     return (
         <img ref={myRef} className={props.className} onClick={props.onClick} alt={props.alt} />

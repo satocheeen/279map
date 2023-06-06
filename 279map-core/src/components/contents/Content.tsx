@@ -18,11 +18,10 @@ import Spinner from "../common/spinner/Spinner";
 import { useFilter } from "../../store/useFilter";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
-import { getContents, getMapKey, isEqualId } from "../../store/data/dataUtility";
-import { getAPICallerInstance } from "../../api/ApiCaller";
-import { GetImageUrlAPI, UpdateContentParam } from 'tsunagumap-api';
-import { getSnsPreviewAPI } from "../../api/ApiCaller";
+import { getMapKey, isEqualId } from "../../store/data/dataUtility";
+import { GetImageUrlAPI, GetSnsPreviewAPI, UpdateContentParam } from 'tsunagumap-api';
 import { doCommand } from "../../util/Commander";
+import { useMap } from "../map/useMap";
 
 type Props = {
     itemId: DataId;
@@ -41,7 +40,7 @@ export default function Content(props: Props) {
     const dispatch = useAppDispatch();
     const { filteredContents } = useFilter();
     const { onEditContent }  = useContext(OwnerContext);
-    // const { updateContentAPI, getSnsPreviewAPI } = useCommand();
+    const { api } = useMap();
 
     /**
      * 表示対象コンテンツかどうか。
@@ -163,7 +162,7 @@ export default function Content(props: Props) {
     const onImageClick = useCallback(async() => {
         setShowSpinner(true);
         try {
-            const imageUrl = await getAPICallerInstance().callApi(GetImageUrlAPI, {
+            const imageUrl = await api.callApi(GetImageUrlAPI, {
                 id: props.content.id,
             });
             window.open(imageUrl, 'image' + props.content.id);
@@ -172,11 +171,11 @@ export default function Content(props: Props) {
         } finally {
             setShowSpinner(false);
         }
-    }, [props.content.id]);
+    }, [props.content.id, api]);
 
     const onEdit = useCallback(async() => {
         // 編集対象コンテンツをロード
-        const contents = (await getContents([{
+        const contents = (await api.getContents([{
             contentId: props.content.id,
         }]));
         if (!contents || contents?.length === 0) {
@@ -200,13 +199,18 @@ export default function Content(props: Props) {
         onEditContent({
             contentId: props.content.id,
             currentAttr,
-            getSnsPreviewAPI,
+            getSnsPreviewAPI: async(url: string) => {
+                const res = await api.callApi(GetSnsPreviewAPI, {
+                    url,
+                });
+                return res;
+            },
             updateContentAPI: async(param: UpdateContentParam) => {
                 await dispatch(updateContent(param));
         
             },
         })
-    }, [props.content, onEditContent, dispatch]);
+    }, [props.content, onEditContent, dispatch, api]);
 
     const onDelete = useCallback(async() => {
         const result = await confirm({

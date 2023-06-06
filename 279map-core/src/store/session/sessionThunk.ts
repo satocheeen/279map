@@ -3,11 +3,10 @@ import { doCommand } from "../../util/Commander";
 import { RootState } from "../configureStore";
 import { dataActions } from "../data/dataSlice";
 import { loadCategories, loadEvents, loadOriginalIconDefine } from "../data/dataThunk";
-import { ApiError, ConnectAPI, ErrorType, GetMapInfoAPI, WebSocketMessage } from 'tsunagumap-api';
+import { ConnectAPI, ErrorType, GetMapInfoAPI, WebSocketMessage } from 'tsunagumap-api';
 import { MapKind } from "279map-common";
 import { ConnectAPIResult, LoadMapDefineResult } from "../../types/types";
-import { createAPICallerInstance, getAPICallerInstance } from "../../api/ApiCaller";
-import { sessionActions } from "./sessionSlice";
+import { getAPICallerInstance } from "../../api/ApiCaller";
 
 export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; }>(
     'session/connectMapStatus',
@@ -15,13 +14,7 @@ export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; }>
         const mapServer = (getState() as RootState).session.mapServer;
 
         try {
-            const apiCaller = createAPICallerInstance(mapServer, (error: ApiError) => {
-                // コネクションエラー時
-                dispatch(sessionActions.updateConnectStatus({
-                    status: 'failure',
-                    error,
-                }));
-            });
+            const apiCaller = getAPICallerInstance((getState() as RootState).session.instanceId);
             const json = await apiCaller.callApi(ConnectAPI, {
                 mapId: param.mapId,
             });
@@ -105,7 +98,7 @@ export const loadMapDefine = createAsyncThunk<LoadMapDefineResult, MapKind>(
             // const mapKind = param;
             // const mapId = session.connectStatus.connectedMap.mapId;
 
-            const apiResult = await getAPICallerInstance()?.callApi(GetMapInfoAPI, {
+            const apiResult = await getAPICallerInstance((getState() as RootState).session.instanceId)?.callApi(GetMapInfoAPI, {
                 mapKind: param,
             });
 

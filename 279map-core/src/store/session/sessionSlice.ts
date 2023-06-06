@@ -17,6 +17,7 @@ type ConnectStatus = {
 const sessionSlice = createSlice({
     name: 'session',
     initialState: {
+        instanceId: '', // OwnerContextのinstanceIdと同値
         mapServer: {
             host: '',
             ssl: false,
@@ -37,6 +38,9 @@ const sessionSlice = createSlice({
         updateConnectStatus(state, action: PayloadAction<ConnectStatus>) {
             state.connectStatus = action.payload;
         },
+        setInstanceId(state, action: PayloadAction<string>) {
+            state.instanceId = action.payload;
+        }
     },
     extraReducers: (builder) => {
         builder

@@ -17,8 +17,8 @@ import Spinner from '../common/spinner/Spinner';
 import { useMounted } from '../../util/useMounted';
 import { DataId, FeatureType, MapKind, UnpointContent } from '279map-common';
 import { useWatch } from '../../util/useWatch';
-import { getAPICallerInstance } from '../../api/ApiCaller';
 import { useMap } from '../map/useMap';
+import { createAPICallerInstance } from '../../api/ApiCaller';
 
 type Props = {};
 
@@ -43,7 +43,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const onEventsLoadedRef = useRef<typeof ownerContext.onEventsLoaded>();
 
     const dispatch = useAppDispatch();
-    const { map } = useMap();
+    const { map, api } = useMap();
 
     useImperativeHandle(ref, () => ({
         switchMapKind(mapKind: MapKind) {
@@ -157,14 +157,14 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         },
     
         async getSnsPreviewAPI(url: string) {
-            const res = await getAPICallerInstance().callApi(GetSnsPreviewAPI, {
+            const res = await api.callApi(GetSnsPreviewAPI, {
                 url,
             });
             return res;
         },
     
         async getUnpointDataAPI(dataSourceId: string, nextToken?: string) {
-            const result = await getAPICallerInstance().callApi(GetUnpointDataAPI, {
+            const result = await api.callApi(GetUnpointDataAPI, {
                 dataSourceId,
                 nextToken,
             });
@@ -179,7 +179,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
          * 指定のコンテンツのサムネイル画像（Blob）を取得する
          */
         async getThumbnail(contentId: DataId) {
-            const imgData = await getAPICallerInstance().callApi(GetThumbAPI, {
+            const imgData = await api.callApi(GetThumbAPI, {
                 id: contentId.id,
             });
             return URL.createObjectURL(imgData);
@@ -199,7 +199,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         }));
     }, [ownerContext.mapServer]);
 
-    useEffect(() => {
+    useWatch(() => {
         onConnectRef.current = ownerContext.onConnect;
         onMapKindChangedRef.current = ownerContext.onMapLoad;
         onDatasourceChangedRef.current = ownerContext.onDatasourceChanged;
@@ -215,6 +215,15 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
      * 初回処理
      */
     useEffect(() => {
+        dispatch(sessionActions.setInstanceId(ownerContext.mapInstanceId));
+        createAPICallerInstance(ownerContext.mapInstanceId, mapServer, (error) => {
+            // コネクションエラー時
+            dispatch(sessionActions.updateConnectStatus({
+                status: 'failure',
+                error,
+            }));
+        });
+
         const h = addListener('LoadLatestData', async() => {
             await dispatch(loadEvents());
             await dispatch(loadCategories());
@@ -223,7 +232,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
             removeListener(h);
         }
 
-    }, [dispatch, mapServer]);
+    }, [dispatch, mapServer, ownerContext.mapInstanceId]);
 
     /**
      * connect to map

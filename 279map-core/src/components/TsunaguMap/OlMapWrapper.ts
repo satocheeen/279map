@@ -40,8 +40,8 @@ type Device = 'pc' | 'sp';
  */
 export function createMapInstance(id: string, target: HTMLDivElement, device: Device) {
     const map = new OlMapWrapper(id, target, device);
-    console.log('create map', map.id);
-    instansMap.set(map.id, map);
+    console.log('create map', map._id);
+    instansMap.set(id, map);
     return map;
 }
 
@@ -51,7 +51,7 @@ export function getMapInstance(id: string) {
 const pcControls = olControl.defaults({attribution: true});
 const spControls = olControl.defaults({attribution: true, zoom: false});
 class OlMapWrapper {
-    readonly id: string;
+    readonly _id: string;
     _map: OlMap;
     _vectorLayerMap: VectorLayerMap;
     _mapKind?: MapKind;
@@ -62,9 +62,9 @@ class OlMapWrapper {
     _drawingLayers: VectorLayer<VectorSource>[] = [];
 
     constructor(id: string, target: HTMLDivElement, device: Device) {
-        this.id = id;
+        this._id = id;
         this._vectorLayerMap = new VectorLayerMap();
-        console.log('create OlMapWrapper', this.id);
+        console.log('create OlMapWrapper', this._id);
 
         const map = new OlMap({
             target,
@@ -247,7 +247,7 @@ class OlMapWrapper {
         let feature: Feature<Geometry>;
         if (def.geoProperties?.featureType === FeatureType.AREA && ('geocoderId' in def.geoProperties && def.geoProperties.geocoderId)) {
             // Geocoderの図形の場合は、Geocoder図形呼び出し
-            const result = await getAPICallerInstance().callApi(GetGeocoderFeatureAPI, def.geoProperties.geocoderId);
+            const result = await getAPICallerInstance(this._id).callApi(GetGeocoderFeatureAPI, def.geoProperties.geocoderId);
 
             feature = new GeoJSON().readFeatures(result.geoJson)[0];
 
@@ -409,7 +409,7 @@ class OlMapWrapper {
     }
 
     addLayer(layerDefine: LayerDefine): VectorLayer<VectorSource> | undefined{
-        console.log('addLayer', this.id, layerDefine);
+        console.log('addLayer', this._id, layerDefine);
         const layer = this._vectorLayerMap.createLayer(layerDefine);
         if (layer) {
             this._map.addLayer(layer);
@@ -586,8 +586,8 @@ class OlMapWrapper {
 
     dispose() {
         this._map.dispose();
-        instansMap.delete(this.id);
-        console.log('dispose OlMapWrapper', this.id);
+        instansMap.delete(this._id);
+        console.log('dispose OlMapWrapper', this._id);
     }
 }
 
