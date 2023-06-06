@@ -1,8 +1,9 @@
 import { schema } from '279map-backend-common';
 import { ConnectionPool } from '.';
-import { DataSourceGroup, DataSourceInfo, MapKind, DataSourceKindType } from '279map-common';
+import { DataSourceGroup, DataSourceInfo, MapKind, DataSourceKindType, MapPageOptions } from '279map-common';
 import { GetMapInfoParam, GetMapInfoResult } from '../279map-api-interface/src';
 import mysql from 'mysql2/promise';
+import { MapOptions } from 'ol/PluggableMap';
 
 /**
  * 指定の地図データページ配下のコンテンツ情報を返す
@@ -149,6 +150,15 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
     try {
         await con.beginTransaction();
 
+        const mapSql = 'select * from map_page_info where map_page_id = ?';
+        const [mapRows] = await con.execute(mapSql, [mapId]);
+        const mapRecord = (mapRows as schema.MapPageInfoTable[])[0];
+
+        if (!mapRecord) {
+            throw new Error('map undefined: ' + mapId);
+        }
+        const visibleDataSources = (mapRecord.options as MapPageOptions).visibleDataSources;
+
         const sql = `select * from data_source ds
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
         where map_page_id =?`;
@@ -174,6 +184,13 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
             if(!dataSourceGroupMap.has(group)) {
                 dataSourceGroupMap.set(group, []);
             }
+            const visible = !visibleDataSources ? true : visibleDataSources.some(vds => {
+                if ('group' in vds) {
+                    return vds.group === row.group;
+                } else {
+                    return vds.dataSourceId === row.data_source_id;
+                }
+            });
             const infos = dataSourceGroupMap.get(group) as DataSourceInfo[];
             infos.push({
                 dataSourceId: row.data_source_id,
@@ -182,6 +199,7 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
                 editable: !row.readonly,
                 deletable,
                 linkableContent: row.linkable_content,
+                visible,
             });
 
         });
@@ -190,9 +208,19 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
         for(const entry of dataSourceGroupMap.entries()) {
             const name = entry[0].length === 0 ? undefined : entry[0];
             const dataSources = entry[1];
+
+            const visible = !visibleDataSources ? true : visibleDataSources.some(vds => {
+                if ('group' in vds) {
+                    return vds.group === name;
+                } else {
+                    return dataSources.some(ds => ds.dataSourceId === vds.dataSourceId);
+                }
+            });
+
             result.push({
                 name,
                 dataSources,
+                visible,
             });
         }
 

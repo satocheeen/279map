@@ -1,7 +1,7 @@
-import { CategoryDefine, ContentsDefine, DataId, EventDefine, ItemContentInfo, ItemDefine } from '279map-common';
+import { CategoryDefine, ContentsDefine, DataId, DataSourceGroup, DataSourceInfo, EventDefine, ItemContentInfo, ItemDefine } from '279map-common';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { Extent } from 'ol/extent';
-import { DataSourceGroupWithOperation, DataSourceInfoWithOperation, SystemIconDefine } from '../../types/types';
+import { SystemIconDefine } from '../../types/types';
 import { loadMapDefine } from '../session/sessionThunk';
 import { loadCategories, loadContents, loadEvents, loadItems, loadOriginalIconDefine, removeContent } from './dataThunk';
 import { getMapKey, isEqualId } from './dataUtility';
@@ -23,7 +23,7 @@ const dataSlice = createSlice({
 
         originalIconDefine: [] as SystemIconDefine[],   // DBに登録されたオリジナルアイコン
 
-        dataSourceGroups: [] as DataSourceGroupWithOperation[],
+        dataSourceGroups: [] as DataSourceGroup[],
     },
     reducers: {
         /**
@@ -62,7 +62,7 @@ const dataSlice = createSlice({
                 const visible = ('group' in action.payload.target && action.payload.target.group === group.name) ? action.payload.visible : group.visible;
                 return {
                     name: group.name,
-                    dataSources: group.dataSources.map((ds): DataSourceInfoWithOperation => {
+                    dataSources: group.dataSources.map((ds): DataSourceInfo => {
                         const dsVisible = ('dataSourceId' in action.payload.target && action.payload.target.dataSourceId === ds.dataSourceId) ? action.payload.visible : ds.visible;
                         return Object.assign({}, ds, {
                             visible: dsVisible,
@@ -85,7 +85,7 @@ const dataSlice = createSlice({
                 return {
                     name: group.name,
                     visible: true,
-                    dataSources: group.dataSources.map((ds): DataSourceInfoWithOperation => {
+                    dataSources: group.dataSources.map((ds): DataSourceInfo => {
                         return Object.assign({}, ds, {
                             visible: true,
                         })
