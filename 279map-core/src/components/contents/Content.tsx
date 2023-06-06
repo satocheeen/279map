@@ -40,7 +40,7 @@ export default function Content(props: Props) {
     const dispatch = useAppDispatch();
     const { filteredContents } = useFilter();
     const { onEditContent }  = useContext(OwnerContext);
-    const { api } = useMap();
+    const { getApi } = useMap();
 
     /**
      * 表示対象コンテンツかどうか。
@@ -162,7 +162,7 @@ export default function Content(props: Props) {
     const onImageClick = useCallback(async() => {
         setShowSpinner(true);
         try {
-            const imageUrl = await api.callApi(GetImageUrlAPI, {
+            const imageUrl = await getApi().callApi(GetImageUrlAPI, {
                 id: props.content.id,
             });
             window.open(imageUrl, 'image' + props.content.id);
@@ -171,11 +171,11 @@ export default function Content(props: Props) {
         } finally {
             setShowSpinner(false);
         }
-    }, [props.content.id, api]);
+    }, [props.content.id, getApi]);
 
     const onEdit = useCallback(async() => {
         // 編集対象コンテンツをロード
-        const contents = (await api.getContents([{
+        const contents = (await getApi().getContents([{
             contentId: props.content.id,
         }]));
         if (!contents || contents?.length === 0) {
@@ -200,7 +200,7 @@ export default function Content(props: Props) {
             contentId: props.content.id,
             currentAttr,
             getSnsPreviewAPI: async(url: string) => {
-                const res = await api.callApi(GetSnsPreviewAPI, {
+                const res = await getApi().callApi(GetSnsPreviewAPI, {
                     url,
                 });
                 return res;
@@ -210,7 +210,7 @@ export default function Content(props: Props) {
         
             },
         })
-    }, [props.content, onEditContent, dispatch, api]);
+    }, [props.content, onEditContent, dispatch, getApi]);
 
     const onDelete = useCallback(async() => {
         const result = await confirm({

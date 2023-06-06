@@ -26,14 +26,14 @@ export default function MyThumbnail(props: Props) {
         }
         return state.session.connectStatus.sid;
     });
-    const { api } = useMap();
+    const { getApi } = useMap();
 
     /**
      * 画像取得
      */
     useEffect(() => {
         if (!sid) return;
-        api.callApi(GetThumbAPI, {
+        getApi().callApi(GetThumbAPI, {
             id: props.id.id,
         }).then((imgData) => {
             if (myRef.current) {
@@ -43,7 +43,7 @@ export default function MyThumbnail(props: Props) {
             console.warn('get thumbnail failed.', e);
         });
 
-    }, [api, sid, props.id.id]);
+    }, [getApi, sid, props.id.id]);
 
     return (
         <img ref={myRef} className={props.className} onClick={props.onClick} alt={props.alt} />

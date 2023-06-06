@@ -10,19 +10,17 @@ import { useWatch } from '../../util/useWatch';
  */
 export function useMap() {
     const { mapInstanceId } = useContext(OwnerContext);
-    const apiRef = useRef<ApiCallerType>(getAPICallerInstance(mapInstanceId));
-
-    useWatch(() => {
-        apiRef.current = getAPICallerInstance(mapInstanceId);
-
-    }, [mapInstanceId]);
 
     const getMap = useCallback(() => {
         return getMapInstance(mapInstanceId);
     }, [mapInstanceId])
 
+    const getApi = useCallback(() => {
+        return getAPICallerInstance(mapInstanceId);
+    }, [mapInstanceId])
+
     return {
-        api: apiRef.current,
+        getApi,
         getMap,
     }
 }

@@ -44,8 +44,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const onEventsLoadedRef = useRef<typeof ownerContext.onEventsLoaded>();
 
     const dispatch = useAppDispatch();
-    const { api, getMap } = useMap();
-    const { mapInstanceId } = useContext(OwnerContext);
+    const { getApi, getMap } = useMap();
 
     useImperativeHandle(ref, () => ({
         switchMapKind(mapKind: MapKind) {
@@ -159,14 +158,14 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         },
     
         async getSnsPreviewAPI(url: string) {
-            const res = await api.callApi(GetSnsPreviewAPI, {
+            const res = await getApi().callApi(GetSnsPreviewAPI, {
                 url,
             });
             return res;
         },
     
         async getUnpointDataAPI(dataSourceId: string, nextToken?: string) {
-            const result = await api.callApi(GetUnpointDataAPI, {
+            const result = await getApi().callApi(GetUnpointDataAPI, {
                 dataSourceId,
                 nextToken,
             });
@@ -181,7 +180,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
          * 指定のコンテンツのサムネイル画像（Blob）を取得する
          */
         async getThumbnail(contentId: DataId) {
-            const imgData = await api.callApi(GetThumbAPI, {
+            const imgData = await getApi().callApi(GetThumbAPI, {
                 id: contentId.id,
             });
             return URL.createObjectURL(imgData);

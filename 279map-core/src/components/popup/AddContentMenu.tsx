@@ -30,7 +30,7 @@ export default function AddContentMenu(props: Props) {
     const { onAddNewContent, onLinkUnpointedContent } = useContext(OwnerContext);
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
-    const { api } = useMap();
+    const { getApi } = useMap();
 
     const dataSources = useSelector((state: RootState) => {
         const groups = state.data.dataSourceGroups;
@@ -141,7 +141,7 @@ export default function AddContentMenu(props: Props) {
                     }
                 },
                 getSnsPreviewAPI: async(url: string) => {
-                    const res = await api.callApi(GetSnsPreviewAPI, {
+                    const res = await getApi().callApi(GetSnsPreviewAPI, {
                         url,
                     });
                     return res;
@@ -152,7 +152,7 @@ export default function AddContentMenu(props: Props) {
                 parent: props.target,
                 dataSources: linkableContentDataSources,
                 getUnpointDataAPI: async(dataSourceId: string, nextToken?: string) => {
-                    const result = await api.callApi(GetUnpointDataAPI, {
+                    const result = await getApi().callApi(GetUnpointDataAPI, {
                         dataSourceId,
                         nextToken,
                     });
@@ -168,7 +168,7 @@ export default function AddContentMenu(props: Props) {
             props.onClick();
         }
 
-    }, [api, props, creatableContentDataSources, linkableContentDataSources, dispatch, onAddNewContent, onLinkUnpointedContent]);
+    }, [getApi, props, creatableContentDataSources, linkableContentDataSources, dispatch, onAddNewContent, onLinkUnpointedContent]);
 
     const caption = useMemo(() => {
         if ('itemId' in props.target) {
