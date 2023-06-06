@@ -52,6 +52,12 @@ export enum DataSourceLinkableContent {
 
 export interface MapPageOptions {
     popupMode?: 'hidden' | 'minimum' | 'maximum';
+    // 初期表示するデータソースを絞る場合に指定する
+    visibleDataSources?: {
+        dataSourceId: string;
+    } | {
+        group: string;
+    }[];
 }
 /**
  * 地図定義情報
