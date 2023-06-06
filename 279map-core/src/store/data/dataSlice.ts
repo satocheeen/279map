@@ -83,7 +83,7 @@ const dataSlice = createSlice({
             state.extent = action.payload.mapInfo.extent;
             state.dataSourceGroups = action.payload.mapInfo.dataSourceGroups.map(group => {
                 return {
-                    name: group.group,
+                    name: group.name,
                     visible: true,
                     dataSources: group.dataSources.map((ds): DataSourceInfoWithOperation => {
                         return Object.assign({}, ds, {

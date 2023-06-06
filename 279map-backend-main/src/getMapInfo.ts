@@ -188,10 +188,10 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
 
         const result: DataSourceGroup[] = [];
         for(const entry of dataSourceGroupMap.entries()) {
-            const group = entry[0].length === 0 ? undefined : entry[0];
+            const name = entry[0].length === 0 ? undefined : entry[0];
             const dataSources = entry[1];
             result.push({
-                group,
+                name,
                 dataSources,
             });
         }

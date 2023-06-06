@@ -160,7 +160,7 @@ class OlMapWrapper {
                         [[1, 8], [8, 13], [13, 21]].forEach(zoomLv => {
                             const layerDefine: LayerDefine = {
                                 dataSourceId: ds.dataSourceId,
-                                group: group.group ?? '',
+                                group: group.name ?? '',
                                 editable: false,
                                 layerType: LayerType.Track,
                                 zoomLv: {
@@ -175,7 +175,7 @@ class OlMapWrapper {
                         [LayerType.Point, LayerType.Topography].forEach(layerType => {
                             const layerDefine: LayerDefine = {
                                 dataSourceId: ds.dataSourceId,
-                                group: group.group ?? '',
+                                group: group.name ?? '',
                                 editable: ds.editable,
                                 layerType: layerType as LayerType.Point| LayerType.Topography,
                             };
@@ -196,7 +196,7 @@ class OlMapWrapper {
                     [LayerType.Point, LayerType.Topography].forEach(layerType => {
                         const layerDefine: LayerDefine = {
                             dataSourceId: ds.dataSourceId,
-                            group: group.group ?? '',
+                            group: group.name ?? '',
                             editable: ds.editable,
                             layerType: layerType as LayerType.Point| LayerType.Topography,
                         };
@@ -573,7 +573,6 @@ class OlMapWrapper {
      * @param visible 
      */
     changeVisibleLayer(target: { dataSourceId: string } | { group: string }, visible: boolean) {
-        console.log('changeVisibleLayer id', this._id);
         let layerInfos: LayerInfo[];
         if ('dataSourceId' in target) {
             layerInfos = this._vectorLayerMap.getLayerInfoOfTheDataSource(target.dataSourceId);
