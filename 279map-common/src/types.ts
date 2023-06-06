@@ -66,7 +66,7 @@ export type MapDefine = {
     options?: MapPageOptions;
 }
 export type DataSourceGroup = {
-    group?: string;
+    name?: string;
     dataSources: DataSourceInfo[];
 }
 export type DataSourceInfo = {
