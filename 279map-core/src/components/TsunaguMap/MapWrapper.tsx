@@ -19,6 +19,7 @@ import { DataId, FeatureType, MapKind, UnpointContent } from '279map-common';
 import { useWatch } from '../../util/useWatch';
 import { getAPICallerInstance } from '../../api/ApiCaller';
 import { getMapInstance } from './OlMapWrapper';
+import { useMap } from '../map/useMap';
 
 type Props = {};
 
@@ -43,6 +44,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const onEventsLoadedRef = useRef<typeof ownerContext.onEventsLoaded>();
 
     const dispatch = useAppDispatch();
+    const { map } = useMap();
 
     useImperativeHandle(ref, () => ({
         switchMapKind(mapKind: MapKind) {
@@ -185,7 +187,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         },
     
         changeVisibleLayer(target: { dataSourceId: string } | { group: string }, visible: boolean) {
-            const map = getMapInstance();
             map?.changeVisibleLayer(target, visible);
         },
                                                         

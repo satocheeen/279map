@@ -46,10 +46,8 @@ export function createMapInstance(target: HTMLDivElement, device: Device) {
     return map;
 }
 
-export function getMapInstance(id?: string) {
-    // useCommandでうまく地図を取得できないので、ひとまず現時点では１インスタンス前提で冒頭の地図を返す
-    return instansMap.values().next().value as OlMapWrapper;
-    // return instansMap.get(id);
+export function getMapInstance(id: string) {
+    return instansMap.get(id);
 }
 const pcControls = olControl.defaults({attribution: true});
 const spControls = olControl.defaults({attribution: true, zoom: false});
