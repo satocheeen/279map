@@ -1,6 +1,4 @@
-import { GetContentsAPI, GetContentsParam } from "tsunagumap-api";
-import { ContentsDefine, DataId } from "279map-common";
-import { getAPICallerInstance } from "../../api/ApiCaller";
+import { DataId } from "279map-common";
 
 export function getMapKey(id: DataId): string {
     return JSON.stringify({

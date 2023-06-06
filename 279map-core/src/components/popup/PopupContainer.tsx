@@ -11,6 +11,7 @@ import PopupContainerCalculator, { PopupGroupWithPosition } from './PopupContain
 import { useMap } from '../map/useMap';
 import { useWatch } from '../../util/useWatch';
 import { usePopup } from './usePopup';
+import useDataSource from '../../store/data/useDataSource';
 
 function createKeyFromPopupInfo(param: PopupGroupWithPosition): string {
     if (!param) {
@@ -28,14 +29,22 @@ export default function PopupContainer() {
     
     const { getMap } = useMap();
 
+    const { isVisibleDataSource } = useDataSource();
+
     // コンテンツを持つアイテムID一覧
     const hasContentsItemIdList = useMemo(() => {
         if (popupMode === 'hidden') {
             return [];
         }
-        const list = Object.values(itemMap).filter(item => item.contents.length>0).map(item => item.id);
+        const list = Object.values(itemMap).filter(item => {
+            if (item.contents.length === 0) return false;
+
+            // 非表示のものは無視する
+            return isVisibleDataSource(item.id.dataSourceId);
+
+        }).map(item => item.id);
         return list;
-    }, [itemMap, popupMode]);
+    }, [itemMap, popupMode, isVisibleDataSource]);
 
     // 表示するポップアップ情報群
     const [popupGroups, setPopupGroups] = useState<PopupGroupWithPosition[]>([]);
@@ -87,7 +96,7 @@ export default function PopupContainer() {
     }, [getMap, updatePopupGroups]);
 
     /**
-     * コンテンツ保持アイテムが変わったら、ポップアップ情報更新
+     * 表示対象コンテンツが変わった契機でポップアップ情報更新
      */
     useWatch(() => {
         updatePopupGroups();
