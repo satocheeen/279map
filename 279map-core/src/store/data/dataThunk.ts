@@ -49,11 +49,23 @@ export const loadCategories = createAsyncThunk<CategoryDefine[]>(
 /**
  * 指定のズームLv., extentに該当するアイテムをロードする
  */
-export const loadItems = createAsyncThunk<ItemDefine[], GetItemsParam>(
+export const loadItems = createAsyncThunk<ItemDefine[], Omit<GetItemsParam, 'dataSourceIds'>>(
     'data/loadItemsStatus',
     async(param, { rejectWithValue, getState  }) => {
         try {
-            const apiResult = await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(GetItemsAPI, param);
+            const dataSourceIds: string[] = [];
+            for (const group of (getState() as RootState).data.dataSourceGroups) {
+                if (!group.visible) continue;
+                for (const ds of group.dataSources) {
+                    if (!ds.visible) continue;
+                    dataSourceIds.push(ds.dataSourceId);
+                }
+            }
+            const apiResult = await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(GetItemsAPI, {
+                extent: param.extent,
+                zoom: param.zoom,
+                dataSourceIds,
+            });
 
             return apiResult.items;
     
