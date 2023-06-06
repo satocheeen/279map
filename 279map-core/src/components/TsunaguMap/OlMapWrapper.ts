@@ -24,7 +24,6 @@ import { FitOptions } from 'ol/View';
 import { getAPICallerInstance } from '../../api/ApiCaller';
 import { Coordinate } from 'ol/coordinate';
 
-let instanceCnt = 0;
 const instansMap = new Map<string, OlMapWrapper>();
 export type FeatureInfo = {
     id: DataId;
@@ -39,8 +38,8 @@ type Device = 'pc' | 'sp';
  * @param target 地図を配置するDivElement
  * @returns OlMapWrapperインスタンス
  */
-export function createMapInstance(target: HTMLDivElement, device: Device) {
-    const map = new OlMapWrapper(target, device);
+export function createMapInstance(id: string, target: HTMLDivElement, device: Device) {
+    const map = new OlMapWrapper(id, target, device);
     console.log('create map', map.id);
     instansMap.set(map.id, map);
     return map;
@@ -62,8 +61,8 @@ class OlMapWrapper {
     // 描画用レイヤ
     _drawingLayers: VectorLayer<VectorSource>[] = [];
 
-    constructor(target: HTMLDivElement, device: Device) {
-        this.id = 'map-' + (++instanceCnt);
+    constructor(id: string, target: HTMLDivElement, device: Device) {
+        this.id = id;
         this._vectorLayerMap = new VectorLayerMap();
         console.log('create OlMapWrapper', this.id);
 

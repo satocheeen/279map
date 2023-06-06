@@ -30,7 +30,6 @@ import { useOverlay } from "../common/spinner/useOverlay";
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
     const [initialized, setInitialized] = useState(false);
-    const { setMapInstanceId } = useContext(OwnerContext);
     const mapRef = useRef<OlMapType>();
     const mapMode = useSelector((state: RootState) => state.operation.mapMode);
     const { showSpinner, hideSpinner } = useOverlay();
@@ -181,6 +180,7 @@ export default function MapChart() {
     }, []);
 
     const { isPC } = useMyMedia();
+    const { mapInstanceId } = useContext(OwnerContext);
     /**
      * 地図初期化
      */
@@ -188,8 +188,7 @@ export default function MapChart() {
         if (myRef.current === null) {
             return;
         }
-        const map = createMapInstance(myRef.current, isPC ? 'pc' : 'sp');
-        setMapInstanceId(map.id);
+        const map = createMapInstance(mapInstanceId, myRef.current, isPC ? 'pc' : 'sp');
         mapRef.current = map;
 
         const loadLatestDataHandler = addListener('LoadLatestData', async() => {

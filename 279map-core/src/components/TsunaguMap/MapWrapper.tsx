@@ -18,7 +18,6 @@ import { useMounted } from '../../util/useMounted';
 import { DataId, FeatureType, MapKind, UnpointContent } from '279map-common';
 import { useWatch } from '../../util/useWatch';
 import { getAPICallerInstance } from '../../api/ApiCaller';
-import { getMapInstance } from './OlMapWrapper';
 import { useMap } from '../map/useMap';
 
 type Props = {};
