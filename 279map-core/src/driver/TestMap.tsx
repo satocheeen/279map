@@ -1,6 +1,6 @@
-import { Auth, CategoryDefine, DataId, DataSourceKindType, FeatureType, MapKind } from '279map-common';
+import { Auth, CategoryDefine, DataId, DataSourceGroup, DataSourceKindType, FeatureType, MapKind } from '279map-common';
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { DataSourceGroupWithOperation, ServerInfo, TsunaguMapHandler, onDatasourceChangedParam } from '../entry';
+import { ServerInfo, TsunaguMapHandler, onDatasourceChangedParam } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
 import { FilterDefine, OnConnectParam, OnMapLoadParam, TsunaguMapProps } from '../entry';
 import styles from './TestMap.module.scss';
@@ -69,10 +69,10 @@ export default function TestMap() {
 
     const [ disabledContentDialog, setDisableContentDialog ] = useState(false);
 
-    const [ dataSourceGroups, setDataSourceGroups] = useState<DataSourceGroupWithOperation[]>([]);
+    const [ dataSourceGroups, setDataSourceGroups] = useState<DataSourceGroup[]>([]);
 
     const featureDataSourceGroups = useMemo(() => {
-        return dataSourceGroups.map((group): DataSourceGroupWithOperation => {
+        return dataSourceGroups.map((group): DataSourceGroup => {
             const dataSources = group.dataSources.filter(ds => {
                 const isFeature = ds.kind !== DataSourceKindType.Content;
                 return isFeature;

@@ -160,8 +160,16 @@ async function selectTrackInArea(param: GetItemsParam, mapPageId: string): Promi
                     WHERE map_page_id= ? AND MBRIntersects(geojson, GeomFromText(?,4326)) AND min_zoom <= ? AND ? < max_zoom`;
         const [rows] = await con.execute(sql, [mapPageId, wkt, param.zoom, param.zoom]);
         
-        return (rows as (schema.TrackGeoJsonTable & schema.TracksTable)[]).map(row => {
-            return {
+        const list = [] as ItemDefine[];
+        for (const row of (rows as (schema.TrackGeoJsonTable & schema.TracksTable)[])) {
+            // データソースが指定されている場合は、指定されているデータソースのもののみに絞る
+            if (param.dataSourceIds) {
+                if (!param.dataSourceIds.includes(row.data_source_id)) {
+                    continue;
+                }
+            }
+
+            list.push({
                 id: {
                     id: '' + row.track_file_id + row.sub_id,
                     dataSourceId: row.data_source_id,
@@ -175,8 +183,9 @@ async function selectTrackInArea(param: GetItemsParam, mapPageId: string): Promi
                 name: '',
                 contents: [],
                 lastEditedTime: row.last_edited_time,
-            }
-        });
+            })
+        }
+        return list;
     } finally {
         await con.commit();
         con.release();

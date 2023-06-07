@@ -23,6 +23,7 @@ import { GetGeocoderFeatureAPI } from 'tsunagumap-api';
 import { FitOptions } from 'ol/View';
 import { getAPICallerInstance } from '../../api/ApiCaller';
 import { Coordinate } from 'ol/coordinate';
+import { doCommand } from '../../util/Commander';
 
 const instansMap = new Map<string, OlMapWrapper>();
 export type FeatureInfo = {
@@ -50,6 +51,11 @@ export function getMapInstance(id: string) {
 }
 const pcControls = olControl.defaults({attribution: true});
 const spControls = olControl.defaults({attribution: true, zoom: false});
+
+/**
+ * OpenLayersの地図を内包したクラス。
+ * 当該システムで必要な機能を実装している。
+ */
 class OlMapWrapper {
     readonly _id: string;
     _map: OlMap;
@@ -295,13 +301,13 @@ class OlMapWrapper {
         const existFeature = source.getFeatureById(def.id.id);
         if (existFeature) {
             if (existFeature.getProperties()['lastEditedTime'] !== def.lastEditedTime) {
-                console.log('update feature');
+                // console.log('update feature');
                 existFeature.setGeometry(geom);
                 existFeature.setProperties(feature.getProperties());
             }
         } else {
             source.addFeature(feature);
-            console.log('add feature', geom.getType(), feature.getId(), feature.getProperties(), source.getFeatures().length);
+            // console.log('add feature', geom.getType(), feature.getId(), feature.getProperties(), source.getFeatures().length);
         }
     }
 
@@ -581,6 +587,11 @@ class OlMapWrapper {
         }
         layerInfos.forEach(layerInfo => {
             layerInfo.layer.setVisible(visible);
+        });
+        // 非表示レイヤが表示に切り替わった場合を想定して、最新アイテム取得
+        doCommand({
+            command: "LoadLatestData",
+            param: undefined,
         });
     }
 
