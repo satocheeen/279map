@@ -197,7 +197,7 @@ export default function TestMap() {
                             <>
                                 {group.name &&
                                     <label key={group.name}>
-                                        <input type="checkbox" defaultChecked={true} onChange={(evt) => changeVisibleLayerGroup(group.name ?? '', evt.target.checked)} />
+                                        <input type="checkbox" checked={group.visible} onChange={(evt) => changeVisibleLayerGroup(group.name ?? '', evt.target.checked)} />
                                         {group.name}
                                     </label>
                                 }
@@ -205,7 +205,7 @@ export default function TestMap() {
                                     return (
                                         <>
                                             <label key={ds.dataSourceId} className={`${group.name ? styles.Child : ''}`}>
-                                                <input type="checkbox" defaultChecked={true} onChange={(evt) => changeVisibleLayerDataSource(ds.dataSourceId, evt.target.checked)} />
+                                                <input type="checkbox" checked={ds.visible} onChange={(evt) => changeVisibleLayerDataSource(ds.dataSourceId, evt.target.checked)} />
                                                 {ds.name}
                                                 {(ds.editable && authLv === Auth.Edit) &&
                                                     <>

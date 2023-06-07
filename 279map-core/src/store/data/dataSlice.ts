@@ -81,17 +81,7 @@ const dataSlice = createSlice({
             }
             // state.mapKind = action.payload.mapKind;
             state.extent = action.payload.mapInfo.extent;
-            state.dataSourceGroups = action.payload.mapInfo.dataSourceGroups.map(group => {
-                return {
-                    name: group.name,
-                    visible: true,
-                    dataSources: group.dataSources.map((ds): DataSourceInfo => {
-                        return Object.assign({}, ds, {
-                            visible: true,
-                        })
-                    })
-                }
-            })
+            state.dataSourceGroups = action.payload.mapInfo.dataSourceGroups;
 
             // アイテムクリア
             state.itemMap = {};

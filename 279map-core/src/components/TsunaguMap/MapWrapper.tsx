@@ -187,7 +187,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         },
     
         changeVisibleLayer(target: { dataSourceId: string } | { group: string }, visible: boolean) {
-            getMap()?.changeVisibleLayer(target, visible);
             dispatch(dataActions.updateDatasourceVisible({
                 target,
                 visible,
@@ -221,6 +220,8 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
      */
     useEffect(() => {
         dispatch(sessionActions.setInstanceId(ownerContext.mapInstanceId));
+
+        // API Accessor用意
         createAPICallerInstance(ownerContext.mapInstanceId, mapServer, (error) => {
             // コネクションエラー時
             dispatch(sessionActions.updateConnectStatus({
@@ -304,7 +305,23 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         }
     }, [currentMapKind]);
 
-    useEffect(() => {
+    /**
+     * レイヤの表示・非表示切り替え
+     */
+    useWatch(() => {
+        currentDataSourceGroups.forEach(group => {
+            getMap()?.changeVisibleLayer({
+                group: group.name ?? '',
+            }, group.visible);
+            if (!group.visible) return;
+
+            group.dataSources.forEach(ds => {
+                getMap()?.changeVisibleLayer({
+                    dataSourceId: ds.dataSourceId,
+                }, ds.visible);
+            });
+        })
+
         if (onDatasourceChangedRef.current) {
             onDatasourceChangedRef.current({
                 dataSourceGroups: currentDataSourceGroups,
