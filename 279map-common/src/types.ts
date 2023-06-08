@@ -52,6 +52,7 @@ export enum DataSourceLinkableContent {
 
 export interface MapPageOptions {
     popupMode?: 'hidden' | 'minimum' | 'maximum';
+    itemLabel?: 'show' | 'hidden';
     // 初期表示するデータソースを絞る場合に指定する
     visibleDataSources?: ({
         dataSourceId: string;
