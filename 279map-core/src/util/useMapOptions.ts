@@ -1,15 +1,15 @@
 import { useContext, useMemo } from 'react';
-import { OwnerContext } from '../TsunaguMap/TsunaguMap';
-import { TsunaguMapProps } from '../../entry';
-import useMyMedia from '../../util/useMyMedia';
+import { OwnerContext } from '../components/TsunaguMap/TsunaguMap';
+import { TsunaguMapProps } from '../entry';
+import useMyMedia from './useMyMedia';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../store/configureStore';
+import { RootState } from '../store/configureStore';
 
 /**
- * ポップアップ関連の共通処理
- * @returns 
+ * 呼び出し元から渡されたpropsと、地図固有のオプション値を加味して、
+ * この地図でのオプション設定値を算出して返すフック
  */
-export function usePopup() {
+export function useMapOptions() {
     const ownerContext = useContext(OwnerContext);
     const { isPC } = useMyMedia();
     const options = useSelector((state: RootState) => {
@@ -36,7 +36,16 @@ export function usePopup() {
         return mode;
     }, [ownerContext.popupMode, options, isPC]);
 
+    const disabledLabel = useMemo((): boolean => {
+        if (options?.itemLabel) {
+            return options.itemLabel === 'hidden';
+        }
+        return ownerContext.disabledLabel ?? false;
+
+    }, [ownerContext.disabledLabel]);
+
     return {
         popupMode,
+        disabledLabel,
     }
 }

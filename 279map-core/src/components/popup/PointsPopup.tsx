@@ -11,7 +11,7 @@ import { MapMode } from "../../types/types";
 import { getMapKey, isEqualId } from "../../store/data/dataUtility";
 import MyThumbnail from "../common/image/MyThumbnail";
 import { BsThreeDots } from 'react-icons/bs';
-import { usePopup } from "./usePopup";
+import { useMapOptions } from "../../util/useMapOptions";
 import { doCommand } from "../../util/Commander";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 
@@ -74,7 +74,7 @@ export default function PointsPopup(props: Props) {
         return ownImageInfos[0];
     }, [props.itemIds, itemMap, filteredItemIdList, isFiltered]);
 
-    const { popupMode } = usePopup();
+    const { popupMode } = useMapOptions();
 
     // 表示する画像URL
     const imageContentId = useMemo((): DataId | null => {

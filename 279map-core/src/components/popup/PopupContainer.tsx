@@ -10,7 +10,7 @@ import { LayerType } from '../TsunaguMap/VectorLayerMap';
 import PopupContainerCalculator, { PopupGroupWithPosition } from './PopupContainerCalculator';
 import { useMap } from '../map/useMap';
 import { useWatch } from '../../util/useWatch';
-import { usePopup } from './usePopup';
+import { useMapOptions } from '../../util/useMapOptions';
 import useDataSource from '../../store/data/useDataSource';
 
 function createKeyFromPopupInfo(param: PopupGroupWithPosition): string {
@@ -25,7 +25,7 @@ export default function PopupContainer() {
 
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
 
-    const { popupMode } = usePopup();
+    const { popupMode } = useMapOptions();
     
     const { getMap } = useMap();
 

@@ -13,6 +13,7 @@ import { convertDataIdFromFeatureId, isEqualId } from "../../store/data/dataUtil
 import { useMap } from "./useMap";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/configureStore";
+import { useMapOptions } from "../../util/useMapOptions";
 
 // 建物ラベルを表示するresolution境界値（これ以下の値の時に表示）
 const StructureLabelResolution = 0.003;
@@ -27,7 +28,8 @@ const STRUCTURE_SELECTED_COLOR = '#8888ff';
 export default function usePointStyle() {
     const { getForceColor, getFilterStatus } = useFilterStatus();
     const { filteredItemIdList } = useFilter();
-    const { disabledLabel, filter } = useContext(OwnerContext);
+    const { disabledLabel } = useMapOptions();
+    const { filter } = useContext(OwnerContext);
     const { getIconDefine } = useIcon();
     const { getMap } = useMap();
     const selectedItemIds = useSelector((state: RootState) => state.operation.selectedItemIds);
