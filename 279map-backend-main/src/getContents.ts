@@ -1,9 +1,8 @@
 import { ConnectionPool } from '.';
-import { DataId, MapKind } from "279map-common";
 import { CurrentMap, schema } from "279map-backend-common";
 import { getAncestorItemId } from "./util/utility";
 import { GetContentsParam, GetContentsResult } from '../279map-api-interface/src';
-import { ContentsDefine, Auth, DataSourceKindType } from '279map-common';
+import { DataId, MapKind, ContentsDefine, Auth, DataSourceKindType } from '279map-backend-common';
 import { PoolConnection } from 'mysql2/promise';
 
 type ContentsDatasourceRecord = schema.ContentsTable & schema.DataSourceTable;

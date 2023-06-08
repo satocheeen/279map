@@ -1,7 +1,7 @@
-import { CategoryDefine, ContentsDefine, DataId, DataSourceKindType, DataSourceLinkableContent, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, ServerConfig, UnpointContent } from "279map-common";
+import { CategoryDefine, ContentsDefine, DataId, DataSourceKindType, DataSourceLinkableContent, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, ServerConfig, UnpointContent } from "279map-backend-common";
 import { GeoJsonObject } from "geojson";
-import { APIDefine, ContentAttr, SnsPreviewPost, MapDefine } from '279map-common';
-import { FilterDefine, DataSourceGroup } from "279map-common";
+import { APIDefine, ContentAttr, SnsPreviewPost, MapDefine } from '279map-backend-common';
+import { FilterDefine, DataSourceGroup } from "279map-backend-common";
 
 /**
  * get common config

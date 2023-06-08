@@ -1,7 +1,7 @@
 import { ConnectionPool } from "..";
 import { CurrentMap, schema } from "279map-backend-common";
 import { GetOriginalIconDefineResult } from "../../279map-api-interface/src";
-import { IconDefine, MapKind } from "279map-common";
+import { IconDefine, MapKind } from "279map-backend-common";
 import { getIcon } from "./getIcon";
 
 export async function getOriginalIconDefine(currentMap: CurrentMap): Promise<GetOriginalIconDefineResult> {

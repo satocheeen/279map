@@ -1,5 +1,5 @@
 import { ConnectionPool } from '..';
-import { MapKind, Extent, DataId } from '279map-common';
+import { MapKind, Extent, DataId } from '279map-backend-common';
 import { schema, CurrentMap} from '279map-backend-common';
 import mysql, { PoolConnection } from 'mysql2/promise';
 

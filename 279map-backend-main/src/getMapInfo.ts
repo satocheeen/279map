@@ -1,9 +1,8 @@
 import { schema } from '279map-backend-common';
 import { ConnectionPool } from '.';
-import { DataSourceGroup, DataSourceInfo, MapKind, DataSourceKindType, MapPageOptions } from '279map-common';
+import { DataSourceGroup, DataSourceInfo, MapKind, DataSourceKindType, MapPageOptions } from '279map-backend-common';
 import { GetMapInfoParam, GetMapInfoResult } from '../279map-api-interface/src';
 import mysql from 'mysql2/promise';
-import { MapOptions } from 'ol/PluggableMap';
 
 /**
  * 指定の地図データページ配下のコンテンツ情報を返す
