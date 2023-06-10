@@ -35,6 +35,7 @@ export type DataSourceTable = {
 export type MapDataSourceLinkTable = {
     map_page_id: string;
     data_source_id: string;
+    order_num: number;
     last_edited_time: string;
 }
 export type MapUserTable = {

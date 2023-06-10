@@ -34,6 +34,7 @@ CREATE TABLE `data_source` (
 CREATE TABLE `map_datasource_link` (
   `map_page_id` varchar(100) NOT NULL,
   `data_source_id` varchar(100) NOT NULL,
+  `order_num` tinyint(3) unsigned DEFAULT NULL,
   `last_edited_time` varchar(100) NOT NULL,
   PRIMARY KEY (`map_page_id`,`data_source_id`),
   KEY `map_datasource_link_FK_1` (`data_source_id`),
