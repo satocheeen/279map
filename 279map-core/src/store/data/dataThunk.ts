@@ -22,7 +22,18 @@ export const loadEvents = createAsyncThunk<EventDefine[]>(
     'data/loadEventsStatus',
     async(_, { rejectWithValue, getState }) => {
         try {
-            const apiResult = await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(GetEventsAPI, {});
+            const targetDataSourceIds = [] as string[];
+            (getState() as RootState).data.dataSourceGroups.forEach(group => {
+                if (!group.visible) return;
+                group.dataSources.forEach(ds => {
+                    if (ds.visible) {
+                        targetDataSourceIds.push(ds.dataSourceId);
+                    }
+                })
+            })
+            const apiResult = await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(GetEventsAPI, {
+                dataSourceIds: targetDataSourceIds,
+            });
 
             return apiResult.events;
     
@@ -36,7 +47,18 @@ export const loadCategories = createAsyncThunk<CategoryDefine[]>(
     'data/loadCategoriesStatus',
     async(_, { rejectWithValue, getState }) => {
         try {
-            const apiResult = await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(GetCategoryAPI, undefined);
+            const targetDataSourceIds = [] as string[];
+            (getState() as RootState).data.dataSourceGroups.forEach(group => {
+                if (!group.visible) return;
+                group.dataSources.forEach(ds => {
+                    if (ds.visible) {
+                        targetDataSourceIds.push(ds.dataSourceId);
+                    }
+                })
+            })
+            const apiResult = await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(GetCategoryAPI, {
+                dataSourceIds: targetDataSourceIds,
+            });
 
             return apiResult.categories;
     

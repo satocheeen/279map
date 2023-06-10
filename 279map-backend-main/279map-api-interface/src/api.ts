@@ -87,7 +87,10 @@ export const GetCategoryAPI = {
     uri: 'getcategory',
     method: 'post',
     resultType: 'json',
-} as APIDefine<undefined, GetCategoryResult>;
+} as APIDefine<GetCategoryParam, GetCategoryResult>;
+export type GetCategoryParam = {
+    dataSourceIds?: string[];   // 指定されている場合、指定のデータソースのイベントのみ返す
+}
 export type GetCategoryResult = {
     categories: CategoryDefine[];
 };
@@ -101,6 +104,7 @@ export const GetEventsAPI = {
     resultType: 'json',
 } as APIDefine<GetEventParam, GetEventsResult>;
 export type GetEventParam = {
+    dataSourceIds?: string[];   // 指定されている場合、指定のデータソースのイベントのみ返す
 }
 export type GetEventsResult = {
     events: EventDefine[],

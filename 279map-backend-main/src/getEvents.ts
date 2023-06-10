@@ -1,9 +1,9 @@
 import { ConnectionPool } from ".";
 import { EventDefine, CurrentMap, schema } from "279map-backend-common";
 import { getBelongingItem } from "./util/utility";
-import { GetEventsResult } from "../279map-api-interface/src";
+import { GetEventParam, GetEventsResult } from "../279map-api-interface/src";
 
-export async function getEvents(currentMap: CurrentMap): Promise<GetEventsResult> {
+export async function getEvents(param: GetEventParam, currentMap: CurrentMap): Promise<GetEventsResult> {
     if (!currentMap) {
         throw 'no currentmap';
     }
@@ -21,9 +21,16 @@ export async function getEvents(currentMap: CurrentMap): Promise<GetEventsResult
             order by date
             `;
         const [rows] = await con.execute(sql, [mapPageId]);
+        let records = (rows as schema.ContentsTable[]);
+        if (param.dataSourceIds) {
+            // filter by whter exist in the datasources
+            records = records.filter(rec => {
+                return param.dataSourceIds?.includes(rec.data_source_id);
+            });
+        }
         // filter by whether exist in the map kind
         const events = [] as EventDefine[];
-        for (const row of (rows as schema.ContentsTable[])) {
+        for (const row of records) {
             const itemList = await getBelongingItem(con, row, mapPageId, mapKind);
             if (itemList) {
                 itemList.forEach(item => {

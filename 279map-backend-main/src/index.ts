@@ -25,7 +25,7 @@ import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI
 import { auth } from 'express-oauth2-jwt-bearer';
 import { getMapUser, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam } from '../279map-api-interface/src/api';
+import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, GetEventParam, GetCategoryParam } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 import { search } from './api/search';
@@ -648,7 +648,8 @@ app.post(`/api/${GetCategoryAPI.uri}`,
     checkCurrentMap,
     async(req, res, next) => {
         try {
-            const result = await getCategory(req.currentMap);
+            const param = req.body as GetCategoryParam;
+            const result = await getCategory(param, req.currentMap);
 
             apiLogger.debug('result', result);
 
@@ -666,14 +667,15 @@ app.post(`/api/${GetCategoryAPI.uri}`,
 );
 
 /**
- * カテゴリ取得
+ * イベント取得
  */
 app.post(`/api/${GetEventsAPI.uri}`,
     checkApiAuthLv(Auth.View), 
     checkCurrentMap,
     async(req, res, next) => {
         try {
-            const result = await getEvents(req.currentMap);
+            const param = req.body as GetEventParam;
+            const result = await getEvents(param, req.currentMap);
 
             apiLogger.debug('result', result);
 
