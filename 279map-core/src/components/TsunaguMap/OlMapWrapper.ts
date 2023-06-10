@@ -174,7 +174,7 @@ class OlMapWrapper {
                                     max: zoomLv[1],
                                 }
                             };
-                            this.addLayer(layerDefine);
+                            this.addLayer(layerDefine, ds.visible);
                         })
     
                     } else if (ds.kind === DataSourceKindType.Item || ds.kind === DataSourceKindType.ItemContent) {
@@ -185,7 +185,7 @@ class OlMapWrapper {
                                 editable: ds.editable,
                                 layerType: layerType as LayerType.Point| LayerType.Topography,
                             };
-                            this.addLayer(layerDefine);
+                            this.addLayer(layerDefine, ds.visible);
                         })
                     }
     
@@ -206,7 +206,7 @@ class OlMapWrapper {
                             editable: ds.editable,
                             layerType: layerType as LayerType.Point| LayerType.Topography,
                         };
-                        this.addLayer(layerDefine);
+                        this.addLayer(layerDefine, ds.visible);
                     })
                 });
             });
@@ -414,10 +414,17 @@ class OlMapWrapper {
         return this._map.getView().getZoom();
     }
 
-    addLayer(layerDefine: LayerDefine): VectorLayer<VectorSource> | undefined{
+    /**
+     * レイヤを新規追加する
+     * @param layerDefine 
+     * @param initialVisible 初期時のvisible
+     * @returns 
+     */
+    addLayer(layerDefine: LayerDefine, initialVisible: boolean): VectorLayer<VectorSource> | undefined{
         console.log('addLayer', this._id, layerDefine);
         const layer = this._vectorLayerMap.createLayer(layerDefine);
         if (layer) {
+            layer.setVisible(initialVisible);
             this._map.addLayer(layer);
         }
         return layer;
@@ -574,25 +581,46 @@ class OlMapWrapper {
     }
 
     /**
-     * レイヤの表示非表示切り替え
+     * dataSourceGroupsに定義された設定で、レイヤの表示非表示を切り替える
      * @param target 
      * @param visible 
      */
-    changeVisibleLayer(target: { dataSourceId: string } | { group: string }, visible: boolean) {
-        let layerInfos: LayerInfo[];
-        if ('dataSourceId' in target) {
-            layerInfos = this._vectorLayerMap.getLayerInfoOfTheDataSource(target.dataSourceId);
-        } else {
-            layerInfos = this._vectorLayerMap.getLayerInfoOfTheGroup(target.group);
+    updateLayerVisible(dataSourceGroups: DataSourceGroup[]) {
+        let hiddenToShowFlag = false;   // 非表示レイヤが表示に切り替わるケースがあるか
+        const changeVisible = (target: { dataSourceId: string } | { group: string }, visible: boolean) => {
+            let layerInfos: LayerInfo[];
+            if ('dataSourceId' in target) {
+                layerInfos = this._vectorLayerMap.getLayerInfoOfTheDataSource(target.dataSourceId);
+            } else {
+                layerInfos = this._vectorLayerMap.getLayerInfoOfTheGroup(target.group);
+            }
+            layerInfos.forEach(layerInfo => {
+                const currentVisible = layerInfo.layer.getVisible();
+                if (!currentVisible && visible) {
+                    hiddenToShowFlag = true;
+                }
+                layerInfo.layer.setVisible(visible);
+            });
         }
-        layerInfos.forEach(layerInfo => {
-            layerInfo.layer.setVisible(visible);
-        });
-        // 非表示レイヤが表示に切り替わった場合を想定して、最新アイテム取得
-        doCommand({
-            command: "LoadLatestData",
-            param: undefined,
-        });
+        dataSourceGroups.forEach(group => {
+            changeVisible({
+                group: group.name ?? '',
+            }, group.visible);
+            if (!group.visible) return;
+
+            group.dataSources.forEach(ds => {
+                changeVisible({
+                    dataSourceId: ds.dataSourceId,
+                }, ds.visible);
+            });
+        })
+        // 非表示レイヤが表示に切り替わった場合は、最新アイテム取得
+        if (hiddenToShowFlag) {
+            doCommand({
+                command: "LoadLatestData",
+                param: undefined,
+            });
+        }
     }
 
     dispose() {

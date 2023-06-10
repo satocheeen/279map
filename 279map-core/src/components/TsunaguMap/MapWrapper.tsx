@@ -309,18 +309,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
      * レイヤの表示・非表示切り替え
      */
     useWatch(() => {
-        currentDataSourceGroups.forEach(group => {
-            getMap()?.changeVisibleLayer({
-                group: group.name ?? '',
-            }, group.visible);
-            if (!group.visible) return;
-
-            group.dataSources.forEach(ds => {
-                getMap()?.changeVisibleLayer({
-                    dataSourceId: ds.dataSourceId,
-                }, ds.visible);
-            });
-        })
+        getMap()?.updateLayerVisible(currentDataSourceGroups);
 
         if (onDatasourceChangedRef.current) {
             onDatasourceChangedRef.current({

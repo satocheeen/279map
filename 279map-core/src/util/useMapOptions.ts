@@ -42,7 +42,7 @@ export function useMapOptions() {
         }
         return ownerContext.disabledLabel ?? false;
 
-    }, [ownerContext.disabledLabel]);
+    }, [ownerContext.disabledLabel, options]);
 
     return {
         popupMode,
