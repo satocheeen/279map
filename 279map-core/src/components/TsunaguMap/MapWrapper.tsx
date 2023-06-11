@@ -1,7 +1,7 @@
 import React, { useImperativeHandle, useContext, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
-import { LoadContentsParam, LoadContentsResult, linkContentToItem, loadCategories, loadContents, loadEvents, registContent, updateContent } from '../../store/data/dataThunk';
+import { LoadContentsParam, LoadContentsResult, linkContentToItem, loadCategories, loadContents, loadEvents, loadOriginalIconDefine, registContent, updateContent } from '../../store/data/dataThunk';
 import { addListener, doCommand, removeListener } from '../../util/Commander';
 import MapChart from './MapChart';
 import { operationActions } from '../../store/operation/operationSlice';
@@ -275,6 +275,11 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
             }
             const mapKind = res.connectResult.mapDefine.defaultMapKind;
             return dispatch(loadMapDefine(mapKind));
+        })
+        .then(() => {
+            dispatch(loadOriginalIconDefine());
+            dispatch(loadEvents());
+            dispatch(loadCategories());
         })
         .catch(err => {
             console.warn('connect error', err);

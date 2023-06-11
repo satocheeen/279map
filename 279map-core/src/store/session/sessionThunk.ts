@@ -2,7 +2,6 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import { doCommand } from "../../util/Commander";
 import { RootState } from "../configureStore";
 import { dataActions } from "../data/dataSlice";
-import { loadCategories, loadEvents, loadOriginalIconDefine } from "../data/dataThunk";
 import { ConnectAPI, ErrorType, GetMapInfoAPI, WebSocketMessage } from 'tsunagumap-api';
 import { MapKind } from "279map-common";
 import { ConnectAPIResult, LoadMapDefineResult } from "../../types/types";
@@ -83,7 +82,7 @@ export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; }>
  */
 export const loadMapDefine = createAsyncThunk<LoadMapDefineResult, MapKind>(
     'session/loadMapDefineStatus',
-    async(param, { getState, dispatch }) => {
+    async(param, { getState }) => {
         const session = (getState() as RootState).session;
         const mapServer = session.mapServer;
 
@@ -95,16 +94,9 @@ export const loadMapDefine = createAsyncThunk<LoadMapDefineResult, MapKind>(
             if (session.connectStatus.status !== 'connected') {
                 throw 'no connect map.';
             }
-            // const mapKind = param;
-            // const mapId = session.connectStatus.connectedMap.mapId;
-
             const apiResult = await getAPICallerInstance((getState() as RootState).session.instanceId)?.callApi(GetMapInfoAPI, {
                 mapKind: param,
             });
-
-            dispatch(loadOriginalIconDefine());
-            dispatch(loadEvents());
-            dispatch(loadCategories());
 
             return {
                 result: 'success',
