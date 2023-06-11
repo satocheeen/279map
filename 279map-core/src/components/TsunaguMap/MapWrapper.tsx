@@ -20,6 +20,8 @@ import { useWatch } from '../../util/useWatch';
 import { useMap } from '../map/useMap';
 import { createAPICallerInstance } from '../../api/ApiCaller';
 import { dataActions } from '../../store/data/dataSlice';
+import useEvent from '../../store/data/useEvent';
+import useCategory from '../../store/data/useCategory';
 
 type Props = {};
 
@@ -341,7 +343,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     /**
      * callback when categories has loaded or changed.
      */
-    const categories = useSelector((state: RootState) => state.data.categories);
+    const { categories } = useCategory();;
     useEffect(() => {
         if (onCategoriesLoadedRef.current) {
             onCategoriesLoadedRef.current(categories);
@@ -351,7 +353,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     /**
      * callback when events has loaded or changed.
      */
-    const events = useSelector((state: RootState) => state.data.events);
+    const { events } = useEvent();
     useEffect(() => {
         if(onEventsLoadedRef.current) {
             onEventsLoadedRef.current(events);

@@ -1,6 +1,6 @@
 import { useSelector } from "react-redux";
 import { RootState } from "../configureStore";
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 
 /**
  * データソース関連のユーティリティフック
@@ -8,6 +8,22 @@ import { useCallback } from 'react';
  */
 export default function useDataSource() {
     const dataSourceGroups = useSelector((state: RootState) => state.data.dataSourceGroups);
+
+    /**
+     * 表示状態のデータソースID
+     */
+    const visibleDataSourceIds = useMemo(() => {
+        const idList = [] as string[];
+        dataSourceGroups.forEach(group => {
+            if (!group.visible) return;
+            group.dataSources.forEach(ds => {
+                if (!ds.visible) return;
+                idList.push(ds.dataSourceId);
+            })
+        });
+        return idList;
+
+    }, [dataSourceGroups]);
 
     const isVisibleDataSource = useCallback((dataSourceId: string) => {
         for (const group of dataSourceGroups) {
@@ -23,6 +39,7 @@ export default function useDataSource() {
     }, [dataSourceGroups]);
 
     return {
+        visibleDataSourceIds,
         isVisibleDataSource,
     }
 }
