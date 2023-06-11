@@ -160,7 +160,8 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
 
         const sql = `select * from data_source ds
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
-        where map_page_id =?`;
+        where map_page_id =?
+        order by order_num`;
         // execute引数でパラメタを渡すと、なぜかエラーになるので、クエリを作成してから投げている
         const query = mysql.format(sql, [mapId]);
         const [rows] = await con.execute(query);
