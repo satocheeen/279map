@@ -1,6 +1,6 @@
 import { Auth, CategoryDefine, DataId, DataSourceGroup, DataSourceKindType, FeatureType, MapKind } from '279map-common';
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { ServerInfo, TsunaguMapHandler, onDatasourceChangedParam } from '../entry';
+import { ServerInfo, TsunaguMapHandler, getAuthConfig, onDatasourceChangedParam } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
 import { FilterDefine, OnConnectParam, OnMapLoadParam, TsunaguMapProps } from '../entry';
 import styles from './TestMap.module.scss';
@@ -164,6 +164,11 @@ export default function TestMap() {
         }, visible);
     }, []);
 
+    const getAuthConfigFunc = useCallback(async() => {
+        const result = await getAuthConfig(mapServer.host, mapServer.ssl);
+        console.log('getAuthConfigFunc', result);
+    }, [mapServer]);
+
     return (
         <>
             <div className={styles.Form}>
@@ -271,6 +276,7 @@ export default function TestMap() {
                 <div className={styles.Col}>
                     <button onClick={callGetSnsPreview}>GetSNS</button>
                     <button onClick={getThumbnail}>GetThumbnail</button>
+                    <button onClick={getAuthConfigFunc}>getAuthConfig</button>
                 </div>
 
                 <div className={styles.Col}>

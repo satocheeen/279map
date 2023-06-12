@@ -1,6 +1,6 @@
 import { APIDefine, ContentsDefine } from '279map-common';
 import { ServerInfo } from '../types/types';
-import { ApiError, ConnectAPI, ErrorType, GetContentsAPI, GetContentsParam } from 'tsunagumap-api';
+import { ApiError, ConfigAPI, ConnectAPI, ErrorType, GetContentsAPI, GetContentsParam, GetMapListAPI } from 'tsunagumap-api';
 import { getMapKey } from '../store/data/dataUtility';
 
 type ErrorCallback = (errorType: ApiError) => void;
@@ -23,8 +23,10 @@ class ApiCaller {
 
     async callApi<API extends APIDefine<any, any>> (api: API, param: API['param']): Promise<API['result']> {
         try {
-            if (!this._sid && api !== ConnectAPI) {
-                throw 'not set SID';
+            if (!this._sid) {
+                if (api !== ConnectAPI && api !== GetMapListAPI && api !== ConfigAPI) {
+                    throw 'not set SID';
+                }
             }
             const protocol = this._serverInfo.ssl ? 'https' : 'http';
             const url = `${protocol}://${this._serverInfo.host}/api/${api.uri}`;
