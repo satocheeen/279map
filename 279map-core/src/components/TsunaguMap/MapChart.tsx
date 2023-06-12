@@ -32,7 +32,7 @@ export default function MapChart() {
     const [initialized, setInitialized] = useState(false);
     const mapRef = useRef<OlMapType>();
     const mapMode = useSelector((state: RootState) => state.operation.mapMode);
-    const { showSpinner, hideSpinner } = useOverlay();
+    const { showProcessMessage, hideProcessMessage } = useOverlay();
 
     // スタイル設定
     // -- コンテンツ（建物・ポイント）レイヤ
@@ -136,9 +136,9 @@ export default function MapChart() {
         await dispatch(loadItems({zoom, extent: ext}));
         loadingCurrentAreaContents.current = false;
 
-        // 初回起動時はスピナー表示しているので（MapWrapper内でshowSpinner）、ここでhideSpinnerしている
-        hideSpinner();
-    }, [dispatch, hideSpinner]);
+        // 初回起動時はスピナー表示しているので（MapWrapper内でshowProcessMessage）、ここでhideProcessMessageしている
+        hideProcessMessage();
+    }, [dispatch, hideProcessMessage]);
 
     /**
      * 指定のitemにfitさせる

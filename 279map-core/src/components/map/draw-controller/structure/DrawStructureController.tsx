@@ -116,7 +116,11 @@ export default function DrawStructureController(props: Props) {
             return;
         }
         setStage(Stage.REGISTING);
-        spinner.showSpinner('登録中...');
+        spinner.showProcessMessage({
+            overlay: true,
+            spinner: true,
+            message: '登録中...'
+        });
         const geoJson = createGeoJson(drawingFeature.current);
 
         await dispatch(registFeature({
@@ -131,7 +135,7 @@ export default function DrawStructureController(props: Props) {
             } as GeoProperties),
         }));
     
-        spinner.hideSpinner();
+        spinner.hideProcessMessage();
         props.close();
 
     }, [dispatch, props, spinner]);

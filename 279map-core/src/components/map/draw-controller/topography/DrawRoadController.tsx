@@ -98,14 +98,18 @@ export default function DrawRoadController(props: Props) {
         }
 
         // DB登録
-        spinnerHook.showSpinner('登録中...');
+        spinnerHook.showProcessMessage({
+            overlay: true,
+            spinner: true,
+            message: '登録中...'
+        });
         console.log('geoJson', geoJson);
         await dispatch(registFeature({
             dataSourceId: props.dataSourceId,
             geometry: geoJson.geometry,
             geoProperties: geoJson.properties as GeoProperties,
         }));
-        spinnerHook.hideSpinner();
+        spinnerHook.hideProcessMessage();
 
         props.close();
     }, [props, spinnerHook, dispatch]);

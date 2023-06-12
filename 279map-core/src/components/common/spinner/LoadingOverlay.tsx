@@ -7,13 +7,17 @@ import { useOverlay } from "./useOverlay";
  * @returns 
  */
 export default function LoadingOverlay() {
-    const { showSpinner, hideSpinner } = useOverlay();
+    const { showProcessMessage, hideProcessMessage } = useOverlay();
 
     useMounted(() => {
-        showSpinner('準備中...');
+        showProcessMessage({
+            overlay: true,
+            spinner: true,
+            message: '準備中...',
+        });
 
         return () => {
-            hideSpinner();
+            hideProcessMessage();
         }
     });
 

@@ -39,7 +39,11 @@ export default function ChangeStructureIconController(props: Props) {
             console.warn('選択アイテムなし');
             return;
         }
-        spinnerHook.showSpinner('更新中...');
+        spinnerHook.showProcessMessage({
+            overlay: true,
+            spinner: true,
+            message: '更新中...'
+        });
 
         // update DB
         const id = convertDataIdFromFeatureId(selectedFeature.current.getId() as string);
@@ -54,7 +58,7 @@ export default function ChangeStructureIconController(props: Props) {
             },
         }));
 
-        spinnerHook.hideSpinner();
+        spinnerHook.hideProcessMessage();
         props.close();
     }, [selectedFeature, dispatch, spinnerHook, props]);
 

@@ -378,9 +378,13 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
 
     useEffect(() => {
         if (connectStatus.status === 'connecting-map') {
-            spinner.showSpinner('ロード中...')
+            spinner.showProcessMessage({
+                overlay: true,
+                spinner: true,
+                message: 'ロード中...'
+            });
         } else if (connectStatus.status === 'failure') {
-            spinner.hideSpinner();
+            spinner.hideProcessMessage();
             const errorMessage = function(){
                 switch(connectStatus.error.type) {
                     case 'UndefinedMapServer':
@@ -398,9 +402,13 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
                 }
             }();
             const detail = connectStatus.error.detail ? `\n${connectStatus.error.detail}` : '';
-            spinner.showOverlayMessage(errorMessage + detail);
+            spinner.showProcessMessage({
+                overlay: true,
+                spinner: false,
+                message: errorMessage + detail
+            });
         // } else if (currentMapKindInfo) {
-        //     spinner.hideSpinner();
+        //     spinner.hideProcessMessage();
         }
     }, [connectStatus, currentMapKind, spinner]);
 
@@ -418,10 +426,10 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
  * 地図の上にスピナーやメッセージをオーバーレイ表示するためのコンポーネント
  */
 function Overlay() {
-    const isShow = useSelector((state: RootState) => state.operation.overlay.spinner || state.operation.overlay.message);
-    const showSpinner = useSelector((state: RootState) => state.operation.overlay.spinner);
+    const isShow = useSelector((state: RootState) => state.operation.processMessage?.overlay === true);
+    const showProcessMessage = useSelector((state: RootState) => state.operation.processMessage?.spinner === true);
     const message = useSelector((state: RootState) => {
-        return state.operation.overlay.message ?? '';
+        return state.operation.processMessage?.message ?? '';
     });
 
     if (!isShow) {
@@ -430,7 +438,7 @@ function Overlay() {
 
     return (
         <div className={styles.Overlay}>
-            {showSpinner &&
+            {showProcessMessage &&
                 <div className={styles.GraphSpinner}>
                     <Spinner />
                 </div>

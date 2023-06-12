@@ -52,7 +52,11 @@ export default function MoveItemController(props: Props) {
     const spinnerHook = useOverlay();
     
     const onFinishClicked = async() => {
-        spinnerHook.showSpinner('更新中...');
+        spinnerHook.showProcessMessage({
+            overlay: true,
+            spinner: true,
+            message: '更新中...'
+        });
         for (const mf of movedFeatureCollection.getArray()) {
             const mfGeoJson = createGeoJson(mf);
             const features = mf.get('features') as Feature<Geometry>[];
@@ -65,7 +69,7 @@ export default function MoveItemController(props: Props) {
                 }));
             }
         }
-        spinnerHook.hideSpinner();
+        spinnerHook.hideProcessMessage();
         props.close();
     }
 

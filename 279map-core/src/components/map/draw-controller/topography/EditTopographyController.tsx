@@ -120,7 +120,11 @@ enum Stage {
         }
 
         // Notion更新
-        spinnerHook.showSpinner('更新中...');
+        spinnerHook.showProcessMessage({
+            overlay: true,
+            spinner: true,
+            message: '更新中...'
+        });
 
         const geoProperties = extractGeoProperty(feature.getProperties());
         const geoJson = geoProperties.featureType === FeatureType.ROAD ? geoProperties.lineJson : createGeoJson(feature);
@@ -131,7 +135,7 @@ enum Stage {
             geoProperties: extractGeoProperty(geoJson.properties),
         }));
 
-        spinnerHook.hideSpinner();
+        spinnerHook.hideProcessMessage();
 
         onClose();
 

@@ -17,7 +17,7 @@ type Props = {
 export default function Modal(props: Props) {
     const myRef = useRef<HTMLDialogElement|null>(null);
     const closing = useRef(false);  // when closing dialog, seted tre.
-    const { showSpinner, hideSpinner } = useOverlay();
+    const { showProcessMessage, hideProcessMessage } = useOverlay();
 
     useEffect(() => {
         if (props.show) {
@@ -59,9 +59,13 @@ export default function Modal(props: Props) {
     useWatch(() => {
         if (props.spinner && props.show) {
             const message = typeof props.spinner === 'string' ? props.spinner : '処理中...';
-            showSpinner(message);
+            showProcessMessage({
+                overlay: true,
+                spinner: true,
+                message
+            });
         } else {
-            hideSpinner();
+            hideProcessMessage();
         }
     }, [props.spinner, props.show])
 

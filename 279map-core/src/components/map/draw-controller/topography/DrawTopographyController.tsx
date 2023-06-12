@@ -42,7 +42,11 @@ export default function DrawTopographyController(props: Props) {
     const spinner = useOverlay();
 
     const registFeatureFunc = useCallback(async(feature: Feature<Geometry>) => {
-        spinner.showSpinner('登録中...');
+        spinner.showProcessMessage({
+            overlay: true,
+            spinner: true,
+            message: '登録中...'
+        });
 
         // DB登録
         // const feature = map.getDrawingLayer().getSource()?.getFeatures()[0];
@@ -60,7 +64,7 @@ export default function DrawTopographyController(props: Props) {
             }));
         }
 
-        spinner.hideSpinner();
+        spinner.hideProcessMessage();
         props.close();
     }, [spinner, props, dispatch]);
 

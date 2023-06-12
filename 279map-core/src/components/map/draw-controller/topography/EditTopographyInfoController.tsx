@@ -23,7 +23,7 @@ export default function EditTopographyInfoController(props: Props) {
     const [name, setName] = useState('');
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
     const dispatch = useAppDispatch();
-    const { showSpinner, hideSpinner } = useOverlay();
+    const { showProcessMessage, hideProcessMessage } = useOverlay();
 
     const onSelectFeature = useCallback((feature: FeatureLike) => {
         const id = feature.getId() as string;
@@ -39,7 +39,11 @@ export default function EditTopographyInfoController(props: Props) {
     }, [props]);
 
     const onInputOk = useCallback(async() => {
-        showSpinner('更新中...');
+        showProcessMessage({
+            overlay: true,
+            spinner: true,
+            message: '更新中...'
+        });
 
         const id = convertDataIdFromFeatureId(selectedFeatureId.current as string);
         // update DB
@@ -48,10 +52,10 @@ export default function EditTopographyInfoController(props: Props) {
             name,
         }));
 
-        hideSpinner();
+        hideProcessMessage();
         props.close();
 
-    }, [dispatch, showSpinner, hideSpinner, name, props]);
+    }, [dispatch, showProcessMessage, hideProcessMessage, name, props]);
 
     switch(stage) {
         case Stage.SELECTING_FEATURE:

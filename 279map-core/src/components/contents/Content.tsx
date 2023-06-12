@@ -158,7 +158,7 @@ export default function Content(props: Props) {
     /**
      * イメージロード
      */
-    const [showSpinner, setShowSpinner] = useState(false);
+    const [showProcessMessage, setShowSpinner] = useState(false);
     const onImageClick = useCallback(async() => {
         setShowSpinner(true);
         try {
@@ -318,7 +318,7 @@ export default function Content(props: Props) {
                     <span className={styles.Date}>{dateStr}</span>
                 }
                 {categoryTag}
-                {showSpinner &&
+                {showProcessMessage &&
                     <div className={styles.SpinnerArea}>
                         <Spinner />
                     </div>
@@ -337,7 +337,7 @@ export default function Content(props: Props) {
                 }
             </>
         )
-    }, [overview, dateStr, categoryTag, showSpinner, props.content, onImageClick]);
+    }, [overview, dateStr, categoryTag, showProcessMessage, props.content, onImageClick]);
 
     const children = useMemo(() => {
         return props.content.children?.map(child => {

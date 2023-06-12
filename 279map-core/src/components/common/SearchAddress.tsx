@@ -27,7 +27,7 @@ function SearchAddress(props: Props, ref: React.ForwardedRef<SearchAddressHandle
     const [isIME, setIME] = useState(false);
     const [searchMode, setSearchMode] = useState(true); // trueの場合、addressが変化したら住所検索実行。候補から住所を選択した直後は住所検索を行わないようにするために用意。
     const lastSearchAddress = useRef<string>();    // 最後に検索文字列として渡された文字列（多重実行時の最後の結果を反映するようにするために用意）
-    const [showSpinner, setShowSpinner] = useState(false);
+    const [showProcessMessage, setShowSpinner] = useState(false);
     const { getApi } = useMap();
 
     const onInput = useCallback((evt: React.ChangeEvent<HTMLInputElement>) => {
@@ -133,7 +133,7 @@ function SearchAddress(props: Props, ref: React.ForwardedRef<SearchAddressHandle
                 disabled={props.disabled}
                 onCompositionStart={()=>onCompositionSwitch('start')} onCompositionEnd={()=>onCompositionSwitch('end')}
                 onInput={onInput} />
-            {showSpinner ?
+            {showProcessMessage ?
                 <Spinner />
                 :
                 <ListGroup>

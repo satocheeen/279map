@@ -1,31 +1,20 @@
 import { useCallback } from "react";
-import { operationActions } from "../../../store/operation/operationSlice";
+import { ProcessMessageType, operationActions } from "../../../store/operation/operationSlice";
 import { useAppDispatch } from "../../../store/configureStore";
 
 export function useOverlay() {
     const dispatch = useAppDispatch();
 
-    const showSpinner = useCallback((message: string) => {
-        dispatch(operationActions.showOverlay({
-            spinner: true,
-            message,
-        }));
+    const showProcessMessage = useCallback((param: ProcessMessageType) => {
+        dispatch(operationActions.showProcessMessage(param));
     }, [dispatch]);
 
-    const hideSpinner = useCallback(() => {
-        dispatch(operationActions.hideOverlay());
-    }, [dispatch]);
-
-    const showOverlayMessage = useCallback((message: string) => {
-        dispatch(operationActions.showOverlay({
-            spinner: false,
-            message,
-        }));
+    const hideProcessMessage = useCallback(() => {
+        dispatch(operationActions.hideProcessMessage());
     }, [dispatch]);
 
     return {
-        showSpinner,
-        hideSpinner,
-        showOverlayMessage,
+        showProcessMessage,
+        hideProcessMessage,
     }
 }

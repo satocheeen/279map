@@ -32,7 +32,11 @@ export default function RemoveFeatureController(props: Props) {
             return;
         }
 
-        spinnerHook.showSpinner('削除中...');
+        spinnerHook.showProcessMessage({
+            overlay: true,
+            spinner: true,
+            message: '削除中...'
+        });
 
         const dataId = convertDataIdFromFeatureId(feature.getId() as string);
         // DB更新
@@ -41,7 +45,7 @@ export default function RemoveFeatureController(props: Props) {
             onlyGeoInfo: false,
         }));
 
-        spinnerHook.hideSpinner();
+        spinnerHook.hideProcessMessage();
 
         props.close();
     }, [props, confirmHook, dispatch, spinnerHook]);
