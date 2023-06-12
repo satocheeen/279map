@@ -136,8 +136,6 @@ export default function MapChart() {
         await dispatch(loadItems({zoom, extent: ext}));
         loadingCurrentAreaContents.current = false;
 
-        // 初回起動時はスピナー表示しているので（MapWrapper内でshowProcessMessage）、ここでhideProcessMessageしている
-        hideProcessMessage();
     }, [dispatch, hideProcessMessage]);
 
     /**

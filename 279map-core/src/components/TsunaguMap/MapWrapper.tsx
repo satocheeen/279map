@@ -10,7 +10,7 @@ import { sessionActions } from '../../store/session/sessionSlice';
 import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
 import { useOverlay } from '../common/spinner/useOverlay';
 import styles from './MapWrapper.module.scss';
-import { ConnectAPIResult, TsunaguMapHandler } from '../../types/types';
+import { ConnectAPIResult, LoadMapDefineResult, TsunaguMapHandler } from '../../types/types';
 import { ErrorType, GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam } from "tsunagumap-api";
 import { search } from '../../store/operation/operationThunk';
 import Spinner from '../common/spinner/Spinner';
@@ -274,12 +274,16 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
                 return;
             }
             const mapKind = res.connectResult.mapDefine.defaultMapKind;
+            console.log('connect success. load mapdefine');
             return dispatch(loadMapDefine(mapKind));
         })
-        .then(() => {
-            dispatch(loadOriginalIconDefine());
-            dispatch(loadEvents());
-            dispatch(loadCategories());
+        .then((res) => {
+            const result = res?.payload as LoadMapDefineResult;
+            if (result && result.result === 'success') {
+                dispatch(loadOriginalIconDefine());
+                dispatch(loadEvents());
+                dispatch(loadCategories());
+            }
         })
         .catch(err => {
             console.warn('connect error', err);
@@ -409,6 +413,8 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
             });
         // } else if (currentMapKindInfo) {
         //     spinner.hideProcessMessage();
+        } else if (connectStatus.status === 'connected') {
+            spinner.hideProcessMessage();
         }
     }, [connectStatus, currentMapKind, spinner]);
 
