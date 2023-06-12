@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../../../store/configureStore';
 import { updateFeature } from '../../../../store/data/dataThunk';
 import Input from '../../../common/form/Input';
-import { useOverlay } from '../../../common/spinner/useOverlay';
+import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import PromptMessageBox from '../PromptMessageBox';
 import SelectFeature from '../SelectFeature';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
@@ -23,7 +23,7 @@ export default function EditTopographyInfoController(props: Props) {
     const [name, setName] = useState('');
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
     const dispatch = useAppDispatch();
-    const { showProcessMessage, hideProcessMessage } = useOverlay();
+    const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
     const onSelectFeature = useCallback((feature: FeatureLike) => {
         const id = feature.getId() as string;

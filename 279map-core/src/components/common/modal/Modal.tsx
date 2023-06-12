@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useMemo } from 'react';
 import styles from './Modal.module.scss';
 import { MdClose } from 'react-icons/md';
-import { useOverlay } from '../spinner/useOverlay';
+import { useProcessMessage } from '../spinner/useProcessMessage';
 import { useWatch } from '../../../util/useWatch';
 
 type Props = {
@@ -17,7 +17,7 @@ type Props = {
 export default function Modal(props: Props) {
     const myRef = useRef<HTMLDialogElement|null>(null);
     const closing = useRef(false);  // when closing dialog, seted tre.
-    const { showProcessMessage, hideProcessMessage } = useOverlay();
+    const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
     useEffect(() => {
         if (props.show) {

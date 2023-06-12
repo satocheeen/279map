@@ -1,5 +1,5 @@
 import { useMounted } from "../../../util/useMounted";
-import { useOverlay } from "./useOverlay";
+import { useProcessMessage } from "./useProcessMessage";
 
 /**
  * lazyコンポーネントの読み込み中にOverlay表示するためのコンポーネント。
@@ -7,7 +7,7 @@ import { useOverlay } from "./useOverlay";
  * @returns 
  */
 export default function LoadingOverlay() {
-    const { showProcessMessage, hideProcessMessage } = useOverlay();
+    const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
     useMounted(() => {
         showProcessMessage({

@@ -25,14 +25,14 @@ import { useWatch } from "../../util/useWatch";
 import { Geometry } from "ol/geom";
 import { sleep } from "../../util/CommonUtility";
 import useMyMedia from "../../util/useMyMedia";
-import { useOverlay } from "../common/spinner/useOverlay";
+import { useProcessMessage } from "../common/spinner/useProcessMessage";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
     const [initialized, setInitialized] = useState(false);
     const mapRef = useRef<OlMapType>();
     const mapMode = useSelector((state: RootState) => state.operation.mapMode);
-    const { showProcessMessage, hideProcessMessage } = useOverlay();
+    const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
     // スタイル設定
     // -- コンテンツ（建物・ポイント）レイヤ

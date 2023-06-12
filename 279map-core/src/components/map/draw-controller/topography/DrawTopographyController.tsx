@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import * as MapUtility from '../../../../util/MapUtility';
 import PromptMessageBox from '../PromptMessageBox';
-import { useOverlay } from '../../../common/spinner/useOverlay';
+import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import SelectDrawFeature, { DrawFeatureType } from './SelectDrawFeature';
 import DrawPointRadius from './DrawPointRadius';
 import { DrawAreaAddress } from './DrawAreaAddress';
@@ -39,7 +39,7 @@ export default function DrawTopographyController(props: Props) {
     const [geometryType, setGeometryType] = useState('Polygon');
 
     const dispatch = useAppDispatch();
-    const spinner = useOverlay();
+    const spinner = useProcessMessage();
 
     const registFeatureFunc = useCallback(async(feature: Feature<Geometry>) => {
         spinner.showProcessMessage({

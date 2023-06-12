@@ -12,7 +12,7 @@ import { TranslateEvent } from 'ol/interaction/Translate';
 import "react-toggle/style.css";
 import Toggle from 'react-toggle';
 import usePointStyle from '../../usePointStyle';
-import { useOverlay } from '../../../common/spinner/useOverlay';
+import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import { useAppDispatch } from '../../../../store/configureStore';
 import { updateFeature } from '../../../../store/data/dataThunk';
 import { convertDataIdFromFeatureId } from '../../../../store/data/dataUtility';
@@ -49,7 +49,7 @@ export default function MoveItemController(props: Props) {
 
     const [prevGeometory] = useState({} as {[id: string]: Geometry});
     const [multipleMode, setMultipleMode] = useState(false);    // 複数選択モードの場合、true
-    const spinnerHook = useOverlay();
+    const spinnerHook = useProcessMessage();
     
     const onFinishClicked = async() => {
         spinnerHook.showProcessMessage({

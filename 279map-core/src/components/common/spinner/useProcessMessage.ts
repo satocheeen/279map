@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { ProcessMessageType, operationActions } from "../../../store/operation/operationSlice";
 import { useAppDispatch } from "../../../store/configureStore";
 
-export function useOverlay() {
+export function useProcessMessage() {
     const dispatch = useAppDispatch();
 
     const showProcessMessage = useCallback((param: ProcessMessageType) => {

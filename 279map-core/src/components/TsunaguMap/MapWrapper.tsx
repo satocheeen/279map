@@ -8,7 +8,7 @@ import { operationActions } from '../../store/operation/operationSlice';
 import { OwnerContext } from './TsunaguMap';
 import { sessionActions } from '../../store/session/sessionSlice';
 import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
-import { useOverlay } from '../common/spinner/useOverlay';
+import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import styles from './MapWrapper.module.scss';
 import { ConnectAPIResult, LoadMapDefineResult, TsunaguMapHandler } from '../../types/types';
 import { ErrorType, GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam } from "tsunagumap-api";
@@ -35,7 +35,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const connectStatus = useSelector((state: RootState) => state.session.connectStatus);
     const currentMapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
     const currentDataSourceGroups = useSelector((state: RootState) => state.data.dataSourceGroups);
-    const spinner = useOverlay();
+    const spinner = useProcessMessage();
 
     const onConnectRef = useRef<typeof ownerContext.onConnect>();
     const onMapKindChangedRef = useRef<typeof ownerContext.onMapLoad>();

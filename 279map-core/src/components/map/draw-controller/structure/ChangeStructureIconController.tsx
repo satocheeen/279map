@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react';
 import SelectStructureDialog from './SelectStructureDialog';
-import { useOverlay } from '../../../common/spinner/useOverlay';
+import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import SelectFeature from '../SelectFeature';
 import { useAppDispatch } from '../../../../store/configureStore';
 import { updateFeature } from '../../../../store/data/dataThunk';
@@ -21,7 +21,7 @@ enum Stage {
 
 export default function ChangeStructureIconController(props: Props) {
     const selectedFeature = useRef<FeatureLike>();
-    const spinnerHook = useOverlay();
+    const spinnerHook = useProcessMessage();
     const dispatch = useAppDispatch();
     const [stage, setStage] = useState(Stage.SELECTING_TARGET);
 

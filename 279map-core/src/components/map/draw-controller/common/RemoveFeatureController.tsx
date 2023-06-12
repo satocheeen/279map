@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { FeatureLike } from 'ol/Feature';
 import useConfirm, { ConfirmResult } from '../../../common/confirm/useConfirm';
 import SelectFeature from '../SelectFeature';
-import { useOverlay } from '../../../common/spinner/useOverlay';
+import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import { useAppDispatch } from '../../../../store/configureStore';
 import { removeFeature } from '../../../../store/data/dataThunk';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
@@ -20,7 +20,7 @@ type Props = {
  */
 export default function RemoveFeatureController(props: Props) {
     const confirmHook = useConfirm();
-    const spinnerHook = useOverlay();
+    const spinnerHook = useProcessMessage();
     const dispatch = useAppDispatch();
 
     const onRemoveOkClicked = useCallback(async(feature: FeatureLike) => {
