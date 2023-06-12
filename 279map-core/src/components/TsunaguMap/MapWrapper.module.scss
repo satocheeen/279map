@@ -1,20 +1,24 @@
 // Overlay
 $spinnerSize: 36px;
 .GraphSpinner {
-    position: absolute;
     z-index: 10;
-    top: calc(50% - $spinnerSize/2);
-    left: calc(50% - $spinnerSize/2);
-    width: $spinnerSize;
     height: $spinnerSize;
     text-align: center;
 }
+
+.Message {
+    color: #555;
+}
+
+// 画面全体をふさぐタイプ
 .Overlay {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
+    display: flex;
+    flex-direction: column;
     background-color: rgba(#fff, .5);
     z-index: 2000;  // モーダルが1050なので
 
@@ -22,13 +26,22 @@ $spinnerSize: 36px;
     justify-content: center;
     align-items: center;
 
-    p {
-        position: absolute;
+    .Message {
         z-index: 10;
-        top: calc(50% - $spinnerSize/2 + $spinnerSize);
         width: 100%;
         text-align: center;
         white-space: pre-wrap;
-        color: #555;
+    }
+}
+// ユーザ操作を邪魔しないタイプ
+.MinOverlay {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    align-items: center;
+
+    .Message {
+        margin-left: 10px;
     }
 }

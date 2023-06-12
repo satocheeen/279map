@@ -4,6 +4,11 @@
 .loading4 {
     width: 30px;
     height: 30px;
+    &.min {
+        width: 20px;
+        height: 20px;
+    }
+
     margin: 0 auto;
     border: 5px solid $secondary;
     border-right: 5px solid transparent;

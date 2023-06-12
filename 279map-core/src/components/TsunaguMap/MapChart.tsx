@@ -25,6 +25,7 @@ import { useWatch } from "../../util/useWatch";
 import { Geometry } from "ol/geom";
 import { sleep } from "../../util/CommonUtility";
 import useMyMedia from "../../util/useMyMedia";
+import { useProcessMessage } from "../common/spinner/useProcessMessage";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
@@ -177,6 +178,7 @@ export default function MapChart() {
 
     const { isPC } = useMyMedia();
     const { mapInstanceId } = useContext(OwnerContext);
+    const { showProcessMessage, hideProcessMessage } = useProcessMessage();
     /**
      * 地図初期化
      */
@@ -193,10 +195,15 @@ export default function MapChart() {
     
         // 地図移動時にコンテンツロード
         const loadContentFunc = async() => {
+            const h = showProcessMessage({
+                overlay: false,
+                spinner: true,
+            });
             await loadCurrentAreaContents();
             const extent = map.getExtent();
             const zoom = map.getZoom();
             dispatch(operationActions.updateMapView({extent, zoom}));
+            hideProcessMessage(h);
         };
         map.on('moveend', loadContentFunc);
 

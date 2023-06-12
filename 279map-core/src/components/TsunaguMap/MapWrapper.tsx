@@ -35,7 +35,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const connectStatus = useSelector((state: RootState) => state.session.connectStatus);
     const currentMapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
     const currentDataSourceGroups = useSelector((state: RootState) => state.data.dataSourceGroups);
-    const spinner = useProcessMessage();
+    const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
     const onConnectRef = useRef<typeof ownerContext.onConnect>();
     const onMapKindChangedRef = useRef<typeof ownerContext.onMapLoad>();
@@ -383,14 +383,14 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const messageIdRef = useRef<number>();
     useWatch(() => {
         if (connectStatus.status === 'connecting-map') {
-            messageIdRef.current = spinner.showProcessMessage({
+            messageIdRef.current = showProcessMessage({
                 overlay: true,
                 spinner: true,
                 message: 'ロード中...'
             });
         } else if (connectStatus.status === 'failure') {
             if (messageIdRef.current) {
-                spinner.hideProcessMessage(messageIdRef.current);
+                hideProcessMessage(messageIdRef.current);
             }
             const errorMessage = function(){
                 switch(connectStatus.error.type) {
@@ -409,14 +409,14 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
                 }
             }();
             const detail = connectStatus.error.detail ? `\n${connectStatus.error.detail}` : '';
-            messageIdRef.current = spinner.showProcessMessage({
+            messageIdRef.current = showProcessMessage({
                 overlay: true,
                 spinner: false,
                 message: errorMessage + detail
             });
         } else if (connectStatus.status === 'connected') {
             if (messageIdRef.current) {
-                spinner.hideProcessMessage(messageIdRef.current);
+                hideProcessMessage(messageIdRef.current);
             }
         }
     }, [connectStatus, currentMapKind]);
@@ -435,30 +435,20 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
  * 地図の上にスピナーやメッセージをオーバーレイ表示するためのコンポーネント
  */
 function Overlay() {
-    const isShow = useSelector((state: RootState) => {
-        return state.operation.processMessages.some(pm => pm.overlay);
-    });
-    const showSpinner = useSelector((state: RootState) => {
-        return state.operation.processMessages.some(pm => pm.spinner);
-    });
-    const message = useSelector((state: RootState) => {
-        const message = state.operation.processMessages.find(pm => pm.message);
-        return message?.message ?? '';
-    });
-
-    if (!isShow) {
-        return null;
-    }
+    const { isShowOverlay, isShowSpinner, processMessage } = useProcessMessage();
 
     return (
-        <div className={styles.Overlay}>
-            {showSpinner &&
+        <div className={`${isShowOverlay ? styles.Overlay : styles.MinOverlay}`}>
+            {isShowSpinner &&
                 <div className={styles.GraphSpinner}>
-                    <Spinner />
+                    <Spinner size={isShowOverlay ? 'normal' : 'small'} />
                 </div>
             }
-            <p>{message}</p>
+            {processMessage &&
+                <p className={styles.Message}>{processMessage}</p>
+            }
         </div>
     )
 }
+
 export default React.forwardRef(MapWrapper);
