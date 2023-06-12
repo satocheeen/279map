@@ -39,7 +39,7 @@ export default function ChangeStructureIconController(props: Props) {
             console.warn('選択アイテムなし');
             return;
         }
-        spinnerHook.showProcessMessage({
+        const h = spinnerHook.showProcessMessage({
             overlay: true,
             spinner: true,
             message: '更新中...'
@@ -58,7 +58,7 @@ export default function ChangeStructureIconController(props: Props) {
             },
         }));
 
-        spinnerHook.hideProcessMessage();
+        spinnerHook.hideProcessMessage(h);
         props.close();
     }, [selectedFeature, dispatch, spinnerHook, props]);
 

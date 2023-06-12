@@ -52,7 +52,7 @@ export default function MoveItemController(props: Props) {
     const spinnerHook = useProcessMessage();
     
     const onFinishClicked = async() => {
-        spinnerHook.showProcessMessage({
+        const h = spinnerHook.showProcessMessage({
             overlay: true,
             spinner: true,
             message: '更新中...'
@@ -69,7 +69,7 @@ export default function MoveItemController(props: Props) {
                 }));
             }
         }
-        spinnerHook.hideProcessMessage();
+        spinnerHook.hideProcessMessage(h);
         props.close();
     }
 

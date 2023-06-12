@@ -119,8 +119,8 @@ enum Stage {
             onClose();
         }
 
-        // Notion更新
-        spinnerHook.showProcessMessage({
+        // 更新
+        const h = spinnerHook.showProcessMessage({
             overlay: true,
             spinner: true,
             message: '更新中...'
@@ -135,7 +135,7 @@ enum Stage {
             geoProperties: extractGeoProperty(geoJson.properties),
         }));
 
-        spinnerHook.hideProcessMessage();
+        spinnerHook.hideProcessMessage(h);
 
         onClose();
 

@@ -380,15 +380,18 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         }
     }, [ownerContext.filter, dispatch]);
 
-    useEffect(() => {
+    const messageIdRef = useRef<number>();
+    useWatch(() => {
         if (connectStatus.status === 'connecting-map') {
-            spinner.showProcessMessage({
+            messageIdRef.current = spinner.showProcessMessage({
                 overlay: true,
                 spinner: true,
                 message: 'ロード中...'
             });
         } else if (connectStatus.status === 'failure') {
-            spinner.hideProcessMessage();
+            if (messageIdRef.current) {
+                spinner.hideProcessMessage(messageIdRef.current);
+            }
             const errorMessage = function(){
                 switch(connectStatus.error.type) {
                     case 'UndefinedMapServer':
@@ -406,17 +409,17 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
                 }
             }();
             const detail = connectStatus.error.detail ? `\n${connectStatus.error.detail}` : '';
-            spinner.showProcessMessage({
+            messageIdRef.current = spinner.showProcessMessage({
                 overlay: true,
                 spinner: false,
                 message: errorMessage + detail
             });
-        // } else if (currentMapKindInfo) {
-        //     spinner.hideProcessMessage();
         } else if (connectStatus.status === 'connected') {
-            spinner.hideProcessMessage();
+            if (messageIdRef.current) {
+                spinner.hideProcessMessage(messageIdRef.current);
+            }
         }
-    }, [connectStatus, currentMapKind, spinner]);
+    }, [connectStatus, currentMapKind]);
 
     return (
         <>
@@ -432,10 +435,15 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
  * 地図の上にスピナーやメッセージをオーバーレイ表示するためのコンポーネント
  */
 function Overlay() {
-    const isShow = useSelector((state: RootState) => state.operation.processMessage?.overlay === true);
-    const showProcessMessage = useSelector((state: RootState) => state.operation.processMessage?.spinner === true);
+    const isShow = useSelector((state: RootState) => {
+        return state.operation.processMessages.some(pm => pm.overlay);
+    });
+    const showSpinner = useSelector((state: RootState) => {
+        return state.operation.processMessages.some(pm => pm.spinner);
+    });
     const message = useSelector((state: RootState) => {
-        return state.operation.processMessage?.message ?? '';
+        const message = state.operation.processMessages.find(pm => pm.message);
+        return message?.message ?? '';
     });
 
     if (!isShow) {
@@ -444,7 +452,7 @@ function Overlay() {
 
     return (
         <div className={styles.Overlay}>
-            {showProcessMessage &&
+            {showSpinner &&
                 <div className={styles.GraphSpinner}>
                     <Spinner />
                 </div>

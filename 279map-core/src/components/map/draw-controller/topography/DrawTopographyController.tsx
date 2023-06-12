@@ -42,7 +42,7 @@ export default function DrawTopographyController(props: Props) {
     const spinner = useProcessMessage();
 
     const registFeatureFunc = useCallback(async(feature: Feature<Geometry>) => {
-        spinner.showProcessMessage({
+        const h = spinner.showProcessMessage({
             overlay: true,
             spinner: true,
             message: '登録中...'
@@ -64,7 +64,7 @@ export default function DrawTopographyController(props: Props) {
             }));
         }
 
-        spinner.hideProcessMessage();
+        spinner.hideProcessMessage(h);
         props.close();
     }, [spinner, props, dispatch]);
 

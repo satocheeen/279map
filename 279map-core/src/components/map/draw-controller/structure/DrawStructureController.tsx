@@ -116,7 +116,7 @@ export default function DrawStructureController(props: Props) {
             return;
         }
         setStage(Stage.REGISTING);
-        spinner.showProcessMessage({
+        const h = spinner.showProcessMessage({
             overlay: true,
             spinner: true,
             message: '登録中...'
@@ -135,7 +135,7 @@ export default function DrawStructureController(props: Props) {
             } as GeoProperties),
         }));
     
-        spinner.hideProcessMessage();
+        spinner.hideProcessMessage(h);
         props.close();
 
     }, [dispatch, props, spinner]);

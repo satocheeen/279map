@@ -1,4 +1,4 @@
-import { DataId, MapKind } from "279map-common";
+import { DataId } from "279map-common";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Extent } from "ol/extent";
 import { ConfirmParam, ConfirmResult } from "../../components/common/confirm/useConfirm";
@@ -25,6 +25,9 @@ export type ProcessMessageType = {
     spinner: boolean;   // trueの場合、スピナー表示
     message?: string;
 }
+export type ProcessMessageWithID = ProcessMessageType & {
+    id: number;
+}
 /**
  * 操作関連のデータを管理するストア
  */
@@ -44,13 +47,8 @@ const operationSlice = createSlice({
             zoom: 0,
         } as ViewInfo,
 
-        processMessage: undefined as undefined | ProcessMessageType,
-
-        // // Overlay表示。spinner=trueまたはmessageに値がある場合に、オーバーレイ表示する
-        // overlay: {
-        //     spinner: false,
-        //     message: undefined as string | undefined,
-        // },
+        processMeesageCounter: 0,
+        processMessages: [] as ProcessMessageWithID[],
 
         // Confirm
         showConfirmDialog: false,
@@ -86,11 +84,12 @@ const operationSlice = createSlice({
         changeMapMode(state, action: PayloadAction<MapMode>) {
             state.mapMode = action.payload;
         },
-        showProcessMessage(state, action: PayloadAction<ProcessMessageType>) {
-            state.processMessage = action.payload;
+        addProcessMessage(state, action: PayloadAction<ProcessMessageWithID>) {
+            state.processMessages.push(action.payload);
+            state.processMeesageCounter = state.processMeesageCounter + 1;
         },
-        hideProcessMessage(state) {
-            state.processMessage = undefined;
+        removeProcessMessage(state, action: PayloadAction<number>) {
+            state.processMessages = state.processMessages.filter(item => item.id !== action.payload);
         },
         showConfirmDialog(state, action: PayloadAction<ConfirmParam>) {
             state.showConfirmDialog = true;

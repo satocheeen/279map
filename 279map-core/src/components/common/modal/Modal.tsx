@@ -56,16 +56,19 @@ export default function Modal(props: Props) {
         return props.children.find(child => child.type === ModalFooter);
     }, [props.children]);
 
+    const messageIdRef = useRef<number>();
     useWatch(() => {
         if (props.spinner && props.show) {
             const message = typeof props.spinner === 'string' ? props.spinner : '処理中...';
-            showProcessMessage({
+            messageIdRef.current = showProcessMessage({
                 overlay: true,
                 spinner: true,
                 message
             });
         } else {
-            hideProcessMessage();
+            if (messageIdRef.current) {
+                hideProcessMessage(messageIdRef.current);
+            }
         }
     }, [props.spinner, props.show])
 

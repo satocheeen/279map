@@ -39,7 +39,7 @@ export default function EditTopographyInfoController(props: Props) {
     }, [props]);
 
     const onInputOk = useCallback(async() => {
-        showProcessMessage({
+        const h = showProcessMessage({
             overlay: true,
             spinner: true,
             message: '更新中...'
@@ -52,7 +52,7 @@ export default function EditTopographyInfoController(props: Props) {
             name,
         }));
 
-        hideProcessMessage();
+        hideProcessMessage(h);
         props.close();
 
     }, [dispatch, showProcessMessage, hideProcessMessage, name, props]);

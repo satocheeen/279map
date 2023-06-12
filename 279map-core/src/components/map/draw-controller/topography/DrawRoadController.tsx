@@ -98,7 +98,7 @@ export default function DrawRoadController(props: Props) {
         }
 
         // DB登録
-        spinnerHook.showProcessMessage({
+        const h = spinnerHook.showProcessMessage({
             overlay: true,
             spinner: true,
             message: '登録中...'
@@ -109,7 +109,7 @@ export default function DrawRoadController(props: Props) {
             geometry: geoJson.geometry,
             geoProperties: geoJson.properties as GeoProperties,
         }));
-        spinnerHook.hideProcessMessage();
+        spinnerHook.hideProcessMessage(h);
 
         props.close();
     }, [props, spinnerHook, dispatch]);

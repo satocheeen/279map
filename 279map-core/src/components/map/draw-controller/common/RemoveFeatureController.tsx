@@ -32,7 +32,7 @@ export default function RemoveFeatureController(props: Props) {
             return;
         }
 
-        spinnerHook.showProcessMessage({
+        const h = spinnerHook.showProcessMessage({
             overlay: true,
             spinner: true,
             message: '削除中...'
@@ -45,7 +45,7 @@ export default function RemoveFeatureController(props: Props) {
             onlyGeoInfo: false,
         }));
 
-        spinnerHook.hideProcessMessage();
+        spinnerHook.hideProcessMessage(h);
 
         props.close();
     }, [props, confirmHook, dispatch, spinnerHook]);

@@ -10,14 +10,14 @@ export default function LoadingOverlay() {
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
     useMounted(() => {
-        showProcessMessage({
+        const h = showProcessMessage({
             overlay: true,
             spinner: true,
             message: '準備中...',
         });
 
         return () => {
-            hideProcessMessage();
+            hideProcessMessage(h);
         }
     });
 
