@@ -220,7 +220,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     /**
      * 初回処理
      */
-    useEffect(() => {
+    useWatch(() => {
         dispatch(sessionActions.setInstanceId(ownerContext.mapInstanceId));
 
         // API Accessor用意
@@ -233,14 +233,19 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         });
 
         const h = addListener('LoadLatestData', async() => {
+            const pH = showProcessMessage({
+                overlay: false,
+                spinner: true,
+            });
             await dispatch(loadEvents());
             await dispatch(loadCategories());
+            hideProcessMessage(pH);
         });
         return () => {
             removeListener(h);
         }
 
-    }, [dispatch, mapServer, ownerContext.mapInstanceId]);
+    }, [mapServer, ownerContext.mapInstanceId]);
 
     /**
      * connect to map

@@ -7,6 +7,8 @@
     &.min {
         width: 20px;
         height: 20px;
+        border: 5px solid $white;
+        border-right: 5px solid transparent;
     }
 
     margin: 0 auto;
