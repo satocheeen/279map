@@ -30,7 +30,8 @@ export const loadEvents = createAsyncThunk<EventDefine[]>(
                         targetDataSourceIds.push(ds.dataSourceId);
                     }
                 })
-            })
+            });
+            // TODO: 既にロード済みのイベントは取得しない
             const apiResult = await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(GetEventsAPI, {
                 dataSourceIds: targetDataSourceIds,
             });

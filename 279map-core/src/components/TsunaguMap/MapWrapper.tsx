@@ -305,6 +305,8 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
                 return;
             }
             await dispatch(loadMapDefine(mapKind));
+            dispatch(loadEvents());
+            dispatch(loadCategories());
         });
 
         return () => {
