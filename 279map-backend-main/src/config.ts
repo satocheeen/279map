@@ -33,10 +33,10 @@ export const LogSetting = {
 } as Configuration;
 
 export const DbSetting = {
-    connectionLimit : 100,
+    connectionLimit : parseInt(process.env.CONNECTION_LIMIT ?? '100'),
     host: process.env.MYSQL_HOST,
     user: process.env.MYSQL_USER,
     password: process.env.MYSQL_PASSWORD,
     database: process.env.MYSQL_DATABASE,
-    connectTimeout: 5000,
+    connectTimeout: parseInt(process.env.CONNECT_TIMEOUT ?? '5000'),
 }

@@ -3,7 +3,9 @@ import { EventDefine, CurrentMap, schema } from "279map-backend-common";
 import { getBelongingItem } from "./util/utility";
 import { GetEventParam, GetEventsResult } from "../279map-api-interface/src";
 import { PoolConnection } from "mysql2/promise";
+import { getLogger } from "log4js";
 
+const logger = getLogger();
 export async function getEvents(param: GetEventParam, currentMap: CurrentMap): Promise<GetEventsResult> {
     if (!currentMap) {
         throw 'no currentmap';
@@ -12,6 +14,7 @@ export async function getEvents(param: GetEventParam, currentMap: CurrentMap): P
     const mapKind = currentMap.mapKind;
 
     const con = await ConnectionPool.getConnection();
+    logger.debug('get connection');
 
     try {
         // get contents which has date in the map
