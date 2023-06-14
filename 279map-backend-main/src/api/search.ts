@@ -5,6 +5,12 @@ import { ConnectionPool } from "..";
 import { PoolConnection } from "mysql2/promise";
 
 export async function search(currentMap: CurrentMap, param: SearchParam): Promise<SearchResult> {
+    if (param.dataSourceIds && param.dataSourceIds.length === 0) {
+        return {
+            contents: []
+        }
+    }
+
     // 将来、ANDやOR検索になる可能性があるので、この階層でトランザクション管理している
     const con = await ConnectionPool.getConnection();
 
@@ -64,10 +70,16 @@ async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, cat
         where icl.content_page_id = c.content_page_id and icl.content_datasource_id  = c.data_source_id
         and mdl.map_page_id = ? and i.map_kind = ?
         and JSON_CONTAINS(c.category, ?) > 0
+        ${dataSourceIds ? 'and c.data_source_id in (?)' : ''}
     )
     `;
     const categoryParam = `["${category}"]`;
-    const [rows] = await con.execute(sql, [currentMap.mapId, currentMap.mapKind, categoryParam]);
+    const params = [currentMap.mapId, currentMap.mapKind, categoryParam] as any[];
+    if (dataSourceIds) {
+        params.push(dataSourceIds);
+    }
+    const query = con.format(sql, params);
+    const [rows] = await con.execute(query);
     return (rows as schema.ContentsTable[]).map((row): DataId => {
         return {
             dataSourceId: row.data_source_id,
@@ -92,10 +104,17 @@ async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: s
         where icl.content_page_id = c.content_page_id and icl.content_datasource_id  = c.data_source_id
         and mdl.map_page_id = ? and i.map_kind = ?
         and DATE_FORMAT(date,'%Y-%m-%d') = ?
+        ${dataSourceIds ? 'and c.data_source_id in (?)' : ''}
     )
     `;
 
-    const [rows] = await con.execute(sql, [currentMap.mapId, currentMap.mapKind, date]);
+    const params = [currentMap.mapId, currentMap.mapKind, date] as any[];
+    if (dataSourceIds) {
+        params.push(dataSourceIds);
+    }
+    const query = con.format(sql, params);
+    const [rows] = await con.execute(query);
+
     return (rows as schema.ContentsTable[]).map((row): DataId => {
         return {
             dataSourceId: row.data_source_id,
