@@ -4,6 +4,7 @@ import { CurrentMap, schema } from "279map-backend-common";
 import { GetCategoryParam, GetCategoryResult } from "../../279map-api-interface/src";
 import { CategoryDefine } from "279map-backend-common";
 import { getLogger } from "log4js";
+import { PoolConnection } from "mysql2/promise";
 
 const apiLogger = getLogger('api');
 
@@ -23,20 +24,7 @@ export async function getCategory(param: GetCategoryParam, currentMap: CurrentMa
 
     try {
         // コンテンツで使用されているカテゴリを取得
-        const sql = `
-            select c.* from contents c 
-            inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
-            where category is not NULL and mdl.map_page_id = ?
-        `;
-
-        const [rows] = await con.execute(sql, [mapPageId]);
-        let records = (rows as schema.ContentsTable[]);
-        if (param.dataSourceIds) {
-            // filter by whter exist in the datasources
-            records = records.filter(rec => {
-                return param.dataSourceIds?.includes(rec.data_source_id);
-            });
-        }
+        const records = await getContentsHavingCategory(con, mapPageId, param.dataSourceIds);
         const categoryMap = new Map<string, CategoryDefine>();
         records.forEach((row) => {
             const categories = (row.category ?? []) as string[];
@@ -108,4 +96,31 @@ export async function getCategory(param: GetCategoryParam, currentMap: CurrentMa
         await con.rollback();
         con.release();
     }
+}
+
+async function getContentsHavingCategory(con: PoolConnection, mapId: string, dataSourceIds?: string[]): Promise<schema.ContentsTable[]> {
+    if (!dataSourceIds) {
+        const sql = `
+            select c.* from contents c 
+            inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
+            where category is not NULL and mdl.map_page_id = ?
+        `;
+
+        const [rows] = await con.execute(sql, [mapId]);
+        return (rows as schema.ContentsTable[]);
+    }
+
+    // データソース指定されている場合は、データソースごとにレコード取得
+    const result = [] as schema.ContentsTable[];
+    for (const dataSourceId of dataSourceIds) {
+        const sql = `
+            select c.* from contents c 
+            inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
+            where category is not NULL and mdl.map_page_id = ? and c.data_source_id = ?
+        `;
+        const [rows] = await con.execute(sql, [mapId, dataSourceId]);
+        Array.prototype.push.apply(result, (rows as schema.ContentsTable[]));
+    }
+    return result;
+
 }
