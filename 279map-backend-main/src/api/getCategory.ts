@@ -52,7 +52,10 @@ export async function getCategory(param: GetCategoryParam, currentMap: CurrentMa
         // 指定地図種別上のアイテムで使われているものを取得
         const itemSql = `
             select c.* from contents c 
-            where exists (
+            inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
+            where category is not NULL and mdl.map_page_id = ?
+            ${param.dataSourceIds ? 'and c.data_source_id in (?)' : ''}
+            and exists (
                 select icl.* from item_content_link icl 
                 inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id 
                 inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
@@ -61,7 +64,9 @@ export async function getCategory(param: GetCategoryParam, currentMap: CurrentMa
                 and mdl.map_page_id = ? and i.map_kind = ?
             )
         `;
-        const [itemSqlRows] = await con.execute(itemSql, [mapPageId, mapKind]);
+        const params = param.dataSourceIds ? [mapPageId, param.dataSourceIds, mapPageId, mapKind] : [mapPageId, mapPageId, mapKind];
+        const query = con.format(itemSql, params);
+        const [itemSqlRows] = await con.execute(query);
         (itemSqlRows as schema.ContentsTable[]).forEach((row) => {
             const categories = (row.category ?? []) as string[];
             categories.forEach(category => {
