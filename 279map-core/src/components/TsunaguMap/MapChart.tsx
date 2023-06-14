@@ -278,9 +278,7 @@ export default function MapChart() {
     useWatch(() => {
         if (!mapRef.current) return;
         // 追加、更新
-        for (const def of geoJsonItems) {
-            mapRef.current.addFeature(def);
-        }
+        mapRef.current.addFeatures(geoJsonItems);
         // 削除
         // 削除アイテム＝prevGeoJsonItemに存在して、geoJsonItemsに存在しないもの
         const currentIds = geoJsonItems.map(item => item.id);

@@ -275,40 +275,50 @@ class OlMapWrapper {
         return feature;
     }
 
-    async addFeature(def: ItemDefine) {
+    async addFeatures(defs: ItemDefine[]) {
         if (!this._mapKind) {
             console.warn('mapKind not found.');
             return;
         }
 
-        const feature = await this._createFeatureGeometryFromItemDefine(def);
-        if (!feature) {
-            return;
-        }
-        const geom = feature.getGeometry();
-        if (!geom) {
-            return;
-        }
-
-        // 追加対象のSourceを取得
-        const source = this._getTargetSource(def);
-
-        if (!source) {
-            console.warn('追加対象レイヤ見つからず', def);
-            return;
-        }
-
-        const existFeature = source.getFeatureById(def.id.id);
-        if (existFeature) {
-            if (existFeature.getProperties()['lastEditedTime'] !== def.lastEditedTime) {
-                // console.log('update feature');
-                existFeature.setGeometry(geom);
-                existFeature.setProperties(feature.getProperties());
+        // 追加対象のソースが同一のものをまとめる
+        const sourceDefMap = new Map<VectorSource, Feature<Geometry>[]>();
+        for (const def of defs) {
+            const source = this._getTargetSource(def);
+            if (!source) {
+                console.warn('追加対象レイヤ見つからず', def);
+                return;
             }
-        } else {
-            source.addFeature(feature);
-            // console.log('add feature', geom.getType(), feature.getId(), feature.getProperties(), source.getFeatures().length);
+            const feature = await this._createFeatureGeometryFromItemDefine(def);
+            if (!feature) {
+                return;
+            }
+            const geom = feature.getGeometry();
+            if (!geom) {
+                return;
+            }
+
+            const existFeature = source.getFeatureById(def.id.id);
+            if (existFeature) {
+                if (existFeature.getProperties()['lastEditedTime'] !== def.lastEditedTime) {
+                    // console.log('update feature');
+                    existFeature.setGeometry(geom);
+                    existFeature.setProperties(feature.getProperties());
+                }
+                return;
+            }
+    
+            // 追加対象featureをmapに追加格納
+            if (!sourceDefMap.has(source)) {
+                sourceDefMap.set(source, []);
+            }
+            sourceDefMap.get(source)?.push(feature);
         }
+
+        sourceDefMap.forEach((features, source) => {
+            // console.log('add features', features.length);
+            source.addFeatures(features);
+        })
     }
 
     removeFeature(item: ItemDefine) {
