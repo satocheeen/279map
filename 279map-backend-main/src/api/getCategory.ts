@@ -99,28 +99,18 @@ export async function getCategory(param: GetCategoryParam, currentMap: CurrentMa
 }
 
 async function getContentsHavingCategory(con: PoolConnection, mapId: string, dataSourceIds?: string[]): Promise<schema.ContentsTable[]> {
-    if (!dataSourceIds) {
-        const sql = `
-            select c.* from contents c 
-            inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
-            where category is not NULL and mdl.map_page_id = ?
-        `;
+    const sql = `
+        select c.* from contents c 
+        inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
+        where category is not NULL and mdl.map_page_id = ?
+        ${dataSourceIds ? 'and c.data_source_id in (?)' : ''}
+    `;
 
-        const [rows] = await con.execute(sql, [mapId]);
-        return (rows as schema.ContentsTable[]);
+    const params = [mapId] as any[];
+    if (dataSourceIds) {
+        params.push(dataSourceIds);
     }
-
-    // データソース指定されている場合は、データソースごとにレコード取得
-    const result = [] as schema.ContentsTable[];
-    for (const dataSourceId of dataSourceIds) {
-        const sql = `
-            select c.* from contents c 
-            inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
-            where category is not NULL and mdl.map_page_id = ? and c.data_source_id = ?
-        `;
-        const [rows] = await con.execute(sql, [mapId, dataSourceId]);
-        Array.prototype.push.apply(result, (rows as schema.ContentsTable[]));
-    }
-    return result;
-
+    const query = con.format(sql, params);
+    const [rows] = await con.execute(query);
+    return (rows as schema.ContentsTable[]);
 }

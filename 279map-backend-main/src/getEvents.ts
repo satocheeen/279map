@@ -56,28 +56,19 @@ export async function getEvents(param: GetEventParam, currentMap: CurrentMap): P
  * @param dataSourceIds 指定されている場合は、このデータソースのコンテンツに限定する
  */
 async function getContentsHavingDate(con: PoolConnection, mapId: string, dataSourceIds?: string[]): Promise<schema.ContentsTable[]> {
-    if (!dataSourceIds) {
-        const sql = `
-        select c.* from contents c
-        inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
-        where date is not null and mdl.map_page_id = ?
-        order by date
-        `;
-        const [rows] = await con.execute(sql, [mapId]);
-        return (rows as schema.ContentsTable[]);
-    }
+    const sql = `
+    select c.* from contents c
+    inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
+    where date is not null and mdl.map_page_id = ?
+    ${dataSourceIds ? 'and c.data_source_id in (?)' : ''}
+    order by date
+    `;
 
-    // データソース指定されている場合は、データソースごとにレコード取得
-    const result = [] as schema.ContentsTable[];
-    for (const dataSourceId of dataSourceIds) {
-        const sql = `
-        select c.* from contents c
-        inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
-        where date is not null and mdl.map_page_id = ? and c.data_source_id = ?
-        order by date
-        `;
-        const [rows] = await con.execute(sql, [mapId, dataSourceId]);
-        Array.prototype.push.apply(result, (rows as schema.ContentsTable[]));
+    const params = [mapId] as any[];
+    if (dataSourceIds) {
+        params.push(dataSourceIds);
     }
-    return result;
+    const query = con.format(sql, params);
+    const [rows] = await con.execute(query);
+    return (rows as schema.ContentsTable[]);
 }
