@@ -22,6 +22,7 @@ import { createAPICallerInstance } from '../../api/ApiCaller';
 import { dataActions } from '../../store/data/dataSlice';
 import useEvent from '../../store/data/useEvent';
 import useCategory from '../../store/data/useCategory';
+import useDataSource from '../../store/data/useDataSource';
 
 type Props = {};
 
@@ -374,16 +375,17 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         }
     }, [events]);
 
+    const { visibleDataSourceIds } = useDataSource();
     /**
      * set filter
      */
-    useEffect(() => {
+    useWatch(() => {
         if (ownerContext.filter && ownerContext.filter.conditions.length > 0) {
             dispatch(search(ownerContext.filter.conditions));
         } else {
             dispatch(operationActions.clearFilter());
         }
-    }, [ownerContext.filter, dispatch]);
+    }, [ownerContext.filter, visibleDataSourceIds]);
 
     const messageIdRef = useRef<number>();
     useWatch(() => {
