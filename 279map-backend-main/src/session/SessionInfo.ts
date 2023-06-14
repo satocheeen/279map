@@ -3,6 +3,7 @@ import { MapKind, ItemDefine, DataId } from '279map-backend-common';
 import {CurrentMap } from '279map-backend-common';
 import dayjs from 'dayjs';
 
+type ItemInfoMap = {[dataSourceId: string]: ItemInfo[]};
 type ItemInfo = {
     id: DataId;
     lastEditedTime: string;
@@ -13,12 +14,12 @@ const LIMIT_FORMAT = 'YYYY-MM-DD HH:mm:ss';
 export type SerializableSessionInfo = {
     currentMap: CurrentMap;
     limit: string;
-    items: ItemInfo[];
+    itemsMap: ItemInfoMap;
 }
 type ConstructorParam = {
     currentMap: CurrentMap;
     limit?: string;
-    items?: ItemInfo[];
+    itemsMap?: ItemInfoMap;
 }
 
 export default class SessionInfo {
@@ -30,7 +31,7 @@ export default class SessionInfo {
     #currentMap: CurrentMap;
 
     // クライアントに送信済みのアイテム情報
-    #items: ItemInfo[] = [];
+    #itemsMap: ItemInfoMap = {};
 
     // セッション情報変更時に呼ぶ関数
     #callbackWhenUpdated: () => void;
@@ -45,8 +46,8 @@ export default class SessionInfo {
             this.#limit = this.#makeExpiredTime();
         }
 
-        if (param.items) {
-            this.#items = param.items;
+        if (param.itemsMap) {
+            this.#itemsMap = param.itemsMap;
         }
 
         this.#callbackWhenUpdated = callbackWhenUpdated;
@@ -82,9 +83,13 @@ export default class SessionInfo {
 
     addItems(items: ItemDefine[]) {
         items.forEach(item => {
-            const hit = this.#items.find(it => it.id.id === item.id.id && it.id.dataSourceId === item.id.dataSourceId);
+            if (!(item.id.dataSourceId in this.#itemsMap)) {
+                this.#itemsMap[item.id.dataSourceId] = [];
+            }
+            const dataSourceItems = this.#itemsMap[item.id.dataSourceId];
+            const hit = dataSourceItems.find(it => it.id.id === item.id.id);
             if (!hit) {
-                this.#items.push({
+                dataSourceItems.push({
                     id: item.id,
                     lastEditedTime: item.lastEditedTime,
                 });
@@ -96,15 +101,19 @@ export default class SessionInfo {
         // console.log('newValues', this._values.items);
     }
 
-    removeItems(itemId: DataId[]) {
-        this.#items = this.#items.filter(item => {
-            return !itemId.some(itemId => itemId.id === item.id.id && itemId.dataSourceId === item.id.dataSourceId);
-        });
+    removeItems(itemIds: DataId[]) {
+        itemIds.forEach(itemId => {
+            const dataSourceItems = this.#itemsMap[itemId.dataSourceId];
+            if (!dataSourceItems) return;
+            this.#itemsMap[itemId.dataSourceId] = dataSourceItems.filter(item => {
+                return !itemIds.some(itemId => itemId.id === item.id.id && itemId.dataSourceId === item.id.dataSourceId);
+            });
+        })
         this.#callbackWhenUpdated();
     }
 
     resetItems() {
-        this.#items = [];
+        this.#itemsMap = {};
         this.#callbackWhenUpdated();
     }
 
@@ -114,9 +123,9 @@ export default class SessionInfo {
      * @returns 
      */
      isSendedItem(item: ItemDefine) {
-        const hit = this.#items.find(it => {
-            return it.id.id === item.id.id && it.id.dataSourceId === item.id.dataSourceId;
-        });
+        const dataSourceItems = this.#itemsMap[item.id.dataSourceId];
+        if (!dataSourceItems) return false;
+        const hit = dataSourceItems.find(it => it.id.id === item.id.id);
         if (!hit) {
             return false;
         }
@@ -145,7 +154,7 @@ export default class SessionInfo {
         return {
             limit: this.#limit,
             currentMap: this.#currentMap,
-            items: this.#items,
+            itemsMap: this.#itemsMap,
         }
     }
 }
