@@ -268,6 +268,7 @@ export const SearchAPI = {
 
 export type SearchParam = {
     conditions: FilterDefine[];
+    dataSourceIds?: string[];   // 指定されている場合、指定のデータソースのみ検索対象にする
 }
 
 export type SearchResult = {

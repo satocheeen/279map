@@ -17,13 +17,13 @@ export async function search(currentMap: CurrentMap, param: SearchParam): Promis
             let searchResult: DataId[];
             switch(condition.type) {
                 case 'category':
-                    searchResult = await searchByCategory(con, currentMap, condition.category);
+                    searchResult = await searchByCategory(con, currentMap, condition.category, param.dataSourceIds);
                     break;
                 case 'calendar':
-                    searchResult = await searchByDate(con, currentMap, condition.date);
+                    searchResult = await searchByDate(con, currentMap, condition.date, param.dataSourceIds);
                     break;
                 case 'keyword':
-                    searchResult = await searchByKeyword(con, currentMap, condition.keyword);
+                    searchResult = await searchByKeyword(con, currentMap, condition.keyword, param.dataSourceIds);
                     break;
             }
             if (firstFlag) {
@@ -53,7 +53,7 @@ function filterArrayByAND<T>(arr1: T[], arr2: T[], isEqual: (a: T, b: T) => bool
  * @param con 
  * @param category 
  */
-async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, category: string): Promise<DataId[]> {
+async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, category: string, dataSourceIds?: string[]): Promise<DataId[]> {
 
     const sql = `
     select c.* from contents c
@@ -82,7 +82,7 @@ async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, cat
  * @param currentMap 
  * @param date 
  */
-async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: string): Promise<DataId[]> {
+async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: string, dataSourceIds?: string[]): Promise<DataId[]> {
     const sql = `
     select c.* from contents c
     where exists (
@@ -111,7 +111,7 @@ async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: s
  * @param currentMap 
  * @param keyword 
  */
-async function searchByKeyword(con: PoolConnection, currentMap: CurrentMap, keyword: string): Promise<DataId[]> {
+async function searchByKeyword(con: PoolConnection, currentMap: CurrentMap, keyword: string, dataSourceIds?: string[]): Promise<DataId[]> {
     const sql = `
     select c.* from contents c
     where exists (
@@ -121,11 +121,18 @@ async function searchByKeyword(con: PoolConnection, currentMap: CurrentMap, keyw
         where icl.content_page_id = c.content_page_id and icl.content_datasource_id  = c.data_source_id
             and mdl.map_page_id = ? and i.map_kind = ?
         and (JSON_SEARCH(c.contents, 'one', ?) is not null or c.title like ?)
+        ${dataSourceIds ? 'and c.data_source_id in (?)' : ''}
     )
     `;
 
     const keywordParam = `%${keyword}%`;
-    const [rows] = await con.execute(sql, [currentMap.mapId, currentMap.mapKind, keywordParam, keywordParam]);
+    const params = [currentMap.mapId, currentMap.mapKind, keywordParam, keywordParam] as any[];
+    if (dataSourceIds) {
+        params.push(dataSourceIds);
+    }
+    const query = con.format(sql, params);
+
+    const [rows] = await con.execute(query);
     return (rows as schema.ContentsTable[]).map((row): DataId => {
         return {
             dataSourceId: row.data_source_id,
