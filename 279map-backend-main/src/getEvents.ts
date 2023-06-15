@@ -1,5 +1,5 @@
 import { ConnectionPool } from ".";
-import { CurrentMap } from "279map-backend-common";
+import { CurrentMap, EventDefine } from "279map-backend-common";
 import { GetEventParam, GetEventsResult } from "../279map-api-interface/src";
 import { getLogger } from "log4js";
 
@@ -11,17 +11,26 @@ export async function getEvents(param: GetEventParam, currentMap: CurrentMap): P
     try {
         // get contents which has date in the map
         const records = await getAllDates(currentMap, param.dataSourceIds);
-        const dataSourceMap = new Map<string, string[]>();
+        const dataSourceMap = new Map<string, DateResult[]>();
         records.forEach(rec => {
             if (!dataSourceMap.has(rec.data_source_id)) {
                 dataSourceMap.set(rec.data_source_id, []);
             }
-            dataSourceMap.get(rec.data_source_id)?.push(rec.date);
+            dataSourceMap.get(rec.data_source_id)?.push(rec);
         });
-        return Array.from(dataSourceMap.entries()).map(entry => {
+        return Array.from(dataSourceMap.entries()).map((entry): EventDefine => {
+            const val = entry[1];
             return {
                 dataSourceId: entry[0],
-                dates: entry[1],
+                contentDate: val.map(v => {
+                    return {
+                        date: v.date,
+                        contentId: {
+                            dataSourceId: v.content_datasource_id,
+                            id: v.content_page_id,
+                        }
+                    }
+                })
             }
         })
 
@@ -34,6 +43,8 @@ export async function getEvents(param: GetEventParam, currentMap: CurrentMap): P
 type DateResult = {
     data_source_id: string;
     date: string;
+    content_page_id: string;
+    content_datasource_id: string;
 }
 /**
  * 指定の地図上のdateを保持するコンテンツ一覧を返す
@@ -47,14 +58,14 @@ async function getAllDates(currentMap: CurrentMap, dataSourceIds?: string[]): Pr
         await con.beginTransaction();
 
         const sql = `
-        select distinct c.data_source_id, c.date from contents c
+        select c.data_source_id, c.date, icl.content_page_id, icl.content_datasource_id from contents c
         inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
         inner join item_content_link icl on icl.content_page_id = c.content_page_id and icl.content_datasource_id = c.data_source_id 
         inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id
         where date is not null and mdl.map_page_id = ? and i.map_kind = ?
         ${dataSourceIds ? 'and c.data_source_id in (?)' : ''}
         union distinct 
-        select distinct icl.item_datasource_id as data_source_id, c.date from contents c 
+        select distinct icl.item_datasource_id as data_source_id, c.date, icl.content_page_id, icl.content_datasource_id from contents c 
         inner join item_content_link icl on icl.content_page_id = c.content_page_id and icl.content_datasource_id = c.data_source_id 
         inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id
         inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
