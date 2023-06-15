@@ -16,8 +16,6 @@ export async function getCategory(param: GetCategoryParam, currentMap: CurrentMa
     if (!currentMap) {
         throw 'mapPageId or mapKind not defined.';
     }
-    const mapPageId = currentMap.mapId;
-    const mapKind = currentMap.mapKind;
 
     const con = await ConnectionPool.getConnection();
 
@@ -26,7 +24,7 @@ export async function getCategory(param: GetCategoryParam, currentMap: CurrentMa
         const records = await getAllCategories(currentMap, param.dataSourceIds);
         const categoryMap = new Map<string, CategoryDefine>();
         records.forEach((row) => {
-            const categories = (row.category ?? []) as string[];
+            const categories = (JSON.parse(row.category) ?? []) as string[];
             categories.forEach(category => {
                 if (!categoryMap.has(category)) {
                     categoryMap.set(category, {
@@ -63,7 +61,7 @@ export async function getCategory(param: GetCategoryParam, currentMap: CurrentMa
 
 type CategoryResult = {
     data_source_id: string;
-    category: string[];
+    category: string;
 }
 
 async function getAllCategories(currentMap: CurrentMap, dataSourceIds?: string[]): Promise<CategoryResult[]> {
