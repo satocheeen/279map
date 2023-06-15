@@ -184,7 +184,10 @@ export type CategoryDefine = {
  */
 export type EventDefine = {
     dataSourceId: string;
-    dates: string[];   // 日付文字列 または 日時文字列
+    contentDate: {
+        date: string;       // 日付文字列 または 日時文字列
+        contentId: DataId;
+    }[];
 }
 export type IconDefine = {
     id: string;
