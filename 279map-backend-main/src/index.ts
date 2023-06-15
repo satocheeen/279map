@@ -580,19 +580,20 @@ app.post(`/api/${GetItemsAPI.uri}`,
     async(req, res, next) => {
         try {
             const param = req.body as GetItemsParam;
+            const session = broadCaster.getSessionInfo(req.connect?.sessionKey as string) as SessionInfo;
             const result = await getItems({
                 param,
-                currentMap: req.currentMap
+                currentMap: req.currentMap,
+                sendedExtent: session.sendedExtent,
             });
 
             // 送信済みのコンテンツ情報は除外する
             // TODO: 削除考慮
-            const session = broadCaster.getSessionInfo(req.connect?.sessionKey as string) as SessionInfo;
             result.items = (result as GetItemsResult).items.filter(item => {
                 const isSend = session.isSendedItem(item);
                 return !isSend;
             });
-            session.addItems(result.items);
+            session.addItems(result.items, param.extent, param.zoom);
 
             apiLogger.debug('result', result);
 

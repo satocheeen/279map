@@ -2,11 +2,13 @@ import { schema, CurrentMap, FeatureType, ItemContentInfo, ItemDefine, MapKind }
 import { getLogger } from 'log4js';
 import { ConnectionPool } from '.';
 import { GetItemsParam, GetItemsResult } from '../279map-api-interface/src';
-import { getExtentWkt } from './util/utility';
+import { checkContaining, getExtentWkt } from './util/utility';
+import { SendedExtentInfo } from './session/SessionInfo';
+import { PoolConnection } from 'mysql2/promise';
 
 const apiLogger = getLogger('api');
 
-export async function getItems({ param, currentMap }: {param:GetItemsParam; currentMap: CurrentMap}): Promise<GetItemsResult> {
+export async function getItems({ param, currentMap, sendedExtent }: {param:GetItemsParam; currentMap: CurrentMap; sendedExtent: SendedExtentInfo}): Promise<GetItemsResult> {
     if (!currentMap) {
         throw 'no currentMap';
     }
@@ -16,58 +18,65 @@ export async function getItems({ param, currentMap }: {param:GetItemsParam; curr
         throw 'no currentMap';
     }
 
-    const items = await getItemsSub(mapPageId, mapKind, param);
+    const items = await getItemsSub(currentMap, param, sendedExtent);
 
     return {
         items,
     };
 }
-export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: GetItemsParam): Promise<ItemDefine[]> {
+export async function getItemsSub(currentMap: CurrentMap, param: GetItemsParam, sendedExtent: SendedExtentInfo): Promise<ItemDefine[]> {
     const con = await ConnectionPool.getConnection();
-
-    // コンテンツ取得メソッド
-    const getContentsInfo = async(contentPageId: string): Promise<ItemContentInfo|null> => {
-        const sql = 'select * from contents c where content_page_id = ?';
-        const [rows] = await con.execute(sql, [contentPageId]);
-        const myRows = rows as schema.ContentsTable[];
-        if (myRows.length === 0) {
-            apiLogger.warn('not founc content.', contentPageId);
-            return null;
-        }
-
-        const row = myRows[0];
-        const discendant = await getChildrenContentInfo(row.content_page_id);
-        return {
-            id: {
-                id: row.content_page_id,
-                dataSourceId: row.data_source_id,
-            },
-        hasImage: row.thumbnail ? true : false,
-            children: discendant,
-        };
-    }
-    const getChildrenContentInfo = async(contentPageId: string): Promise<ItemContentInfo[]> => {
-        const sql = 'select * from contents c where parent_id = ?';
-        const [rows] = await con.execute(sql, [contentPageId]);
-        const myRows = rows as schema.ContentsTable[];
-        if (myRows.length === 0) {
-            return [];
-        }
-        const children = [] as ItemContentInfo[];
-        for(const row of myRows) {
-            const discendant = await getChildrenContentInfo(row.content_page_id);
-            children.push({
-                id: {
-                    id: row.content_page_id,
-                    dataSourceId: row.data_source_id,
-                },
-                hasImage: row.thumbnail ? true : false,
-                children: discendant,
-            });
-        }
-        return children;
-    };
     
+    try {
+        // 既に送信済みのExtentかチェック。ItemはZoomレベル関係ない。
+        const dataSourceIds = param.dataSourceIds?.filter(dataSourceId => {
+            const dsSendedExtent = sendedExtent[dataSourceId];
+            if (!dsSendedExtent) return true;
+            const isSended = Object.values(dsSendedExtent).some(exts => {
+                return exts.some(ext => {
+                    return checkContaining(ext, param.extent) === 1;
+                });
+            })
+            return !isSended;
+        })
+        const pointContents = dataSourceIds.length === 0 ? [] : await selectItems(con, dataSourceIds, currentMap);
+
+        if (currentMap.mapKind === MapKind.Virtual) {
+            return pointContents;
+        }
+
+        // 既に送信済みのExtentかチェック。
+        const zoom = Math.floor(param.zoom);
+        const targetDataSourceIds = param.dataSourceIds?.filter(dataSourceId => {
+            const dsSendedExtent = sendedExtent[dataSourceId];
+            if (!dsSendedExtent) return true;
+            const isSended = dsSendedExtent[zoom] ? dsSendedExtent[zoom].some(ext => {
+                return checkContaining(ext, param.extent) === 1;
+            }) : false;
+    
+            return !isSended;
+        })
+        // 軌跡コンテンツ
+        const trackContents = targetDataSourceIds.length === 0 ? [] : await selectTrackInArea(con, param, currentMap.mapId);
+        const contents = pointContents.concat(...trackContents);
+
+        console.log('isSended', dataSourceIds.length === 0, targetDataSourceIds.length === 0);
+        return contents;
+
+    } catch(e){
+        apiLogger.warn('getItem failed', e);
+        await con.rollback();
+        throw new Error('getItem failed');
+
+    } finally {
+        await con.commit();
+        con.release();
+
+    }
+    
+}
+
+async function selectItems(con: PoolConnection, dataSourceIds:string[], currentMap: CurrentMap): Promise<ItemDefine[]> {
     try {
         // 位置コンテンツ
         const sql = `
@@ -77,14 +86,12 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
         where map_page_id = ? and i.map_kind = ?
         `;
-        const [rows] = await con.execute(sql, [mapPageId, mapKind]);
+        const [rows] = await con.execute(sql, [currentMap.mapId, currentMap.mapKind]);
         const pointContents = [] as ItemDefine[];
         for(const row of rows as (schema.ItemsTable & {geojson: any})[]) {
-            // データソースが指定されている場合は、指定されているデータソースのもののみに絞る
-            if (param.dataSourceIds) {
-                if (!param.dataSourceIds.includes(row.data_source_id)) {
-                    continue;
-                }
+            // 指定されているデータソースのもののみに絞る
+            if (!dataSourceIds.includes(row.data_source_id)) {
+                continue;
             }
             const contents: ItemContentInfo[] = [];
             let lastEditedTime = row.last_edited_time;
@@ -95,7 +102,7 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
             if (linkRecords.length > 0) {
                 // 配下のコンテンツID取得
                 for (const linkRecord of linkRecords) {
-                    const child = await getContentsInfo(linkRecord.content_page_id);
+                    const child = await getContentsInfo(con, linkRecord.content_page_id);
                     if (!child) continue;
                     contents.push(child);
                     // コンテンツリンクの更新日時が新しければ、そちらを更新日時とする
@@ -121,22 +128,12 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
             });
         }
 
-        if (mapKind === MapKind.Virtual) {
-            return pointContents;
-        }
+        return pointContents;
 
-        // 軌跡コンテンツ
-        const trackContents = await selectTrackInArea(param, mapPageId);
-        const contents = pointContents.concat(...trackContents);
-
-        return contents;
-
-    } finally {
-        await con.commit();
-        con.release();
-
+    } catch(e) {
+        apiLogger.warn('selectItems failed', e);
+        throw new Error('selected items failed');
     }
-    
 }
 
 /**
@@ -145,9 +142,7 @@ export async function getItemsSub(mapPageId: string, mapKind: MapKind, param: Ge
  * @param zoom_lv 
  * @param ext 
  */
-async function selectTrackInArea(param: GetItemsParam, mapPageId: string): Promise<ItemDefine[]> {
-    const con = await ConnectionPool.getConnection();
-
+async function selectTrackInArea(con: PoolConnection, param: GetItemsParam, mapPageId: string): Promise<ItemDefine[]> {
     try {
         const wkt = getExtentWkt(param.extent);
         const sql = `
@@ -185,9 +180,53 @@ async function selectTrackInArea(param: GetItemsParam, mapPageId: string): Promi
             })
         }
         return list;
-    } finally {
-        await con.commit();
-        con.release();
+    } catch(e) {
+        apiLogger.warn('selectTrackInArea failed', e);
+        throw new Error('selectTrackInArea failed');
     }
 
+}
+
+// コンテンツ取得メソッド
+async function  getContentsInfo(con: PoolConnection, contentPageId: string): Promise<ItemContentInfo|null> {
+    const getChildrenContentInfo = async(contentPageId: string): Promise<ItemContentInfo[]> => {
+        const sql = 'select * from contents c where parent_id = ?';
+        const [rows] = await con.execute(sql, [contentPageId]);
+        const myRows = rows as schema.ContentsTable[];
+        if (myRows.length === 0) {
+            return [];
+        }
+        const children = [] as ItemContentInfo[];
+        for(const row of myRows) {
+            const discendant = await getChildrenContentInfo(row.content_page_id);
+            children.push({
+                id: {
+                    id: row.content_page_id,
+                    dataSourceId: row.data_source_id,
+                },
+                hasImage: row.thumbnail ? true : false,
+                children: discendant,
+            });
+        }
+        return children;
+    };
+
+    const sql = 'select * from contents c where content_page_id = ?';
+    const [rows] = await con.execute(sql, [contentPageId]);
+    const myRows = rows as schema.ContentsTable[];
+    if (myRows.length === 0) {
+        apiLogger.warn('not founc content.', contentPageId);
+        return null;
+    }
+
+    const row = myRows[0];
+    const discendant = await getChildrenContentInfo(row.content_page_id);
+    return {
+        id: {
+            id: row.content_page_id,
+            dataSourceId: row.data_source_id,
+        },
+    hasImage: row.thumbnail ? true : false,
+        children: discendant,
+    };
 }

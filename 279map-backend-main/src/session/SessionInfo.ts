@@ -1,7 +1,8 @@
 import WebSocket from 'ws';
-import { MapKind, ItemDefine, DataId } from '279map-backend-common';
+import { MapKind, ItemDefine, DataId, Extent } from '279map-backend-common';
 import {CurrentMap } from '279map-backend-common';
 import dayjs from 'dayjs';
+import { checkContaining } from '../util/utility';
 
 type ItemInfoMap = {[dataSourceId: string]: ItemInfo[]};
 type ItemInfo = {
@@ -15,12 +16,16 @@ export type SerializableSessionInfo = {
     currentMap: CurrentMap;
     limit: string;
     itemsMap: ItemInfoMap;
+    sendedExtent: SendedExtentInfo;
 }
 type ConstructorParam = {
     currentMap: CurrentMap;
     limit?: string;
     itemsMap?: ItemInfoMap;
+    sendedExtent?: SendedExtentInfo;
 }
+export type SendedExtentInfo = {[dataSourceId: string]: SendedExtentByZoom};
+type SendedExtentByZoom = {[zoomLv: number]: Extent[]};
 
 export default class SessionInfo {
     #sid: string;    // セッションID
@@ -32,6 +37,9 @@ export default class SessionInfo {
 
     // クライアントに送信済みのアイテム情報
     #itemsMap: ItemInfoMap = {};
+
+    // クライアントに送信済みのExtent情報。ZoomLvごとに管理。
+    #sendedExtent: SendedExtentInfo = {};
 
     // セッション情報変更時に呼ぶ関数
     #callbackWhenUpdated: () => void;
@@ -48,6 +56,10 @@ export default class SessionInfo {
 
         if (param.itemsMap) {
             this.#itemsMap = param.itemsMap;
+        }
+
+        if (param.sendedExtent) {
+            this.#sendedExtent = param.sendedExtent;
         }
 
         this.#callbackWhenUpdated = callbackWhenUpdated;
@@ -81,8 +93,14 @@ export default class SessionInfo {
         return this.#currentMap;
     }
 
-    addItems(items: ItemDefine[]) {
+    get sendedExtent() {
+        return this.#sendedExtent;
+    }
+
+    addItems(items: ItemDefine[], extent: Extent, zm: number) {
+        const dataSourceIdSet = new Set<string>;
         items.forEach(item => {
+            dataSourceIdSet.add(item.id.dataSourceId);
             if (!(item.id.dataSourceId in this.#itemsMap)) {
                 this.#itemsMap[item.id.dataSourceId] = [];
             }
@@ -97,6 +115,39 @@ export default class SessionInfo {
                 hit.lastEditedTime = item.lastEditedTime;
             }
         });
+
+        // 送信済みExtent更新
+        const zoom = Math.floor(zm);
+        dataSourceIdSet.forEach(dataSourceId => {
+            if (!this.#sendedExtent[dataSourceId]) {
+                this.#sendedExtent[dataSourceId] = {};
+            }
+            const sendedExtent = this.#sendedExtent[dataSourceId];
+
+            if (!sendedExtent[zoom]) {
+                sendedExtent[zoom] = [extent];
+            } else {
+                let addFlag = false;
+                const newSendedExtent = sendedExtent[zoom].map(ext => {
+                    // 一方のExtentが包含されるなら、そちらを採用
+                    const cmp = checkContaining(ext, extent);
+                    if (cmp === 1) {
+                        return ext;
+                    } else if (cmp === 2) {
+                        return extent;
+                    } else {
+                        addFlag = true;
+                        return ext;
+                    }
+                })
+                if (addFlag) {
+                    newSendedExtent.push(extent);
+                }
+                sendedExtent[zoom] = newSendedExtent;
+            }
+    
+        })
+
         this.#callbackWhenUpdated();
         // console.log('newValues', this._values.items);
     }
@@ -155,6 +206,7 @@ export default class SessionInfo {
             limit: this.#limit,
             currentMap: this.#currentMap,
             itemsMap: this.#itemsMap,
+            sendedExtent: this.#sendedExtent,
         }
     }
 }

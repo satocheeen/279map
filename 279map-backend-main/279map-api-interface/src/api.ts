@@ -117,7 +117,7 @@ export const GetItemsAPI = {
 export type GetItemsParam = {
     extent: Extent;
     zoom: number;
-    dataSourceIds?: string[];   // 指定されている場合、指定のデータソースのアイテムのみ返す
+    dataSourceIds: string[];   // 指定のデータソースのアイテムのみ返す
 }
 export type GetItemsResult = {
     items: ItemDefine[],

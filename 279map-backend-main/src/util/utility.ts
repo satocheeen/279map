@@ -173,3 +173,27 @@ export async function getAncestorItemId(con: PoolConnection | undefined, content
     }
 
 }
+
+/**
+ * 2つのエクステントの関係を判断する
+ * @param ext1 
+ * @param ext2 
+ * @return ext2がext1に包含されている場合、1。ext1がext2に包含されている場合、2。包含関係にない場合、0。
+ */
+export function checkContaining(ext1: Extent, ext2: Extent) {
+    const isContain1in2 = (ext1: Extent, ext2: Extent) => {
+        if (ext1[0] < ext2[0]) return false;
+        if (ext1[2] > ext2[2]) return false;
+        if (ext1[1] < ext2[1]) return false;
+        if (ext1[3] > ext2[3]) return false;
+        return true;
+    }
+
+    if (isContain1in2(ext1, ext2)) {
+        return 2;
+    }
+    if (isContain1in2(ext2, ext1)) {
+        return 1;
+    }
+    return 0;
+}
