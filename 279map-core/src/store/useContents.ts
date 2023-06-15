@@ -3,14 +3,14 @@ import { useCallback } from 'react';
 import { useSelector } from "react-redux";
 import { RootState } from "./configureStore";
 import { useFilter } from './useFilter';
-import { getMapKey } from './data/dataUtility';
+import { getMapKey, isEqualId } from './data/dataUtility';
 
 /**
  * Hook for Contents
  */
 export function useContents() {
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
-    const { filteredContents } = useFilter();
+    const { filteredContentIdList } = useFilter();
 
     /**
      * @params itemId {string} the item ID getting descendants' contents
@@ -24,7 +24,7 @@ export function useContents() {
         const getDecendant = (content: ItemContentInfo) => {
             const descendantList = [] as DataId[];
             content.children.forEach(child => {
-                const isPush = (filtering && filteredContents) ? filteredContents?.includes(child.id) : true;
+                const isPush = (filtering && filteredContentIdList) ? filteredContentIdList.some(filtered => isEqualId(filtered, child.id)) : true;
                 if (isPush) {
                     descendantList.push(child.id);
                 }
@@ -39,13 +39,15 @@ export function useContents() {
             return acc.concat(decendants);
         }, [] as DataId[]);
 
-        const isPush = (filtering && filteredContents) ? filteredContents?.some((contentId)=> item.contents.some(c => c.id === contentId)) : true;
-        const idList = isPush ? item.contents.map(c => c.id) : [];
+        const idList = item.contents.filter(c => {
+            const isPush = (filtering && filteredContentIdList) ? filteredContentIdList.some(filtered => isEqualId(filtered, c.id)) : true;
+            return isPush;
+        }).map(c => c.id);
         Array.prototype.push.apply(idList, descendants);
 
         return idList;
 
-    }, [itemMap, filteredContents]);
+    }, [itemMap, filteredContentIdList]);
 
     return {
         getDescendantContentsIdList,

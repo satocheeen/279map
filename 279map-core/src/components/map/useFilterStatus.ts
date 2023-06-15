@@ -11,15 +11,16 @@ const FORCE_COLOR = '#8888ff';
  * 地物のフィルタ状態を返すフック
  */
 export default function useFilterStatus() {
-    const { getFilterStatus: getFilterStatusHook} = useFilter();
+    const { getFilterStatusOfTheItem } = useFilter();
     const selectedItemIds = useSelector((state: RootState) => state.operation.selectedItemIds);
 
     /**
      * 指定の地物のフィルタ状態を返す
      */
      const getFilterStatus = useCallback((feature: FeatureLike) => {
-        return getFilterStatusHook(feature.getId() as string);
-    }, [getFilterStatusHook]);
+        const itemId = convertDataIdFromFeatureId(feature.getId() as string);
+        return getFilterStatusOfTheItem(itemId);
+    }, [getFilterStatusOfTheItem]);
 
     /**
      * 指定の地物の強調表示色を返す
@@ -34,7 +35,7 @@ export default function useFilterStatus() {
         }
 
         const filterStatus = getFilterStatus(feature);
-        if (filterStatus.status !== 'Filtered') {
+        if (filterStatus !== 'Filtered') {
             return;
         }
     

@@ -181,7 +181,7 @@ export default class PopupContainerCalculator {
             const style = pointStyleFunction(feature, this._map.currentResolution) as Style;
             const image = style.getImage();
             const pixel = this._map.getPixelFromCoordinate([itemPosition.longitude, itemPosition.latitude]);
-            const imageSize = image.getSize();
+            const imageSize = image?.getSize();
             if (!imageSize || imageSize.length < 2 || !pixel || pixel.length < 2) {
                 // console.warn('imageSize undefined', feature.getId());
                 return;

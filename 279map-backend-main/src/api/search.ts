@@ -7,7 +7,7 @@ import { PoolConnection } from "mysql2/promise";
 export async function search(currentMap: CurrentMap, param: SearchParam): Promise<SearchResult> {
     if (param.dataSourceIds && param.dataSourceIds.length === 0) {
         return {
-            contents: []
+            items: []
         }
     }
 
@@ -17,10 +17,10 @@ export async function search(currentMap: CurrentMap, param: SearchParam): Promis
     try {
         await con.beginTransaction();
 
-        let hitList: DataId[] = [];
+        let hitList: HitContent[] = [];
         let firstFlag = true;
         for (const condition of param.conditions) {
-            let searchResult: DataId[];
+            let searchResult: HitContent[];
             switch(condition.type) {
                 case 'category':
                     searchResult = await searchByCategory(con, currentMap, condition.category, param.dataSourceIds);
@@ -38,10 +38,25 @@ export async function search(currentMap: CurrentMap, param: SearchParam): Promis
                 continue;
             }
             // ANDで絞る
-            hitList = filterArrayByAND(hitList, searchResult, (a, b) => a.id === b.id && a.dataSourceId === b.dataSourceId);
+            hitList = filterArrayByAND(hitList, searchResult, (a, b) => a.contentId.id === b.contentId.id && a.contentId.dataSourceId === b.contentId.dataSourceId);
         }
+
+        // item単位でまとめる
+        const items: SearchResult['items'] = [];
+        hitList.forEach(hitRecord => {
+            const hitItem = items.find(item => item.id.id === hitRecord.itemId.id && item.id.dataSourceId === hitRecord.itemId.dataSourceId);
+            if (hitItem) {
+                hitItem.contents.push(hitRecord.contentId);
+            } else {
+                items.push({
+                    id: hitRecord.itemId,
+                    contents: [hitRecord.contentId],
+                });
+            }
+        })
+
         return {
-            contents: hitList,
+            items,
         }
     
     } finally {
@@ -54,15 +69,20 @@ function filterArrayByAND<T>(arr1: T[], arr2: T[], isEqual: (a: T, b: T) => bool
     return arr1.filter(obj1 => arr2.some(obj2 => isEqual(obj1, obj2)));
 }
 
+type HitContent = {
+    contentId: DataId;
+    itemId: DataId;
+}
 /**
  * 指定のカテゴリを持つコンテンツを返す
  * @param con 
  * @param category 
  */
-async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, category: string, dataSourceIds?: string[]): Promise<DataId[]> {
+async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, category: string, dataSourceIds?: string[]): Promise<HitContent[]> {
 
     const sql = `
-    select c.* from contents c
+    select c.content_page_id, icl.content_datasource_id, icl.item_page_id, icl.item_datasource_id from contents c
+    inner join item_content_link icl on icl.content_page_id = c.content_page_id and icl.content_datasource_id = c.data_source_id 
     where exists (
         select icl.* from item_content_link icl 
         inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id 
@@ -80,10 +100,16 @@ async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, cat
     }
     const query = con.format(sql, params);
     const [rows] = await con.execute(query);
-    return (rows as schema.ContentsTable[]).map((row): DataId => {
+    return (rows as schema.ItemContentLink[]).map((row): HitContent => {
         return {
-            dataSourceId: row.data_source_id,
-            id: row.content_page_id,
+            contentId: {
+                id: row.content_page_id,
+                dataSourceId: row.content_datasource_id,
+            },
+            itemId: {
+                id: row.item_page_id,
+                dataSourceId: row.item_datasource_id,
+            },
         };
     });
 }
@@ -94,9 +120,10 @@ async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, cat
  * @param currentMap 
  * @param date 
  */
-async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: string, dataSourceIds?: string[]): Promise<DataId[]> {
+async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: string, dataSourceIds?: string[]): Promise<HitContent[]> {
     const sql = `
-    select c.* from contents c
+    select c.content_page_id, icl.content_datasource_id, icl.item_page_id, icl.item_datasource_id from contents c
+    inner join item_content_link icl on icl.content_page_id = c.content_page_id and icl.content_datasource_id = c.data_source_id 
     where exists (
         select icl.* from item_content_link icl 
         inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id 
@@ -115,10 +142,16 @@ async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: s
     const query = con.format(sql, params);
     const [rows] = await con.execute(query);
 
-    return (rows as schema.ContentsTable[]).map((row): DataId => {
+    return (rows as schema.ItemContentLink[]).map((row): HitContent => {
         return {
-            dataSourceId: row.data_source_id,
-            id: row.content_page_id,
+            contentId: {
+                id: row.content_page_id,
+                dataSourceId: row.content_datasource_id,
+            },
+            itemId: {
+                id: row.item_page_id,
+                dataSourceId: row.item_datasource_id,
+            },
         };
     });
 
@@ -130,9 +163,10 @@ async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: s
  * @param currentMap 
  * @param keyword 
  */
-async function searchByKeyword(con: PoolConnection, currentMap: CurrentMap, keyword: string, dataSourceIds?: string[]): Promise<DataId[]> {
+async function searchByKeyword(con: PoolConnection, currentMap: CurrentMap, keyword: string, dataSourceIds?: string[]): Promise<HitContent[]> {
     const sql = `
-    select c.* from contents c
+    select c.content_page_id, icl.content_datasource_id, icl.item_page_id, icl.item_datasource_id from contents c
+    inner join item_content_link icl on icl.content_page_id = c.content_page_id and icl.content_datasource_id = c.data_source_id 
     where exists (
         select icl.* from item_content_link icl 
         inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id 
@@ -152,10 +186,16 @@ async function searchByKeyword(con: PoolConnection, currentMap: CurrentMap, keyw
     const query = con.format(sql, params);
 
     const [rows] = await con.execute(query);
-    return (rows as schema.ContentsTable[]).map((row): DataId => {
+    return (rows as schema.ItemContentLink[]).map((row): HitContent => {
         return {
-            dataSourceId: row.data_source_id,
-            id: row.content_page_id,
+            contentId: {
+                id: row.content_page_id,
+                dataSourceId: row.content_datasource_id,
+            },
+            itemId: {
+                id: row.item_page_id,
+                dataSourceId: row.item_datasource_id,
+            },
         };
     });
 

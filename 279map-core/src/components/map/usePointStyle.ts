@@ -182,7 +182,7 @@ export default function usePointStyle() {
             // -- フィルタ状態に応じて色設定
             color = getForceColor(mainFeature);
             const filterStatus = getFilterStatus(mainFeature);
-            if (filterStatus.status === 'UnFiltered') {
+            if (filterStatus === 'UnFiltered') {
                 if (filter?.unmatchView === 'hidden') {
                     visible = false;
                 } else {

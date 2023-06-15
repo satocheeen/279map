@@ -38,7 +38,7 @@ type Props = {
 export default function Content(props: Props) {
     const { confirm } = useConfirm();
     const dispatch = useAppDispatch();
-    const { filteredContents } = useFilter();
+    const { filteredContentIdList } = useFilter();
     const { onEditContent }  = useContext(OwnerContext);
     const { getApi } = useMap();
 
@@ -47,11 +47,11 @@ export default function Content(props: Props) {
      * （フィルタが掛かっている場合に、フィルタ対象のコンテンツのみを表示する）
      */
     const isShow = useMemo(() => {
-        if (!filteredContents) {
+        if (!filteredContentIdList) {
             return true;
         }
-        return filteredContents.some(target => isEqualId(target, props.content.id));
-    }, [filteredContents, props.content]);
+        return filteredContentIdList.some(target => isEqualId(target, props.content.id));
+    }, [filteredContentIdList, props.content]);
 
     const urlType = useMemo(() => {
         return props.content.url ? CommonUtility.getUrlType(props.content.url) : undefined;

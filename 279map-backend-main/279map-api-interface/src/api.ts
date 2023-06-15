@@ -268,7 +268,11 @@ export type SearchParam = {
 }
 
 export type SearchResult = {
-    contents: DataId[]; // 検索条件に合致するコンテンツID一覧
+    // 検索条件に合致するアイテム
+    items: {
+        id: DataId;
+        contents: DataId[]; // 当該アイテム配下の検索条件に合致するコンテンツID一覧 TODO: 孫コンテンツも含める
+    }[];
 }
 
 export const GetThumbAPI = {

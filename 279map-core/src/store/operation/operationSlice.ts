@@ -5,6 +5,7 @@ import { ConfirmParam, ConfirmResult } from "../../components/common/confirm/use
 import { MapMode } from "../../types/types";
 import { loadMapDefine } from "../session/sessionThunk";
 import { search } from "./operationThunk";
+import { SearchResult } from "tsunagumap-api";
 
 type ViewInfo = {
     extent: Extent;
@@ -38,7 +39,7 @@ const operationSlice = createSlice({
         selectedItemIds: [] as DataId[],
 
         // フィルタ
-        filteredContents: null as DataId[] | null,   // フィルタ条件に該当するコンテンツ。フィルタ未指定の場合は、null。
+        filteredItems: null as SearchResult['items'] | null,   // フィルタ条件に該当するコンテンツ。フィルタ未指定の場合は、null。
 
         mapMode: MapMode.Normal,
 
@@ -69,7 +70,7 @@ const operationSlice = createSlice({
             state.selectedItemIds = [];
         },
         clearFilter(state) {
-            state.filteredContents = null;
+            state.filteredItems = null;
         },
         updateMapView(state, action: PayloadAction<ViewInfo>) {
             state.mapView = action.payload;
@@ -105,10 +106,10 @@ const operationSlice = createSlice({
     extraReducers: (builder) => {
         builder
         .addCase(loadMapDefine.fulfilled, (state, action) => {
-            state.filteredContents = null;
+            state.filteredItems = null;
         })
         .addCase(search.fulfilled, (state, action) => {
-            state.filteredContents = action.payload.contents;
+            state.filteredItems = action.payload.items;
         })
     }
 })

@@ -20,12 +20,12 @@ export default function useFilteredTopographyStyle() {
         const color = getForceColor(feature);
         const filterStatus = getFilterStatus(feature);
         const func = getStyleFunction((feature, resolution, defaultStyle) => {
-            if (!color && filterStatus.status === 'Normal') {
+            if (!color && filterStatus === 'Normal') {
                 return defaultStyle;
             }
             const featureType = feature.getProperties()['featureType'];
             if (featureType === FeatureType.AREA) {
-                if (filterStatus.status === 'UnFiltered') {
+                if (filterStatus === 'UnFiltered') {
                     if (filter?.unmatchView === 'hidden') {
                         return new Style();
                     }

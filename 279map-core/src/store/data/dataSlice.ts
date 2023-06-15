@@ -13,7 +13,7 @@ const dataSlice = createSlice({
     name: 'data',
     initialState: {
         extent: undefined as Extent | undefined,
-        itemMap: {} as {[id: string]: ItemDefine},
+        itemMap: {} as {[id: string]: ItemDefine},  // TODO: DataId対応
 
         // ロード済みのコンテンツ情報
         contentsList: [] as ContentsDefine[],

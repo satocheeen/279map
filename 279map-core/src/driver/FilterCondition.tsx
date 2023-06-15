@@ -62,7 +62,7 @@ export default function FilterCondition(props: Props) {
                     なし
                     <input type="radio" checked={category===undefined} onChange={() => onChangeCategory(undefined)} />
                 </label>
-                {props.categories.filter(c => c.using).map(c => {
+                {props.categories.map(c => {
                     return (
                         <label key={c.name}>
                             {c.name}
