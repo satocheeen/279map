@@ -16,6 +16,10 @@
 .BodyArea {
     border: 1px solid #aaa;
     width: 250px;
+    
+    >div:not(.Active) {
+        display: none;
+    }
 }
 .ListArea {
     max-width: 10rem;

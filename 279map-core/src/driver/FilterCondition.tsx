@@ -90,17 +90,6 @@ export default function FilterCondition(props: Props) {
         )
     }, []);
 
-    const body = useMemo(() => {
-        switch(currentMode) {
-            case 'category':
-                return categoryFilter;
-            case 'calendar':
-                return calendarFilter;
-            case 'keyword':
-                return keywordFilter;
-        }
-    }, [currentMode, categoryFilter, calendarFilter, keywordFilter]);
-
     const onClear = useCallback(() => {
         setCategory(undefined);
         setDate('');
@@ -120,7 +109,15 @@ export default function FilterCondition(props: Props) {
                     })}
                 </div>
                 <div className={styles.BodyArea}>
-                    {body}
+                    <div className={`${currentMode==='category' ? styles.Active : ''}`}>
+                        {categoryFilter}
+                    </div>
+                    <div className={`${currentMode==='calendar' ? styles.Active : ''}`}>
+                        {calendarFilter}
+                    </div>
+                    <div className={`${currentMode==='keyword' ? styles.Active : ''}`}>
+                        {keywordFilter}
+                    </div>
                 </div>
             </div>
             <div>
