@@ -178,12 +178,9 @@ export type CategoryDefine = {
     name: string;
     color: string;
     using: boolean;     // 現在の地図上のコンテンツで使用されている場合、true。
-    content_ids: DataId[];  // このカテゴリのコンテンツ一覧（将来、廃止予定）
 }
 export type EventDefine = {
-    date: string;
-    item_id: DataId;
-    content_id: DataId;
+    date: string;   // 日付文字列 または 日時文字列
 }
 export type IconDefine = {
     id: string;
