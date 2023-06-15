@@ -39,7 +39,7 @@ function hasImageItem(item: ItemDefine): boolean {
 }
 export default function PointsPopup(props: Props) {
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
-    const { isFiltered, filteredItemIdList, filteredContentIdList } = useFilter();
+    const { filteredItemIdList, filteredContentIdList } = useFilter();
     const { getDescendantContentsIdList } = useContents();
 
     /**
@@ -58,8 +58,8 @@ export default function PointsPopup(props: Props) {
             return acc.concat(item);
         }, [] as ItemDefine[])
         // フィルタがかかっている場合は、フィルタ対象のものに絞る
-        if (isFiltered) {
-            infos = infos.filter(info => filteredItemIdList?.includes(info.id));
+        if (filteredItemIdList) {
+            infos = infos.filter(info => filteredItemIdList.some(filteredItemId => isEqualId(filteredItemId, info.id)));
         }
         if (infos.length === 1) {
             return infos[0];
@@ -72,7 +72,7 @@ export default function PointsPopup(props: Props) {
         }
         // 最初の画像のみ表示
         return ownImageInfos[0];
-    }, [props.itemIds, itemMap, filteredItemIdList, isFiltered]);
+    }, [props.itemIds, itemMap, filteredItemIdList]);
 
     const { popupMode } = useMapOptions();
 

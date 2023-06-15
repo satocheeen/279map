@@ -5,13 +5,14 @@ import { RootState } from '../../store/configureStore';
 import PointsPopup from './PointsPopup';
 import { getCenter } from 'geolib';
 import VectorSource from 'ol/source/Vector';
-import { getMapKey } from '../../store/data/dataUtility';
+import { getMapKey, isEqualId } from '../../store/data/dataUtility';
 import { LayerType } from '../TsunaguMap/VectorLayerMap';
 import PopupContainerCalculator, { PopupGroupWithPosition } from './PopupContainerCalculator';
 import { useMap } from '../map/useMap';
 import { useWatch } from '../../util/useWatch';
 import { useMapOptions } from '../../util/useMapOptions';
 import useDataSource from '../../store/data/useDataSource';
+import { useFilter } from '../../store/useFilter';
 
 function createKeyFromPopupInfo(param: PopupGroupWithPosition): string {
     if (!param) {
@@ -31,6 +32,8 @@ export default function PopupContainer() {
 
     const { isVisibleDataSource } = useDataSource();
 
+    const { filteredItemIdList } = useFilter();
+
     // コンテンツを持つアイテムID一覧
     const hasContentsItemIdList = useMemo(() => {
         if (popupMode === 'hidden') {
@@ -42,9 +45,14 @@ export default function PopupContainer() {
             // 非表示のものは無視する
             return isVisibleDataSource(item.id.dataSourceId);
 
-        }).map(item => item.id);
+        }).map(item => item.id)
+        .filter(itemId => {
+            // フィルタが掛かっている場合は条件外のものは除外する
+            if (!filteredItemIdList) return true;
+            return filteredItemIdList.some(filteredItemId => isEqualId(filteredItemId, itemId));
+        });
         return list;
-    }, [itemMap, popupMode, isVisibleDataSource]);
+    }, [itemMap, popupMode, isVisibleDataSource, filteredItemIdList]);
 
     // 表示するポップアップ情報群
     const [popupGroups, setPopupGroups] = useState<PopupGroupWithPosition[]>([]);
