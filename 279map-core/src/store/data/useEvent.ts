@@ -15,7 +15,7 @@ export default function useEvent() {
      */
     const events = useMemo(() => {
         return originalEvents.filter(event => {
-            return visibleDataSourceIds.includes(event.content_id.dataSourceId);
+            return visibleDataSourceIds.includes(event.dataSourceId);
         });
     }, [visibleDataSourceIds, originalEvents]);
 

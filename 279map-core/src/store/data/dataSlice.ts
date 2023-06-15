@@ -46,11 +46,7 @@ const dataSlice = createSlice({
                 return !isDeleted;
             });
 
-            // eventから除去
-            state.events = state.events.filter(event => {
-                const isDeleted = action.payload.some(id => isEqualId(event.item_id, id));
-                return !isDeleted;
-            });
+            // eventから除去 TODO: サーバーから再取得して設定
 
         },
         updateContents(state, action: PayloadAction<ContentsDefine[]>) {
@@ -116,15 +112,13 @@ const dataSlice = createSlice({
         .addCase(loadEvents.fulfilled, (state, action) => {
             const newEvents = state.events.concat();
             action.payload.forEach(event => {
-                const index = newEvents.findIndex(currentEvent => isEqualId(currentEvent.content_id, event.content_id));
-                if (index !== -1) {
-                    // 既に存在するものは、新しいものに差し替え
-                    newEvents[index] = event;
-                } else {
-                    // 存在しないものは追加
+                const index = newEvents.findIndex(ne => ne.dataSourceId === event.dataSourceId);
+                if (index === -1) {
                     newEvents.push(event);
+                } else {
+                    newEvents[index] = event;
                 }
-            })
+            });
             state.events = newEvents;
         })
         .addCase(loadCategories.fulfilled, (state, action) => {
@@ -199,19 +193,9 @@ const dataSlice = createSlice({
             }
             state.itemMap = itemMap;
 
-            // eventから除去
-            state.events = state.events.filter(event => {
-                return !isEqualId(event.content_id, action.payload.id);
-            });
+            // eventから除去 TODO: サーバーから再取得
 
-            // categoryから除去
-            state.categories = state.categories.map(category => {
-                return Object.assign({}, category, {
-                    content_ids: category.content_ids.filter(content_id => {
-                        return !isEqualId(content_id, action.payload.id);
-                    })
-                });
-            }).filter(category => category.content_ids.length > 0);
+            // categoryから除去 TODO: サーバーから再取得
         })
       },
 })

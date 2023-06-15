@@ -1,7 +1,7 @@
-import { CategoryDefine, ContentsDefine, DataId, DataSourceKindType, DataSourceLinkableContent, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, ServerConfig, UnpointContent } from "279map-backend-common";
+import { CategoryDefine, ContentsDefine, DataId, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, ServerConfig, UnpointContent } from "279map-common";
 import { GeoJsonObject } from "geojson";
-import { APIDefine, ContentAttr, SnsPreviewPost, MapDefine } from '279map-backend-common';
-import { FilterDefine, DataSourceGroup } from "279map-backend-common";
+import { APIDefine, ContentAttr, SnsPreviewPost, MapDefine } from '279map-common';
+import { FilterDefine, DataSourceGroup } from "279map-common";
 
 /**
  * get common config
@@ -106,9 +106,7 @@ export const GetEventsAPI = {
 export type GetEventParam = {
     dataSourceIds?: string[];   // 指定されている場合、指定のデータソースのイベントのみ返す
 }
-export type GetEventsResult = {
-    events: EventDefine[],
-};
+export type GetEventsResult = EventDefine[];
 
 /**
  * get items

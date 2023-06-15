@@ -1,7 +1,7 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import { isEqualId } from './dataUtility';
 import { CategoryDefine, ContentsDefine, DataId, EventDefine, ItemDefine } from '279map-common';
-import { GetCategoryAPI, GetContentsParam, GetEventsAPI, GetItemsAPI, GetItemsParam, GetOriginalIconDefineAPI, GetOriginalIconDefineResult, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from 'tsunagumap-api';
+import { GetCategoryAPI, GetContentsParam, GetEventsAPI, GetItemsAPI, GetItemsParam, GetEventsResult, GetOriginalIconDefineAPI, GetOriginalIconDefineResult, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from 'tsunagumap-api';
 import { getAPICallerInstance } from '../../api/ApiCaller';
 import { RootState } from '../configureStore';
 
@@ -18,7 +18,7 @@ export const loadOriginalIconDefine = createAsyncThunk<GetOriginalIconDefineResu
     }
 );
 // イベント情報ロード
-export const loadEvents = createAsyncThunk<EventDefine[]>(
+export const loadEvents = createAsyncThunk<GetEventsResult>(
     'data/loadEventsStatus',
     async(_, { rejectWithValue, getState }) => {
         try {
@@ -36,7 +36,7 @@ export const loadEvents = createAsyncThunk<EventDefine[]>(
                 dataSourceIds: targetDataSourceIds,
             });
 
-            return apiResult.events;
+            return apiResult;
     
         } catch (e) {
             console.warn('loadEvents error', e);
