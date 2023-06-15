@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { Modal }  from '../common';
 import { loadContents } from '../../store/data/dataThunk';
@@ -12,6 +12,8 @@ import styles from './ContentsModal.module.scss';
 import { getMapKey } from '../../store/data/dataUtility';
 import { isEqualId } from '../../store/data/dataUtility';
 import { useMounted } from '../../util/useMounted';
+import { useProcessMessage } from '../common/spinner/useProcessMessage';
+import { useWatch } from '../../util/useWatch';
 
 type Target = {
     type: 'item';
@@ -47,7 +49,8 @@ export default function ContentsModal() {
         }
     });
 
-    useEffect(() => {
+    const { showProcessMessage, hideProcessMessage} = useProcessMessage();
+    useWatch(() => {
         if (!target) return;
 
         if (target.type === 'item') {
@@ -61,6 +64,10 @@ export default function ContentsModal() {
             setShow(true);
     
             // 最新コンテンツ取得
+            const h = showProcessMessage({
+                overlay: true,
+                spinner: true,
+            });
             dispatch(loadContents({
                 targets: [
                     {
@@ -69,6 +76,7 @@ export default function ContentsModal() {
                 ],
             })).finally(() => {
                 setLoaded(true);
+                hideProcessMessage(h);
             });
         } else {
             setLoaded(false);
@@ -87,7 +95,7 @@ export default function ContentsModal() {
 
         }
 
-    }, [target, itemMap, dispatch]);
+    }, [target, itemMap]);
 
     const contents = useSelector((state: RootState): ContentsDefine[] => {
         if (!target) return [];

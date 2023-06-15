@@ -1,9 +1,11 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/configureStore';
 import { DataId } from '279map-common';
 import { GetThumbAPI } from 'tsunagumap-api';
 import { useMap } from '../../map/useMap';
+import { useWatch } from '../../../util/useWatch';
+import Spinner from '../spinner/Spinner';
 
 type Props = {
     id: DataId; // サムネイル画像id（コンテンツID）
@@ -27,11 +29,12 @@ export default function MyThumbnail(props: Props) {
         return state.session.connectStatus.sid;
     });
     const { getApi } = useMap();
+    const [ loaded, setLoaded ] = useState(false);
 
     /**
      * 画像取得
      */
-    useEffect(() => {
+    useWatch(() => {
         if (!sid) return;
         getApi().callApi(GetThumbAPI, {
             id: props.id.id,
@@ -41,11 +44,16 @@ export default function MyThumbnail(props: Props) {
             }
         }).catch(e => {
             console.warn('get thumbnail failed.', e);
+        }).finally(() => {
+            setLoaded(true);
         });
 
-    }, [getApi, sid, props.id.id]);
+    }, [sid, props.id.id]);
 
     return (
-        <img ref={myRef} className={props.className} onClick={props.onClick} alt={props.alt} />
+        <>
+            <img ref={myRef} style={{visibility: loaded ? 'visible' : 'hidden'}} className={props.className} onClick={props.onClick} alt={props.alt} />
+            {!loaded && <Spinner/> }
+        </>
     );
 }
