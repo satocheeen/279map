@@ -91,9 +91,7 @@ export const GetCategoryAPI = {
 export type GetCategoryParam = {
     dataSourceIds?: string[];   // 指定されている場合、指定のデータソースのイベントのみ返す
 }
-export type GetCategoryResult = {
-    categories: CategoryDefine[];
-};
+export type GetCategoryResult = CategoryDefine[];
 
 /**
  * get events

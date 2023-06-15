@@ -15,8 +15,8 @@ export default function useCategory() {
      */
     const categories = useMemo(() => {
         return originalCategories.filter(category => {
-            const isVisibleContent = category.content_ids.some(contentId => {
-                return visibleDataSourceIds.includes(contentId.dataSourceId);
+            const isVisibleContent = category.dataSourceIds.some(dataSourceId => {
+                return visibleDataSourceIds.includes(dataSourceId);
             });
             return isVisibleContent;
         });

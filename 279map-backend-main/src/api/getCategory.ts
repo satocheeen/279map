@@ -1,10 +1,9 @@
 import randomColor from "randomcolor";
 import { ConnectionPool } from "..";
-import { CurrentMap, schema } from "279map-backend-common";
+import { CurrentMap } from "279map-backend-common";
 import { GetCategoryParam, GetCategoryResult } from "../../279map-api-interface/src";
 import { CategoryDefine } from "279map-backend-common";
 import { getLogger } from "log4js";
-import { PoolConnection } from "mysql2/promise";
 
 const apiLogger = getLogger('api');
 
@@ -24,58 +23,19 @@ export async function getCategory(param: GetCategoryParam, currentMap: CurrentMa
 
     try {
         // コンテンツで使用されているカテゴリを取得
-        const records = await getContentsHavingCategory(con, mapPageId, param.dataSourceIds);
+        const records = await getAllCategories(currentMap, param.dataSourceIds);
         const categoryMap = new Map<string, CategoryDefine>();
         records.forEach((row) => {
             const categories = (row.category ?? []) as string[];
             categories.forEach(category => {
-                if (categoryMap.has(category)) {
-                    categoryMap.get(category)?.content_ids.push({
-                        id: row.content_page_id,
-                        dataSourceId: row.data_source_id,
-                    });
-                } else {
-                    const def = {
+                if (!categoryMap.has(category)) {
+                    categoryMap.set(category, {
                         name: category,
                         color: '',
-                        content_ids: [{
-                            id: row.content_page_id,
-                            dataSourceId: row.data_source_id,
-                        }],
-                        using: false,
-                    } as CategoryDefine;
-                    categoryMap.set(category, def);
+                        dataSourceIds: []
+                    });
                 }
-            })
-        });
-
-        // 指定地図種別上のアイテムで使われているものを取得
-        const itemSql = `
-            select c.* from contents c 
-            inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
-            where category is not NULL and mdl.map_page_id = ?
-            ${param.dataSourceIds ? 'and c.data_source_id in (?)' : ''}
-            and exists (
-                select icl.* from item_content_link icl 
-                inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id 
-                inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
-                where icl.content_page_id = c.content_page_id and icl.content_datasource_id  = c.data_source_id
-                and category is not NULL 
-                and mdl.map_page_id = ? and i.map_kind = ?
-            )
-        `;
-        const params = param.dataSourceIds ? [mapPageId, param.dataSourceIds, mapPageId, mapKind] : [mapPageId, mapPageId, mapKind];
-        const query = con.format(itemSql, params);
-        const [itemSqlRows] = await con.execute(query);
-        (itemSqlRows as schema.ContentsTable[]).forEach((row) => {
-            const categories = (row.category ?? []) as string[];
-            categories.forEach(category => {
-                const target = categoryMap.get(category)
-                if (!target) {
-                    apiLogger.warn('想定外', category);
-                    return;
-                }
-                target.using = true;
+                categoryMap.get(category)?.dataSourceIds.push(row.data_source_id);
             })
         });
 
@@ -90,9 +50,7 @@ export async function getCategory(param: GetCategoryParam, currentMap: CurrentMa
             category.color = colors[index];
         });
 
-        return {
-            categories,
-        };
+        return categories;
         
     } catch(e) {
         throw 'getCategory error' + e;
@@ -103,19 +61,49 @@ export async function getCategory(param: GetCategoryParam, currentMap: CurrentMa
     }
 }
 
-async function getContentsHavingCategory(con: PoolConnection, mapId: string, dataSourceIds?: string[]): Promise<schema.ContentsTable[]> {
-    const sql = `
-        select c.* from contents c 
-        inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
-        where category is not NULL and mdl.map_page_id = ?
-        ${dataSourceIds ? 'and c.data_source_id in (?)' : ''}
-    `;
+type CategoryResult = {
+    data_source_id: string;
+    category: string[];
+}
 
-    const params = [mapId] as any[];
-    if (dataSourceIds) {
-        params.push(dataSourceIds);
+async function getAllCategories(currentMap: CurrentMap, dataSourceIds?: string[]): Promise<CategoryResult[]> {
+    const con = await ConnectionPool.getConnection();
+
+    try {
+        await con.beginTransaction();
+
+        const sql = `
+        select distinct c.data_source_id, c.category from contents c
+        inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
+        inner join item_content_link icl on icl.content_page_id = c.content_page_id and icl.content_datasource_id = c.data_source_id 
+        inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id
+        where category is not null and mdl.map_page_id = ? and i.map_kind = ?
+        ${dataSourceIds ? 'and c.data_source_id in (?)' : ''}
+        union distinct 
+        select distinct icl.item_datasource_id as data_source_id, c.category from contents c 
+        inner join item_content_link icl on icl.content_page_id = c.content_page_id and icl.content_datasource_id = c.data_source_id 
+        inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id
+        inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
+        where category is not null and mdl.map_page_id = ? and i.map_kind = ?
+        ${dataSourceIds ? 'and icl.item_datasource_id in (?)' : ''}
+        `;
+    
+        const params = dataSourceIds ?
+                            [currentMap.mapId, currentMap.mapKind, dataSourceIds, currentMap.mapId, currentMap.mapKind, dataSourceIds]
+                             : [currentMap.mapId, currentMap.mapKind, currentMap.mapId, currentMap.mapKind];
+        const query = con.format(sql, params);
+        const [rows] = await con.execute(query);
+
+        await con.commit();
+
+        return (rows as CategoryResult[]);
+    
+    } catch(e) {
+        apiLogger.warn('get dates failed.', e);
+        await con.rollback();
+        throw new Error('get dates failed');
+
+    } finally {
+        con.release();
     }
-    const query = con.format(sql, params);
-    const [rows] = await con.execute(query);
-    return (rows as schema.ContentsTable[]);
 }

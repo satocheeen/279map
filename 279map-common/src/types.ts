@@ -177,7 +177,7 @@ export type ContentsDefine = {
 export type CategoryDefine = {
     name: string;
     color: string;
-    dataSourceIds: string[];    // カテゴリが使用されているデータソースID一覧。例えば、現在表示中の地図がRealで、Virtualでは使われているけれど、Realでは使われていないカテゴリの場合には、この配列は0件になる。
+    dataSourceIds: string[];    // カテゴリが使用されているデータソースID一覧
 }
 /**
  * データソース単位のイベント情報

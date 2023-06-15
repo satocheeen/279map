@@ -1,6 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import { isEqualId } from './dataUtility';
-import { CategoryDefine, ContentsDefine, DataId, EventDefine, ItemDefine } from '279map-common';
+import { CategoryDefine, ContentsDefine, DataId, ItemDefine } from '279map-common';
 import { GetCategoryAPI, GetContentsParam, GetEventsAPI, GetItemsAPI, GetItemsParam, GetEventsResult, GetOriginalIconDefineAPI, GetOriginalIconDefineResult, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from 'tsunagumap-api';
 import { getAPICallerInstance } from '../../api/ApiCaller';
 import { RootState } from '../configureStore';
@@ -61,7 +61,7 @@ export const loadCategories = createAsyncThunk<CategoryDefine[]>(
                 dataSourceIds: targetDataSourceIds,
             });
 
-            return apiResult.categories;
+            return apiResult;
     
         } catch (e) {
             console.warn('loadEvents error', e);
