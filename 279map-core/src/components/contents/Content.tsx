@@ -326,7 +326,7 @@ export default function Content(props: Props) {
                 {
                     props.content.image &&
                         <div className={styles.ImageContainer}>
-                            <MyThumbnail className={styles.Image} id={props.content.id} onClick={onImageClick} alt="contents"/>
+                            <MyThumbnail mode='original' className={styles.Image} id={props.content.id} onClick={onImageClick} alt="contents"/>
                         </div>
                 }
                 {

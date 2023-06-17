@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/configureStore';
 import { DataId } from '279map-common';
-import { GetThumbAPI } from 'tsunagumap-api';
+import { GetImageUrlAPI, GetThumbAPI } from 'tsunagumap-api';
 import { useMap } from '../../map/useMap';
 import { useWatch } from '../../../util/useWatch';
 import Spinner from '../spinner/Spinner';
@@ -12,6 +12,7 @@ type Props = {
     className?: string;
     onClick?: () => void;
     alt: string;
+    mode: 'thumb' | 'original'; // thumb->サムネイル画像を表示、original->オリジナル画像を表示
 }
 
 /**
@@ -36,17 +37,34 @@ export default function MyThumbnail(props: Props) {
      */
     useWatch(() => {
         if (!sid) return;
-        getApi().callApi(GetThumbAPI, {
-            id: props.id.id,
-        }).then((imgData) => {
-            if (myRef.current) {
-                myRef.current.src = URL.createObjectURL(imgData);            
-            }
-        }).catch(e => {
-            console.warn('get thumbnail failed.', e);
-        }).finally(() => {
-            setLoaded(true);
-        });
+
+        if (props.mode === 'thumb') {
+            getApi().callApi(GetThumbAPI, {
+                id: props.id.id,
+            }).then((imgData) => {
+                if (myRef.current) {
+                    myRef.current.src = URL.createObjectURL(imgData);            
+                }
+            }).catch(e => {
+                console.warn('get thumbnail failed.', e);
+            }).finally(() => {
+                setLoaded(true);
+            });
+    
+        } else {
+            getApi().callApi(GetImageUrlAPI, {
+                id: props.id,
+            }).then((imageUrl) => {
+                if (myRef.current && imageUrl) {
+                    myRef.current.src = imageUrl;
+                }
+            }).catch(e => {
+                console.warn('get thumbnail failed.', e);
+            }).finally(() => {
+                setLoaded(true);
+            });
+
+        }
 
     }, [sid, props.id.id]);
 
