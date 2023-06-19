@@ -9,6 +9,7 @@ import ContentsModal from '../contents/ContentsModal';
 import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
 import { AddNewContentParam, EditContentParam, LinkUnpointContentParam, TsunaguMapHandler, TsunaguMapProps } from '../../types/types';
 import DefaultComponents from '../default/DefaultComponents';
+import { useMounted } from '../../util/useMounted';
 
 type SomeRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 type OwnerContextType = SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'> & {
@@ -54,6 +55,16 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
             onLinkUnpointedContent: props.onLinkUnpointedContent ?? function(param: LinkUnpointContentParam){setDefaultLinkUnpointedContentParam(param)},
         })
     }, [props, mapInstanceId]);
+
+    useMounted(() => {
+        // 呼び出し元がJavaScriptの場合を考慮して、必須パラメータチェック
+        if (!props.mapId) {
+            throw new Error('mapId not found in TsunaguMap props');
+        }
+        if (!props.mapServer) {
+            throw new Error('mapServer not found in TsunaguMap props');
+        }
+    })
 
     const mapRef = useRef<TsunaguMapHandler>(null);
     useImperativeHandle(ref, () => mapRef.current ?? {
