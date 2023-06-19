@@ -226,21 +226,14 @@ export default function MapChart() {
         mapRef.current?.changeDevice(isPC ? 'pc' : 'sp');
     }, [isPC]);
 
-    const { disabledContentDialog } = useContext(OwnerContext);
     const onSelectItem = useCallback((feature: DataId | undefined) => {
         if (!feature) {
             dispatch(operationActions.unselectItem());
         } else {
             dispatch(operationActions.setSelectItem([feature]));
-            // 詳細ダイアログ表示
-            if (disabledContentDialog) return;
-            doCommand({
-                command: 'ShowItemInfo',
-                param: feature,
-            });
         }
 
-    }, [dispatch, disabledContentDialog]);
+    }, [dispatch]);
 
     /**
      * 地図が切り替わったら、レイヤ再配置

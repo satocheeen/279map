@@ -341,9 +341,17 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
      * 選択アイテムが変更されたらコールバック
      */
     const selectedItemIds = useSelector((state: RootState) => state.operation.selectedItemIds);
-    useEffect(() => {
+    const { disabledContentDialog } = useContext(OwnerContext);
+    useWatch(() => {
         if (onSelectRef.current) {
             onSelectRef.current(selectedItemIds);
+        }
+        if (selectedItemIds.length === 1 && !disabledContentDialog) {
+            // 詳細ダイアログ表示
+            doCommand({
+                command: 'ShowItemInfo',
+                param: selectedItemIds[0],
+            });
         }
     }, [selectedItemIds]);
 

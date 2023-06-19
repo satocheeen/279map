@@ -1,4 +1,4 @@
-import React, { useContext, useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState, useAppDispatch } from "../../store/configureStore";
 import styles from './PointsPopup.module.scss';
@@ -12,8 +12,6 @@ import { getMapKey, isEqualId } from "../../store/data/dataUtility";
 import MyThumbnail from "../common/image/MyThumbnail";
 import { BsThreeDots } from 'react-icons/bs';
 import { useMapOptions } from "../../util/useMapOptions";
-import { doCommand } from "../../util/Commander";
-import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 
 type Props = {
     // このポップアップにて情報表示する対象アイテム
@@ -120,21 +118,14 @@ export default function PointsPopup(props: Props) {
 
     const dispatch = useAppDispatch();
     const [showSelectDialog, setShowSelectDialog] = useState(false);
-    const { disabledContentDialog } = useContext(OwnerContext);
     const onClick = useCallback(() => {
         if (props.itemIds.length === 1) {
             dispatch(operationActions.setSelectItem([props.itemIds[0]]));
-            // 詳細ダイアログ表示
-            if (disabledContentDialog) return;
-            doCommand({
-                command: 'ShowItemInfo',
-                param: props.itemIds[0],
-            });
             return;
         }
         // 対象が２つ以上ある場合は、選択ダイアログを表示
         setShowSelectDialog(true);
-    }, [dispatch, props.itemIds, disabledContentDialog]);
+    }, [dispatch, props.itemIds]);
 
     const onSelectContentDialogCancel = useCallback(() => {
         setShowSelectDialog(false);

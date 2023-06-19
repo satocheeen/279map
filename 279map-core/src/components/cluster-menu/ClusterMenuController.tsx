@@ -21,7 +21,7 @@ type Props = {
     targets?: FeatureType[];
 
     // callback when user select an item.
-    onSelect?: (id: DataId | undefined) => void;
+    onSelect: (id: DataId | undefined) => void;
 }
 type ClusterMenuTarget = {
     position: Coordinate;
@@ -115,9 +115,7 @@ export default function ClusterMenuController(props: Props) {
             const pointIds = getSelectableFeatures(evt);
 
             if (pointIds.length === 0) {
-                if (props.onSelect) {
-                    props.onSelect(undefined);
-                }
+                props.onSelect(undefined);
                 return;
             }
 
@@ -132,9 +130,7 @@ export default function ClusterMenuController(props: Props) {
                     });
                     return;
                 }
-                if (props.onSelect) {
-                    props.onSelect(pointIds[0].id);
-                } 
+                props.onSelect(pointIds[0].id);
             } else if (!onClick) {
                 // onClick指定時は、重畳選択メニューは表示しない
                 setClusterMenuInfo({
@@ -175,7 +171,7 @@ export default function ClusterMenuController(props: Props) {
      */
     const onClusterMenuSelected = useCallback((id: DataId) => {
         const target = clusterMenuInfo?.targets.find(target => isEqualId(target, id));
-        if (target && props.onSelect) {
+        if (target) {
             props.onSelect(target);
         }
         setClusterMenuInfo(null);

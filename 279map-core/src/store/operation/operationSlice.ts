@@ -58,9 +58,6 @@ const operationSlice = createSlice({
     },
     reducers: {
         setSelectItem(state, action: PayloadAction<DataId[]>) {
-            if (JSON.stringify(state.selectedItemIds) === JSON.stringify(action.payload)) {
-                return;
-            }
             state.selectedItemIds = action.payload;
         },
         unselectItem(state) {

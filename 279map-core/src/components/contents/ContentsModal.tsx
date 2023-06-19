@@ -4,7 +4,6 @@ import { Modal }  from '../common';
 import { loadContents } from '../../store/data/dataThunk';
 import Content from './Content';
 import { useSelector } from 'react-redux';
-import { operationActions } from '../../store/operation/operationSlice';
 import { addListener, removeListener } from '../../util/Commander';
 import { ContentsDefine, DataId } from '279map-common';
 import AddContentMenu from '../popup/AddContentMenu';
@@ -121,9 +120,8 @@ export default function ContentsModal() {
     }, []);
 
     const onClosed = useCallback(() => {
-        dispatch(operationActions.unselectItem());
         setTarget(undefined);
-    }, [dispatch]);
+    }, []);
 
     if (contents.length === 0) {
         return null;
