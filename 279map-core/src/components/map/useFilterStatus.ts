@@ -27,6 +27,7 @@ export default function useFilterStatus() {
      * @return 強調表示色。強調しない場合は、undefined。
      */
     const getForceColor = useCallback((feature: FeatureLike): string | undefined => {
+        // 選択されているものは強調表示
         if (selectedItemIds.some(itemId => {
             const id = convertDataIdFromFeatureId(feature.getId() as string);
             return isEqualId(id, itemId);
@@ -40,7 +41,8 @@ export default function useFilterStatus() {
         }
     
         // カテゴリフィルタにヒットした場合、フィルタしたカテゴリの色で表示する
-        return FORCE_COLOR;
+        // →カテゴリ対象外のものを半透明or非表示にすることにしたので、特に強調色はつけないように変更 2023/6/19
+
         // if (filterStatus.filter.type === 'category') {
         //     const categoryDef = categoryMap.get(filterStatus.filter.categoryName);
         //     return categoryDef?.color;
