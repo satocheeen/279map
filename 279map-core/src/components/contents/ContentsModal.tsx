@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { Modal }  from '../common';
 import { loadContents } from '../../store/data/dataThunk';
@@ -115,6 +115,22 @@ export default function ContentsModal() {
         });
     })
 
+    const title = useSelector((state: RootState) => {
+        if (!target) return '';
+        let itemId: DataId;
+        if (target.type === 'item') {
+            itemId = target.itemId;
+        } else {
+            const content = state.data.contentsList.find(c => isEqualId(c.id, target.contentId));
+            if (!content) return '';
+            itemId = content.itemId;
+        }
+
+        const item = state.data.itemMap[getMapKey(itemId)];
+        if (!item) return '';
+        return item.name;
+    });
+
     const onCloseBtnClicked = useCallback(() => {
         setShow(false);
     }, []);
@@ -134,7 +150,7 @@ export default function ContentsModal() {
             >
             <Modal.Header>
                 <div className={styles.ItemHeader}>
-                    詳細
+                    {title}
                     {target?.type === 'item' &&
                     <AddContentMenu target={{itemId: target.itemId}} />
                 }
