@@ -1,4 +1,4 @@
-import { DataId } from "279map-common";
+import { DataId, ItemDefine } from "279map-common";
 import Feature from 'ol/Feature';
 import { GeolibInputCoordinates } from 'geolib/es/types';
 import { LayerType } from "../TsunaguMap/VectorLayerMap";
@@ -12,12 +12,16 @@ import { Extent, containsExtent } from "ol/extent";
 type PopupGroup = {
     mainFeature: Feature;
     itemIds: DataId[];  // ポップアップに紐づくアイテムID一覧
+    hasImage: boolean;
 }
 
 export type PopupGroupWithPosition = {
     itemPositions: GeolibInputCoordinates[];    // ポップアップ表示位置
     itemIds: DataId[];  // ポップアップに紐づくアイテムID一覧
 }
+
+// 最大表示ポップアップ数（数が多いと見づらいので）
+const MAX_POPUP_GROUP_NUM = 20;
 
 /**
  * ポップアップ表示に関する以下を行うクラス
@@ -27,15 +31,15 @@ export type PopupGroupWithPosition = {
 export default class PopupContainerCalculator {
     _map: OlMapType;
     _extent: Extent;
-    _hasContentsItemIdList: DataId[] = [];
+    _hasContentsItemList: ItemDefine[] = [];
 
     constructor(map: OlMapType, extent: Extent) {
         this._map = map;
         this._extent = extent;
     }
 
-    setHasContentsItemIdList(list: DataId[]) {
-        this._hasContentsItemIdList = list;
+    setHasContentsItemIdList(list: ItemDefine[]) {
+        this._hasContentsItemList = list;
     }
 
     /**
@@ -57,8 +61,17 @@ export default class PopupContainerCalculator {
     _makePopupGroups(): PopupGroup[] {
         const itemPopupInfos = this._makeItemPopupGroups();
         const areaPopupInfos = this._makeAreaPopupGroups();
-        const infos = itemPopupInfos.concat(areaPopupInfos);
-        return infos;
+        let infos = itemPopupInfos.concat(areaPopupInfos);
+        if (infos.length <= MAX_POPUP_GROUP_NUM) {
+            return infos;
+        }
+        // 数が多い場合は絞る
+        infos = infos.filter(info => info.hasImage);
+        if (infos.length <= MAX_POPUP_GROUP_NUM) {
+            return infos;
+        }
+        
+        return [];
     }
 
     /**
@@ -72,28 +85,30 @@ export default class PopupContainerCalculator {
     
         const popupInfoList = [] as PopupGroup[];
         itemSources.forEach(itemSource => {
-            itemSource.getFeatures().forEach(feature => {
+            // 現在の表示範囲内のアイテムに絞る
+            itemSource.getFeaturesInExtent(this._extent).forEach(feature => {
                 const features = feature.get('features') as Feature[];
     
-                // 現在の表示範囲内のアイテムに絞る
-                const itemIds = features.filter(f => {
-                    const featureExtent = f.getGeometry()?.getExtent();
-                    if (!featureExtent) return false;
-                    return containsExtent(this._extent, featureExtent);
                 // コンテンツを持つアイテムに絞る
-                }).map((f): DataId => {
+                const itemIds = features.map((f): DataId => {
                     const id = convertDataIdFromFeatureId(f.getId() as string);
                     return id;
                 }).filter(id => {
-                    return this._hasContentsItemIdList.some(item => isEqualId(item, id));
+                    return this._hasContentsItemList.some(item => isEqualId(item.id, id));
                 });
                 if (itemIds.length === 0) {
                     return;
                 }
+
+                const hasImage = itemIds.some(itemId => {
+                    const target = this._hasContentsItemList.find(item => isEqualId(itemId, item.id));
+                    return target?.contents.some(c => c.hasImage);
+                });
     
                 popupInfoList.push({
                     mainFeature: features[0],
                     itemIds,
+                    hasImage,
                 })
             });
         });
@@ -109,22 +124,22 @@ export default class PopupContainerCalculator {
         if (areaSources.length === 0) return [];
         const popupInfoList = [] as PopupGroup[]; 
         areaSources.forEach(source => {
-            source.getFeatures().forEach(feature => {
-                // 現在の表示範囲内のアイテムに絞る
-                const featureExtent = feature.getGeometry()?.getExtent();
-                if (!featureExtent) return;
-                const isContain = containsExtent(this._extent, featureExtent);
-                if (!isContain) return;
+            // 現在の表示範囲内のアイテムに絞る
+            source.getFeaturesInExtent(this._extent).forEach(feature => {
 
-            // コンテンツを持つアイテムに絞る
+                // コンテンツを持つアイテムに絞る
                 const id = convertDataIdFromFeatureId(feature.getId() as string);
-                if (!this._hasContentsItemIdList.some(item => isEqualId(item, id))) {
+                if (!this._hasContentsItemList.some(item => isEqualId(item.id, id))) {
                     return;
                 }
+
+                const item = this._hasContentsItemList.find(item => isEqualId(id, item.id));
+                const hasImage = item?.contents.some(c => c.hasImage) ?? false;
 
                 popupInfoList.push({
                     mainFeature: feature,
                     itemIds: [id],
+                    hasImage,
                 })
             });
         })

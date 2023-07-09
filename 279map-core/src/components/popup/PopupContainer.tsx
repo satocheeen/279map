@@ -36,7 +36,7 @@ export default function PopupContainer() {
     const { filteredItemIdList } = useFilter();
 
     // コンテンツを持つアイテムID一覧
-    const hasContentsItemIdList = useMemo(() => {
+    const hasContentsItemList = useMemo(() => {
         if (popupMode === 'hidden') {
             return [];
         }
@@ -46,11 +46,11 @@ export default function PopupContainer() {
             // 非表示のものは無視する
             return isVisibleDataSource(item.id.dataSourceId);
 
-        }).map(item => item.id)
-        .filter(itemId => {
+        })
+        .filter(item => {
             // フィルタが掛かっている場合は条件外のものは除外する
             if (!filteredItemIdList) return true;
-            return filteredItemIdList.some(filteredItemId => isEqualId(filteredItemId, itemId));
+            return filteredItemIdList.some(filteredItemId => isEqualId(filteredItemId, item.id));
         });
         return list;
     }, [itemMap, popupMode, isVisibleDataSource, filteredItemIdList]);
@@ -66,11 +66,12 @@ export default function PopupContainer() {
         const map = getMap();
         if (!map) return;
         const calculator = new PopupContainerCalculator(map, extent);
-        calculator.setHasContentsItemIdList(hasContentsItemIdList);
+        calculator.setHasContentsItemIdList(hasContentsItemList);
         const popupGroups = await calculator.calculatePopupGroup();
+        console.log('popupGroups', popupGroups);
         setPopupGroups(popupGroups);
 
-    }, [getMap, hasContentsItemIdList, extent]);
+    }, [getMap, hasContentsItemList, extent]);
 
     /**
      * 初期化処理。
@@ -109,7 +110,7 @@ export default function PopupContainer() {
      */
     useWatch(() => {
         updatePopupGroups();
-    }, [hasContentsItemIdList, extent]);
+    }, [hasContentsItemList, extent]);
 
     // 開閉時に、zIndexを最前面に
     useEffect(() => {
