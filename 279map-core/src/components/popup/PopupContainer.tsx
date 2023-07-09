@@ -68,7 +68,6 @@ export default function PopupContainer() {
         const calculator = new PopupContainerCalculator(map, extent);
         calculator.setHasContentsItemIdList(hasContentsItemList);
         const popupGroups = await calculator.calculatePopupGroup();
-        console.log('popupGroups', popupGroups);
         setPopupGroups(popupGroups);
 
     }, [getMap, hasContentsItemList, extent]);

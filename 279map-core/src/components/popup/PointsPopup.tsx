@@ -109,6 +109,7 @@ export default function PointsPopup(props: Props) {
     }, [target, filteredContentIdList, popupMode]);
 
     // このアイテムの中に含まれるコンテンツの総数
+    // （吹き出しに表示していたが、わからいので、現在は未使用）
     const contentsNum = useMemo(() => {
         return props.itemIds.reduce((acc, cur) => {
             const descendants = getDescendantContentsIdList(cur, true);
@@ -153,9 +154,9 @@ export default function PointsPopup(props: Props) {
                         </div>
                     }
                 </div>
-                {props.itemIds.length > 1 &&
+                {/* {props.itemIds.length > 1 &&
                     <div className={styles.Number}>{contentsNum}</div>
-                }
+                } */}
             </div>
             {showSelectDialog &&
                 <SelectContentDialog itemIds={props.itemIds}
