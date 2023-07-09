@@ -7,6 +7,7 @@ import { OlMapType } from "../TsunaguMap/OlMapWrapper";
 import { convertDataIdFromFeatureId, isEqualId } from "../../store/data/dataUtility";
 import { getFeatureCenter } from "../../util/MapUtility";
 import Style from "ol/style/Style";
+import { Extent, containsExtent } from "ol/extent";
 
 type PopupGroup = {
     mainFeature: Feature;
@@ -18,12 +19,19 @@ export type PopupGroupWithPosition = {
     itemIds: DataId[];  // ポップアップに紐づくアイテムID一覧
 }
 
+/**
+ * ポップアップ表示に関する以下を行うクラス
+ * - ポップアップ表示対象を抽出してグルーピング
+ * - ポップアップの表示位置を算出して付与
+ */
 export default class PopupContainerCalculator {
     _map: OlMapType;
+    _extent: Extent;
     _hasContentsItemIdList: DataId[] = [];
 
-    constructor(map: OlMapType) {
+    constructor(map: OlMapType, extent: Extent) {
         this._map = map;
+        this._extent = extent;
     }
 
     setHasContentsItemIdList(list: DataId[]) {
@@ -67,8 +75,13 @@ export default class PopupContainerCalculator {
             itemSource.getFeatures().forEach(feature => {
                 const features = feature.get('features') as Feature[];
     
+                // 現在の表示範囲内のアイテムに絞る
+                const itemIds = features.filter(f => {
+                    const featureExtent = f.getGeometry()?.getExtent();
+                    if (!featureExtent) return false;
+                    return containsExtent(this._extent, featureExtent);
                 // コンテンツを持つアイテムに絞る
-                const itemIds = features.map((f): DataId => {
+                }).map((f): DataId => {
                     const id = convertDataIdFromFeatureId(f.getId() as string);
                     return id;
                 }).filter(id => {

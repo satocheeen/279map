@@ -25,6 +25,7 @@ export default function PopupContainer() {
     const overlayRefMap = useRef<{ [key: string]: Overlay }>({});
 
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
+    const extent = useSelector((state: RootState) => state.operation.mapView.extent);
 
     const { popupMode } = useMapOptions();
     
@@ -64,12 +65,12 @@ export default function PopupContainer() {
     const updatePopupGroups = useCallback(async() => {
         const map = getMap();
         if (!map) return;
-        const calculator = new PopupContainerCalculator(map);
+        const calculator = new PopupContainerCalculator(map, extent);
         calculator.setHasContentsItemIdList(hasContentsItemIdList);
         const popupGroups = await calculator.calculatePopupGroup();
         setPopupGroups(popupGroups);
 
-    }, [getMap, hasContentsItemIdList]);
+    }, [getMap, hasContentsItemIdList, extent]);
 
     /**
      * 初期化処理。
@@ -104,11 +105,11 @@ export default function PopupContainer() {
     }, [getMap, updatePopupGroups]);
 
     /**
-     * 表示対象コンテンツが変わった契機でポップアップ情報更新
+     * 表示対象コンテンツや表示エクステントが変わった契機でポップアップ情報更新
      */
     useWatch(() => {
         updatePopupGroups();
-    }, [hasContentsItemIdList]);
+    }, [hasContentsItemIdList, extent]);
 
     // 開閉時に、zIndexを最前面に
     useEffect(() => {
