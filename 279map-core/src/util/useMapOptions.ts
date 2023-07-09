@@ -20,8 +20,8 @@ export function useMapOptions() {
     })
 
     const popupMode = useMemo((): TsunaguMapProps['popupMode'] => {
-        // 優先順位：地図に対するオプション指定→呼び出し元から指定された値
-        let mode = options?.popupMode ?? ownerContext.popupMode;
+        // 優先順位：呼び出し元から指定された値→地図に対するオプション指定→デフォルト値
+        let mode = ownerContext.popupMode ?? options?.popupMode;
 
         // 未指定の場合はデフォルト値
         if (!mode) {
