@@ -110,7 +110,13 @@ export default class PopupContainerCalculator {
         const popupInfoList = [] as PopupGroup[]; 
         areaSources.forEach(source => {
             source.getFeatures().forEach(feature => {
-                // コンテンツを持つアイテムに絞る
+                // 現在の表示範囲内のアイテムに絞る
+                const featureExtent = feature.getGeometry()?.getExtent();
+                if (!featureExtent) return;
+                const isContain = containsExtent(this._extent, featureExtent);
+                if (!isContain) return;
+
+            // コンテンツを持つアイテムに絞る
                 const id = convertDataIdFromFeatureId(feature.getId() as string);
                 if (!this._hasContentsItemIdList.some(item => isEqualId(item, id))) {
                     return;
