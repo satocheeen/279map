@@ -5,13 +5,14 @@ import styles from './PointsPopup.module.scss';
 import { useFilter } from "../../store/useFilter";
 import { ContentsDefine, DataId, ItemContentInfo, ItemDefine } from "279map-common";
 import { operationActions } from "../../store/operation/operationSlice";
-import SelectContentDialog from "./select-content/SelectContentDialog";
 import { useContents } from "../../store/useContents";
 import { MapMode } from "../../types/types";
 import { getMapKey, isEqualId } from "../../store/data/dataUtility";
 import MyThumbnail from "../common/image/MyThumbnail";
 import { BsThreeDots } from 'react-icons/bs';
 import { useMapOptions } from "../../util/useMapOptions";
+import { useMap } from "../map/useMap";
+import { doCommand } from "../../util/Commander";
 
 type Props = {
     // このポップアップにて情報表示する対象アイテム
@@ -36,6 +37,7 @@ function hasImageItem(item: ItemDefine): boolean {
 
 }
 export default function PointsPopup(props: Props) {
+    const { getMap } = useMap();
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
     const { filteredItemIdList, filteredContentIdList } = useFilter();
     const { getDescendantContentsIdList } = useContents();
@@ -118,19 +120,25 @@ export default function PointsPopup(props: Props) {
     }, [props.itemIds, getDescendantContentsIdList]);
 
     const dispatch = useAppDispatch();
-    const [showSelectDialog, setShowSelectDialog] = useState(false);
-    const onClick = useCallback(() => {
+    const onClick = useCallback((evt: React.MouseEvent) => {
         if (props.itemIds.length === 1) {
             dispatch(operationActions.setSelectItem([props.itemIds[0]]));
             return;
         }
-        // 対象が２つ以上ある場合は、選択ダイアログを表示
-        setShowSelectDialog(true);
-    }, [dispatch, props.itemIds]);
-
-    const onSelectContentDialogCancel = useCallback(() => {
-        setShowSelectDialog(false);
-    }, []);
+        // 対象が２つ以上ある場合は、重畳選択メニューを表示
+        const map = getMap();
+        const rect = map?.container.getBoundingClientRect();
+        const coordinate = map?.getCoordinateFromPixel([evt.clientX - (rect?.x ?? 0), evt.clientY - (rect?.y ?? 0)]);
+        if (coordinate) {
+            doCommand({
+                command: 'ShowClusterMenu',
+                param: {
+                    position: coordinate,
+                    targets: props.itemIds,
+                }
+            });
+        }
+    }, [dispatch, props.itemIds, getMap]);
 
     const mapMode = useSelector((state: RootState) => state.operation.mapMode);
 
@@ -158,10 +166,6 @@ export default function PointsPopup(props: Props) {
                     <div className={styles.Number}>{contentsNum}</div>
                 } */}
             </div>
-            {showSelectDialog &&
-                <SelectContentDialog itemIds={props.itemIds}
-                    onCancel={onSelectContentDialogCancel} />
-            }
         </>
     );
 }

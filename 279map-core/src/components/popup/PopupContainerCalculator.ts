@@ -7,7 +7,7 @@ import { OlMapType } from "../TsunaguMap/OlMapWrapper";
 import { convertDataIdFromFeatureId, isEqualId } from "../../store/data/dataUtility";
 import { getFeatureCenter } from "../../util/MapUtility";
 import Style from "ol/style/Style";
-import { Extent, containsExtent } from "ol/extent";
+import { Extent } from "ol/extent";
 
 type PopupGroup = {
     mainFeature: Feature;

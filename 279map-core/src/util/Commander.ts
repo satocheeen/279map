@@ -1,4 +1,5 @@
 import { DataId, FeatureType, MapKind } from "279map-common";
+import { Coordinate } from "ol/coordinate";
 
 /**
  * 特定の処理を突き放し実行するための仕組み
@@ -45,6 +46,8 @@ type CommandDefine =
     | TCommandDefine<'FocusItem', {itemId: DataId; zoom?: boolean}>
     // 地図種別を切り替える
     | TCommandDefine<'ChangeMapKind', MapKind>
+    // 重畳選択メニュー表示
+    | TCommandDefine<'ShowClusterMenu', {position: Coordinate; targets: DataId[]}>
     ;
 type TSubscription = CommandDefine['subscription'];
 type TCallback = TSubscription[1];

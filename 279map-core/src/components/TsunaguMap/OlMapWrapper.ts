@@ -99,6 +99,10 @@ class OlMapWrapper {
         this.changeDevice(device);
     }
 
+    get container() {
+        return this._map.getTarget() as HTMLDivElement;
+    }
+
     changeDevice(device: Device) {
         this._device = device;
 

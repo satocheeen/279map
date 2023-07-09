@@ -10,6 +10,7 @@ import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import { usePrevious } from '../../util/usePrevious';
 import { getMapKey, isEqualId } from '../../store/data/dataUtility';
 import { useMap } from '../map/useMap';
+import { addListener, removeListener } from '../../util/Commander';
 
 /**
  * 地図上のアイテムがクリックされた際に、
@@ -159,9 +160,15 @@ export default function ClusterMenuController(props: Props) {
         }
         map.on('pointermove', pointerMoveFunc);
 
+        // 外部コンポーネントから重畳選択メニュー表示命令された場合
+        const listenerH = addListener('ShowClusterMenu', async(param: {position: Coordinate; targets: DataId[]}) => {
+            setClusterMenuInfo(param);
+        })
+
         return () => {
             map.un('click', clickFunc);
             map.un('pointermove', pointerMoveFunc);
+            removeListener(listenerH);
         }
 
     }, [props, getSelectableFeatures, onClick, getMap]);
