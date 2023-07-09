@@ -11,6 +11,7 @@ import { getMapKey } from '../../store/data/dataUtility';
 import { useMap } from '../map/useMap';
 import { BsImage } from 'react-icons/bs';
 
+const ARROW_HEIGHT = 20;
 /**
  * Cluster items' menu for selecting an item.
  * 重畳選択メニュー
@@ -36,7 +37,7 @@ export default function ClusterMenu(props: Props) {
         if (!map) return;
         const overlay = new Overlay({
             positioning: 'bottom-left', //OverlayPositioning.BOTTOM_CENTER,
-            offset: [-45, -20],
+            offset: [-45, -1 * ARROW_HEIGHT],
             stopEvent: true,
             element: elementRef.current as HTMLDivElement,
             className: styles.ContainerWrapper,
@@ -44,8 +45,20 @@ export default function ClusterMenu(props: Props) {
         map.addOverlay(overlay);
         overlay.setPosition(props.position);
 
+
         return () => {
             map.removeOverlay(overlay);
+        }
+    }, [getMap, props.position]);
+
+    const style = useMemo(() => {
+        const map = getMap();
+        if (!map) return {};
+
+        // 地図からはみ出ない高さにする
+        const pixel = map.getPixelFromCoordinate(props.position);
+        return {
+            maxHeight: pixel[1] - ARROW_HEIGHT - 10,// - rect.y,
         }
     }, [getMap, props.position]);
 
@@ -57,7 +70,7 @@ export default function ClusterMenu(props: Props) {
 
     return (
         <div>
-            <div ref={elementRef} className={styles.Container}>
+            <div ref={elementRef} className={styles.Container} style={style}>
                 {props.itemIds.map(id => {
                     return (
                         <MenuItem key={getMapKey(id)} id={id} 

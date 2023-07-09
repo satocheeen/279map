@@ -6,6 +6,7 @@
     background: $white;
     // width: 20rem;
     box-shadow: 0 4px 4px rgba(0,0,0,0.2);
+    overflow-y: auto;
 }
 
 .Container:after, .Container:before {
