@@ -10,7 +10,7 @@ import FilterCondition from './FilterCondition';
  * for Development
  */
 const mapId = 'test';
-const myToken = 'hogehoge';//undefined;
+const myToken = undefined; //'hogehoge';//undefined;
 const myMapServer = {
     host: 'localhost',
     ssl: false,
@@ -199,38 +199,36 @@ export default function TestMap() {
                     <div className={styles.PropName}>データソース</div>
                     {featureDataSourceGroups.map(group => {
                         return (
-                            <>
+                            <div key={group.name ?? 'none'}>
                                 {group.name &&
-                                    <label key={group.name}>
+                                    <label>
                                         <input type="checkbox" checked={group.visible} onChange={(evt) => changeVisibleLayerGroup(group.name ?? '', evt.target.checked)} />
                                         {group.name}
                                     </label>
                                 }
                                 {group.dataSources.map(ds => {
                                     return (
-                                        <>
-                                            <label key={ds.dataSourceId} className={`${group.name ? styles.Child : ''}`}>
-                                                <input type="checkbox" checked={ds.visible} onChange={(evt) => changeVisibleLayerDataSource(ds.dataSourceId, evt.target.checked)} />
-                                                {ds.name}
-                                                {(ds.editable && authLv === Auth.Edit) &&
-                                                    <>
-                                                        <button onClick={()=>mapRef.current?.drawStructure(ds.dataSourceId)}>建設</button>
-                                                        {mapKind === MapKind.Real ?
-                                                            <button onClick={()=>mapRef.current?.drawTopography(ds.dataSourceId, FeatureType.AREA)}>エリア作成</button>
-                                                            :
-                                                            <>
-                                                                <button onClick={()=>mapRef.current?.drawRoad(ds.dataSourceId)}>道作成</button>
-                                                                <button onClick={()=>mapRef.current?.drawTopography(ds.dataSourceId, FeatureType.EARTH)}>島作成</button>
-                                                                <button onClick={()=>mapRef.current?.drawTopography(ds.dataSourceId, FeatureType.FOREST)}>緑地作成</button>
-                                                            </>
-                                                        }
-                                                    </>
-                                                }
-                                            </label>
-                                        </>
+                                        <label key={ds.dataSourceId} className={`${group.name ? styles.Child : ''}`}>
+                                            <input type="checkbox" checked={ds.visible} onChange={(evt) => changeVisibleLayerDataSource(ds.dataSourceId, evt.target.checked)} />
+                                            {ds.name}
+                                            {(ds.editable && authLv === Auth.Edit) &&
+                                                <>
+                                                    <button onClick={()=>mapRef.current?.drawStructure(ds.dataSourceId)}>建設</button>
+                                                    {mapKind === MapKind.Real ?
+                                                        <button onClick={()=>mapRef.current?.drawTopography(ds.dataSourceId, FeatureType.AREA)}>エリア作成</button>
+                                                        :
+                                                        <>
+                                                            <button onClick={()=>mapRef.current?.drawRoad(ds.dataSourceId)}>道作成</button>
+                                                            <button onClick={()=>mapRef.current?.drawTopography(ds.dataSourceId, FeatureType.EARTH)}>島作成</button>
+                                                            <button onClick={()=>mapRef.current?.drawTopography(ds.dataSourceId, FeatureType.FOREST)}>緑地作成</button>
+                                                        </>
+                                                    }
+                                                </>
+                                            }
+                                        </label>
                                     )
                                 })}
-                            </>
+                            </div>
                         )
                     })}
                 </div>
