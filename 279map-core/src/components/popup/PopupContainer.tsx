@@ -150,7 +150,7 @@ export default function PopupContainer() {
             const key = createKeyFromPopupInfo(target);
             const overlay = new Overlay({
                 positioning: 'bottom-center', //OverlayPositioning.BOTTOM_CENTER,
-                stopEvent: true,
+                stopEvent: false,
                 element: elementRefMap.current[key],
             });
             getMap()?.addOverlay(overlay);

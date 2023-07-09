@@ -4,7 +4,6 @@
 }
 .Container {
     background: $white;
-    // width: 20rem;
     box-shadow: 0 4px 4px rgba(0,0,0,0.2);
     overflow-y: auto;
 }
@@ -18,7 +17,6 @@ $arrow-offset-left: 45px;
     width: $arrow-width;
     clip-path: polygon(0 0, 50% 100%, 100% 0);
     box-shadow: 0 4px 4px rgba(0,0,0,0.2);
-    z-index: 5;
 }
 
 .MenuItem {
