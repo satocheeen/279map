@@ -1,3 +1,5 @@
+@import '../../styles/global.scss';
+
 $radius: 5px;
 .Popup {
     position: absolute;
@@ -32,26 +34,18 @@ $radius: 5px;
         }
     }
 }
-.Popup:after, .Popup:before {
-    top: 100%;
-    border: solid transparent;
-    content: " ";
-    height: 0;
-    width: 0;
-    position: absolute;
+$arrow-offset-left: 5px;
+.Triangle {
+    margin-top: -1px;
+    margin-left: calc($arrow-offset-left - $arrow-width / 2);
+    background: $white;
+    height: $arrow-height;
+    width: $arrow-width;
+    clip-path: polygon(0 0, 50% 100%, 100% 0);
+    box-shadow: 0 4px 4px rgba(0,0,0,0.2);
+    z-index: 5;
 }
-.Popup:after {
-    border-top-color: white;
-    border-width: 10px;
-    left: 48px;
-    margin-left: -10px;
-}
-.Popup:before {
-    border-top-color: white;
-    border-width: 11px;
-    left: 48px;
-    margin-left: -11px;
-}
+
 .Contents {
     width: 100%;
     display: flex;

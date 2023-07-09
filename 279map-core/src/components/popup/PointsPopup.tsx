@@ -166,6 +166,7 @@ export default function PointsPopup(props: Props) {
                     <div className={styles.Number}>{contentsNum}</div>
                 } */}
             </div>
+            <div className={styles.Triangle} />
         </>
     );
 }

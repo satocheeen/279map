@@ -12,6 +12,8 @@ import { useMap } from '../map/useMap';
 import { BsImage } from 'react-icons/bs';
 
 const ARROW_HEIGHT = 20;
+const ARROW_OFFSET_LEFT = 45;
+
 /**
  * Cluster items' menu for selecting an item.
  * 重畳選択メニュー
@@ -37,7 +39,7 @@ export default function ClusterMenu(props: Props) {
         if (!map) return;
         const overlay = new Overlay({
             positioning: 'bottom-left', //OverlayPositioning.BOTTOM_CENTER,
-            offset: [-45, -1 * ARROW_HEIGHT],
+            offset: [-1 * ARROW_OFFSET_LEFT, 0],
             stopEvent: true,
             element: elementRef.current as HTMLDivElement,
             className: styles.ContainerWrapper,
@@ -70,14 +72,17 @@ export default function ClusterMenu(props: Props) {
 
     return (
         <div>
-            <div ref={elementRef} className={styles.Container} style={style}>
-                {props.itemIds.map(id => {
-                    return (
-                        <MenuItem key={getMapKey(id)} id={id} 
-                            onClick={() => onItemClick(id)}
-                            onClose={props.onClose} />
-                    );
-                })}
+            <div ref={elementRef}>
+                <div className={styles.Container} style={style}>
+                    {props.itemIds.map(id => {
+                        return (
+                            <MenuItem key={getMapKey(id)} id={id} 
+                                onClick={() => onItemClick(id)}
+                                onClose={props.onClose} />
+                        );
+                    })}
+                </div>
+                <div className={styles.Triangle}></div>
             </div>
         </div>
     );
