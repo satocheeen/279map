@@ -9,6 +9,7 @@ import AddContentMenu from '../popup/AddContentMenu';
 import { Auth, DataId } from '279map-common';
 import { getMapKey } from '../../store/data/dataUtility';
 import { useMap } from '../map/useMap';
+import { BsImage } from 'react-icons/bs';
 
 /**
  * Cluster items' menu for selecting an item.
@@ -81,7 +82,7 @@ function MenuItem(props: MenuItemProp) {
 
     const { getIconDefine } = useIcon();
 
-    const iconDefine= useMemo(() => {
+    const iconDefine = useMemo(() => {
         if (!item.geoProperties) {
             return getIconDefine();
         }
@@ -93,8 +94,12 @@ function MenuItem(props: MenuItemProp) {
 
     }, [getIconDefine, item]);
 
-    const hasContent =useMemo(() => {
+    const hasContent = useMemo(() => {
         return item.contents.length > 0;
+    }, [item]);
+
+    const hasImage = useMemo(() => {
+        return item.contents.some(c => c.hasImage);
     }, [item]);
 
     const itemName = useMemo(() => {
@@ -130,6 +135,9 @@ function MenuItem(props: MenuItemProp) {
             }
             <span className={styles.NameArea}>
                 <span>{itemName}</span>
+                {hasImage &&
+                    <span className={styles.Icon}><BsImage /></span>
+                }
                 {showAddContentMenu &&
                     <AddContentMenu target={{itemId: props.id}} onClick={onAddContentMenuClicked} />
                 }
