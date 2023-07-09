@@ -7,6 +7,7 @@
 
     animation: fadeIn .5s;
 
+    width: 40vw;
     color: var(--black);
 
     &.Close {
@@ -29,11 +30,9 @@
 }
 .Body {
     padding: 1rem;
-
-    width: 40vw;
 }
 @media screen and (max-width: 600px) {
-    .Body {
+    .Dialog:modal {
         width: 80vw;
     }
 }
