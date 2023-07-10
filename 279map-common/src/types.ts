@@ -49,6 +49,13 @@ export type DataSourceLinkableContent = {
     mode: 'single' | 'multi';   // single->1コンテンツの紐づけが可能。multi->複数コンテンツの紐づけが可能。
     unlinkable: boolean;        // falseの場合、コンテンツの紐づけ解除不可能。（元データソースの形式によってはアイテムとの分離が不可能なコンテンツもあるので）
 };
+/**
+ * データソースに含まれるitemやcontentの情報。
+ */
+export type ItemContentDefine = {
+    kind: DataSourceKindType;
+    linkableContents: DataSourceLinkableContent[];
+}
 
 export interface MapPageOptions {
     popupMode?: 'hidden' | 'minimum' | 'maximum';
@@ -80,10 +87,9 @@ export type DataSourceGroup = {
 export type DataSourceInfo = {
     dataSourceId: string;
     name: string;
-    kind: DataSourceKindType;
+    itemContents: ItemContentDefine[]; // 1データソースに複数のitemやcontentの情報が含まれうるので配列。
     editable: boolean;
     deletable: boolean;
-    linkableContents: DataSourceLinkableContent[];
     visible: boolean;
 }
 
