@@ -1,4 +1,4 @@
-import { Auth, DataSourceKindType, DataSourceLinkableContent, MapKind, MapPageOptions } from '279map-common';
+import { Auth, MapKind, MapPageOptions, ItemContentDefine } from '279map-common';
 import { SnsOptions } from '../sns';
 
 export enum PublicRange {
@@ -23,11 +23,10 @@ export type DataSourceTable = {
     name: string;
     group?: string;
 
-    // 各地図での仕様形式。realでItemContent、virtualでContentになるケースなどを想定して、地図種別ごとに設定するようにしている。
-    kind_real?: DataSourceKindType;
-    kind_virtual?: DataSourceKindType;
+    // 1データソースに含まれるitemやcontentの情報。realでItemContent、virtualでContentになるケースなどを想定して、複数持たせられるようにしている。
+    // 登録時はstring, 取得時はItemContentDefine[]
+    item_contents: string | ItemContentDefine[];
 
-    linkable_content: DataSourceLinkableContent;
     readonly: boolean;
     connection: string | DataSourceConnection;  // 登録時はstring、取得時はDataSourceConnection
     last_edited_time: string;
