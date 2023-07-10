@@ -35,20 +35,20 @@ export enum MapKind {
  * データソース種別
  */
 export enum DataSourceKindType {
-    Item = 'Item',                  // 位置情報のみ登録されたデータソース
-    Content = 'Content',            // コンテンツのみ登録されたデータソース
-    ItemContent = 'ItemContent',    // 1レコードに位置情報とコンテンツが登録されているデータソース
+    RealItem = 'RealItem',                  // 位置情報(実地図)データソース
+    VirtualItem = 'VirtualItem',            // 位置情報(仮想地図)データソース
+    Content = 'Content',            // コンテンツデータソース
     Track = 'Track'                 // 軌跡情報が登録されたデータソース
 }
 /**
  * データソースのコンテンツ紐づけ定義。
  * （アイテムやコンテンツの配下に紐づけるコンテンツに関する定義）
  */
-export enum DataSourceLinkableContent {
-    None = 'None',      // コンテンツが紐づけられない場合
-    Single = 'Single',  // 単一コンテンツの紐づけが可能な場合
-    Multi = 'Multi',    // 複数コンテンツの紐づけが可能な場合
-}
+export type DataSourceLinkableContent = {
+    contentDatasourceId: string;
+    mode: 'single' | 'multi';   // single->1コンテンツの紐づけが可能。multi->複数コンテンツの紐づけが可能。
+    unlinkable: boolean;        // falseの場合、コンテンツの紐づけ解除不可能。（元データソースの形式によってはアイテムとの分離が不可能なコンテンツもあるので）
+};
 
 export interface MapPageOptions {
     popupMode?: 'hidden' | 'minimum' | 'maximum';
@@ -83,7 +83,7 @@ export type DataSourceInfo = {
     kind: DataSourceKindType;
     editable: boolean;
     deletable: boolean;
-    linkableContent: DataSourceLinkableContent;
+    linkableContents: DataSourceLinkableContent[];
     visible: boolean;
 }
 
