@@ -52,7 +52,7 @@ export type DataSourceLinkableContent = {
 /**
  * データソースに含まれるitemやcontentの情報。
  */
-export type ItemContentDefine = {[kind in DataSourceKindType]: DataSourceLinkableContent[]};
+export type ItemContentDefine = {[kind in DataSourceKindType]?: DataSourceLinkableContent[]};
 
 export interface MapPageOptions {
     popupMode?: 'hidden' | 'minimum' | 'maximum';
