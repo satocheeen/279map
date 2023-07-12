@@ -24,8 +24,8 @@ export type DataSourceTable = {
     group?: string;
 
     // 1データソースに含まれるitemやcontentの情報。realでItemContent、virtualでContentになるケースなどを想定して、複数持たせられるようにしている。
-    // 登録時はstring, 取得時はItemContentDefine[]
-    item_contents: string | ItemContentDefine[];
+    // 登録時はstring, 取得時はItemContentDefine
+    item_contents: string | ItemContentDefine;
 
     readonly: boolean;
     connection: string | DataSourceConnection;  // 登録時はstring、取得時はDataSourceConnection

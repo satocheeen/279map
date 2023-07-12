@@ -84,9 +84,8 @@ export type DataSourceGroup = {
 export type DataSourceInfo = {
     dataSourceId: string;
     name: string;
-    itemContents: ItemContentDefine[]; // 1データソースに複数のitemやcontentの情報が含まれうるので配列。
-    editable: boolean;
-    deletable: boolean;
+    itemContents: ItemContentDefine;
+    readonly: boolean;
     visible: boolean;
 }
 
