@@ -87,7 +87,7 @@ export default function TestMap() {
                 dataSources,
             });
         });
-    }, [dataSourceGroups]);
+    }, [dataSourceGroups, mapKind]);
 
     const onMapLoad = useCallback((param: OnMapLoadParam) => {
         setMapKind(param.mapKind);
