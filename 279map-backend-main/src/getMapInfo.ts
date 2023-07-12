@@ -1,6 +1,6 @@
-import { schema } from '279map-backend-common';
+import { ItemContentDefine, schema } from '279map-backend-common';
 import { ConnectionPool } from '.';
-import { DataSourceGroup, DataSourceInfo, MapKind, DataSourceKindType, MapPageOptions } from '279map-backend-common';
+import { DataSourceGroup, DataSourceInfo, MapKind, MapPageOptions } from '279map-backend-common';
 import { GetMapInfoParam, GetMapInfoResult } from '../279map-api-interface/src';
 import mysql from 'mysql2/promise';
 
@@ -168,18 +168,7 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
 
         const dataSourceGroupMap = new Map<string, DataSourceInfo[]>();
         (rows as schema.DataSourceTable[]).forEach((row) => {
-            const kind = mapKind === MapKind.Real ? row.kind_real : row.kind_virtual;
-            if (!kind) {
-                return;
-            }
-            let deletable = false;
-            if (kind === DataSourceKindType.Content) {
-                // readonly=FALSEのContentのみ完全削除可能
-                const anotherMapKind = mapKind === MapKind.Virtual ? row.kind_real : row.kind_virtual;
-                if ((anotherMapKind === DataSourceKindType.Content || !anotherMapKind) && !row.readonly) {
-                    deletable = true;
-                }
-            }
+            const itemContents = row.item_contents as ItemContentDefine;
             const group = row.group ?? '';
             if(!dataSourceGroupMap.has(group)) {
                 dataSourceGroupMap.set(group, []);
@@ -195,10 +184,8 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
             infos.push({
                 dataSourceId: row.data_source_id,
                 name: row.name,
-                kind,
-                editable: !row.readonly,
-                deletable,
-                linkableContent: row.linkable_content,
+                itemContents,
+                readonly: row.readonly,
                 visible,
             });
 
