@@ -271,15 +271,25 @@ export default function MapChart() {
     useWatch(() => {
         if (!mapRef.current) return;
         // 追加、更新
-        mapRef.current.addFeatures(geoJsonItems);
-        // 削除
-        // 削除アイテム＝prevGeoJsonItemに存在して、geoJsonItemsに存在しないもの
-        const currentIds = geoJsonItems.map(item => item.id);
-        const deleteItems = prevGeoJsonItems?.filter(pre => {
-            return !currentIds.includes(pre.id);
+        const progressH = showProcessMessage({
+            overlay: prevGeoJsonItems?.length === 0,    // 初回ロード時はオーバーレイ
+            spinner: true,
         });
-        deleteItems?.forEach(item => {
-            mapRef.current?.removeFeature(item);
+        mapRef.current.addFeatures(geoJsonItems)
+        .then(() => {
+            // 削除
+            // 削除アイテム＝prevGeoJsonItemに存在して、geoJsonItemsに存在しないもの
+            const currentIds = geoJsonItems.map(item => item.id);
+            const deleteItems = prevGeoJsonItems?.filter(pre => {
+                return !currentIds.includes(pre.id);
+            });
+            deleteItems?.forEach(item => {
+                mapRef.current?.removeFeature(item);
+            });
+
+        })
+        .finally(() => {
+            hideProcessMessage(progressH);
         });
 
     }, [geoJsonItems]);
