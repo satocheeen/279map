@@ -5,7 +5,7 @@ import Tooltip from '../common/tooltip/Tooltip';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
-import { Auth, DataId, DataSourceInfo, DataSourceKindType, DataSourceLinkableContent, UnpointContent } from '279map-common';
+import { Auth, DataId, DataSourceInfo, DataSourceLinkableContent, MapKind } from '279map-common';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { getMapKey } from '../../store/data/dataUtility';
@@ -31,6 +31,7 @@ export default function AddContentMenu(props: Props) {
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
     const itemMap = useSelector((state: RootState) => state.data.itemMap);
     const { getApi } = useMap();
+    const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
 
     const dataSources = useSelector((state: RootState) => {
         const groups = state.data.dataSourceGroups;
@@ -47,9 +48,9 @@ export default function AddContentMenu(props: Props) {
     });
 
     /**
-     * コンテンツ追加可能かチェック
+     * 追加可能なコンテンツ定義を返す
      */
-    const isContentAddableTarget = useMemo(() => {
+    const addableContentDefines = useMemo((): DataSourceLinkableContent[] => {
         // 対象のデータソース情報取得
         let dataSourceId: string;
         if ('itemId' in props.target) {
@@ -60,34 +61,53 @@ export default function AddContentMenu(props: Props) {
         const dataSource = dataSources.find(ds => ds.dataSourceId === dataSourceId);
         if (!dataSource) {
             console.warn('想定外 target dataSource not find.', dataSourceId);
-            return false;
+            return [];
         }
 
-        if (dataSource.linkableContent === DataSourceLinkableContent.None) {
-            return false;
-        }
         if ('contentId' in props.target && props.target.isSnsContent) {
             // SNS自動連携コンテンツは子コンテンツ追加不可
-            return false;
-        }
-        if (dataSource.linkableContent === DataSourceLinkableContent.Multi) {
-            return true;
-        }
-        // linkableContent.Singleの場合は、子コンテンツの数で判断
-        if ('itemId' in props.target) {
-            const item = itemMap[getMapKey(props.target.itemId)];
-            return item?.contents.length === 0;
-        } else {
-            return !props.target.hasChildren;
+            return [];
         }
 
-    }, [itemMap, props.target, dataSources]);
+        // 追加可能なコンテンツ定義を取得
+        const linkableContents: DataSourceLinkableContent[] = [];
+        if ('itemId' in props.target) {
+            if (mapKind === MapKind.Real && dataSource.itemContents.RealItem) {
+                Array.prototype.push.apply(linkableContents, dataSource.itemContents.RealItem);
+            }
+            if (mapKind === MapKind.Virtual && dataSource.itemContents.VirtualItem) {
+                Array.prototype.push.apply(linkableContents, dataSource.itemContents.VirtualItem);
+            }
+        } else {
+            if (dataSource.itemContents.Content) {
+                Array.prototype.push.apply(linkableContents, dataSource.itemContents.Content);
+            }
+        }
+
+        if (linkableContents.length === 0) {
+            return [];
+        }
+        // 追加余地のあるコンテンツ定義に絞る
+        return linkableContents.filter(def => {
+            if (def.mode === 'multi') return true;
+    
+            // linkableContent.Singleの場合は、子コンテンツの数で判断
+            if ('itemId' in props.target) {
+                const item = itemMap[getMapKey(props.target.itemId)];
+                return item?.contents.length === 0;
+            } else {
+                return !props.target.hasChildren;
+            }
+        });
+
+    }, [itemMap, props.target, dataSources, mapKind]);
 
     const creatableContentDataSources = useMemo((): LinkUnpointContentParam['dataSources'] => {
         return dataSources
+                // 追加対象データソースに絞る
                 .filter(ds => {
-                    if (!ds.editable) return false;
-                    return ds.kind === DataSourceKindType.Content;
+                    if (ds.readonly) return false;
+                    return addableContentDefines.some(def => def.contentDatasourceId === ds.dataSourceId);
                 })
                 .map(ds => {
                     return {
@@ -95,11 +115,13 @@ export default function AddContentMenu(props: Props) {
                         name: ds.name,
                     }
                 });
-    }, [dataSources]);
+    }, [dataSources, addableContentDefines]);
     const linkableContentDataSources = useMemo((): LinkUnpointContentParam['dataSources'] => {
         return dataSources
+                // 追加対象データソースに絞る
                 .filter(ds => {
-                    return ds.kind === DataSourceKindType.Content;
+                    const target = addableContentDefines.find(def => def.contentDatasourceId === ds.dataSourceId);
+                    return !target?.unlinkable;
                 })
                 .map(ds => {
                     return {
@@ -107,7 +129,7 @@ export default function AddContentMenu(props: Props) {
                         name: ds.name,
                     }
                 });
-    }, [dataSources]);
+    }, [dataSources, addableContentDefines]);
 
     /**
      * ツールチップメニュー表示時にエリア外クリックすると、ツールチップメニューを非表示にする
@@ -183,7 +205,7 @@ export default function AddContentMenu(props: Props) {
             name: string;
             callback: () => void;
         }[];
-        if (!isContentAddableTarget || !editableAuthLv) {
+        if (addableContentDefines.length === 0 || !editableAuthLv) {
             return items;
         }
         console.log('creatableContentDataSources', creatableContentDataSources);
@@ -200,7 +222,7 @@ export default function AddContentMenu(props: Props) {
             });
         }
         return items;
-    }, [editableAuthLv, onAddContent, creatableContentDataSources, linkableContentDataSources, isContentAddableTarget]);
+    }, [editableAuthLv, onAddContent, creatableContentDataSources, linkableContentDataSources, addableContentDefines]);
 
     const onClick = useCallback(() => {
         setShowSubMenu((state) => !state);

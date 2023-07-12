@@ -1,4 +1,4 @@
-import { Auth, CategoryDefine, DataId, DataSourceGroup, DataSourceKindType, FeatureType, MapKind } from '279map-common';
+import { Auth, CategoryDefine, DataId, DataSourceGroup, FeatureType, MapKind } from '279map-common';
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { ServerInfo, TsunaguMapHandler, getAuthConfig, onDatasourceChangedParam } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
@@ -31,6 +31,7 @@ const props = {
     ]
 } as TsunaguMapProps;
 
+const defaultPopupMode: TsunaguMapProps['popupMode'] = 'maximum';
 export default function TestMap() {
     const mapRef = useRef<TsunaguMapHandler>(null);
     const [ cnt, setCnt ] = useState(0);
@@ -63,7 +64,7 @@ export default function TestMap() {
     const [ mapKind, setMapKind ] = useState(MapKind.Real);
 
     // switch popup
-    const [ popupMode, setPopupMode ] = useState<TsunaguMapProps['popupMode']>('minimum');
+    const [ popupMode, setPopupMode ] = useState<TsunaguMapProps['popupMode']>(defaultPopupMode);
 
     const [ disabledLabel, setDisableLabel ] = useState(false);
 
@@ -74,8 +75,13 @@ export default function TestMap() {
     const featureDataSourceGroups = useMemo(() => {
         return dataSourceGroups.map((group): DataSourceGroup => {
             const dataSources = group.dataSources.filter(ds => {
-                const isFeature = ds.kind !== DataSourceKindType.Content;
-                return isFeature;
+                if (mapKind === MapKind.Real) {
+                    return ds.itemContents.RealItem || ds.itemContents.Track;
+
+                } else {
+                    return ds.itemContents.VirtualItem;
+
+                }
             });
             return Object.assign({}, group, {
                 dataSources,
@@ -186,7 +192,7 @@ export default function TestMap() {
                     </div>
                     <PropRadio name='Popup'
                         items={[{ label: 'hidden', value: 'hidden' }, {label: 'minimum', value: 'minimum' }, { label: 'maximum', value: 'maximum' }]}
-                        default='maximum'
+                        default={defaultPopupMode}
                         onChange={setPopupMode} />
                     <PropRadio name='Label'
                         items={[{ label: 'enabled', value: true }, { label: 'disabled', value: false }]}
@@ -211,7 +217,7 @@ export default function TestMap() {
                                         <label key={ds.dataSourceId} className={`${group.name ? styles.Child : ''}`}>
                                             <input type="checkbox" checked={ds.visible} onChange={(evt) => changeVisibleLayerDataSource(ds.dataSourceId, evt.target.checked)} />
                                             {ds.name}
-                                            {(ds.editable && authLv === Auth.Edit) &&
+                                            {(!ds.readonly && authLv === Auth.Edit) &&
                                                 <>
                                                     <button onClick={()=>mapRef.current?.drawStructure(ds.dataSourceId)}>建設</button>
                                                     {mapKind === MapKind.Real ?

@@ -166,7 +166,7 @@ class OlMapWrapper {
 
             dataSourceGroups.forEach(group => {
                 group.dataSources.forEach(ds => {
-                    if (ds.kind === DataSourceKindType.Track) {
+                    if (ds.itemContents.Track) {
                         [[1, 8], [8, 13], [13, 21]].forEach(zoomLv => {
                             const layerDefine: LayerDefine = {
                                 dataSourceId: ds.dataSourceId,
@@ -181,12 +181,12 @@ class OlMapWrapper {
                             this.addLayer(layerDefine, ds.visible);
                         })
     
-                    } else if (ds.kind === DataSourceKindType.Item || ds.kind === DataSourceKindType.ItemContent) {
+                    } else if (ds.itemContents.RealItem) {
                         [LayerType.Point, LayerType.Topography].forEach(layerType => {
                             const layerDefine: LayerDefine = {
                                 dataSourceId: ds.dataSourceId,
                                 group: group.name ?? '',
-                                editable: ds.editable,
+                                editable: !ds.readonly,
                                 layerType: layerType as LayerType.Point| LayerType.Topography,
                             };
                             this.addLayer(layerDefine, ds.visible);
@@ -200,14 +200,14 @@ class OlMapWrapper {
             // 村マップ
             dataSourceGroups.forEach(group => {
                 group.dataSources.forEach(ds => {
-                    if (ds.kind !== DataSourceKindType.Item && ds.kind !== DataSourceKindType.ItemContent) {
+                    if (!ds.itemContents.VirtualItem) {
                         return;
                     }
                     [LayerType.Point, LayerType.Topography].forEach(layerType => {
                         const layerDefine: LayerDefine = {
                             dataSourceId: ds.dataSourceId,
                             group: group.name ?? '',
-                            editable: ds.editable,
+                            editable: !ds.readonly,
                             layerType: layerType as LayerType.Point| LayerType.Topography,
                         };
                         this.addLayer(layerDefine, ds.visible);
