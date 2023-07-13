@@ -46,13 +46,19 @@ export enum DataSourceKindType {
  */
 export type DataSourceLinkableContent = {
     contentDatasourceId: string;
-    mode: 'single' | 'multi';   // single->1コンテンツの紐づけが可能。multi->複数コンテンツの紐づけが可能。
+    max: 'single' | 'multi';   // single->1コンテンツの紐づけが可能。multi->複数コンテンツの紐づけが可能。
     unlinkable: boolean;        // falseの場合、コンテンツの紐づけ解除不可能。（元データソースの形式によってはアイテムとの分離が不可能なコンテンツもあるので）
 };
 /**
  * データソースに含まれるitemやcontentの情報。
  */
-export type ItemContentDefine = {[kind in DataSourceKindType]?: DataSourceLinkableContent[]};
+type ItemContentDefineOfDatasource = {
+    kind: DataSourceKindType;
+    editable: boolean;
+    deletable: boolean;
+    linkableContents: DataSourceLinkableContent[];  // 紐づけ可能なコンテンツの定義
+}
+export type ItemContentDefine = {[kind in DataSourceKindType]?: ItemContentDefineOfDatasource};
 
 export interface MapPageOptions {
     popupMode?: 'hidden' | 'minimum' | 'maximum';
@@ -85,7 +91,6 @@ export type DataSourceInfo = {
     dataSourceId: string;
     name: string;
     itemContents: ItemContentDefine;
-    readonly: boolean;
     visible: boolean;
 }
 
