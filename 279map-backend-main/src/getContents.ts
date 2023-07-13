@@ -1,8 +1,8 @@
 import { ConnectionPool } from '.';
-import { CurrentMap, DataSourceLinkableContent, ItemContentDefine, schema } from "279map-backend-common";
+import { CurrentMap, ItemContentDefine, schema } from "279map-backend-common";
 import { getAncestorItemId } from "./util/utility";
 import { GetContentsParam, GetContentsResult } from '../279map-api-interface/src';
-import { DataId, MapKind, ContentsDefine, Auth, DataSourceKindType } from '279map-backend-common';
+import { DataId, MapKind, ContentsDefine, Auth } from '279map-backend-common';
 import { PoolConnection } from 'mysql2/promise';
 
 type ContentsDatasourceRecord = schema.ContentsTable & schema.DataSourceTable;
@@ -24,7 +24,7 @@ export async function getContents({ param, currentMap, authLv }: {param: GetCont
     try {
         const allContents = [] as ContentsDefine[];
 
-        const convertRecord = async(row: ContentsDatasourceRecord, parent: Parent, itemId: DataId): Promise<ContentsDefine> => {
+        const convertRecord = async(row: ContentsDatasourceRecord, itemId: DataId): Promise<ContentsDefine> => {
             const contents = row.contents ? row.contents as schema.ContentsInfo: undefined;
             let isSnsContent = false;
             if (row.supplement) {
@@ -44,7 +44,7 @@ export async function getContents({ param, currentMap, authLv }: {param: GetCont
                 // SNSコンテンツは編集不可
                 if (isSnsContent) return false;
         
-                return !row.readonly;
+                return (row.item_contents as ItemContentDefine).Content?.editable ?? false;
             }();
 
             const isDeletable = function() {
@@ -53,28 +53,14 @@ export async function getContents({ param, currentMap, authLv }: {param: GetCont
                 // 別の地図で使用されている場合は削除不可にする
                 if (usingAnotherMap) return false;
         
-                // SNSコンテンツは編集不可
+                // SNSコンテンツは削除不可
                 if (isSnsContent) return false;
 
-                // readonly=FALSEのContentのみ完全削除可能
-                return !row.readonly;
+                // readonlyは削除不可
+                return (row.item_contents as ItemContentDefine).Content?.deletable ?? false;
         
             }();
 
-            const isUnlinkable = function() {
-                if (authLv !== Auth.Edit) return false;
-
-                let linkDef: DataSourceLinkableContent | undefined;
-                if (parent.type === 'item') {
-                    linkDef = (parent.item.item_contents as ItemContentDefine).Content?.find(def => def.contentDatasourceId === row.data_source_id);
-                } else {
-                    linkDef = (parent.content.item_contents as ItemContentDefine).Content?.find(def => def.contentDatasourceId === row.data_source_id);
-                }
-                if (!linkDef) return false;
-                return linkDef.unlinkable;
-
-            }();
-        
             return {
                 id,
                 itemId,
@@ -94,7 +80,6 @@ export async function getContents({ param, currentMap, authLv }: {param: GetCont
                 isSnsContent,
                 isEditable,
                 isDeletable,
-                isUnlinkable,
             };
         }
         const getChildren = async(parent: ContentsDatasourceRecord, itemId: DataId): Promise<ContentsDefine[]> => {
@@ -106,14 +91,13 @@ export async function getContents({ param, currentMap, authLv }: {param: GetCont
             const [rows] = await con.execute(getChildrenQuery, [parent.content_page_id, parent.data_source_id]);
             const children = [] as ContentsDefine[];
             for (const row of rows as ContentsDatasourceRecord[]) {
-                const content = await convertRecord(row, {type: 'content', content: parent}, itemId);
+                const content = await convertRecord(row, itemId);
                 content.children = await getChildren(row, itemId);
                 children.push(content);
             }
             return children;
         }
         for (const target of param) {
-            let parent: Parent;
             let myRows: ContentsDatasourceRecord[];
             let itemId: DataId;
             if ('itemId' in target) {
@@ -139,10 +123,6 @@ export async function getContents({ param, currentMap, authLv }: {param: GetCont
                 where i.item_page_id = ? and i.data_source_id = ?
                 `;
                 const [itemRows] = await con.execute(itemSql, [target.itemId.id, target.itemId.dataSourceId]);
-                parent = {
-                    type: 'item',
-                    item: (itemRows as ItemDataSourceRecord[])[0],
-                }
             } else {
                 // contentId指定の場合
 
@@ -160,14 +140,10 @@ export async function getContents({ param, currentMap, authLv }: {param: GetCont
                 const [rows] = await con.execute(sql, [target.contentId.id, target.contentId.dataSourceId]);
                 myRows = rows as ContentsDatasourceRecord[];
 
-                parent = {
-                    type: 'content',
-                    content: myRows[0],
-                }
             }
 
             for (const row of myRows) {
-                const content = await convertRecord(row, parent, itemId);
+                const content = await convertRecord(row, itemId);
                 // 子孫コンテンツを取得
                 content.children = await getChildren(row, itemId);
                 allContents.push(content);

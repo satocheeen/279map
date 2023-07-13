@@ -185,7 +185,6 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
                 dataSourceId: row.data_source_id,
                 name: row.name,
                 itemContents,
-                readonly: row.readonly,
                 visible,
             });
 

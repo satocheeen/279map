@@ -98,32 +98,6 @@ export async function getContent(content_id: DataId): Promise<schema.ContentsTab
 }
 
 /**
- * 指定のデータソースが編集可能なデータソースか返す
- * @param data_source_id 
- * @param sourceKind
- * @return 編集可能な場合、true
- */
-export async function isReadonlyDataSource(data_source_id: string): Promise<boolean> {
-    const con = await ConnectionPool.getConnection();
-    try {
-        const sql = "select * from data_source where data_source_id = ?";
-        const [rows] = await con.execute(sql, [data_source_id]);
-        if ((rows as []).length === 0) {
-            return false;
-        }
-        const record = (rows as schema.DataSourceTable[])[0];
-        return record.readonly;
-
-    } catch(e) {
-        throw new Error('isReadonlyDataSource error: ' + e);
-    } finally {
-        await con.commit();
-        con.release();
-    }
-
-}
-
-/**
  * 指定のコンテンツの祖先にいるアイテムIDを返す
  * @param contentId 
  */
