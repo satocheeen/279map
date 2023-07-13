@@ -171,7 +171,7 @@ class OlMapWrapper {
                             const layerDefine: LayerDefine = {
                                 dataSourceId: ds.dataSourceId,
                                 group: group.name ?? '',
-                                editable: false,
+                                editable: ds.itemContents.Track?.editable ?? false,
                                 layerType: LayerType.Track,
                                 zoomLv: {
                                     min: zoomLv[0],
@@ -186,7 +186,7 @@ class OlMapWrapper {
                             const layerDefine: LayerDefine = {
                                 dataSourceId: ds.dataSourceId,
                                 group: group.name ?? '',
-                                editable: !ds.readonly,
+                                editable: ds.itemContents.RealItem?.editable ?? false,
                                 layerType: layerType as LayerType.Point| LayerType.Topography,
                             };
                             this.addLayer(layerDefine, ds.visible);
@@ -207,7 +207,7 @@ class OlMapWrapper {
                         const layerDefine: LayerDefine = {
                             dataSourceId: ds.dataSourceId,
                             group: group.name ?? '',
-                            editable: !ds.readonly,
+                            editable: ds.itemContents.VirtualItem?.editable ?? false,
                             layerType: layerType as LayerType.Point| LayerType.Topography,
                         };
                         this.addLayer(layerDefine, ds.visible);

@@ -13,7 +13,7 @@ import { removeContent, updateContent } from "../../store/data/dataThunk";
 import reactStringReplace from "react-string-replace";
 import PopupMenuIcon from "../popup/PopupMenuIcon";
 import AddContentMenu from "../popup/AddContentMenu";
-import { ContentAttr, ContentsDefine, DataId, MapKind } from "279map-common";
+import { ContentAttr, ContentsDefine, DataId, DataSourceInfo, MapKind } from "279map-common";
 import Spinner from "../common/spinner/Spinner";
 import { useFilter } from "../../store/useFilter";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
@@ -212,6 +212,17 @@ export default function Content(props: Props) {
         })
     }, [props.content, onEditContent, dispatch, getApi]);
 
+    const dataSources = useSelector((state: RootState) => {
+        const groups = state.data.dataSourceGroups;
+        return groups.reduce((acc, cur) => {
+            return acc.concat(cur.dataSources);
+        }, [] as DataSourceInfo[]);
+    });
+    const unlinkable = useMemo(() => {
+        const itemDataSource = dataSources.find(ds => ds.dataSourceId === props.itemId.dataSourceId);
+        return itemDataSource?.itemContents.Content?.linkableContents.find(lc => lc.contentDatasourceId === props.content.id.dataSourceId)?.unlinkable ?? false;
+    }, [dataSources, props.content, props.itemId]);
+
     const onDelete = useCallback(async() => {
         const result = await confirm({
             message: '削除してよろしいですか。'
@@ -220,7 +231,7 @@ export default function Content(props: Props) {
             return;
         }
         let deleteOnlyLink = true;
-        if (props.content.isDeletable && props.content.isUnlinkable) {
+        if (props.content.isDeletable && unlinkable) {
             const result2 = await confirm({
                 message: '元データも削除しますか。\nはい→元データごと削除する\nいいえ→地図上からのみ削除する',
                 btnPattern: ConfirmBtnPattern.YesNo,
@@ -250,7 +261,7 @@ export default function Content(props: Props) {
             });
         }
 
-    }, [props.itemId, props.parentContentId, confirm, dispatch, props.content]);
+    }, [props.itemId, props.parentContentId, confirm, dispatch, props.content, unlinkable]);
 
     const overview = useMemo(() => {
         if (!props.content.overview) {
@@ -290,7 +301,7 @@ export default function Content(props: Props) {
                             <MdEdit />
                         </PopupMenuIcon>
                     }
-                    {(props.content.isDeletable || props.content.isUnlinkable) &&
+                    {(props.content.isDeletable || unlinkable) &&
                         <PopupMenuIcon tooltip="削除" onClick={onDelete}>
                             <MdDelete />
                         </PopupMenuIcon>
@@ -306,7 +317,7 @@ export default function Content(props: Props) {
                 </div>
             </div>
         )
-    }, [props.content, title, onGoToAnotherMap, existAnoterMap, onDelete, onEdit, toolTipMessage]);
+    }, [props.content, title, onGoToAnotherMap, existAnoterMap, onDelete, onEdit, toolTipMessage, unlinkable]);
 
     const body = useMemo(() => {
         return (

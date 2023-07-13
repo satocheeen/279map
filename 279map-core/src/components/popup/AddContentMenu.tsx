@@ -73,14 +73,14 @@ export default function AddContentMenu(props: Props) {
         const linkableContents: DataSourceLinkableContent[] = [];
         if ('itemId' in props.target) {
             if (mapKind === MapKind.Real && dataSource.itemContents.RealItem) {
-                Array.prototype.push.apply(linkableContents, dataSource.itemContents.RealItem);
+                Array.prototype.push.apply(linkableContents, dataSource.itemContents.RealItem.linkableContents);
             }
             if (mapKind === MapKind.Virtual && dataSource.itemContents.VirtualItem) {
-                Array.prototype.push.apply(linkableContents, dataSource.itemContents.VirtualItem);
+                Array.prototype.push.apply(linkableContents, dataSource.itemContents.VirtualItem.linkableContents);
             }
         } else {
             if (dataSource.itemContents.Content) {
-                Array.prototype.push.apply(linkableContents, dataSource.itemContents.Content);
+                Array.prototype.push.apply(linkableContents, dataSource.itemContents.Content.linkableContents);
             }
         }
 
@@ -89,7 +89,7 @@ export default function AddContentMenu(props: Props) {
         }
         // 追加余地のあるコンテンツ定義に絞る
         return linkableContents.filter(def => {
-            if (def.mode === 'multi') return true;
+            if (def.max === 'multi') return true;
     
             // linkableContent.Singleの場合は、子コンテンツの数で判断
             if ('itemId' in props.target) {
@@ -106,8 +106,7 @@ export default function AddContentMenu(props: Props) {
         return dataSources
                 // 追加対象データソースに絞る
                 .filter(ds => {
-                    if (ds.readonly) return false;
-                    return addableContentDefines.some(def => def.contentDatasourceId === ds.dataSourceId);
+                    return addableContentDefines.some(def => def.contentDatasourceId === ds.dataSourceId && def.max === 'multi');
                 })
                 .map(ds => {
                     return {
