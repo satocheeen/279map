@@ -179,7 +179,6 @@ export type ContentsDefine = {
 
     isEditable: boolean;
     isDeletable: boolean;
-    isUnlinkable: boolean;
 }
 export type CategoryDefine = {
     name: string;
