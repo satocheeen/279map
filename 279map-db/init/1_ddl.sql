@@ -20,7 +20,6 @@ CREATE TABLE `data_source` (
   `name` varchar(100) NOT NULL,
   `group` varchar(100) DEFAULT NULL,
   `item_contents` json NOT NULL,
-  `readonly` tinyint(1) NOT NULL DEFAULT '0',
   `connection` json NOT NULL,
   `last_edited_time` varchar(100) NOT NULL,
   PRIMARY KEY (`data_source_id`)
