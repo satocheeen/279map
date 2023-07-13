@@ -27,7 +27,6 @@ export type DataSourceTable = {
     // 登録時はstring, 取得時はItemContentDefine
     item_contents: string | ItemContentDefine;
 
-    readonly: boolean;
     connection: string | DataSourceConnection;  // 登録時はstring、取得時はDataSourceConnection
     last_edited_time: string;
 }
