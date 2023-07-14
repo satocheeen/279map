@@ -19,7 +19,7 @@ type Props = {
     } | {
         contentId: DataId;
         isSnsContent: boolean;
-        hasChildren: boolean;
+        children: DataId[];
     };
     onClick?: () => void;   // メニュー選択時のコールバック
 }
@@ -91,12 +91,15 @@ export default function AddContentMenu(props: Props) {
         return linkableContents.filter(def => {
             if (def.max === 'multi') return true;
     
-            // linkableContent.Singleの場合は、子コンテンツの数で判断
+            // linkableContent.Singleの場合は、
+            // 同一データソースの既存コンテンツが存在しない場合のみOK
             if ('itemId' in props.target) {
                 const item = itemMap[getMapKey(props.target.itemId)];
-                return item?.contents.length === 0;
+                const exist = item?.contents.some(content => content.id.dataSourceId === def.contentDatasourceId);
+                return !exist;
             } else {
-                return !props.target.hasChildren;
+                const exist = props.target.children.some(child => child.dataSourceId === def.contentDatasourceId);
+                return !exist;
             }
         });
 

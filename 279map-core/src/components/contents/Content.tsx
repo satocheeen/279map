@@ -307,7 +307,7 @@ export default function Content(props: Props) {
                         </PopupMenuIcon>
                     }
                     {/* {addableChild && */}
-                        <AddContentMenu target={{contentId: props.content.id, isSnsContent: props.content.isSnsContent, hasChildren: (props.content.children ?? []).length > 0}} />
+                        <AddContentMenu target={{contentId: props.content.id, isSnsContent: props.content.isSnsContent, children: (props.content.children ?? []).map(c => c.id)}} />
                     {/* } */}
                     {existAnoterMap &&
                         <PopupMenuIcon tooltip={toolTipMessage} onClick={onGoToAnotherMap}>
