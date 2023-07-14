@@ -120,7 +120,7 @@ export default function AddContentMenu(props: Props) {
                 // 追加対象データソースに絞る
                 .filter(ds => {
                     const target = addableContentDefines.find(def => def.contentDatasourceId === ds.dataSourceId);
-                    return !target?.unlinkable;
+                    return target?.max === 'multi';
                 })
                 .map(ds => {
                     return {

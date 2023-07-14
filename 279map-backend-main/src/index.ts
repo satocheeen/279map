@@ -29,6 +29,7 @@ import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFea
 import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 import { search } from './api/search';
+import { checkLinkableDatasource } from './api/getUnpointData';
 
 declare global {
     namespace Express {
@@ -878,6 +879,15 @@ app.post(`/api/${GetUnpointDataAPI.uri}`,
     async(req, res, next) => {
         try {
             const param = req.body as GetUnpointDataParam;
+
+            // 現在の地図上に紐づけ可能なデータソースか確認
+            const checkOk = await checkLinkableDatasource(req.currentMap, param.dataSourceId);
+            if (!checkOk) {
+                res.send({
+                    contents: [],
+                })
+                return;
+            }
 
             // call ODBA
             const result = await backendAPI.callOdbaApi(backendAPI.GetUnpointDataAPI, {
