@@ -102,7 +102,7 @@ type HeaderItem = ReturnType<typeof ModalHeader>
 Modal.Header = ModalHeader;
 
 type BodyProps = {
-    children?: string | JSX.Element | (JSX.Element | false)[];
+    children?: string | JSX.Element | (JSX.Element | false)[] | null;
 }
 function ModalBody(props: BodyProps) {
     return <></>

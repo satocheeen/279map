@@ -5,8 +5,7 @@ import styles from './ClusterMenu.module.scss';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore';
 import useIcon from '../../store/useIcon';
-import AddContentMenu from '../popup/AddContentMenu';
-import { Auth, DataId } from '279map-common';
+import { DataId } from '279map-common';
 import { getMapKey } from '../../store/data/dataUtility';
 import { useMap } from '../map/useMap';
 import { BsImage } from 'react-icons/bs';
@@ -112,10 +111,6 @@ function MenuItem(props: MenuItemProp) {
 
     }, [getIconDefine, item]);
 
-    const hasContent = useMemo(() => {
-        return item.contents.length > 0;
-    }, [item]);
-
     const hasImage = useMemo(() => {
         return item.contents.some(c => c.hasImage);
     }, [item]);
@@ -124,25 +119,6 @@ function MenuItem(props: MenuItemProp) {
         if (!item) return ''
         return item.name;
     }, [item]);
-
-    const editableAuthLv = useSelector((state: RootState) => {
-        if (state.session.connectStatus.status !== 'connected') {
-            return false;
-        }
-        return state.session.connectStatus.connectedMap?.authLv === Auth.Edit;
-    });
-    const showAddContentMenu = useMemo(() => {
-        return editableAuthLv && !hasContent;
-    }, [editableAuthLv, hasContent]);
-
-    const onAddContentMenuClicked = useCallback(() => {
-        if (props.onClose) {
-            props.onClose();
-        }
-    }, [props]);
-
-    // const iconImagePath = useMemo(() => iconDefine.imagePath, [iconDefine]);
-
 
     return (
         <li className={styles.MenuItem} onClick={props.onClick}>
@@ -155,9 +131,6 @@ function MenuItem(props: MenuItemProp) {
                 <span>{itemName}</span>
                 {hasImage &&
                     <span className={styles.Icon}><BsImage /></span>
-                }
-                {showAddContentMenu &&
-                    <AddContentMenu target={{itemId: props.id}} onClick={onAddContentMenuClicked} />
                 }
             </span>
         </li>

@@ -56,27 +56,28 @@ export default function ContentsModal() {
             const item = itemMap[getMapKey(target.itemId)];
             if (!item) return;
     
-            if (item.contents.length===0) {
-                return;
-            }
             setLoaded(false);
             setShow(true);
     
             // 最新コンテンツ取得
-            const h = showProcessMessage({
-                overlay: true,
-                spinner: true,
-            });
-            dispatch(loadContents({
-                targets: [
-                    {
-                        itemId: target.itemId,
-                    }
-                ],
-            })).finally(() => {
+            if (item.contents.length > 0) {
+                const h = showProcessMessage({
+                    overlay: true,
+                    spinner: true,
+                });
+                dispatch(loadContents({
+                    targets: [
+                        {
+                            itemId: target.itemId,
+                        }
+                    ],
+                })).finally(() => {
+                    setLoaded(true);
+                    hideProcessMessage(h);
+                });
+            } else {
                 setLoaded(true);
-                hideProcessMessage(h);
-            });
+            }
         } else {
             setLoaded(false);
             setShow(true);
@@ -139,9 +140,27 @@ export default function ContentsModal() {
         setTarget(undefined);
     }, []);
 
-    if (contents.length === 0) {
-        return null;
-    }
+    const body = useMemo(() => {
+        if (!target) return null;
+
+        if (contents.length === 0) {
+            return (
+                <div className={styles.NoContentParagraph}>
+                    <p>コンテンツなし</p>
+                    {target.type === 'item' &&
+                        <AddContentMenu style='button' target={{itemId: target.itemId}} />
+                    }
+                </div>
+            )
+        }
+
+        return contents.map((content) => {
+            return (
+                <Content key={getMapKey(content.id)} itemId={content.itemId}  content={content} />
+            )
+        })
+
+    }, [contents, target]);
 
     return (
         <Modal show={show} spinner={!loaded}
@@ -151,17 +170,13 @@ export default function ContentsModal() {
             <Modal.Header>
                 <div className={styles.ItemHeader}>
                     {title}
-                    {target?.type === 'item' &&
+                    {(target?.type === 'item' && contents.length > 0) &&
                     <AddContentMenu target={{itemId: target.itemId}} />
                 }
                 </div>
             </Modal.Header>
             <Modal.Body>
-                {contents.map((content) => {
-                    return (
-                        <Content key={getMapKey(content.id)} itemId={content.itemId}  content={content} />
-                    )
-                })}
+                {body}
             </Modal.Body>
             <Modal.Footer>
 

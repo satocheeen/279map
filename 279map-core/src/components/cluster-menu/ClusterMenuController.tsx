@@ -121,16 +121,8 @@ export default function ClusterMenuController(props: Props) {
             }
 
             // show the cluseter menu when multiple items or the item has no contents
-            // 対象が複数存在する場合またはコンテンツを持たないアイテムの場合は、重畳選択メニューを表示
+            // 対象が複数存在する場合は、重畳選択メニューを表示
             if (pointIds.length === 1) {
-                const item = itemMapRef.current[getMapKey(pointIds[0].id)];
-                if (item.contents.length === 0) {
-                    setClusterMenuInfo({
-                        position: evt.coordinate,
-                        targets: pointIds.map(p => p.id),
-                    });
-                    return;
-                }
                 props.onSelect(pointIds[0].id);
             } else if (!onClick) {
                 // onClick指定時は、重畳選択メニューは表示しない

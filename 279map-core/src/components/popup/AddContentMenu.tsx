@@ -12,6 +12,7 @@ import { getMapKey } from '../../store/data/dataUtility';
 import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam } from 'tsunagumap-api';
 import { linkContentToItem, registContent } from '../../store/data/dataThunk';
 import { useMap } from '../map/useMap';
+import { Button } from '../common';
 
 type Props = {
     target: {
@@ -21,6 +22,7 @@ type Props = {
         isSnsContent: boolean;
         children: DataId[];
     };
+    style?: 'icon' | 'button';  // default='icon'
     onClick?: () => void;   // メニュー選択時のコールバック
 }
 let maxId = 0;
@@ -210,7 +212,6 @@ export default function AddContentMenu(props: Props) {
         if (addableContentDefines.length === 0 || !editableAuthLv) {
             return items;
         }
-        console.log('creatableContentDataSources', creatableContentDataSources);
         if (creatableContentDataSources.length > 0) {
             items.push({
                 name: '新規コンテンツ',
@@ -226,24 +227,39 @@ export default function AddContentMenu(props: Props) {
         return items;
     }, [editableAuthLv, onAddContent, creatableContentDataSources, linkableContentDataSources, addableContentDefines]);
 
-    const onClick = useCallback(() => {
+    const onClick = useCallback((evt?: React.MouseEvent) => {
+        if (evt) evt.stopPropagation();
         setShowSubMenu((state) => !state);
     }, []);
 
     if (subMenuItems.length === 0) {
         return null;
     } else if (subMenuItems.length === 1) {
-        return (
-            <PopupMenuIcon id={id.current} tooltip={caption} onClick={subMenuItems[0].callback}>
-                <MdOutlineLibraryAdd />
-            </PopupMenuIcon>
-        )
-    } else {
-        return (
-            <>
-                <PopupMenuIcon id={id.current} tooltip={caption} onClick={onClick}>
+        const style = props.style ?? 'icon';
+
+        if (style === 'icon') {
+            return (
+                <PopupMenuIcon id={id.current} tooltip={caption} onClick={subMenuItems[0].callback}>
                     <MdOutlineLibraryAdd />
                 </PopupMenuIcon>
+            )
+        } else {
+            return (
+                <Button variant='secondary' onClick={subMenuItems[0].callback}>{caption}</Button>
+            )
+        }
+    } else {
+        const style = props.style ?? 'icon';
+        return (
+            <>
+                {style === 'icon' ?
+                    <PopupMenuIcon id={id.current} tooltip={caption} onClick={onClick}>
+                        <MdOutlineLibraryAdd />
+                    </PopupMenuIcon>
+                    :
+                    <Button id={id.current} variant='secondary' onClick={onClick}>{caption}</Button>
+
+                }
                 <Tooltip anchorId={id.current} place='right' isOpen={isShowSubMenu}
                     onHide={() => {setShowSubMenu(false)}} name="addContents">
                     <ul className={styles.SubMenu}>

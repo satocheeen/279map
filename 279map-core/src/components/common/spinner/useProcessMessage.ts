@@ -35,7 +35,6 @@ export function useProcessMessage() {
      * @return id。メッセージを消す際にhideProcessに渡す。
      */
     const showProcessMessage = useCallback((param: ProcessMessageType): number => {
-        console.log('showProcessMessage', param);
         // キー発行
         const id = currentProcessCnt + 1;
 
