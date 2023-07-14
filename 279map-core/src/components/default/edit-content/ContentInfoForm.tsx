@@ -106,7 +106,7 @@ export default function ContentInfoForm(props: Props) {
                 <Input value={props.value.title} onChange={(e) => handleChange(e.target.value, 'title')} />
             </FormGroup>
             <FormGroup label='概要'>
-                <textarea rows={3} value={props.value.overview} onChange={(e) => handleChange(e.target.value, 'overview')} />
+                <textarea rows={5} value={props.value.overview} onChange={(e) => handleChange(e.target.value, 'overview')} />
             </FormGroup>
             <FormGroup label='カテゴリ'>
                 <CategorySelector selected={props.value.categories} onChange={onCategoryChanged} />
