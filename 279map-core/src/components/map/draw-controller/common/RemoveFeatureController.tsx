@@ -42,7 +42,6 @@ export default function RemoveFeatureController(props: Props) {
         // DB更新
         await dispatch(removeFeature({
             id: dataId,
-            onlyGeoInfo: false,
         }));
 
         spinnerHook.hideProcessMessage(h);

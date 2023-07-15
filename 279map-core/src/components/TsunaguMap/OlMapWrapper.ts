@@ -13,7 +13,7 @@ import VectorLayer from "ol/layer/Vector";
 import Style, { StyleFunction } from "ol/style/Style";
 import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
-import { DataId, DataSourceKindType, FeatureType, ItemDefine, MapKind, DataSourceInfo, DataSourceGroup } from '279map-common';
+import { DataId, FeatureType, ItemDefine, MapKind, DataSourceGroup } from '279map-common';
 import BaseEvent from 'ol/events/Event';
 import * as MapUtility from '../../util/MapUtility';
 import { FeatureProperties } from '../../types/types';

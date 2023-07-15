@@ -185,7 +185,6 @@ export const RemoveItemAPI = {
 
 export type RemoveItemParam = {
     id: DataId; // 削除対象アイテムのID
-    onlyGeoInfo: boolean;   // trueの場合、地理情報のみ消す。（Notionのページは削除しない）
 }
 
 /**
