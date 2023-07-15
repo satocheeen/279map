@@ -302,10 +302,9 @@ class OlMapWrapper {
                 return;
             }
 
-            const existFeature = source.getFeatureById(def.id.id);
+            const existFeature = source.getFeatureById(getMapKey(def.id));
             if (existFeature) {
                 if (existFeature.getProperties()['lastEditedTime'] !== def.lastEditedTime) {
-                    // console.log('update feature');
                     existFeature.setGeometry(geom);
                     existFeature.setProperties(feature.getProperties());
                 }

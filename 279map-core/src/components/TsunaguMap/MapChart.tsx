@@ -26,6 +26,7 @@ import { Geometry } from "ol/geom";
 import { sleep } from "../../util/CommonUtility";
 import useMyMedia from "../../util/useMyMedia";
 import { useProcessMessage } from "../common/spinner/useProcessMessage";
+import { isEqualId } from "../../store/data/dataUtility";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
@@ -275,13 +276,18 @@ export default function MapChart() {
             overlay: prevGeoJsonItems?.length === 0,    // 初回ロード時はオーバーレイ
             spinner: true,
         });
-        mapRef.current.addFeatures(geoJsonItems)
+        const updateItems = geoJsonItems.filter(item => {
+            const before = prevGeoJsonItems?.find(pre => isEqualId(pre.id, item.id));
+            if (!before) return true;   // 追加Item
+            return before.lastEditedTime !== item.lastEditedTime;   // 更新Item
+        })
+        mapRef.current.addFeatures(updateItems)
         .then(() => {
             // 削除
             // 削除アイテム＝prevGeoJsonItemに存在して、geoJsonItemsに存在しないもの
             const currentIds = geoJsonItems.map(item => item.id);
             const deleteItems = prevGeoJsonItems?.filter(pre => {
-                return !currentIds.includes(pre.id);
+                return !currentIds.some(current => isEqualId(current, pre.id));
             });
             deleteItems?.forEach(item => {
                 mapRef.current?.removeFeature(item);
