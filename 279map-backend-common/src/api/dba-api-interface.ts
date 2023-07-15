@@ -54,7 +54,6 @@ export const RemoveItemAPI = {
 
 export type RemoveItemParam = CommonParam & {
     id: DataId; // 削除対象アイテムのID
-    onlyGeoInfo: boolean;   // trueの場合、地理情報のみ消す。配下のコンテンツは削除しない）
 }
 
 /**
