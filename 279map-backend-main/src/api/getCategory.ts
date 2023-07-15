@@ -65,6 +65,7 @@ type CategoryResult = {
 }
 
 async function getAllCategories(currentMap: CurrentMap, dataSourceIds?: string[]): Promise<CategoryResult[]> {
+    if (dataSourceIds && dataSourceIds.length === 0) return [];
     const con = await ConnectionPool.getConnection();
 
     try {

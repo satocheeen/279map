@@ -52,6 +52,8 @@ type DateResult = {
  * @param dataSourceIds 指定されている場合は、このデータソースのコンテンツに限定する
  */
 async function getAllDates(currentMap: CurrentMap, dataSourceIds?: string[]): Promise<DateResult[]> {
+    if (dataSourceIds && dataSourceIds.length === 0) return [];
+
     const con = await ConnectionPool.getConnection();
 
     try {
