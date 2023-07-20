@@ -72,4 +72,14 @@ export default class SessionMap {
         delete this.#sessionMap[sid];
         this.#flushFile();
     }
+
+    /**
+     * 指定のデータソースについて、sendedItem情報をクリアする。
+     * （アイテムの追加・更新・削除が行われた場合の用途）
+     * @param dataSourceId 
+     */
+    clearSendedExtent(dataSourceId: string) {
+        Object.values(this.#sessionMap).forEach(session => session.clearSendedExtent(dataSourceId));
+    }
+
 }

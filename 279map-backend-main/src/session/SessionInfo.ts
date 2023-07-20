@@ -163,6 +163,15 @@ export default class SessionInfo {
         this.#callbackWhenUpdated();
     }
 
+    /**
+     * 指定のデータソースについて、sendedItem情報をクリアする。
+     * （アイテムの追加・更新・削除が行われた場合の用途）
+     * @param dataSourceId 
+     */
+    clearSendedExtent(dataSourceId: string) {
+        delete this.#sendedExtent[dataSourceId];
+    }
+
     resetItems() {
         this.#itemsMap = {};
         this.#callbackWhenUpdated();
@@ -180,6 +189,7 @@ export default class SessionInfo {
         if (!hit) {
             return false;
         }
+        console.log('isSendedItem', item, hit.lastEditedTime === item.lastEditedTime);
         return hit.lastEditedTime === item.lastEditedTime;
     }
 

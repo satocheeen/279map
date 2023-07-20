@@ -83,11 +83,23 @@ export default class Broadcaster {
     }
 
     /**
+     * 指定のデータソースについて、sendedItem情報をクリアする。
+     * （アイテムの追加・更新・削除が行われた場合の用途）
+     * @param dataSourceId 
+     */
+    clearSendedExtent(dataSourceId: string) {
+        this.#sessionMap.clearSendedExtent(dataSourceId);
+    }
+
+    /**
      * 指定の地図に対してアイテム追加された際に呼び出される。
      * @param mapPageId 
      * @param itemIdList 追加されたアイテムID一覧
      */
     broadCastAddItem(mapPageId: string, itemIdList: DataId[]) {
+        itemIdList.forEach(id => {
+            this.clearSendedExtent(id.dataSourceId);
+        });
         // 接続しているユーザに最新情報を取得するように通知
         this.#broadcast(mapPageId, undefined, {
             type: 'updated',
@@ -99,6 +111,9 @@ export default class Broadcaster {
         Object.values(this.#sessionMap).forEach(client => {
             client.removeItems(itemIdList);
         });
+        itemIdList.forEach(id => {
+            this.clearSendedExtent(id.dataSourceId);
+        });
         // 接続しているユーザに最新情報を取得するように通知
         this.#broadcast(mapPageId, undefined, {
             type: 'updated',
@@ -109,6 +124,9 @@ export default class Broadcaster {
         // 送信済みアイテム情報から当該アイテムを除去する
         Object.values(this.#sessionMap).forEach(client => {
             client.removeItems(itemIdList);
+        });
+        itemIdList.forEach(id => {
+            this.clearSendedExtent(id.dataSourceId);
         });
         // 接続しているユーザにアイテム削除するように通知
         this.#broadcast(mapPageId, undefined, {

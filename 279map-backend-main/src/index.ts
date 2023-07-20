@@ -715,6 +715,7 @@ app.post(`/api/${RegistItemAPI.uri}`,
             });
     
             // 更新通知
+            broadCaster.clearSendedExtent(param.dataSourceId);
             broadCaster.broadcastSameMap(req, {
                 type: 'updated',
             });
@@ -749,6 +750,7 @@ app.post(`/api/${UpdateItemAPI.uri}`,
             }, param));
     
             // 更新通知
+            broadCaster.clearSendedExtent(param.id.dataSourceId);
             broadCaster.broadcastSameMap(req, {
                 type: 'updated',
             });
@@ -783,6 +785,7 @@ app.post(`/api/${RemoveItemAPI.uri}`,
             }, param));
     
             // 更新通知
+            broadCaster.clearSendedExtent(param.id.dataSourceId);
             broadCaster.broadcastSameMap(req, {
                 type: 'delete',
                 itemPageIdList: [param.id],
