@@ -111,7 +111,15 @@ export default function AddContentMenu(props: Props) {
         return dataSources
                 // 追加対象データソースに絞る
                 .filter(ds => {
-                    return addableContentDefines.some(def => def.contentDatasourceId === ds.dataSourceId && def.max === 'multi');
+                    return addableContentDefines.some(def => {
+                        const addable = def.contentDatasourceId === ds.dataSourceId && def.max === 'multi';
+                        if (!addable) return false;
+                        // コンテンツデータソースが編集可能でなければ、新規追加は不可能
+                        const target = dataSources.find(source => source.dataSourceId === def.contentDatasourceId);
+                        if (!target?.itemContents.Content?.editable) return false;
+
+                        return true;
+                    });
                 })
                 .map(ds => {
                     return {
