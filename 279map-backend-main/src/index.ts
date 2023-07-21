@@ -30,7 +30,8 @@ import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 import { search } from './api/search';
 import { checkLinkableDatasource } from './api/getUnpointData';
-import { Auth0ManagementClient } from './auth/auth0/Auth0ManagementClient';
+import { Auth0ManagementClient } from './auth/Auth0ManagementClient';
+import { OriginalAuthManagement } from './auth/OriginalAuthManagement';
 
 declare global {
     namespace Express {
@@ -148,7 +149,14 @@ const server = http.createServer(app);
 const broadCaster = new Broadcaster(server, sessionStoragePath);
 
 // Initialize Auth
-export const authManagementClient = new Auth0ManagementClient();   // TODO: interfaceにする
+export const authManagementClient = function() {
+    switch(authMethod) {
+        case AuthMethod.Auth0:
+            return new Auth0ManagementClient()
+        default:
+            return new OriginalAuthManagement();
+    }
+}();
 authManagementClient.initialize();
 
 logger.debug('create checkJwt', process.env.AUTH0_AUDIENCE, `https://${process.env.AUTH0_DOMAIN}/`);

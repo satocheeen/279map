@@ -1,6 +1,6 @@
 import axios from "axios";
 import { ManagementClient } from 'auth0';
-import { Auth } from "279map-backend-common";
+import { Auth, AuthManagementInterface  } from "279map-backend-common";
 
 const domain = process.env.AUTH0_DOMAIN ?? '';
 const client_id = process.env.AUTH0_BACKEND_CLIENT_ID ?? '';
@@ -14,8 +14,8 @@ export type MapInfo = {
 type AppMetaData = {
     maps: {[mapId: string]: MapInfo}
 }
-export class Auth0ManagementClient {
-    #token: string | undefined;
+
+export class Auth0ManagementClient extends AuthManagementInterface {
     #management: ManagementClient | undefined;
 
     public async initialize() {
@@ -32,8 +32,6 @@ export class Auth0ManagementClient {
             },
         });
         const token = res.data.access_token;
-        console.log('backend token', token);
-        this.#token = token;
 
         this.#management = new ManagementClient({
             token,
