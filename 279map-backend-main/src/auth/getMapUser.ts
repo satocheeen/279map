@@ -1,4 +1,4 @@
-import { ConnectionPool } from "..";
+import { authManagementClient } from "..";
 import { Auth } from '279map-backend-common';
 import { schema } from '279map-backend-common';
 import { getLogger } from 'log4js';
@@ -36,12 +36,7 @@ type UserAuthInfo = {
  * @returns アクセス権限情報
  */
 export async function getUserAuthInfoInTheMap(mapPageInfo: schema.MapPageInfoTable, req: Request): Promise<UserAuthInfo> {
-    // const mapDefine = req.connect?.mapPageInfo;
-    // if (!req.connect || !mapId || !mapDefine) {
-    //     res.status(500).send('Illegal state error');
-    //     return;
-    // }
-
+    
     const userId = getUserIdByRequest(req);
     if (!userId) {
         // 未ログインの場合
@@ -61,8 +56,7 @@ export async function getUserAuthInfoInTheMap(mapPageInfo: schema.MapPageInfoTab
 
     apiLogger.debug('ログイン済み');
     // ユーザの地図に対する権限を取得
-    const mapUserInfo = await getMapUser(mapPageInfo.map_page_id, userId);
-    apiLogger.debug('mapUserInfo', mapUserInfo);
+    const mapUserInfo = await authManagementClient.getUserInfoOfTheMap(userId, mapPageInfo.map_page_id);
 
     if (mapUserInfo && mapUserInfo.auth_lv !== Auth.None) {
         return {
@@ -83,33 +77,4 @@ export async function getUserAuthInfoInTheMap(mapPageInfo: schema.MapPageInfoTab
             }
         }
     }
-}
-
-/**
- * 指定の地図のユーザ情報を取得する
- * @param mapId 
- * @param userId 
- * @return ユーザ情報。該当するデータが存在しない場合、null。
- */
-export async function getMapUser(mapId: string, userId: string): Promise<schema.MapUserTable | null> {
-    const con = await ConnectionPool.getConnection();
-    
-    try {
-        const sql = 'SELECT * FROM map_user WHERE map_page_id = ? AND user_id = ?';
-        const [rows] = await con.execute(sql, [mapId, userId]);
-        const records = (rows as schema.MapUserTable[]);
-
-        if (records.length === 0) {
-            return null;
-        }
-        
-        return records[0];
-
-    } catch(e) {
-        throw new Error('select map_user table failed.');
-    } finally {
-        await con.rollback();
-        con.release();
-    }
-
 }

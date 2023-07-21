@@ -23,7 +23,7 @@ import { exit } from 'process';
 import { getMapInfoByIdOrAlias } from './getMapDefine';
 import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { auth } from 'express-oauth2-jwt-bearer';
-import { getMapUser, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
+import { getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
 import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, GetEventParam, GetCategoryParam } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
@@ -447,7 +447,7 @@ app.all('/api/*',
 
         apiLogger.debug('ログイン済み', req.auth);
         // ユーザの地図に対する権限を取得
-        const mapUserInfo = await getMapUser(mapId, userId);
+        const mapUserInfo = await authManagementClient.getUserInfoOfTheMap(userId, mapId);
         apiLogger.debug('mapUserInfo', mapUserInfo);
 
         if (mapUserInfo && mapUserInfo.auth_lv !== Auth.None) {

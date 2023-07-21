@@ -7,7 +7,7 @@ const client_id = process.env.AUTH0_BACKEND_CLIENT_ID ?? '';
 const client_secret = process.env.AUTH0_BACKEND_CLIENT_SECRET ?? '';
 const audience = `https://${domain}/api/v2/`;
 
-type MapInfo = {
+export type MapInfo = {
     auth_lv: Auth;
     name: string;
 }
@@ -48,7 +48,7 @@ export class Auth0ManagementClient {
      */
     public async getUserMapList(userId: string): Promise<string[]> {
         if (!this.#management) {
-            throw new Error('not initialize');
+            throw new Error('authManagementClient not initialize');
         }
         const res = await this.#management.getUser({id: userId});
         if (!res.app_metadata) {
@@ -56,5 +56,23 @@ export class Auth0ManagementClient {
         }
         const metadata = res.app_metadata as AppMetaData;
         return Object.keys(metadata.maps);
+    }
+
+    /**
+     * 指定のユーザの指定の地図での権限情報を返す
+     * @param userId 
+     * @param mapId 
+     * @return ユーザ情報。該当するデータが存在しない場合、null。
+     */
+    public async getUserInfoOfTheMap(userId: string, mapId: string): Promise<MapInfo|undefined> {
+        if (!this.#management) {
+            throw new Error('authManagementClient not initialize');
+        }
+        const res = await this.#management.getUser({id: userId});
+        if (!res.app_metadata) {
+            return;
+        }
+        const metadata = res.app_metadata as AppMetaData;
+        return metadata.maps[mapId];
     }
 }
