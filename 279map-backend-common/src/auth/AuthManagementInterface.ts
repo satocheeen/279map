@@ -5,7 +5,7 @@ export type MapInfo = {
     name: string;
 }
 
-export default abstract class authManagementInterface {
+export abstract class AuthManagementInterface {
     abstract initialize: () => Promise<void>;
 
     /**
