@@ -30,6 +30,7 @@ import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 import { search } from './api/search';
 import { checkLinkableDatasource } from './api/getUnpointData';
+import { Auth0ManagementClient } from './auth/auth0/Auth0ManagementClient';
 
 declare global {
     namespace Express {
@@ -72,7 +73,7 @@ if (!['None', 'Auth0', 'Direct'].includes(process.env.AUTH_METHOD)) {
 }
 export const authMethod = process.env.AUTH_METHOD as AuthMethod;
 
-logger.info('preparomg express');
+logger.info('start prepare express');
 
 const app = express();
 const port = 80;
@@ -146,6 +147,10 @@ const server = http.createServer(app);
 // Create WebSoskce Server
 const broadCaster = new Broadcaster(server, sessionStoragePath);
 
+// Initialize Auth
+const authManagementClient = new Auth0ManagementClient();   // TODO: interfaceにする
+authManagementClient.initialize();
+
 logger.debug('create checkJwt', process.env.AUTH0_AUDIENCE, `https://${process.env.AUTH0_DOMAIN}/`);
 const checkJwt: (req: Request, res: Response, next: NextFunction) => void = function(){
     switch(authMethod) {
@@ -205,6 +210,9 @@ app.get('/api/' + GetMapListAPI.uri,
         apiLogger.info('[start] getmaplist');
 
         const userId = getUserIdByRequest(req);
+        if (userId) {
+            await authManagementClient.getUserMapList(userId);
+        }
         const list = await getMapList(userId);
 
         res.send(list);
