@@ -148,7 +148,7 @@ const server = http.createServer(app);
 const broadCaster = new Broadcaster(server, sessionStoragePath);
 
 // Initialize Auth
-const authManagementClient = new Auth0ManagementClient();   // TODO: interfaceにする
+export const authManagementClient = new Auth0ManagementClient();   // TODO: interfaceにする
 authManagementClient.initialize();
 
 logger.debug('create checkJwt', process.env.AUTH0_AUDIENCE, `https://${process.env.AUTH0_DOMAIN}/`);

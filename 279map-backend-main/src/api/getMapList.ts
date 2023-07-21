@@ -1,5 +1,5 @@
 import { schema } from "279map-backend-common";
-import { ConnectionPool } from "..";
+import { ConnectionPool, authManagementClient } from "..";
 import { MapInfo } from "../../279map-api-interface/src";
 
 /**
@@ -29,19 +29,20 @@ export async function getMapList(userId: string | undefined): Promise<MapInfo[]>
             return publicMapList;
         }
 
-        // ユーザがアクセス権限のある地図一覧を取得
-        const selectPrivateQuery = `
-        select mpi.* from map_page_info mpi 
-        inner join map_user mu on mpi.map_page_id = mu.map_page_id
-        where mu.user_id = ? and public_range = ?
-        `;
-        const [rowsPrivate] = await con.execute(selectPrivateQuery, [userId, schema.PublicRange.Private]);
-        const privateMapList = (rowsPrivate as schema.MapPageInfoTable[]).map((record): MapInfo => {
-            return {
-                mapId: record.map_page_id,
-                name: record.title,
+        // ユーザがアクセス権限のあるPrivate地図一覧を取得
+        const accessableMapIdList = await authManagementClient.getUserMapList(userId);
+        const privateMapList = [] as MapInfo[];
+        for (const mapId of accessableMapIdList) {
+            const selectPublicQuery = 'select * from map_page_info where map_page_id = ? and  public_range = ?';
+            const [rows] = await con.execute(selectPublicQuery, [mapId, schema.PublicRange.Private]);
+            const records = rows as schema.MapPageInfoTable[];
+            if (records.length > 0) {
+                privateMapList.push({
+                    mapId: records[0].map_page_id,
+                    name: records[0].title,
+                })
             }
-        });
+        }
 
         return publicMapList.concat(privateMapList);
 

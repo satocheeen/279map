@@ -1,11 +1,19 @@
 import axios from "axios";
 import { ManagementClient } from 'auth0';
+import { Auth } from "279map-backend-common";
 
 const domain = process.env.AUTH0_DOMAIN ?? '';
 const client_id = process.env.AUTH0_BACKEND_CLIENT_ID ?? '';
 const client_secret = process.env.AUTH0_BACKEND_CLIENT_SECRET ?? '';
 const audience = `https://${domain}/api/v2/`;
 
+type MapInfo = {
+    auth_lv: Auth;
+    name: string;
+}
+type AppMetaData = {
+    maps: {[mapId: string]: MapInfo}
+}
 export class Auth0ManagementClient {
     #token: string | undefined;
     #management: ManagementClient | undefined;
@@ -43,7 +51,10 @@ export class Auth0ManagementClient {
             throw new Error('not initialize');
         }
         const res = await this.#management.getUser({id: userId});
-        console.log('get user', res);
-        return [];
+        if (!res.app_metadata) {
+            return [];
+        }
+        const metadata = res.app_metadata as AppMetaData;
+        return Object.keys(metadata.maps);
     }
 }
