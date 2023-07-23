@@ -221,20 +221,6 @@ app.get('/api/' + GetMapListAPI.uri,
  */
 app.get('/api/connect', 
     authManagementClient.checkJwt,
-    (err: Error, req: Request, res: Response, next: NextFunction) => {
-        if (authMethod === 'Auth0' && !req.headers.authorization) {
-            // Auth0でauthorizationを持っていない場合は、public地図については参照可能なので、そのまま通す。
-            next();
-        } else {
-            apiLogger.warn('connect error', err);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail: err + '',
-            } as ApiError);
-        }
-    },
-);
-app.get('/api/connect', 
     async(req, res) => {
         apiLogger.info('[start] connect');
 
