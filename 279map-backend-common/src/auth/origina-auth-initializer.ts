@@ -19,7 +19,7 @@ export function initializeOriginalAuth(app: Express, authManagement: AuthManagem
         }
     });
 
-    app.post('auth/get-user-map-list', async(req, res) => {
+    app.post('/auth/get-user-map-list', async(req, res) => {
         logger.info('[start] auth getUserMapList');
         try {
             const param = req.body;
@@ -36,7 +36,7 @@ export function initializeOriginalAuth(app: Express, authManagement: AuthManagem
         }
     });
 
-    app.post('auth/get-userinfo-of-map', async(req, res) => {
+    app.post('/auth/get-userinfo-of-map', async(req, res) => {
         logger.info('[start] auth getUserInfoOfTheMap');
         try {
             const param = req.body;
