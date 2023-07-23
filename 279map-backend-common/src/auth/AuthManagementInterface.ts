@@ -1,5 +1,5 @@
 import { Auth } from "279map-common";
-import { NextFunction } from "express";
+import { NextFunction, Request, Response } from 'express';
 
 export type MapInfo = {
     auth_lv: Auth;
@@ -9,7 +9,7 @@ export type MapInfo = {
 export abstract class AuthManagementInterface {
     abstract initialize(): Promise<void>;
 
-    abstract checkJwt: (req: Request, res: Response, next: NextFunction) => void;
+    abstract checkJwt(req: Request, res: Response, next: NextFunction): void;
     
     /**
      * 指定のユーザがユーザ登録している地図一覧を返す
