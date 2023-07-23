@@ -16,7 +16,7 @@ type AppMetaData = {
     maps: {[mapId: string]: MapInfo}
 }
 
-export class Auth0ManagementClient extends AuthManagementInterface {
+export class Auth0Management extends AuthManagementInterface {
     #management: ManagementClient | undefined;
 
     public async initialize() {

@@ -29,8 +29,9 @@ import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 import { search } from './api/search';
 import { checkLinkableDatasource } from './api/getUnpointData';
-import { Auth0ManagementClient } from './auth/Auth0ManagementClient';
+import { Auth0Management } from './auth/Auth0Management';
 import { OriginalAuthManagement } from './auth/OriginalAuthManagement';
+import { NoneAuthManagement } from './auth/NoneAuthManagement';
 
 declare global {
     namespace Express {
@@ -147,9 +148,11 @@ export const authMethod = process.env.AUTH_METHOD as AuthMethod;
 export const authManagementClient = function() {
     switch(authMethod) {
         case AuthMethod.Auth0:
-            return new Auth0ManagementClient()
+            return new Auth0Management()
         case AuthMethod.Original:
             return new OriginalAuthManagement();
+        case AuthMethod.None:
+            return new NoneAuthManagement();
         default:
             console.warn('illegal value AUTH_METHOD: ' + process.env.AUTH_METHOD);
             exit(1);
