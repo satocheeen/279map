@@ -3,9 +3,9 @@ import GeoJSON, { GeoJsonObject } from 'geojson';
 export type Extent = number[];
 
 export enum AuthMethod {
-    None = 'None',
-    Direct = 'Direct',
-    Auth0 = 'Auth0',
+    None = "None",
+    Auth0 = "Auth0",
+    Original = "Original",
 }
 
 // サーバーからフロントエンドに渡すConfig情報
@@ -17,7 +17,7 @@ export type ServerConfig = {
         audience: string;
     }
 } | {
-    authMethod: AuthMethod.None | AuthMethod.Direct;
+    authMethod: AuthMethod.None | AuthMethod.Original;
 }
 
 export enum Auth {
