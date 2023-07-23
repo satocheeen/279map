@@ -1,6 +1,6 @@
 import { Express } from 'express';
-import { AuthManagementInterface } from './AuthManagementInterface';
 import { Logger } from 'log4js';
+import { AuthManagementInterface } from './AuthManagementInterface';
 
 export function initializeOriginalAuth(app: Express, authManagement: AuthManagementInterface, logger: Logger) {
     app.post('/auth/initialize', async(req, res) => {
@@ -18,6 +18,13 @@ export function initializeOriginalAuth(app: Express, authManagement: AuthManagem
 
         }
     });
+
+    app.post('/auth/check-jwt', 
+        authManagement.checkJwt,
+        async(req, res, next) => {
+            res.send('checkJwt ok');
+        }
+    );
 
     app.post('/auth/get-user-map-list', async(req, res) => {
         logger.info('[start] auth getUserMapList');

@@ -1,2 +1,2 @@
 export * from './AuthManagementInterface';
-export * from './origina-auth-initializer';
+export * from './original-auth-initializer';
