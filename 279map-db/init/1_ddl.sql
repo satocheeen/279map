@@ -146,15 +146,3 @@ CREATE TABLE `original_icons` (
   KEY `original_icons_FK` (`map_page_id`),
   CONSTRAINT `original_icons_FK` FOREIGN KEY (`map_page_id`) REFERENCES `map_page_info` (`map_page_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
-
-
--- 279map_db.map_user definition
-
-CREATE TABLE `map_user` (
-  `map_page_id` varchar(100) NOT NULL,
-  `user_id` varchar(100) NOT NULL,
-  `auth_lv` enum('None','View','Edit') NOT NULL,
-  `name` varchar(100) DEFAULT NULL,
-  PRIMARY KEY (`map_page_id`,`user_id`),
-  CONSTRAINT `map_user_FK` FOREIGN KEY (`map_page_id`) REFERENCES `map_page_info` (`map_page_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;

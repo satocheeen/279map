@@ -36,12 +36,6 @@ export type MapDataSourceLinkTable = {
     order_num: number;
     last_edited_time: string;
 }
-export type MapUserTable = {
-    map_page_id: string;
-    user_id: string;
-    auth_lv: Auth;
-    name: string;
-}
 export type TracksTable = {
     track_page_id: string;
     data_source_id: string;
