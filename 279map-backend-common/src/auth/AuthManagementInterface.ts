@@ -9,8 +9,8 @@ export type MapInfo = {
 export abstract class AuthManagementInterface {
     abstract initialize(): Promise<void>;
 
-    abstract checkJwt(req: Request, res: Response, next: NextFunction): void;
-
+    abstract checkJwt: (req: Request, res: Response, next: NextFunction) => void;
+    
     /**
      * 指定のユーザがユーザ登録している地図一覧を返す
      * @param userId 
