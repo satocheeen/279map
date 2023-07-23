@@ -1,6 +1,7 @@
 import axios from "axios";
 import { ManagementClient } from 'auth0';
 import { Auth, AuthManagementInterface  } from "279map-backend-common";
+import { auth } from "express-oauth2-jwt-bearer";
 
 const domain = process.env.AUTH0_DOMAIN ?? '';
 const client_id = process.env.AUTH0_BACKEND_CLIENT_ID ?? '';
@@ -38,6 +39,11 @@ export class Auth0ManagementClient extends AuthManagementInterface {
             domain,
         });
     }
+
+    checkJwt = auth({
+        audience: process.env.AUTH0_AUDIENCE,
+        issuerBaseURL: `https://${process.env.AUTH0_DOMAIN}/`,
+    });
 
     /**
      * 指定のユーザがユーザ登録している地図一覧を返す

@@ -22,7 +22,6 @@ import cors from 'cors';
 import { exit } from 'process';
 import { getMapInfoByIdOrAlias } from './getMapDefine';
 import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
-import { auth } from 'express-oauth2-jwt-bearer';
 import { getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
 import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, GetEventParam, GetCategoryParam } from '../279map-api-interface/src/api';
@@ -158,21 +157,6 @@ export const authManagementClient = function() {
 }();
 authManagementClient.initialize();
 
-logger.debug('create checkJwt', process.env.AUTH0_AUDIENCE, `https://${process.env.AUTH0_DOMAIN}/`);
-const checkJwt: (req: Request, res: Response, next: NextFunction) => void = function(){
-    switch(authMethod) {
-        case AuthMethod.Auth0:
-            return auth({
-                audience: process.env.AUTH0_AUDIENCE,
-                issuerBaseURL: `https://${process.env.AUTH0_DOMAIN}/`,
-            });
-        default:
-            return (req: Request, res: Response, next: NextFunction) => {
-                next();
-            };
-    }
-}();
-
 /**
  * システム共通定義を返す
  */
@@ -210,7 +194,7 @@ app.get('/api/' + GetMapListAPI.uri,
             next();
         }
     },
-    checkJwt,
+    authManagementClient.checkJwt,
 );
 app.get('/api/' + GetMapListAPI.uri,
     async(req: Request, res: Response) => {
@@ -233,7 +217,7 @@ app.get('/api/' + GetMapListAPI.uri,
  * 接続確立
  */
 app.get('/api/connect', 
-    checkJwt,
+    authManagementClient.checkJwt,
     (err: Error, req: Request, res: Response, next: NextFunction) => {
         if (authMethod === 'Auth0' && !req.headers.authorization) {
             // Auth0でauthorizationを持っていない場合は、public地図については参照可能なので、そのまま通す。
@@ -405,7 +389,7 @@ app.all('/api/*',
             next();
         }
     },
-    checkJwt,
+    authManagementClient.checkJwt,
     (err: Error, req: Request, res: Response, next: NextFunction) => {
         if (err.name === 'Unauthenticated') {
             res.status(401).send({
