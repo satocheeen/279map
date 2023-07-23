@@ -23,7 +23,8 @@ export class OriginalAuthManagement extends AuthManagementInterface {
 }
 
 async function callOriginalServer(api: string, param: any) {
-    const url = path.join(process.env.ORIGINAL_AUTH_URL ?? '', 'auth', api);
+    const originalAuthUrl = (process.env.ORIGINAL_AUTH_URL ?? '');
+    const url = `${originalAuthUrl}${originalAuthUrl.endsWith('/')?'':'/'}auth/${api}`;
     try {
         let res: AxiosResponse;
         res = await axios.post(url, param, {

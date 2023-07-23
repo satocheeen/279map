@@ -68,11 +68,6 @@ if (!process.env.AUTH_METHOD) {
     console.warn('not set env AUTH_METHOD');
     exit(1);
 }
-if (!['None', 'Auth0', 'Direct'].includes(process.env.AUTH_METHOD)) {
-    console.warn('illegal value AUTH_METHOD: ' + process.env.AUTH_METHOD);
-    exit(1);
-}
-export const authMethod = process.env.AUTH_METHOD as AuthMethod;
 
 logger.info('start prepare express');
 
@@ -149,13 +144,17 @@ const server = http.createServer(app);
 const broadCaster = new Broadcaster(server, sessionStoragePath);
 
 // Initialize Auth
+export const authMethod = process.env.AUTH_METHOD as AuthMethod;
 export const authManagementClient = function() {
     switch(authMethod) {
         case AuthMethod.Auth0:
             return new Auth0ManagementClient()
-        default:
+        case AuthMethod.Original:
             return new OriginalAuthManagement();
-    }
+        default:
+            console.warn('illegal value AUTH_METHOD: ' + process.env.AUTH_METHOD);
+            exit(1);
+        }
 }();
 authManagementClient.initialize();
 
