@@ -1,4 +1,4 @@
-import React, { useImperativeHandle, useContext, useEffect, useRef, ReactNode, useMemo } from 'react';
+import React, { useImperativeHandle, useContext, useEffect, useRef, ReactNode, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { LoadContentsParam, LoadContentsResult, linkContentToItem, loadCategories, loadContents, loadEvents, loadOriginalIconDefine, registContent, updateContent } from '../../store/data/dataThunk';
@@ -11,7 +11,7 @@ import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import styles from './MapWrapper.module.scss';
 import { ConnectAPIResult, LoadMapDefineResult, TsunaguMapHandler } from '../../types/types';
-import { ErrorType, GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam } from "tsunagumap-api";
+import { RequestAPI, ErrorType, GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam } from "tsunagumap-api";
 import { search } from '../../store/operation/operationThunk';
 import Spinner from '../common/spinner/Spinner';
 import { useMounted } from '../../util/useMounted';
@@ -472,12 +472,17 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
  */
 function Overlay() {
     const { isShowOverlay, isShowSpinner, processMessage } = useProcessMessage();
+    const { getApi } = useMap();
+
+    const onRequest = useCallback(async() => {
+        await getApi().callApi(RequestAPI, undefined);
+    }, [getApi]);
 
     const button = useMemo(() => {
         if (!processMessage?.button) return null;
         switch(processMessage.button) {
             case ButtonInProcess.Request:
-                return <Button variant='secondary'>登録申請</Button>
+                return <Button variant='secondary' onClick={onRequest}>登録申請</Button>
         }
     }, [processMessage]);
 

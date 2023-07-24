@@ -3,6 +3,7 @@ import { ServerInfo } from '../types/types';
 import { ApiError, ConfigAPI, ConnectAPI, ErrorType, GetContentsAPI, GetContentsParam, GetMapListAPI } from 'tsunagumap-api';
 import { getMapKey } from '../store/data/dataUtility';
 import { ApiException } from './util';
+import { RequestAPI } from 'tsunagumap-api';
 
 type ErrorCallback = (errorType: ApiError) => void;
 class ApiCaller {
@@ -25,7 +26,7 @@ class ApiCaller {
     async callApi<API extends APIDefine<any, any>> (api: API, param: API['param']): Promise<API['result']> {
         try {
             if (!this._sid) {
-                if (api !== ConnectAPI && api !== GetMapListAPI && api !== ConfigAPI) {
+                if (api !== ConnectAPI && api !== GetMapListAPI && api !== ConfigAPI && api !== RequestAPI) {
                     throw 'not set SID';
                 }
             }

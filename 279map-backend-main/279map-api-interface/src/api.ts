@@ -36,6 +36,12 @@ export type ConnectResult = {
     sid: string;   // セッションID
 }
 
+export const RequestAPI = {
+    uri: 'request',
+    method: 'get',
+    resultType: 'none',
+} as APIDefine<void, void>;
+
 /**
  * get map info
  */

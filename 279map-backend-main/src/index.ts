@@ -24,7 +24,7 @@ import { getMapInfoByIdOrAlias } from './getMapDefine';
 import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, GetEventParam, GetCategoryParam } from '../279map-api-interface/src/api';
+import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, GetEventParam, GetCategoryParam, RequestAPI } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 import { search } from './api/search';
@@ -215,32 +215,33 @@ app.get('/api/' + GetMapListAPI.uri,
     }
 );
 
+const authenticateErrorProcess = (err: Error, req: Request, res: Response, next: NextFunction) => {
+    // 認証エラー
+    apiLogger.warn('connect error', err);
+    if (err.name === 'Unauthenticated') {
+        res.status(401).send({
+            type: ErrorType.Unauthorized,
+            detail: err.message,
+        } as ApiError);
+    } else if (err.name === 'Bad Request') {
+        res.status(400).send({
+            type: ErrorType.IllegalError,
+            detail: err.message,
+        } as ApiError);
+    } else {
+        res.status(403).send({
+            type: ErrorType.Forbidden,
+            detail: err.message + err.stack,
+        } as ApiError);
+    }
+};
 
 /**
  * 接続確立
  */
 app.get('/api/connect', 
     authManagementClient.checkJwt,
-    (err: Error, req: Request, res: Response, next: NextFunction) => {
-        // 認証エラー
-        apiLogger.warn('connect error', err);
-        if (err.name === 'Unauthenticated') {
-            res.status(401).send({
-                type: ErrorType.Unauthorized,
-                detail: err.message,
-            } as ApiError);
-        } else if (err.name === 'Bad Request') {
-            res.status(400).send({
-                type: ErrorType.IllegalError,
-                detail: err.message,
-            } as ApiError);
-        } else {
-            res.status(403).send({
-                type: ErrorType.Forbidden,
-                detail: err.message + err.stack,
-            } as ApiError);
-        }
-    },
+    authenticateErrorProcess,
     async(req: Request, res: Response) => {
         apiLogger.info('[start] connect');
 
@@ -303,6 +304,19 @@ app.get('/api/connect',
 
         }
     },
+);
+
+/**
+ * 地図へのユーザ登録申請
+ */
+app.get(`/api/${RequestAPI.uri}`, 
+    authManagementClient.checkJwt,
+    authenticateErrorProcess,
+    async(req: Request, res: Response) => {
+        // TODO: 
+        console.log('request');
+        res.send('ok');
+    }
 );
 
 /**
@@ -399,24 +413,7 @@ app.all('/api/*',
         }
     },
     authManagementClient.checkJwt,
-    (err: Error, req: Request, res: Response, next: NextFunction) => {
-        if (err.name === 'Unauthenticated') {
-            res.status(401).send({
-                type: ErrorType.Unauthorized,
-                detail: err.message,
-            } as ApiError);
-        } else if (err.name === 'Bad Request') {
-            res.status(400).send({
-                type: ErrorType.IllegalError,
-                detail: err.message,
-            } as ApiError);
-        } else {
-            res.status(403).send({
-                type: ErrorType.Forbidden,
-                detail: err.message + err.stack,
-            } as ApiError);
-        }
-    },
+    authenticateErrorProcess,
 );
 
 /**
