@@ -221,7 +221,15 @@ app.get('/api/' + GetMapListAPI.uri,
  */
 app.get('/api/connect', 
     authManagementClient.checkJwt,
-    async(req, res) => {
+    (err: Error, req: Request, res: Response, next: NextFunction) => {
+        // 認証エラー
+        apiLogger.warn('connect error', err);
+        res.status(500).send({
+            type: ErrorType.IllegalError,
+            detail: err + '',
+        } as ApiError);
+    },
+    async(req: Request, res: Response) => {
         apiLogger.info('[start] connect');
 
         try {
@@ -282,7 +290,7 @@ app.get('/api/connect',
             } as ApiError);
 
         }
-    }
+    },
 );
 
 /**

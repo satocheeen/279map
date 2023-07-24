@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from 'express';
 import axios from "axios";
 import { ManagementClient } from 'auth0';
 import { Auth, AuthManagementInterface  } from "279map-backend-common";
@@ -40,10 +41,17 @@ export class Auth0Management extends AuthManagementInterface {
         });
     }
 
-    checkJwt = auth({
-        audience: process.env.AUTH0_AUDIENCE,
-        issuerBaseURL: `https://${process.env.AUTH0_DOMAIN}/`,
-    });
+    checkJwt(req: Request, res: Response, next: NextFunction): void {
+        if (!req.headers.authorization) {
+            // authorizationを持っていない場合は、public地図については参照可能なので、そのまま通す。
+            next();
+            return;
+        }
+        auth({
+            audience: process.env.AUTH0_AUDIENCE,
+            issuerBaseURL: `https://${process.env.AUTH0_DOMAIN}/`,
+        })(req, res, next);
+    }
 
     /**
      * 指定のユーザがユーザ登録している地図一覧を返す
