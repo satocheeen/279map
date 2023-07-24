@@ -25,8 +25,7 @@ export function useProcessMessage() {
      * 表示するメッセージ。メッセージが存在しない場合は、undefined。
      */
     const processMessage = useSelector((state: RootState) => {
-        const message = state.operation.processMessages.find(pm => pm.message);
-        return message?.message;
+        return state.operation.processMessages.find(pm => pm.message);
     });
 
 

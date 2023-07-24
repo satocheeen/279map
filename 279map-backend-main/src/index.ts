@@ -266,7 +266,7 @@ app.get('/api/connect',
             if (userAccessInfo.authLv === Auth.None) {
                 // 権限なしエラーを返却
                 res.status(403).send({
-                    type: ErrorType.Unauthorized,
+                    type: ErrorType.NoAuthenticate,
                 } as ApiError);
                 return;
             }
@@ -461,7 +461,7 @@ app.all('/api/*',
             } else {
                 // 地図がprivateの場合、権限なしエラーを返却
                 res.status(403).send({
-                    type: ErrorType.Forbidden,
+                    type: ErrorType.NoAuthenticate,
                 } as ApiError);
                 return;
             }

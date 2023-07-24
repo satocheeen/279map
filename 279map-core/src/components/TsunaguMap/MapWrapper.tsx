@@ -1,10 +1,10 @@
-import React, { useImperativeHandle, useContext, useEffect, useRef } from 'react';
+import React, { useImperativeHandle, useContext, useEffect, useRef, ReactNode, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { LoadContentsParam, LoadContentsResult, linkContentToItem, loadCategories, loadContents, loadEvents, loadOriginalIconDefine, registContent, updateContent } from '../../store/data/dataThunk';
 import { addListener, doCommand, removeListener } from '../../util/Commander';
 import MapChart from './MapChart';
-import { operationActions } from '../../store/operation/operationSlice';
+import { ButtonInProcess, operationActions } from '../../store/operation/operationSlice';
 import { OwnerContext } from './TsunaguMap';
 import { sessionActions } from '../../store/session/sessionSlice';
 import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
@@ -23,6 +23,7 @@ import { dataActions } from '../../store/data/dataSlice';
 import useEvent from '../../store/data/useEvent';
 import useCategory from '../../store/data/useCategory';
 import useDataSource from '../../store/data/useDataSource';
+import { Button } from '../common';
 
 type Props = {};
 
@@ -409,27 +410,45 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
             if (messageIdRef.current) {
                 hideProcessMessage(messageIdRef.current);
             }
-            const errorMessage = function(){
+            const { errorMessage, button } = function(): {errorMessage: string; button?: ButtonInProcess } {
                 switch(connectStatus.error.type) {
                     case 'UndefinedMapServer':
-                        return '地図サーバーに接続できません';
+                        return {
+                            errorMessage: '地図サーバーに接続できません'
+                        };
                     case ErrorType.UndefinedMap:
-                        return '指定の地図は存在しません';
+                        return {
+                            errorMessage: '指定の地図は存在しません'
+                        };
                     case ErrorType.Unauthorized:
-                        return 'この地図を表示するには、ログインが必要です';
+                        return {
+                            errorMessage: 'この地図を表示するには、ログインが必要です'
+                        }
                     case ErrorType.Forbidden:
-                        return 'この地図へのアクセス権限がありません。再ログインして問題が解決しない場合は、管理者へ問い合わせてください。';
+                        return {
+                            errorMessage: '認証期限が切れている可能性があります。再ログインを試してください。問題が解決しない場合は、管理者へ問い合わせてください。'
+                        };
+                    case ErrorType.NoAuthenticate:
+                        return {
+                            errorMessage: 'この地図へのアクセス権限がありません',
+                            button: ButtonInProcess.Request,
+                        };
                     case ErrorType.SessionTimeout:
-                        return 'しばらく操作されなかったため、セッション接続が切れました。再ロードしてください。';
-                    case ErrorType.IllegalError:
-                        return '想定外の問題が発生しました。再ロードしても問題が解決しない場合は、管理者へ問い合わせてください。';
+                        return {
+                            errorMessage: 'しばらく操作されなかったため、セッション接続が切れました。再ロードしてください。'
+                        };
+                    default:
+                        return {
+                            errorMessage: '想定外の問題が発生しました。再ロードしても問題が解決しない場合は、管理者へ問い合わせてください。'
+                        };
                 }
             }();
             const detail = connectStatus.error.detail ? `\n${connectStatus.error.detail}` : '';
             messageIdRef.current = showProcessMessage({
                 overlay: true,
                 spinner: false,
-                message: errorMessage + detail
+                message: errorMessage + detail,
+                button,
             });
         } else if (connectStatus.status === 'connected') {
             if (messageIdRef.current) {
@@ -454,6 +473,14 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
 function Overlay() {
     const { isShowOverlay, isShowSpinner, processMessage } = useProcessMessage();
 
+    const button = useMemo(() => {
+        if (!processMessage?.button) return null;
+        switch(processMessage.button) {
+            case ButtonInProcess.Request:
+                return <Button variant='secondary'>登録申請</Button>
+        }
+    }, [processMessage]);
+
     return (
         <div className={`${isShowOverlay ? styles.Overlay : styles.MinOverlay}`}>
             {isShowSpinner &&
@@ -461,9 +488,10 @@ function Overlay() {
                     <Spinner size={isShowOverlay ? 'normal' : 'small'} />
                 </div>
             }
-            {processMessage &&
-                <p className={styles.Message}>{processMessage}</p>
+            {processMessage?.message &&
+                <p className={styles.Message}>{processMessage.message}</p>
             }
+            {button}
         </div>
     )
 }

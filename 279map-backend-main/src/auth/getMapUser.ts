@@ -1,5 +1,5 @@
 import { authManagementClient } from "..";
-import { Auth } from '279map-backend-common';
+import { Auth, AuthMethod } from '279map-backend-common';
 import { schema } from '279map-backend-common';
 import { getLogger } from 'log4js';
 import { authMethod } from '..';
@@ -8,10 +8,10 @@ import { Request } from 'express';
 const apiLogger = getLogger('api');
 
 export const getUserIdByRequest = (req: Request): string | undefined => {
-    if (authMethod === 'None') {
+    if (authMethod === AuthMethod.None) {
         return;
 
-    } else if (authMethod === 'Auth0') {
+    } else if (authMethod === AuthMethod.Auth0) {
         if (!('auth' in req)) {
             return;
         }

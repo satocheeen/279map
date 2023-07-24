@@ -5,7 +5,13 @@ import { ConfirmParam, ConfirmResult } from "../../components/common/confirm/use
 import { MapMode } from "../../types/types";
 import { loadMapDefine } from "../session/sessionThunk";
 import { search } from "./operationThunk";
-import { SearchResult } from "tsunagumap-api";
+
+type SearchResult = {
+    items: {
+        id: DataId;
+        contents: DataId[];
+    }[];
+};
 
 type ViewInfo = {
     extent: Extent;
@@ -21,10 +27,16 @@ export type PopupTarget = {
     type: 'content';
     contentId: DataId;
 }
+
+// オーバーレイ表示時に表示するボタン種別
+export enum ButtonInProcess {
+    Request = 'Request',    // 地図への登録申請
+}
 export type ProcessMessageType = {
     overlay: boolean;   // trueの場合、オーバーレイ表示。falseの場合、ユーザ操作を阻害しない位置に表示
     spinner: boolean;   // trueの場合、スピナー表示
     message?: string;
+    button?: ButtonInProcess;   // メッセージ下に表示するボタン種別（overlay=trueの場合のみ有効）
 }
 export type ProcessMessageWithID = ProcessMessageType & {
     id: number;
