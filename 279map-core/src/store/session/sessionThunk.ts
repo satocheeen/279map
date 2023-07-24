@@ -6,6 +6,7 @@ import { ConnectAPI, ErrorType, GetMapInfoAPI, WebSocketMessage } from 'tsunagum
 import { MapKind } from "279map-common";
 import { ConnectAPIResult, LoadMapDefineResult } from "../../types/types";
 import { getAPICallerInstance } from "../../api/ApiCaller";
+import { ApiException } from "../../api";
 
 export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; }>(
     'session/connectMapStatus',
@@ -65,6 +66,12 @@ export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; }>
 
         } catch(e) {
             console.warn('connect error', e);
+            if (e instanceof ApiException) {
+                return {
+                    result: 'failure',
+                    error: e.apiError,
+                }
+            }
             return {
                 result: 'failure',
                 error: {

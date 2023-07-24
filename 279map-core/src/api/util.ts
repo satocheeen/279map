@@ -1,8 +1,17 @@
-import { ConfigAPI, GetMapListAPI } from "tsunagumap-api";
+import { ApiError, ConfigAPI, GetMapListAPI } from "tsunagumap-api";
 import { ServerInfo } from '../types/types';
 import { ServerConfig } from "279map-common";
 import { createAPICallerInstance } from "./ApiCaller";
 
+export class ApiException extends Error {
+    apiError: ApiError;
+
+    constructor(error: ApiError) {
+        super();
+        this.apiError = error;
+    }
+
+}
 /**
  * ユーザがアクセス可能な地図一覧を返す
  * @param host 

@@ -2,6 +2,7 @@ import { APIDefine, ContentsDefine } from '279map-common';
 import { ServerInfo } from '../types/types';
 import { ApiError, ConfigAPI, ConnectAPI, ErrorType, GetContentsAPI, GetContentsParam, GetMapListAPI } from 'tsunagumap-api';
 import { getMapKey } from '../store/data/dataUtility';
+import { ApiException } from './util';
 
 type ErrorCallback = (errorType: ApiError) => void;
 class ApiCaller {
@@ -64,9 +65,8 @@ class ApiCaller {
                     case ErrorType.SessionTimeout:
                         // 継続不可能なエラーの場合
                         this._sessionFailureCallback(error);
-                    //     return;
                     default:
-                        throw new Error(error.type + ' ' + (error.detail ?? ''));
+                        throw new ApiException(error);
                 }
             }
             if (api.resultType === 'blob') {

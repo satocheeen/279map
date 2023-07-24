@@ -224,10 +224,22 @@ app.get('/api/connect',
     (err: Error, req: Request, res: Response, next: NextFunction) => {
         // 認証エラー
         apiLogger.warn('connect error', err);
-        res.status(500).send({
-            type: ErrorType.IllegalError,
-            detail: err + '',
-        } as ApiError);
+        if (err.name === 'Unauthenticated') {
+            res.status(401).send({
+                type: ErrorType.Unauthorized,
+                detail: err.message,
+            } as ApiError);
+        } else if (err.name === 'Bad Request') {
+            res.status(400).send({
+                type: ErrorType.IllegalError,
+                detail: err.message,
+            } as ApiError);
+        } else {
+            res.status(403).send({
+                type: ErrorType.Forbidden,
+                detail: err.message + err.stack,
+            } as ApiError);
+        }
     },
     async(req: Request, res: Response) => {
         apiLogger.info('[start] connect');
