@@ -1,6 +1,6 @@
 import { Auth, CategoryDefine, DataId, DataSourceGroup, FeatureType, MapKind } from '279map-common';
-import React, { useState, useCallback, useMemo, useEffect, useRef, useContext } from 'react';
-import { ServerInfo, TsunaguMapHandler, getAuthConfig, onDatasourceChangedParam } from '../entry';
+import React, { useState, useCallback, useMemo, useRef, useContext } from 'react';
+import { ServerInfo, TsunaguMapHandler, onDatasourceChangedParam } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
 import { FilterDefine, OnConnectParam, OnMapLoadParam, TsunaguMapProps } from '../entry';
 import styles from './TestMap.module.scss';
@@ -121,15 +121,6 @@ export default function TestMap() {
             zoom: false,
         });
     }, [focusItemId, focusDataSourceId]);
-
-    // const [token, setToken] = useState<string|undefined>();
-    // useEffect(() => {
-    //     if (!myToken) return;
-    //     setTimeout(() => {
-    //         console.log('setToken', myToken);
-    //         setToken(myToken);
-    //     }, 500);
-    // }, []);
 
     const { token } = useContext(AuthContext);
     const mapServer = useMemo((): ServerInfo => {
