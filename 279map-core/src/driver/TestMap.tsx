@@ -1,20 +1,13 @@
 import { Auth, CategoryDefine, DataId, DataSourceGroup, FeatureType, MapKind } from '279map-common';
-import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef, useContext } from 'react';
 import { ServerInfo, TsunaguMapHandler, getAuthConfig, onDatasourceChangedParam } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
 import { FilterDefine, OnConnectParam, OnMapLoadParam, TsunaguMapProps } from '../entry';
 import styles from './TestMap.module.scss';
 import FilterCondition from './FilterCondition';
-
-/**
- * for Development
- */
-const mapId = 'test';
-const myToken = undefined; //'hogehoge';//undefined;
-const myMapServer = {
-    host: 'localhost',
-    ssl: false,
-};
+import { mapId, myMapServer } from './const';
+import AuthPanel from './AuthPanel';
+import { AuthContext } from './DriverRoot';
 
 const props = {
     mapId,
@@ -129,15 +122,16 @@ export default function TestMap() {
         });
     }, [focusItemId, focusDataSourceId]);
 
-    const [token, setToken] = useState<string|undefined>();
-    useEffect(() => {
-        if (!myToken) return;
-        setTimeout(() => {
-            console.log('setToken', myToken);
-            setToken(myToken);
-        }, 500);
-    }, []);
+    // const [token, setToken] = useState<string|undefined>();
+    // useEffect(() => {
+    //     if (!myToken) return;
+    //     setTimeout(() => {
+    //         console.log('setToken', myToken);
+    //         setToken(myToken);
+    //     }, 500);
+    // }, []);
 
+    const { token } = useContext(AuthContext);
     const mapServer = useMemo((): ServerInfo => {
         return {
             host: myMapServer.host,
@@ -170,14 +164,13 @@ export default function TestMap() {
         }, visible);
     }, []);
 
-    const getAuthConfigFunc = useCallback(async() => {
-        const result = await getAuthConfig(mapServer.host, mapServer.ssl);
-        console.log('getAuthConfigFunc', result);
-    }, [mapServer]);
-
     return (
         <>
             <div className={styles.Form}>
+                <div className={styles.Col}>
+                    <AuthPanel />
+                </div>
+
                 <div className={styles.Col}>
                     <div className={styles.Row}>
                         <div className={styles.PropName}>地図種別</div>
@@ -217,7 +210,7 @@ export default function TestMap() {
                                         <label key={ds.dataSourceId} className={`${group.name ? styles.Child : ''}`}>
                                             <input type="checkbox" checked={ds.visible} onChange={(evt) => changeVisibleLayerDataSource(ds.dataSourceId, evt.target.checked)} />
                                             {ds.name}
-                                            {(!ds.readonly && authLv === Auth.Edit) &&
+                                            {(authLv === Auth.Edit) &&
                                                 <>
                                                     <button onClick={()=>mapRef.current?.drawStructure(ds.dataSourceId)}>建設</button>
                                                     {mapKind === MapKind.Real ?
@@ -280,7 +273,6 @@ export default function TestMap() {
                 <div className={styles.Col}>
                     <button onClick={callGetSnsPreview}>GetSNS</button>
                     <button onClick={getThumbnail}>GetThumbnail</button>
-                    <button onClick={getAuthConfigFunc}>getAuthConfig</button>
                 </div>
 
                 <div className={styles.Col}>

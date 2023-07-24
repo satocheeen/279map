@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import TestMap from './driver/TestMap';
+import DriverRoot from './driver/DriverRoot';
 
 /**
  * for Debelopment
@@ -12,6 +12,6 @@ const root = ReactDOM.createRoot(
 
 root.render(
     <React.StrictMode>
-        <TestMap />
+        <DriverRoot />
     </React.StrictMode>
 );

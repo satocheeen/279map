@@ -13,6 +13,7 @@
     "rollup": "rollup -c --context window"
   },
   "devDependencies": {
+    "@auth0/auth0-react": "^2.2.0",
     "@rollup/plugin-commonjs": "^21.0.1",
     "@rollup/plugin-image": "^3.0.1",
     "@rollup/plugin-json": "^5.0.1",
