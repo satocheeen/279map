@@ -31,7 +31,7 @@ export abstract class AuthManagementInterface {
      * @param userId 
      * @param mapId
      */
-    abstract requestForEnterMap(userId: string, mapId: string): Promise<void>;
+    abstract requestForEnterMap(userId: string, param: {mapId: string; name: string}): Promise<void>;
 
     /**
      * 指定の地図のユーザ一覧を返す
