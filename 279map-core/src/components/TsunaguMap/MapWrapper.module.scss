@@ -45,3 +45,11 @@ $spinnerSize: 36px;
         margin-left: 10px;
     }
 }
+
+.ErrorMessage {
+    color: var(--danger);
+    font-size: 90%;
+}
+.RequestedMessage {
+    color: var(--dark);
+}

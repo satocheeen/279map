@@ -43,6 +43,7 @@ export const RequestAPI = {
 } as APIDefine<RequestParam, void>;
 export type RequestParam = {
     mapId: string;
+    name: string;
 }
 
 /**

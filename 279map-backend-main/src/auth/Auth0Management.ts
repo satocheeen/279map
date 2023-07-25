@@ -4,6 +4,7 @@ import { ManagementClient } from 'auth0';
 import { Auth, AuthManagementInterface, User } from "279map-backend-common";
 import { auth } from "express-oauth2-jwt-bearer";
 import { getLogger } from 'log4js';
+import { RequestParam } from '../../279map-api-interface/dist';
 
 const domain = process.env.AUTH0_DOMAIN ?? '';
 const client_id = process.env.AUTH0_BACKEND_CLIENT_ID ?? '';
@@ -94,10 +95,12 @@ export class Auth0Management extends AuthManagementInterface {
      * @param userId 
      * @param mapId
      */
-    public async requestForEnterMap(userId: string, mapId: string) {
+    public async requestForEnterMap(userId: string, param: {mapId: string; name: string}) {
         if (!this.#management) {
             throw new Error('authManagementClient not initialize');
         }
+        const mapId = param.mapId;
+        const name = param.name;
         const resUser = await this.#management.getUser({id: userId});
         const metadata: AppMetaData = (resUser.app_metadata as AppMetaData) ?? { maps: {} };
         // 現在の権限を確認
@@ -112,7 +115,7 @@ export class Auth0Management extends AuthManagementInterface {
         // リクエスト状態にする
         metadata.maps[mapId] = {
             auth_lv: Auth.Request,
-            name: '',
+            name,
         };
         await this.#management.updateAppMetadata({
             id: userId,

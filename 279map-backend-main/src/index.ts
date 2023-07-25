@@ -339,7 +339,10 @@ app.get(`/api/${RequestAPI.uri}`,
             if (!userId) {
                 throw new Error('userId undefined');
             }
-            await authManagementClient.requestForEnterMap(userId, mapInfo.map_page_id);
+            await authManagementClient.requestForEnterMap(userId, {
+                mapId: mapInfo.map_page_id,
+                name: param.name,
+            });
             res.send('ok');
 
         } catch(e) {

@@ -15,7 +15,7 @@ export class NoneAuthManagement extends AuthManagementInterface {
     async getUserInfoOfTheMap(userId: string, mapId: string): Promise<MapInfo | undefined> {
         return;
     }
-    async requestForEnterMap(userId: string, mapId: string): Promise<void> {
+    async requestForEnterMap(userId: string, param: {mapId: string; name: string}): Promise<void> {
         return;
     }
 

@@ -39,7 +39,7 @@ export class OriginalAuthManagement extends AuthManagementInterface {
         return res;
     }
 
-    requestForEnterMap(userId: string, mapId: string): Promise<void> {
+    async requestForEnterMap(userId: string, param: {mapId: string; name: string}): Promise<void> {
         throw new Error("Method not implemented.");
     }
 

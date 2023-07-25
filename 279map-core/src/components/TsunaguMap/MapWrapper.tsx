@@ -1,4 +1,4 @@
-import React, { useImperativeHandle, useContext, useEffect, useRef, ReactNode, useMemo, useCallback } from 'react';
+import React, { useImperativeHandle, useContext, useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { LoadContentsParam, LoadContentsResult, linkContentToItem, loadCategories, loadContents, loadEvents, loadOriginalIconDefine, registContent, updateContent } from '../../store/data/dataThunk';
@@ -24,6 +24,7 @@ import useEvent from '../../store/data/useEvent';
 import useCategory from '../../store/data/useCategory';
 import useDataSource from '../../store/data/useDataSource';
 import { Button } from '../common';
+import Input from '../common/form/Input';
 
 type Props = {};
 
@@ -263,7 +264,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     /**
      * connect to map
      */
-    useWatch(() => {
+    const connectToMap = useCallback(() => {
         if (mapServer.host.length === 0) return;
 
         // connect
@@ -306,6 +307,10 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         .catch(err => {
             console.warn('connect error', err);
         })
+    }, [ownerContext.mapId, mapServer, dispatch]);
+
+    useWatch(() => {
+        connectToMap();
     }, [ownerContext.mapId, mapServer]);
 
     /**
@@ -487,22 +492,14 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
  */
 function Overlay() {
     const { isShowOverlay, isShowSpinner, processMessage } = useProcessMessage();
-    const { getApi } = useMap();
-    const { mapId } = useContext(OwnerContext);
 
-    const onRequest = useCallback(async() => {
-        await getApi().callApi(RequestAPI, {
-            mapId,
-        });
-    }, [getApi, mapId]);
-
-    const button = useMemo(() => {
+    const others = useMemo(() => {
         if (!processMessage?.button) return null;
         switch(processMessage.button) {
             case ButtonInProcess.Request:
-                return <Button variant='secondary' onClick={onRequest}>登録申請</Button>
+                return <RequestComponet />
         }
-    }, [processMessage, onRequest]);
+    }, [processMessage]);
 
     return (
         <div className={`${isShowOverlay ? styles.Overlay : styles.MinOverlay}`}>
@@ -514,9 +511,56 @@ function Overlay() {
             {processMessage?.message &&
                 <p className={styles.Message}>{processMessage.message}</p>
             }
-            {button}
+            {others}
         </div>
     )
+}
+
+/**
+ * 登録申請コンポーネント
+ * @returns 
+ */
+function RequestComponet() {
+    const { getApi } = useMap();
+    const { mapId } = useContext(OwnerContext);
+    const [ stage, setStage ] = useState<'button' | 'input' | 'requested'>('button');
+    const [ name, setName ] = useState('');
+    const [ errorMessage, setErrorMessage ] = useState<string|undefined>();
+
+    const onRequest = useCallback(async() => {
+        if (name.length === 0) {
+            setErrorMessage('名前を入力してください');
+            return;
+        }
+        setStage('requested');
+        await getApi().callApi(RequestAPI, {
+            mapId,
+            name,
+        });
+    }, [getApi, mapId, name]);
+
+    switch(stage) {
+        case 'button':
+            return <Button variant='secondary' onClick={()=>setStage('input')}>登録申請</Button>
+
+        case 'input':
+            return (
+                <div>
+                    <div>
+                        <Input type="text" placeholder='名前' value={name} onChange={(evt)=>setName(evt.target.value)} />
+                        <Button variant='secondary' onClick={onRequest}>登録申請</Button>
+                    </div>
+                    <div className={styles.ErrorMessage}>
+                        {errorMessage}
+                    </div>
+                </div>
+            )
+
+        case 'requested':
+            return (
+                <div className={styles.RequestedMessage}>登録申請しました。承認されるまで、しばらくお待ちください。</div>
+            )
+    }
 }
 
 export default React.forwardRef(MapWrapper);
