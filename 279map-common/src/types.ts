@@ -243,3 +243,9 @@ export type FilterDefine = {
     type: 'keyword';
     keyword: string;
 }
+
+export type User = {
+    id: string;
+    name: string;
+    authLv: Auth;
+}
