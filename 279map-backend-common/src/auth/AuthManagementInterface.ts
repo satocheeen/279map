@@ -38,4 +38,11 @@ export abstract class AuthManagementInterface {
      * @param mapId 
      */
     abstract getUserList(mapId: string): Promise<User[]>;
+
+    /**
+     * 指定のユーザの権限を更新する
+     * @param param 
+     */
+    abstract updateUserAuth(param: {mapId: string; userId: string; authLv: Auth}): Promise<void>;
+
 }
