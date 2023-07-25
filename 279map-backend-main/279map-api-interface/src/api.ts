@@ -1,4 +1,4 @@
-import { CategoryDefine, ContentsDefine, DataId, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, ServerConfig, UnpointContent, User } from "279map-common";
+import { Auth, CategoryDefine, ContentsDefine, DataId, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, ServerConfig, UnpointContent, User } from "279map-common";
 import { GeoJsonObject } from "geojson";
 import { APIDefine, ContentAttr, SnsPreviewPost, MapDefine } from '279map-common';
 import { FilterDefine, DataSourceGroup } from "279map-common";
@@ -36,14 +36,30 @@ export type ConnectResult = {
     sid: string;   // セッションID
 }
 
+/**
+ * ユーザ登録申請API
+ */
 export const RequestAPI = {
     uri: 'request',
-    method: 'get',
+    method: 'post',
     resultType: 'none',
 } as APIDefine<RequestParam, void>;
 export type RequestParam = {
     mapId: string;
     name: string;
+}
+
+/**
+ * ユーザ権限変更API
+ */
+export const ChangeAuthLevelAPI = {
+    uri: 'change-auth-level',
+    method: 'post',
+    resultType: 'none',
+} as APIDefine<ChangeAuthLevelParam, void>;
+export type ChangeAuthLevelParam = {
+    userId: string;
+    authLv: Auth;
 }
 
 /**

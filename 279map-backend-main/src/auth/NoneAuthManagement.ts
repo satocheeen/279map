@@ -1,4 +1,4 @@
-import { AuthManagementInterface, MapInfo, User } from "279map-backend-common"
+import { Auth, AuthManagementInterface, MapInfo, User } from "279map-backend-common"
 import { Request, Response, NextFunction } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
 import { ParsedQs } from "qs";
@@ -20,6 +20,10 @@ export class NoneAuthManagement extends AuthManagementInterface {
     }
 
     getUserList(mapId: string): Promise<User[]> {
+        throw new Error("Method not implemented.");
+    }
+
+    updateUserAuth(param: { mapId: string; userId: string; authLv: Auth; }): Promise<void> {
         throw new Error("Method not implemented.");
     }
 }

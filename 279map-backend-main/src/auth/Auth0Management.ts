@@ -143,4 +143,25 @@ export class Auth0Management extends AuthManagementInterface {
             }
         });
     }
+
+    /**
+     * 指定のユーザの権限を更新する
+     * @param param 
+     */
+    public async updateUserAuth(param: {mapId: string; userId: string; authLv: Auth}) {
+        if (!this.#management) {
+            throw new Error('authManagementClient not initialize');
+        }
+        const userId = param.userId;
+        const mapId = param.mapId;
+        const resUser = await this.#management.getUser({id: userId});
+        const metadata: AppMetaData = (resUser.app_metadata as AppMetaData) ?? { maps: {} };
+        metadata.maps[mapId] = {
+            auth_lv: param.authLv,
+            name: metadata.maps[mapId]?.name ?? '',
+        };
+        await this.#management.updateAppMetadata({
+            id: userId,
+        }, metadata);
+    }
 }

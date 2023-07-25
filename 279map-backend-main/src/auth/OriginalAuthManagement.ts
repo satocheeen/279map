@@ -1,4 +1,4 @@
-import { AuthManagementInterface, MapInfo, User } from "279map-backend-common";
+import { Auth, AuthManagementInterface, MapInfo, User } from "279map-backend-common";
 import axios, { AxiosResponse } from "axios";
 import { Request, Response, NextFunction } from "express";
 
@@ -44,6 +44,10 @@ export class OriginalAuthManagement extends AuthManagementInterface {
     }
 
     getUserList(mapId: string): Promise<User[]> {
+        throw new Error("Method not implemented.");
+    }
+
+    updateUserAuth(param: { mapId: string; userId: string; authLv: Auth; }): Promise<void> {
         throw new Error("Method not implemented.");
     }
 }

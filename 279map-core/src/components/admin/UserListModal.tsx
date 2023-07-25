@@ -4,7 +4,7 @@ import { addListener, removeListener } from '../../util/Commander';
 import { Button, Modal } from '../common';
 import styles from './UserListModal.module.scss';
 import { useMap } from '../map/useMap';
-import { GetUserListAPI } from 'tsunagumap-api';
+import { ChangeAuthLevelAPI, GetUserListAPI } from 'tsunagumap-api';
 import { useWatch } from '../../util/useWatch';
 import { Auth, User} from '279map-common';
 import Select from '../common/form/Select';
@@ -98,6 +98,7 @@ const authSelectItems = [
 
 function UserRecord(props: { user: User }) {
     const [ requestAuth, setRequestAuth ] = useState<Auth|undefined>();
+    const { getApi } = useMap();
 
     const authName = useMemo(() => {
         switch(props.user.authLv) {
@@ -114,6 +115,14 @@ function UserRecord(props: { user: User }) {
         }
     }, [props.user]);
 
+    const onUpdateAuth = useCallback(async() => {
+        if (!requestAuth) return;
+        await getApi().callApi(ChangeAuthLevelAPI, {
+            userId: props.user.id,
+            authLv: requestAuth,
+        })
+    }, [getApi, props.user, requestAuth]);
+
     return (
         <tr>
             <td>{props.user.name}</td>
@@ -122,7 +131,7 @@ function UserRecord(props: { user: User }) {
                 {props.user.authLv === Auth.Request &&
                     <>
                         <Select items={authSelectItems} value={requestAuth} onSelect={(value)=>setRequestAuth(value as Auth)} />
-                        <Button variant='secondary'>承認</Button>
+                        <Button variant='secondary' onClick={onUpdateAuth}>承認</Button>
                     </>
                 }
             </td>
