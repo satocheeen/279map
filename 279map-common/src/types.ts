@@ -22,6 +22,7 @@ export type ServerConfig = {
 
 export enum Auth {
     None = 'None',
+    Request = 'Request',    // 登録申請中
     View = 'View',
     Edit = 'Edit',
 }
