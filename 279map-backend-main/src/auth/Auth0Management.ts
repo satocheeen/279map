@@ -4,6 +4,7 @@ import { ManagementClient } from 'auth0';
 import { Auth, AuthManagementInterface  } from "279map-backend-common";
 import { auth } from "express-oauth2-jwt-bearer";
 import { getLogger } from 'log4js';
+import { User } from '../../279map-api-interface/src';
 
 const domain = process.env.AUTH0_DOMAIN ?? '';
 const client_id = process.env.AUTH0_BACKEND_CLIENT_ID ?? '';
@@ -117,5 +118,27 @@ export class Auth0Management extends AuthManagementInterface {
         await this.#management.updateAppMetadata({
             id: userId,
         }, metadata);
+    }
+
+    /**
+     * 指定の地図のユーザ一覧を返す
+     * @param mapId 
+     */
+    public async getUserList(mapId: string): Promise<User[]> {
+        if (!this.#management) {
+            throw new Error('authManagementClient not initialize');
+        }
+        const users = await this.#management.getUsers();
+        return users.filter(u => {
+            const metadata: AppMetaData = (u.app_metadata as AppMetaData) ?? { maps: {} };
+            return metadata.maps[mapId] !== undefined;
+        }).map((u): User => {
+            const metadata: AppMetaData = (u.app_metadata as AppMetaData) ?? { maps: {} };
+            return {
+                id: u.user_id ?? '',
+                authLv: metadata.maps[mapId].auth_lv,
+                name: metadata.maps[mapId].name,
+            }
+        });
     }
 }
