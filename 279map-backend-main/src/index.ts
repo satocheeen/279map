@@ -478,7 +478,6 @@ app.all('/api/*',
             return;
         }
 
-        apiLogger.debug('ログイン済み', req.auth);
         // ユーザの地図に対する権限を取得
         const mapUserInfo = await authManagementClient.getUserInfoOfTheMap(userId, mapId);
         apiLogger.debug('mapUserInfo', mapUserInfo);
@@ -509,13 +508,13 @@ const checkApiAuthLv = (needAuthLv: Auth) => {
         let allowAuthList: Auth[];
         switch(needAuthLv) {
             case Auth.View:
-                allowAuthList = [Auth.View, Auth.Edit];
+                allowAuthList = [Auth.View, Auth.Edit, Auth.Admin];
                 break;
             case Auth.Edit:
-                allowAuthList = [Auth.Edit];
+                allowAuthList = [Auth.Edit, Auth.Admin];
                 break;
             default:
-                allowAuthList = [];
+                allowAuthList = [Auth.Admin];
         }
         if (!req.connect?.authLv || !allowAuthList.includes(req.connect.authLv)) {
             res.status(403).send({

@@ -15,7 +15,7 @@ import { RequestAPI, ErrorType, GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI
 import { search } from '../../store/operation/operationThunk';
 import Spinner from '../common/spinner/Spinner';
 import { useMounted } from '../../util/useMounted';
-import { DataId, FeatureType, MapKind, UnpointContent } from '279map-common';
+import { Auth, DataId, FeatureType, MapKind, UnpointContent } from '279map-common';
 import { useWatch } from '../../util/useWatch';
 import { useMap } from '../map/useMap';
 import { createAPICallerInstance } from '../../api/ApiCaller';
@@ -124,6 +124,11 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
             });
         },
         showUserList() {
+            if (connectStatus.status !== 'connected') return;
+            if (connectStatus.connectedMap.authLv !== Auth.Admin) {
+                console.warn('no authorization');
+                return;
+            }
             doCommand({
                 command: 'ShowUserList',
                 param: undefined,
