@@ -167,6 +167,10 @@ export interface TsunaguMapHandler {
 
     changeVisibleLayer(target: { dataSourceId: string } | { group: string }, visible: boolean): void;
 
+    /**
+     * ユーザ一覧表示（管理者用コマンド）
+     */
+    showUserList(): void;
 }
 
 export type ServerInfo = {

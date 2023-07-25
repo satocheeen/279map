@@ -10,6 +10,7 @@ import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
 import { AddNewContentParam, EditContentParam, LinkUnpointContentParam, TsunaguMapHandler, TsunaguMapProps } from '../../types/types';
 import DefaultComponents from '../default/DefaultComponents';
 import { useMounted } from '../../util/useMounted';
+import UserListModal from '../admin/UserListModal';
 
 type SomeRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 type OwnerContextType = SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'> & {
@@ -88,6 +89,7 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
         getUnpointDataAPI() { throw ''},
         getThumbnail() { throw ''},
         changeVisibleLayer() {},
+        showUserList() {},
     })
 
     return (
@@ -100,6 +102,7 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
                         </div>
                         <ConfirmDialog />
                         <ContentsModal />
+                        <UserListModal />
 
                         {defaultLinkUnpointedContentParam &&
                             <DefaultComponents linkUnpointedContentParam={defaultLinkUnpointedContentParam} onClose={()=>{setDefaultLinkUnpointedContentParam(undefined)}} />

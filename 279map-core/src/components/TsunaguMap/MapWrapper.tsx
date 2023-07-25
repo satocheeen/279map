@@ -123,6 +123,12 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
                 param: undefined,
             });
         },
+        showUserList() {
+            doCommand({
+                command: 'ShowUserList',
+                param: undefined,
+            });
+        },
         async loadContentsAPI(param: LoadContentsParam): Promise<LoadContentsResult> {
             const res = await dispatch(loadContents(param));
             if ('error' in res) {
