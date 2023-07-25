@@ -1,10 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import axios from "axios";
 import { ManagementClient } from 'auth0';
-import { Auth, AuthManagementInterface  } from "279map-backend-common";
+import { Auth, AuthManagementInterface, User } from "279map-backend-common";
 import { auth } from "express-oauth2-jwt-bearer";
 import { getLogger } from 'log4js';
-import { User } from '../../279map-api-interface/src';
 
 const domain = process.env.AUTH0_DOMAIN ?? '';
 const client_id = process.env.AUTH0_BACKEND_CLIENT_ID ?? '';

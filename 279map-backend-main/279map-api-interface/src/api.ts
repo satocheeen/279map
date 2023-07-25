@@ -1,4 +1,4 @@
-import { Auth, CategoryDefine, ContentsDefine, DataId, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, ServerConfig, UnpointContent } from "279map-common";
+import { CategoryDefine, ContentsDefine, DataId, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, ServerConfig, UnpointContent, User } from "279map-common";
 import { GeoJsonObject } from "geojson";
 import { APIDefine, ContentAttr, SnsPreviewPost, MapDefine } from '279map-common';
 import { FilterDefine, DataSourceGroup } from "279map-common";
@@ -354,11 +354,6 @@ export const GetUserListAPI = {
     method: 'post',
     resultType: 'json',
 } as APIDefine<void, GetUserListResult>;
-export type User = {
-    id: string;
-    name: string;
-    authLv: Auth;
-}
 export type GetUserListResult = {
     users: User[];
 }

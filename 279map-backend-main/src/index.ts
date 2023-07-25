@@ -24,7 +24,7 @@ import { getMapInfoByIdOrAlias } from './getMapDefine';
 import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, GetEventParam, GetCategoryParam, RequestAPI, RequestParam, GetUserListAPI } from '../279map-api-interface/src/api';
+import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, GetEventParam, GetCategoryParam, RequestAPI, RequestParam, GetUserListAPI, GetUserListResult } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 import { search } from './api/search';
@@ -1175,7 +1175,11 @@ app.post(`/api/${GetUserListAPI.uri}`,
     checkCurrentMap,
     async(req, res) => {
         try {
-            res.send([]);
+            const mapId = req.currentMap.mapId;
+            const users = await authManagementClient.getUserList(mapId);
+            res.send({
+                users,
+            } as GetUserListResult);
 
         } catch(e) {
             apiLogger.warn(e);
