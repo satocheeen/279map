@@ -40,7 +40,10 @@ export const RequestAPI = {
     uri: 'request',
     method: 'get',
     resultType: 'none',
-} as APIDefine<void, void>;
+} as APIDefine<RequestParam, void>;
+export type RequestParam = {
+    mapId: string;
+}
 
 /**
  * get map info

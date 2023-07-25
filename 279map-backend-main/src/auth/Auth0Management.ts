@@ -3,6 +3,7 @@ import axios from "axios";
 import { ManagementClient } from 'auth0';
 import { Auth, AuthManagementInterface  } from "279map-backend-common";
 import { auth } from "express-oauth2-jwt-bearer";
+import { getLogger } from 'log4js';
 
 const domain = process.env.AUTH0_DOMAIN ?? '';
 const client_id = process.env.AUTH0_BACKEND_CLIENT_ID ?? '';
@@ -16,7 +17,7 @@ export type MapInfo = {
 type AppMetaData = {
     maps: {[mapId: string]: MapInfo}
 }
-
+const apiLogger = getLogger('api');
 export class Auth0Management extends AuthManagementInterface {
     #management: ManagementClient | undefined;
 
@@ -86,5 +87,35 @@ export class Auth0Management extends AuthManagementInterface {
         }
         const metadata = res.app_metadata as AppMetaData;
         return metadata.maps[mapId];
+    }
+
+    /**
+     * 指定の地図に対して、指定のユーザを登録申請する
+     * @param userId 
+     * @param mapId
+     */
+    public async requestForEnterMap(userId: string, mapId: string) {
+        if (!this.#management) {
+            throw new Error('authManagementClient not initialize');
+        }
+        const resUser = await this.#management.getUser({id: userId});
+        const metadata: AppMetaData = (resUser.app_metadata as AppMetaData) ?? { maps: {} };
+        // 現在の権限を確認
+        if (metadata.maps[mapId]) {
+            if (metadata.maps[mapId].auth_lv !== Auth.None) {
+                // 既に権限ついているので、何もしない
+                apiLogger.warn('the user already has authentication.', userId, mapId);
+                return;
+            }
+        }
+
+        // リクエスト状態にする
+        metadata.maps[mapId] = {
+            auth_lv: Auth.Request,
+            name: '',
+        };
+        await this.#management.updateAppMetadata({
+            id: userId,
+        }, metadata);
     }
 }

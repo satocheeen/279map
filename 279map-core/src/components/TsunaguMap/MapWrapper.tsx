@@ -473,10 +473,13 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
 function Overlay() {
     const { isShowOverlay, isShowSpinner, processMessage } = useProcessMessage();
     const { getApi } = useMap();
+    const { mapId } = useContext(OwnerContext);
 
     const onRequest = useCallback(async() => {
-        await getApi().callApi(RequestAPI, undefined);
-    }, [getApi]);
+        await getApi().callApi(RequestAPI, {
+            mapId,
+        });
+    }, [getApi, mapId]);
 
     const button = useMemo(() => {
         if (!processMessage?.button) return null;
@@ -484,7 +487,7 @@ function Overlay() {
             case ButtonInProcess.Request:
                 return <Button variant='secondary' onClick={onRequest}>登録申請</Button>
         }
-    }, [processMessage]);
+    }, [processMessage, onRequest]);
 
     return (
         <div className={`${isShowOverlay ? styles.Overlay : styles.MinOverlay}`}>

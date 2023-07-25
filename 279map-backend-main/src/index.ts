@@ -24,7 +24,7 @@ import { getMapInfoByIdOrAlias } from './getMapDefine';
 import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, GetEventParam, GetCategoryParam, RequestAPI } from '../279map-api-interface/src/api';
+import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, GetEventParam, GetCategoryParam, RequestAPI, RequestParam } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 import { search } from './api/search';
@@ -313,9 +313,38 @@ app.get(`/api/${RequestAPI.uri}`,
     authManagementClient.checkJwt,
     authenticateErrorProcess,
     async(req: Request, res: Response) => {
-        // TODO: 
-        console.log('request');
-        res.send('ok');
+
+        try {
+            const param = req.query as RequestParam;
+            apiLogger.info('[start] request', param);
+
+            const queryMapId = param.mapId;
+            const mapInfo = await getMapInfoByIdOrAlias(queryMapId);
+            if (mapInfo === null) {
+                res.status(400).send({
+                    type: ErrorType.UndefinedMap,
+                    detail: 'mapId is not found : ' + queryMapId,
+                } as ApiError);
+                return;
+            }
+
+            const userId = getUserIdByRequest(req);
+            if (!userId) {
+                throw new Error('userId undefined');
+            }
+            await authManagementClient.requestForEnterMap(userId, mapInfo.map_page_id);
+            res.send('ok');
+
+        } catch(e) {
+            apiLogger.warn('request error', e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail: e + '',
+            } as ApiError);
+        } finally {
+            apiLogger.info('[end] request');
+
+        }
     }
 );
 

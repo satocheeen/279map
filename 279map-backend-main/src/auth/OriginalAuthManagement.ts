@@ -38,6 +38,11 @@ export class OriginalAuthManagement extends AuthManagementInterface {
         });
         return res;
     }
+
+    requestForEnterMap(userId: string, mapId: string): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+
 }
 
 async function callOriginalServer(api: string, param: any, options?: {headers?: any}) {
