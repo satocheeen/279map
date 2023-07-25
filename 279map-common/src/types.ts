@@ -25,6 +25,7 @@ export enum Auth {
     Request = 'Request',    // 登録申請中
     View = 'View',
     Edit = 'Edit',
+    Admin = 'Admin',
 }
 
 export enum MapKind {
