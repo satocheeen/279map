@@ -25,4 +25,12 @@ export abstract class AuthManagementInterface {
      * @return ユーザ情報。該当するデータが存在しない場合、null。
      */
     abstract getUserInfoOfTheMap(userId: string, mapId: string): Promise<MapInfo|undefined>;
+
+    /**
+     * 指定の地図に対して、指定のユーザを登録申請する
+     * @param userId 
+     * @param mapId
+     */
+    abstract requestForEnterMap(userId: string, mapId: string): Promise<void>;
+
 }
