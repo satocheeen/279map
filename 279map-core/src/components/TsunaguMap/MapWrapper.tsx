@@ -430,9 +430,13 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
                         };
                     case ErrorType.NoAuthenticate:
                         return {
-                            errorMessage: 'この地図へのアクセス権限がありません',
+                            errorMessage: 'この地図に入るには管理者の承認が必要です',
                             button: ButtonInProcess.Request,
                         };
+                    case ErrorType.Requesting:
+                        return {
+                            errorMessage: '管理者からの承認待ちです'
+                        }
                     case ErrorType.SessionTimeout:
                         return {
                             errorMessage: 'しばらく操作されなかったため、セッション接続が切れました。再ロードしてください。'

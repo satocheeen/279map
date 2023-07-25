@@ -271,6 +271,13 @@ app.get('/api/connect',
                 } as ApiError);
                 return;
             }
+            if (userAccessInfo.authLv === Auth.Request) {
+                // 承認待ちエラーを返却
+                res.status(403).send({
+                    type: ErrorType.Requesting,
+                } as ApiError);
+                return;
+            }
 
             const session = broadCaster.createSession({
                 mapId: mapInfo.map_page_id,
