@@ -1,4 +1,4 @@
-import { Auth } from "279map-common";
+import { Auth, User } from "279map-common";
 import { NextFunction, Request, Response } from 'express';
 
 export type MapInfo = {
@@ -33,4 +33,9 @@ export abstract class AuthManagementInterface {
      */
     abstract requestForEnterMap(userId: string, mapId: string): Promise<void>;
 
+    /**
+     * 指定の地図のユーザ一覧を返す
+     * @param mapId 
+     */
+    abstract getUserList(mapId: string): Promise<User[]>;
 }
