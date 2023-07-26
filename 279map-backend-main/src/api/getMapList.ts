@@ -1,6 +1,6 @@
-import { schema } from "279map-backend-common";
 import { ConnectionPool, authManagementClient } from "..";
 import { MapInfo } from "../../279map-api-interface/src";
+import { MapPageInfoTable, PublicRange } from "../../279map-backend-common/src/types/schema";
 
 /**
  * ユーザがアクセス可能な地図一覧を返す
@@ -15,8 +15,8 @@ export async function getMapList(userId: string | undefined): Promise<MapInfo[]>
         
         // Public地図一覧取得
         const selectPublicQuery = 'select * from map_page_info where public_range = ?';
-        const [rows] = await con.execute(selectPublicQuery, [schema.PublicRange.Public]);
-        const records = rows as schema.MapPageInfoTable[];
+        const [rows] = await con.execute(selectPublicQuery, [PublicRange.Public]);
+        const records = rows as MapPageInfoTable[];
         const publicMapList = records.map((record): MapInfo => {
             return {
                 mapId: record.map_page_id,
@@ -34,8 +34,8 @@ export async function getMapList(userId: string | undefined): Promise<MapInfo[]>
         const privateMapList = [] as MapInfo[];
         for (const mapId of accessableMapIdList) {
             const selectPublicQuery = 'select * from map_page_info where map_page_id = ? and  public_range = ?';
-            const [rows] = await con.execute(selectPublicQuery, [mapId, schema.PublicRange.Private]);
-            const records = rows as schema.MapPageInfoTable[];
+            const [rows] = await con.execute(selectPublicQuery, [mapId, PublicRange.Private]);
+            const records = rows as MapPageInfoTable[];
             if (records.length > 0) {
                 privateMapList.push({
                     mapId: records[0].map_page_id,

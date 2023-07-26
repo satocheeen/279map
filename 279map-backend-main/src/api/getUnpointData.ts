@@ -1,5 +1,7 @@
-import { CurrentMap, ItemContentDefine, MapKind, schema } from "279map-backend-common";
+import { ItemContentDefine, MapKind } from "279map-common";
 import { ConnectionPool } from "..";
+import { CurrentMap } from "../../279map-backend-common/src";
+import { DataSourceTable } from "../../279map-backend-common/src/types/schema";
 
 /**
  * ODBAのGetUnpontDataAPIを呼び出す前のチェック処理
@@ -19,7 +21,7 @@ export async function checkLinkableDatasource(currentMap: CurrentMap, dataSource
  * @param currentMap 
  * @param dataSourceId 
  */
-async function getLinkableDataSources(currentMap: CurrentMap, dataSourceId: string): Promise<schema.DataSourceTable[]> {
+async function getLinkableDataSources(currentMap: CurrentMap, dataSourceId: string): Promise<DataSourceTable[]> {
     const con = await ConnectionPool.getConnection();
 
     try {
@@ -32,7 +34,7 @@ async function getLinkableDataSources(currentMap: CurrentMap, dataSourceId: stri
         const [rows] = await con.query(sql, [currentMap.mapId]);
 
         // 指定のデータソースを紐づけ可能にしているデータソースに絞る
-        return (rows as schema.DataSourceTable[]).filter(row => {
+        return (rows as DataSourceTable[]).filter(row => {
             if ((row.item_contents as ItemContentDefine).Content?.linkableContents.some(lc => lc.contentDatasourceId === dataSourceId)) {
                 return true;
             }

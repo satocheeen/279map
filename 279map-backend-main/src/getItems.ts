@@ -1,10 +1,12 @@
-import { schema, CurrentMap, FeatureType, ItemContentInfo, ItemDefine, MapKind } from '279map-backend-common';
+import { FeatureType, ItemContentInfo, ItemDefine, MapKind } from '279map-common';
 import { getLogger } from 'log4js';
 import { ConnectionPool } from '.';
 import { GetItemsParam, GetItemsResult } from '../279map-api-interface/src';
 import { checkContaining, getExtentWkt } from './util/utility';
 import { SendedExtentInfo } from './session/SessionInfo';
 import { PoolConnection } from 'mysql2/promise';
+import { CurrentMap } from '../279map-backend-common/src';
+import { ContentsTable, ItemContentLink, ItemsTable, TrackGeoJsonTable, TracksTable } from '../279map-backend-common/src/types/schema';
 
 const apiLogger = getLogger('api');
 
@@ -88,7 +90,7 @@ async function selectItems(con: PoolConnection, dataSourceIds:string[], currentM
         `;
         const [rows] = await con.execute(sql, [currentMap.mapId, currentMap.mapKind]);
         const pointContents = [] as ItemDefine[];
-        for(const row of rows as (schema.ItemsTable & {geojson: any})[]) {
+        for(const row of rows as (ItemsTable & {geojson: any})[]) {
             // 指定されているデータソースのもののみに絞る
             if (!dataSourceIds.includes(row.data_source_id)) {
                 continue;
@@ -98,7 +100,7 @@ async function selectItems(con: PoolConnection, dataSourceIds:string[], currentM
 
             const contentLinkSql = 'select * from item_content_link where item_page_id = ?';
             const [linkRows] = await con.execute(contentLinkSql, [row.item_page_id]);
-            const linkRecords = linkRows as schema.ItemContentLink[];
+            const linkRecords = linkRows as ItemContentLink[];
             if (linkRecords.length > 0) {
                 // 配下のコンテンツID取得
                 for (const linkRecord of linkRecords) {
@@ -155,7 +157,7 @@ async function selectTrackInArea(con: PoolConnection, param: GetItemsParam, mapP
         const [rows] = await con.execute(sql, [mapPageId, wkt, param.zoom, param.zoom]);
         
         const list = [] as ItemDefine[];
-        for (const row of (rows as (schema.TrackGeoJsonTable & schema.TracksTable)[])) {
+        for (const row of (rows as (TrackGeoJsonTable & TracksTable)[])) {
             // データソースが指定されている場合は、指定されているデータソースのもののみに絞る
             if (param.dataSourceIds) {
                 if (!param.dataSourceIds.includes(row.data_source_id)) {
@@ -192,7 +194,7 @@ async function  getContentsInfo(con: PoolConnection, contentPageId: string): Pro
     const getChildrenContentInfo = async(contentPageId: string): Promise<ItemContentInfo[]> => {
         const sql = 'select * from contents c where parent_id = ?';
         const [rows] = await con.execute(sql, [contentPageId]);
-        const myRows = rows as schema.ContentsTable[];
+        const myRows = rows as ContentsTable[];
         if (myRows.length === 0) {
             return [];
         }
@@ -213,7 +215,7 @@ async function  getContentsInfo(con: PoolConnection, contentPageId: string): Pro
 
     const sql = 'select * from contents c where content_page_id = ?';
     const [rows] = await con.execute(sql, [contentPageId]);
-    const myRows = rows as schema.ContentsTable[];
+    const myRows = rows as ContentsTable[];
     if (myRows.length === 0) {
         apiLogger.warn('not founc content.', contentPageId);
         return null;

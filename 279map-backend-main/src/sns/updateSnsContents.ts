@@ -1,6 +1,8 @@
 import { getLogger } from "log4js";
 import { ConnectionPool } from "..";
-import { getImageBase64, schema, sns } from "279map-backend-common";
+import { SnsOptions, getSnsPostGetter } from "../../279map-backend-common/src/sns";
+import { ContentsInfo, ContentsTable } from "../../279map-backend-common/src/types/schema";
+import { getImageBase64 } from "../../279map-backend-common/src";
 
 const logger = getLogger();
 
@@ -48,8 +50,8 @@ export async function updateSnsContents(mapPageId: string, content_id?: string) 
             rows = result as Record[];
         }
         for(const row of rows) {
-            const itemProperties = JSON.parse(row.supplement) as sns.SnsOptions;
-            const snsPostGetter = sns.getSnsPostGetter(itemProperties);
+            const itemProperties = JSON.parse(row.supplement) as SnsOptions;
+            const snsPostGetter = getSnsPostGetter(itemProperties);
             if (!snsPostGetter) {
                 // logger.warn('不正なSNSオプション', itemProperties);
                 continue;
@@ -80,7 +82,7 @@ export async function updateSnsContents(mapPageId: string, content_id?: string) 
 
                     // タイトル（冒頭行 or 冒頭20文字）
                     let title: string;
-                    const contents = {} as schema.ContentsInfo;
+                    const contents = {} as ContentsInfo;
                     if (index !== -1) {
                         title = post.text.substring(0, index);
                         contents.content = post.text.substring(index + 1);
@@ -105,7 +107,7 @@ export async function updateSnsContents(mapPageId: string, content_id?: string) 
                         parent_id: row.content_page_id,
                         supplement: JSON.stringify({type: 'SnsContent'}),
                         last_edited_time: post.date,
-                    } as schema.ContentsTable;
+                    } as ContentsTable;
                     const sql2 = 'INSERT INTO contents SET ?';
                     await con.query(sql2, [contentValue]);
 

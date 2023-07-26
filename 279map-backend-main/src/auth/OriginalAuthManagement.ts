@@ -1,6 +1,7 @@
-import { Auth, AuthManagementInterface, MapInfo, User } from "279map-backend-common";
+import { Auth, User } from "279map-common";
 import axios, { AxiosResponse } from "axios";
 import { Request, Response, NextFunction } from "express";
+import { AuthManagementInterface, MapInfo } from "../../279map-backend-common/src";
 
 /**
  * オリジナルの認証サーバーで認証処理を行う場合

@@ -1,8 +1,8 @@
 import WebSocket from 'ws';
-import { MapKind, ItemDefine, DataId, Extent } from '279map-backend-common';
-import {CurrentMap } from '279map-backend-common';
+import { MapKind, ItemDefine, DataId, Extent } from '279map-common';
 import dayjs from 'dayjs';
 import { checkContaining } from '../util/utility';
+import { CurrentMap } from '../../279map-backend-common/src';
 
 type ItemInfoMap = {[dataSourceId: string]: ItemInfo[]};
 type ItemInfo = {

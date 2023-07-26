@@ -1,7 +1,7 @@
 import { APIDefine, DataId } from "279map-common";
 import { Request, Response, Express } from 'express';
 import { Logger } from "log4js";
-import { GetImageUrlAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from "./dba-api-interface";
+import { OdbaGetImageUrlAPI, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaLinkContentToItemParam, OdbaRegistContentAPI, OdbaRegistContentParam, OdbaRegistItemAPI, OdbaRegistItemParam, OdbaRemoveContentAPI, OdbaRemoveContentParam, OdbaRemoveItemAPI, OdbaRemoveItemParam, OdbaUpdateContentAPI, OdbaUpdateContentParam, OdbaUpdateItemAPI, OdbaUpdateItemParam } from "./dba-api-interface";
 import OdbaInterface from "./OdbaInterface";
 
 type OdbaAPIFuncParam<PARAM> = {
@@ -17,8 +17,8 @@ export type OdbaAPICallDefine<PARAM, RESULT> = {
 export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger) {
     const apiList: OdbaAPICallDefine<any,any>[] = [
         {
-            define: RegistItemAPI,
-            func: async(param: OdbaAPIFuncParam<RegistItemParam>): Promise<DataId> => {
+            define: OdbaRegistItemAPI,
+            func: async(param: OdbaAPIFuncParam<OdbaRegistItemParam>): Promise<DataId> => {
                 // regist to original db
                 const itemId = await odba.registItemOdb(param.param);
 
@@ -31,8 +31,8 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
             }
         },
         {
-            define: RegistContentAPI,
-            func: async(param: OdbaAPIFuncParam<RegistContentParam>): Promise<void> => {
+            define: OdbaRegistContentAPI,
+            func: async(param: OdbaAPIFuncParam<OdbaRegistContentParam>): Promise<void> => {
                 // regist to original db
                 const contentId = await odba.registContentOdb(param.param);
 
@@ -44,8 +44,8 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
             },
         },
         {
-            define: RemoveItemAPI,
-            func: async(param: OdbaAPIFuncParam<RemoveItemParam>): Promise<void> => {
+            define: OdbaRemoveItemAPI,
+            func: async(param: OdbaAPIFuncParam<OdbaRemoveItemParam>): Promise<void> => {
                 await odba.removeItemOdb(param.param);
 
                 await odba.removeItemCache({
@@ -55,8 +55,8 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
             },
         },
         {
-            define: RemoveContentAPI,
-            func: async(param: OdbaAPIFuncParam<RemoveContentParam>): Promise<void> => {
+            define: OdbaRemoveContentAPI,
+            func: async(param: OdbaAPIFuncParam<OdbaRemoveContentParam>): Promise<void> => {
 
                 if (param.param.mode === 'alldelete') {
                     await odba.removeContentOdb({
@@ -104,8 +104,8 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
             }
         },
         {
-            define: UpdateItemAPI,
-            func: async(param: OdbaAPIFuncParam<UpdateItemParam>): Promise<void> => {
+            define: OdbaUpdateItemAPI,
+            func: async(param: OdbaAPIFuncParam<OdbaUpdateItemParam>): Promise<void> => {
                 await odba.updateItemOdb(param.param);
 
                 // update cache db
@@ -116,8 +116,8 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
             },
         },
         {
-            define: UpdateContentAPI,
-            func: async(param: OdbaAPIFuncParam<UpdateContentParam>): Promise<void> => {
+            define: OdbaUpdateContentAPI,
+            func: async(param: OdbaAPIFuncParam<OdbaUpdateContentParam>): Promise<void> => {
                 await odba.updateContentOdb(param.param);
 
                 await odba.updateContentCache({
@@ -127,12 +127,12 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
             },
         },
         {
-            define: GetUnpointDataAPI,
+            define: OdbaGetUnpointDataAPI,
             func: odba.getUnpointData,
         },
         {
-            define: LinkContentToItemAPI,
-            func: async(param: OdbaAPIFuncParam<LinkContentToItemParam>): Promise<void> => {
+            define: OdbaLinkContentToItemAPI,
+            func: async(param: OdbaAPIFuncParam<OdbaLinkContentToItemParam>): Promise<void> => {
                 await odba.linkContentOdb(param.param);
 
                 await odba.updateContentLinkCache({
@@ -143,7 +143,7 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
             }
         },
         {
-            define: GetImageUrlAPI,
+            define: OdbaGetImageUrlAPI,
             func: odba.getImageUrl,
         },
     ];

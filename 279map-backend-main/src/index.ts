@@ -1,8 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import mysql from 'mysql2/promise';
 import { getMapInfo } from './getMapInfo';
-import { Auth, MapKind, AuthMethod, ServerConfig, DataId, MapPageOptions } from '279map-backend-common';
-import { api as backendAPI, schema, CurrentMap, sleep } from '279map-backend-common';
+import { Auth, MapKind, AuthMethod, ServerConfig, DataId, MapPageOptions } from '279map-common';
 import { getItems } from './getItems';
 import { configure, getLogger } from "log4js";
 import { DbSetting, LogSetting } from './config';
@@ -32,6 +31,9 @@ import { checkLinkableDatasource } from './api/getUnpointData';
 import { Auth0Management } from './auth/Auth0Management';
 import { OriginalAuthManagement } from './auth/OriginalAuthManagement';
 import { NoneAuthManagement } from './auth/NoneAuthManagement';
+import { MapPageInfoTable, PublicRange } from '../279map-backend-common/src/types/schema';
+import { CurrentMap, sleep } from '../279map-backend-common/src';
+import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaRegistContentAPI, OdbaRegistItemAPI, OdbaRemoveContentAPI, OdbaRemoveItemAPI, OdbaUpdateContentAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
 
 declare global {
     namespace Express {
@@ -39,7 +41,7 @@ declare global {
             connect?: {
                 sessionKey: string; // SID or Token
                 mapId: string;
-                mapPageInfo?: schema.MapPageInfoTable;
+                mapPageInfo?: MapPageInfoTable;
                 authLv?: Auth;
                 userName?: string;
             },
@@ -433,7 +435,7 @@ app.all('/api/*',
 
         if (!req.headers.authorization) {
             // 未ログインの場合は、地図がpublicか確認
-            if (mapPageInfo.public_range === schema.PublicRange.Private) {
+            if (mapPageInfo.public_range === PublicRange.Private) {
                 // privateの場合 -> error
                 apiLogger.debug('not auth');
                 next({
@@ -490,7 +492,7 @@ app.all('/api/*',
             req.connect.userName = mapUserInfo.name;
         } else {
             // ユーザが権限を持たない場合
-            if (mapDefine.public_range === schema.PublicRange.Public) {
+            if (mapDefine.public_range === PublicRange.Public) {
                 // 地図がPublicの場合、View権限
                 req.connect.authLv = Auth.View;
             } else {
@@ -749,7 +751,7 @@ app.post(`/api/${RegistItemAPI.uri}`,
             const param = req.body as RegistItemParam;
         
             // call ODBA
-            const id = await backendAPI.callOdbaApi(backendAPI.RegistItemAPI, {
+            const id = await callOdbaApi(OdbaRegistItemAPI, {
                 currentMap: req.currentMap,
                 dataSourceId: param.dataSourceId,
                 name: param.name,
@@ -788,7 +790,7 @@ app.post(`/api/${UpdateItemAPI.uri}`,
             const param = req.body as UpdateItemParam;
 
             // call ODBA
-            await backendAPI.callOdbaApi(backendAPI.UpdateItemAPI, Object.assign({
+            await callOdbaApi(OdbaUpdateItemAPI, Object.assign({
                 currentMap: req.currentMap,
             }, param));
     
@@ -823,7 +825,7 @@ app.post(`/api/${RemoveItemAPI.uri}`,
             const param = req.body as RemoveItemParam;
 
             // call ODBA
-            await backendAPI.callOdbaApi(backendAPI.RemoveItemAPI, Object.assign({
+            await callOdbaApi(OdbaRemoveItemAPI, Object.assign({
                 currentMap: req.currentMap,
             }, param));
     
@@ -859,7 +861,7 @@ app.post(`/api/${RegistContentAPI.uri}`,
             const param = req.body as RegistContentParam;
 
             // call ODBA
-            await backendAPI.callOdbaApi(backendAPI.RegistContentAPI, Object.assign({
+            await callOdbaApi(OdbaRegistContentAPI, Object.assign({
                 currentMap: req.currentMap,
             }, param));
     
@@ -893,7 +895,7 @@ app.post(`/api/${UpdateContentAPI.uri}`,
             const param = req.body as UpdateContentParam;
     
             // call ODBA
-            await backendAPI.callOdbaApi(backendAPI.UpdateContentAPI, Object.assign({
+            await callOdbaApi(OdbaUpdateContentAPI, Object.assign({
                 currentMap: req.currentMap,
             }, param));
     
@@ -936,7 +938,7 @@ app.post(`/api/${GetUnpointDataAPI.uri}`,
             }
 
             // call ODBA
-            const result = await backendAPI.callOdbaApi(backendAPI.GetUnpointDataAPI, {
+            const result = await callOdbaApi(OdbaGetUnpointDataAPI, {
                 currentMap: req.currentMap,
                 dataSourceId: param.dataSourceId,
                 nextToken: param.nextToken,
@@ -967,7 +969,7 @@ app.post(`/api/${LinkContentToItemAPI.uri}`,
             const param = req.body as LinkContentToItemParam;
 
             // call ODBA
-            await backendAPI.callOdbaApi(backendAPI.LinkContentToItemAPI, Object.assign({
+            await callOdbaApi(OdbaLinkContentToItemAPI, Object.assign({
                 currentMap: req.currentMap,
             }, param));
 
@@ -1002,7 +1004,7 @@ app.post(`/api/${RemoveContentAPI.uri}`,
             const param = req.body as RemoveContentParam;
 
             // call ODBA
-            await backendAPI.callOdbaApi(backendAPI.RemoveContentAPI, Object.assign({
+            await callOdbaApi(OdbaRemoveContentAPI, Object.assign({
                 currentMap: req.currentMap,
             }, param));
     
@@ -1116,7 +1118,7 @@ app.post(`/api/${GetImageUrlAPI.uri}`,
             const param = req.body as { id: DataId };
 
             // call odba
-            const result = await backendAPI.callOdbaApi(backendAPI.GetImageUrlAPI, param);
+            const result = await callOdbaApi(OdbaGetImageUrlAPI, param);
             res.send(result);
 
         } catch(e) {
@@ -1246,7 +1248,7 @@ internalApp.use(express.json({
     limit: '1mb',
 })); 
 internalApp.post('/api/broadcast', (req: Request, res: Response) => {
-    const param = req.body as backendAPI.BroadcastItemParam;
+    const param = req.body as BroadcastItemParam;
     logger.info('broadcast', param);
     switch(param.operation) {
         case 'insert':

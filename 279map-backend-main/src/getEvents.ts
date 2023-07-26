@@ -1,7 +1,8 @@
 import { ConnectionPool } from ".";
-import { CurrentMap, EventDefine } from "279map-backend-common";
+import { EventDefine } from "279map-common";
 import { GetEventParam, GetEventsResult } from "../279map-api-interface/src";
 import { getLogger } from "log4js";
+import { CurrentMap } from "../279map-backend-common/src";
 
 const logger = getLogger('api');
 export async function getEvents(param: GetEventParam, currentMap: CurrentMap): Promise<GetEventsResult> {

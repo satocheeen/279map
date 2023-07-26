@@ -11,13 +11,13 @@ type CommonParam = {
 /**
  * regist item
  */
-export const RegistItemAPI = {
+export const OdbaRegistItemAPI = {
     uri: 'regist-item',
     method: 'post',
     resultType: 'json',
-} as APIDefine<RegistItemParam, DataId>;   // result = registed item ID
+} as APIDefine<OdbaRegistItemParam, DataId>;   // result = registed item ID
 
-export type RegistItemParam = CommonParam & {
+export type OdbaRegistItemParam = CommonParam & {
     dataSourceId: string;   // 登録先データソース
     name?: string;  // topography only
     geometry: GeoJSON.Geometry;
@@ -27,13 +27,13 @@ export type RegistItemParam = CommonParam & {
 /**
  * regist content
  */
-export const RegistContentAPI = {
+export const OdbaRegistContentAPI = {
     uri: 'regist-content',
     method: 'post',
     resultType: 'none',
-} as APIDefine<RegistContentParam, void>;
+} as APIDefine<OdbaRegistContentParam, void>;
 
-export type RegistContentParam = CommonParam & {
+export type OdbaRegistContentParam = CommonParam & {
     parent: {
         itemId: DataId;
     } | {
@@ -46,26 +46,26 @@ export type RegistContentParam = CommonParam & {
 /**
  * remove item
  */
-export const RemoveItemAPI = {
+export const OdbaRemoveItemAPI = {
     uri: 'remove-item',
     method: 'post',
     resultType: 'none',
-} as APIDefine<RemoveItemParam, void>;
+} as APIDefine<OdbaRemoveItemParam, void>;
 
-export type RemoveItemParam = CommonParam & {
+export type OdbaRemoveItemParam = CommonParam & {
     id: DataId; // 削除対象アイテムのID
 }
 
 /**
  * remove content
  */
-export const RemoveContentAPI = {
+export const OdbaRemoveContentAPI = {
     uri: 'remove-content',
     method: 'post',
     resultType: 'none',
-} as APIDefine<RemoveContentParam, void>;
+} as APIDefine<OdbaRemoveContentParam, void>;
 
-export type RemoveContentParam = CommonParam & {
+export type OdbaRemoveContentParam = CommonParam & {
     id: DataId;
     itemId: DataId;
     parentContentId?: DataId;
@@ -74,13 +74,13 @@ export type RemoveContentParam = CommonParam & {
 /**
  * update item
  */
-export const UpdateItemAPI = {
+export const OdbaUpdateItemAPI = {
     uri: 'update-item',
     method: 'post',
     resultType: 'none',
-} as APIDefine<UpdateItemParam, void>;
+} as APIDefine<OdbaUpdateItemParam, void>;
 
-export type UpdateItemParam = CommonParam & {
+export type OdbaUpdateItemParam = CommonParam & {
     id: DataId;
     name?: string;  // topography only
     geometry?: GeoJSON.Geometry;
@@ -90,26 +90,26 @@ export type UpdateItemParam = CommonParam & {
 /**
  * update content
  */
-export const UpdateContentAPI = {
+export const OdbaUpdateContentAPI = {
     uri: 'update-content',
     method: 'post',
     resultType: 'none',
-} as APIDefine<UpdateContentParam, void>;
+} as APIDefine<OdbaUpdateContentParam, void>;
 
-export type UpdateContentParam = CommonParam & {
+export type OdbaUpdateContentParam = CommonParam & {
     id: DataId;
 } & Partial<ContentAttr>;
 
 /**
  * get unpoint data
  */
-export const GetUnpointDataAPI = {
+export const OdbaGetUnpointDataAPI = {
     uri: 'get-unpointdata',
     method: 'post',
     resultType: 'json',
-} as APIDefine<GetUnpointDataParam, GetUnpointDataResult>;
+} as APIDefine<OdbaGetUnpointDataParam, OdbaGetUnpointDataResult>;
 
-export type GetUnpointDataParam = CommonParam & {
+export type OdbaGetUnpointDataParam = CommonParam & {
     dataSourceId: string;
     nextToken?: string;
 }
@@ -119,7 +119,7 @@ export type UnpointContent = {
     thumb?: string;
     overview?: string;
 }
-export type GetUnpointDataResult = {
+export type OdbaGetUnpointDataResult = {
     contents: UnpointContent[],
     nextToken?: string;
 };
@@ -127,13 +127,13 @@ export type GetUnpointDataResult = {
 /**
  * link content to item
  */
-export const LinkContentToItemAPI = {
+export const OdbaLinkContentToItemAPI = {
     uri:'link-content2item',
     method: 'post',
     resultType: 'none',
-} as APIDefine<LinkContentToItemParam, void>;
+} as APIDefine<OdbaLinkContentToItemParam, void>;
 
-export type LinkContentToItemParam = CommonParam & {
+export type OdbaLinkContentToItemParam = CommonParam & {
     childContentId: DataId;
     parent: {
         itemId: DataId;
@@ -142,7 +142,7 @@ export type LinkContentToItemParam = CommonParam & {
     }
 }
 
-export const GetImageUrlAPI = {
+export const OdbaGetImageUrlAPI = {
     uri: 'get-imageurl',
     method: 'post',
     resultType: 'string',
@@ -151,7 +151,7 @@ export const GetImageUrlAPI = {
 /**
  * for Android
  */
-export type GetDbListResult = {
+export type OdbaGetDbListResult = {
     dbList: DbInfo[];
 }
 export type DbInfo = {

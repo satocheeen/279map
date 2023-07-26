@@ -3,11 +3,11 @@ import { getLogger } from 'log4js';
 import { Server } from 'http';
 import { Request } from 'express';
 import SessionInfo from './SessionInfo';
-import { MapKind, DataId } from '279map-backend-common';
+import { MapKind, DataId } from '279map-common';
 import { WebSocketMessage } from '../../279map-api-interface/src';
 import crypto from 'crypto';
-import { CurrentMap } from '279map-backend-common';
 import SessionMap from './SessionMap';
+import { CurrentMap } from '../../279map-backend-common/src';
 
 /**
  * クライアントの情報を管理し、必要に応じてクライアントに通知を行うクラス

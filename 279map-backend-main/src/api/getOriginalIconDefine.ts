@@ -1,8 +1,9 @@
 import { ConnectionPool } from "..";
-import { CurrentMap, schema } from "279map-backend-common";
 import { GetOriginalIconDefineResult } from "../../279map-api-interface/src";
-import { IconDefine, MapKind } from "279map-backend-common";
+import { IconDefine, MapKind } from "279map-common";
 import { getIcon } from "./getIcon";
+import { CurrentMap } from "../../279map-backend-common/src";
+import { OriginalIconsTable } from "../../279map-backend-common/src/types/schema";
 
 export async function getOriginalIconDefine(currentMap: CurrentMap): Promise<GetOriginalIconDefineResult> {
     const pageId = currentMap?.mapId;
@@ -19,7 +20,7 @@ export async function getOriginalIconDefine(currentMap: CurrentMap): Promise<Get
         const [rows] = await con.execute(sql, [pageId]);
 
 
-        const icons = await Promise.all((rows as schema.OriginalIconsTable[]).map(async(row): Promise<IconDefine> => {
+        const icons = await Promise.all((rows as OriginalIconsTable[]).map(async(row): Promise<IconDefine> => {
             const base64 = await getIcon({id: row.icon_page_id});
             return {
                 id: row.icon_page_id,

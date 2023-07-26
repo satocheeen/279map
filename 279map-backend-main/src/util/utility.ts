@@ -1,7 +1,8 @@
 import { ConnectionPool } from '..';
-import { MapKind, Extent, DataId } from '279map-backend-common';
-import { schema, CurrentMap} from '279map-backend-common';
+import { MapKind, Extent, DataId } from '279map-common';
 import mysql, { PoolConnection } from 'mysql2/promise';
+import { ContentsTable, ItemsTable } from '../../279map-backend-common/src/types/schema';
+import { CurrentMap } from '../../279map-backend-common/src';
 
 export function getExtentWkt(ext: Extent): string {
     const [lon1, lat1, lon2, lat2] = ext;
@@ -33,7 +34,7 @@ export function convertBase64ToBinary(base64: string) {
  * @param mapKind 
  * @returns 
  */
-export async function getBelongingItem(con: PoolConnection, content: schema.ContentsTable, mapPageId: string, mapKind: MapKind): Promise<schema.ItemsTable[]|null> {
+export async function getBelongingItem(con: PoolConnection, content: ContentsTable, mapPageId: string, mapKind: MapKind): Promise<ItemsTable[]|null> {
     const items = await getItemHasTheContent(con, content.content_page_id, mapPageId, mapKind);
     if (items.length > 0) {
         return items;
@@ -59,7 +60,7 @@ export async function getBelongingItem(con: PoolConnection, content: schema.Cont
  * @param mapKind 
  * @returns 
  */
-async function getItemHasTheContent(con: PoolConnection, content_page_id: string, mapPageId: string, mapKind: MapKind): Promise<schema.ItemsTable[]> {
+async function getItemHasTheContent(con: PoolConnection, content_page_id: string, mapPageId: string, mapKind: MapKind): Promise<ItemsTable[]> {
     try {
         const sql = `
         select i.* from items i
@@ -71,7 +72,7 @@ async function getItemHasTheContent(con: PoolConnection, content_page_id: string
         const query = mysql.format(sql, [content_page_id, mapPageId, mapKind]);
         const [rows] = await con.execute(query);
         // const [rows] = await con.execute(sql, [content_page_id, mapPageId, kind]);
-        return (rows as schema.ItemsTable[]);
+        return (rows as ItemsTable[]);
 
     } catch(e) {
         throw 'getItemHasTheContent' + e;
@@ -79,7 +80,7 @@ async function getItemHasTheContent(con: PoolConnection, content_page_id: string
     }
 }
 
-export async function getContent(content_id: DataId): Promise<schema.ContentsTable|null> {
+export async function getContent(content_id: DataId): Promise<ContentsTable|null> {
     const con = await ConnectionPool.getConnection();
     try {
         const sql = "select * from contents where content_page_id = ? and data_source_id = ?";
@@ -87,7 +88,7 @@ export async function getContent(content_id: DataId): Promise<schema.ContentsTab
         if ((rows as []).length === 0) {
             return null;
         }
-        return (rows as schema.ContentsTable[])[0];
+        return (rows as ContentsTable[])[0];
 
     } catch(e) {
         throw 'getContent' + e;
@@ -112,8 +113,8 @@ export async function getAncestorItemId(con: PoolConnection | undefined, content
         where mdl.map_page_id = ? and i.map_kind = ? and icl.content_page_id = ? and icl.content_datasource_id = ?
         `;
         const [rows] = await myCon.execute(sql, [currentMap.mapId, currentMap.mapKind, contentId.id, contentId.dataSourceId]);
-        if ((rows as schema.ItemsTable[]).length > 0) {
-            const record = (rows as schema.ItemsTable[])[0];
+        if ((rows as ItemsTable[]).length > 0) {
+            const record = (rows as ItemsTable[])[0];
             return {
                 id: record.item_page_id,
                 dataSourceId: record.data_source_id,
@@ -126,7 +127,7 @@ export async function getAncestorItemId(con: PoolConnection | undefined, content
         if ((contentRows as []).length === 0) {
             return;
         }
-        const contentRecord = (contentRows as schema.ContentsTable[])[0];
+        const contentRecord = (contentRows as ContentsTable[])[0];
         if (!contentRecord.parent_id || !contentRecord.parent_datasource_id) {
             return;
         }

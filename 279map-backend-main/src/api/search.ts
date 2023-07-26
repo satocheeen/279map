@@ -1,8 +1,9 @@
-import { DataId } from "279map-backend-common";
-import { CurrentMap, schema } from '279map-backend-common';
+import { DataId } from "279map-common";
+import { CurrentMap } from "../../279map-backend-common/src";
 import { SearchParam, SearchResult } from "../../279map-api-interface/src";
 import { ConnectionPool } from "..";
 import { PoolConnection } from "mysql2/promise";
+import { ItemContentLink } from "../../279map-backend-common/src/types/schema";
 
 export async function search(currentMap: CurrentMap, param: SearchParam): Promise<SearchResult> {
     if (param.dataSourceIds && param.dataSourceIds.length === 0) {
@@ -100,7 +101,7 @@ async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, cat
     }
     const query = con.format(sql, params);
     const [rows] = await con.execute(query);
-    return (rows as schema.ItemContentLink[]).map((row): HitContent => {
+    return (rows as ItemContentLink[]).map((row): HitContent => {
         return {
             contentId: {
                 id: row.content_page_id,
@@ -142,7 +143,7 @@ async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: s
     const query = con.format(sql, params);
     const [rows] = await con.execute(query);
 
-    return (rows as schema.ItemContentLink[]).map((row): HitContent => {
+    return (rows as ItemContentLink[]).map((row): HitContent => {
         return {
             contentId: {
                 id: row.content_page_id,
@@ -186,7 +187,7 @@ async function searchByKeyword(con: PoolConnection, currentMap: CurrentMap, keyw
     const query = con.format(sql, params);
 
     const [rows] = await con.execute(query);
-    return (rows as schema.ItemContentLink[]).map((row): HitContent => {
+    return (rows as ItemContentLink[]).map((row): HitContent => {
         return {
             contentId: {
                 id: row.content_page_id,

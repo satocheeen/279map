@@ -1,9 +1,9 @@
 import { authManagementClient } from "..";
-import { Auth, AuthMethod } from '279map-backend-common';
-import { schema } from '279map-backend-common';
+import { Auth, AuthMethod } from '279map-common';
 import { getLogger } from 'log4js';
 import { authMethod } from '..';
 import { Request } from 'express';
+import { MapPageInfoTable, PublicRange } from "../../279map-backend-common/src/types/schema";
 
 const apiLogger = getLogger('api');
 
@@ -35,12 +35,12 @@ type UserAuthInfo = {
  * @param req リクエスト情報
  * @returns アクセス権限情報
  */
-export async function getUserAuthInfoInTheMap(mapPageInfo: schema.MapPageInfoTable, req: Request): Promise<UserAuthInfo> {
+export async function getUserAuthInfoInTheMap(mapPageInfo: MapPageInfoTable, req: Request): Promise<UserAuthInfo> {
     
     const userId = getUserIdByRequest(req);
     if (!userId) {
         // 未ログインの場合
-        if (mapPageInfo.public_range === schema.PublicRange.Public) {
+        if (mapPageInfo.public_range === PublicRange.Public) {
             // 地図の公開範囲publicの場合は、View権限
             apiLogger.debug('未ログイン-Public');
             return {
@@ -65,7 +65,7 @@ export async function getUserAuthInfoInTheMap(mapPageInfo: schema.MapPageInfoTab
         };
     } else {
         // ユーザが権限を持たない場合
-        if (mapPageInfo.public_range === schema.PublicRange.Public) {
+        if (mapPageInfo.public_range === PublicRange.Public) {
             // 地図がPublicの場合、View権限
             return {
                 authLv: Auth.View,

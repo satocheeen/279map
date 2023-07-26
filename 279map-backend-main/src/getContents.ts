@@ -1,19 +1,12 @@
 import { ConnectionPool } from '.';
-import { CurrentMap, ItemContentDefine, schema } from "279map-backend-common";
 import { getAncestorItemId } from "./util/utility";
 import { GetContentsParam, GetContentsResult } from '../279map-api-interface/src';
-import { DataId, MapKind, ContentsDefine, Auth } from '279map-backend-common';
+import { DataId, MapKind, ContentsDefine, Auth, ItemContentDefine } from '279map-common';
 import { PoolConnection } from 'mysql2/promise';
+import { ContentsInfo, ContentsTable, DataSourceTable, ItemContentLink, ItemsTable } from '../279map-backend-common/src/types/schema';
+import { CurrentMap } from '../279map-backend-common/src';
 
-type ContentsDatasourceRecord = schema.ContentsTable & schema.DataSourceTable;
-type ItemDataSourceRecord = schema.ItemsTable & schema.DataSourceTable;
-type Parent = {
-    type: 'item';
-    item: ItemDataSourceRecord;
-} | {
-    type: 'content';
-    content: ContentsDatasourceRecord;
-}
+type ContentsDatasourceRecord = ContentsTable & DataSourceTable;
 export async function getContents({ param, currentMap, authLv }: {param: GetContentsParam; currentMap: CurrentMap, authLv: Auth}): Promise<GetContentsResult> {
     if (!currentMap) {
         throw 'mapKind not defined.';
@@ -25,7 +18,7 @@ export async function getContents({ param, currentMap, authLv }: {param: GetCont
         const allContents = [] as ContentsDefine[];
 
         const convertRecord = async(row: ContentsDatasourceRecord, itemId: DataId): Promise<ContentsDefine> => {
-            const contents = row.contents ? row.contents as schema.ContentsInfo: undefined;
+            const contents = row.contents ? row.contents as ContentsInfo: undefined;
             let isSnsContent = false;
             if (row.supplement) {
                 // SNSコンテンツの場合
@@ -183,7 +176,7 @@ async function getAnotherMapKindItemsUsingTheContent(con: PoolConnection, conten
     const anotherMapKind = currentMap.mapKind === MapKind.Virtual ? MapKind.Real : MapKind.Virtual;
     const [rows] = await con.execute(sql, [contentId.id, contentId.dataSourceId, currentMap.mapId, anotherMapKind]);
 
-    return (rows as schema.ItemContentLink[]).map((row): DataId => {
+    return (rows as ItemContentLink[]).map((row): DataId => {
         return {
             id: row.item_page_id,
             dataSourceId: row.item_datasource_id,
