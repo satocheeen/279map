@@ -7,6 +7,7 @@ import { MapKind } from "279map-common";
 import { ConnectAPIResult, LoadMapDefineResult } from "../../types/types";
 import { getAPICallerInstance } from "../../api/ApiCaller";
 import { ApiException } from "../../api";
+import mqtt from "precompiled-mqtt";
 
 export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; }>(
     'session/connectMapStatus',
@@ -21,10 +22,10 @@ export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; }>
 
             apiCaller.setSID(json.sid);
 
+            const domain = mapServer.host;
             // WebSocket接続確立
             const startWss = () => {
                 const protocol = mapServer.ssl ? 'wss' : 'ws';
-                const domain = mapServer.host;
 
                 const wss = new WebSocket(protocol + "://" + domain);
                 wss.addEventListener('open', () => {
@@ -57,7 +58,15 @@ export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; }>
                     }
                 });
             };
-            startWss();
+            // startWss();
+            const mq = mqtt.connect("mqtt://" + domain, {
+                clientId: json.sid,
+            });
+            console.log('mqtt connecting');
+            mq.on('connect', () => {
+                console.log('mqtt server connected');
+            });
+
 
             return {
                 result: 'success',

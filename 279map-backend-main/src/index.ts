@@ -8,7 +8,6 @@ import { DbSetting, LogSetting } from './config';
 import { getThumbnail } from './getThumbnsil';
 import { getContents } from './getContents';
 import { getEvents } from './getEvents';
-import Broadcaster from './session/Broadcaster';
 import proxy from 'express-http-proxy';
 import http from 'http';
 import { convertBase64ToBinary } from './util/utility';
@@ -34,6 +33,7 @@ import { NoneAuthManagement } from './auth/NoneAuthManagement';
 import { MapPageInfoTable, PublicRange } from '../279map-backend-common/src/types/schema';
 import { CurrentMap, sleep } from '../279map-backend-common/src';
 import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaRegistContentAPI, OdbaRegistItemAPI, OdbaRemoveContentAPI, OdbaRemoveItemAPI, OdbaUpdateContentAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
+import MqttBroadcaster from './session/MqttBroadcaster';
 
 declare global {
     namespace Express {
@@ -142,10 +142,12 @@ const initializeDb = async() => {
 // Create Web Server
 const server = http.createServer(app);
 
-// Create WebSoskce Server
-const broadCaster = new Broadcaster(server, sessionStoragePath);
+// Create Broadcast Server
+const broadCaster = new MqttBroadcaster(server, sessionStoragePath);
 
-// Initialize Auth
+/**
+ * Initialize Auth
+ */
 export const authMethod = process.env.AUTH_METHOD as AuthMethod;
 export const authManagementClient = function() {
     switch(authMethod) {
