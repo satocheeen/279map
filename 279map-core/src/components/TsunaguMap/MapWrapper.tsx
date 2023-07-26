@@ -270,6 +270,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         // connect
         dispatch(connectMap({
             mapId: ownerContext.mapId,
+            instanceId: ownerContext.mapInstanceId,
         }))
         .then((res) => {
             const result = res.payload as ConnectAPIResult;

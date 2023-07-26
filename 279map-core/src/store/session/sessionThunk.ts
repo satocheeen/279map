@@ -7,9 +7,9 @@ import { MapKind } from "279map-common";
 import { ConnectAPIResult, LoadMapDefineResult } from "../../types/types";
 import { getAPICallerInstance } from "../../api/ApiCaller";
 import { ApiException } from "../../api";
-import mqtt from "precompiled-mqtt";
+import { createMqttClientInstance } from "./MqttInstanceManager";
 
-export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; }>(
+export const connectMap = createAsyncThunk<ConnectAPIResult, { instanceId: string; mapId: string; }>(
     'session/connectMapStatus',
     async(param, { getState, dispatch }) => {
         const mapServer = (getState() as RootState).session.mapServer;
@@ -59,14 +59,7 @@ export const connectMap = createAsyncThunk<ConnectAPIResult, { mapId: string; }>
                 });
             };
             // startWss();
-            const mq = mqtt.connect("mqtt://" + domain, {
-                clientId: json.sid,
-            });
-            console.log('mqtt connecting');
-            mq.on('connect', () => {
-                console.log('mqtt server connected');
-            });
-
+            createMqttClientInstance(param.instanceId, domain, json.sid);
 
             return {
                 result: 'success',
