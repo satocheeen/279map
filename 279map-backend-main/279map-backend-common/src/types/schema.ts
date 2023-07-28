@@ -1,4 +1,4 @@
-import { Auth, MapKind, MapPageOptions, ItemContentDefine } from '279map-common';
+import { MapKind, MapPageOptions, ItemContentDefine } from '279map-common';
 import { SnsOptions } from '../sns';
 
 export enum PublicRange {
@@ -7,7 +7,6 @@ export enum PublicRange {
 }
 export type MapPageInfoTable = {
     map_page_id: string;
-    alias?: string;
     title: string;
     use_maps: string;   // MapKindをカンマ区切り
     default_map: MapKind;

@@ -2,7 +2,6 @@
 
 CREATE TABLE `map_page_info` (
   `map_page_id` varchar(100) NOT NULL,
-  `alias` varchar(100) DEFAULT NULL,
   `title` varchar(100) NOT NULL,
   `use_maps` varchar(100) NOT NULL,
   `default_map` enum('Real','Virtual') NOT NULL,
