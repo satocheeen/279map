@@ -34,6 +34,7 @@ import { MapPageInfoTable, PublicRange } from '../279map-backend-common/src/type
 import { CurrentMap, sleep } from '../279map-backend-common/src';
 import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaRegistContentAPI, OdbaRegistItemAPI, OdbaRemoveContentAPI, OdbaRemoveItemAPI, OdbaUpdateContentAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
 import MqttBroadcaster from './session/MqttBroadcaster';
+import SessionManager from './session/SessionManager';
 
 declare global {
     namespace Express {
@@ -143,7 +144,10 @@ const initializeDb = async() => {
 const server = http.createServer(app);
 
 // Create Broadcast Server
-const broadCaster = new MqttBroadcaster(server, sessionStoragePath);
+const broadCaster = new MqttBroadcaster(server);
+
+// Session Manager
+const sessionManager = new SessionManager(sessionStoragePath);
 
 /**
  * Initialize Auth
@@ -283,7 +287,7 @@ app.get('/api/connect',
                 return;
             }
 
-            const session = broadCaster.createSession({
+            const session = sessionManager.createSession({
                 mapId: mapInfo.map_page_id,
                 mapKind: mapInfo.default_map,
             });
@@ -377,7 +381,7 @@ app.all('/api/*',
         }
         apiLogger.info('[start]', req.url, sessionKey);
 
-        const session = broadCaster.getSessionInfo(sessionKey);
+        const session = sessionManager.get(sessionKey);
         if (!session) {
             res.status(400).send({
                 type: ErrorType.SessionTimeout,
@@ -398,7 +402,7 @@ app.all('/api/*',
  */
 app.get('/api/disconnect', async(req, res) => {
     if (req.connect) {
-        broadCaster.removeSession(req.connect.sessionKey);
+        sessionManager.delete(req.connect.sessionKey);
     }
 
     res.send('disconnect');
@@ -538,7 +542,7 @@ app.post(`/api/${GetMapInfoAPI.uri}`,
     checkApiAuthLv(Auth.View), 
     async(req, res, next) => {
         try {
-            const session = broadCaster.getSessionInfo(req.connect?.sessionKey as string);
+            const session = sessionManager.get(req.connect?.sessionKey as string);
             if (!session) {
                 throw 'no session';
             }
@@ -576,7 +580,7 @@ app.post(`/api/${GetMapInfoAPI.uri}`,
  * check whether connecting map and set the value of req.currentMap
  */
 const checkCurrentMap = async(req: Request, res: Response, next: NextFunction) => {
-    const session = broadCaster.getSessionInfo(req.connect?.sessionKey as string);
+    const session = sessionManager.get(req.connect?.sessionKey as string);
     if (!session) {
         res.status(409).send({
             type: ErrorType.SessionTimeout,
@@ -628,7 +632,7 @@ app.post(`/api/${GetItemsAPI.uri}`,
     async(req, res, next) => {
         try {
             const param = req.body as GetItemsParam;
-            const session = broadCaster.getSessionInfo(req.connect?.sessionKey as string) as SessionInfo;
+            const session = sessionManager.get(req.connect?.sessionKey as string) as SessionInfo;
             const result = await getItems({
                 param,
                 currentMap: req.currentMap,
@@ -762,8 +766,8 @@ app.post(`/api/${RegistItemAPI.uri}`,
             });
     
             // 更新通知
-            broadCaster.clearSendedExtent(param.dataSourceId);
-            broadCaster.broadcastSameMap(req, {
+            sessionManager.clearSendedExtent(param.dataSourceId);
+            broadCaster.broadcast(req.currentMap.mapId, req.currentMap.mapKind, {
                 type: 'updated',
             });
             
@@ -797,8 +801,8 @@ app.post(`/api/${UpdateItemAPI.uri}`,
             }, param));
     
             // 更新通知
-            broadCaster.clearSendedExtent(param.id.dataSourceId);
-            broadCaster.broadcastSameMap(req, {
+            sessionManager.clearSendedExtent(param.id.dataSourceId);
+            broadCaster.broadcast(req.currentMap.mapId, req.currentMap.mapKind, {
                 type: 'updated',
             });
             
@@ -832,8 +836,8 @@ app.post(`/api/${RemoveItemAPI.uri}`,
             }, param));
     
             // 更新通知
-            broadCaster.clearSendedExtent(param.id.dataSourceId);
-            broadCaster.broadcastSameMap(req, {
+            sessionManager.clearSendedExtent(param.id.dataSourceId);
+            broadCaster.broadcast(req.currentMap.mapId, req.currentMap.mapKind, {
                 type: 'delete',
                 itemPageIdList: [param.id],
             });
@@ -868,7 +872,7 @@ app.post(`/api/${RegistContentAPI.uri}`,
             }, param));
     
             // 更新通知
-            broadCaster.broadcastSameMap(req, {
+            broadCaster.broadcast(req.currentMap.mapId, req.currentMap.mapKind, {
                 type: 'updated',
             });
         
@@ -902,7 +906,7 @@ app.post(`/api/${UpdateContentAPI.uri}`,
             }, param));
     
             // 更新通知
-            broadCaster.broadcastSameMap(req, {
+            broadCaster.broadcast(req.currentMap.mapId, req.currentMap.mapKind, {
                 type: 'updated',
             });
         
@@ -976,7 +980,7 @@ app.post(`/api/${LinkContentToItemAPI.uri}`,
             }, param));
 
             // 更新通知
-            broadCaster.broadcastSameMap(req, {
+            broadCaster.broadcast(req.currentMap.mapId, req.currentMap.mapKind, {
                 type: 'updated',
             });
             
@@ -1011,7 +1015,7 @@ app.post(`/api/${RemoveContentAPI.uri}`,
             }, param));
     
             // 更新通知
-            broadCaster.broadcastSameMap(req, {
+            broadCaster.broadcast(req.currentMap.mapId, req.currentMap.mapKind, {
                 type: 'updated',
             });
 
@@ -1254,13 +1258,27 @@ internalApp.post('/api/broadcast', (req: Request, res: Response) => {
     logger.info('broadcast', param);
     switch(param.operation) {
         case 'insert':
-            broadCaster.broadCastAddItem(param.mapId, param.itemIdList);
+            param.itemIdList.forEach(id => {
+                sessionManager.clearSendedExtent(id.dataSourceId);
+            });
+            broadCaster.broadcast(param.mapId, undefined, {
+                type: 'updated',
+            });
             break;
         case 'update':
-            broadCaster.broadCastUpdateItem(param.mapId, param.itemIdList);
+            // 送信済みアイテム情報から当該アイテムを除去する
+            sessionManager.removeSendedItem(param.itemIdList);
+            broadCaster.broadcast(param.mapId, undefined, {
+                type: 'updated',
+            });
             break;
         case 'delete':
-            broadCaster.broadCastDeleteItem(param.mapId, param.itemIdList);
+            // 送信済みアイテム情報から当該アイテムを除去する
+            sessionManager.removeSendedItem(param.itemIdList);
+            broadCaster.broadcast(param.mapId, undefined, {
+                type: 'delete',
+                itemPageIdList: param.itemIdList
+            });
             break;
     }
 	res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1272,7 +1290,7 @@ internalApp.post('/api/broadcast', (req: Request, res: Response) => {
  */
 const checkSessionProcess = () => {
     try {
-        broadCaster.removeExpiredSessions();
+        sessionManager.removeExpiredSessions();
 
     } catch(e) {
         logger.warn('更新チェック失敗', e);
