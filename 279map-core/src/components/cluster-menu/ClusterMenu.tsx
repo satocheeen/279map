@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useMemo, useCallback } from 'react';
 import { Overlay } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import styles from './ClusterMenu.module.scss';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../store/configureStore';
+import { itemMapState } from '../../store/data/itemAtom';
+import { useRecoilValue } from 'recoil';
 import useIcon from '../../store/useIcon';
 import { DataId } from '279map-common';
 import { getMapKey } from '../../store/data/dataUtility';
@@ -93,7 +93,7 @@ type MenuItemProp = {
     onClose?: () => void;
 }
 function MenuItem(props: MenuItemProp) {
-    const itemMap = useSelector((state: RootState) => state.data.itemMap);
+    const itemMap = useRecoilValue(itemMapState);
 
     const item = useMemo(() => itemMap[getMapKey(props.id)], [props.id, itemMap]);
 

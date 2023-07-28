@@ -13,6 +13,8 @@ import { useWatch } from '../../util/useWatch';
 import { useMapOptions } from '../../util/useMapOptions';
 import useDataSource from '../../store/data/useDataSource';
 import { useFilter } from '../../store/useFilter';
+import { itemMapState } from '../../store/data/itemAtom';
+import { useRecoilValue } from 'recoil';
 
 function createKeyFromPopupInfo(param: PopupGroupWithPosition): string {
     if (!param) {
@@ -24,7 +26,7 @@ export default function PopupContainer() {
     const elementRefMap = useRef<{ [key: string]: HTMLDivElement }>({});
     const overlayRefMap = useRef<{ [key: string]: Overlay }>({});
 
-    const itemMap = useSelector((state: RootState) => state.data.itemMap);
+    const itemMap = useRecoilValue(itemMapState);
     const extent = useSelector((state: RootState) => state.operation.mapView.extent);
 
     const { popupMode } = useMapOptions();

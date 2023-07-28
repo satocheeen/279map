@@ -26,6 +26,7 @@ import useDataSource from '../../store/data/useDataSource';
 import { Button } from '../common';
 import Input from '../common/form/Input';
 import { useSubscribe } from '../../util/useSubscribe';
+import { useItem } from '../../store/data/useItem';
 
 type Props = {};
 
@@ -333,6 +334,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         }
     })
 
+    const { removeItems } = useItem();
     const { subscribe, unsubscribe } = useSubscribe();
     useWatch(() => {
         if (!currentMapKind) return;
@@ -346,7 +348,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         subscribe('mapitem-delete', (payload) => {
             if (payload.type === 'mapitem-delete')
                 // アイテム削除
-                dispatch(dataActions.removeItems(payload.itemPageIdList));
+                removeItems(payload.itemPageIdList);
         })
 
         if (onMapKindChangedRef.current) {

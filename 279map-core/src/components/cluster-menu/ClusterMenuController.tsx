@@ -11,6 +11,8 @@ import { usePrevious } from '../../util/usePrevious';
 import { getMapKey, isEqualId } from '../../store/data/dataUtility';
 import { useMap } from '../map/useMap';
 import { addListener, removeListener } from '../../util/Commander';
+import { itemMapState } from '../../store/data/itemAtom';
+import { useRecoilValue } from 'recoil';
 
 /**
  * 地図上のアイテムがクリックされた際に、
@@ -35,7 +37,7 @@ export default function ClusterMenuController(props: Props) {
     const { onClick } = useContext(OwnerContext);
     const mapMode = useSelector((state: RootState) => state.operation.mapMode);
 
-    const itemMap = useSelector((state: RootState) => state.data.itemMap);
+    const itemMap = useRecoilValue(itemMapState);
     const itemMapRef = useRef(itemMap);
     useEffect(() => {
         itemMapRef.current = itemMap;

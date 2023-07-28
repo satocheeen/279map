@@ -13,6 +13,8 @@ import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistCont
 import { linkContentToItem, registContent } from '../../store/data/dataThunk';
 import { useMap } from '../map/useMap';
 import { Button } from '../common';
+import { useRecoilValue } from 'recoil';
+import { itemMapState } from '../../store/data/itemAtom';
 
 type Props = {
     target: {
@@ -31,7 +33,7 @@ export default function AddContentMenu(props: Props) {
     const id = useRef('add-content-menu-'+maxId++);
     const { onAddNewContent, onLinkUnpointedContent } = useContext(OwnerContext);
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
-    const itemMap = useSelector((state: RootState) => state.data.itemMap);
+    const itemMap = useRecoilValue(itemMapState);
     const { getApi } = useMap();
     const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
 

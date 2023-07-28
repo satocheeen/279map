@@ -11,6 +11,7 @@ import { AddNewContentParam, EditContentParam, LinkUnpointContentParam, TsunaguM
 import DefaultComponents from '../default/DefaultComponents';
 import { useMounted } from '../../util/useMounted';
 import UserListModal from '../admin/UserListModal';
+import { RecoilRoot } from 'recoil';
 
 type SomeRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 type OwnerContextType = SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'> & {
@@ -94,29 +95,31 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
 
     return (
         <>
-            <OwnerContext.Provider value={ownerContextValue}>
-                <TooltipContext.Provider value={tooltipContextValue}>
-                    <Provider store={store}>
-                        <div className={styles.TsunaguMap}>
-                            <MapWrapper ref={mapRef} />
-                        </div>
-                        <ConfirmDialog />
-                        <ContentsModal />
-                        <UserListModal />
+            <RecoilRoot>
+                <OwnerContext.Provider value={ownerContextValue}>
+                    <TooltipContext.Provider value={tooltipContextValue}>
+                        <Provider store={store}>
+                            <div className={styles.TsunaguMap}>
+                                <MapWrapper ref={mapRef} />
+                            </div>
+                            <ConfirmDialog />
+                            <ContentsModal />
+                            <UserListModal />
 
-                        {defaultLinkUnpointedContentParam &&
-                            <DefaultComponents linkUnpointedContentParam={defaultLinkUnpointedContentParam} onClose={()=>{setDefaultLinkUnpointedContentParam(undefined)}} />
-                        }
-                        {defaultNewContentParam &&
-                            <DefaultComponents newContentParam={defaultNewContentParam} onClose={()=>{setDefaultNewContentParam(undefined)}} />
-                        }
-                        {defaultEditContentParam &&
-                            <DefaultComponents editContentParam={defaultEditContentParam} onClose={()=>{setDefaultEditContentParam(undefined)}} />
-                        }
-                    </Provider>
-                </TooltipContext.Provider>
-            </OwnerContext.Provider>
-       </>
+                            {defaultLinkUnpointedContentParam &&
+                                <DefaultComponents linkUnpointedContentParam={defaultLinkUnpointedContentParam} onClose={()=>{setDefaultLinkUnpointedContentParam(undefined)}} />
+                            }
+                            {defaultNewContentParam &&
+                                <DefaultComponents newContentParam={defaultNewContentParam} onClose={()=>{setDefaultNewContentParam(undefined)}} />
+                            }
+                            {defaultEditContentParam &&
+                                <DefaultComponents editContentParam={defaultEditContentParam} onClose={()=>{setDefaultEditContentParam(undefined)}} />
+                            }
+                        </Provider>
+                    </TooltipContext.Provider>
+                </OwnerContext.Provider>
+            </RecoilRoot>
+        </>
     );
 }
 export default React.forwardRef(TsunaguMap);

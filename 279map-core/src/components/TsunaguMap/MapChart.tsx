@@ -5,11 +5,10 @@ import { useSelector } from "react-redux";
 import { RootState, useAppDispatch } from "../../store/configureStore";
 import PopupContainer from "../popup/PopupContainer";
 import DrawController from "../map/DrawController";
-import { addListener, doCommand, removeListener } from "../../util/Commander";
+import { addListener, removeListener } from "../../util/Commander";
 import { operationActions } from "../../store/operation/operationSlice";
 import LandNameOverlay from "../map/LandNameOverlay";
 import { useFilter } from "../../store/useFilter";
-import { loadItems } from "../../store/data/dataThunk";
 import { DataId, FeatureType } from "279map-common";
 import { MapMode } from "../../types/types";
 import useFilteredTopographyStyle from "../map/useFilteredTopographyStyle";
@@ -27,6 +26,9 @@ import { sleep } from "../../util/CommonUtility";
 import useMyMedia from "../../util/useMyMedia";
 import { useProcessMessage } from "../common/spinner/useProcessMessage";
 import { isEqualId } from "../../store/data/dataUtility";
+import { useItem } from "../../store/data/useItem";
+import { useRecoilValue } from 'recoil';
+import { itemMapState } from "../../store/data/itemAtom";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
@@ -55,7 +57,7 @@ export default function MapChart() {
     const dataSources = useSelector((state: RootState) => state.data.dataSourceGroups);
 
     const defaultExtent = useSelector((state: RootState) => state.data.extent);
-    const itemMap = useSelector((state: RootState) => state.data.itemMap);
+    const itemMap = useRecoilValue(itemMapState);
 
     const dispatch = useAppDispatch();
 
@@ -116,6 +118,8 @@ export default function MapChart() {
 
     }, [filteredItemIdList]);
 
+    const { loadItems } = useItem();
+
     /**
      * 現在の地図表示範囲内に存在するコンテンツをロードする
      */
@@ -133,10 +137,10 @@ export default function MapChart() {
         }
         loadingCurrentAreaContents.current = true;
         const ext = mapRef.current.getExtent();
-        await dispatch(loadItems({zoom, extent: ext}));
+        await loadItems({zoom, extent: ext});
         loadingCurrentAreaContents.current = false;
 
-    }, [dispatch]);
+    }, [loadItems]);
 
     /**
      * 指定のitemにfitさせる

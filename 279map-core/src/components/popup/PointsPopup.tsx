@@ -13,6 +13,8 @@ import { BsThreeDots } from 'react-icons/bs';
 import { useMapOptions } from "../../util/useMapOptions";
 import { useMap } from "../map/useMap";
 import { doCommand } from "../../util/Commander";
+import { itemMapState } from "../../store/data/itemAtom";
+import { useRecoilValue } from 'recoil';
 
 type Props = {
     // このポップアップにて情報表示する対象アイテム
@@ -38,7 +40,7 @@ function hasImageItem(item: ItemDefine): boolean {
 }
 export default function PointsPopup(props: Props) {
     const { getMap } = useMap();
-    const itemMap = useSelector((state: RootState) => state.data.itemMap);
+    const itemMap = useRecoilValue(itemMapState);
     const { filteredItemIdList, filteredContentIdList } = useFilter();
     const { getDescendantContentsIdList } = useContents();
 

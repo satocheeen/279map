@@ -13,7 +13,7 @@ const dataSlice = createSlice({
     name: 'data',
     initialState: {
         extent: undefined as Extent | undefined,
-        itemMap: {} as {[id: string]: ItemDefine},  // TODO: DataId対応
+        // itemMap: {} as {[id: string]: ItemDefine},  // TODO: DataId対応
 
         // ロード済みのコンテンツ情報
         contentsList: [] as ContentsDefine[],
@@ -26,29 +26,29 @@ const dataSlice = createSlice({
         dataSourceGroups: [] as DataSourceGroup[],
     },
     reducers: {
-        /**
-         * アイテム削除
-         * @param 削除対象のアイテムID
-         */
-        removeItems(state, action: PayloadAction<DataId[]>) {
-            if (action.payload.length === 0) {
-                return;
-            }
-            const itemMap = Object.assign({}, state.itemMap);
-            action.payload.forEach(def => {
-                delete itemMap[getMapKey(def)];
-            });
-            state.itemMap = itemMap;
+        // /**
+        //  * アイテム削除
+        //  * @param 削除対象のアイテムID
+        //  */
+        // removeItems(state, action: PayloadAction<DataId[]>) {
+        //     if (action.payload.length === 0) {
+        //         return;
+        //     }
+        //     const itemMap = Object.assign({}, state.itemMap);
+        //     action.payload.forEach(def => {
+        //         delete itemMap[getMapKey(def)];
+        //     });
+        //     state.itemMap = itemMap;
 
-            // contentsから除去
-            state.contentsList = state.contentsList.filter(content => {
-                const isDeleted = action.payload.some(id => isEqualId(content.itemId, id));
-                return !isDeleted;
-            });
+        //     // contentsから除去
+        //     state.contentsList = state.contentsList.filter(content => {
+        //         const isDeleted = action.payload.some(id => isEqualId(content.itemId, id));
+        //         return !isDeleted;
+        //     });
 
-            // eventから除去 TODO: サーバーから再取得して設定
+        //     // eventから除去 TODO: サーバーから再取得して設定
 
-        },
+        // },
         updateContents(state, action: PayloadAction<ContentsDefine[]>) {
             console.log('updateContents', action.payload);
             state.contentsList = action.payload;
@@ -93,7 +93,7 @@ const dataSlice = createSlice({
             state.dataSourceGroups = action.payload.mapInfo.dataSourceGroups;
 
             // アイテムクリア
-            state.itemMap = {};
+            // state.itemMap = {};  // TODO:
             state.contentsList = [];
             state.events = [];
         })
@@ -124,16 +124,6 @@ const dataSlice = createSlice({
         .addCase(loadCategories.fulfilled, (state, action) => {
             state.categories = action.payload;
         })
-        .addCase(loadItems.fulfilled, (state, action) => {
-            if (action.payload.length === 0) {
-                return;
-            }
-            const itemMap = Object.assign({}, state.itemMap);
-            action.payload.forEach(def => {
-                itemMap[getMapKey(def.id)] = def;
-            });
-            state.itemMap = itemMap;
-        })
         .addCase(loadContents.fulfilled, (state, action) => {
             // 既存コンテンツの中に新しく取得したものが存在する場合は除去する
             let newContentsList = state.contentsList.filter(content => {
@@ -156,42 +146,42 @@ const dataSlice = createSlice({
                     (content.id.id === action.payload.id.id && content.id.dataSourceId === action.payload.id.dataSourceId) 
                     && (content.itemId.id === action.payload.itemId.id && content.itemId.dataSourceId === action.payload.itemId.dataSourceId));
             });
-            // アイテムからも除去
-            const itemMap = Object.assign({}, state.itemMap);
-            const targetItem = itemMap[getMapKey(action.payload.itemId)];
-            if (targetItem.contents.length>0) {
-                let newContents: ItemContentInfo[];
-                if (targetItem.contents.some(c => c.id === action.payload.id)) {
-                    newContents = [];
-                } else {
-                    const removeChild = (children: ItemContentInfo[]): ItemContentInfo[] => {
-                        const newChildren = [] as ItemContentInfo[];
-                        for (const child of children) {
-                            if (child.id === action.payload.id) {
-                                continue;
-                            }
-                            const myNewChildren = removeChild(child.children);
-                            newChildren.push({
-                                id: child.id,
-                                hasImage: child.hasImage,
-                                children: myNewChildren,
-                            });
-                        };
-                        return newChildren;
-                    }
-                    const newChildren = removeChild(targetItem.contents);
-                    newContents = newChildren;
-                }
-                itemMap[getMapKey(action.payload.itemId)] = {
-                    id: targetItem.id,
-                    name: targetItem.name,
-                    contents: newContents,
-                    geoJson: targetItem.geoJson,
-                    geoProperties: targetItem.geoProperties,
-                    lastEditedTime: targetItem.lastEditedTime,
-                }
-            }
-            state.itemMap = itemMap;
+            // TODO: アイテムからも除去
+            // const itemMap = Object.assign({}, state.itemMap);
+            // const targetItem = itemMap[getMapKey(action.payload.itemId)];
+            // if (targetItem.contents.length>0) {
+            //     let newContents: ItemContentInfo[];
+            //     if (targetItem.contents.some(c => c.id === action.payload.id)) {
+            //         newContents = [];
+            //     } else {
+            //         const removeChild = (children: ItemContentInfo[]): ItemContentInfo[] => {
+            //             const newChildren = [] as ItemContentInfo[];
+            //             for (const child of children) {
+            //                 if (child.id === action.payload.id) {
+            //                     continue;
+            //                 }
+            //                 const myNewChildren = removeChild(child.children);
+            //                 newChildren.push({
+            //                     id: child.id,
+            //                     hasImage: child.hasImage,
+            //                     children: myNewChildren,
+            //                 });
+            //             };
+            //             return newChildren;
+            //         }
+            //         const newChildren = removeChild(targetItem.contents);
+            //         newContents = newChildren;
+            //     }
+            //     itemMap[getMapKey(action.payload.itemId)] = {
+            //         id: targetItem.id,
+            //         name: targetItem.name,
+            //         contents: newContents,
+            //         geoJson: targetItem.geoJson,
+            //         geoProperties: targetItem.geoProperties,
+            //         lastEditedTime: targetItem.lastEditedTime,
+            //     }
+            // }
+            // state.itemMap = itemMap;
 
             // eventから除去 TODO: サーバーから再取得
 

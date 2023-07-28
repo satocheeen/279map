@@ -1,15 +1,15 @@
 import { DataId, ItemContentInfo } from '279map-common';
 import { useCallback } from 'react';
-import { useSelector } from "react-redux";
-import { RootState } from "./configureStore";
 import { useFilter } from './useFilter';
 import { getMapKey, isEqualId } from './data/dataUtility';
+import { itemMapState } from './data/itemAtom';
+import { useRecoilValue } from 'recoil';
 
 /**
  * Hook for Contents
  */
 export function useContents() {
-    const itemMap = useSelector((state: RootState) => state.data.itemMap);
+    const itemMap = useRecoilValue(itemMapState);
     const { filteredContentIdList } = useFilter();
 
     /**

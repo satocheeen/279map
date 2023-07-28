@@ -1,7 +1,6 @@
 import { FeatureLike } from 'ol/Feature';
 import React, { useCallback, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from '../../../../store/configureStore';
+import { useAppDispatch } from '../../../../store/configureStore';
 import { updateFeature } from '../../../../store/data/dataThunk';
 import Input from '../../../common/form/Input';
 import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
@@ -9,6 +8,8 @@ import PromptMessageBox from '../PromptMessageBox';
 import SelectFeature from '../SelectFeature';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../store/data/dataUtility';
+import { itemMapState } from '../../../../store/data/itemAtom';
+import { useRecoilValue } from 'recoil';
 
 type Props = {
     close: () => void;  // 作図完了時のコールバック
@@ -21,7 +22,7 @@ export default function EditTopographyInfoController(props: Props) {
     const [stage, setStage] = useState(Stage.SELECTING_FEATURE);
     const selectedFeatureId = useRef<string>();
     const [name, setName] = useState('');
-    const itemMap = useSelector((state: RootState) => state.data.itemMap);
+    const itemMap = useRecoilValue(itemMapState);
     const dispatch = useAppDispatch();
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 

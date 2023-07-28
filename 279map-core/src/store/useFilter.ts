@@ -13,7 +13,6 @@ export function useFilter() {
     const { filteredItems } = useSelector((state: RootState) => {
         return {
             filteredItems: state.operation.filteredItems,
-            itemMap: state.data.itemMap,
         }
     }, shallowEqual);
 

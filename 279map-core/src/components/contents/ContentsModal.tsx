@@ -13,6 +13,8 @@ import { isEqualId } from '../../store/data/dataUtility';
 import { useMounted } from '../../util/useMounted';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { useWatch } from '../../util/useWatch';
+import { useRecoilValue } from 'recoil';
+import { itemMapState } from '../../store/data/itemAtom';
 
 type Target = {
     type: 'item';
@@ -25,7 +27,7 @@ export default function ContentsModal() {
     const [show, setShow] = useState(false);
     const dispatch = useAppDispatch();
     const [loaded, setLoaded] = useState(false);
-    const itemMap = useSelector((state: RootState) => state.data.itemMap);
+    const itemMap = useRecoilValue(itemMapState);
     const [target, setTarget] = useState<Target|undefined>();
 
     useMounted(() => {
@@ -102,7 +104,7 @@ export default function ContentsModal() {
 
         let list: ContentsDefine[];
         if (target.type === 'item') {
-            const item = state.data.itemMap[getMapKey(target.itemId)];
+            const item = itemMap[getMapKey(target.itemId)];
             if (!item) return [];
             if (item.contents.length === 0) return [];
             // const contentId = item.contents.id;
@@ -127,7 +129,7 @@ export default function ContentsModal() {
             itemId = content.itemId;
         }
 
-        const item = state.data.itemMap[getMapKey(itemId)];
+        const item = itemMap[getMapKey(itemId)];
         if (!item) return '';
         return item.name;
     });

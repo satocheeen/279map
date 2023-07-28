@@ -8,13 +8,15 @@ import styles from './LandNameOverlay.module.scss';
 import { FeatureType } from '279map-common';
 import { getMapKey } from '../../store/data/dataUtility';
 import { useMap } from './useMap';
+import { itemMapState } from '../../store/data/itemAtom';
+import { useRecoilValue } from 'recoil';
 
 // 島名を常時表示するズームLv.境界値（この値よりも小さい場合に、常時表示）
 const LandNameShowZoomLv = 8.17
 
 export default function LandNameOverlay() {
     const { getMap } = useMap();
-    const itemMap = useSelector((state: RootState) => state.data.itemMap);
+    const itemMap = useRecoilValue(itemMapState);
 
     const [landNameRefMap] = useState({} as { [id: string]: HTMLDivElement });
     const [landNameOverlayMap] = useState({} as  { [id: string]: Overlay });
