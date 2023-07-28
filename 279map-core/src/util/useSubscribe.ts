@@ -5,6 +5,7 @@ import { getMqttClientInstance } from '../store/session/MqttInstanceManager';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/configureStore';
 
+//TODO: 別の箇所から同一messageをsubscribeすると、片方がunsubscribeするともう一方もunsubscribeになると思うので、その対処
 export function useSubscribe() {
     const { mapInstanceId, mapId } = useContext(OwnerContext);
     const currentMapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
@@ -21,8 +22,10 @@ export function useSubscribe() {
         });
         mqtt.on('message', (topic, payloadBuff) => {
             const payload = JSON.parse(new String(payloadBuff) as string) as WebSocketMessage;
-            console.log('message', topic, payload);
-            callback(payload);
+            if (payload.type === msg) {
+                console.log('message', topic, payload);
+                callback(payload);
+            }
         });
 
     }, [mapInstanceId, mapId, currentMapKind]);

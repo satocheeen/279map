@@ -8,6 +8,7 @@ import { ChangeAuthLevelAPI, GetUserListAPI } from 'tsunagumap-api';
 import { useWatch } from '../../util/useWatch';
 import { Auth, User} from '279map-common';
 import Select from '../common/form/Select';
+import { useSubscribe } from '../../util/useSubscribe';
 
 export default function UserListModal() {
     const [ show, setShow ] = useState(false);
@@ -25,9 +26,7 @@ export default function UserListModal() {
         }
     });
 
-    useWatch(() => {
-        if (!show) return;
-
+    const loadUsers = useCallback(() => {
         setLoading(true);
         getApi().callApi(GetUserListAPI, undefined)
         .then(result => {
@@ -39,7 +38,18 @@ export default function UserListModal() {
         .finally(() => {
             setLoading(false);
         })
+    }, [getApi]);
+    
+    const { subscribe, unsubscribe } = useSubscribe();
+    useWatch(() => {
+        if (!show) return;
 
+        loadUsers();
+        subscribe('userlist-update', loadUsers);
+
+        return () => {
+            unsubscribe('userlist-update');
+        }
     }, [show])
 
     const onCloseBtnClicked = useCallback(() => {
