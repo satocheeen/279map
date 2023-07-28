@@ -25,6 +25,7 @@ import useCategory from '../../store/data/useCategory';
 import useDataSource from '../../store/data/useDataSource';
 import { Button } from '../common';
 import Input from '../common/form/Input';
+import { useSubscribe } from '../../util/useSubscribe';
 
 type Props = {};
 
@@ -49,7 +50,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const onEventsLoadedRef = useRef<typeof ownerContext.onEventsLoaded>();
 
     const dispatch = useAppDispatch();
-    const { getApi, getMap, getMqttClient } = useMap();
+    const { getApi, getMap } = useMap();
 
     useImperativeHandle(ref, () => ({
         switchMapKind(mapKind: MapKind) {
@@ -332,17 +333,21 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         }
     })
 
+    const { subscribe, unsubscribe } = useSubscribe();
     useWatch(() => {
         if (!currentMapKind) return;
 
-        const mqtt = getMqttClient();
-        if (!mqtt) {
-            console.warn('mqtt not find');
-        } else {
-            mqtt.subscribe(`${ownerContext.mapId}/${currentMapKind}`, () => {
-                console.log('subscribe start', `${ownerContext.mapId}/${currentMapKind}`)
+        subscribe('mapitem-update', () => {
+            doCommand({
+                command: "LoadLatestData",
+                param: undefined,
             });
-        }
+        });
+        subscribe('mapitem-delete', (payload) => {
+            if (payload.type === 'mapitem-delete')
+                // アイテム削除
+                dispatch(dataActions.removeItems(payload.itemPageIdList));
+        })
 
         if (onMapKindChangedRef.current) {
             onMapKindChangedRef.current({
@@ -351,11 +356,8 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         }
 
         return () => {
-            if (mqtt) {
-                mqtt.unsubscribe(`${ownerContext.mapId}/${currentMapKind}`, () => {
-                    console.log('unsubscribe', `${ownerContext.mapId}/${currentMapKind}`)
-                });
-            }
+            unsubscribe('mapitem-update');
+            unsubscribe('mapitem-delete');
         }
     }, [currentMapKind]);
 

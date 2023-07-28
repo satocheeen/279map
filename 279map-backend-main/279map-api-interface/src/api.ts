@@ -380,9 +380,12 @@ export type GetUserListResult = {
  */
 export type WebSocketMessage = {
     // 地図に更新が行われた場合
-    type: 'updated';
+    type: 'mapitem-update';
 } | {
     // 地図上のアイテムが削除された場合
-    type: 'delete';
+    type: 'mapitem-delete';
     itemPageIdList: DataId[];
+} | {
+    // ユーザ一覧情報が更新された場合
+    type: 'userlist-update';
 }

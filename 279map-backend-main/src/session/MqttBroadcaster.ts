@@ -44,11 +44,18 @@ export default class MqttBroadcaster {
      */
     broadcast(mapPageId: string, mapKind: MapKind | undefined, message: WebSocketMessage) {
         apiLogger.debug('broadcast', mapKind, message);
-        if (!this.#mqttClient) return;
+        if (!this.#mqttClient) {
+            apiLogger.warn('mqtt client not find');
+            return;
+        }
+        const mqttClient = this.#mqttClient;
 
-        const pubMessage = mapKind ? `${mapPageId}/${mapKind}` : mapPageId;
-        this.#mqttClient.publish(pubMessage, JSON.stringify(message));
-        console.log('publish', pubMessage, JSON.stringify(message));
+        const mapKinds = mapKind ? [mapKind] : [MapKind.Real, MapKind.Virtual];
+        mapKinds.forEach(mk => {
+            const topic = `${mapPageId}/${mk}/${message.type}`;
+            mqttClient.publish(topic, JSON.stringify(message));
+            apiLogger.debug('publish', topic);
+        })
     }
 
 }
