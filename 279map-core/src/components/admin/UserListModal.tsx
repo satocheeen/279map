@@ -69,7 +69,7 @@ export default function UserListModal() {
                 ユーザ一覧
             </Modal.Header>
             <Modal.Body>
-                <UserList users={users} />
+                <UserList users={users} setLoading={setLoading} />
             </Modal.Body>
             <Modal.Footer>
 
@@ -80,6 +80,7 @@ export default function UserListModal() {
 
 type UserListProp = {
     users: User[];
+    setLoading: (val: boolean) => void;
 }
 function UserList(props: UserListProp) {
     return (
@@ -93,7 +94,7 @@ function UserList(props: UserListProp) {
             </thead>
             <tbody>
                 {props.users.map(user => {
-                    return <UserRecord key={user.id} user={user} />
+                    return <UserRecord key={user.id} user={user} setLoading={props.setLoading} />
                 })}
             </tbody>
         </table>
@@ -106,9 +107,14 @@ const authSelectItems = [
     { value: Auth.Admin, name: '管理者' },
 ]
 
-function UserRecord(props: { user: User }) {
+type UserRecordProp = {
+    user: User;
+    setLoading: (val: boolean) => void;
+}
+function UserRecord(props: UserRecordProp) {
     const [ requestAuth, setRequestAuth ] = useState<Auth|undefined>();
     const { getApi } = useMap();
+    const [ stage, setStage ] = useState<'normal' | 'selectAuth'>('normal');
 
     const authName = useMemo(() => {
         switch(props.user.authLv) {
@@ -127,24 +133,48 @@ function UserRecord(props: { user: User }) {
 
     const onUpdateAuth = useCallback(async() => {
         if (!requestAuth) return;
+        props.setLoading(true);
         await getApi().callApi(ChangeAuthLevelAPI, {
             userId: props.user.id,
             authLv: requestAuth,
         })
-    }, [getApi, props.user, requestAuth]);
+        props.setLoading(false);
+        setStage('normal');
+    }, [getApi, requestAuth, props]);
+
+    console.log('requestAuth', requestAuth);
+    const action = useMemo(() => {
+        if (props.user.authLv === Auth.Request) {
+            return (
+                <>
+                    <Select items={authSelectItems} value={requestAuth} onSelect={(value)=>setRequestAuth(value as Auth)} />
+                    <Button variant='secondary' onClick={onUpdateAuth}>承認</Button>
+                </>
+            )
+        }
+        if (stage === 'normal') {
+            return (
+                <Button variant='secondary' onClick={() => {
+                    setRequestAuth(props.user.authLv);
+                    setStage('selectAuth');
+                }}>権限変更</Button>
+            )
+        } else {
+            return (
+                <>
+                    <Select items={authSelectItems} value={requestAuth} onSelect={(value)=>setRequestAuth(value as Auth)} />
+                    <Button variant='secondary' onClick={onUpdateAuth}>更新</Button>
+                    <Button variant='secondary' onClick={()=>setStage('normal')}>Cancel</Button>
+                </>
+            )
+        }
+    }, [props.user.authLv, stage, onUpdateAuth, requestAuth]);
 
     return (
         <tr>
             <td>{props.user.name}</td>
             <td>{authName}</td>
-            <td>
-                {props.user.authLv === Auth.Request &&
-                    <>
-                        <Select items={authSelectItems} value={requestAuth} onSelect={(value)=>setRequestAuth(value as Auth)} />
-                        <Button variant='secondary' onClick={onUpdateAuth}>承認</Button>
-                    </>
-                }
-            </td>
+            <td>{action}</td>
         </tr>
     )
 }

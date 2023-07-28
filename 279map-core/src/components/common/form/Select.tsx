@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import styles from './Select.module.scss';
+import { useMounted } from '../../../util/useMounted';
 
 type Props = {
     items: {
@@ -20,13 +21,15 @@ export default function Select(props: Props) {
     /**
      * 初期化
      */
-    useEffect(() => {
+    useMounted(() => {
         if (!props.value && !props.unselectable) {
             // 未選択不許可でvalueが未設定の場合は、冒頭項目を選択状態にする
             if (props.items.length === 0) return;
             setCurrentValue(props.items[0].value);
+        } else if (props.value) {
+            setCurrentValue(props.value);
         }
-    }, [props.value, props.unselectable, props.items]);
+    });
 
     const onSelect = useCallback((evt: React.ChangeEvent<HTMLSelectElement>) => {
         const value = evt.target.value.length === 0 ? undefined : evt.target.value;
