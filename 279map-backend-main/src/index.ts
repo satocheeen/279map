@@ -19,7 +19,7 @@ import SessionInfo from './session/SessionInfo';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import cors from 'cors';
 import { exit } from 'process';
-import { getMapInfoByIdOrAlias } from './getMapDefine';
+import { getMapInfoById } from './getMapDefine';
 import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
@@ -256,7 +256,7 @@ app.get('/api/connect',
                 } as ApiError);
                 return;
             }
-            const mapInfo = await getMapInfoByIdOrAlias(queryMapId);
+            const mapInfo = await getMapInfoById(queryMapId);
             if (mapInfo === null) {
                 res.status(400).send({
                     type: ErrorType.UndefinedMap,
@@ -328,7 +328,7 @@ app.post(`/api/${RequestAPI.uri}`,
             apiLogger.info('[start] request', param);
 
             const queryMapId = param.mapId;
-            const mapInfo = await getMapInfoByIdOrAlias(queryMapId);
+            const mapInfo = await getMapInfoById(queryMapId);
             if (mapInfo === null) {
                 res.status(400).send({
                     type: ErrorType.UndefinedMap,
