@@ -201,7 +201,7 @@ export default function TestMap() {
                                         <label key={ds.dataSourceId} className={`${group.name ? styles.Child : ''}`}>
                                             <input type="checkbox" checked={ds.visible} onChange={(evt) => changeVisibleLayerDataSource(ds.dataSourceId, evt.target.checked)} />
                                             {ds.name}
-                                            {(authLv === Auth.Edit) &&
+                                            {(authLv !== Auth.View) &&
                                                 <>
                                                     <button onClick={()=>mapRef.current?.drawStructure(ds.dataSourceId)}>建設</button>
                                                     {mapKind === MapKind.Real ?
@@ -238,7 +238,7 @@ export default function TestMap() {
                     </div>
                     <FilterCondition categories={categories} onChange={(filter) => setFilterConditions(filter)} />
                 </div>
-                {authLv === Auth.Edit &&
+                {authLv !== Auth.View &&
                 <>
                     <div className={styles.Col}>
                         <button onClick={mapRef.current?.moveStructure}>移築</button>

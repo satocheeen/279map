@@ -59,7 +59,10 @@ export const connectMap = createAsyncThunk<ConnectAPIResult, { instanceId: strin
                 });
             };
             // startWss();
-            createMqttClientInstance(param.instanceId, domain, json.sid);
+            const mqtt = createMqttClientInstance(param.instanceId, domain, json.sid);
+            mqtt.subscribe(param.mapId, () => {
+                console.log('subscribe start', param.mapId)
+            })
 
             return {
                 result: 'success',

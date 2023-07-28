@@ -143,6 +143,7 @@ export default class MqttBroadcaster {
 
         const pubMessage = mapKind ? `${mapPageId}/${mapKind}` : mapPageId;
         this.#mqttClient.publish(pubMessage, JSON.stringify(message));
+        console.log('publish', pubMessage, JSON.stringify(message));
         // this.#sessionMap.sessions().forEach(client => {
         //     if (!client.ws || !client.currentMap) {
         //         return;
@@ -166,6 +167,16 @@ export default class MqttBroadcaster {
      * @returns 
      */
     broadcastSameMap(req: Request, message: WebSocketMessage) {
+        if (!req.connect) {
+            apiLogger.debug('no connect');
+            return;
+        }
+        const currentMap = this.getCurrentMap(req.connect.sessionKey);
+        if (!currentMap) {
+            apiLogger.debug('no currentmap');
+            return;
+        }
+        this.#broadcast(currentMap.mapId, currentMap.mapKind, message);
     }
 
 

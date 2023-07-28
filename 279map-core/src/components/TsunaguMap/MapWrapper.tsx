@@ -308,7 +308,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         .catch(err => {
             console.warn('connect error', err);
         })
-    }, [ownerContext.mapId, mapServer, dispatch]);
+    }, [ownerContext.mapId, mapServer, dispatch, ownerContext.mapInstanceId]);
 
     useWatch(() => {
         connectToMap();
@@ -333,28 +333,19 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     })
 
     useWatch(() => {
-        const mqtt = getMqttClient();
-        if (!mqtt) {
-            console.warn('mqtt not find');
-        } else {
-            mqtt.subscribe(ownerContext.mapId, (msg) => {
-                console.log('subscribe', msg);
-            })
-            console.log('subscribe start', ownerContext.mapId)
-        }
-    }, [ownerContext.mapId]);
-
-    useWatch(() => {
         if (!currentMapKind) return;
 
         const mqtt = getMqttClient();
         if (!mqtt) {
             console.warn('mqtt not find');
         } else {
-            mqtt.subscribe(`${ownerContext.mapId}/${currentMapKind}`, (msg) => {
-                console.log('subscribe', msg);
+            mqtt.subscribe(`${ownerContext.mapId}/${currentMapKind}`, () => {
+                console.log('subscribe start', `${ownerContext.mapId}/${currentMapKind}`)
+            });
+            mqtt.on('message', (topic, payload) => {
+                const message = new String(payload);
+                console.log('subscribe', topic, message);
             })
-            console.log('subscribe start', `${ownerContext.mapId}/${currentMapKind}`)
         }
 
         if (onMapKindChangedRef.current) {
@@ -365,7 +356,9 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
 
         return () => {
             if (mqtt) {
-                mqtt.unsubscribe(`${ownerContext.mapId}/${currentMapKind}`);
+                mqtt.unsubscribe(`${ownerContext.mapId}/${currentMapKind}`, () => {
+                    console.log('unsubscribe', `${ownerContext.mapId}/${currentMapKind}`)
+                });
             }
         }
     }, [currentMapKind]);
