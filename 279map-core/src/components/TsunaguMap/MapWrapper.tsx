@@ -49,7 +49,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const onEventsLoadedRef = useRef<typeof ownerContext.onEventsLoaded>();
 
     const dispatch = useAppDispatch();
-    const { getApi, getMap } = useMap();
+    const { getApi, getMap, getMqttClient } = useMap();
 
     useImperativeHandle(ref, () => ({
         switchMapKind(mapKind: MapKind) {
@@ -332,8 +332,20 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         }
     })
 
-    useEffect(() => {
+    useWatch(() => {
         if (!currentMapKind) return;
+
+        const mqtt = getMqttClient();
+        if (!mqtt) {
+            console.warn('mqtt not find');
+        } else {
+            const anotherMapKind = currentMapKind === MapKind.Real ? MapKind.Virtual : MapKind.Real;
+            mqtt.unsubscribe(`${ownerContext.mapId}/${anotherMapKind}`);
+            mqtt.subscribe(`${ownerContext.mapId}/${currentMapKind}`, (msg) => {
+                console.log('subscribe', msg);
+            })
+            console.log('subscribe start', `${ownerContext.mapId}/${currentMapKind}`)
+        }
 
         if (onMapKindChangedRef.current) {
             onMapKindChangedRef.current({

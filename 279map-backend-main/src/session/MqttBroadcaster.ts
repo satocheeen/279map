@@ -8,24 +8,39 @@ import SessionInfo from './SessionInfo';
 import { CurrentMap } from '../../279map-backend-common/src';
 import SessionMap from './SessionMap';
 import crypto from 'crypto';
+import { MqttClient } from 'mqtt/*';
+
+const mqtt = require('mqtt');
 
 const apiLogger = getLogger('api');
 export default class MqttBroadcaster {
     #server: mosca.Server;
     #sessionMap: SessionMap;
+    #mqttClient: MqttClient | undefined;
 
     constructor(server: Server, sessionStoragePath: string) {
         this.#sessionMap = new SessionMap(sessionStoragePath);
         this.#server = new mosca.Server({});
         this.#server.attachHttpServer(server);
 
-        this.#server.on('ready', () => console.log('Mosca Serve is ready'));
+        this.#server.on('ready', () => { 
+            console.log('Mosca Serve is ready')
+
+            this.#mqttClient = mqtt.connect('mqtt://localhost') as MqttClient;
+            this.#mqttClient.on('connect', () => {
+                console.log('mqtt server connected');
+            });
+            this.#mqttClient.on('error', (err) => {
+                console.log('mqtt error', err);
+            });
+        });
 
         this.#server.on('clientConnected', (client: any) => {
             apiLogger.info('mqtt client conneted', client.id);
         });
-
-        
+        this.#server.on('subscribed', (topic: any) => {
+            apiLogger.info('mqtt client subscribed', topic);
+        });
     }
 
     /**
@@ -77,12 +92,42 @@ export default class MqttBroadcaster {
      * @param itemIdList 追加されたアイテムID一覧
      */
     broadCastAddItem(mapPageId: string, itemIdList: DataId[]) {
+        itemIdList.forEach(id => {
+            this.clearSendedExtent(id.dataSourceId);
+        });
+        // 接続しているユーザに最新情報を取得するように通知
+        this.#broadcast(mapPageId, undefined, {
+            type: 'updated',
+        });
     }
 
     broadCastUpdateItem(mapPageId: string, itemIdList: DataId[]) {
+        // 送信済みアイテム情報から当該アイテムを除去する
+        Object.values(this.#sessionMap).forEach(client => {
+            client.removeItems(itemIdList);
+        });
+        itemIdList.forEach(id => {
+            this.clearSendedExtent(id.dataSourceId);
+        });
+        // 接続しているユーザに最新情報を取得するように通知
+        this.#broadcast(mapPageId, undefined, {
+            type: 'updated',
+        });
     }
 
     broadCastDeleteItem(mapPageId: string, itemIdList: DataId[]) {
+        // 送信済みアイテム情報から当該アイテムを除去する
+        Object.values(this.#sessionMap).forEach(client => {
+            client.removeItems(itemIdList);
+        });
+        itemIdList.forEach(id => {
+            this.clearSendedExtent(id.dataSourceId);
+        });
+        // 接続しているユーザにアイテム削除するように通知
+        this.#broadcast(mapPageId, undefined, {
+            type: 'delete',
+            itemPageIdList: itemIdList,
+        });
     }
 
     /**
@@ -92,6 +137,25 @@ export default class MqttBroadcaster {
      * @param message 送信する通知
      */
     #broadcast(mapPageId: string, mapKind: MapKind | undefined, message: WebSocketMessage) {
+        apiLogger.debug('broadcast', mapKind, message);
+        if (!this.#mqttClient) return;
+
+        const pubMessage = `${mapPageId}/${mapKind}`;
+        this.#mqttClient.publish(pubMessage, JSON.stringify(message));
+        // this.#sessionMap.sessions().forEach(client => {
+        //     if (!client.ws || !client.currentMap) {
+        //         return;
+        //     }
+        //     if (client.currentMap.mapId !== mapPageId) {
+        //         return;
+        //     }
+        //     if (mapKind && client.currentMap.mapKind !== mapKind) {
+        //         return;
+        //     }
+        //     client.ws.send(JSON.stringify(message));
+        //     this._logger.debug('send', client.sid);
+        // })
+
     }
 
     /**
