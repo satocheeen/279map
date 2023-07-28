@@ -63,6 +63,19 @@ export const connectMap = createAsyncThunk<ConnectAPIResult, { instanceId: strin
             mqtt.subscribe(param.mapId, () => {
                 console.log('subscribe start', param.mapId)
             })
+            mqtt.on('message', (topic, payload) => {
+                const message = JSON.parse(new String(payload) as string) as WebSocketMessage;
+                console.log('subscribe', topic, message);
+                if (message.type === 'updated') {
+                    doCommand({
+                        command: "LoadLatestData",
+                        param: undefined,
+                    });
+                } else if (message.type === 'delete') {
+                    // アイテム削除
+                    dispatch(dataActions.removeItems(message.itemPageIdList));
+                }
+            })
 
             return {
                 result: 'success',

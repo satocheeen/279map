@@ -11,7 +11,7 @@ import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import styles from './MapWrapper.module.scss';
 import { ConnectAPIResult, LoadMapDefineResult, TsunaguMapHandler } from '../../types/types';
-import { RequestAPI, ErrorType, GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam } from "tsunagumap-api";
+import { RequestAPI, ErrorType, GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam, WebSocketMessage } from "tsunagumap-api";
 import { search } from '../../store/operation/operationThunk';
 import Spinner from '../common/spinner/Spinner';
 import { useMounted } from '../../util/useMounted';
@@ -342,10 +342,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
             mqtt.subscribe(`${ownerContext.mapId}/${currentMapKind}`, () => {
                 console.log('subscribe start', `${ownerContext.mapId}/${currentMapKind}`)
             });
-            mqtt.on('message', (topic, payload) => {
-                const message = new String(payload);
-                console.log('subscribe', topic, message);
-            })
         }
 
         if (onMapKindChangedRef.current) {
