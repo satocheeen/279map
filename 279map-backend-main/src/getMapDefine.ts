@@ -13,7 +13,7 @@ export async function getMapInfoById(mapId: string): Promise<MapPageInfoTable|nu
 
     try {
         const sql = 'SELECT * FROM map_page_info WHERE map_page_id = ?';
-        const [rows] = await con.execute(sql, [mapId, mapId]);
+        const [rows] = await con.execute(sql, [mapId]);
         const records = rows as MapPageInfoTable[];
         if (records.length === 0) {
             return null;
