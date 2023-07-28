@@ -333,14 +333,24 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     })
 
     useWatch(() => {
+        const mqtt = getMqttClient();
+        if (!mqtt) {
+            console.warn('mqtt not find');
+        } else {
+            mqtt.subscribe(ownerContext.mapId, (msg) => {
+                console.log('subscribe', msg);
+            })
+            console.log('subscribe start', ownerContext.mapId)
+        }
+    }, [ownerContext.mapId]);
+
+    useWatch(() => {
         if (!currentMapKind) return;
 
         const mqtt = getMqttClient();
         if (!mqtt) {
             console.warn('mqtt not find');
         } else {
-            const anotherMapKind = currentMapKind === MapKind.Real ? MapKind.Virtual : MapKind.Real;
-            mqtt.unsubscribe(`${ownerContext.mapId}/${anotherMapKind}`);
             mqtt.subscribe(`${ownerContext.mapId}/${currentMapKind}`, (msg) => {
                 console.log('subscribe', msg);
             })
@@ -351,6 +361,12 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
             onMapKindChangedRef.current({
                 mapKind: currentMapKind,
             });
+        }
+
+        return () => {
+            if (mqtt) {
+                mqtt.unsubscribe(`${ownerContext.mapId}/${currentMapKind}`);
+            }
         }
     }, [currentMapKind]);
 

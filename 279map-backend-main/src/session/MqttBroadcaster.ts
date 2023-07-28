@@ -47,6 +47,7 @@ export default class MqttBroadcaster {
      * 有効期限切れセッションを削除する
      */
     removeExpiredSessions() {
+        this.#sessionMap.removeExpiredSessions();
     }
 
     createSession(currentMap: CurrentMap): SessionInfo {
@@ -140,7 +141,7 @@ export default class MqttBroadcaster {
         apiLogger.debug('broadcast', mapKind, message);
         if (!this.#mqttClient) return;
 
-        const pubMessage = `${mapPageId}/${mapKind}`;
+        const pubMessage = mapKind ? `${mapPageId}/${mapKind}` : mapPageId;
         this.#mqttClient.publish(pubMessage, JSON.stringify(message));
         // this.#sessionMap.sessions().forEach(client => {
         //     if (!client.ws || !client.currentMap) {
