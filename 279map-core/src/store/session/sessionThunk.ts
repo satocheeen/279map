@@ -22,44 +22,7 @@ export const connectMap = createAsyncThunk<ConnectAPIResult, { instanceId: strin
 
             apiCaller.setSID(json.sid);
 
-            const domain = mapServer.host;
-            // WebSocket接続確立
-            const startWss = () => {
-                const protocol = mapServer.ssl ? 'wss' : 'ws';
-
-                const wss = new WebSocket(protocol + "://" + domain);
-                wss.addEventListener('open', () => {
-                    console.log('websocket connected');
-                    // セッションIDを送信
-                    wss.send(JSON.stringify({
-                        sid: json.sid,
-                    }));
-
-                });
-                wss.addEventListener('close', () => {
-                    console.log('websocket closed');
-                    // サーバーが瞬断された可能性があるので再接続試行
-                    startWss();
-                });
-                wss.addEventListener('error', (err) => {
-                    console.warn('websocket error', err);
-                });
-                wss.addEventListener('message', (evt) => {
-                    console.log('websocket message', evt.data);
-                    const message = JSON.parse(evt.data) as WebSocketMessage;
-                    if (message.type === 'updated') {
-                        doCommand({
-                            command: "LoadLatestData",
-                            param: undefined,
-                        });
-                    } else if (message.type === 'delete') {
-                        // アイテム削除
-                        dispatch(dataActions.removeItems(message.itemPageIdList));
-                    }
-                });
-            };
-            // startWss();
-            const mqtt = createMqttClientInstance(param.instanceId, domain, json.sid);
+            const mqtt = createMqttClientInstance(param.instanceId, mapServer.host, json.sid);
             mqtt.subscribe(param.mapId, () => {
                 console.log('subscribe start', param.mapId)
             })
