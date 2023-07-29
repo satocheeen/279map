@@ -1,8 +1,8 @@
 import React, { useRef, useState, useMemo, useCallback, useEffect } from 'react';
 import { CategoryBadge } from '../../common';
 import styles from './CategorySelector.module.scss';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../store/configureStore';
+import { useRecoilValue } from 'recoil';
+import { categoryState } from '../../../store/data/itemAtom';
 
 type Props = {
     selected: string[]; // 選択中のカテゴリname
@@ -11,7 +11,7 @@ type Props = {
 
 export default function CategorySelector(props: Props) {
     const [ isEditMode, setEditMode ] = useState(false);
-    const categories = useSelector((state: RootState) => state.data.categories);
+    const categories = useRecoilValue(categoryState);
     const categoryNames = useMemo(() => categories.map(c => c.name), [categories]);
     const inputRef = useRef<HTMLInputElement>(null);
     const [ inputValue, setInputValue ] = useState('');

@@ -44,31 +44,6 @@ export const loadEvents = createAsyncThunk<GetEventsResult>(
         }
     }
 )
-export const loadCategories = createAsyncThunk<CategoryDefine[]>(
-    'data/loadCategoriesStatus',
-    async(_, { rejectWithValue, getState }) => {
-        try {
-            const targetDataSourceIds = [] as string[];
-            (getState() as RootState).data.dataSourceGroups.forEach(group => {
-                if (!group.visible) return;
-                group.dataSources.forEach(ds => {
-                    if (ds.visible) {
-                        targetDataSourceIds.push(ds.dataSourceId);
-                    }
-                })
-            })
-            const apiResult = await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(GetCategoryAPI, {
-                dataSourceIds: targetDataSourceIds,
-            });
-
-            return apiResult;
-    
-        } catch (e) {
-            console.warn('loadEvents error', e);
-            return rejectWithValue(e);
-        }
-    }
-)
 /**
  * 指定のズームLv., extentに該当するアイテムをロードする
  */

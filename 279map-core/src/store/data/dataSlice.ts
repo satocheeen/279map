@@ -1,10 +1,9 @@
-import { CategoryDefine, ContentsDefine, DataId, DataSourceGroup, DataSourceInfo, EventDefine, ItemContentInfo, ItemDefine } from '279map-common';
+import { DataSourceGroup, DataSourceInfo, EventDefine } from '279map-common';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { Extent } from 'ol/extent';
 import { SystemIconDefine } from '../../types/types';
 import { loadMapDefine } from '../session/sessionThunk';
-import { loadCategories, loadEvents, loadOriginalIconDefine } from './dataThunk';
-import { isEqualId } from './dataUtility';
+import { loadEvents, loadOriginalIconDefine } from './dataThunk';
 
 /**
  * 地図関連の情報を管理
@@ -18,7 +17,7 @@ const dataSlice = createSlice({
         // ロード済みのコンテンツ情報
         // contentsList: [] as ContentsDefine[],
 
-        categories: [] as CategoryDefine[],
+        // categories: [] as CategoryDefine[],
         events: [] as EventDefine[],    // イベント（日付を持つデータ）情報
 
         originalIconDefine: [] as SystemIconDefine[],   // DBに登録されたオリジナルアイコン
@@ -107,9 +106,6 @@ const dataSlice = createSlice({
                 }
             });
             state.events = newEvents;
-        })
-        .addCase(loadCategories.fulfilled, (state, action) => {
-            state.categories = action.payload;
         })
         // .addCase(loadContents.fulfilled, (state, action) => {
         //     // 既存コンテンツの中に新しく取得したものが存在する場合は除去する

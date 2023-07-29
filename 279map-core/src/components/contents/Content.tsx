@@ -22,6 +22,8 @@ import { GetImageUrlAPI, GetSnsPreviewAPI, UpdateContentParam } from 'tsunagumap
 import { doCommand } from "../../util/Commander";
 import { useMap } from "../map/useMap";
 import { useContents } from "../../store/data/useContents";
+import { useRecoilValue } from "recoil";
+import { categoryState } from "../../store/data/itemAtom";
 
 type Props = {
     itemId: DataId;
@@ -106,7 +108,7 @@ export default function Content(props: Props) {
         }
     }, [props.content, icon, onClick]);
 
-    const categories = useSelector((state: RootState) => state.data.categories);
+    const categories = useRecoilValue(categoryState);
 
     const categoryTag = useMemo(() => {
         return props.content.category?.map(category => {

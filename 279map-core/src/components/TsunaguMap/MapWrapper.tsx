@@ -1,7 +1,7 @@
 import React, { useImperativeHandle, useContext, useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
-import { loadCategories, loadEvents, loadOriginalIconDefine } from '../../store/data/dataThunk';
+import { loadEvents, loadOriginalIconDefine } from '../../store/data/dataThunk';
 import { addListener, doCommand, removeListener } from '../../util/Commander';
 import MapChart from './MapChart';
 import { ButtonInProcess, operationActions } from '../../store/operation/operationSlice';
@@ -235,6 +235,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
 
     const mapServer = useSelector((state: RootState) => state.session.mapServer);
 
+    const { loadCategories } = useCategory();
     /**
      * 初回処理
      */
@@ -256,7 +257,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
                 spinner: true,
             });
             await dispatch(loadEvents());
-            await dispatch(loadCategories());
+            await loadCategories();
             hideProcessMessage(pH);
         });
         return () => {
@@ -306,13 +307,13 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
             if (result && result.result === 'success') {
                 dispatch(loadOriginalIconDefine());
                 dispatch(loadEvents());
-                dispatch(loadCategories());
+                loadCategories();
             }
         })
         .catch(err => {
             console.warn('connect error', err);
         })
-    }, [ownerContext.mapId, mapServer, dispatch, ownerContext.mapInstanceId]);
+    }, [ownerContext.mapId, mapServer, dispatch, ownerContext.mapInstanceId, loadCategories]);
 
     useWatch(() => {
         connectToMap();
@@ -328,7 +329,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
             }
             await dispatch(loadMapDefine(mapKind));
             dispatch(loadEvents());
-            dispatch(loadCategories());
+            loadCategories();
         });
 
         return () => {
