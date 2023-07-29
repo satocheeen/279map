@@ -1,16 +1,15 @@
 import { useCallback, useMemo } from "react";
-import useDataSource from "./useDataSource";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { categoryState } from "./dataAtom";
 import { useMap } from "../../components/map/useMap";
 import { GetCategoryAPI } from "tsunagumap-api";
-import { dataSourceGroupsState } from "../datasource";
+import { dataSourceGroupsState, visibleDataSourceIdsState } from "../datasource";
 
 /**
  * カテゴリ関連のユーティリティフック
  */
 export default function useCategory() {
-    const { visibleDataSourceIds } = useDataSource();
+    const visibleDataSourceIds = useRecoilValue(visibleDataSourceIdsState);
     const [originalCategories, setCateogories] = useRecoilState(categoryState);
     const dataSourceGroups = useRecoilValue(dataSourceGroupsState);
     const { getApi } = useMap();

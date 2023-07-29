@@ -26,7 +26,7 @@ import { connectStatusState, currentMapKindInfoState, currentMapKindState, mapSe
 import { useMapDefine } from '../../store/data/useMapDefine';
 import { filteredItemsState, mapModeState, selectedItemIdsState } from '../../store/operation/operationAtom';
 import { useSearch } from '../../store/operation/useSearch';
-import { dataSourceGroupsState } from '../../store/datasource';
+import { dataSourceGroupsState, visibleDataSourceIdsState } from '../../store/datasource';
 
 type Props = {};
 
@@ -416,7 +416,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         }
     }, [events]);
 
-    const { visibleDataSourceIds } = useDataSource();
+    const visibleDataSourceIds = useRecoilValue(visibleDataSourceIdsState);
     const resetFilteredItems = useResetRecoilState(filteredItemsState);
     const { search } = useSearch();
 

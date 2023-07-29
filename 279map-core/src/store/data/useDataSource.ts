@@ -36,22 +36,6 @@ export default function useDataSource() {
         })
     }, [setDataSourceGroups]);
 
-    /**
-     * 表示状態のデータソースID
-     */
-    const visibleDataSourceIds = useMemo(() => {
-        const idList = [] as string[];
-        dataSourceGroups.forEach(group => {
-            if (!group.visible) return;
-            group.dataSources.forEach(ds => {
-                if (!ds.visible) return;
-                idList.push(ds.dataSourceId);
-            })
-        });
-        return idList;
-
-    }, [dataSourceGroups]);
-
     const isVisibleDataSource = useCallback((dataSourceId: string) => {
         for (const group of dataSourceGroups) {
             const ds = group.dataSources.find(ds => ds.dataSourceId === dataSourceId);
@@ -67,7 +51,6 @@ export default function useDataSource() {
 
     return {
         updateDatasourceVisible,
-        visibleDataSourceIds,
         isVisibleDataSource,
     }
 }

@@ -1,14 +1,14 @@
 import { useCallback } from 'react';
-import useDataSource from '../data/useDataSource';
 import { useMap } from '../../components/map/useMap';
 import { SearchAPI } from 'tsunagumap-api';
 import { FilterDefine } from '279map-common';
-import { useSetRecoilState } from 'recoil';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { filteredItemsState } from './operationAtom';
+import { visibleDataSourceIdsState } from '../datasource';
 
 export function useSearch() {
     const { getApi } = useMap();
-    const { visibleDataSourceIds } = useDataSource();
+    const visibleDataSourceIds = useRecoilValue(visibleDataSourceIdsState);
     const setFilteredItems = useSetRecoilState(filteredItemsState);
 
     const search = useCallback(async(conditions: FilterDefine[]) => {

@@ -25,3 +25,22 @@ export const dataSourcesState = selector<DataSourceInfo[]>({
         }, [] as DataSourceInfo[]);
     }
 })
+
+/**
+ * 表示状態のデータソースID
+ */
+export const visibleDataSourceIdsState = selector<string[]>({
+    key: 'visibleDataSourceIdsSelector',
+    get: ( { get } ) => {
+        const dataSourceGroups = get(dataSourceGroupsState);
+        const idList = [] as string[];
+        dataSourceGroups.forEach(group => {
+            if (!group.visible) return;
+            group.dataSources.forEach(ds => {
+                if (!ds.visible) return;
+                idList.push(ds.dataSourceId);
+            })
+        });
+        return idList;
+    }
+})

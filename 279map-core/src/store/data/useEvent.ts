@@ -1,16 +1,15 @@
 import { useCallback, useMemo } from "react";
-import useDataSource from "./useDataSource";
 import { eventsState } from "./dataAtom";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useMap } from "../../components/map/useMap";
 import { GetEventsAPI } from "tsunagumap-api";
-import { dataSourceGroupsState } from "../datasource";
+import { dataSourceGroupsState, visibleDataSourceIdsState } from "../datasource";
 
 /**
  * イベント関連のユーティリティフック
  */
 export default function useEvent() {
-    const { visibleDataSourceIds } = useDataSource();
+    const visibleDataSourceIds = useRecoilValue(visibleDataSourceIdsState);
     const [originalEvents, setEvents] = useRecoilState(eventsState);
     const dataSourceGroups = useRecoilValue(dataSourceGroupsState);
     const { getApi } = useMap();
