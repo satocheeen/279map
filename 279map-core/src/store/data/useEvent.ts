@@ -1,9 +1,10 @@
 import { useCallback, useMemo } from "react";
 import useDataSource from "./useDataSource";
-import { dataSourceGroupsState, eventsState } from "./dataAtom";
+import { eventsState } from "./dataAtom";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useMap } from "../../components/map/useMap";
 import { GetEventsAPI } from "tsunagumap-api";
+import { dataSourceGroupsState } from "../datasource";
 
 /**
  * イベント関連のユーティリティフック

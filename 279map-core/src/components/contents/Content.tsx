@@ -21,8 +21,9 @@ import { doCommand } from "../../util/Commander";
 import { useMap } from "../map/useMap";
 import { useContents } from "../../store/data/useContents";
 import { useRecoilValue } from "recoil";
-import { categoryState, dataSourcesState } from "../../store/data/dataAtom";
+import { categoryState } from "../../store/data/dataAtom";
 import { currentMapKindState } from "../../store/session/sessionAtom";
+import { dataSourcesState } from "../../store/datasource";
 
 type Props = {
     itemId: DataId;

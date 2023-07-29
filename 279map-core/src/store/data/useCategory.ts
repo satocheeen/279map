@@ -1,9 +1,10 @@
 import { useCallback, useMemo } from "react";
 import useDataSource from "./useDataSource";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { categoryState, dataSourceGroupsState } from "./dataAtom";
+import { categoryState } from "./dataAtom";
 import { useMap } from "../../components/map/useMap";
 import { GetCategoryAPI } from "tsunagumap-api";
+import { dataSourceGroupsState } from "../datasource";
 
 /**
  * カテゴリ関連のユーティリティフック

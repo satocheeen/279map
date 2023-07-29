@@ -11,10 +11,11 @@ import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistCont
 import { useMap } from '../map/useMap';
 import { Button } from '../common';
 import { useRecoilValue } from 'recoil';
-import { dataSourcesState, itemMapState } from '../../store/data/dataAtom';
+import { itemMapState } from '../../store/data/dataAtom';
 import { useContents } from '../../store/data/useContents';
 import { connectStatusState, currentMapKindState } from '../../store/session/sessionAtom';
 import { compareAuth } from '../../util/CommonUtility';
+import { dataSourcesState } from '../../store/datasource';
 
 type Props = {
     target: {

@@ -23,10 +23,10 @@ import { useContents } from '../../store/data/useContents';
 import useIcon from '../../store/data/useIcon';
 import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil';
 import { connectStatusState, currentMapKindInfoState, currentMapKindState, mapServerState } from '../../store/session/sessionAtom';
-import { dataSourceGroupsState } from '../../store/data/dataAtom';
 import { useMapDefine } from '../../store/data/useMapDefine';
 import { filteredItemsState, mapModeState, selectedItemIdsState } from '../../store/operation/operationAtom';
 import { useSearch } from '../../store/operation/useSearch';
+import { dataSourceGroupsState } from '../../store/datasource';
 
 type Props = {};
 

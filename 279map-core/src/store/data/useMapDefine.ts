@@ -3,13 +3,14 @@ import { useMap } from "../../components/map/useMap";
 import { ConnectAPI, ErrorType, GetMapInfoAPI } from "tsunagumap-api";
 import { MapKind } from "279map-common";
 import { useResetRecoilState, useSetRecoilState } from "recoil";
-import { categoryState, contentsState, dataSourceGroupsState, eventsState, itemMapState } from "./dataAtom";
+import { categoryState, contentsState, eventsState, itemMapState } from "./dataAtom";
 import { connectStatusState, currentMapKindInfoState } from "../session/sessionAtom";
 import { filteredItemsState } from "../operation/operationAtom";
 import { OwnerContext } from "../../components/TsunaguMap/TsunaguMap";
 import { useContext } from 'react';
 import { createMqttClientInstance } from "../session/MqttInstanceManager";
 import { ApiException } from "../../api";
+import { dataSourceGroupsState } from "../datasource";
 
 export function useMapDefine() {
     const { getApi } = useMap();

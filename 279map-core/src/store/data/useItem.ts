@@ -2,9 +2,10 @@ import { useCallback } from "react";
 import { useMap } from "../../components/map/useMap";
 import { GetItemsAPI, GetItemsParam } from "tsunagumap-api";
 import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { dataSourceGroupsState, itemMapState } from "./dataAtom";
+import { itemMapState } from "./dataAtom";
 import { getMapKey } from "./dataUtility";
 import { DataId } from "279map-common";
+import { dataSourceGroupsState } from "../datasource";
 
 export function useItem() {
     const dataSourceGroups = useRecoilValue(dataSourceGroupsState);
