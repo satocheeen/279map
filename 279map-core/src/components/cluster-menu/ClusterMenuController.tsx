@@ -13,6 +13,7 @@ import { useMap } from '../map/useMap';
 import { addListener, removeListener } from '../../util/Commander';
 import { itemMapState } from '../../store/data/dataAtom';
 import { useRecoilValue } from 'recoil';
+import { selectedItemIdsState } from '../../store/operation/operationAtom';
 
 /**
  * 地図上のアイテムがクリックされた際に、
@@ -63,7 +64,7 @@ export default function ClusterMenuController(props: Props) {
         setClusterMenuInfo(null);
     }, [mapView, prevMapView]);
 
-    const selectedItemIds = useSelector((state: RootState) => state.operation.selectedItemIds);
+    const selectedItemIds = useRecoilValue(selectedItemIdsState);
     useEffect(() => {
         if (selectedItemIds.length > 0) {
             setClusterMenuInfo(null);

@@ -11,9 +11,9 @@ import { IconInfo } from "279map-common";
 import { Geometry } from "ol/geom";
 import { convertDataIdFromFeatureId, isEqualId } from "../../store/data/dataUtility";
 import { useMap } from "./useMap";
-import { useSelector } from "react-redux";
-import { RootState } from "../../store/configureStore";
 import { useMapOptions } from "../../util/useMapOptions";
+import { useRecoilValue } from "recoil";
+import { selectedItemIdsState } from "../../store/operation/operationAtom";
 
 // 建物ラベルを表示するresolution境界値（これ以下の値の時に表示）
 const StructureLabelResolution = 0.003;
@@ -32,7 +32,7 @@ export default function usePointStyle() {
     const { filter } = useContext(OwnerContext);
     const { getIconDefine } = useIcon();
     const { getMap } = useMap();
-    const selectedItemIds = useSelector((state: RootState) => state.operation.selectedItemIds);
+    const selectedItemIds = useRecoilValue(selectedItemIdsState);
 
     const getZindex = useCallback((feature: Feature<Geometry>): number => {
         const map = getMap();

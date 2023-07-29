@@ -25,7 +25,7 @@ const operationSlice = createSlice({
     name: 'operation',
     initialState: {
         // 選択中アイテムID
-        selectedItemIds: [] as DataId[],
+        // selectedItemIds: [] as DataId[],
 
         mapMode: MapMode.Normal,
 
@@ -36,15 +36,6 @@ const operationSlice = createSlice({
 
     },
     reducers: {
-        setSelectItem(state, action: PayloadAction<DataId[]>) {
-            state.selectedItemIds = action.payload;
-        },
-        unselectItem(state) {
-            if (state.selectedItemIds.length === 0) {
-                return;
-            }
-            state.selectedItemIds = [];
-        },
         updateMapView(state, action: PayloadAction<ViewInfo>) {
             state.mapView = action.payload;
         },

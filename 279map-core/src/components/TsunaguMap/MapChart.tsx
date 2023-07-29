@@ -27,9 +27,10 @@ import useMyMedia from "../../util/useMyMedia";
 import { useProcessMessage } from "../common/spinner/useProcessMessage";
 import { isEqualId } from "../../store/data/dataUtility";
 import { useItem } from "../../store/data/useItem";
-import { useRecoilValue } from 'recoil';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { dataSourceGroupsState, itemMapState } from "../../store/data/dataAtom";
 import { currentMapKindState, defaultExtentState } from "../../store/session/sessionAtom";
+import { selectedItemIdsState } from "../../store/operation/operationAtom";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
@@ -185,6 +186,8 @@ export default function MapChart() {
     const { isPC } = useMyMedia();
     const { mapInstanceId } = useContext(OwnerContext);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
+    const setSelectedItemIds = useSetRecoilState(selectedItemIdsState);
+
     /**
      * 地図初期化
      */
@@ -216,7 +219,7 @@ export default function MapChart() {
         // アイテムフォーカスイベントの登録
         const focusItemHandler = addListener('FocusItem', async(param: {itemId: DataId; zoom?: boolean}) => {
             focusItem(param.itemId, param.zoom);
-            dispatch(operationActions.setSelectItem([param.itemId]));
+            setSelectedItemIds([param.itemId]);
         });
 
         setInitialized(true);
@@ -234,12 +237,12 @@ export default function MapChart() {
 
     const onSelectItem = useCallback((feature: DataId | undefined) => {
         if (!feature) {
-            dispatch(operationActions.unselectItem());
+            setSelectedItemIds([]);
         } else {
-            dispatch(operationActions.setSelectItem([feature]));
+            setSelectedItemIds([feature]);
         }
 
-    }, [dispatch]);
+    }, [setSelectedItemIds]);
 
     /**
      * 地図が切り替わったら、レイヤ再配置

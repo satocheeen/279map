@@ -4,7 +4,6 @@ import { RootState, useAppDispatch } from "../../store/configureStore";
 import styles from './PointsPopup.module.scss';
 import { useFilter } from "../../store/useFilter";
 import { ContentsDefine, DataId, ItemContentInfo, ItemDefine } from "279map-common";
-import { operationActions } from "../../store/operation/operationSlice";
 import { useContents } from "../../store/useContents";
 import { MapMode } from "../../types/types";
 import { getMapKey, isEqualId } from "../../store/data/dataUtility";
@@ -14,7 +13,8 @@ import { useMapOptions } from "../../util/useMapOptions";
 import { useMap } from "../map/useMap";
 import { doCommand } from "../../util/Commander";
 import { itemMapState } from "../../store/data/dataAtom";
-import { useRecoilValue } from 'recoil';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { selectedItemIdsState } from "../../store/operation/operationAtom";
 
 type Props = {
     // このポップアップにて情報表示する対象アイテム
@@ -113,7 +113,7 @@ export default function PointsPopup(props: Props) {
     }, [target, filteredContentIdList, popupMode]);
 
     // このアイテムの中に含まれるコンテンツの総数
-    // （吹き出しに表示していたが、わからいので、現在は未使用）
+    // （吹き出しに表示していたが、わかりづらいので、現在は未使用）
     const contentsNum = useMemo(() => {
         return props.itemIds.reduce((acc, cur) => {
             const descendants = getDescendantContentsIdList(cur, true);
@@ -121,10 +121,10 @@ export default function PointsPopup(props: Props) {
         }, 0);
     }, [props.itemIds, getDescendantContentsIdList]);
 
-    const dispatch = useAppDispatch();
+    const setSelectedItemIds = useSetRecoilState(selectedItemIdsState);
     const onClick = useCallback((evt: React.MouseEvent) => {
         if (props.itemIds.length === 1) {
-            dispatch(operationActions.setSelectItem([props.itemIds[0]]));
+            setSelectedItemIds([props.itemIds[0]]);
             return;
         }
         // 対象が２つ以上ある場合は、重畳選択メニューを表示
@@ -140,7 +140,7 @@ export default function PointsPopup(props: Props) {
                 }
             });
         }
-    }, [dispatch, props.itemIds, getMap]);
+    }, [setSelectedItemIds, props.itemIds, getMap]);
 
     const mapMode = useSelector((state: RootState) => state.operation.mapMode);
 

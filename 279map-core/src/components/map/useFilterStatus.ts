@@ -1,9 +1,9 @@
 import { FeatureLike } from 'ol/Feature';
 import { useCallback } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../store/configureStore';
 import { useFilter } from '../../store/useFilter';
 import { convertDataIdFromFeatureId, isEqualId } from '../../store/data/dataUtility';
+import { useRecoilValue } from 'recoil';
+import { selectedItemIdsState } from '../../store/operation/operationAtom';
 
 const FORCE_COLOR = '#8888ff';
 
@@ -12,7 +12,7 @@ const FORCE_COLOR = '#8888ff';
  */
 export default function useFilterStatus() {
     const { getFilterStatusOfTheItem } = useFilter();
-    const selectedItemIds = useSelector((state: RootState) => state.operation.selectedItemIds);
+    const selectedItemIds = useRecoilValue(selectedItemIdsState);
 
     /**
      * 指定の地物のフィルタ状態を返す

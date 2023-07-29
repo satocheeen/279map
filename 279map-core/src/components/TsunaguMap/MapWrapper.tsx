@@ -27,7 +27,7 @@ import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState 
 import { connectStatusState, currentMapKindInfoState, currentMapKindState, mapServerState } from '../../store/session/sessionAtom';
 import { dataSourceGroupsState } from '../../store/data/dataAtom';
 import { useMapDefine } from '../../store/data/useMapDefine';
-import { filteredItemsState } from '../../store/operation/operationAtom';
+import { filteredItemsState, selectedItemIdsState } from '../../store/operation/operationAtom';
 import { useSearch } from '../../store/operation/useSearch';
 
 type Props = {};
@@ -374,7 +374,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     /**
      * 選択アイテムが変更されたらコールバック
      */
-    const selectedItemIds = useSelector((state: RootState) => state.operation.selectedItemIds);
+    const selectedItemIds = useRecoilValue(selectedItemIdsState);
     const { disabledContentDialog } = useContext(OwnerContext);
     useWatch(() => {
         if (onSelectRef.current) {
