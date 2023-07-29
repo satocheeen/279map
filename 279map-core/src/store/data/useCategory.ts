@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import useDataSource from "./useDataSource";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { categoryState } from "./itemAtom";
+import { categoryState } from "./dataAtom";
 import { useSelector } from "react-redux";
 import { RootState } from "../configureStore";
 import { useMap } from "../../components/map/useMap";

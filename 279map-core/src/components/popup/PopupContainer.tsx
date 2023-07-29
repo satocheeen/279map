@@ -13,7 +13,7 @@ import { useWatch } from '../../util/useWatch';
 import { useMapOptions } from '../../util/useMapOptions';
 import useDataSource from '../../store/data/useDataSource';
 import { useFilter } from '../../store/useFilter';
-import { itemMapState } from '../../store/data/itemAtom';
+import { itemMapState } from '../../store/data/dataAtom';
 import { useRecoilValue } from 'recoil';
 
 function createKeyFromPopupInfo(param: PopupGroupWithPosition): string {

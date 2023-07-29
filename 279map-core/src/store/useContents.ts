@@ -2,7 +2,7 @@ import { DataId, ItemContentInfo } from '279map-common';
 import { useCallback } from 'react';
 import { useFilter } from './useFilter';
 import { getMapKey, isEqualId } from './data/dataUtility';
-import { itemMapState } from './data/itemAtom';
+import { itemMapState } from './data/dataAtom';
 import { useRecoilValue } from 'recoil';
 
 /**

@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import useDataSource from "./useDataSource";
-import { eventsState } from "./itemAtom";
+import { eventsState } from "./dataAtom";
 import { useRecoilState } from "recoil";
 import { useSelector } from "react-redux";
 import { RootState } from "../configureStore";

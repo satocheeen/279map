@@ -11,7 +11,7 @@ import { usePrevious } from '../../util/usePrevious';
 import { getMapKey, isEqualId } from '../../store/data/dataUtility';
 import { useMap } from '../map/useMap';
 import { addListener, removeListener } from '../../util/Commander';
-import { itemMapState } from '../../store/data/itemAtom';
+import { itemMapState } from '../../store/data/dataAtom';
 import { useRecoilValue } from 'recoil';
 
 /**

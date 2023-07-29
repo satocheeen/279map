@@ -13,7 +13,7 @@ import { useMounted } from '../../util/useMounted';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { useWatch } from '../../util/useWatch';
 import { useRecoilValue } from 'recoil';
-import { contentsState, itemMapState } from '../../store/data/itemAtom';
+import { contentsState, itemMapState } from '../../store/data/dataAtom';
 import { useContents } from '../../store/data/useContents';
 
 type Target = {

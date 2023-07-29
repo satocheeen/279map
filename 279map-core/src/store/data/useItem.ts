@@ -4,7 +4,7 @@ import { RootState } from "../configureStore";
 import { useMap } from "../../components/map/useMap";
 import { GetItemsAPI, GetItemsParam } from "tsunagumap-api";
 import { useSetRecoilState } from 'recoil';
-import { itemMapState } from "./itemAtom";
+import { itemMapState } from "./dataAtom";
 import { getMapKey } from "./dataUtility";
 import { DataId } from "279map-common";
 

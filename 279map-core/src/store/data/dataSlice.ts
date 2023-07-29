@@ -17,8 +17,6 @@ const dataSlice = createSlice({
         // ロード済みのコンテンツ情報
         // contentsList: [] as ContentsDefine[],
 
-        // events: [] as EventDefine[],    // イベント（日付を持つデータ）情報
-
         originalIconDefine: [] as SystemIconDefine[],   // DBに登録されたオリジナルアイコン
 
         dataSourceGroups: [] as DataSourceGroup[],

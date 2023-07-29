@@ -28,7 +28,7 @@ import { useProcessMessage } from "../common/spinner/useProcessMessage";
 import { isEqualId } from "../../store/data/dataUtility";
 import { useItem } from "../../store/data/useItem";
 import { useRecoilValue } from 'recoil';
-import { itemMapState } from "../../store/data/itemAtom";
+import { itemMapState } from "../../store/data/dataAtom";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);

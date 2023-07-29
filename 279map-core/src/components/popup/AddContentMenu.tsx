@@ -13,7 +13,7 @@ import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistCont
 import { useMap } from '../map/useMap';
 import { Button } from '../common';
 import { useRecoilValue } from 'recoil';
-import { itemMapState } from '../../store/data/itemAtom';
+import { itemMapState } from '../../store/data/dataAtom';
 import { useContents } from '../../store/data/useContents';
 
 type Props = {

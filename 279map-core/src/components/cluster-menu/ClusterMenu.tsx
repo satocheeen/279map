@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useMemo, useCallback } from 'react';
 import { Overlay } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import styles from './ClusterMenu.module.scss';
-import { itemMapState } from '../../store/data/itemAtom';
+import { itemMapState } from '../../store/data/dataAtom';
 import { useRecoilValue } from 'recoil';
 import useIcon from '../../store/useIcon';
 import { DataId } from '279map-common';

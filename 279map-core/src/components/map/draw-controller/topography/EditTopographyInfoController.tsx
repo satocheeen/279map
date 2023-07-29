@@ -8,7 +8,7 @@ import PromptMessageBox from '../PromptMessageBox';
 import SelectFeature from '../SelectFeature';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../store/data/dataUtility';
-import { itemMapState } from '../../../../store/data/itemAtom';
+import { itemMapState } from '../../../../store/data/dataAtom';
 import { useRecoilValue } from 'recoil';
 
 type Props = {

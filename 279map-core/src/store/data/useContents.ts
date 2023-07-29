@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useMap } from '../../components/map/useMap';
 import { GetContentsParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RemoveContentAPI, RemoveContentParam, UpdateContentAPI, UpdateContentParam } from 'tsunagumap-api';
-import { contentsState } from './itemAtom';
+import { contentsState } from './dataAtom';
 import { useSetRecoilState } from 'recoil';
 
 export function useContents() {

@@ -13,7 +13,7 @@ import { BsThreeDots } from 'react-icons/bs';
 import { useMapOptions } from "../../util/useMapOptions";
 import { useMap } from "../map/useMap";
 import { doCommand } from "../../util/Commander";
-import { itemMapState } from "../../store/data/itemAtom";
+import { itemMapState } from "../../store/data/dataAtom";
 import { useRecoilValue } from 'recoil';
 
 type Props = {

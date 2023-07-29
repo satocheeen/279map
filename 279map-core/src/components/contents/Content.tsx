@@ -23,7 +23,7 @@ import { doCommand } from "../../util/Commander";
 import { useMap } from "../map/useMap";
 import { useContents } from "../../store/data/useContents";
 import { useRecoilValue } from "recoil";
-import { categoryState } from "../../store/data/itemAtom";
+import { categoryState } from "../../store/data/dataAtom";
 
 type Props = {
     itemId: DataId;
