@@ -2,8 +2,8 @@ import { useContext, useMemo } from 'react';
 import { OwnerContext } from '../components/TsunaguMap/TsunaguMap';
 import { TsunaguMapProps } from '../entry';
 import useMyMedia from './useMyMedia';
-import { useSelector } from 'react-redux';
-import { RootState } from '../store/configureStore';
+import { useRecoilValue } from 'recoil';
+import { connectStatusState } from '../store/session/sessionAtom';
 
 /**
  * 呼び出し元から渡されたpropsと、地図固有のオプション値を加味して、
@@ -12,12 +12,14 @@ import { RootState } from '../store/configureStore';
 export function useMapOptions() {
     const ownerContext = useContext(OwnerContext);
     const { isPC } = useMyMedia();
-    const options = useSelector((state: RootState) => {
-        if (state.session.connectStatus.status === 'connected') {
-            return state.session.connectStatus.connectedMap.options;
+    const connectStatus = useRecoilValue(connectStatusState);
+
+    const options = useMemo(() => {
+        if (connectStatus.status === 'connected') {
+            return connectStatus.connectedMap.options;
         }
         return undefined;
-    })
+    }, [connectStatus]);
 
     const popupMode = useMemo((): TsunaguMapProps['popupMode'] => {
         // 優先順位：呼び出し元から指定された値→地図に対するオプション指定→デフォルト値

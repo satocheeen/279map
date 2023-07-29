@@ -1,9 +1,7 @@
 import { useCallback, useMemo } from "react";
 import useDataSource from "./useDataSource";
-import { eventsState } from "./dataAtom";
-import { useRecoilState } from "recoil";
-import { useSelector } from "react-redux";
-import { RootState } from "../configureStore";
+import { dataSourceGroupsState, eventsState } from "./dataAtom";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { useMap } from "../../components/map/useMap";
 import { GetEventsAPI } from "tsunagumap-api";
 
@@ -13,7 +11,7 @@ import { GetEventsAPI } from "tsunagumap-api";
 export default function useEvent() {
     const { visibleDataSourceIds } = useDataSource();
     const [originalEvents, setEvents] = useRecoilState(eventsState);
-    const dataSourceGroups = useSelector((state: RootState) => state.data.dataSourceGroups);
+    const dataSourceGroups = useRecoilValue(dataSourceGroupsState);
     const { getApi } = useMap();
 
     const loadEvents = useCallback(async() => {

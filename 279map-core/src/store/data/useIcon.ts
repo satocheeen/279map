@@ -1,14 +1,13 @@
 import { IconInfo, MapKind } from "279map-common";
 import { useCallback, useContext, useMemo } from "react";
-import { useSelector } from "react-redux";
 import { OwnerContext } from "../../components/TsunaguMap/TsunaguMap";
 import { SystemIconDefine } from "../../types/types";
-import { RootState } from "../configureStore";
 import defaultIcon from './pin.png'
-import { useRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { originalIconDefineState } from "./dataAtom";
 import { useMap } from "../../components/map/useMap";
 import { GetOriginalIconDefineAPI } from "tsunagumap-api";
+import { currentMapKindState } from "../session/sessionAtom";
 
 function getDefaultIconDefine(useMaps: MapKind[]): SystemIconDefine {
     return {
@@ -30,7 +29,7 @@ export default function useIcon() {
     const [ originalIconDefine, setOriginalIconDefine ] = useRecoilState(originalIconDefineState)
     const { getApi } = useMap();
     const ownerContext = useContext(OwnerContext);
-    const currentMapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
+    const currentMapKind = useRecoilValue(currentMapKindState);
 
     const loadOriginalIconDefine = useCallback(async() => {
         try {

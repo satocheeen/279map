@@ -5,16 +5,18 @@ import Tooltip from '../common/tooltip/Tooltip';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
-import { Auth, DataId, DataSourceInfo, DataSourceLinkableContent, MapKind } from '279map-common';
+import { Auth, DataId, DataSourceLinkableContent, MapKind } from '279map-common';
 import { useSelector } from 'react-redux';
-import { RootState, useAppDispatch } from '../../store/configureStore';
+import { RootState } from '../../store/configureStore';
 import { getMapKey } from '../../store/data/dataUtility';
 import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam } from 'tsunagumap-api';
 import { useMap } from '../map/useMap';
 import { Button } from '../common';
 import { useRecoilValue } from 'recoil';
-import { itemMapState } from '../../store/data/dataAtom';
+import { dataSourcesState, itemMapState } from '../../store/data/dataAtom';
 import { useContents } from '../../store/data/useContents';
+import { connectStatusState, currentMapKindState } from '../../store/session/sessionAtom';
+import { compareAuth } from '../../util/CommonUtility';
 
 type Props = {
     target: {
@@ -29,27 +31,22 @@ type Props = {
 }
 let maxId = 0;
 export default function AddContentMenu(props: Props) {
-    const dispatch = useAppDispatch();
     const id = useRef('add-content-menu-'+maxId++);
     const { onAddNewContent, onLinkUnpointedContent } = useContext(OwnerContext);
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
     const itemMap = useRecoilValue(itemMapState);
     const { getApi } = useMap();
-    const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
+    const mapKind = useRecoilValue(currentMapKindState);
+    const dataSources = useRecoilValue(dataSourcesState);
+    const connectStatus = useRecoilValue(connectStatusState);
 
-    const dataSources = useSelector((state: RootState) => {
-        const groups = state.data.dataSourceGroups;
-        return groups.reduce((acc, cur) => {
-            return acc.concat(cur.dataSources);
-        }, [] as DataSourceInfo[]);
-    });
-
-    const editableAuthLv = useSelector((state: RootState) => {
-        if (state.session.connectStatus.status !== 'connected') {
+    const editableAuthLv = useMemo(() => {
+        if (connectStatus.status !== 'connected') {
             return false;
         }
-        return state.session.connectStatus.connectedMap?.authLv === Auth.Edit;
-    });
+        const authLv = connectStatus.connectedMap.authLv;
+        return compareAuth(authLv, Auth.Edit) >= 0;
+    }, [connectStatus]);
 
     /**
      * 追加可能なコンテンツ定義を返す

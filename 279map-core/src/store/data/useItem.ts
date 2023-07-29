@@ -1,18 +1,19 @@
 import { useCallback } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "../configureStore";
 import { useMap } from "../../components/map/useMap";
 import { GetItemsAPI, GetItemsParam } from "tsunagumap-api";
-import { useSetRecoilState } from 'recoil';
-import { itemMapState } from "./dataAtom";
+import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { dataSourceGroupsState, itemMapState } from "./dataAtom";
 import { getMapKey } from "./dataUtility";
 import { DataId } from "279map-common";
 
 export function useItem() {
-    const dataSourceGroups = useSelector((state: RootState) => state.data.dataSourceGroups);
+    const dataSourceGroups = useRecoilValue(dataSourceGroupsState);
     const { getApi } = useMap();
     const setItemMap = useSetRecoilState(itemMapState);
 
+    /**
+     * 指定のズームLv., extentに該当するアイテムをロードする
+     */
     const loadItems = useCallback(async(param: Omit<GetItemsParam, 'dataSourceIds'>) => {
         try {
             const dataSourceIds: string[] = [];

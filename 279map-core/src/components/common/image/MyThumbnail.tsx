@@ -1,11 +1,11 @@
-import React, { useState, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../store/configureStore';
+import React, { useMemo, useState, useRef } from 'react';
 import { DataId } from '279map-common';
 import { GetImageUrlAPI, GetThumbAPI } from 'tsunagumap-api';
 import { useMap } from '../../map/useMap';
 import { useWatch } from '../../../util/useWatch';
 import Spinner from '../spinner/Spinner';
+import { connectStatusState } from '../../../store/session/sessionAtom';
+import { useRecoilValue } from 'recoil';
 
 type Props = {
     id: DataId; // サムネイル画像id（コンテンツID）
@@ -23,12 +23,14 @@ type Props = {
  */
 export default function MyThumbnail(props: Props) {
     const myRef = useRef<HTMLImageElement>(null);
-    const sid = useSelector((state: RootState) => {
-        if (state.session.connectStatus.status !== 'connected') {
+    const connectStatus = useRecoilValue(connectStatusState);
+    const sid = useMemo(() => {
+        if (connectStatus.status !== 'connected') {
             return undefined;
         }
-        return state.session.connectStatus.sid;
-    });
+        return connectStatus.sid;
+    }, [connectStatus]);
+    
     const { getApi } = useMap();
     const [ loaded, setLoaded ] = useState(false);
 

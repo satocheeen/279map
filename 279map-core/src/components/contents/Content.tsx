@@ -3,8 +3,7 @@ import { UrlType } from "../../types/types";
 import styles from './Content.module.scss';
 import { MdEdit, MdOutlineOpenInNew, MdDelete } from 'react-icons/md';
 import dayjs from "dayjs";
-import { useSelector } from "react-redux";
-import { RootState, useAppDispatch } from "../../store/configureStore";
+import { useAppDispatch } from "../../store/configureStore";
 import CategoryBadge from "../common/CategoryBadge";
 import * as CommonUtility from '../../util/CommonUtility';
 import { CgArrowsExchangeAlt } from "react-icons/cg";
@@ -23,7 +22,8 @@ import { doCommand } from "../../util/Commander";
 import { useMap } from "../map/useMap";
 import { useContents } from "../../store/data/useContents";
 import { useRecoilValue } from "recoil";
-import { categoryState } from "../../store/data/dataAtom";
+import { categoryState, dataSourcesState } from "../../store/data/dataAtom";
+import { currentMapKindState } from "../../store/session/sessionAtom";
 
 type Props = {
     itemId: DataId;
@@ -132,7 +132,7 @@ export default function Content(props: Props) {
         return props.content.anotherMapItemId;
     }, [props.content]);
 
-    const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
+    const mapKind = useRecoilValue(currentMapKindState);
 
     const toolTipMessage = useMemo(() => {
         const mapName = mapKind === MapKind.Real ? '村マップ' : '世界地図';
@@ -215,12 +215,7 @@ export default function Content(props: Props) {
         })
     }, [props.content, onEditContent, getApi, updateContent]);
 
-    const dataSources = useSelector((state: RootState) => {
-        const groups = state.data.dataSourceGroups;
-        return groups.reduce((acc, cur) => {
-            return acc.concat(cur.dataSources);
-        }, [] as DataSourceInfo[]);
-    });
+    const dataSources = useRecoilValue(dataSourcesState);
     const unlinkable = useMemo(() => {
         const itemDataSource = dataSources.find(ds => ds.dataSourceId === props.itemId.dataSourceId);
         return itemDataSource?.itemContents.Content?.linkableContents.find(lc => lc.contentDatasourceId === props.content.id.dataSourceId)?.unlinkable ?? false;

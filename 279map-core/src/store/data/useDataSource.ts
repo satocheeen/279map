@@ -1,13 +1,40 @@
-import { useSelector } from "react-redux";
-import { RootState } from "../configureStore";
 import { useCallback, useMemo } from 'react';
+import { useRecoilState } from "recoil";
+import { dataSourceGroupsState } from "./dataAtom";
+import { DataSourceInfo } from "279map-common";
 
+type DataSourceVisibleParam = {
+    target: {
+        dataSourceId: string
+    } | {
+        group: string
+    },
+    visible: boolean
+}
 /**
  * データソース関連のユーティリティフック
  * @returns 
  */
 export default function useDataSource() {
-    const dataSourceGroups = useSelector((state: RootState) => state.data.dataSourceGroups);
+    const [ dataSourceGroups, setDataSourceGroups] = useRecoilState(dataSourceGroupsState);
+
+    const updateDatasourceVisible = useCallback((param: DataSourceVisibleParam) => {
+        setDataSourceGroups(current => {
+            return current.map(group => {
+                const visible = ('group' in param.target && param.target.group === group.name) ? param.visible : group.visible;
+                return {
+                    name: group.name,
+                    dataSources: group.dataSources.map((ds): DataSourceInfo => {
+                        const dsVisible = ('dataSourceId' in param.target && param.target.dataSourceId === ds.dataSourceId) ? param.visible : ds.visible;
+                        return Object.assign({}, ds, {
+                            visible: dsVisible,
+                        });
+                    }),
+                    visible,
+                }
+            })
+        })
+    }, [setDataSourceGroups]);
 
     /**
      * 表示状態のデータソースID
@@ -39,6 +66,7 @@ export default function useDataSource() {
     }, [dataSourceGroups]);
 
     return {
+        updateDatasourceVisible,
         visibleDataSourceIds,
         isVisibleDataSource,
     }

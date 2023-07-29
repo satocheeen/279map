@@ -5,8 +5,8 @@ import useIcon from '../../../../store/data/useIcon';
 import styles from './SelectStructureDialog.module.scss';
 import { MapKind } from '279map-common';
 import { SystemIconDefine } from '../../../../types/types';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../../store/configureStore';
+import { useRecoilValue } from 'recoil';
+import { currentMapKindState } from '../../../../store/session/sessionAtom';
 
 type Props = {
     currentIconId?: string;         // 現在の画像ID
@@ -18,7 +18,7 @@ export default function SelectStructureDialog(props: Props) {
     const [show, setShow] = useState(true);
     const { currentMapIconDefine } = useIcon();
     const [selectedDefine, setSelectedDefine] = useState(null as SystemIconDefine | null);
-    const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
+    const mapKind = useRecoilValue(currentMapKindState);
 
     useEffect(() => {
         if (props.currentIconId !== undefined) {

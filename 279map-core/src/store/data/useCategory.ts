@@ -1,9 +1,7 @@
 import { useCallback, useMemo } from "react";
 import useDataSource from "./useDataSource";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { categoryState } from "./dataAtom";
-import { useSelector } from "react-redux";
-import { RootState } from "../configureStore";
+import { categoryState, dataSourceGroupsState } from "./dataAtom";
 import { useMap } from "../../components/map/useMap";
 import { GetCategoryAPI } from "tsunagumap-api";
 
@@ -13,7 +11,7 @@ import { GetCategoryAPI } from "tsunagumap-api";
 export default function useCategory() {
     const { visibleDataSourceIds } = useDataSource();
     const [originalCategories, setCateogories] = useRecoilState(categoryState);
-    const dataSourceGroups = useSelector((state: RootState) => state.data.dataSourceGroups);
+    const dataSourceGroups = useRecoilValue(dataSourceGroupsState);
     const { getApi } = useMap();
 
     const loadCategories = useCallback(async() => {

@@ -3,22 +3,19 @@ import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { addListener, doCommand, removeListener } from '../../util/Commander';
 import MapChart from './MapChart';
-import { ButtonInProcess, operationActions } from '../../store/operation/operationSlice';
+import { ButtonInProcess } from '../../store/operation/operationSlice';
 import { OwnerContext } from './TsunaguMap';
 import { sessionActions } from '../../store/session/sessionSlice';
-import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import styles from './MapWrapper.module.scss';
-import { ConnectAPIResult, LoadMapDefineResult, TsunaguMapHandler } from '../../types/types';
+import { TsunaguMapHandler } from '../../types/types';
 import { RequestAPI, ErrorType, GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam, WebSocketMessage, GetContentsParam } from "tsunagumap-api";
-import { search } from '../../store/operation/operationThunk';
 import Spinner from '../common/spinner/Spinner';
 import { useMounted } from '../../util/useMounted';
 import { Auth, ContentsDefine, DataId, FeatureType, MapKind, UnpointContent } from '279map-common';
 import { useWatch } from '../../util/useWatch';
 import { useMap } from '../map/useMap';
 import { createAPICallerInstance } from '../../api/ApiCaller';
-import { dataActions } from '../../store/data/dataSlice';
 import useEvent from '../../store/data/useEvent';
 import useCategory from '../../store/data/useCategory';
 import useDataSource from '../../store/data/useDataSource';
@@ -28,6 +25,12 @@ import { useSubscribe } from '../../util/useSubscribe';
 import { useItem } from '../../store/data/useItem';
 import { useContents } from '../../store/data/useContents';
 import useIcon from '../../store/data/useIcon';
+import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil';
+import { connectStatusState, currentMapKindInfoState, currentMapKindState, mapServerState } from '../../store/session/sessionAtom';
+import { dataSourceGroupsState } from '../../store/data/dataAtom';
+import { useMapDefine } from '../../store/data/useMapDefine';
+import { filteredItemsState } from '../../store/operation/operationAtom';
+import { useSearch } from '../../store/operation/useSearch';
 
 type Props = {};
 
@@ -38,9 +41,9 @@ type Props = {};
  */
 function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const ownerContext = useContext(OwnerContext);
-    const connectStatus = useSelector((state: RootState) => state.session.connectStatus);
-    const currentMapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
-    const currentDataSourceGroups = useSelector((state: RootState) => state.data.dataSourceGroups);
+    const [connectStatus, setConnectStatus] = useRecoilState(connectStatusState);
+    const currentMapKind = useRecoilValue(currentMapKindState);
+    const currentDataSourceGroups = useRecoilValue(dataSourceGroupsState);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
     const onConnectRef = useRef<typeof ownerContext.onConnect>();
@@ -54,6 +57,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const dispatch = useAppDispatch();
     const { getApi, getMap } = useMap();
     const { loadContents, registContent, linkContentToItem, updateContent, removeContent } = useContents();
+    const { updateDatasourceVisible } = useDataSource();
 
     useImperativeHandle(ref, () => ({
         switchMapKind(mapKind: MapKind) {
@@ -207,20 +211,19 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         },
     
         changeVisibleLayer(target: { dataSourceId: string } | { group: string }, visible: boolean) {
-            dispatch(dataActions.updateDatasourceVisible({
+            updateDatasourceVisible({
                 target,
                 visible,
-            }));
+            });
         },
                                                         
     }));
 
+    const setMapServer = useSetRecoilState(mapServerState);
+    const setCurrentMapKindInfo = useSetRecoilState(currentMapKindInfoState);
     useWatch(() => {
-        dispatch(sessionActions.setMapServer({
-            host: ownerContext.mapServer.host,
-            ssl: ownerContext.mapServer.ssl,
-            token: ownerContext.mapServer.token,
-        }));
+        setMapServer(ownerContext.mapServer);
+        setCurrentMapKindInfo(undefined);
     }, [ownerContext.mapServer]);
 
     useWatch(() => {
@@ -233,7 +236,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         onEventsLoadedRef.current = ownerContext.onEventsLoaded;
     }, [ownerContext]);
 
-    const mapServer = useSelector((state: RootState) => state.session.mapServer);
+    const { mapServer } = useContext(OwnerContext);
 
     const { loadCategories } = useCategory();
     const { loadEvents } = useEvent();
@@ -245,11 +248,12 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
 
         // API Accessor用意
         createAPICallerInstance(ownerContext.mapInstanceId, mapServer, (error) => {
+            console.log('debug1');
             // コネクションエラー時
-            dispatch(sessionActions.updateConnectStatus({
+            setConnectStatus({
                 status: 'failure',
                 error,
-            }));
+            });
         });
 
         const h = addListener('LoadLatestData', async() => {
@@ -268,56 +272,48 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     }, [mapServer, ownerContext.mapInstanceId]);
 
     const { loadOriginalIconDefine } = useIcon();
+    const { connectMap, loadMapDefine } = useMapDefine();
     /**
      * connect to map
      */
     const connectToMap = useCallback(() => {
         if (mapServer.host.length === 0) return;
 
+        console.log('connetToMap')
         // connect
-        dispatch(connectMap({
+        connectMap({
             mapId: ownerContext.mapId,
             instanceId: ownerContext.mapInstanceId,
-        }))
+        })
         .then((res) => {
-            const result = res.payload as ConnectAPIResult;
             if (onConnectRef.current) {
-                if (result.result === 'success') {
-                    onConnectRef.current({
-                        result: 'success',
-                        mapDefine: result.connectResult.mapDefine,
-                    });
-                } else {
-                    onConnectRef.current({
-                        result: 'failure',
-                        error: result.error,
-                    });
-                }
+                onConnectRef.current({
+                    result: 'success',
+                    mapDefine: res.mapDefine,
+                });
             }
-            return result;
-        })
-        .then((res) => {
-            if (res.result!== 'success') {
-                return;
-            }
-            const mapKind = res.connectResult.mapDefine.defaultMapKind;
+            const mapKind = res.mapDefine.defaultMapKind;
             console.log('connect success. load mapdefine');
-            return dispatch(loadMapDefine(mapKind));
+            return loadMapDefine(mapKind);
         })
         .then((res) => {
-            const result = res?.payload as LoadMapDefineResult;
-            if (result && result.result === 'success') {
-                loadOriginalIconDefine();
-                loadEvents();
-                loadCategories();
-            }
+            loadOriginalIconDefine();
+            loadEvents();
+            loadCategories();
         })
         .catch(err => {
             console.warn('connect error', err);
+            if (onConnectRef.current) {
+                onConnectRef.current({
+                    result: 'failure',
+                    error: err,
+                });
+            }
         })
-    }, [loadEvents, ownerContext.mapId, mapServer, loadOriginalIconDefine, dispatch, ownerContext.mapInstanceId, loadCategories]);
+    }, [connectMap, loadMapDefine, loadEvents, ownerContext.mapId, mapServer, loadOriginalIconDefine, ownerContext.mapInstanceId, loadCategories]);
 
     useWatch(() => {
+        console.log('debug');
         connectToMap();
     }, [ownerContext.mapId, mapServer]);
 
@@ -329,7 +325,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
             if (currentMapKind === mapKind) {
                 return;
             }
-            await dispatch(loadMapDefine(mapKind));
+            await loadMapDefine(mapKind);
             loadEvents();
             loadCategories();
         });
@@ -430,14 +426,17 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     }, [events]);
 
     const { visibleDataSourceIds } = useDataSource();
+    const resetFilteredItems = useResetRecoilState(filteredItemsState);
+    const { search } = useSearch();
+
     /**
      * set filter
      */
     useWatch(() => {
         if (ownerContext.filter && ownerContext.filter.conditions.length > 0) {
-            dispatch(search(ownerContext.filter.conditions));
+            search(ownerContext.filter.conditions);
         } else {
-            dispatch(operationActions.clearFilter());
+            resetFilteredItems();
         }
     }, [ownerContext.filter, visibleDataSourceIds]);
 

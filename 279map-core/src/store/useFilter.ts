@@ -1,8 +1,8 @@
 import { useCallback, useMemo } from "react";
-import { useSelector, shallowEqual } from "react-redux";
-import { RootState } from "./configureStore";
 import { DataId } from "279map-common";
 import { isEqualId } from "./data/dataUtility";
+import { useRecoilValue } from "recoil";
+import { filteredItemsState } from "./operation/operationAtom";
 
 type FilterStatus = 'Normal' | 'UnFiltered' | 'Filtered';
 
@@ -10,11 +10,7 @@ type FilterStatus = 'Normal' | 'UnFiltered' | 'Filtered';
  * フィルタ状態を判断するフック
  */
 export function useFilter() {
-    const { filteredItems } = useSelector((state: RootState) => {
-        return {
-            filteredItems: state.operation.filteredItems,
-        }
-    }, shallowEqual);
+    const filteredItems = useRecoilValue(filteredItemsState);
 
     /**
      * フィルタがかかっている状態か

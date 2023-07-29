@@ -28,7 +28,8 @@ import { useProcessMessage } from "../common/spinner/useProcessMessage";
 import { isEqualId } from "../../store/data/dataUtility";
 import { useItem } from "../../store/data/useItem";
 import { useRecoilValue } from 'recoil';
-import { itemMapState } from "../../store/data/dataAtom";
+import { dataSourceGroupsState, itemMapState } from "../../store/data/dataAtom";
+import { currentMapKindState, defaultExtentState } from "../../store/session/sessionAtom";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
@@ -53,10 +54,10 @@ export default function MapChart() {
         
     }, [pointStyleFunction, topographyStyleFunction, trackStyleFunction])
 
-    const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
-    const dataSources = useSelector((state: RootState) => state.data.dataSourceGroups);
+    const mapKind = useRecoilValue(currentMapKindState);
+    const dataSources = useRecoilValue(dataSourceGroupsState);
 
-    const defaultExtent = useSelector((state: RootState) => state.data.extent);
+    const defaultExtent = useRecoilValue(defaultExtentState);
     const itemMap = useRecoilValue(itemMapState);
 
     const dispatch = useAppDispatch();

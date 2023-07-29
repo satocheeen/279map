@@ -2,9 +2,9 @@ import { MapKind } from '279map-common';
 import React from 'react';
 import ListGroup from '../../../common/list/ListGroup';
 import { TbCircle, TbHexagon } from 'react-icons/tb';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../../store/configureStore';
 import styles from './SelectDrawFeature.module.scss';
+import { useRecoilValue } from 'recoil';
+import { currentMapKindState } from '../../../../store/session/sessionAtom';
 
 export enum DrawFeatureType {
     FreePolygon,
@@ -17,7 +17,7 @@ type Props = {
 }
 
 export default function SelectDrawFeature(props: Props) {
-    const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
+    const mapKind = useRecoilValue(currentMapKindState);
 
     return (
         <ListGroup className={styles.LiteArea}>

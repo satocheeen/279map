@@ -1,3 +1,4 @@
+import { Auth } from "279map-common";
 import { UrlType } from "../types/types";
 import * as olColor from 'ol/color';
 
@@ -27,3 +28,22 @@ export const sleep = (sec: number) => new Promise<void>((resolve) => {
         resolve();
     }, sec * 1000);
 });
+
+export function compareAuth(a: Auth, b: Auth) {
+    const weightFunc = (auth: Auth) => {
+        switch(auth) {
+            case Auth.None:
+            case Auth.Request:
+                return 0;
+            case Auth.View:
+                return 1;
+            case Auth.Edit:
+                return 2;
+            case Auth.Admin:
+                return 3;
+        }
+    }
+    const aWeight = weightFunc(a);
+    const bWeight = weightFunc(b);
+    return aWeight - bWeight;
+}

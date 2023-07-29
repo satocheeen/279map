@@ -3,15 +3,6 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Extent } from "ol/extent";
 import { ConfirmParam, ConfirmResult } from "../../components/common/confirm/useConfirm";
 import { MapMode } from "../../types/types";
-import { loadMapDefine } from "../session/sessionThunk";
-import { search } from "./operationThunk";
-
-type SearchResult = {
-    items: {
-        id: DataId;
-        contents: DataId[];
-    }[];
-};
 
 type ViewInfo = {
     extent: Extent;
@@ -51,7 +42,7 @@ const operationSlice = createSlice({
         selectedItemIds: [] as DataId[],
 
         // フィルタ
-        filteredItems: null as SearchResult['items'] | null,   // フィルタ条件に該当するコンテンツ。フィルタ未指定の場合は、null。
+        // filteredItems: null as SearchResult['items'] | null,   // フィルタ条件に該当するコンテンツ。フィルタ未指定の場合は、null。
 
         mapMode: MapMode.Normal,
 
@@ -78,19 +69,9 @@ const operationSlice = createSlice({
             }
             state.selectedItemIds = [];
         },
-        clearFilter(state) {
-            state.filteredItems = null;
-        },
         updateMapView(state, action: PayloadAction<ViewInfo>) {
             state.mapView = action.payload;
         },
-        // kickCommand(state, action: PayloadAction<CommandSet>) {
-        //     state.kickCommand = action.payload;
-        // },
-        // commandリスナーがコマンド実行したらこれを呼ぶ
-        // commandKicked(state) {
-        //     state.kickCommand = undefined;
-        // },
         changeMapMode(state, action: PayloadAction<MapMode>) {
             state.mapMode = action.payload;
         },
@@ -112,15 +93,6 @@ const operationSlice = createSlice({
             state.confirmResult = action.payload;
         },
     },
-    extraReducers: (builder) => {
-        builder
-        .addCase(loadMapDefine.fulfilled, (state, action) => {
-            state.filteredItems = null;
-        })
-        .addCase(search.fulfilled, (state, action) => {
-            state.filteredItems = action.payload.items;
-        })
-    }
 })
 export const operationActions = operationSlice.actions;
 export const operationReducer = operationSlice.reducer;

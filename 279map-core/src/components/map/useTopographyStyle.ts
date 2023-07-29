@@ -4,8 +4,8 @@ import { Fill, Stroke, Style } from "ol/style";
 import { useCallback } from "react";
 import { colorWithAlpha } from '../../util/CommonUtility';
 import { MapStyles } from "../../util/constant-defines";
-import { useSelector } from "react-redux";
-import { RootState } from "../../store/configureStore";
+import { useRecoilValue } from "recoil";
+import { currentMapKindState } from "../../store/session/sessionAtom";
 
 const DRAWING_COLOR = '#eebbaa'
 
@@ -42,7 +42,7 @@ type Props = {
  * @param props 
  */
 export default function useTopographyStyle(props: Props) {
-    const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
+    const mapKind = useRecoilValue(currentMapKindState);
 
     const getStyleFunction = useCallback((forceStyleFunc?: (feature: FeatureLike, resolution: number, defaultStyle: Style) => Style) => {
         return (feature: FeatureLike, resolution: number) => {

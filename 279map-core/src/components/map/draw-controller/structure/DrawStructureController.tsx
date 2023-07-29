@@ -8,15 +8,16 @@ import usePointStyle from '../../usePointStyle';
 import PromptMessageBox from '../PromptMessageBox';
 import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import SearchAddress, { SearchAddressHandler } from '../../../common/SearchAddress';
-import { RootState, useAppDispatch } from '../../../../store/configureStore';
+import { useAppDispatch } from '../../../../store/configureStore';
 import GeoJSON from 'ol/format/GeoJSON';
 import { GeoJsonObject } from 'geojson';
 import { registFeature } from '../../../../store/data/dataThunk';
 import { FeatureType, GeoProperties, MapKind } from '279map-common';
 import { SystemIconDefine } from '../../../../types/types';
-import { useSelector } from 'react-redux';
 import VectorLayer from 'ol/layer/Vector';
 import { useMap } from '../../useMap';
+import { useRecoilValue } from 'recoil';
+import { currentMapKindState } from '../../../../store/session/sessionAtom';
 
 type Props = {
     dataSourceId: string;   // 作図対象のデータソース
@@ -43,7 +44,7 @@ export default function DrawStructureController(props: Props) {
     const { getMap } = useMap();
     const pointStyleHook = usePointStyle();
 
-    const mapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
+    const mapKind = useRecoilValue(currentMapKindState);
     const searchAddressRef = useRef<SearchAddressHandler>(null);
     const drawingLayer = useRef<VectorLayer<VectorSource>>();
     const drawingSource = useRef<VectorSource|null>(null);

@@ -1,7 +1,4 @@
-import { DataSourceGroup, DataSourceInfo, EventDefine } from '279map-common';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { Extent } from 'ol/extent';
-import { loadMapDefine } from '../session/sessionThunk';
 
 /**
  * 地図関連の情報を管理
@@ -9,15 +6,11 @@ import { loadMapDefine } from '../session/sessionThunk';
 const dataSlice = createSlice({
     name: 'data',
     initialState: {
-        extent: undefined as Extent | undefined,
+        // extent: undefined as Extent | undefined,
         // itemMap: {} as {[id: string]: ItemDefine},  // TODO: DataId対応
 
         // ロード済みのコンテンツ情報
         // contentsList: [] as ContentsDefine[],
-
-        // originalIconDefine: [] as SystemIconDefine[],   // DBに登録されたオリジナルアイコン
-
-        dataSourceGroups: [] as DataSourceGroup[],
     },
     reducers: {
         // /**
@@ -47,37 +40,9 @@ const dataSlice = createSlice({
         //     console.log('updateContents', action.payload);
         //     state.contentsList = action.payload;
         // },
-        updateDatasourceVisible(state, action: PayloadAction<{target: { dataSourceId: string } | { group: string }, visible: boolean}>) {
-            state.dataSourceGroups = state.dataSourceGroups.map(group => {
-                const visible = ('group' in action.payload.target && action.payload.target.group === group.name) ? action.payload.visible : group.visible;
-                return {
-                    name: group.name,
-                    dataSources: group.dataSources.map((ds): DataSourceInfo => {
-                        const dsVisible = ('dataSourceId' in action.payload.target && action.payload.target.dataSourceId === ds.dataSourceId) ? action.payload.visible : ds.visible;
-                        return Object.assign({}, ds, {
-                            visible: dsVisible,
-                        });
-                    }),
-                    visible,
-                }
-            })
-        }
     },
     extraReducers: (builder) => {
         builder
-        .addCase(loadMapDefine.fulfilled, (state, action) => {
-            if (action.payload.result === 'failure') {
-                return;
-            }
-            // state.mapKind = action.payload.mapKind;
-            state.extent = action.payload.mapInfo.extent;
-            state.dataSourceGroups = action.payload.mapInfo.dataSourceGroups;
-
-            // アイテムクリア
-            // state.itemMap = {};  // TODO:
-            // state.contentsList = [];
-            // state.events = [];
-        })
         // .addCase(loadContents.fulfilled, (state, action) => {
         //     // 既存コンテンツの中に新しく取得したものが存在する場合は除去する
         //     let newContentsList = state.contentsList.filter(content => {
