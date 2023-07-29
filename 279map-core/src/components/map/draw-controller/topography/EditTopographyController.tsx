@@ -10,14 +10,13 @@ import useTopographyStyle from '../../useTopographyStyle';
 import PromptMessageBox from '../PromptMessageBox';
 import SelectFeature from '../SelectFeature';
 import RoadWidthSelecter from './RoadWidthSelecter';
-import { useAppDispatch } from '../../../../store/configureStore';
-import { updateFeature } from '../../../../store/data/dataThunk';
 import { FeatureType, GeoProperties } from '279map-common';
 import { FeatureLike } from 'ol/Feature';
 import { Geometry } from 'ol/geom';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../store/data/dataUtility';
 import { useMap } from '../../useMap';
+import { UpdateItemAPI } from 'tsunagumap-api';
 
 type Props = {
     close: () => void;  // 作図完了時のコールバック
@@ -38,7 +37,6 @@ enum Stage {
     const selectedFeature = useRef<FeatureLike>();
     const styleHook = useTopographyStyle({});
     const confirmHook = useConfirm();
-    const dispatch = useAppDispatch();
     const spinnerHook = useProcessMessage();
     const modifySource = useRef<VectorSource|null>();
     const modify = useRef<Modify>();
@@ -107,6 +105,7 @@ enum Stage {
         props.close();
     }, [props]);
 
+    const { getApi } = useMap();
     /**
      * 変更後Featureを保存する
      * @param feature 変更後Feature
@@ -129,17 +128,17 @@ enum Stage {
         const geoProperties = extractGeoProperty(feature.getProperties());
         const geoJson = geoProperties.featureType === FeatureType.ROAD ? geoProperties.lineJson : createGeoJson(feature);
         const id = convertDataIdFromFeatureId(selectedFeature.current?.getId() as string);
-        await dispatch(updateFeature({
+        await getApi().callApi(UpdateItemAPI, {
             id,
             geometry: geoJson.geometry,
             geoProperties: extractGeoProperty(geoJson.properties),
-        }));
+        });
 
         spinnerHook.hideProcessMessage(h);
 
         onClose();
 
-    }, [onClose, confirmHook, dispatch, spinnerHook]);
+    }, [onClose, confirmHook, getApi, spinnerHook]);
 
     const onEditOkClicked = useCallback(() => {
         if ((selectedFeature.current?.getProperties() as GeoProperties).featureType === FeatureType.ROAD) {

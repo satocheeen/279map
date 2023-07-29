@@ -34,7 +34,6 @@ export function useMapDefine() {
 
             createMqttClientInstance(param.instanceId, mapServer.host, json.sid);
 
-            console.log('debug2');
             setConnectStatus({
                 status: 'connected',
                 connectedMap: json.mapDefine,
@@ -47,13 +46,11 @@ export function useMapDefine() {
             console.warn('connect error', e);
 
             if (e instanceof ApiException) {
-                console.log('debug3');
                 setConnectStatus({
                     status: 'failure',
                     error: e.apiError,
                 })
             } else {
-                console.log('debug4');
                 setConnectStatus({
                     status: 'failure',
                     error: {

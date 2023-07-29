@@ -3,10 +3,10 @@ import { FeatureLike } from 'ol/Feature';
 import useConfirm, { ConfirmResult } from '../../../common/confirm/useConfirm';
 import SelectFeature from '../SelectFeature';
 import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
-import { useAppDispatch } from '../../../../store/configureStore';
-import { removeFeature } from '../../../../store/data/dataThunk';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../store/data/dataUtility';
+import { useMap } from '../../useMap';
+import { RemoveItemAPI } from 'tsunagumap-api';
 
 type Props = {
     target: LayerType;
@@ -21,7 +21,7 @@ type Props = {
 export default function RemoveFeatureController(props: Props) {
     const confirmHook = useConfirm();
     const spinnerHook = useProcessMessage();
-    const dispatch = useAppDispatch();
+    const { getApi } = useMap();
 
     const onRemoveOkClicked = useCallback(async(feature: FeatureLike) => {
         // 確認メッセージ
@@ -40,14 +40,14 @@ export default function RemoveFeatureController(props: Props) {
 
         const dataId = convertDataIdFromFeatureId(feature.getId() as string);
         // DB更新
-        await dispatch(removeFeature({
+        await getApi().callApi(RemoveItemAPI, {
             id: dataId,
-        }));
+        });
 
         spinnerHook.hideProcessMessage(h);
 
         props.close();
-    }, [props, confirmHook, dispatch, spinnerHook]);
+    }, [props, confirmHook, getApi, spinnerHook]);
 
     const onCancel = useCallback(() => {
         props.close();

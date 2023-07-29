@@ -6,11 +6,11 @@ import SelectDrawFeature, { DrawFeatureType } from './SelectDrawFeature';
 import DrawPointRadius from './DrawPointRadius';
 import { DrawAreaAddress } from './DrawAreaAddress';
 import { DrawFreeArea } from './DrawFreeArea';
-import { useAppDispatch } from '../../../../store/configureStore';
-import { registFeature } from '../../../../store/data/dataThunk';
 import { FeatureType, GeoProperties } from '279map-common';
 import { Geometry } from 'ol/geom';
 import { Feature } from 'ol';
+import { useMap } from '../../useMap';
+import { RegistItemAPI } from 'tsunagumap-api';
 
 type Props = {
     dataSourceId: string;
@@ -38,8 +38,8 @@ export default function DrawTopographyController(props: Props) {
 
     const [geometryType, setGeometryType] = useState('Polygon');
 
-    const dispatch = useAppDispatch();
     const spinner = useProcessMessage();
+    const { getApi } = useMap();
 
     const registFeatureFunc = useCallback(async(feature: Feature<Geometry>) => {
         const h = spinner.showProcessMessage({
@@ -55,18 +55,18 @@ export default function DrawTopographyController(props: Props) {
         } else {
             const geoJson = MapUtility.createGeoJson(feature);
 
-            await dispatch(registFeature({
+            await getApi().callApi(RegistItemAPI, {
                 dataSourceId: props.dataSourceId,
                 geometry: geoJson.geometry,
                 geoProperties: Object.assign({}, geoJson.properties, {
                     featureType: props.drawFeatureType,
                 } as GeoProperties),
-            }));
+            });
         }
 
         spinner.hideProcessMessage(h);
         props.close();
-    }, [spinner, props, dispatch]);
+    }, [spinner, props, getApi]);
 
     // 描画図形選択後
     const onSelectDrawFeatureType = useCallback((selected: DrawFeatureType) => {

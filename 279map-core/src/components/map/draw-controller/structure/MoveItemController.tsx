@@ -14,10 +14,10 @@ import Toggle from 'react-toggle';
 import usePointStyle from '../../usePointStyle';
 import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import { useAppDispatch } from '../../../../store/configureStore';
-import { updateFeature } from '../../../../store/data/dataThunk';
 import { convertDataIdFromFeatureId } from '../../../../store/data/dataUtility';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { useMap } from '../../useMap';
+import { UpdateItemAPI } from 'tsunagumap-api';
 
 type Props = {
     close: () => void;  // 編集完了時のコールバック
@@ -50,7 +50,8 @@ export default function MoveItemController(props: Props) {
     const [prevGeometory] = useState({} as {[id: string]: Geometry});
     const [multipleMode, setMultipleMode] = useState(false);    // 複数選択モードの場合、true
     const spinnerHook = useProcessMessage();
-    
+    const { getApi } = useMap();
+
     const onFinishClicked = async() => {
         const h = spinnerHook.showProcessMessage({
             overlay: true,
@@ -63,10 +64,10 @@ export default function MoveItemController(props: Props) {
             for (const feature of features) {
                 // DB更新
                 const id = convertDataIdFromFeatureId(feature.getId() as string);
-                await dispatch(updateFeature({
+                await getApi().callApi(UpdateItemAPI, {
                     id,
                     geometry: mfGeoJson.geometry,
-                }));
+                });
             }
         }
         spinnerHook.hideProcessMessage(h);

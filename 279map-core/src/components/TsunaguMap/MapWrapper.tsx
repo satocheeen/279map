@@ -5,7 +5,6 @@ import { addListener, doCommand, removeListener } from '../../util/Commander';
 import MapChart from './MapChart';
 import { ButtonInProcess } from '../../store/operation/operationSlice';
 import { OwnerContext } from './TsunaguMap';
-import { sessionActions } from '../../store/session/sessionSlice';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import styles from './MapWrapper.module.scss';
 import { TsunaguMapHandler } from '../../types/types';
@@ -244,11 +243,8 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
      * 初回処理
      */
     useWatch(() => {
-        dispatch(sessionActions.setInstanceId(ownerContext.mapInstanceId));
-
         // API Accessor用意
         createAPICallerInstance(ownerContext.mapInstanceId, mapServer, (error) => {
-            console.log('debug1');
             // コネクションエラー時
             setConnectStatus({
                 status: 'failure',
@@ -313,7 +309,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     }, [connectMap, loadMapDefine, loadEvents, ownerContext.mapId, mapServer, loadOriginalIconDefine, ownerContext.mapInstanceId, loadCategories]);
 
     useWatch(() => {
-        console.log('debug');
         connectToMap();
     }, [ownerContext.mapId, mapServer]);
 

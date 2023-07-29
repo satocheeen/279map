@@ -8,16 +8,15 @@ import usePointStyle from '../../usePointStyle';
 import PromptMessageBox from '../PromptMessageBox';
 import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import SearchAddress, { SearchAddressHandler } from '../../../common/SearchAddress';
-import { useAppDispatch } from '../../../../store/configureStore';
 import GeoJSON from 'ol/format/GeoJSON';
 import { GeoJsonObject } from 'geojson';
-import { registFeature } from '../../../../store/data/dataThunk';
 import { FeatureType, GeoProperties, MapKind } from '279map-common';
 import { SystemIconDefine } from '../../../../types/types';
 import VectorLayer from 'ol/layer/Vector';
 import { useMap } from '../../useMap';
 import { useRecoilValue } from 'recoil';
 import { currentMapKindState } from '../../../../store/session/sessionAtom';
+import { RegistItemAPI } from 'tsunagumap-api';
 
 type Props = {
     dataSourceId: string;   // 作図対象のデータソース
@@ -39,7 +38,6 @@ export default function DrawStructureController(props: Props) {
     const draw = useRef<null | Draw>(null);
     const drawingFeature = useRef<Feature | undefined>(undefined);  // 描画中のFeature
 
-    const dispatch = useAppDispatch();
     const spinner = useProcessMessage();
     const { getMap } = useMap();
     const pointStyleHook = usePointStyle();
@@ -111,6 +109,8 @@ export default function DrawStructureController(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [stage, getMap]);
 
+    const { getApi } = useMap();
+
     const registFeatureFunc = useCallback(async() => {
         if (!drawingFeature.current) {
             console.warn('描画アイテムなし');
@@ -124,7 +124,7 @@ export default function DrawStructureController(props: Props) {
         });
         const geoJson = createGeoJson(drawingFeature.current);
 
-        await dispatch(registFeature({
+        await getApi().callApi(RegistItemAPI, {
             dataSourceId: props.dataSourceId,
             geometry: geoJson.geometry,
             geoProperties: Object.assign({}, geoJson.properties, {
@@ -134,12 +134,12 @@ export default function DrawStructureController(props: Props) {
                     id: drawingIcon.current?.id,
                 },
             } as GeoProperties),
-        }));
+        });
     
         spinner.hideProcessMessage(h);
         props.close();
 
-    }, [dispatch, props, spinner]);
+    }, [getApi, props, spinner]);
 
     const onDrawEnd = useCallback((feature: Feature) => {
         const map = getMap();

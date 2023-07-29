@@ -1,7 +1,5 @@
 import { FeatureLike } from 'ol/Feature';
 import React, { useCallback, useRef, useState } from 'react';
-import { useAppDispatch } from '../../../../store/configureStore';
-import { updateFeature } from '../../../../store/data/dataThunk';
 import Input from '../../../common/form/Input';
 import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import PromptMessageBox from '../PromptMessageBox';
@@ -10,6 +8,8 @@ import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../store/data/dataUtility';
 import { itemMapState } from '../../../../store/data/dataAtom';
 import { useRecoilValue } from 'recoil';
+import { useMap } from '../../useMap';
+import { UpdateItemAPI } from 'tsunagumap-api';
 
 type Props = {
     close: () => void;  // 作図完了時のコールバック
@@ -23,7 +23,6 @@ export default function EditTopographyInfoController(props: Props) {
     const selectedFeatureId = useRef<string>();
     const [name, setName] = useState('');
     const itemMap = useRecoilValue(itemMapState);
-    const dispatch = useAppDispatch();
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
     const onSelectFeature = useCallback((feature: FeatureLike) => {
@@ -39,6 +38,8 @@ export default function EditTopographyInfoController(props: Props) {
         props.close();
     }, [props]);
 
+    const { getApi } = useMap();
+
     const onInputOk = useCallback(async() => {
         const h = showProcessMessage({
             overlay: true,
@@ -48,15 +49,15 @@ export default function EditTopographyInfoController(props: Props) {
 
         const id = convertDataIdFromFeatureId(selectedFeatureId.current as string);
         // update DB
-        await dispatch(updateFeature({
+        await getApi().callApi(UpdateItemAPI, {
             id,
             name,
-        }));
+        });
 
         hideProcessMessage(h);
         props.close();
 
-    }, [dispatch, showProcessMessage, hideProcessMessage, name, props]);
+    }, [getApi, showProcessMessage, hideProcessMessage, name, props]);
 
     switch(stage) {
         case Stage.SELECTING_FEATURE:
