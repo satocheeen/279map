@@ -5,18 +5,6 @@ import { GetCategoryAPI, GetContentsParam, GetEventsAPI, GetItemsAPI, GetItemsPa
 import { getAPICallerInstance } from '../../api/ApiCaller';
 import { RootState } from '../configureStore';
 
-export const loadOriginalIconDefine = createAsyncThunk<GetOriginalIconDefineResult>(
-    'data/loadOriginalIconDefineStatus',
-    async(_, { rejectWithValue, getState }) => {
-        try {
-            const apiResult = await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(GetOriginalIconDefineAPI, undefined);
-            return apiResult;
-        } catch(e) {
-            console.warn('getOriginalIconDefine error', e);
-            return rejectWithValue(e);
-        }
-    }
-);
 /**
  * 指定のズームLv., extentに該当するアイテムをロードする
  */

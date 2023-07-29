@@ -1,5 +1,6 @@
 import { CategoryDefine, ContentsDefine, EventDefine, ItemDefine } from '279map-common';
 import { atom } from 'recoil';
+import { SystemIconDefine } from '../../entry';
 
 export const itemMapState = atom<{[id: string]: ItemDefine}>({
     key: 'itemMapAtom',
@@ -18,5 +19,10 @@ export const categoryState = atom<CategoryDefine[]>({
 
 export const eventsState = atom<EventDefine[]>({
     key: 'eventsAtom',
+    default: [],
+})
+
+export const originalIconDefineState = atom<SystemIconDefine[]>({
+    key: 'originalIconDefineAtom',
     default: [],
 })

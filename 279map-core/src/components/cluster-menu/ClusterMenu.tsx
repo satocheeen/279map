@@ -4,7 +4,7 @@ import { Coordinate } from 'ol/coordinate';
 import styles from './ClusterMenu.module.scss';
 import { itemMapState } from '../../store/data/dataAtom';
 import { useRecoilValue } from 'recoil';
-import useIcon from '../../store/useIcon';
+import useIcon from '../../store/data/useIcon';
 import { DataId } from '279map-common';
 import { getMapKey } from '../../store/data/dataUtility';
 import { useMap } from '../map/useMap';

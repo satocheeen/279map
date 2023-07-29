@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Button from '../../../common/button/Button';
 import Modal from  '../../../common/modal/Modal';
-import useIcon from '../../../../store/useIcon';
+import useIcon from '../../../../store/data/useIcon';
 import styles from './SelectStructureDialog.module.scss';
 import { MapKind } from '279map-common';
 import { SystemIconDefine } from '../../../../types/types';

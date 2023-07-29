@@ -1,4 +1,4 @@
-import useIcon from "../../store/useIcon";
+import useIcon from "../../store/data/useIcon";
 import { useCallback, useContext } from "react";
 import Feature, { FeatureLike } from "ol/Feature";
 import { Fill, Icon, Style, Text } from 'ol/style';

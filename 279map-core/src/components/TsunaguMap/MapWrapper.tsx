@@ -1,7 +1,6 @@
 import React, { useImperativeHandle, useContext, useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
-import { loadOriginalIconDefine } from '../../store/data/dataThunk';
 import { addListener, doCommand, removeListener } from '../../util/Commander';
 import MapChart from './MapChart';
 import { ButtonInProcess, operationActions } from '../../store/operation/operationSlice';
@@ -28,6 +27,7 @@ import Input from '../common/form/Input';
 import { useSubscribe } from '../../util/useSubscribe';
 import { useItem } from '../../store/data/useItem';
 import { useContents } from '../../store/data/useContents';
+import useIcon from '../../store/data/useIcon';
 
 type Props = {};
 
@@ -267,6 +267,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
 
     }, [mapServer, ownerContext.mapInstanceId]);
 
+    const { loadOriginalIconDefine } = useIcon();
     /**
      * connect to map
      */
@@ -306,7 +307,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         .then((res) => {
             const result = res?.payload as LoadMapDefineResult;
             if (result && result.result === 'success') {
-                dispatch(loadOriginalIconDefine());
+                loadOriginalIconDefine();
                 loadEvents();
                 loadCategories();
             }
@@ -314,7 +315,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         .catch(err => {
             console.warn('connect error', err);
         })
-    }, [loadEvents, ownerContext.mapId, mapServer, dispatch, ownerContext.mapInstanceId, loadCategories]);
+    }, [loadEvents, ownerContext.mapId, mapServer, loadOriginalIconDefine, dispatch, ownerContext.mapInstanceId, loadCategories]);
 
     useWatch(() => {
         connectToMap();

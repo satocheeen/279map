@@ -1,9 +1,7 @@
 import { DataSourceGroup, DataSourceInfo, EventDefine } from '279map-common';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { Extent } from 'ol/extent';
-import { SystemIconDefine } from '../../types/types';
 import { loadMapDefine } from '../session/sessionThunk';
-import { loadOriginalIconDefine } from './dataThunk';
 
 /**
  * 地図関連の情報を管理
@@ -17,7 +15,7 @@ const dataSlice = createSlice({
         // ロード済みのコンテンツ情報
         // contentsList: [] as ContentsDefine[],
 
-        originalIconDefine: [] as SystemIconDefine[],   // DBに登録されたオリジナルアイコン
+        // originalIconDefine: [] as SystemIconDefine[],   // DBに登録されたオリジナルアイコン
 
         dataSourceGroups: [] as DataSourceGroup[],
     },
@@ -79,18 +77,6 @@ const dataSlice = createSlice({
             // state.itemMap = {};  // TODO:
             // state.contentsList = [];
             // state.events = [];
-        })
-        .addCase(loadOriginalIconDefine.fulfilled, (state, action) => {
-            const originalDefines = action.payload.map(def => {
-                return {
-                    type: 'original',
-                    id: def.id,
-                    caption: def.caption,
-                    imagePath: def.imagePath,
-                    useMaps: def.useMaps,
-                } as SystemIconDefine;
-            })
-            state.originalIconDefine = originalDefines;
         })
         // .addCase(loadContents.fulfilled, (state, action) => {
         //     // 既存コンテンツの中に新しく取得したものが存在する場合は除去する

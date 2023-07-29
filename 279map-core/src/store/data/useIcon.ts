@@ -1,10 +1,14 @@
 import { IconInfo, MapKind } from "279map-common";
 import { useCallback, useContext, useMemo } from "react";
 import { useSelector } from "react-redux";
-import { OwnerContext } from "../components/TsunaguMap/TsunaguMap";
-import { SystemIconDefine } from "../types/types";
-import { RootState } from "./configureStore";
+import { OwnerContext } from "../../components/TsunaguMap/TsunaguMap";
+import { SystemIconDefine } from "../../types/types";
+import { RootState } from "../configureStore";
 import defaultIcon from './pin.png'
+import { useRecoilState } from "recoil";
+import { originalIconDefineState } from "./dataAtom";
+import { useMap } from "../../components/map/useMap";
+import { GetOriginalIconDefineAPI } from "tsunagumap-api";
 
 function getDefaultIconDefine(useMaps: MapKind[]): SystemIconDefine {
     return {
@@ -23,9 +27,30 @@ function getDefaultIconDefine(useMaps: MapKind[]): SystemIconDefine {
  * @returns 
  */
 export default function useIcon() {
+    const [ originalIconDefine, setOriginalIconDefine ] = useRecoilState(originalIconDefineState)
+    const { getApi } = useMap();
     const ownerContext = useContext(OwnerContext);
     const currentMapKind = useSelector((state: RootState) => state.session.currentMapKindInfo?.mapKind);
-    const originalIconDefine = useSelector((state: RootState) => state.data.originalIconDefine);
+
+    const loadOriginalIconDefine = useCallback(async() => {
+        try {
+            const apiResult = await getApi().callApi(GetOriginalIconDefineAPI, undefined);
+            const originalDefines = apiResult.map(def => {
+                return {
+                    type: 'original',
+                    id: def.id,
+                    caption: def.caption,
+                    imagePath: def.imagePath,
+                    useMaps: def.useMaps,
+                } as SystemIconDefine;
+            })
+            setOriginalIconDefine(originalDefines);
+        } catch(e) {
+            console.warn('getOriginalIconDefine error', e);
+            throw e;
+        }
+
+    }, [getApi, setOriginalIconDefine]);
 
     const iconDefine = useMemo(() => {
         const defaultIconDefine = ownerContext.iconDefine ?? [];
@@ -77,6 +102,7 @@ export default function useIcon() {
     }, [currentMapIconDefine, currentDefaultIcon]);
 
     return {
+        loadOriginalIconDefine,
         currentMapIconDefine,
         getIconDefine,
     }
