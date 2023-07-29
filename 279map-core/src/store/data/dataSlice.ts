@@ -3,7 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { Extent } from 'ol/extent';
 import { SystemIconDefine } from '../../types/types';
 import { loadMapDefine } from '../session/sessionThunk';
-import { loadEvents, loadOriginalIconDefine } from './dataThunk';
+import { loadOriginalIconDefine } from './dataThunk';
 
 /**
  * 地図関連の情報を管理
@@ -17,8 +17,7 @@ const dataSlice = createSlice({
         // ロード済みのコンテンツ情報
         // contentsList: [] as ContentsDefine[],
 
-        // categories: [] as CategoryDefine[],
-        events: [] as EventDefine[],    // イベント（日付を持つデータ）情報
+        // events: [] as EventDefine[],    // イベント（日付を持つデータ）情報
 
         originalIconDefine: [] as SystemIconDefine[],   // DBに登録されたオリジナルアイコン
 
@@ -81,7 +80,7 @@ const dataSlice = createSlice({
             // アイテムクリア
             // state.itemMap = {};  // TODO:
             // state.contentsList = [];
-            state.events = [];
+            // state.events = [];
         })
         .addCase(loadOriginalIconDefine.fulfilled, (state, action) => {
             const originalDefines = action.payload.map(def => {
@@ -94,18 +93,6 @@ const dataSlice = createSlice({
                 } as SystemIconDefine;
             })
             state.originalIconDefine = originalDefines;
-        })
-        .addCase(loadEvents.fulfilled, (state, action) => {
-            const newEvents = state.events.concat();
-            action.payload.forEach(event => {
-                const index = newEvents.findIndex(ne => ne.dataSourceId === event.dataSourceId);
-                if (index === -1) {
-                    newEvents.push(event);
-                } else {
-                    newEvents[index] = event;
-                }
-            });
-            state.events = newEvents;
         })
         // .addCase(loadContents.fulfilled, (state, action) => {
         //     // 既存コンテンツの中に新しく取得したものが存在する場合は除去する

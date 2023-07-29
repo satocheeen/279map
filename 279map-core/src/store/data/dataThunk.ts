@@ -17,33 +17,6 @@ export const loadOriginalIconDefine = createAsyncThunk<GetOriginalIconDefineResu
         }
     }
 );
-// イベント情報ロード
-export const loadEvents = createAsyncThunk<GetEventsResult>(
-    'data/loadEventsStatus',
-    async(_, { rejectWithValue, getState }) => {
-        try {
-            const targetDataSourceIds = [] as string[];
-            (getState() as RootState).data.dataSourceGroups.forEach(group => {
-                if (!group.visible) return;
-                group.dataSources.forEach(ds => {
-                    if (ds.visible) {
-                        targetDataSourceIds.push(ds.dataSourceId);
-                    }
-                })
-            });
-            // TODO: 既にロード済みのイベントは取得しない
-            const apiResult = await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(GetEventsAPI, {
-                dataSourceIds: targetDataSourceIds,
-            });
-
-            return apiResult;
-    
-        } catch (e) {
-            console.warn('loadEvents error', e);
-            return rejectWithValue(e);
-        }
-    }
-)
 /**
  * 指定のズームLv., extentに該当するアイテムをロードする
  */

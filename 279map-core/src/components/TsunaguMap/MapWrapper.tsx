@@ -1,7 +1,7 @@
 import React, { useImperativeHandle, useContext, useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
-import { loadEvents, loadOriginalIconDefine } from '../../store/data/dataThunk';
+import { loadOriginalIconDefine } from '../../store/data/dataThunk';
 import { addListener, doCommand, removeListener } from '../../util/Commander';
 import MapChart from './MapChart';
 import { ButtonInProcess, operationActions } from '../../store/operation/operationSlice';
@@ -236,6 +236,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const mapServer = useSelector((state: RootState) => state.session.mapServer);
 
     const { loadCategories } = useCategory();
+    const { loadEvents } = useEvent();
     /**
      * 初回処理
      */
@@ -256,7 +257,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
                 overlay: false,
                 spinner: true,
             });
-            await dispatch(loadEvents());
+            await loadEvents();
             await loadCategories();
             hideProcessMessage(pH);
         });
@@ -306,14 +307,14 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
             const result = res?.payload as LoadMapDefineResult;
             if (result && result.result === 'success') {
                 dispatch(loadOriginalIconDefine());
-                dispatch(loadEvents());
+                loadEvents();
                 loadCategories();
             }
         })
         .catch(err => {
             console.warn('connect error', err);
         })
-    }, [ownerContext.mapId, mapServer, dispatch, ownerContext.mapInstanceId, loadCategories]);
+    }, [loadEvents, ownerContext.mapId, mapServer, dispatch, ownerContext.mapInstanceId, loadCategories]);
 
     useWatch(() => {
         connectToMap();
@@ -328,7 +329,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
                 return;
             }
             await dispatch(loadMapDefine(mapKind));
-            dispatch(loadEvents());
+            loadEvents();
             loadCategories();
         });
 
