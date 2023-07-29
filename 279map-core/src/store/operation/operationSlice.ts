@@ -18,19 +18,6 @@ export type PopupTarget = {
     contentId: DataId;
 }
 
-// オーバーレイ表示時に表示するボタン種別
-export enum ButtonInProcess {
-    Request = 'Request',    // 地図への登録申請
-}
-export type ProcessMessageType = {
-    overlay: boolean;   // trueの場合、オーバーレイ表示。falseの場合、ユーザ操作を阻害しない位置に表示
-    spinner: boolean;   // trueの場合、スピナー表示
-    message?: string;
-    button?: ButtonInProcess;   // メッセージ下に表示するボタン種別（overlay=trueの場合のみ有効）
-}
-export type ProcessMessageWithID = ProcessMessageType & {
-    id: number;
-}
 /**
  * 操作関連のデータを管理するストア
  */
@@ -47,8 +34,6 @@ const operationSlice = createSlice({
             zoom: 0,
         } as ViewInfo,
 
-        processMeesageCounter: 0,
-        processMessages: [] as ProcessMessageWithID[],
     },
     reducers: {
         setSelectItem(state, action: PayloadAction<DataId[]>) {
@@ -65,13 +50,6 @@ const operationSlice = createSlice({
         },
         changeMapMode(state, action: PayloadAction<MapMode>) {
             state.mapMode = action.payload;
-        },
-        addProcessMessage(state, action: PayloadAction<ProcessMessageWithID>) {
-            state.processMessages.push(action.payload);
-            state.processMeesageCounter = state.processMeesageCounter + 1;
-        },
-        removeProcessMessage(state, action: PayloadAction<number>) {
-            state.processMessages = state.processMessages.filter(item => item.id !== action.payload);
         },
     },
 })

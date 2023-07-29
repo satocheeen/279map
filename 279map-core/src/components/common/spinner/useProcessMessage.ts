@@ -1,34 +1,66 @@
 import { useCallback } from "react";
-import { ProcessMessageType, operationActions } from "../../../store/operation/operationSlice";
-import { RootState, useAppDispatch } from "../../../store/configureStore";
-import { useSelector } from "react-redux";
+import { atom, selector, useRecoilState, useSetRecoilState } from "recoil";
+
+// オーバーレイ表示時に表示するボタン種別
+export enum ButtonInProcess {
+    Request = 'Request',    // 地図への登録申請
+}
+export type ProcessMessageType = {
+    overlay: boolean;   // trueの場合、オーバーレイ表示。falseの場合、ユーザ操作を阻害しない位置に表示
+    spinner: boolean;   // trueの場合、スピナー表示
+    message?: string;
+    button?: ButtonInProcess;   // メッセージ下に表示するボタン種別（overlay=trueの場合のみ有効）
+}
+type ProcessMessageWithID = ProcessMessageType & {
+    id: number;
+}
+export const processMessageCounterState = atom<number>({
+    key: 'processMessageCounterAtom',
+    default: 0,
+});
+
+export const processMessagesState = atom<ProcessMessageWithID[]>({
+    key: 'processMessagesAtom',
+    default:[],
+});
+
+/**
+ * オーバーレイ表示するかどうか
+ */
+export const isShowOverlayState = selector<boolean>({
+    key: 'isShowOverlaySelector',
+    get: ({ get }) => {
+        const processMessages = get(processMessagesState);
+        return processMessages.some(pm => pm.overlay);
+    }
+})
+
+/**
+ * スピナー表示するかどうか
+ */
+export const isShowSpinnerState = selector<boolean>({
+    key: 'isShowSpinnerSelector',
+    get: ({ get }) => {
+        const processMessages = get(processMessagesState);
+        return processMessages.some(pm => pm.spinner);
+    }
+})
+
+/**
+ * 表示するメッセージ。メッセージが存在しない場合は、undefined。
+ */
+export const processMessageState = selector<ProcessMessageWithID|undefined>({
+    key: 'processMessageSelector',
+    get: ({ get }) => {
+        const processMessages = get(processMessagesState);
+        return processMessages.find(pm => pm.message);
+    }
+})
 
 export function useProcessMessage() {
-    const dispatch = useAppDispatch();
-    const currentProcessCnt = useSelector((state: RootState) => state.operation.processMeesageCounter);
+    const [currentProcessCnt, setProcessCnt] = useRecoilState(processMessageCounterState);
+    const setProcessMessages = useSetRecoilState(processMessagesState);
     
-    /**
-     * オーバーレイ表示するかどうか
-     */
-    const isShowOverlay = useSelector((state: RootState) => {
-        return state.operation.processMessages.some(pm => pm.overlay);
-    });
-
-    /**
-     * スピナー表示するかどうか
-     */
-    const isShowSpinner = useSelector((state: RootState) => {
-        return state.operation.processMessages.some(pm => pm.spinner);
-    });
-
-    /**
-     * 表示するメッセージ。メッセージが存在しない場合は、undefined。
-     */
-    const processMessage = useSelector((state: RootState) => {
-        return state.operation.processMessages.find(pm => pm.message);
-    });
-
-
     /**
      * 指定の処理中メッセージを画面に表示する
      * @return id。メッセージを消す際にhideProcessに渡す。
@@ -41,23 +73,25 @@ export function useProcessMessage() {
             id,
         });
 
-        dispatch(operationActions.addProcessMessage(withID));
+        setProcessMessages((current) => {
+            return current.concat(withID);
+        });
+        setProcessCnt(id);
         return id;
-    }, [dispatch, currentProcessCnt]);
+    }, [setProcessMessages, currentProcessCnt, setProcessCnt]);
 
     /**
      * 表示中のメッセージを消す
      * @param id showProcessMessageで返されたid
      */
     const hideProcessMessage = useCallback((id: number) => {
-        dispatch(operationActions.removeProcessMessage(id));
-    }, [dispatch]);
+        setProcessMessages((current) => {
+            return current.filter(item => item.id !== id);
+        });
+    }, [setProcessMessages]);
 
     return {
         showProcessMessage,
         hideProcessMessage,
-        isShowOverlay,
-        isShowSpinner,
-        processMessage,
     }
 }

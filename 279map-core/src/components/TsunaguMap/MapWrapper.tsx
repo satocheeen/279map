@@ -3,9 +3,8 @@ import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { addListener, doCommand, removeListener } from '../../util/Commander';
 import MapChart from './MapChart';
-import { ButtonInProcess } from '../../store/operation/operationSlice';
 import { OwnerContext } from './TsunaguMap';
-import { useProcessMessage } from '../common/spinner/useProcessMessage';
+import { ButtonInProcess, isShowOverlayState, isShowSpinnerState, processMessageState, useProcessMessage } from '../common/spinner/useProcessMessage';
 import styles from './MapWrapper.module.scss';
 import { TsunaguMapHandler } from '../../types/types';
 import { RequestAPI, ErrorType, GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam, WebSocketMessage, GetContentsParam } from "tsunagumap-api";
@@ -512,7 +511,9 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
  * 地図の上にスピナーやメッセージをオーバーレイ表示するためのコンポーネント
  */
 function Overlay() {
-    const { isShowOverlay, isShowSpinner, processMessage } = useProcessMessage();
+    const isShowOverlay = useRecoilValue(isShowOverlayState);
+    const isShowSpinner = useRecoilValue(isShowSpinnerState);
+    const processMessage = useRecoilValue(processMessageState);
 
     const others = useMemo(() => {
         if (!processMessage?.button) return null;
