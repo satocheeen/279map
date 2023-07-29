@@ -6,8 +6,6 @@ import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
 import { Auth, DataId, DataSourceLinkableContent, MapKind } from '279map-common';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../store/configureStore';
 import { getMapKey } from '../../store/data/dataUtility';
 import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam } from 'tsunagumap-api';
 import { useMap } from '../map/useMap';

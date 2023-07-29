@@ -1,8 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { RootState, useAppDispatch } from '../../store/configureStore';
 import { Modal }  from '../common';
 import Content from './Content';
-import { useSelector } from 'react-redux';
 import { addListener, removeListener } from '../../util/Commander';
 import { ContentsDefine, DataId } from '279map-common';
 import AddContentMenu from '../popup/AddContentMenu';
@@ -25,7 +23,6 @@ type Target = {
 }
 export default function ContentsModal() {
     const [show, setShow] = useState(false);
-    const dispatch = useAppDispatch();
     const [loaded, setLoaded] = useState(false);
     const itemMap = useRecoilValue(itemMapState);
     const [target, setTarget] = useState<Target|undefined>();
@@ -99,7 +96,7 @@ export default function ContentsModal() {
     }, [target, itemMap]);
 
     const contentsList = useRecoilValue(contentsState);
-    const contents = useSelector((state: RootState): ContentsDefine[] => {
+    const contents = useMemo((): ContentsDefine[] => {
         if (!target) return [];
 
         let list: ContentsDefine[];
@@ -116,9 +113,9 @@ export default function ContentsModal() {
             // 日時順にソート
             return (a.date ?? '').localeCompare(b.date ?? '');
         });
-    })
+    }, [contentsList, itemMap, target])
 
-    const title = useSelector((state: RootState) => {
+    const title = useMemo(() => {
         if (!target) return '';
         let itemId: DataId;
         if (target.type === 'item') {
@@ -132,7 +129,7 @@ export default function ContentsModal() {
         const item = itemMap[getMapKey(itemId)];
         if (!item) return '';
         return item.name;
-    });
+    }, [target, contentsList, itemMap]);
 
     const onCloseBtnClicked = useCallback(() => {
         setShow(false);

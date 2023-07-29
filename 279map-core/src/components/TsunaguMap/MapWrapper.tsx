@@ -1,5 +1,4 @@
 import React, { useImperativeHandle, useContext, useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { RootState, useAppDispatch } from '../../store/configureStore';
 import { addListener, doCommand, removeListener } from '../../util/Commander';
 import MapChart from './MapChart';
 import { OwnerContext } from './TsunaguMap';
@@ -51,7 +50,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const onCategoriesLoadedRef = useRef<typeof ownerContext.onCategoriesLoaded>();
     const onEventsLoadedRef = useRef<typeof ownerContext.onEventsLoaded>();
 
-    const dispatch = useAppDispatch();
     const { getApi, getMap } = useMap();
     const { loadContents, registContent, linkContentToItem, updateContent, removeContent } = useContents();
     const { updateDatasourceVisible } = useDataSource();

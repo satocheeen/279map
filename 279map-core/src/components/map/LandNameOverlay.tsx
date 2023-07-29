@@ -1,15 +1,14 @@
 import { Overlay } from 'ol';
 import React, { useEffect, useMemo, useState } from 'react';
-import { useSelector } from 'react-redux';
 import {buffer, getSize} from 'ol/extent';
 import { usePrevious } from '../../util/usePrevious';
-import { RootState } from '../../store/configureStore';
 import styles from './LandNameOverlay.module.scss';
 import { FeatureType } from '279map-common';
 import { getMapKey } from '../../store/data/dataUtility';
 import { useMap } from './useMap';
 import { itemMapState } from '../../store/data/dataAtom';
 import { useRecoilValue } from 'recoil';
+import { mapViewState } from '../../store/operation/operationAtom';
 
 // 島名を常時表示するズームLv.境界値（この値よりも小さい場合に、常時表示）
 const LandNameShowZoomLv = 8.17
@@ -21,7 +20,7 @@ export default function LandNameOverlay() {
     const [landNameRefMap] = useState({} as { [id: string]: HTMLDivElement });
     const [landNameOverlayMap] = useState({} as  { [id: string]: Overlay });
 
-    const mapView = useSelector((state: RootState) => state.operation.mapView);
+    const mapView = useRecoilValue(mapViewState);
 
     // 名前を持つ島
     const namedEarth = useMemo(() => {

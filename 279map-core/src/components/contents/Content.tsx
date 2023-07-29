@@ -3,7 +3,6 @@ import { UrlType } from "../../types/types";
 import styles from './Content.module.scss';
 import { MdEdit, MdOutlineOpenInNew, MdDelete } from 'react-icons/md';
 import dayjs from "dayjs";
-import { useAppDispatch } from "../../store/configureStore";
 import CategoryBadge from "../common/CategoryBadge";
 import * as CommonUtility from '../../util/CommonUtility';
 import { CgArrowsExchangeAlt } from "react-icons/cg";
@@ -11,7 +10,7 @@ import useConfirm, { ConfirmBtnPattern, ConfirmResult } from "../common/confirm/
 import reactStringReplace from "react-string-replace";
 import PopupMenuIcon from "../popup/PopupMenuIcon";
 import AddContentMenu from "../popup/AddContentMenu";
-import { ContentAttr, ContentsDefine, DataId, DataSourceInfo, MapKind } from "279map-common";
+import { ContentAttr, ContentsDefine, DataId, MapKind } from "279map-common";
 import Spinner from "../common/spinner/Spinner";
 import { useFilter } from "../../store/useFilter";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
@@ -39,7 +38,6 @@ type Props = {
  */
 export default function Content(props: Props) {
     const { confirm } = useConfirm();
-    const dispatch = useAppDispatch();
     const { filteredContentIdList } = useFilter();
     const { onEditContent }  = useContext(OwnerContext);
     const { getApi } = useMap();

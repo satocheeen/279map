@@ -2,8 +2,6 @@ import { DataId, FeatureType } from '279map-common';
 import { MapBrowserEvent } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import React, { useRef, useEffect, useState, useCallback, useContext } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../store/configureStore';
 import { useFilter } from '../../store/useFilter';
 import ClusterMenu from './ClusterMenu';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
@@ -13,7 +11,7 @@ import { useMap } from '../map/useMap';
 import { addListener, removeListener } from '../../util/Commander';
 import { itemMapState } from '../../store/data/dataAtom';
 import { useRecoilValue } from 'recoil';
-import { mapModeState, selectedItemIdsState } from '../../store/operation/operationAtom';
+import { mapModeState, mapViewState, selectedItemIdsState } from '../../store/operation/operationAtom';
 
 /**
  * 地図上のアイテムがクリックされた際に、
@@ -55,7 +53,7 @@ export default function ClusterMenuController(props: Props) {
     }, [mapMode]);
 
     // close cluster menu when zoom level is changed
-    const mapView = useSelector((state: RootState) => state.operation.mapView);
+    const mapView = useRecoilValue(mapViewState);
     const prevMapView = usePrevious(mapView);
     useEffect(() => {
         if (mapView.zoom === prevMapView?.zoom) {

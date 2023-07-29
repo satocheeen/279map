@@ -1,6 +1,4 @@
 import React, { useImperativeHandle, useState, useMemo, useRef } from 'react';
-import { Provider } from 'react-redux';
-import { store } from '../../store/configureStore';
 import MapWrapper from './MapWrapper';
 import styles from './TsunaguMap.module.scss';
 import './TsunaguMap.scss';
@@ -98,24 +96,22 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
             <RecoilRoot>
                 <OwnerContext.Provider value={ownerContextValue}>
                     <TooltipContext.Provider value={tooltipContextValue}>
-                        <Provider store={store}>
-                            <div className={styles.TsunaguMap}>
-                                <MapWrapper ref={mapRef} />
-                            </div>
-                            <ConfirmDialog />
-                            <ContentsModal />
-                            <UserListModal />
+                        <div className={styles.TsunaguMap}>
+                            <MapWrapper ref={mapRef} />
+                        </div>
+                        <ConfirmDialog />
+                        <ContentsModal />
+                        <UserListModal />
 
-                            {defaultLinkUnpointedContentParam &&
-                                <DefaultComponents linkUnpointedContentParam={defaultLinkUnpointedContentParam} onClose={()=>{setDefaultLinkUnpointedContentParam(undefined)}} />
-                            }
-                            {defaultNewContentParam &&
-                                <DefaultComponents newContentParam={defaultNewContentParam} onClose={()=>{setDefaultNewContentParam(undefined)}} />
-                            }
-                            {defaultEditContentParam &&
-                                <DefaultComponents editContentParam={defaultEditContentParam} onClose={()=>{setDefaultEditContentParam(undefined)}} />
-                            }
-                        </Provider>
+                        {defaultLinkUnpointedContentParam &&
+                            <DefaultComponents linkUnpointedContentParam={defaultLinkUnpointedContentParam} onClose={()=>{setDefaultLinkUnpointedContentParam(undefined)}} />
+                        }
+                        {defaultNewContentParam &&
+                            <DefaultComponents newContentParam={defaultNewContentParam} onClose={()=>{setDefaultNewContentParam(undefined)}} />
+                        }
+                        {defaultEditContentParam &&
+                            <DefaultComponents editContentParam={defaultEditContentParam} onClose={()=>{setDefaultEditContentParam(undefined)}} />
+                        }
                     </TooltipContext.Provider>
                 </OwnerContext.Provider>
             </RecoilRoot>

@@ -8,7 +8,6 @@ import PromptMessageBox from '../PromptMessageBox';
 import RoadWidthSelecter from './RoadWidthSelecter';
 import { extractGeoProperty } from '../../../../util/MapUtility';
 import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
-import { useAppDispatch } from '../../../../store/configureStore';
 import { FeatureType, GeoProperties } from '279map-common';
 import { useMap } from '../../useMap';
 import { RegistItemAPI } from 'tsunagumap-api';
@@ -37,7 +36,6 @@ export default function DrawRoadController(props: Props) {
     // 描画中のFeature
     const drawingFeature = useRef<OlFeature | undefined>();
     const spinnerHook = useProcessMessage();
-    const dispatch = useAppDispatch();
     const drawingSource = useRef<VectorSource|null>(null);
 
     /**

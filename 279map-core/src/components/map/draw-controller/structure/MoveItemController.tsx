@@ -13,7 +13,6 @@ import "react-toggle/style.css";
 import Toggle from 'react-toggle';
 import usePointStyle from '../../usePointStyle';
 import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
-import { useAppDispatch } from '../../../../store/configureStore';
 import { convertDataIdFromFeatureId } from '../../../../store/data/dataUtility';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { useMap } from '../../useMap';
@@ -35,7 +34,6 @@ export default function MoveItemController(props: Props) {
     const [okable, setOkable] = useState(false);
     const { getMap } = useMap();
     const pointStyleHook = usePointStyle();
-    const dispatch = useAppDispatch();
     const targetLayers = useRef<VectorLayer<VectorSource>[]>(
         (getMap()?.getLayersOfTheType(LayerType.Point) ?? []).filter(l => l.editable).map(l => l.layer)
     );

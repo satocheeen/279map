@@ -1,7 +1,5 @@
 import { Overlay } from 'ol';
 import React, { useEffect, useRef, useMemo, useCallback, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../store/configureStore';
 import PointsPopup from './PointsPopup';
 import { getCenter } from 'geolib';
 import VectorSource from 'ol/source/Vector';
@@ -15,6 +13,7 @@ import useDataSource from '../../store/data/useDataSource';
 import { useFilter } from '../../store/useFilter';
 import { itemMapState } from '../../store/data/dataAtom';
 import { useRecoilValue } from 'recoil';
+import { mapViewState } from '../../store/operation/operationAtom';
 
 function createKeyFromPopupInfo(param: PopupGroupWithPosition): string {
     if (!param) {
@@ -27,7 +26,7 @@ export default function PopupContainer() {
     const overlayRefMap = useRef<{ [key: string]: Overlay }>({});
 
     const itemMap = useRecoilValue(itemMapState);
-    const extent = useSelector((state: RootState) => state.operation.mapView.extent);
+    const { extent, zoom } = useRecoilValue(mapViewState);
 
     const { popupMode } = useMapOptions();
     
@@ -135,7 +134,6 @@ export default function PopupContainer() {
         });
     }, [/* openedPopupItemIds, */popupGroups]);
 
-    const zoom = useSelector((state: RootState) => state.operation.mapView.zoom);
     useEffect(() => {
         // 新しく追加されたものについて、オーバレイを配置する
         const addChildren = popupGroups.filter(target => {

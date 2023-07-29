@@ -1,11 +1,9 @@
 import React, { useCallback, useMemo, useRef, useState, useContext } from "react";
 import { Vector as VectorSource } from "ol/source";
 import styles from './MapChart.module.scss';
-import { RootState, useAppDispatch } from "../../store/configureStore";
 import PopupContainer from "../popup/PopupContainer";
 import DrawController from "../map/DrawController";
 import { addListener, removeListener } from "../../util/Commander";
-import { operationActions } from "../../store/operation/operationSlice";
 import LandNameOverlay from "../map/LandNameOverlay";
 import { useFilter } from "../../store/useFilter";
 import { DataId, FeatureType } from "279map-common";
@@ -29,7 +27,7 @@ import { useItem } from "../../store/data/useItem";
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { dataSourceGroupsState, itemMapState } from "../../store/data/dataAtom";
 import { currentMapKindState, defaultExtentState } from "../../store/session/sessionAtom";
-import { mapModeState, selectedItemIdsState } from "../../store/operation/operationAtom";
+import { mapModeState, mapViewState, selectedItemIdsState } from "../../store/operation/operationAtom";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
@@ -59,8 +57,6 @@ export default function MapChart() {
 
     const defaultExtent = useRecoilValue(defaultExtentState);
     const itemMap = useRecoilValue(itemMapState);
-
-    const dispatch = useAppDispatch();
 
     const loadingCurrentAreaContents = useRef(false);
     // trueにすると回転アニメーション発生
@@ -190,6 +186,7 @@ export default function MapChart() {
     /**
      * 地図初期化
      */
+    const setMapView = useSetRecoilState(mapViewState);
     useMounted(() => {
         if (myRef.current === null) {
             return;
@@ -210,7 +207,7 @@ export default function MapChart() {
             await loadCurrentAreaContents();
             const extent = map.getExtent();
             const zoom = map.getZoom();
-            dispatch(operationActions.updateMapView({extent, zoom}));
+            setMapView({extent, zoom});
             hideProcessMessage(h);
         };
         map.on('moveend', loadContentFunc);
