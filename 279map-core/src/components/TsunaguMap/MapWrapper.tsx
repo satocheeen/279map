@@ -27,6 +27,7 @@ import { useMapDefine } from '../../store/data/useMapDefine';
 import { filteredItemsState, mapModeState, selectedItemIdsState } from '../../store/operation/operationAtom';
 import { useSearch } from '../../store/operation/useSearch';
 import { dataSourceGroupsState, visibleDataSourceIdsState } from '../../store/datasource';
+import { instanceIdState } from '../../store/data/dataAtom';
 
 type Props = {};
 
@@ -233,8 +234,8 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
 
     const { mapServer } = useContext(OwnerContext);
 
-    const { loadCategories } = useCategory();
     const { loadEvents } = useEvent();
+    const setInstanceId = useSetRecoilState(instanceIdState);
     /**
      * 初回処理
      */
@@ -247,6 +248,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
                 error,
             });
         });
+        setInstanceId(ownerContext.mapInstanceId);
 
         const h = addListener('LoadLatestData', async() => {
             const pH = showProcessMessage({
@@ -254,7 +256,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
                 spinner: true,
             });
             await loadEvents();
-            await loadCategories();
             hideProcessMessage(pH);
         });
         return () => {
@@ -291,7 +292,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         .then((res) => {
             loadOriginalIconDefine();
             loadEvents();
-            loadCategories();
         })
         .catch(err => {
             console.warn('connect error', err);
@@ -302,7 +302,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
                 });
             }
         })
-    }, [connectMap, loadMapDefine, loadEvents, ownerContext.mapId, mapServer, loadOriginalIconDefine, ownerContext.mapInstanceId, loadCategories]);
+    }, [connectMap, loadMapDefine, loadEvents, ownerContext.mapId, mapServer, loadOriginalIconDefine, ownerContext.mapInstanceId]);
 
     useWatch(() => {
         connectToMap();
@@ -318,7 +318,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
             }
             await loadMapDefine(mapKind);
             loadEvents();
-            loadCategories();
         });
 
         return () => {

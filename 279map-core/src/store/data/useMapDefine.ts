@@ -19,7 +19,6 @@ export function useMapDefine() {
 
     const resetItemMap = useResetRecoilState(itemMapState);
     const resetContents = useResetRecoilState(contentsState);
-    const resetCategory = useResetRecoilState(categoryState);
     const resetEvents = useResetRecoilState(eventsState);
     const resetFilteredItems = useResetRecoilState(filteredItemsState);
     const { mapServer } = useContext(OwnerContext);
@@ -88,7 +87,6 @@ export function useMapDefine() {
 
             resetItemMap();
             resetContents();
-            resetCategory();
             resetEvents();
             resetFilteredItems();
 
@@ -97,7 +95,7 @@ export function useMapDefine() {
             throw e;
         }
 
-    }, [mapServer, getApi, resetCategory, resetContents, resetEvents, resetFilteredItems, resetItemMap, setCurrentMapKindInfo, setDataSourceGroups]);
+    }, [mapServer, getApi, resetContents, resetEvents, resetFilteredItems, resetItemMap, setCurrentMapKindInfo, setDataSourceGroups]);
 
     return {
         connectMap,
