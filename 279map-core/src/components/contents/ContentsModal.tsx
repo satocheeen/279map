@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { Modal }  from '../common';
-import { loadContents } from '../../store/data/dataThunk';
 import Content from './Content';
 import { useSelector } from 'react-redux';
 import { addListener, removeListener } from '../../util/Commander';
@@ -14,7 +13,8 @@ import { useMounted } from '../../util/useMounted';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { useWatch } from '../../util/useWatch';
 import { useRecoilValue } from 'recoil';
-import { itemMapState } from '../../store/data/itemAtom';
+import { contentsState, itemMapState } from '../../store/data/itemAtom';
+import { useContents } from '../../store/data/useContents';
 
 type Target = {
     type: 'item';
@@ -51,6 +51,7 @@ export default function ContentsModal() {
     });
 
     const { showProcessMessage, hideProcessMessage} = useProcessMessage();
+    const { loadContents } = useContents();
     useWatch(() => {
         if (!target) return;
 
@@ -67,13 +68,12 @@ export default function ContentsModal() {
                     overlay: true,
                     spinner: true,
                 });
-                dispatch(loadContents({
-                    targets: [
+                loadContents([
                         {
                             itemId: target.itemId,
                         }
                     ],
-                })).finally(() => {
+                ).finally(() => {
                     setLoaded(true);
                     hideProcessMessage(h);
                 });
@@ -85,13 +85,12 @@ export default function ContentsModal() {
             setShow(true);
     
             // 最新コンテンツ取得
-            dispatch(loadContents({
-                targets: [
+            loadContents([
                     {
                         contentId: target.contentId,
                     }
                 ],
-            })).finally(() => {
+            ).finally(() => {
                 setLoaded(true);
             });
 
@@ -99,6 +98,7 @@ export default function ContentsModal() {
 
     }, [target, itemMap]);
 
+    const contentsList = useRecoilValue(contentsState);
     const contents = useSelector((state: RootState): ContentsDefine[] => {
         if (!target) return [];
 
@@ -108,9 +108,9 @@ export default function ContentsModal() {
             if (!item) return [];
             if (item.contents.length === 0) return [];
             // const contentId = item.contents.id;
-            list = state.data.contentsList.filter(cn => item.contents.some(ic => isEqualId(ic.id, cn.id)));
+            list = contentsList.filter(cn => item.contents.some(ic => isEqualId(ic.id, cn.id)));
         } else {
-            list = state.data.contentsList.filter(c => isEqualId(c.id, target.contentId));
+            list = contentsList.filter(c => isEqualId(c.id, target.contentId));
         }
         return list.sort((a, b) => {
             // 日時順にソート
@@ -124,7 +124,7 @@ export default function ContentsModal() {
         if (target.type === 'item') {
             itemId = target.itemId;
         } else {
-            const content = state.data.contentsList.find(c => isEqualId(c.id, target.contentId));
+            const content = contentsList.find(c => isEqualId(c.id, target.contentId));
             if (!content) return '';
             itemId = content.itemId;
         }

@@ -1,7 +1,7 @@
 import React, { useImperativeHandle, useContext, useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
-import { LoadContentsParam, LoadContentsResult, linkContentToItem, loadCategories, loadContents, loadEvents, loadOriginalIconDefine, registContent, updateContent } from '../../store/data/dataThunk';
+import { loadCategories, loadEvents, loadOriginalIconDefine } from '../../store/data/dataThunk';
 import { addListener, doCommand, removeListener } from '../../util/Commander';
 import MapChart from './MapChart';
 import { ButtonInProcess, operationActions } from '../../store/operation/operationSlice';
@@ -11,11 +11,11 @@ import { connectMap, loadMapDefine } from '../../store/session/sessionThunk';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import styles from './MapWrapper.module.scss';
 import { ConnectAPIResult, LoadMapDefineResult, TsunaguMapHandler } from '../../types/types';
-import { RequestAPI, ErrorType, GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam, WebSocketMessage } from "tsunagumap-api";
+import { RequestAPI, ErrorType, GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam, WebSocketMessage, GetContentsParam } from "tsunagumap-api";
 import { search } from '../../store/operation/operationThunk';
 import Spinner from '../common/spinner/Spinner';
 import { useMounted } from '../../util/useMounted';
-import { Auth, DataId, FeatureType, MapKind, UnpointContent } from '279map-common';
+import { Auth, ContentsDefine, DataId, FeatureType, MapKind, UnpointContent } from '279map-common';
 import { useWatch } from '../../util/useWatch';
 import { useMap } from '../map/useMap';
 import { createAPICallerInstance } from '../../api/ApiCaller';
@@ -27,6 +27,7 @@ import { Button } from '../common';
 import Input from '../common/form/Input';
 import { useSubscribe } from '../../util/useSubscribe';
 import { useItem } from '../../store/data/useItem';
+import { useContents } from '../../store/data/useContents';
 
 type Props = {};
 
@@ -52,6 +53,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
 
     const dispatch = useAppDispatch();
     const { getApi, getMap } = useMap();
+    const { loadContents, registContent, linkContentToItem, updateContent, removeContent } = useContents();
 
     useImperativeHandle(ref, () => ({
         switchMapKind(mapKind: MapKind) {
@@ -137,14 +139,14 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
                 param: undefined,
             });
         },
-        async loadContentsAPI(param: LoadContentsParam): Promise<LoadContentsResult> {
-            const res = await dispatch(loadContents(param));
-            if ('error' in res) {
-                // @ts-ignore
-                const errorMessage = res.payload?.message ?? '';
-                throw new Error('registContentAPI failed.' + errorMessage);
+        async loadContentsAPI(param: GetContentsParam): Promise<ContentsDefine[]> {
+            try {
+                const res = await loadContents(param);
+                return res;
+
+            } catch(err) {
+                throw new Error('registContentAPI failed.' + err);
             }
-            return res.payload;
         },
 
         async showDetailDialog(param: {type: 'item' | 'content'; id: DataId}) {
@@ -161,18 +163,18 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
             }
         },
         async registContentAPI(param: RegistContentParam) {
-            const res = await dispatch(registContent(param));
-            if ('error' in res) {
-                // @ts-ignore
-                const errorMessage = res.payload?.message ?? '';
-                throw new Error('registContentAPI failed.' + errorMessage);
+            try {
+                await registContent(param);
+
+            } catch(e) {
+                throw new Error('registContentAPI failed.' + e);
             }
         },
         async updateContentAPI(param: UpdateContentParam) {
-            await dispatch(updateContent(param));
+            await updateContent(param);
         },
         async linkContentToItemAPI(param: LinkContentToItemParam) {
-            await dispatch(linkContentToItem(param));
+            await linkContentToItem(param);
         },
     
         async getSnsPreviewAPI(url: string) {

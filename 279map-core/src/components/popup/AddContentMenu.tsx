@@ -10,11 +10,11 @@ import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { getMapKey } from '../../store/data/dataUtility';
 import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam } from 'tsunagumap-api';
-import { linkContentToItem, registContent } from '../../store/data/dataThunk';
 import { useMap } from '../map/useMap';
 import { Button } from '../common';
 import { useRecoilValue } from 'recoil';
 import { itemMapState } from '../../store/data/itemAtom';
+import { useContents } from '../../store/data/useContents';
 
 type Props = {
     target: {
@@ -162,6 +162,7 @@ export default function AddContentMenu(props: Props) {
         }
     }, [isShowSubMenu]);
 
+    const { registContent, linkContentToItem } = useContents();
     const onAddContent = useCallback((val: 'new' | 'unpoint') => {
         setShowSubMenu(false);
         if (val === 'new') {
@@ -169,11 +170,10 @@ export default function AddContentMenu(props: Props) {
                 parent: props.target,
                 dataSources: creatableContentDataSources,
                 registContentAPI: async(param: RegistContentParam) => {
-                    const res = await dispatch(registContent(param));
-                    if ('error' in res) {
-                        // @ts-ignore
-                        const errorMessage = res.payload?.message ?? '';
-                        throw new Error('registContentAPI failed.' + errorMessage);
+                    try {
+                        await registContent(param);
+                    } catch(e) {
+                        throw new Error('registContentAPI failed.' + e);
                     }
                 },
                 getSnsPreviewAPI: async(url: string) => {
@@ -195,7 +195,7 @@ export default function AddContentMenu(props: Props) {
                     return result;
                 },
                 linkContentToItemAPI: async(param: LinkContentToItemParam) => {
-                    await dispatch(linkContentToItem(param));
+                    await linkContentToItem(param);
                 },
             });
         }
@@ -204,7 +204,7 @@ export default function AddContentMenu(props: Props) {
             props.onClick();
         }
 
-    }, [getApi, props, creatableContentDataSources, linkableContentDataSources, dispatch, onAddNewContent, onLinkUnpointedContent]);
+    }, [linkContentToItem, registContent, getApi, props, creatableContentDataSources, linkableContentDataSources, onAddNewContent, onLinkUnpointedContent]);
 
     const caption = useMemo(() => {
         if ('itemId' in props.target) {

@@ -9,7 +9,6 @@ import CategoryBadge from "../common/CategoryBadge";
 import * as CommonUtility from '../../util/CommonUtility';
 import { CgArrowsExchangeAlt } from "react-icons/cg";
 import useConfirm, { ConfirmBtnPattern, ConfirmResult } from "../common/confirm/useConfirm";
-import { removeContent, updateContent } from "../../store/data/dataThunk";
 import reactStringReplace from "react-string-replace";
 import PopupMenuIcon from "../popup/PopupMenuIcon";
 import AddContentMenu from "../popup/AddContentMenu";
@@ -22,6 +21,7 @@ import { getMapKey, isEqualId } from "../../store/data/dataUtility";
 import { GetImageUrlAPI, GetSnsPreviewAPI, UpdateContentParam } from 'tsunagumap-api';
 import { doCommand } from "../../util/Commander";
 import { useMap } from "../map/useMap";
+import { useContents } from "../../store/data/useContents";
 
 type Props = {
     itemId: DataId;
@@ -173,6 +173,7 @@ export default function Content(props: Props) {
         }
     }, [props.content.id, getApi]);
 
+    const { updateContent, removeContent } = useContents();
     const onEdit = useCallback(async() => {
         // 編集対象コンテンツをロード
         const contents = (await getApi().getContents([{
@@ -206,11 +207,11 @@ export default function Content(props: Props) {
                 return res;
             },
             updateContentAPI: async(param: UpdateContentParam) => {
-                await dispatch(updateContent(param));
+                await updateContent(param);
         
             },
         })
-    }, [props.content, onEditContent, dispatch, getApi]);
+    }, [props.content, onEditContent, getApi, updateContent]);
 
     const dataSources = useSelector((state: RootState) => {
         const groups = state.data.dataSourceGroups;
@@ -243,12 +244,12 @@ export default function Content(props: Props) {
 
         setShowSpinner(true);
 
-        const res = await dispatch(removeContent({
+        const res = await removeContent({
             id: props.content.id,
             itemId: props.itemId,
             parentContentId: props.parentContentId,
             mode: deleteOnlyLink ? 'unlink' : 'alldelete',
-        }));
+        });
 
         setShowSpinner(false);
 
@@ -261,7 +262,7 @@ export default function Content(props: Props) {
             });
         }
 
-    }, [props.itemId, props.parentContentId, confirm, dispatch, props.content, unlinkable]);
+    }, [props.itemId, props.parentContentId, confirm, removeContent, props.content, unlinkable]);
 
     const overview = useMemo(() => {
         if (!props.content.overview) {

@@ -1,9 +1,8 @@
-import { ContentAttr, DataId, DataSourceGroup, FeatureType, GeoProperties, IconDefine, MapDefine, UnpointContent } from "279map-common";
+import { ContentAttr, ContentsDefine, DataId, DataSourceGroup, FeatureType, GeoProperties, IconDefine, MapDefine, UnpointContent } from "279map-common";
 import { CSSProperties } from "react";
 import { CategoryDefine, EventDefine, MapKind } from '279map-common';
-import { ApiError, ConnectResult, ErrorType, GetMapInfoResult, LinkContentToItemParam, RegistContentParam, GetSnsPreviewResult, UpdateContentParam, GetUnpointDataResult } from "tsunagumap-api";
+import { ApiError, ConnectResult, ErrorType, GetMapInfoResult, LinkContentToItemParam, RegistContentParam, GetSnsPreviewResult, UpdateContentParam, GetUnpointDataResult, GetContentsParam } from "tsunagumap-api";
 import { FilterDefine } from "279map-common";
-import { LoadContentsParam, LoadContentsResult } from "../store/data/dataThunk";
 
 type ConnectSuccessResult = {
     result: 'success';
@@ -146,7 +145,7 @@ export interface TsunaguMapHandler {
 
     editTopographyInfo(): void;
 
-    loadContentsAPI(param: LoadContentsParam): Promise<LoadContentsResult>;
+    loadContentsAPI(param: GetContentsParam): Promise<ContentsDefine[]>;
 
     showDetailDialog(param: {type: 'item' | 'content'; id: DataId}): void;
 

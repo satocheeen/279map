@@ -98,54 +98,47 @@ export const loadItems = createAsyncThunk<ItemDefine[], Omit<GetItemsParam, 'dat
         }
     }
 )
-export type LoadContentsParam = {
-    targets: GetContentsParam;
-    usingMemory?: boolean;   // trueの場合、targets内のコンテンツで、既にメモリ上に存在するものについてはサーバから再取得しない。
-}
-export type LoadContentsResult = {
-    contents: ContentsDefine[];
-}
-export const loadContents = createAsyncThunk<LoadContentsResult, LoadContentsParam>(
-    'data/loadContentsStatus',
-    async(param, { getState, rejectWithValue }) => {
-        try {
-            if (param.usingMemory) {
-                // 既に存在するものは取得しない
-                const currentContentsList = (getState() as RootState).data.contentsList;
+// export const loadContents = createAsyncThunk<LoadContentsResult, LoadContentsParam>(
+//     'data/loadContentsStatus',
+//     async(param, { getState, rejectWithValue }) => {
+//         try {
+//             if (param.usingMemory) {
+//                 // 既に存在するものは取得しない
+//                 const currentContentsList = (getState() as RootState).data.contentsList;
 
-                const existContentIds: DataId[] = [];
-                const targets = param.targets.filter(target => {
-                    if (!('contentId' in target)) return true;
-                    const exist = currentContentsList.some(c => isEqualId(c.id, target.contentId));
-                    // 既に存在するコンテンツのidを控えておく
-                    existContentIds.push(target.contentId);
-                    return !exist;
-                });
+//                 const existContentIds: DataId[] = [];
+//                 const targets = param.targets.filter(target => {
+//                     if (!('contentId' in target)) return true;
+//                     const exist = currentContentsList.some(c => isEqualId(c.id, target.contentId));
+//                     // 既に存在するコンテンツのidを控えておく
+//                     existContentIds.push(target.contentId);
+//                     return !exist;
+//                 });
 
-                const result = await getAPICallerInstance((getState() as RootState).session.instanceId).getContents(targets);
+//                 const result = await getAPICallerInstance((getState() as RootState).session.instanceId).getContents(targets);
 
-                // 既に存在するものをマージして返す
-                const existContents = currentContentsList.filter(content => {
-                    return existContentIds.some(ec => isEqualId(ec, content.id));
-                });
-                return {
-                    contents: existContents.concat(result)
-                }
+//                 // 既に存在するものをマージして返す
+//                 const existContents = currentContentsList.filter(content => {
+//                     return existContentIds.some(ec => isEqualId(ec, content.id));
+//                 });
+//                 return {
+//                     contents: existContents.concat(result)
+//                 }
 
-            } else {
-                const result = await getAPICallerInstance((getState() as RootState).session.instanceId).getContents(param.targets);
-                return {
-                    contents: result,
-                };
-            }
+//             } else {
+//                 const result = await getAPICallerInstance((getState() as RootState).session.instanceId).getContents(param.targets);
+//                 return {
+//                     contents: result,
+//                 };
+//             }
     
-        } catch (e) {
-            console.warn('loadContents error', e);
-            return rejectWithValue(e);
-        }
+//         } catch (e) {
+//             console.warn('loadContents error', e);
+//             return rejectWithValue(e);
+//         }
 
-    }
-)
+//     }
+// )
 export const registFeature = createAsyncThunk<void, RegistItemParam>(
     'data/registFeatureStatus',
     async(param, { rejectWithValue, getState }) => {
@@ -183,78 +176,78 @@ export const removeFeature = createAsyncThunk<void, RemoveItemParam>(
     }
 
 )
-export const registContent = createAsyncThunk<void, RegistContentParam>(
-    'data/registContentStatus',
-    async(param, { rejectWithValue, dispatch, getState }) => {
-        try {
-            await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(RegistContentAPI, param);
+// export const registContent = createAsyncThunk<void, RegistContentParam>(
+//     'data/registContentStatus',
+//     async(param, { rejectWithValue, dispatch, getState }) => {
+//         try {
+//             await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(RegistContentAPI, param);
 
-            // 最新コンテンツロード
-            await dispatch(loadContents({
-                targets: [param.parent],
-            }));
+//             // 最新コンテンツロード
+//             await dispatch(loadContents({
+//                 targets: [param.parent],
+//             }));
  
-        } catch(e) {
-            console.warn('registContent error', e);
-            return rejectWithValue(e);
-        }
-    }
-)
-export const linkContentToItem = createAsyncThunk<void, LinkContentToItemParam>(
-    'data/linkContentToItemStatus',
-    async(param, { rejectWithValue, dispatch, getState }) => {
-        try {
-            await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(LinkContentToItemAPI, param);
+//         } catch(e) {
+//             console.warn('registContent error', e);
+//             return rejectWithValue(e);
+//         }
+//     }
+// )
+// export const linkContentToItem = createAsyncThunk<void, LinkContentToItemParam>(
+//     'data/linkContentToItemStatus',
+//     async(param, { rejectWithValue, dispatch, getState }) => {
+//         try {
+//             await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(LinkContentToItemAPI, param);
 
-            // 最新コンテンツロード
-            await dispatch(loadContents({
-                targets: [param.parent],
-            }));
+//             // 最新コンテンツロード
+//             await dispatch(loadContents({
+//                 targets: [param.parent],
+//             }));
 
-        } catch(e) {
-            console.warn('linkContentToItem error', e);
-            return rejectWithValue(e);
-        }
-    }
-)
-export const updateContent = createAsyncThunk<void, UpdateContentParam>(
-    'data/updateContentStatus',
-    async(param, { rejectWithValue, dispatch, getState }) => {
-        try {
-            await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(UpdateContentAPI, param);
-            // 最新コンテンツロード
-            await dispatch(loadContents({
-                targets: [{
-                    contentId: param.id,
-                }],
-            }));
+//         } catch(e) {
+//             console.warn('linkContentToItem error', e);
+//             return rejectWithValue(e);
+//         }
+//     }
+// )
+// export const updateContent = createAsyncThunk<void, UpdateContentParam>(
+//     'data/updateContentStatus',
+//     async(param, { rejectWithValue, dispatch, getState }) => {
+//         try {
+//             await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(UpdateContentAPI, param);
+//             // 最新コンテンツロード
+//             await dispatch(loadContents({
+//                 targets: [{
+//                     contentId: param.id,
+//                 }],
+//             }));
     
-        } catch(e) {
-            console.warn('updateContent error', e);
-            return rejectWithValue(e);
-        }
-    }
-)
-export const removeContent = createAsyncThunk<RemoveContentParam, RemoveContentParam>(
-    'data/removeContentStatus',
-    async(param, { rejectWithValue, dispatch, getState }) => {
-        try {
-            await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(RemoveContentAPI, param);
+//         } catch(e) {
+//             console.warn('updateContent error', e);
+//             return rejectWithValue(e);
+//         }
+//     }
+// )
+// export const removeContent = createAsyncThunk<RemoveContentParam, RemoveContentParam>(
+//     'data/removeContentStatus',
+//     async(param, { rejectWithValue, dispatch, getState }) => {
+//         try {
+//             await getAPICallerInstance((getState() as RootState).session.instanceId).callApi(RemoveContentAPI, param);
 
-            if (param.parentContentId) {
-                // 最新コンテンツロード
-                await dispatch(loadContents({
-                    targets: [{
-                        contentId: param.parentContentId,
-                    }],
-                }));
-            }
+//             if (param.parentContentId) {
+//                 // 最新コンテンツロード
+//                 await dispatch(loadContents({
+//                     targets: [{
+//                         contentId: param.parentContentId,
+//                     }],
+//                 }));
+//             }
 
-            return param;
+//             return param;
 
-        } catch(e) {
-            console.warn('removeContent error', e);
-            return rejectWithValue(e);
-        }
-    }
-)
+//         } catch(e) {
+//             console.warn('removeContent error', e);
+//             return rejectWithValue(e);
+//         }
+//     }
+// )
