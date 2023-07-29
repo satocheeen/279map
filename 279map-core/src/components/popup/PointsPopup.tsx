@@ -1,6 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
-import { useSelector } from "react-redux";
-import { RootState, useAppDispatch } from "../../store/configureStore";
+import React, { useCallback, useMemo } from "react";
 import styles from './PointsPopup.module.scss';
 import { useFilter } from "../../store/useFilter";
 import { ContentsDefine, DataId, ItemContentInfo, ItemDefine } from "279map-common";
@@ -14,7 +12,7 @@ import { useMap } from "../map/useMap";
 import { doCommand } from "../../util/Commander";
 import { itemMapState } from "../../store/data/dataAtom";
 import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { selectedItemIdsState } from "../../store/operation/operationAtom";
+import { mapModeState, selectedItemIdsState } from "../../store/operation/operationAtom";
 
 type Props = {
     // このポップアップにて情報表示する対象アイテム
@@ -142,7 +140,7 @@ export default function PointsPopup(props: Props) {
         }
     }, [setSelectedItemIds, props.itemIds, getMap]);
 
-    const mapMode = useSelector((state: RootState) => state.operation.mapMode);
+    const mapMode = useRecoilValue(mapModeState);
 
     if (!target) {
         return null;

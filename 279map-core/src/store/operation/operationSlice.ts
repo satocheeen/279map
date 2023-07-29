@@ -24,11 +24,6 @@ export type PopupTarget = {
 const operationSlice = createSlice({
     name: 'operation',
     initialState: {
-        // 選択中アイテムID
-        // selectedItemIds: [] as DataId[],
-
-        mapMode: MapMode.Normal,
-
         mapView: {
             extent: [0,0,0,0],
             zoom: 0,
@@ -38,9 +33,6 @@ const operationSlice = createSlice({
     reducers: {
         updateMapView(state, action: PayloadAction<ViewInfo>) {
             state.mapView = action.payload;
-        },
-        changeMapMode(state, action: PayloadAction<MapMode>) {
-            state.mapMode = action.payload;
         },
     },
 })

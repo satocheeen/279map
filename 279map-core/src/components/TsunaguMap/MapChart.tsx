@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState, useContext } from "react";
 import { Vector as VectorSource } from "ol/source";
 import styles from './MapChart.module.scss';
-import { useSelector } from "react-redux";
 import { RootState, useAppDispatch } from "../../store/configureStore";
 import PopupContainer from "../popup/PopupContainer";
 import DrawController from "../map/DrawController";
@@ -30,13 +29,13 @@ import { useItem } from "../../store/data/useItem";
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { dataSourceGroupsState, itemMapState } from "../../store/data/dataAtom";
 import { currentMapKindState, defaultExtentState } from "../../store/session/sessionAtom";
-import { selectedItemIdsState } from "../../store/operation/operationAtom";
+import { mapModeState, selectedItemIdsState } from "../../store/operation/operationAtom";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
     const [initialized, setInitialized] = useState(false);
     const mapRef = useRef<OlMapType>();
-    const mapMode = useSelector((state: RootState) => state.operation.mapMode);
+    const mapMode = useRecoilValue(mapModeState);
 
     // スタイル設定
     // -- コンテンツ（建物・ポイント）レイヤ

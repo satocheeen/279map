@@ -13,7 +13,7 @@ import { useMap } from '../map/useMap';
 import { addListener, removeListener } from '../../util/Commander';
 import { itemMapState } from '../../store/data/dataAtom';
 import { useRecoilValue } from 'recoil';
-import { selectedItemIdsState } from '../../store/operation/operationAtom';
+import { mapModeState, selectedItemIdsState } from '../../store/operation/operationAtom';
 
 /**
  * 地図上のアイテムがクリックされた際に、
@@ -36,7 +36,7 @@ export default function ClusterMenuController(props: Props) {
     const { getMap } = useMap();
     const [clusterMenuInfo, setClusterMenuInfo] = useState<ClusterMenuTarget|null>(null);
     const { onClick } = useContext(OwnerContext);
-    const mapMode = useSelector((state: RootState) => state.operation.mapMode);
+    const mapMode = useRecoilValue(mapModeState);
 
     const itemMap = useRecoilValue(itemMapState);
     const itemMapRef = useRef(itemMap);

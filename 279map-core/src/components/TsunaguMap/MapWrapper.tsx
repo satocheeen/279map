@@ -1,5 +1,4 @@
 import React, { useImperativeHandle, useContext, useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../../store/configureStore';
 import { addListener, doCommand, removeListener } from '../../util/Commander';
 import MapChart from './MapChart';
@@ -27,7 +26,7 @@ import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState 
 import { connectStatusState, currentMapKindInfoState, currentMapKindState, mapServerState } from '../../store/session/sessionAtom';
 import { dataSourceGroupsState } from '../../store/data/dataAtom';
 import { useMapDefine } from '../../store/data/useMapDefine';
-import { filteredItemsState, selectedItemIdsState } from '../../store/operation/operationAtom';
+import { filteredItemsState, mapModeState, selectedItemIdsState } from '../../store/operation/operationAtom';
 import { useSearch } from '../../store/operation/useSearch';
 
 type Props = {};
@@ -392,7 +391,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     /**
      * callback when map mode has changed.
      */
-    const mapMode = useSelector((state: RootState) => state.operation.mapMode);
+    const mapMode = useRecoilValue(mapModeState);
     useEffect(() => {
         if (onModeChangedRef.current) {
             onModeChangedRef.current(mapMode);
