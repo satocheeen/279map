@@ -1,6 +1,20 @@
 import { useCallback } from "react";
-import { useDispatch } from "react-redux";
-import { operationActions } from '../../../store/operation/operationSlice';
+import { atom, useSetRecoilState } from "recoil";
+
+export const showConfirmDialogState = atom<boolean>({
+    key: 'showConfirmDialogAtom',
+    default: false,
+});
+
+export const confirmInfoState = atom<undefined | ConfirmParam>({
+    key: 'confirmInfoAtom',
+    default: undefined,
+});
+
+export const confirmResultState = atom<undefined | ConfirmResult>({
+    key: 'confirmResultAtom',
+    default: undefined,
+});
 
 export enum ConfirmResult {
     Ok,
@@ -22,13 +36,19 @@ export type ConfirmParam = {
 let resolveCallback = null as null | ((value: ConfirmResult | PromiseLike<ConfirmResult>) => void);
 
 export default function useConfirm() {
-    const dispatch = useDispatch();
+    const setShowConfirmDialog = useSetRecoilState(showConfirmDialogState);
+    const setConfirmInfo = useSetRecoilState(confirmInfoState);
+    const setConfirmResult = useSetRecoilState(confirmResultState);
+
     const confirm = useCallback(async(param: ConfirmParam): Promise<ConfirmResult> => {
-        dispatch(operationActions.showConfirmDialog(param));
+        setShowConfirmDialog(true);
+        setConfirmInfo(param);
+        setConfirmResult(undefined);
+
         return new Promise<ConfirmResult>(resolve => {
             resolveCallback = resolve;
         });
-    }, [dispatch]);
+    }, [setShowConfirmDialog, setConfirmInfo, setConfirmResult]);
 
     const onConfirm = useCallback((result: ConfirmResult) => {
         if (!resolveCallback) {
@@ -36,8 +56,10 @@ export default function useConfirm() {
             return;
         }
         resolveCallback(result);
-        dispatch(operationActions.hideConfirmDialog(result));
-    }, [dispatch])
+        setShowConfirmDialog(false);
+        setConfirmInfo(undefined);
+        setConfirmResult(result);
+    }, [setShowConfirmDialog, setConfirmInfo, setConfirmResult]);
 
     return {
         confirm,

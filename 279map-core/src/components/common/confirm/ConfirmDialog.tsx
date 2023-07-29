@@ -1,15 +1,14 @@
 import React, { useCallback, useMemo } from 'react';
 import Button from '../button/Button';
 import Modal from '../modal/Modal';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../store/configureStore';
-import useConfirm, { ConfirmBtnPattern, ConfirmResult } from './useConfirm';
+import useConfirm, { ConfirmBtnPattern, ConfirmResult, confirmInfoState, showConfirmDialogState } from './useConfirm';
 import styles from './ConfirmDialog.module.scss';
 import { usePrevious } from '../../../util/usePrevious';
+import { useRecoilValue } from 'recoil';
 
 export default function ConfirmDialog() {
-    const isShow = useSelector((state: RootState) => state.operation.showConfirmDialog);
-    const originalConfirmInfo = useSelector((state: RootState) => state.operation.confirmInfo);
+    const isShow = useRecoilValue(showConfirmDialogState);
+    const originalConfirmInfo = useRecoilValue(confirmInfoState);
     const prevOriginalConfirmInfo = usePrevious(originalConfirmInfo);
 
     const confirmInfo = useMemo(() => {

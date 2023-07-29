@@ -1,7 +1,6 @@
 import { DataId } from "279map-common";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Extent } from "ol/extent";
-import { ConfirmParam, ConfirmResult } from "../../components/common/confirm/useConfirm";
 import { MapMode } from "../../types/types";
 
 type ViewInfo = {
@@ -41,9 +40,6 @@ const operationSlice = createSlice({
         // 選択中アイテムID
         selectedItemIds: [] as DataId[],
 
-        // フィルタ
-        // filteredItems: null as SearchResult['items'] | null,   // フィルタ条件に該当するコンテンツ。フィルタ未指定の場合は、null。
-
         mapMode: MapMode.Normal,
 
         mapView: {
@@ -53,11 +49,6 @@ const operationSlice = createSlice({
 
         processMeesageCounter: 0,
         processMessages: [] as ProcessMessageWithID[],
-
-        // Confirm
-        showConfirmDialog: false,
-        confirmInfo: undefined as undefined | ConfirmParam,
-        confirmResult: undefined as undefined | ConfirmResult,
     },
     reducers: {
         setSelectItem(state, action: PayloadAction<DataId[]>) {
@@ -81,16 +72,6 @@ const operationSlice = createSlice({
         },
         removeProcessMessage(state, action: PayloadAction<number>) {
             state.processMessages = state.processMessages.filter(item => item.id !== action.payload);
-        },
-        showConfirmDialog(state, action: PayloadAction<ConfirmParam>) {
-            state.showConfirmDialog = true;
-            state.confirmInfo = action.payload;
-            state.confirmResult = undefined;
-        },
-        hideConfirmDialog(state, action: PayloadAction<ConfirmResult>) {
-            state.showConfirmDialog = false;
-            state.confirmInfo = undefined;
-            state.confirmResult = action.payload;
         },
     },
 })
