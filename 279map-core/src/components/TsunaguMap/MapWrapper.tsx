@@ -24,7 +24,6 @@ import { useMapDefine } from '../../store/data/useMapDefine';
 import { filteredItemsState, selectedItemIdsState } from '../../store/operation/operationAtom';
 import { useSearch } from '../../store/operation/useSearch';
 import { dataSourceGroupsState, visibleDataSourceIdsState } from '../../store/datasource';
-import { instanceIdState } from '../../store/data/dataAtom';
 
 type Props = {};
 
@@ -219,7 +218,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
 
     const { mapServer } = useContext(OwnerContext);
 
-    const setInstanceId = useSetRecoilState(instanceIdState);
     /**
      * 初回処理
      */
@@ -232,7 +230,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
                 error,
             });
         });
-        setInstanceId(ownerContext.mapInstanceId);
 
         const h = addListener('LoadLatestData', async() => {
             const pH = showProcessMessage({

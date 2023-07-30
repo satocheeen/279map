@@ -1,11 +1,6 @@
 import { ContentsDefine, ItemDefine } from '279map-common';
 import { atom } from 'recoil';
 
-export const instanceIdState = atom<string>({
-    key: 'instanceIdState',
-    default: '',
-})
-
 export const itemMapState = atom<{[id: string]: ItemDefine}>({
     key: 'itemMapAtom',
     default: {}

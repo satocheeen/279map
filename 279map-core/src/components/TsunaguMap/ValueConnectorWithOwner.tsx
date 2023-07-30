@@ -9,6 +9,7 @@ import { defaultIconDefineState } from '../../store/icon';
 import { currentMapKindState } from '../../store/session/sessionAtom';
 import { mapModeState, selectedItemIdsState } from '../../store/operation/operationAtom';
 import { dataSourceGroupsState } from '../../store/datasource';
+import { instanceIdState, mapIdState } from '../../store/map';
 
 /**
  * OwnerContextとRecoilを繋ぐコンポーネントもどき
@@ -25,9 +26,13 @@ export default function ValueConnectorWithOwner() {
     const onCategoriesLoadedRef = useRef<typeof ownerContext.onCategoriesLoaded>();
     const onEventsLoadedRef = useRef<typeof ownerContext.onEventsLoaded>();
 
+    const setInstanceId = useSetRecoilState(instanceIdState);
+    const setMapId = useSetRecoilState(mapIdState);
     const setDefaultIconDefine = useSetRecoilState(defaultIconDefineState);
 
     useWatch(() => {
+        setInstanceId(ownerContext.mapInstanceId);
+        setMapId(ownerContext.mapId);
         if (ownerContext.iconDefine)
             setDefaultIconDefine(ownerContext.iconDefine);
 

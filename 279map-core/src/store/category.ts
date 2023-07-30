@@ -1,6 +1,6 @@
 import { selector } from 'recoil';
 import { CategoryDefine } from '279map-common';
-import { instanceIdState } from './data/dataAtom';
+import { instanceIdState } from './map';
 import { getAPICallerInstance } from '../api/ApiCaller';
 import { visibleDataSourceIdsState } from './datasource';
 import { GetCategoryAPI } from 'tsunagumap-api';
