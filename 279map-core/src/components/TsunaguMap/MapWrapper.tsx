@@ -398,13 +398,13 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     /**
      * callback when categories has loaded or changed.
      */
-    const categories = useRecoilValue(categoryState);
-    useEffect(() => {
-        console.log('category changed', categories);
-        if (onCategoriesLoadedRef.current) {
-            onCategoriesLoadedRef.current(categories);
-        }
-    }, [categories]);
+    // const categories = useRecoilValue(categoryState);
+    // useEffect(() => {
+    //     console.log('category changed', categories);
+    //     if (onCategoriesLoadedRef.current) {
+    //         onCategoriesLoadedRef.current(categories);
+    //     }
+    // }, [categories]);
 
     /**
      * callback when events has loaded or changed.
