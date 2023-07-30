@@ -9,11 +9,11 @@ import PopupContainerCalculator, { PopupGroupWithPosition } from './PopupContain
 import { useMap } from '../map/useMap';
 import { useWatch } from '../../util/useWatch';
 import { useMapOptions } from '../../util/useMapOptions';
-import useDataSource from '../../store/datasource/useDataSource';
 import { useFilter } from '../../store/useFilter';
 import { itemMapState } from '../../store/data/dataAtom';
 import { useRecoilValue } from 'recoil';
 import { mapViewState } from '../../store/operation/operationAtom';
+import { visibleDataSourceIdsState } from '../../store/datasource';
 
 function createKeyFromPopupInfo(param: PopupGroupWithPosition): string {
     if (!param) {
@@ -32,7 +32,7 @@ export default function PopupContainer() {
     
     const { getMap } = useMap();
 
-    const { isVisibleDataSource } = useDataSource();
+    const visibleDataSourceIds = useRecoilValue(visibleDataSourceIdsState);
 
     const { filteredItemIdList } = useFilter();
 
@@ -45,7 +45,7 @@ export default function PopupContainer() {
             if (item.contents.length === 0) return false;
 
             // 非表示のものは無視する
-            return isVisibleDataSource(item.id.dataSourceId);
+            return visibleDataSourceIds.includes(item.id.dataSourceId);
 
         })
         .filter(item => {
@@ -54,7 +54,7 @@ export default function PopupContainer() {
             return filteredItemIdList.some(filteredItemId => isEqualId(filteredItemId, item.id));
         });
         return list;
-    }, [itemMap, popupMode, isVisibleDataSource, filteredItemIdList]);
+    }, [itemMap, popupMode, visibleDataSourceIds, filteredItemIdList]);
 
     // 表示するポップアップ情報群
     const [popupGroups, setPopupGroups] = useState<PopupGroupWithPosition[]>([]);

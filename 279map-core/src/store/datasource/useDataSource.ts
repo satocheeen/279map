@@ -1,7 +1,6 @@
-import { useCallback, useMemo } from 'react';
-import { useRecoilState } from "recoil";
-import { DataSourceInfo } from "279map-common";
-import { dataSourceGroupsState } from '.';
+import { useCallback } from 'react';
+import { useSetRecoilState } from "recoil";
+import { dataSourceVisibleState } from '.';
 
 type DataSourceVisibleParam = {
     target: {
@@ -16,41 +15,31 @@ type DataSourceVisibleParam = {
  * @returns 
  */
 export default function useDataSource() {
-    const [ dataSourceGroups, setDataSourceGroups] = useRecoilState(dataSourceGroupsState);
+    const setDataSourceVisible = useSetRecoilState(dataSourceVisibleState);
 
     const updateDatasourceVisible = useCallback((param: DataSourceVisibleParam) => {
-        setDataSourceGroups(current => {
-            return current.map(group => {
-                const visible = ('group' in param.target && param.target.group === group.name) ? param.visible : group.visible;
-                return {
-                    name: group.name,
-                    dataSources: group.dataSources.map((ds): DataSourceInfo => {
-                        const dsVisible = ('dataSourceId' in param.target && param.target.dataSourceId === ds.dataSourceId) ? param.visible : ds.visible;
-                        return Object.assign({}, ds, {
-                            visible: dsVisible,
-                        });
-                    }),
-                    visible,
-                }
+        if ('group' in param.target) {
+            const group = param.target.group ?? '';
+            setDataSourceVisible(current => {
+                return Object.assign({}, current, {
+                    group: {
+                        [group]: param.visible,
+                    }
+                });
             })
-        })
-    }, [setDataSourceGroups]);
-
-    const isVisibleDataSource = useCallback((dataSourceId: string) => {
-        for (const group of dataSourceGroups) {
-            const ds = group.dataSources.find(ds => ds.dataSourceId === dataSourceId);
-            if (!ds) continue;
-
-            // 属するグループが非表示なら非表示
-            if (!group.visible) return false;
-
-            return ds.visible;
+        } else {
+            const ds = param.target.dataSourceId;
+            setDataSourceVisible(current => {
+                return Object.assign({}, current, {
+                    datasource: {
+                        [ds]: param.visible
+                    }
+                });
+            })
         }
-        return false;
-    }, [dataSourceGroups]);
+    }, [setDataSourceVisible]);
 
     return {
         updateDatasourceVisible,
-        isVisibleDataSource,
     }
 }

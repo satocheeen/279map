@@ -30,6 +30,9 @@ type ViewInfo = {
     extent: Extent;
     zoom: number | undefined;
 }
+/**
+ * ユーザの地図表示範囲
+ */
 export const mapViewState = atom<ViewInfo>({
     key: 'mapViewAtom',
     default: {

@@ -46,16 +46,12 @@ export default function ValueConnectorWithOwner() {
         onEventsLoadedRef.current = ownerContext.onEventsLoaded;
     }, [ownerContext]);
 
-    // TODO: 仮。DataSourceのVisibleを別管理に変更するまでの暫定。
+    // TODO: 仮置き場
     const mapDefine = useRecoilValue(mapDefineState);
-    const setDataSourceGroups = useSetRecoilState(dataSourceGroupsState);
     const resetItemMap = useResetRecoilState(itemMapState);
     const resetContents = useResetRecoilState(contentsState);
     const resetFilteredItems = useResetRecoilState(filteredItemsState);
     useWatch(() => {
-        if (mapDefine)
-            setDataSourceGroups(mapDefine.dataSourceGroups);
-
         resetItemMap();
         resetContents();
         resetFilteredItems();

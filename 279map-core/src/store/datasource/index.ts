@@ -1,16 +1,49 @@
 import { DataSourceGroup, DataSourceInfo } from "279map-common";
 import { atom, selector } from "recoil";
+import { mapDefineState } from "../map";
 
 /**
  * データソース関連のRecoil
  */
 
+type DatasourceVisibleInfo = {
+    group: {[group: string]: boolean};
+    datasource: {[id: string]: boolean};
+}
 /**
- * データソースグループ
+ * データソースの表示・非表示情報
  */
-export const dataSourceGroupsState = atom<DataSourceGroup[]>({
+export const dataSourceVisibleState = atom<DatasourceVisibleInfo>({
+    key: 'dataSrouceVisibleState',
+    default: {
+        group: {},
+        datasource: {},
+    },
+})
+
+/**
+ * データソースグループ（表示情報付き）
+ */
+export const dataSourceGroupsState = selector<DataSourceGroup[]>({
     key: 'dataSourceGroupsAtom',
-    default: [],
+    get: ({ get }) => {
+        const mapDefine = get(mapDefineState);
+        if (!mapDefine) return [];
+
+        const dataSourceVisibleInfo = get(dataSourceVisibleState);
+        return mapDefine.dataSourceGroups.map(group => {
+            const groupVisible = dataSourceVisibleInfo.group[group.name ?? ''] ?? group.visible;
+            const newValue = Object.assign({}, group);
+            newValue.visible = groupVisible;
+            newValue.dataSources = newValue.dataSources.map(ds => {
+                const dsVisible = dataSourceVisibleInfo.datasource[ds.dataSourceId] ?? ds.visible;
+                const newDs = Object.assign({}, ds);
+                newDs.visible = dsVisible;
+                return newDs;
+            });
+            return newValue;
+        })
+    }
 })
 
 /**
