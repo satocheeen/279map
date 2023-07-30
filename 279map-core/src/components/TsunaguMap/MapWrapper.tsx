@@ -1,4 +1,4 @@
-import React, { useImperativeHandle, useContext, useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import React, { useImperativeHandle, useContext, useRef, useState, useMemo, useCallback } from 'react';
 import { addListener, doCommand, removeListener } from '../../util/Commander';
 import MapChart from './MapChart';
 import { OwnerContext } from './TsunaguMap';
@@ -21,11 +21,10 @@ import { useContents } from '../../store/data/useContents';
 import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil';
 import { connectStatusState, currentMapKindInfoState, currentMapKindState, mapServerState } from '../../store/session/sessionAtom';
 import { useMapDefine } from '../../store/data/useMapDefine';
-import { filteredItemsState, mapModeState, selectedItemIdsState } from '../../store/operation/operationAtom';
+import { filteredItemsState, selectedItemIdsState } from '../../store/operation/operationAtom';
 import { useSearch } from '../../store/operation/useSearch';
 import { dataSourceGroupsState, visibleDataSourceIdsState } from '../../store/datasource';
 import { instanceIdState } from '../../store/data/dataAtom';
-import { categoryState } from '../../store/category';
 
 type Props = {};
 
@@ -42,13 +41,9 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
     const onConnectRef = useRef<typeof ownerContext.onConnect>();
-    const onMapKindChangedRef = useRef<typeof ownerContext.onMapLoad>();
-    const onDatasourceChangedRef = useRef<typeof ownerContext.onDatasourceChanged>();
-    const onSelectRef = useRef<typeof ownerContext.onSelect>();
-    const onModeChangedRef = useRef<typeof ownerContext.onModeChanged>();
 
     const { getApi, getMap } = useMap();
-    const { loadContents, registContent, linkContentToItem, updateContent, removeContent } = useContents();
+    const { loadContents, registContent, linkContentToItem, updateContent } = useContents();
     const { updateDatasourceVisible } = useDataSource();
 
     useImperativeHandle(ref, () => ({
@@ -220,10 +215,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
 
     useWatch(() => {
         onConnectRef.current = ownerContext.onConnect;
-        onMapKindChangedRef.current = ownerContext.onMapLoad;
-        onDatasourceChangedRef.current = ownerContext.onDatasourceChanged;
-        onSelectRef.current = ownerContext.onSelect;
-        onModeChangedRef.current = ownerContext.onModeChanged;
     }, [ownerContext]);
 
     const { mapServer } = useContext(OwnerContext);
@@ -328,12 +319,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
                 removeItems(payload.itemPageIdList);
         })
 
-        if (onMapKindChangedRef.current) {
-            onMapKindChangedRef.current({
-                mapKind: currentMapKind,
-            });
-        }
-
         return () => {
             unsubscribe('mapitem-update');
             unsubscribe('mapitem-delete');
@@ -346,41 +331,21 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     useWatch(() => {
         getMap()?.updateLayerVisible(currentDataSourceGroups);
 
-        if (onDatasourceChangedRef.current) {
-            onDatasourceChangedRef.current({
-                dataSourceGroups: currentDataSourceGroups,
-            })
-        }
     }, [currentDataSourceGroups]);
 
     /**
-     * 選択アイテムが変更されたらコールバック
+     * 1アイテムが選択されたら詳細ダイアログ表示
      */
     const selectedItemIds = useRecoilValue(selectedItemIdsState);
     const { disabledContentDialog } = useContext(OwnerContext);
     useWatch(() => {
-        if (onSelectRef.current) {
-            onSelectRef.current(selectedItemIds);
-        }
         if (selectedItemIds.length === 1 && !disabledContentDialog) {
-            // 詳細ダイアログ表示
             doCommand({
                 command: 'ShowItemInfo',
                 param: selectedItemIds[0],
             });
         }
     }, [selectedItemIds]);
-
-    /**
-     * callback when map mode has changed.
-     */
-    const mapMode = useRecoilValue(mapModeState);
-    useEffect(() => {
-        if (onModeChangedRef.current) {
-            onModeChangedRef.current(mapMode);
-        }
-    }, [mapMode]);
-
 
     const visibleDataSourceIds = useRecoilValue(visibleDataSourceIdsState);
     const resetFilteredItems = useResetRecoilState(filteredItemsState);

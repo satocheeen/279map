@@ -10,7 +10,7 @@ import DefaultComponents from '../default/DefaultComponents';
 import { useMounted } from '../../util/useMounted';
 import UserListModal from '../admin/UserListModal';
 import { RecoilRoot } from 'recoil';
-import ValueListener from './ValueListener';
+import ValueConnectorWithOwner from './ValueConnectorWithOwner';
 
 type SomeRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 type OwnerContextType = SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'> & {
@@ -97,7 +97,7 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
             <RecoilRoot>
                 <OwnerContext.Provider value={ownerContextValue}>
                     <Suspense>
-                        <ValueListener />
+                        <ValueConnectorWithOwner />
                     </Suspense>
                     <TooltipContext.Provider value={tooltipContextValue}>
                         <div className={styles.TsunaguMap}>
