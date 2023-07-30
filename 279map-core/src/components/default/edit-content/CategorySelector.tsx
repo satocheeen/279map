@@ -2,7 +2,7 @@ import React, { useRef, useState, useMemo, useCallback, useEffect } from 'react'
 import { CategoryBadge } from '../../common';
 import styles from './CategorySelector.module.scss';
 import { useRecoilValue } from 'recoil';
-import { categoryState } from '../../../store/data/dataAtom';
+import { categoryState } from '../../../store/category';
 
 type Props = {
     selected: string[]; // 選択中のカテゴリname

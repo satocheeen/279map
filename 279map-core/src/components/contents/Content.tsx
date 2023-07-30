@@ -21,7 +21,7 @@ import { doCommand } from "../../util/Commander";
 import { useMap } from "../map/useMap";
 import { useContents } from "../../store/data/useContents";
 import { useRecoilValue } from "recoil";
-import { categoryState } from "../../store/data/dataAtom";
+import { categoryState } from "../../store/category";
 import { currentMapKindState } from "../../store/session/sessionAtom";
 import { dataSourcesState } from "../../store/datasource";
 

@@ -3,7 +3,7 @@ import { useMap } from "../../components/map/useMap";
 import { ConnectAPI, ErrorType, GetMapInfoAPI } from "tsunagumap-api";
 import { MapKind } from "279map-common";
 import { useResetRecoilState, useSetRecoilState } from "recoil";
-import { categoryState, contentsState, eventsState, itemMapState } from "./dataAtom";
+import { contentsState, eventsState, itemMapState } from "./dataAtom";
 import { connectStatusState, currentMapKindInfoState } from "../session/sessionAtom";
 import { filteredItemsState } from "../operation/operationAtom";
 import { OwnerContext } from "../../components/TsunaguMap/TsunaguMap";

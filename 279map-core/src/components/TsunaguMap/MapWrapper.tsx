@@ -13,7 +13,6 @@ import { useWatch } from '../../util/useWatch';
 import { useMap } from '../map/useMap';
 import { createAPICallerInstance } from '../../api/ApiCaller';
 import useEvent from '../../store/data/useEvent';
-import useCategory from '../../store/data/useCategory';
 import useDataSource from '../../store/data/useDataSource';
 import { Button } from '../common';
 import Input from '../common/form/Input';
@@ -28,6 +27,7 @@ import { filteredItemsState, mapModeState, selectedItemIdsState } from '../../st
 import { useSearch } from '../../store/operation/useSearch';
 import { dataSourceGroupsState, visibleDataSourceIdsState } from '../../store/datasource';
 import { instanceIdState } from '../../store/data/dataAtom';
+import { categoryState } from '../../store/category';
 
 type Props = {};
 
@@ -398,8 +398,9 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     /**
      * callback when categories has loaded or changed.
      */
-    const { categories } = useCategory();;
+    const categories = useRecoilValue(categoryState);
     useEffect(() => {
+        console.log('category changed', categories);
         if (onCategoriesLoadedRef.current) {
             onCategoriesLoadedRef.current(categories);
         }
