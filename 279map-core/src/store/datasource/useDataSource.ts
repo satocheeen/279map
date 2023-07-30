@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { useRecoilState } from "recoil";
 import { DataSourceInfo } from "279map-common";
-import { dataSourceGroupsState } from '../datasource';
+import { dataSourceGroupsState } from '.';
 
 type DataSourceVisibleParam = {
     target: {

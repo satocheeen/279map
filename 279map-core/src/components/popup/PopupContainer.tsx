@@ -9,7 +9,7 @@ import PopupContainerCalculator, { PopupGroupWithPosition } from './PopupContain
 import { useMap } from '../map/useMap';
 import { useWatch } from '../../util/useWatch';
 import { useMapOptions } from '../../util/useMapOptions';
-import useDataSource from '../../store/data/useDataSource';
+import useDataSource from '../../store/datasource/useDataSource';
 import { useFilter } from '../../store/useFilter';
 import { itemMapState } from '../../store/data/dataAtom';
 import { useRecoilValue } from 'recoil';

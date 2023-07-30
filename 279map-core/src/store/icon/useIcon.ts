@@ -1,7 +1,7 @@
 import { IconInfo } from "279map-common";
 import { useCallback } from "react";
 import { useRecoilValue } from "recoil";
-import { currentDefaultIconState, currentMapIconDefineState } from "./icon";
+import { currentDefaultIconState, currentMapIconDefineState } from ".";
 
 /**
  * アイコンに関するフック

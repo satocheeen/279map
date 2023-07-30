@@ -5,7 +5,7 @@ import { OwnerContext } from './TsunaguMap';
 import { categoryState } from '../../store/category';
 import { eventState } from '../../store/event';
 import { useSetRecoilState } from 'recoil';
-import { defaultIconDefineState } from '../../store/icon/icon';
+import { defaultIconDefineState } from '../../store/icon';
 import { currentMapKindState } from '../../store/session/sessionAtom';
 import { mapModeState, selectedItemIdsState } from '../../store/operation/operationAtom';
 import { dataSourceGroupsState } from '../../store/datasource';

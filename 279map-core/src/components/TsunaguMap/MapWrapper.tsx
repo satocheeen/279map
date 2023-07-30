@@ -12,7 +12,7 @@ import { Auth, ContentsDefine, DataId, FeatureType, MapKind, UnpointContent } fr
 import { useWatch } from '../../util/useWatch';
 import { useMap } from '../map/useMap';
 import { createAPICallerInstance } from '../../api/ApiCaller';
-import useDataSource from '../../store/data/useDataSource';
+import useDataSource from '../../store/datasource/useDataSource';
 import { Button } from '../common';
 import Input from '../common/form/Input';
 import { useSubscribe } from '../../util/useSubscribe';
