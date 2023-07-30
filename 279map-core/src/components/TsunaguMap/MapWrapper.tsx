@@ -12,7 +12,6 @@ import { Auth, ContentsDefine, DataId, FeatureType, MapKind, UnpointContent } fr
 import { useWatch } from '../../util/useWatch';
 import { useMap } from '../map/useMap';
 import { createAPICallerInstance } from '../../api/ApiCaller';
-import useEvent from '../../store/data/useEvent';
 import useDataSource from '../../store/data/useDataSource';
 import { Button } from '../common';
 import Input from '../common/form/Input';
@@ -48,8 +47,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const onDatasourceChangedRef = useRef<typeof ownerContext.onDatasourceChanged>();
     const onSelectRef = useRef<typeof ownerContext.onSelect>();
     const onModeChangedRef = useRef<typeof ownerContext.onModeChanged>();
-    const onCategoriesLoadedRef = useRef<typeof ownerContext.onCategoriesLoaded>();
-    const onEventsLoadedRef = useRef<typeof ownerContext.onEventsLoaded>();
 
     const { getApi, getMap } = useMap();
     const { loadContents, registContent, linkContentToItem, updateContent, removeContent } = useContents();
@@ -228,13 +225,10 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         onDatasourceChangedRef.current = ownerContext.onDatasourceChanged;
         onSelectRef.current = ownerContext.onSelect;
         onModeChangedRef.current = ownerContext.onModeChanged;
-        onCategoriesLoadedRef.current = ownerContext.onCategoriesLoaded;
-        onEventsLoadedRef.current = ownerContext.onEventsLoaded;
     }, [ownerContext]);
 
     const { mapServer } = useContext(OwnerContext);
 
-    const { loadEvents } = useEvent();
     const setInstanceId = useSetRecoilState(instanceIdState);
     /**
      * 初回処理
@@ -255,7 +249,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
                 overlay: false,
                 spinner: true,
             });
-            await loadEvents();
             hideProcessMessage(pH);
         });
         return () => {
@@ -291,7 +284,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         })
         .then((res) => {
             loadOriginalIconDefine();
-            loadEvents();
         })
         .catch(err => {
             console.warn('connect error', err);
@@ -302,7 +294,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
                 });
             }
         })
-    }, [connectMap, loadMapDefine, loadEvents, ownerContext.mapId, mapServer, loadOriginalIconDefine, ownerContext.mapInstanceId]);
+    }, [connectMap, loadMapDefine, ownerContext.mapId, mapServer, loadOriginalIconDefine, ownerContext.mapInstanceId]);
 
     useWatch(() => {
         connectToMap();
@@ -317,7 +309,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
                 return;
             }
             await loadMapDefine(mapKind);
-            loadEvents();
         });
 
         return () => {
@@ -395,26 +386,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         }
     }, [mapMode]);
 
-    /**
-     * callback when categories has loaded or changed.
-     */
-    // const categories = useRecoilValue(categoryState);
-    // useEffect(() => {
-    //     console.log('category changed', categories);
-    //     if (onCategoriesLoadedRef.current) {
-    //         onCategoriesLoadedRef.current(categories);
-    //     }
-    // }, [categories]);
-
-    /**
-     * callback when events has loaded or changed.
-     */
-    const { events } = useEvent();
-    useEffect(() => {
-        if(onEventsLoadedRef.current) {
-            onEventsLoadedRef.current(events);
-        }
-    }, [events]);
 
     const visibleDataSourceIds = useRecoilValue(visibleDataSourceIdsState);
     const resetFilteredItems = useResetRecoilState(filteredItemsState);

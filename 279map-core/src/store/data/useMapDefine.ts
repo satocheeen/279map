@@ -3,7 +3,7 @@ import { useMap } from "../../components/map/useMap";
 import { ConnectAPI, ErrorType, GetMapInfoAPI } from "tsunagumap-api";
 import { MapKind } from "279map-common";
 import { useResetRecoilState, useSetRecoilState } from "recoil";
-import { contentsState, eventsState, itemMapState } from "./dataAtom";
+import { contentsState, itemMapState } from "./dataAtom";
 import { connectStatusState, currentMapKindInfoState } from "../session/sessionAtom";
 import { filteredItemsState } from "../operation/operationAtom";
 import { OwnerContext } from "../../components/TsunaguMap/TsunaguMap";
@@ -19,7 +19,6 @@ export function useMapDefine() {
 
     const resetItemMap = useResetRecoilState(itemMapState);
     const resetContents = useResetRecoilState(contentsState);
-    const resetEvents = useResetRecoilState(eventsState);
     const resetFilteredItems = useResetRecoilState(filteredItemsState);
     const { mapServer } = useContext(OwnerContext);
     const setConnectStatus = useSetRecoilState(connectStatusState);
@@ -87,7 +86,6 @@ export function useMapDefine() {
 
             resetItemMap();
             resetContents();
-            resetEvents();
             resetFilteredItems();
 
         } catch(e) {
@@ -95,7 +93,7 @@ export function useMapDefine() {
             throw e;
         }
 
-    }, [mapServer, getApi, resetContents, resetEvents, resetFilteredItems, resetItemMap, setCurrentMapKindInfo, setDataSourceGroups]);
+    }, [mapServer, getApi, resetContents, resetFilteredItems, resetItemMap, setCurrentMapKindInfo, setDataSourceGroups]);
 
     return {
         connectMap,
