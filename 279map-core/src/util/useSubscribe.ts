@@ -2,8 +2,8 @@ import { useContext, useCallback } from 'react';
 import { OwnerContext } from '../components/TsunaguMap/TsunaguMap';
 import { WebSocketMessage } from 'tsunagumap-api';
 import { getMqttClientInstance } from '../store/session/MqttInstanceManager';
-import { currentMapKindState } from '../store/session/sessionAtom';
 import { useRecoilValue } from 'recoil';
+import { currentMapKindState } from '../store/map';
 
 //TODO: 別の箇所から同一messageをsubscribeすると、片方がunsubscribeするともう一方もunsubscribeになると思うので、その対処
 export function useSubscribe() {

@@ -101,23 +101,25 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
                     </Suspense>
                     <TooltipContext.Provider value={tooltipContextValue}>
                         <div className={styles.TsunaguMap}>
-                        <Suspense>
-                            <MapWrapper ref={mapRef} />
-                        </Suspense>
+                            <Suspense>
+                                <MapWrapper ref={mapRef} />
+                            </Suspense>
                         </div>
-                        <ConfirmDialog />
-                        <ContentsModal />
-                        <UserListModal />
+                        <Suspense>
+                            <ConfirmDialog />
+                            <ContentsModal />
+                            <UserListModal />
 
-                        {defaultLinkUnpointedContentParam &&
-                            <DefaultComponents linkUnpointedContentParam={defaultLinkUnpointedContentParam} onClose={()=>{setDefaultLinkUnpointedContentParam(undefined)}} />
-                        }
-                        {defaultNewContentParam &&
-                            <DefaultComponents newContentParam={defaultNewContentParam} onClose={()=>{setDefaultNewContentParam(undefined)}} />
-                        }
-                        {defaultEditContentParam &&
-                            <DefaultComponents editContentParam={defaultEditContentParam} onClose={()=>{setDefaultEditContentParam(undefined)}} />
-                        }
+                            {defaultLinkUnpointedContentParam &&
+                                <DefaultComponents linkUnpointedContentParam={defaultLinkUnpointedContentParam} onClose={()=>{setDefaultLinkUnpointedContentParam(undefined)}} />
+                            }
+                            {defaultNewContentParam &&
+                                <DefaultComponents newContentParam={defaultNewContentParam} onClose={()=>{setDefaultNewContentParam(undefined)}} />
+                            }
+                            {defaultEditContentParam &&
+                                <DefaultComponents editContentParam={defaultEditContentParam} onClose={()=>{setDefaultEditContentParam(undefined)}} />
+                            }
+                        </Suspense>
                     </TooltipContext.Provider>
                 </OwnerContext.Provider>
             </RecoilRoot>

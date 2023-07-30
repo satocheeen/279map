@@ -16,7 +16,7 @@ import { LayerInfo, LayerType } from '../../TsunaguMap/VectorLayerMap';
 import { containFeatureInLayer } from '../../../util/MapUtility';
 import { useMap } from '../useMap';
 import { useRecoilValue } from 'recoil';
-import { currentMapKindState } from '../../../store/session/sessionAtom';
+import { currentMapKindState } from '../../../store/map';
 
 type Props = {
     targetType: LayerType;

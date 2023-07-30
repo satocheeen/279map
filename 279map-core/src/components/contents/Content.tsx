@@ -22,8 +22,8 @@ import { useMap } from "../map/useMap";
 import { useContents } from "../../store/data/useContents";
 import { useRecoilValue } from "recoil";
 import { categoryState } from "../../store/category";
-import { currentMapKindState } from "../../store/session/sessionAtom";
 import { dataSourcesState } from "../../store/datasource";
+import { currentMapKindState } from "../../store/map";
 
 type Props = {
     itemId: DataId;

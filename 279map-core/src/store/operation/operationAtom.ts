@@ -1,8 +1,14 @@
-import { DataId } from "279map-common";
+import { DataId, MapKind } from "279map-common";
 import { atom } from "recoil";
 import { SearchResult } from "tsunagumap-api";
-import { MapMode } from "../../entry";
+import { MapMode } from "../../types/types";
 import { Extent } from "ol/extent";
+
+// ユーザが指定した地図種別
+export const mapKindState = atom<MapKind|undefined>({
+    key: 'mapKindState',
+    default: undefined,
+});
 
 export const filteredItemsState = atom<SearchResult['items'] | null>({
     key: 'filteredItemsAtom',

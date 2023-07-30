@@ -18,12 +18,11 @@ import Input from '../common/form/Input';
 import { useSubscribe } from '../../util/useSubscribe';
 import { useItem } from '../../store/data/useItem';
 import { useContents } from '../../store/data/useContents';
-import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil';
-import { connectStatusState, currentMapKindInfoState, currentMapKindState, mapServerState } from '../../store/session/sessionAtom';
-import { useMapDefine } from '../../store/data/useMapDefine';
-import { filteredItemsState, selectedItemIdsState } from '../../store/operation/operationAtom';
+import { useRecoilValue, useResetRecoilState, useRecoilState } from 'recoil';
+import { filteredItemsState, mapKindState, selectedItemIdsState } from '../../store/operation/operationAtom';
 import { useSearch } from '../../store/operation/useSearch';
 import { dataSourceGroupsState, visibleDataSourceIdsState } from '../../store/datasource';
+import { connectStatusState, currentMapKindState } from '../../store/map';
 
 type Props = {};
 
@@ -34,7 +33,7 @@ type Props = {};
  */
 function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const ownerContext = useContext(OwnerContext);
-    const [connectStatus, setConnectStatus] = useRecoilState(connectStatusState);
+    const connectStatus = useRecoilValue(connectStatusState);
     const currentMapKind = useRecoilValue(currentMapKindState);
     const currentDataSourceGroups = useRecoilValue(dataSourceGroupsState);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
@@ -205,13 +204,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
                                                         
     }));
 
-    const setMapServer = useSetRecoilState(mapServerState);
-    const setCurrentMapKindInfo = useSetRecoilState(currentMapKindInfoState);
-    useWatch(() => {
-        setMapServer(ownerContext.mapServer);
-        setCurrentMapKindInfo(undefined);
-    }, [ownerContext.mapServer]);
-
     useWatch(() => {
         onConnectRef.current = ownerContext.onConnect;
     }, [ownerContext]);
@@ -225,10 +217,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         // API Accessor用意
         createAPICallerInstance(ownerContext.mapInstanceId, mapServer, (error) => {
             // コネクションエラー時
-            setConnectStatus({
-                status: 'failure',
-                error,
-            });
+            console.warn('connection error');
         });
 
         const h = addListener('LoadLatestData', async() => {
@@ -244,54 +233,16 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
 
     }, [mapServer, ownerContext.mapInstanceId]);
 
-    const { connectMap, loadMapDefine } = useMapDefine();
-    /**
-     * connect to map
-     */
-    const connectToMap = useCallback(() => {
-        if (mapServer.host.length === 0) return;
-
-        console.log('connetToMap')
-        // connect
-        connectMap({
-            mapId: ownerContext.mapId,
-            instanceId: ownerContext.mapInstanceId,
-        })
-        .then((res) => {
-            if (onConnectRef.current) {
-                onConnectRef.current({
-                    result: 'success',
-                    mapDefine: res.mapDefine,
-                });
-            }
-            const mapKind = res.mapDefine.defaultMapKind;
-            console.log('connect success. load mapdefine');
-            return loadMapDefine(mapKind);
-        })
-        .catch(err => {
-            console.warn('connect error', err);
-            if (onConnectRef.current) {
-                onConnectRef.current({
-                    result: 'failure',
-                    error: err,
-                });
-            }
-        })
-    }, [connectMap, loadMapDefine, ownerContext.mapId, mapServer, ownerContext.mapInstanceId]);
-
-    useWatch(() => {
-        connectToMap();
-    }, [ownerContext.mapId, mapServer]);
-
     /**
      * load map define when mapkind has changed.
      */
+    const [ mapKind, setMapKind ] = useRecoilState(mapKindState);
     useMounted(() => {
-        const h = addListener('ChangeMapKind', async(mapKind: MapKind) => {
-            if (currentMapKind === mapKind) {
+        const h = addListener('ChangeMapKind', async(mk: MapKind) => {
+            if (mk === mapKind) {
                 return;
             }
-            await loadMapDefine(mapKind);
+            setMapKind(mk);
         });
 
         return () => {

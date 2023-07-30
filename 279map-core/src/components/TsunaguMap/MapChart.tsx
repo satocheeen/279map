@@ -26,9 +26,9 @@ import { isEqualId } from "../../store/data/dataUtility";
 import { useItem } from "../../store/data/useItem";
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { itemMapState } from "../../store/data/dataAtom";
-import { currentMapKindState, defaultExtentState } from "../../store/session/sessionAtom";
 import { mapModeState, mapViewState, selectedItemIdsState } from "../../store/operation/operationAtom";
 import { dataSourceGroupsState } from "../../store/datasource";
+import { currentMapKindState, defaultExtentState } from "../../store/map";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);

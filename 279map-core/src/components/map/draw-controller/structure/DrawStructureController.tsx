@@ -15,8 +15,8 @@ import { SystemIconDefine } from '../../../../types/types';
 import VectorLayer from 'ol/layer/Vector';
 import { useMap } from '../../useMap';
 import { useRecoilValue } from 'recoil';
-import { currentMapKindState } from '../../../../store/session/sessionAtom';
 import { RegistItemAPI } from 'tsunagumap-api';
+import { currentMapKindState } from '../../../../store/map';
 
 type Props = {
     dataSourceId: string;   // 作図対象のデータソース

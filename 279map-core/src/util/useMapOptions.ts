@@ -3,7 +3,7 @@ import { OwnerContext } from '../components/TsunaguMap/TsunaguMap';
 import { TsunaguMapProps } from '../entry';
 import useMyMedia from './useMyMedia';
 import { useRecoilValue } from 'recoil';
-import { connectStatusState } from '../store/session/sessionAtom';
+import { connectStatusState } from '../store/map';
 
 /**
  * 呼び出し元から渡されたpropsと、地図固有のオプション値を加味して、

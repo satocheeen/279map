@@ -1,15 +1,15 @@
 import React, { useRef, useContext } from 'react';
 import { useWatch } from '../../util/useWatch';
-import { useRecoilValue } from 'recoil';
+import { useRecoilValue, useResetRecoilState } from 'recoil';
 import { OwnerContext } from './TsunaguMap';
 import { categoryState } from '../../store/category';
 import { eventState } from '../../store/event';
 import { useSetRecoilState } from 'recoil';
 import { defaultIconDefineState } from '../../store/icon';
-import { currentMapKindState } from '../../store/session/sessionAtom';
-import { mapModeState, selectedItemIdsState } from '../../store/operation/operationAtom';
+import { filteredItemsState, mapModeState, selectedItemIdsState } from '../../store/operation/operationAtom';
 import { dataSourceGroupsState } from '../../store/datasource';
-import { instanceIdState, mapIdState } from '../../store/map';
+import { currentMapKindState, instanceIdState, mapDefineState, mapIdState, mapServerState } from '../../store/map';
+import { contentsState, itemMapState } from '../../store/data/dataAtom';
 
 /**
  * OwnerContextとRecoilを繋ぐコンポーネントもどき
@@ -28,11 +28,13 @@ export default function ValueConnectorWithOwner() {
 
     const setInstanceId = useSetRecoilState(instanceIdState);
     const setMapId = useSetRecoilState(mapIdState);
+    const setMapServer = useSetRecoilState(mapServerState);
     const setDefaultIconDefine = useSetRecoilState(defaultIconDefineState);
 
     useWatch(() => {
         setInstanceId(ownerContext.mapInstanceId);
         setMapId(ownerContext.mapId);
+        setMapServer(ownerContext.mapServer);
         if (ownerContext.iconDefine)
             setDefaultIconDefine(ownerContext.iconDefine);
 
@@ -43,6 +45,21 @@ export default function ValueConnectorWithOwner() {
         onCategoriesLoadedRef.current = ownerContext.onCategoriesLoaded;
         onEventsLoadedRef.current = ownerContext.onEventsLoaded;
     }, [ownerContext]);
+
+    // TODO: 仮。DataSourceのVisibleを別管理に変更するまでの暫定。
+    const mapDefine = useRecoilValue(mapDefineState);
+    const setDataSourceGroups = useSetRecoilState(dataSourceGroupsState);
+    const resetItemMap = useResetRecoilState(itemMapState);
+    const resetContents = useResetRecoilState(contentsState);
+    const resetFilteredItems = useResetRecoilState(filteredItemsState);
+    useWatch(() => {
+        if (mapDefine)
+            setDataSourceGroups(mapDefine.dataSourceGroups);
+
+        resetItemMap();
+        resetContents();
+        resetFilteredItems();
+    }, [mapDefine])
 
     const currentMapKind = useRecoilValue(currentMapKindState);
     useWatch(() => {

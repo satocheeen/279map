@@ -1,11 +1,10 @@
 import { atom, selector } from 'recoil';
 import { SystemIconDefine, TsunaguMapProps } from '../../types/types';
-import { instanceIdState } from '../map';
+import { currentMapKindState, instanceIdState } from '../map';
 import { getAPICallerInstance } from '../../api/ApiCaller';
 import { GetOriginalIconDefineAPI } from 'tsunagumap-api';
 import { MapKind } from '../../entry';
 import defaultIcon from './pin.png'
-import { currentMapKindState } from '../session/sessionAtom';
 
 const originalIconDefineState = selector<SystemIconDefine[]>({
     key: 'originalIconDefineState',

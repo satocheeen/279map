@@ -4,8 +4,8 @@ import { GetImageUrlAPI, GetThumbAPI } from 'tsunagumap-api';
 import { useMap } from '../../map/useMap';
 import { useWatch } from '../../../util/useWatch';
 import Spinner from '../spinner/Spinner';
-import { connectStatusState } from '../../../store/session/sessionAtom';
 import { useRecoilValue } from 'recoil';
+import { connectStatusState } from '../../../store/map';
 
 type Props = {
     id: DataId; // サムネイル画像id（コンテンツID）
