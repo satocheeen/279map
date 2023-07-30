@@ -194,6 +194,9 @@ export default function MapChart() {
         }
         const map = createMapInstance(mapInstanceId, myRef.current, isPC ? 'pc' : 'sp');
         mapRef.current = map;
+        mapRef.current.setPointLayerStyle(pointStyleFunction);
+        mapRef.current.setTopographyLayerStyle(topographyStyleFunction);
+        mapRef.current.setTrackLayerStyle(trackStyleFunction);
 
         const loadLatestDataHandler = addListener('LoadLatestData', async() => {
             await loadCurrentAreaContents();

@@ -14,7 +14,7 @@ import styles from './DrawPointRadius.module.scss';
 import useTopographyStyle from '../../useTopographyStyle';
 import { Icon, Style } from 'ol/style';
 import IconAnchorUnits from 'ol/style/IconAnchorUnits';
-import useIcon from '../../../../store/data/useIcon';
+import useIcon from '../../../../store/icon/useIcon';
 import usePointStyle from '../../usePointStyle';
 import { getDistance } from 'geolib';
 import { FeatureType } from '279map-common';

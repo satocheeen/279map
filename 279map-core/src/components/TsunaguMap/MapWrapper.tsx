@@ -18,7 +18,6 @@ import Input from '../common/form/Input';
 import { useSubscribe } from '../../util/useSubscribe';
 import { useItem } from '../../store/data/useItem';
 import { useContents } from '../../store/data/useContents';
-import useIcon from '../../store/data/useIcon';
 import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil';
 import { connectStatusState, currentMapKindInfoState, currentMapKindState, mapServerState } from '../../store/session/sessionAtom';
 import { useMapDefine } from '../../store/data/useMapDefine';
@@ -257,7 +256,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
 
     }, [mapServer, ownerContext.mapInstanceId]);
 
-    const { loadOriginalIconDefine } = useIcon();
     const { connectMap, loadMapDefine } = useMapDefine();
     /**
      * connect to map
@@ -282,9 +280,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
             console.log('connect success. load mapdefine');
             return loadMapDefine(mapKind);
         })
-        .then((res) => {
-            loadOriginalIconDefine();
-        })
         .catch(err => {
             console.warn('connect error', err);
             if (onConnectRef.current) {
@@ -294,7 +289,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
                 });
             }
         })
-    }, [connectMap, loadMapDefine, ownerContext.mapId, mapServer, loadOriginalIconDefine, ownerContext.mapInstanceId]);
+    }, [connectMap, loadMapDefine, ownerContext.mapId, mapServer, ownerContext.mapInstanceId]);
 
     useWatch(() => {
         connectToMap();

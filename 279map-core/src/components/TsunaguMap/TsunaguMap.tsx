@@ -101,7 +101,9 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
                     </Suspense>
                     <TooltipContext.Provider value={tooltipContextValue}>
                         <div className={styles.TsunaguMap}>
+                        <Suspense>
                             <MapWrapper ref={mapRef} />
+                        </Suspense>
                         </div>
                         <ConfirmDialog />
                         <ContentsModal />

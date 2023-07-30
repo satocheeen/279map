@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Button from '../../../common/button/Button';
 import Modal from  '../../../common/modal/Modal';
-import useIcon from '../../../../store/data/useIcon';
 import styles from './SelectStructureDialog.module.scss';
 import { MapKind } from '279map-common';
 import { SystemIconDefine } from '../../../../types/types';
 import { useRecoilValue } from 'recoil';
 import { currentMapKindState } from '../../../../store/session/sessionAtom';
+import { currentMapIconDefineState } from '../../../../store/icon/icon';
 
 type Props = {
     currentIconId?: string;         // 現在の画像ID
@@ -16,7 +16,7 @@ type Props = {
 
 export default function SelectStructureDialog(props: Props) {
     const [show, setShow] = useState(true);
-    const { currentMapIconDefine } = useIcon();
+    const currentMapIconDefine = useRecoilValue(currentMapIconDefineState);
     const [selectedDefine, setSelectedDefine] = useState(null as SystemIconDefine | null);
     const mapKind = useRecoilValue(currentMapKindState);
 

@@ -1,4 +1,3 @@
-import useIcon from "../../store/data/useIcon";
 import { useCallback, useContext } from "react";
 import Feature, { FeatureLike } from "ol/Feature";
 import { Fill, Icon, Style, Text } from 'ol/style';
@@ -14,6 +13,7 @@ import { useMap } from "./useMap";
 import { useMapOptions } from "../../util/useMapOptions";
 import { useRecoilValue } from "recoil";
 import { selectedItemIdsState } from "../../store/operation/operationAtom";
+import useIcon from "../../store/icon/useIcon";
 
 // 建物ラベルを表示するresolution境界値（これ以下の値の時に表示）
 const StructureLabelResolution = 0.003;
