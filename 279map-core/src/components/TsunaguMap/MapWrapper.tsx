@@ -11,7 +11,6 @@ import { useMounted } from '../../util/useMounted';
 import { Auth, ContentsDefine, DataId, FeatureType, MapKind, UnpointContent } from '279map-common';
 import { useWatch } from '../../util/useWatch';
 import { useMap } from '../map/useMap';
-import { createAPICallerInstance } from '../../api/ApiCaller';
 import useDataSource from '../../store/datasource/useDataSource';
 import { Button } from '../common';
 import Input from '../common/form/Input';
@@ -208,30 +207,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         onConnectRef.current = ownerContext.onConnect;
     }, [ownerContext]);
 
-    const { mapServer } = useContext(OwnerContext);
-
-    /**
-     * 初回処理
-     */
-    useWatch(() => {
-        // API Accessor用意
-        createAPICallerInstance(ownerContext.mapInstanceId, mapServer, (error) => {
-            // コネクションエラー時
-            console.warn('connection error');
-        });
-
-        const h = addListener('LoadLatestData', async() => {
-            const pH = showProcessMessage({
-                overlay: false,
-                spinner: true,
-            });
-            hideProcessMessage(pH);
-        });
-        return () => {
-            removeListener(h);
-        }
-
-    }, [mapServer, ownerContext.mapInstanceId]);
 
     /**
      * load map define when mapkind has changed.

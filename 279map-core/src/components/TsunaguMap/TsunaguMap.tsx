@@ -11,6 +11,7 @@ import { useMounted } from '../../util/useMounted';
 import UserListModal from '../admin/UserListModal';
 import { RecoilRoot } from 'recoil';
 import ValueConnectorWithOwner from './ValueConnectorWithOwner';
+import RecoilInitializer from './RecoilInitializer';
 
 type SomeRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 type OwnerContextType = SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'> & {
@@ -57,6 +58,9 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
         })
     }, [props, mapInstanceId]);
 
+    /**
+     * 初回処理
+     */
     useMounted(() => {
         // 呼び出し元がJavaScriptの場合を考慮して、必須パラメータチェック
         if (!props.mapId) {
@@ -94,35 +98,39 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
 
     return (
         <>
-            <RecoilRoot>
-                <OwnerContext.Provider value={ownerContextValue}>
+            <OwnerContext.Provider value={ownerContextValue}>
+                <RecoilRoot>
                     <Suspense>
-                        <ValueConnectorWithOwner />
-                    </Suspense>
-                    <TooltipContext.Provider value={tooltipContextValue}>
-                        <div className={styles.TsunaguMap}>
+                        <RecoilInitializer>
                             <Suspense>
-                                <MapWrapper ref={mapRef} />
+                                <ValueConnectorWithOwner />
                             </Suspense>
-                        </div>
-                        <Suspense>
-                            <ConfirmDialog />
-                            <ContentsModal />
-                            <UserListModal />
+                            <TooltipContext.Provider value={tooltipContextValue}>
+                                <div className={styles.TsunaguMap}>
+                                    <Suspense>
+                                        <MapWrapper ref={mapRef} />
+                                    </Suspense>
+                                </div>
+                                <Suspense>
+                                    <ConfirmDialog />
+                                    <ContentsModal />
+                                    <UserListModal />
 
-                            {defaultLinkUnpointedContentParam &&
-                                <DefaultComponents linkUnpointedContentParam={defaultLinkUnpointedContentParam} onClose={()=>{setDefaultLinkUnpointedContentParam(undefined)}} />
-                            }
-                            {defaultNewContentParam &&
-                                <DefaultComponents newContentParam={defaultNewContentParam} onClose={()=>{setDefaultNewContentParam(undefined)}} />
-                            }
-                            {defaultEditContentParam &&
-                                <DefaultComponents editContentParam={defaultEditContentParam} onClose={()=>{setDefaultEditContentParam(undefined)}} />
-                            }
-                        </Suspense>
-                    </TooltipContext.Provider>
-                </OwnerContext.Provider>
-            </RecoilRoot>
+                                    {defaultLinkUnpointedContentParam &&
+                                        <DefaultComponents linkUnpointedContentParam={defaultLinkUnpointedContentParam} onClose={()=>{setDefaultLinkUnpointedContentParam(undefined)}} />
+                                    }
+                                    {defaultNewContentParam &&
+                                        <DefaultComponents newContentParam={defaultNewContentParam} onClose={()=>{setDefaultNewContentParam(undefined)}} />
+                                    }
+                                    {defaultEditContentParam &&
+                                        <DefaultComponents editContentParam={defaultEditContentParam} onClose={()=>{setDefaultEditContentParam(undefined)}} />
+                                    }
+                                </Suspense>
+                            </TooltipContext.Provider>
+                        </RecoilInitializer>
+                    </Suspense>
+                </RecoilRoot>
+            </OwnerContext.Provider>
         </>
     );
 }

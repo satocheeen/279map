@@ -9,8 +9,8 @@ export class ApiException extends Error {
     constructor(error: ApiError) {
         super();
         this.apiError = error;
+        this.message = `ApiError: ${error.type} ${error.detail ?? ''}`;
     }
-
 }
 /**
  * ユーザがアクセス可能な地図一覧を返す

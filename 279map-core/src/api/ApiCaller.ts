@@ -1,6 +1,6 @@
 import { APIDefine, ContentsDefine } from '279map-common';
 import { ServerInfo } from '../types/types';
-import { ApiError, ConfigAPI, ConnectAPI, ErrorType, GetContentsAPI, GetContentsParam, GetMapListAPI } from 'tsunagumap-api';
+import { ApiError, ConfigAPI, ConnectAPI, ConnectResult, ErrorType, GetContentsAPI, GetContentsParam, GetMapListAPI } from 'tsunagumap-api';
 import { getMapKey } from '../store/data/dataUtility';
 import { ApiException } from './util';
 import { RequestAPI } from 'tsunagumap-api';
@@ -18,18 +18,14 @@ class ApiCaller {
         this._sessionFailureCallback = sessionFailureCallback;
     }
 
-    setSID(sid: string) {
-        console.log('setSID', this._id, sid);
-        this._sid = sid;
-    }
-
     async callApi<API extends APIDefine<any, any>> (api: API, param: API['param']): Promise<API['result']> {
         try {
             if (!this._sid) {
                 if (api !== ConnectAPI && api !== GetMapListAPI && api !== ConfigAPI && api !== RequestAPI) {
-                    throw 'not set SID';
+                    throw 'not set SID: ' + api.uri;
                 }
             }
+            console.log('callApi', this._serverInfo);
             const protocol = this._serverInfo.ssl ? 'https' : 'http';
             const url = `${protocol}://${this._serverInfo.host}/api/${api.uri}`;
             const headers = {
@@ -96,6 +92,12 @@ class ApiCaller {
         }
     }
 
+    async connect(mapId: string): Promise<ConnectResult> {
+        const res = await this.callApi(ConnectAPI, { mapId });
+        this._sid = res.sid;
+        return res;
+    }
+
     async getContents(param: GetContentsParam): Promise<ContentsDefine[]> {
         try {
             // 重複する内容は除去する
@@ -145,10 +147,7 @@ export function createAPICallerInstance(id: string, serverInfo: ServerInfo, erro
 export function getAPICallerInstance(id: string) {
     if (!instansMap.has(id)) {
         console.warn('no api instance', id);
-        return createAPICallerInstance('dummy', {
-            host: '',
-            ssl: false,
-        }, () => {});
+        throw new Error('no api instance: ' + id);
     }
     return instansMap.get(id) as ApiCaller;
 }

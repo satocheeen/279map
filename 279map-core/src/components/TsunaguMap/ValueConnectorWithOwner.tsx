@@ -8,7 +8,7 @@ import { useSetRecoilState } from 'recoil';
 import { defaultIconDefineState } from '../../store/icon';
 import { filteredItemsState, mapModeState, selectedItemIdsState } from '../../store/operation/operationAtom';
 import { dataSourceGroupsState } from '../../store/datasource';
-import { currentMapKindState, instanceIdState, mapDefineState, mapIdState, mapServerState } from '../../store/map';
+import { currentMapKindState, mapDefineState } from '../../store/map';
 import { contentsState, itemMapState } from '../../store/data/dataAtom';
 
 /**
@@ -26,15 +26,9 @@ export default function ValueConnectorWithOwner() {
     const onCategoriesLoadedRef = useRef<typeof ownerContext.onCategoriesLoaded>();
     const onEventsLoadedRef = useRef<typeof ownerContext.onEventsLoaded>();
 
-    const setInstanceId = useSetRecoilState(instanceIdState);
-    const setMapId = useSetRecoilState(mapIdState);
-    const setMapServer = useSetRecoilState(mapServerState);
     const setDefaultIconDefine = useSetRecoilState(defaultIconDefineState);
 
     useWatch(() => {
-        setInstanceId(ownerContext.mapInstanceId);
-        setMapId(ownerContext.mapId);
-        setMapServer(ownerContext.mapServer);
         if (ownerContext.iconDefine)
             setDefaultIconDefine(ownerContext.iconDefine);
 

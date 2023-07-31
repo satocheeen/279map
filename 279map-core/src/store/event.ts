@@ -1,6 +1,6 @@
 import { selector } from 'recoil';
 import { EventDefine } from "../entry";
-import { instanceIdState } from './map';
+import { instanceIdState, isConnectedMapState } from './map';
 import { getAPICallerInstance } from '../api/ApiCaller';
 import { visibleDataSourceIdsState } from './datasource';
 import { GetEventsAPI } from 'tsunagumap-api';
@@ -9,6 +9,9 @@ export const eventState = selector<EventDefine[]>({
     key: 'eventState',
     get: async({ get }) => {
         try {
+            const isConnectedMap = get(isConnectedMapState);
+            if (!isConnectedMap) return [];
+
             const instanceId = get(instanceIdState);
             const apiCaller = getAPICallerInstance(instanceId)
 

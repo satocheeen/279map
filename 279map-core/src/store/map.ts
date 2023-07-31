@@ -18,12 +18,9 @@ export const mapIdState = atom<string>({
     default: '',
 });
 
-export const mapServerState = atom<ServerInfo>({
+export const mapServerState = atom<ServerInfo|undefined>({
     key: 'mapServerState',
-    default: {
-        host: '',
-        ssl: false,
-    }
+    default: undefined,
 });
 
 type ConnectStatus = {
@@ -41,21 +38,17 @@ export const connectStatusState = selector<ConnectStatus>({
     get: async({ get }) => {
         try {
             const instanceId = get(instanceIdState);
-            const apiCaller = getAPICallerInstance(instanceId);
             const mapId = get(mapIdState);
             const mapServer = get(mapServerState);
-
-            if (mapId.length === 0) {
+            if (instanceId.length === 0 || mapId.length === 0 || !mapServer) {
+                // まだ初期化されていない状態なら何もしない
                 return {
                     status: 'connecting-map',
                 }
             }
+            const apiCaller = getAPICallerInstance(instanceId);
 
-            const json = await apiCaller.callApi(ConnectAPI, {
-                mapId,
-            });
-
-            apiCaller.setSID(json.sid);
+            const json = await apiCaller.connect(mapId);
             createMqttClientInstance(instanceId, mapServer.host, json.sid);
 
             return {
@@ -102,6 +95,17 @@ export const mapDefineState = selector({
             mapKind: mapKind ?? connectStatus.connectedMap.defaultMapKind,
         });
         return apiResult;
+    }
+})
+
+/**
+ * 地図に接続済みかどうか
+ */
+export const isConnectedMapState = selector({
+    key: 'isConnectingMapState',
+    get: ({ get }) => {
+        const mapDefine = get(mapDefineState);
+        return mapDefine !== undefined;
     }
 })
 
