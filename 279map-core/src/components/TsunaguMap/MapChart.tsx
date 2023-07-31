@@ -28,7 +28,7 @@ import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { itemMapState } from "../../store/data/dataAtom";
 import { mapModeState, mapViewState, selectedItemIdsState } from "../../store/operation/operationAtom";
 import { dataSourceGroupsState } from "../../store/datasource";
-import { currentMapKindState, defaultExtentState } from "../../store/map";
+import { currentMapKindState, defaultExtentState } from "../../store/session";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);

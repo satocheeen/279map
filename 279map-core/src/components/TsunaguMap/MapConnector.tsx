@@ -2,7 +2,7 @@ import React, { useCallback, useState, useContext, useMemo } from 'react';
 import { OwnerContext } from './TsunaguMap';
 import { useWatch } from '../../util/useWatch';
 import { useRecoilValueLoadable, useSetRecoilState } from 'recoil';
-import { connectStatusState, instanceIdState, mapDefineState, mapIdState, mapServerState } from '../../store/map';
+import { connectStatusState, instanceIdState, mapDefineState, mapIdState, mapServerState } from '../../store/session';
 import { createAPICallerInstance } from '../../api/ApiCaller';
 import { ApiException } from '../../api';
 import { ApiError, ErrorType, RequestAPI } from 'tsunagumap-api';

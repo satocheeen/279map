@@ -15,7 +15,7 @@ import { itemMapState } from '../../store/data/dataAtom';
 import { useContents } from '../../store/data/useContents';
 import { compareAuth } from '../../util/CommonUtility';
 import { dataSourcesState } from '../../store/datasource';
-import { connectStatusState, currentMapKindState } from '../../store/map';
+import { connectStatusState, currentMapKindState } from '../../store/session';
 
 type Props = {
     target: {

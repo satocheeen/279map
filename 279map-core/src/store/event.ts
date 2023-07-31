@@ -1,6 +1,6 @@
 import { selector } from 'recoil';
 import { EventDefine } from "../entry";
-import { instanceIdState } from './map';
+import { instanceIdState } from './session';
 import { getAPICallerInstance } from '../api/ApiCaller';
 import { visibleDataSourceIdsState } from './datasource';
 import { GetEventsAPI } from 'tsunagumap-api';

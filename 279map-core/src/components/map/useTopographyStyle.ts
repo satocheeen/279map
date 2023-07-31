@@ -5,7 +5,7 @@ import { useCallback } from "react";
 import { colorWithAlpha } from '../../util/CommonUtility';
 import { MapStyles } from "../../util/constant-defines";
 import { useRecoilValue } from "recoil";
-import { currentMapKindState } from "../../store/map";
+import { currentMapKindState } from "../../store/session";
 
 const DRAWING_COLOR = '#eebbaa'
 

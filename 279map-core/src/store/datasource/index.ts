@@ -1,6 +1,6 @@
 import { DataSourceGroup, DataSourceInfo } from "279map-common";
 import { atom, selector } from "recoil";
-import { mapDefineState } from "../map";
+import { mapDefineState } from "../session";
 
 /**
  * データソース関連のRecoil

@@ -6,7 +6,7 @@ import { MapKind } from '279map-common';
 import { SystemIconDefine } from '../../../../types/types';
 import { useRecoilValue } from 'recoil';
 import { currentMapIconDefineState } from '../../../../store/icon';
-import { currentMapKindState } from '../../../../store/map';
+import { currentMapKindState } from '../../../../store/session';
 
 type Props = {
     currentIconId?: string;         // 現在の画像ID

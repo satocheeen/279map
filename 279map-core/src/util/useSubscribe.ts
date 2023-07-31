@@ -3,7 +3,7 @@ import { OwnerContext } from '../components/TsunaguMap/TsunaguMap';
 import { WebSocketMessage } from 'tsunagumap-api';
 import { getMqttClientInstance } from '../store/session/MqttInstanceManager';
 import { useRecoilValue } from 'recoil';
-import { currentMapKindState } from '../store/map';
+import { currentMapKindState } from '../store/session';
 
 //TODO: 別の箇所から同一messageをsubscribeすると、片方がunsubscribeするともう一方もunsubscribeになると思うので、その対処
 export function useSubscribe() {

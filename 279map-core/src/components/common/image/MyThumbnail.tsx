@@ -5,7 +5,7 @@ import { useMap } from '../../map/useMap';
 import { useWatch } from '../../../util/useWatch';
 import Spinner from '../spinner/Spinner';
 import { useRecoilValue } from 'recoil';
-import { connectStatusState } from '../../../store/map';
+import { connectStatusState } from '../../../store/session';
 
 type Props = {
     id: DataId; // サムネイル画像id（コンテンツID）

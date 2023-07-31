@@ -8,7 +8,7 @@ import { useSetRecoilState } from 'recoil';
 import { defaultIconDefineState } from '../../store/icon';
 import { filteredItemsState, mapModeState, selectedItemIdsState } from '../../store/operation/operationAtom';
 import { dataSourceGroupsState } from '../../store/datasource';
-import { currentMapKindState, mapDefineState } from '../../store/map';
+import { currentMapKindState, mapDefineState } from '../../store/session';
 import { contentsState, itemMapState } from '../../store/data/dataAtom';
 
 /**

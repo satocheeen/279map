@@ -16,7 +16,7 @@ import { useRecoilValue, useResetRecoilState, useRecoilState } from 'recoil';
 import { filteredItemsState, mapKindState, selectedItemIdsState } from '../../store/operation/operationAtom';
 import { useSearch } from '../../store/operation/useSearch';
 import { dataSourceGroupsState, visibleDataSourceIdsState } from '../../store/datasource';
-import { connectStatusState, currentMapKindState } from '../../store/map';
+import { connectStatusState, currentMapKindState } from '../../store/session';
 
 type Props = {};
 

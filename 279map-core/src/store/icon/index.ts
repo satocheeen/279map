@@ -1,6 +1,6 @@
 import { atom, selector } from 'recoil';
 import { SystemIconDefine, TsunaguMapProps } from '../../types/types';
-import { currentMapKindState, instanceIdState } from '../map';
+import { currentMapKindState, instanceIdState } from '../session';
 import { getAPICallerInstance } from '../../api/ApiCaller';
 import { GetOriginalIconDefineAPI } from 'tsunagumap-api';
 import { MapKind } from '../../entry';

@@ -4,7 +4,7 @@ import ListGroup from '../../../common/list/ListGroup';
 import { TbCircle, TbHexagon } from 'react-icons/tb';
 import styles from './SelectDrawFeature.module.scss';
 import { useRecoilValue } from 'recoil';
-import { currentMapKindState } from '../../../../store/map';
+import { currentMapKindState } from '../../../../store/session';
 
 export enum DrawFeatureType {
     FreePolygon,

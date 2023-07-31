@@ -16,7 +16,7 @@ import VectorLayer from 'ol/layer/Vector';
 import { useMap } from '../../useMap';
 import { useRecoilValue } from 'recoil';
 import { RegistItemAPI } from 'tsunagumap-api';
-import { currentMapKindState } from '../../../../store/map';
+import { currentMapKindState } from '../../../../store/session';
 
 type Props = {
     dataSourceId: string;   // 作図対象のデータソース
