@@ -45,6 +45,10 @@ export function createMapInstance(id: string, target: HTMLDivElement, device: De
     instansMap.set(id, map);
     return map;
 }
+export function destroyMapInstance(id: string) {
+    console.log('destroy map', id);
+    instansMap.delete(id);
+}
 
 export function getMapInstance(id: string) {
     return instansMap.get(id);

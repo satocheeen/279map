@@ -25,7 +25,6 @@ class ApiCaller {
                     throw 'not set SID: ' + api.uri;
                 }
             }
-            console.log('callApi', this._serverInfo);
             const protocol = this._serverInfo.ssl ? 'https' : 'http';
             const url = `${protocol}://${this._serverInfo.host}/api/${api.uri}`;
             const headers = {

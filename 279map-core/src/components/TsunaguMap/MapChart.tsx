@@ -15,7 +15,7 @@ import { usePrevious } from "../../util/usePrevious";
 import usePointStyle from "../map/usePointStyle";
 import ClusterMenuController from "../cluster-menu/ClusterMenuController";
 import { OwnerContext } from "./TsunaguMap";
-import { OlMapType, createMapInstance } from "./OlMapWrapper";
+import { OlMapType, createMapInstance, destroyMapInstance } from "./OlMapWrapper";
 import { useMounted } from "../../util/useMounted";
 import { useWatch } from "../../util/useWatch";
 import { Geometry } from "ol/geom";
@@ -227,6 +227,7 @@ export default function MapChart() {
         return () => {
             map.un('moveend', loadContentFunc);
             map.dispose();
+            destroyMapInstance(mapInstanceId);
             removeListener(loadLatestDataHandler);
             removeListener(focusItemHandler);
         }

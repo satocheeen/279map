@@ -15,7 +15,6 @@ export default function useIcon() {
      * 指定のアイコンキーに対応するアイコン定義を返す
      */
     const getIconDefine = useCallback((iconInfo?: IconInfo) => {
-        console.log('currentMapIconDefine', currentMapIconDefine);
         if (!iconInfo) {
             return currentDefaultIcon;
         }

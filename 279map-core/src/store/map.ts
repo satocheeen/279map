@@ -75,6 +75,10 @@ export const currentMapKindState = selector<MapKind|undefined>({
     }
 })
 
+/**
+ * 初期エクステント
+ * （将来的には、ユーザが最後に参照していたエクステントを記録して、それを反映するようにしたい）
+ */
 export const defaultExtentState = selector<Extent>({
     key: 'defaultExtentSelector',
     get: ( { get } ) => {
