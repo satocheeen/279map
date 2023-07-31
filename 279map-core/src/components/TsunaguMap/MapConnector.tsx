@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef, useContext } from 'react';
+import React, { useCallback, useState, useContext } from 'react';
 import { OwnerContext } from './TsunaguMap';
 import { useWatch } from '../../util/useWatch';
 import { useRecoilValueLoadable, useSetRecoilState } from 'recoil';
@@ -6,33 +6,28 @@ import { connectStatusState, instanceIdState, mapIdState, mapServerState } from 
 import { createAPICallerInstance } from '../../api/ApiCaller';
 import { ApiException } from '../../api';
 import { ApiError, ErrorType, RequestAPI } from 'tsunagumap-api';
-import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import Overlay from '../common/spinner/Overlay';
 import { useMap } from '../map/useMap';
 import { Button } from '../common';
 import Input from '../common/form/Input';
-import styles from './RecoilInitializer.module.scss';
+import styles from './MapConnector.module.scss';
 
 type Props = {
     children: React.ReactNode | React.ReactNode[];
 }
 
 /**
- * Recoilの初期化。
- * - OwnerContextで設定された値のうち、必要なものをRecoilに設定する。
- * - 地図サーバーとのセッション確立する
+ * 地図サーバとのセッションを確立する。
+ * OwnerContextで設定された値のうち、必要なものをRecoilに設定する。
  * @param props 
  * @returns 
  */
-export default function RecoilInitializer(props: Props) {
+export default function MapConnector(props: Props) {
     const ownerContext = useContext(OwnerContext);
     const setInstanceId = useSetRecoilState(instanceIdState);
     const setMapId = useSetRecoilState(mapIdState);
     const setMapServer = useSetRecoilState(mapServerState);
     const connectLoadable = useRecoilValueLoadable(connectStatusState);
-
-    const { showProcessMessage, hideProcessMessage } = useProcessMessage();
-    const messageIdRef = useRef<number>();
 
     useWatch(() => {
         console.log('setInstanceId', ownerContext.mapInstanceId);
