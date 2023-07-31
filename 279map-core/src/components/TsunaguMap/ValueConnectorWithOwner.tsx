@@ -6,7 +6,7 @@ import { categoryState } from '../../store/category';
 import { eventState } from '../../store/event';
 import { useSetRecoilState } from 'recoil';
 import { defaultIconDefineState } from '../../store/icon';
-import { mapModeState, selectedItemIdsState } from '../../store/operation/operationAtom';
+import { mapModeState, selectedItemIdsState } from '../../store/operation';
 import { dataSourceGroupsState } from '../../store/datasource';
 import { connectStatusState, currentMapKindState, mapDefineState } from '../../store/session';
 import { itemMapState } from '../../store/item';

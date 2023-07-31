@@ -5,7 +5,7 @@ import { createMqttClientInstance } from './MqttInstanceManager';
 import { ServerInfo } from '../../types/types';
 import { MapKind } from '279map-common';
 import { ApiException } from '../../api';
-import { mapKindState } from '../operation/operationAtom';
+import { mapKindState } from '../operation';
 import { Extent } from "ol/extent";
 
 export const instanceIdState = atom<string>({

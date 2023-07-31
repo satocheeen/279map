@@ -25,7 +25,7 @@ import { isEqualId } from "../../util/dataUtility";
 import { useItem } from "../../store/item/useItem";
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { itemMapState } from "../../store/item";
-import { mapModeState, mapViewState, selectedItemIdsState } from "../../store/operation/operationAtom";
+import { mapModeState, mapViewState, selectedItemIdsState } from "../../store/operation";
 import { dataSourceGroupsState } from "../../store/datasource";
 import { currentMapKindState, defaultExtentState } from "../../store/session";
 import { filteredItemIdListState } from "../../store/filter";

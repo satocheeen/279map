@@ -10,7 +10,7 @@ import { useMap } from "../map/useMap";
 import { doCommand } from "../../util/Commander";
 import { itemMapState } from "../../store/item";
 import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { mapModeState, selectedItemIdsState } from "../../store/operation/operationAtom";
+import { mapModeState, selectedItemIdsState } from "../../store/operation";
 import { filteredContentIdListState, filteredItemIdListState } from "../../store/filter";
 import { useItem } from "../../store/item/useItem";
 

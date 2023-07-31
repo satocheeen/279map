@@ -11,7 +11,7 @@ import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
 import { useMap } from "./useMap";
 import { useMapOptions } from "../../util/useMapOptions";
 import { useRecoilValue } from "recoil";
-import { selectedItemIdsState } from "../../store/operation/operationAtom";
+import { selectedItemIdsState } from "../../store/operation";
 import useIcon from "../../store/icon/useIcon";
 import { filteredItemIdListState } from "../../store/filter";
 

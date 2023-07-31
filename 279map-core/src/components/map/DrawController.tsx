@@ -6,7 +6,7 @@ import { FeatureType } from '279map-common';
 import { LayerType } from '../TsunaguMap/VectorLayerMap';
 import LoadingOverlay from '../common/spinner/LoadingOverlay';
 import { useSetRecoilState } from 'recoil';
-import { mapModeState } from '../../store/operation/operationAtom';
+import { mapModeState } from '../../store/operation';
 
 const DrawStructureController = lazy(() => import('./draw-controller/structure/DrawStructureController'));
 const MoveItemController = lazy(() => import('./draw-controller/structure/MoveItemController'));

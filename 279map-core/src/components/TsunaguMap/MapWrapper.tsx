@@ -12,7 +12,7 @@ import useDataSource from '../../store/datasource/useDataSource';
 import { useSubscribe } from '../../util/useSubscribe';
 import { useItem } from '../../store/item/useItem';
 import { useRecoilValue, useRecoilState } from 'recoil';
-import { mapKindState, selectedItemIdsState } from '../../store/operation/operationAtom';
+import { mapKindState, selectedItemIdsState } from '../../store/operation';
 import { dataSourceGroupsState } from '../../store/datasource';
 import { connectStatusState, currentMapKindState } from '../../store/session';
 

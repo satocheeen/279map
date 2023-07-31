@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { useFilter } from '../../store/filter/useFilter';
 import { convertDataIdFromFeatureId, isEqualId } from '../../util/dataUtility';
 import { useRecoilValue } from 'recoil';
-import { selectedItemIdsState } from '../../store/operation/operationAtom';
+import { selectedItemIdsState } from '../../store/operation';
 
 const FORCE_COLOR = '#8888ff';
 

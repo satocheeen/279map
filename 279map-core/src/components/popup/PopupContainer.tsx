@@ -11,7 +11,7 @@ import { useWatch } from '../../util/useWatch';
 import { useMapOptions } from '../../util/useMapOptions';
 import { itemMapState } from '../../store/item';
 import { useRecoilValue } from 'recoil';
-import { mapViewState } from '../../store/operation/operationAtom';
+import { mapViewState } from '../../store/operation';
 import { visibleDataSourceIdsState } from '../../store/datasource';
 import { filteredItemIdListState } from '../../store/filter';
 

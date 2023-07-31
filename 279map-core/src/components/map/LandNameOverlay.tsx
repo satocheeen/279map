@@ -8,7 +8,7 @@ import { getMapKey } from '../../util/dataUtility';
 import { useMap } from './useMap';
 import { itemMapState } from '../../store/item';
 import { useRecoilValue } from 'recoil';
-import { mapViewState } from '../../store/operation/operationAtom';
+import { mapViewState } from '../../store/operation';
 
 // 島名を常時表示するズームLv.境界値（この値よりも小さい場合に、常時表示）
 const LandNameShowZoomLv = 8.17
