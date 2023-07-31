@@ -1,7 +1,7 @@
 import { APIDefine, ContentsDefine } from '279map-common';
 import { ServerInfo } from '../types/types';
 import { ApiError, ConfigAPI, ConnectAPI, ConnectResult, ErrorType, GetContentsAPI, GetContentsParam, GetMapListAPI } from 'tsunagumap-api';
-import { getMapKey } from '../store/data/dataUtility';
+import { getMapKey } from '../util/dataUtility';
 import { ApiException } from './util';
 import { RequestAPI } from 'tsunagumap-api';
 

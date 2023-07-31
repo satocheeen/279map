@@ -2,11 +2,11 @@ import React, { useEffect, useRef, useMemo, useCallback } from 'react';
 import { Overlay } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import styles from './ClusterMenu.module.scss';
-import { itemMapState } from '../../store/data/dataAtom';
+import { itemMapState } from '../../store/item';
 import { useRecoilValue } from 'recoil';
 import useIcon from '../../store/icon/useIcon';
 import { DataId } from '279map-common';
-import { getMapKey } from '../../store/data/dataUtility';
+import { getMapKey } from '../../util/dataUtility';
 import { useMap } from '../map/useMap';
 import { BsImage } from 'react-icons/bs';
 

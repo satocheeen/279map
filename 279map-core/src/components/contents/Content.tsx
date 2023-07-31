@@ -14,7 +14,7 @@ import { ContentAttr, ContentsDefine, DataId, MapKind } from "279map-common";
 import Spinner from "../common/spinner/Spinner";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
-import { getMapKey, isEqualId } from "../../store/data/dataUtility";
+import { getMapKey, isEqualId } from "../../util/dataUtility";
 import { GetImageUrlAPI, GetSnsPreviewAPI, RemoveContentAPI, UpdateContentAPI, UpdateContentParam } from 'tsunagumap-api';
 import { doCommand } from "../../util/Commander";
 import { useMap } from "../map/useMap";

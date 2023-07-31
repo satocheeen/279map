@@ -14,7 +14,7 @@ import { FeatureType, GeoProperties } from '279map-common';
 import { FeatureLike } from 'ol/Feature';
 import { Geometry } from 'ol/geom';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
-import { convertDataIdFromFeatureId } from '../../../../store/data/dataUtility';
+import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useMap } from '../../useMap';
 import { UpdateItemAPI } from 'tsunagumap-api';
 

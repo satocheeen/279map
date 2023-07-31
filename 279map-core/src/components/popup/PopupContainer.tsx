@@ -3,13 +3,13 @@ import React, { useEffect, useRef, useMemo, useCallback, useState } from 'react'
 import PointsPopup from './PointsPopup';
 import { getCenter } from 'geolib';
 import VectorSource from 'ol/source/Vector';
-import { getMapKey, isEqualId } from '../../store/data/dataUtility';
+import { getMapKey, isEqualId } from '../../util/dataUtility';
 import { LayerType } from '../TsunaguMap/VectorLayerMap';
 import PopupContainerCalculator, { PopupGroupWithPosition } from './PopupContainerCalculator';
 import { useMap } from '../map/useMap';
 import { useWatch } from '../../util/useWatch';
 import { useMapOptions } from '../../util/useMapOptions';
-import { itemMapState } from '../../store/data/dataAtom';
+import { itemMapState } from '../../store/item';
 import { useRecoilValue } from 'recoil';
 import { mapViewState } from '../../store/operation/operationAtom';
 import { visibleDataSourceIdsState } from '../../store/datasource';

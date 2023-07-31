@@ -10,7 +10,7 @@ import { useWatch } from '../../util/useWatch';
 import { useMap } from '../map/useMap';
 import useDataSource from '../../store/datasource/useDataSource';
 import { useSubscribe } from '../../util/useSubscribe';
-import { useItem } from '../../store/data/useItem';
+import { useItem } from '../../store/item/useItem';
 import { useRecoilValue, useRecoilState } from 'recoil';
 import { mapKindState, selectedItemIdsState } from '../../store/operation/operationAtom';
 import { dataSourceGroupsState } from '../../store/datasource';

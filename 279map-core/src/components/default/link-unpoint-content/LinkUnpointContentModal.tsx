@@ -5,7 +5,7 @@ import { DataId, UnpointContent } from '279map-common';
 import styles from './LinkUnpointContentModal.module.scss';
 import Card from '../../common/card/Card';
 import Spinner from '../../common/spinner/Spinner';
-import { getMapKey } from '../../../store/data/dataUtility';
+import { getMapKey } from '../../../util/dataUtility';
 import Select from '../../common/form/Select';
 
 type Props = {

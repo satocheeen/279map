@@ -4,7 +4,7 @@ import { GeolibInputCoordinates } from 'geolib/es/types';
 import { LayerType } from "../TsunaguMap/VectorLayerMap";
 import VectorSource from "ol/source/Vector";
 import { OlMapType } from "../TsunaguMap/OlMapWrapper";
-import { convertDataIdFromFeatureId, isEqualId } from "../../store/data/dataUtility";
+import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
 import { getFeatureCenter } from "../../util/MapUtility";
 import Style from "ol/style/Style";
 import { Extent } from "ol/extent";

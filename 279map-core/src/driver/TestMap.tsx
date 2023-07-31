@@ -32,10 +32,8 @@ export default function TestMap() {
     const [ authLv, setAuthLv ] = useState(Auth.None);
     const onConnect = useCallback((param: OnConnectParam) => {
         console.log('connect', param);
-        if (param.result === 'success') {
-            setMapKind(param.mapDefine.defaultMapKind);
-            setAuthLv(param.mapDefine.authLv);
-        }
+        setMapKind(param.mapDefine.defaultMapKind);
+        setAuthLv(param.mapDefine.authLv);
         setCnt(cnt + 1);
     }, [cnt]);
 

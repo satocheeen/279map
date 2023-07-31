@@ -2,17 +2,17 @@ import React, { useCallback, useMemo } from "react";
 import styles from './PointsPopup.module.scss';
 import { ContentsDefine, DataId, ItemContentInfo, ItemDefine } from "279map-common";
 import { MapMode } from "../../types/types";
-import { getMapKey, isEqualId } from "../../store/data/dataUtility";
+import { getMapKey, isEqualId } from "../../util/dataUtility";
 import MyThumbnail from "../common/image/MyThumbnail";
 import { BsThreeDots } from 'react-icons/bs';
 import { useMapOptions } from "../../util/useMapOptions";
 import { useMap } from "../map/useMap";
 import { doCommand } from "../../util/Commander";
-import { itemMapState } from "../../store/data/dataAtom";
+import { itemMapState } from "../../store/item";
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { mapModeState, selectedItemIdsState } from "../../store/operation/operationAtom";
 import { filteredContentIdListState, filteredItemIdListState } from "../../store/filter";
-import { useItem } from "../../store/data/useItem";
+import { useItem } from "../../store/item/useItem";
 
 type Props = {
     // このポップアップにて情報表示する対象アイテム

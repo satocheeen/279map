@@ -1,13 +1,9 @@
 import { ContentAttr, ContentsDefine, DataId, DataSourceGroup, FeatureType, GeoProperties, IconDefine, MapDefine, UnpointContent } from "279map-common";
 import { CSSProperties } from "react";
 import { CategoryDefine, EventDefine, MapKind } from '279map-common';
-import { ApiError, ConnectResult, ErrorType, GetMapInfoResult, LinkContentToItemParam, RegistContentParam, GetSnsPreviewResult, UpdateContentParam, GetUnpointDataResult, GetContentsParam } from "tsunagumap-api";
+import { ApiError, ErrorType, GetMapInfoResult, LinkContentToItemParam, RegistContentParam, GetSnsPreviewResult, UpdateContentParam, GetUnpointDataResult, GetContentsParam } from "tsunagumap-api";
 import { FilterDefine } from "279map-common";
 
-type ConnectSuccessResult = {
-    result: 'success';
-    connectResult: ConnectResult;
-}
 export type OnMapLoadParam = {
     mapKind: MapKind;
 }
@@ -22,11 +18,9 @@ type ConnectFailureResult = {
     result: 'failure';
     error: ApiAccessError;
 }
-export type ConnectAPIResult = ConnectSuccessResult | ConnectFailureResult;
 export type OnConnectParam = {
-    result: 'success';
     mapDefine: MapDefine;
-}  | ConnectFailureResult;
+};
 
 export type LoadMapDefineResult = {
     result: 'success';

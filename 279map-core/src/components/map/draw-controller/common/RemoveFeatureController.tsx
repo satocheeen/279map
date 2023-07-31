@@ -4,7 +4,7 @@ import useConfirm, { ConfirmResult } from '../../../common/confirm/useConfirm';
 import SelectFeature from '../SelectFeature';
 import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
-import { convertDataIdFromFeatureId } from '../../../../store/data/dataUtility';
+import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useMap } from '../../useMap';
 import { RemoveItemAPI } from 'tsunagumap-api';
 

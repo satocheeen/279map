@@ -5,10 +5,10 @@ import React, { useRef, useEffect, useState, useCallback, useContext } from 'rea
 import ClusterMenu from './ClusterMenu';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import { usePrevious } from '../../util/usePrevious';
-import { getMapKey, isEqualId } from '../../store/data/dataUtility';
+import { getMapKey, isEqualId } from '../../util/dataUtility';
 import { useMap } from '../map/useMap';
 import { addListener, removeListener } from '../../util/Commander';
-import { itemMapState } from '../../store/data/dataAtom';
+import { itemMapState } from '../../store/item';
 import { useRecoilValue } from 'recoil';
 import { mapModeState, mapViewState, selectedItemIdsState } from '../../store/operation/operationAtom';
 import { filteredItemIdListState } from '../../store/filter';

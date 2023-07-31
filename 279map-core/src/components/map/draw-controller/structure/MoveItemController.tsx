@@ -13,7 +13,7 @@ import "react-toggle/style.css";
 import Toggle from 'react-toggle';
 import usePointStyle from '../../usePointStyle';
 import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
-import { convertDataIdFromFeatureId } from '../../../../store/data/dataUtility';
+import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { useMap } from '../../useMap';
 import { UpdateItemAPI } from 'tsunagumap-api';

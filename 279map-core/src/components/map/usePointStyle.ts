@@ -7,7 +7,7 @@ import useFilterStatus from "./useFilterStatus";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import { IconInfo } from "279map-common";
 import { Geometry } from "ol/geom";
-import { convertDataIdFromFeatureId, isEqualId } from "../../store/data/dataUtility";
+import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
 import { useMap } from "./useMap";
 import { useMapOptions } from "../../util/useMapOptions";
 import { useRecoilValue } from "recoil";

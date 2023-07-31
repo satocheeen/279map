@@ -5,13 +5,13 @@ import { addListener, removeListener } from '../../util/Commander';
 import { ContentsDefine, DataId } from '279map-common';
 import AddContentMenu from '../popup/AddContentMenu';
 import styles from './ContentsModal.module.scss';
-import { getMapKey } from '../../store/data/dataUtility';
-import { isEqualId } from '../../store/data/dataUtility';
+import { getMapKey } from '../../util/dataUtility';
+import { isEqualId } from '../../util/dataUtility';
 import { useMounted } from '../../util/useMounted';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { useWatch } from '../../util/useWatch';
 import { useRecoilValue } from 'recoil';
-import { itemMapState } from '../../store/data/dataAtom';
+import { itemMapState } from '../../store/item';
 import { useMap } from '../map/useMap';
 
 type Target = {

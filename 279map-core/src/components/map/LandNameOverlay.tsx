@@ -4,9 +4,9 @@ import {buffer, getSize} from 'ol/extent';
 import { usePrevious } from '../../util/usePrevious';
 import styles from './LandNameOverlay.module.scss';
 import { FeatureType } from '279map-common';
-import { getMapKey } from '../../store/data/dataUtility';
+import { getMapKey } from '../../util/dataUtility';
 import { useMap } from './useMap';
-import { itemMapState } from '../../store/data/dataAtom';
+import { itemMapState } from '../../store/item';
 import { useRecoilValue } from 'recoil';
 import { mapViewState } from '../../store/operation/operationAtom';
 

@@ -18,7 +18,7 @@ import BaseEvent from 'ol/events/Event';
 import * as MapUtility from '../../util/MapUtility';
 import { FeatureProperties } from '../../types/types';
 import { Pixel } from 'ol/pixel';
-import { convertDataIdFromFeatureId, getMapKey } from '../../store/data/dataUtility';
+import { convertDataIdFromFeatureId, getMapKey } from '../../util/dataUtility';
 import { GetGeocoderFeatureAPI } from 'tsunagumap-api';
 import { FitOptions } from 'ol/View';
 import { getAPICallerInstance } from '../../api/ApiCaller';

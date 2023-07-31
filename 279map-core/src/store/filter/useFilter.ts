@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { DataId } from "279map-common";
-import { isEqualId } from "../data/dataUtility";
+import { isEqualId } from "../../util/dataUtility";
 import { useRecoilValue } from "recoil";
 import { filteredItemsState } from ".";
 

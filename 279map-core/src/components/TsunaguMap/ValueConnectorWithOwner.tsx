@@ -8,8 +8,8 @@ import { useSetRecoilState } from 'recoil';
 import { defaultIconDefineState } from '../../store/icon';
 import { mapModeState, selectedItemIdsState } from '../../store/operation/operationAtom';
 import { dataSourceGroupsState } from '../../store/datasource';
-import { currentMapKindState, mapDefineState } from '../../store/session';
-import { itemMapState } from '../../store/data/dataAtom';
+import { connectStatusState, currentMapKindState, mapDefineState } from '../../store/session';
+import { itemMapState } from '../../store/item';
 import { filterConditionState } from '../../store/filter';
 
 /**
@@ -20,6 +20,7 @@ import { filterConditionState } from '../../store/filter';
 export default function ValueConnectorWithOwner() {
     const ownerContext = useContext(OwnerContext);
 
+    const onConnectRef = useRef<typeof ownerContext.onConnect>();
     const onMapKindChangedRef = useRef<typeof ownerContext.onMapLoad>();
     const onModeChangedRef = useRef<typeof ownerContext.onModeChanged>();
     const onSelectRef = useRef<typeof ownerContext.onSelect>();
@@ -33,6 +34,7 @@ export default function ValueConnectorWithOwner() {
         if (ownerContext.iconDefine)
             setDefaultIconDefine(ownerContext.iconDefine);
 
+        onConnectRef.current = ownerContext.onConnect;
         onMapKindChangedRef.current = ownerContext.onMapLoad;
         onModeChangedRef.current = ownerContext.onModeChanged;
         onSelectRef.current = ownerContext.onSelect;
@@ -52,6 +54,15 @@ export default function ValueConnectorWithOwner() {
     useWatch(() => {
         resetItemMap();
     }, [mapDefine])
+
+    const connetStatus = useRecoilValue(connectStatusState);
+    useWatch(() => {
+        if (onConnectRef.current) {
+            onConnectRef.current({
+                mapDefine: connetStatus.mapDefine,
+            })
+        }
+    }, [connetStatus]);
 
     const currentMapKind = useRecoilValue(currentMapKindState);
     useWatch(() => {

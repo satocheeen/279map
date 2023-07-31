@@ -6,7 +6,7 @@ import { FeatureType } from '279map-common';
 import { SystemIconDefine } from '../../../../types/types';
 import { FeatureLike } from 'ol/Feature';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
-import { convertDataIdFromFeatureId } from '../../../../store/data/dataUtility';
+import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useMap } from '../../useMap';
 import { UpdateItemAPI } from 'tsunagumap-api';
 
