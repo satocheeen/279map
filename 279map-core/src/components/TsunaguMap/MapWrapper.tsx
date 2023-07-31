@@ -3,7 +3,7 @@ import { addListener, doCommand, removeListener } from '../../util/Commander';
 import MapChart from './MapChart';
 import { OwnerContext } from './TsunaguMap';
 import { TsunaguMapHandler } from '../../types/types';
-import { GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam, GetContentsParam } from "tsunagumap-api";
+import { GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam, GetContentsParam, RegistContentAPI, UpdateContentAPI, LinkContentToItemAPI } from "tsunagumap-api";
 import { useMounted } from '../../util/useMounted';
 import { Auth, ContentsDefine, DataId, FeatureType, MapKind, UnpointContent } from '279map-common';
 import { useWatch } from '../../util/useWatch';
@@ -11,7 +11,6 @@ import { useMap } from '../map/useMap';
 import useDataSource from '../../store/datasource/useDataSource';
 import { useSubscribe } from '../../util/useSubscribe';
 import { useItem } from '../../store/data/useItem';
-import { useContents } from '../../store/data/useContents';
 import { useRecoilValue, useRecoilState } from 'recoil';
 import { mapKindState, selectedItemIdsState } from '../../store/operation/operationAtom';
 import { dataSourceGroupsState } from '../../store/datasource';
@@ -33,7 +32,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const onConnectRef = useRef<typeof ownerContext.onConnect>();
 
     const { getApi, getMap } = useMap();
-    const { loadContents, registContent, linkContentToItem, updateContent } = useContents();
     const { updateDatasourceVisible } = useDataSource();
 
     useImperativeHandle(ref, () => ({
@@ -121,7 +119,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         },
         async loadContentsAPI(param: GetContentsParam): Promise<ContentsDefine[]> {
             try {
-                const res = await loadContents(param);
+                const res = await getApi().getContents(param);
                 return res;
 
             } catch(err) {
@@ -144,17 +142,17 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         },
         async registContentAPI(param: RegistContentParam) {
             try {
-                await registContent(param);
+                await getApi().callApi(RegistContentAPI, param);
 
             } catch(e) {
                 throw new Error('registContentAPI failed.' + e);
             }
         },
         async updateContentAPI(param: UpdateContentParam) {
-            await updateContent(param);
+            await getApi().callApi(UpdateContentAPI, param);
         },
         async linkContentToItemAPI(param: LinkContentToItemParam) {
-            await linkContentToItem(param);
+            await getApi().callApi(LinkContentToItemAPI, param);
         },
     
         async getSnsPreviewAPI(url: string) {

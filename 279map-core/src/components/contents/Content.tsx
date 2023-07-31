@@ -15,10 +15,9 @@ import Spinner from "../common/spinner/Spinner";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
 import { getMapKey, isEqualId } from "../../store/data/dataUtility";
-import { GetImageUrlAPI, GetSnsPreviewAPI, UpdateContentParam } from 'tsunagumap-api';
+import { GetImageUrlAPI, GetSnsPreviewAPI, RemoveContentAPI, UpdateContentAPI, UpdateContentParam } from 'tsunagumap-api';
 import { doCommand } from "../../util/Commander";
 import { useMap } from "../map/useMap";
-import { useContents } from "../../store/data/useContents";
 import { useRecoilValue } from "recoil";
 import { categoryState } from "../../store/category";
 import { dataSourcesState } from "../../store/datasource";
@@ -174,7 +173,6 @@ export default function Content(props: Props) {
         }
     }, [props.content.id, getApi]);
 
-    const { updateContent, removeContent } = useContents();
     const onEdit = useCallback(async() => {
         // 編集対象コンテンツをロード
         const contents = (await getApi().getContents([{
@@ -208,11 +206,11 @@ export default function Content(props: Props) {
                 return res;
             },
             updateContentAPI: async(param: UpdateContentParam) => {
-                await updateContent(param);
+                await getApi().callApi(UpdateContentAPI, param);
         
             },
         })
-    }, [props.content, onEditContent, getApi, updateContent]);
+    }, [props.content, onEditContent, getApi]);
 
     const dataSources = useRecoilValue(dataSourcesState);
     const unlinkable = useMemo(() => {
@@ -240,25 +238,26 @@ export default function Content(props: Props) {
 
         setShowSpinner(true);
 
-        const res = await removeContent({
-            id: props.content.id,
-            itemId: props.itemId,
-            parentContentId: props.parentContentId,
-            mode: deleteOnlyLink ? 'unlink' : 'alldelete',
-        });
-
-        setShowSpinner(false);
-
-        if ('error' in res) {
-            // @ts-ignore
-            const errorMessage = res.payload?.message ?? '';
-            await confirm({
-                message: '削除に失敗しました。\n' + errorMessage,
+        try {
+            await getApi().callApi(RemoveContentAPI, {
+                id: props.content.id,
+                itemId: props.itemId,
+                parentContentId: props.parentContentId,
+                mode: deleteOnlyLink ? 'unlink' : 'alldelete',
+            });
+    
+        } catch(e) {
+            confirm({
+                message: '削除に失敗しました。\n' + e,
                 btnPattern: ConfirmBtnPattern.OkOnly,
             });
+
+        } finally {
+            setShowSpinner(false);
+
         }
 
-    }, [props.itemId, props.parentContentId, confirm, removeContent, props.content, unlinkable]);
+    }, [getApi, props.itemId, props.parentContentId, confirm, props.content, unlinkable]);
 
     const overview = useMemo(() => {
         if (!props.content.overview) {

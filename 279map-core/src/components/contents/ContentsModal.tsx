@@ -11,8 +11,8 @@ import { useMounted } from '../../util/useMounted';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { useWatch } from '../../util/useWatch';
 import { useRecoilValue } from 'recoil';
-import { contentsState, itemMapState } from '../../store/data/dataAtom';
-import { useContents } from '../../store/data/useContents';
+import { itemMapState } from '../../store/data/dataAtom';
+import { useMap } from '../map/useMap';
 
 type Target = {
     type: 'item';
@@ -48,7 +48,8 @@ export default function ContentsModal() {
     });
 
     const { showProcessMessage, hideProcessMessage} = useProcessMessage();
-    const { loadContents } = useContents();
+    const [ contentsList, setContentsList ] = useState<ContentsDefine[]>([]);
+    const { getApi } = useMap();
     useWatch(() => {
         if (!target) return;
 
@@ -65,12 +66,15 @@ export default function ContentsModal() {
                     overlay: true,
                     spinner: true,
                 });
-                loadContents([
+                getApi().getContents([
                         {
                             itemId: target.itemId,
                         }
                     ],
-                ).finally(() => {
+                ).then(result => {
+                    setContentsList(result);
+    
+                }).finally(() => {
                     setLoaded(true);
                     hideProcessMessage(h);
                 });
@@ -82,12 +86,15 @@ export default function ContentsModal() {
             setShow(true);
     
             // 最新コンテンツ取得
-            loadContents([
+            getApi().getContents([
                     {
                         contentId: target.contentId,
                     }
                 ],
-            ).finally(() => {
+            ).then(result => {
+                setContentsList(result);
+
+            }).finally(() => {
                 setLoaded(true);
             });
 
@@ -95,25 +102,12 @@ export default function ContentsModal() {
 
     }, [target, itemMap]);
 
-    const contentsList = useRecoilValue(contentsState);
     const contents = useMemo((): ContentsDefine[] => {
-        if (!target) return [];
-
-        let list: ContentsDefine[];
-        if (target.type === 'item') {
-            const item = itemMap[getMapKey(target.itemId)];
-            if (!item) return [];
-            if (item.contents.length === 0) return [];
-            // const contentId = item.contents.id;
-            list = contentsList.filter(cn => item.contents.some(ic => isEqualId(ic.id, cn.id)));
-        } else {
-            list = contentsList.filter(c => isEqualId(c.id, target.contentId));
-        }
-        return list.sort((a, b) => {
+        return contentsList.sort((a, b) => {
             // 日時順にソート
             return (a.date ?? '').localeCompare(b.date ?? '');
         });
-    }, [contentsList, itemMap, target])
+    }, [contentsList])
 
     const title = useMemo(() => {
         if (!target) return '';

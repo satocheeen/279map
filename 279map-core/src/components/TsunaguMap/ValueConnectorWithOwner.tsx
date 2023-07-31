@@ -9,8 +9,8 @@ import { defaultIconDefineState } from '../../store/icon';
 import { mapModeState, selectedItemIdsState } from '../../store/operation/operationAtom';
 import { dataSourceGroupsState } from '../../store/datasource';
 import { currentMapKindState, mapDefineState } from '../../store/session';
-import { contentsState, itemMapState } from '../../store/data/dataAtom';
-import { filterConditionState, filteredItemsState } from '../../store/filter';
+import { itemMapState } from '../../store/data/dataAtom';
+import { filterConditionState } from '../../store/filter';
 
 /**
  * OwnerContextとRecoilを繋ぐコンポーネントもどき
@@ -49,10 +49,8 @@ export default function ValueConnectorWithOwner() {
     // TODO: 仮置き場
     const mapDefine = useRecoilValue(mapDefineState);
     const resetItemMap = useResetRecoilState(itemMapState);
-    const resetContents = useResetRecoilState(contentsState);
     useWatch(() => {
         resetItemMap();
-        resetContents();
     }, [mapDefine])
 
     const currentMapKind = useRecoilValue(currentMapKindState);

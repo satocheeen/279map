@@ -7,12 +7,11 @@ import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
 import { Auth, DataId, DataSourceLinkableContent, MapKind } from '279map-common';
 import { getMapKey } from '../../store/data/dataUtility';
-import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam } from 'tsunagumap-api';
+import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam } from 'tsunagumap-api';
 import { useMap } from '../map/useMap';
 import { Button } from '../common';
 import { useRecoilValue } from 'recoil';
 import { itemMapState } from '../../store/data/dataAtom';
-import { useContents } from '../../store/data/useContents';
 import { compareAuth } from '../../util/CommonUtility';
 import { dataSourcesState } from '../../store/datasource';
 import { connectStatusState, currentMapKindState } from '../../store/session';
@@ -155,7 +154,6 @@ export default function AddContentMenu(props: Props) {
         }
     }, [isShowSubMenu]);
 
-    const { registContent, linkContentToItem } = useContents();
     const onAddContent = useCallback((val: 'new' | 'unpoint') => {
         setShowSubMenu(false);
         if (val === 'new') {
@@ -164,7 +162,7 @@ export default function AddContentMenu(props: Props) {
                 dataSources: creatableContentDataSources,
                 registContentAPI: async(param: RegistContentParam) => {
                     try {
-                        await registContent(param);
+                        await getApi().callApi(RegistContentAPI, param);
                     } catch(e) {
                         throw new Error('registContentAPI failed.' + e);
                     }
@@ -188,7 +186,7 @@ export default function AddContentMenu(props: Props) {
                     return result;
                 },
                 linkContentToItemAPI: async(param: LinkContentToItemParam) => {
-                    await linkContentToItem(param);
+                    await getApi().callApi(LinkContentToItemAPI, param);
                 },
             });
         }
@@ -197,7 +195,7 @@ export default function AddContentMenu(props: Props) {
             props.onClick();
         }
 
-    }, [linkContentToItem, registContent, getApi, props, creatableContentDataSources, linkableContentDataSources, onAddNewContent, onLinkUnpointedContent]);
+    }, [getApi, props, creatableContentDataSources, linkableContentDataSources, onAddNewContent, onLinkUnpointedContent]);
 
     const caption = useMemo(() => {
         if ('itemId' in props.target) {
