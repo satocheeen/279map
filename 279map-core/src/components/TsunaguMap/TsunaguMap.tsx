@@ -12,6 +12,7 @@ import UserListModal from '../admin/UserListModal';
 import { RecoilRoot } from 'recoil';
 import ValueConnectorWithOwner from './ValueConnectorWithOwner';
 import RecoilInitializer from './RecoilInitializer';
+import ProcessOverlay from './ProcessOverlay';
 
 type SomeRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 type OwnerContextType = SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'> & {
@@ -102,6 +103,7 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
                 <RecoilRoot>
                     <Suspense>
                         <RecoilInitializer>
+                            <ProcessOverlay />
                             <Suspense>
                                 <ValueConnectorWithOwner />
                             </Suspense>

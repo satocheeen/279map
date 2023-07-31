@@ -1,6 +1,6 @@
 import { selector } from 'recoil';
 import { CategoryDefine } from '279map-common';
-import { instanceIdState, isConnectedMapState } from './map';
+import { instanceIdState } from './map';
 import { getAPICallerInstance } from '../api/ApiCaller';
 import { visibleDataSourceIdsState } from './datasource';
 import { GetCategoryAPI } from 'tsunagumap-api';
@@ -9,9 +9,6 @@ export const categoryState = selector<CategoryDefine[]>({
     key: 'categoryState',
     get: async({ get }) => {
         try {
-            const isConnectedMap = get(isConnectedMapState);
-            if (!isConnectedMap) return [];
-
             const instanceId = get(instanceIdState);
             const apiCaller = getAPICallerInstance(instanceId)
 

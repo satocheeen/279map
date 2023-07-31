@@ -15,7 +15,7 @@ export type onDatasourceChangedParam = {
     dataSourceGroups: DataSourceGroup[];
 }
 export type ApiAccessError = {
-    type: ErrorType | 'UndefinedMapServer';
+    type: ErrorType;
     detail?: string;
 }
 type ConnectFailureResult = {

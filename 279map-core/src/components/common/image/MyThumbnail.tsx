@@ -25,9 +25,6 @@ export default function MyThumbnail(props: Props) {
     const myRef = useRef<HTMLImageElement>(null);
     const connectStatus = useRecoilValue(connectStatusState);
     const sid = useMemo(() => {
-        if (connectStatus.status !== 'connected') {
-            return undefined;
-        }
         return connectStatus.sid;
     }, [connectStatus]);
     

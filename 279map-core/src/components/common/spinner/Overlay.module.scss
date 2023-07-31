@@ -9,8 +9,6 @@ $spinnerSize: 36px;
 .Message {
     color: #555;
 }
-
-// 画面全体をふさぐタイプ
 .Overlay {
     position: absolute;
     top: 0;
@@ -44,12 +42,4 @@ $spinnerSize: 36px;
     .Message {
         margin-left: 10px;
     }
-}
-
-.ErrorMessage {
-    color: var(--danger);
-    font-size: 90%;
-}
-.RequestedMessage {
-    color: var(--dark);
 }

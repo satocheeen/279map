@@ -15,10 +15,7 @@ export function useMapOptions() {
     const connectStatus = useRecoilValue(connectStatusState);
 
     const options = useMemo(() => {
-        if (connectStatus.status === 'connected') {
-            return connectStatus.connectedMap.options;
-        }
-        return undefined;
+        return connectStatus.mapDefine.options;
     }, [connectStatus]);
 
     const popupMode = useMemo((): TsunaguMapProps['popupMode'] => {

@@ -1,19 +1,14 @@
-import React, { useImperativeHandle, useContext, useRef, useState, useMemo, useCallback } from 'react';
+import React, { useImperativeHandle, useContext, useRef } from 'react';
 import { addListener, doCommand, removeListener } from '../../util/Commander';
 import MapChart from './MapChart';
 import { OwnerContext } from './TsunaguMap';
-import { ButtonInProcess, isShowOverlayState, isShowSpinnerState, processMessageState, useProcessMessage } from '../common/spinner/useProcessMessage';
-import styles from './MapWrapper.module.scss';
 import { TsunaguMapHandler } from '../../types/types';
-import { RequestAPI, ErrorType, GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam, WebSocketMessage, GetContentsParam } from "tsunagumap-api";
-import Spinner from '../common/spinner/Spinner';
+import { GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam, GetContentsParam } from "tsunagumap-api";
 import { useMounted } from '../../util/useMounted';
 import { Auth, ContentsDefine, DataId, FeatureType, MapKind, UnpointContent } from '279map-common';
 import { useWatch } from '../../util/useWatch';
 import { useMap } from '../map/useMap';
 import useDataSource from '../../store/datasource/useDataSource';
-import { Button } from '../common';
-import Input from '../common/form/Input';
 import { useSubscribe } from '../../util/useSubscribe';
 import { useItem } from '../../store/data/useItem';
 import { useContents } from '../../store/data/useContents';
@@ -35,7 +30,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const connectStatus = useRecoilValue(connectStatusState);
     const currentMapKind = useRecoilValue(currentMapKindState);
     const currentDataSourceGroups = useRecoilValue(dataSourceGroupsState);
-    const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
     const onConnectRef = useRef<typeof ownerContext.onConnect>();
 
@@ -117,8 +111,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
             });
         },
         showUserList() {
-            if (connectStatus.status !== 'connected') return;
-            if (connectStatus.connectedMap.authLv !== Auth.Admin) {
+            if (connectStatus.mapDefine.authLv !== Auth.Admin) {
                 console.warn('no authorization');
                 return;
             }
@@ -285,155 +278,13 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         }
     }, [ownerContext.filter, visibleDataSourceIds]);
 
-    const messageIdRef = useRef<number>();
-    useWatch(() => {
-        if (connectStatus.status === 'connecting-map') {
-            messageIdRef.current = showProcessMessage({
-                overlay: true,
-                spinner: true,
-                message: 'ロード中...'
-            });
-        } else if (connectStatus.status === 'failure') {
-            if (messageIdRef.current) {
-                hideProcessMessage(messageIdRef.current);
-            }
-            const { errorMessage, button } = function(): {errorMessage: string; button?: ButtonInProcess } {
-                switch(connectStatus.error.type) {
-                    case 'UndefinedMapServer':
-                        return {
-                            errorMessage: '地図サーバーに接続できません'
-                        };
-                    case ErrorType.UndefinedMap:
-                        return {
-                            errorMessage: '指定の地図は存在しません'
-                        };
-                    case ErrorType.Unauthorized:
-                        return {
-                            errorMessage: 'この地図を表示するには、ログインが必要です'
-                        }
-                    case ErrorType.Forbidden:
-                        return {
-                            errorMessage: '認証期限が切れている可能性があります。再ログインを試してください。問題が解決しない場合は、管理者へ問い合わせてください。'
-                        };
-                    case ErrorType.NoAuthenticate:
-                        return {
-                            errorMessage: 'この地図に入るには管理者の承認が必要です',
-                            button: ButtonInProcess.Request,
-                        };
-                    case ErrorType.Requesting:
-                        return {
-                            errorMessage: '管理者からの承認待ちです'
-                        }
-                    case ErrorType.SessionTimeout:
-                        return {
-                            errorMessage: 'しばらく操作されなかったため、セッション接続が切れました。再ロードしてください。'
-                        };
-                    default:
-                        return {
-                            errorMessage: '想定外の問題が発生しました。再ロードしても問題が解決しない場合は、管理者へ問い合わせてください。'
-                        };
-                }
-            }();
-            const detail = connectStatus.error.detail ? `\n${connectStatus.error.detail}` : '';
-            messageIdRef.current = showProcessMessage({
-                overlay: true,
-                spinner: false,
-                message: errorMessage + detail,
-                button,
-            });
-        } else if (connectStatus.status === 'connected') {
-            if (messageIdRef.current) {
-                hideProcessMessage(messageIdRef.current);
-            }
-        }
-    }, [connectStatus, currentMapKind]);
-
     return (
         <>
             {currentMapKind &&
                 <MapChart />
             }
-            <Overlay />
         </>
     );
-}
-
-/**
- * 地図の上にスピナーやメッセージをオーバーレイ表示するためのコンポーネント
- */
-function Overlay() {
-    const isShowOverlay = useRecoilValue(isShowOverlayState);
-    const isShowSpinner = useRecoilValue(isShowSpinnerState);
-    const processMessage = useRecoilValue(processMessageState);
-
-    const others = useMemo(() => {
-        if (!processMessage?.button) return null;
-        switch(processMessage.button) {
-            case ButtonInProcess.Request:
-                return <RequestComponet />
-        }
-    }, [processMessage]);
-
-    return (
-        <div className={`${isShowOverlay ? styles.Overlay : styles.MinOverlay}`}>
-            {isShowSpinner &&
-                <div className={styles.GraphSpinner}>
-                    <Spinner size={isShowOverlay ? 'normal' : 'small'} />
-                </div>
-            }
-            {processMessage?.message &&
-                <p className={styles.Message}>{processMessage.message}</p>
-            }
-            {others}
-        </div>
-    )
-}
-
-/**
- * 登録申請コンポーネント
- * @returns 
- */
-function RequestComponet() {
-    const { getApi } = useMap();
-    const { mapId } = useContext(OwnerContext);
-    const [ stage, setStage ] = useState<'button' | 'input' | 'requested'>('button');
-    const [ name, setName ] = useState('');
-    const [ errorMessage, setErrorMessage ] = useState<string|undefined>();
-
-    const onRequest = useCallback(async() => {
-        if (name.length === 0) {
-            setErrorMessage('名前を入力してください');
-            return;
-        }
-        setStage('requested');
-        await getApi().callApi(RequestAPI, {
-            mapId,
-            name,
-        });
-    }, [getApi, mapId, name]);
-
-    switch(stage) {
-        case 'button':
-            return <Button variant='secondary' onClick={()=>setStage('input')}>登録申請</Button>
-
-        case 'input':
-            return (
-                <div>
-                    <div>
-                        <Input type="text" placeholder='名前' value={name} onChange={(evt)=>setName(evt.target.value)} />
-                        <Button variant='secondary' onClick={onRequest}>登録申請</Button>
-                    </div>
-                    <div className={styles.ErrorMessage}>
-                        {errorMessage}
-                    </div>
-                </div>
-            )
-
-        case 'requested':
-            return (
-                <div className={styles.RequestedMessage}>登録申請しました。承認されるまで、しばらくお待ちください。</div>
-            )
-    }
 }
 
 export default React.forwardRef(MapWrapper);

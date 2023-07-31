@@ -40,10 +40,7 @@ export default function AddContentMenu(props: Props) {
     const connectStatus = useRecoilValue(connectStatusState);
 
     const editableAuthLv = useMemo(() => {
-        if (connectStatus.status !== 'connected') {
-            return false;
-        }
-        const authLv = connectStatus.connectedMap.authLv;
+        const authLv = connectStatus.mapDefine.authLv;
         return compareAuth(authLv, Auth.Edit) >= 0;
     }, [connectStatus]);
 
