@@ -279,11 +279,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     }, [ownerContext.filter, visibleDataSourceIds]);
 
     return (
-        <>
-            {currentMapKind &&
-                <MapChart />
-            }
-        </>
+        <MapChart />
     );
 }
 

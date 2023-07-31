@@ -1,8 +1,8 @@
-import React, { useCallback, useState, useContext } from 'react';
+import React, { useCallback, useState, useContext, useMemo } from 'react';
 import { OwnerContext } from './TsunaguMap';
 import { useWatch } from '../../util/useWatch';
 import { useRecoilValueLoadable, useSetRecoilState } from 'recoil';
-import { connectStatusState, instanceIdState, mapIdState, mapServerState } from '../../store/map';
+import { connectStatusState, instanceIdState, mapDefineState, mapIdState, mapServerState } from '../../store/map';
 import { createAPICallerInstance } from '../../api/ApiCaller';
 import { ApiException } from '../../api';
 import { ApiError, ErrorType, RequestAPI } from 'tsunagumap-api';
@@ -28,6 +28,7 @@ export default function MapConnector(props: Props) {
     const setMapId = useSetRecoilState(mapIdState);
     const setMapServer = useSetRecoilState(mapServerState);
     const connectLoadable = useRecoilValueLoadable(connectStatusState);
+    const mapDefineLoadable = useRecoilValueLoadable(mapDefineState);
 
     useWatch(() => {
         console.log('setInstanceId', ownerContext.mapInstanceId);
@@ -49,7 +50,15 @@ export default function MapConnector(props: Props) {
         setMapId(ownerContext.mapId);
     }, [ownerContext.mapId]);
 
-    switch (connectLoadable.state) {
+    const loadableState = useMemo(() => {
+        if (connectLoadable.state !== 'hasValue') {
+            return connectLoadable.state;
+        }
+        return mapDefineLoadable.state;
+
+    }, [connectLoadable, mapDefineLoadable]);
+
+    switch (loadableState) {
         case 'hasValue':
             return (
                 <>
@@ -63,7 +72,6 @@ export default function MapConnector(props: Props) {
             const e = connectLoadable.contents;
             const error: ApiError = (e instanceof ApiException) ? e.apiError
                                 : {type: ErrorType.IllegalError, detail: e + ''};
-            console.log('hasError', connectLoadable.contents)
 
             const errorMessage = function(): string {
                 switch(error.type) {

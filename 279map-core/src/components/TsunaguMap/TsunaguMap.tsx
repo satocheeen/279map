@@ -98,7 +98,7 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
     })
 
     return (
-        <>
+        <div className={styles.TsunaguMap}>
             <OwnerContext.Provider value={ownerContextValue}>
                 <RecoilRoot>
                     <Suspense>
@@ -108,11 +108,9 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
                                 <ValueConnectorWithOwner />
                             </Suspense>
                             <TooltipContext.Provider value={tooltipContextValue}>
-                                <div className={styles.TsunaguMap}>
-                                    <Suspense>
-                                        <MapWrapper ref={mapRef} />
-                                    </Suspense>
-                                </div>
+                                <Suspense>
+                                    <MapWrapper ref={mapRef} />
+                                </Suspense>
                                 <Suspense>
                                     <ConfirmDialog />
                                     <ContentsModal />
@@ -133,7 +131,7 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
                     </Suspense>
                 </RecoilRoot>
             </OwnerContext.Provider>
-        </>
+        </div>
     );
 }
 export default React.forwardRef(TsunaguMap);
