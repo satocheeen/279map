@@ -9,11 +9,11 @@ import PopupContainerCalculator, { PopupGroupWithPosition } from './PopupContain
 import { useMap } from '../map/useMap';
 import { useWatch } from '../../util/useWatch';
 import { useMapOptions } from '../../util/useMapOptions';
-import { useFilter } from '../../store/useFilter';
 import { itemMapState } from '../../store/data/dataAtom';
 import { useRecoilValue } from 'recoil';
 import { mapViewState } from '../../store/operation/operationAtom';
 import { visibleDataSourceIdsState } from '../../store/datasource';
+import { filteredItemIdListState } from '../../store/filter';
 
 function createKeyFromPopupInfo(param: PopupGroupWithPosition): string {
     if (!param) {
@@ -34,7 +34,7 @@ export default function PopupContainer() {
 
     const visibleDataSourceIds = useRecoilValue(visibleDataSourceIdsState);
 
-    const { filteredItemIdList } = useFilter();
+    const filteredItemIdList = useRecoilValue(filteredItemIdListState);
 
     // コンテンツを持つアイテムID一覧
     const hasContentsItemList = useMemo(() => {

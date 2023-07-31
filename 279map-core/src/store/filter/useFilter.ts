@@ -1,8 +1,8 @@
 import { useCallback, useMemo } from "react";
 import { DataId } from "279map-common";
-import { isEqualId } from "./data/dataUtility";
+import { isEqualId } from "../data/dataUtility";
 import { useRecoilValue } from "recoil";
-import { filteredItemsState } from "./operation/operationAtom";
+import { filteredItemsState } from ".";
 
 type FilterStatus = 'Normal' | 'UnFiltered' | 'Filtered';
 
@@ -11,14 +11,6 @@ type FilterStatus = 'Normal' | 'UnFiltered' | 'Filtered';
  */
 export function useFilter() {
     const filteredItems = useRecoilValue(filteredItemsState);
-
-    /**
-     * フィルタがかかっている状態か
-     */
-    const isFiltered = useMemo(() => {
-        return filteredItems !== null;
-    }, [filteredItems]);
-
 
     /**
      * 指定のアイテムのフィルタ状態を返す
@@ -60,38 +52,8 @@ export function useFilter() {
 
     }, [filteredItems]);
 
-    /**
-     * フィルタのかかっているアイテムidを返す。
-     * フィルタ設定されていない場合は、undefined.
-     */
-    const filteredItemIdList = useMemo(() => {
-        if (!filteredItems) {
-            return undefined;
-        }
-        return filteredItems.map(fi => fi.id);
-
-    }, [filteredItems]);
-
-    /**
-     * フィルタのかかっているコンテンツidを返す。
-     * フィルタ設定されていない場合は、undefined.
-     */
-    const filteredContentIdList = useMemo(() => {
-        if (!filteredItems) {
-            return undefined;
-        }
-        return filteredItems.reduce((acc, cur) => {
-            return acc.concat(cur.contents);
-        }, [] as DataId[]);
-
-    }, [filteredItems]);
-
     return {
-        isFiltered,
         getFilterStatusOfTheItem,
         getFilterStatusOfTheContent,
-        filteredItems,
-        filteredItemIdList,
-        filteredContentIdList,
     }
 }

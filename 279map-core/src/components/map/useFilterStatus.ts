@@ -1,6 +1,6 @@
 import { FeatureLike } from 'ol/Feature';
 import { useCallback } from 'react';
-import { useFilter } from '../../store/useFilter';
+import { useFilter } from '../../store/filter/useFilter';
 import { convertDataIdFromFeatureId, isEqualId } from '../../store/data/dataUtility';
 import { useRecoilValue } from 'recoil';
 import { selectedItemIdsState } from '../../store/operation/operationAtom';

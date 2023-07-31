@@ -5,7 +5,6 @@ import PopupContainer from "../popup/PopupContainer";
 import DrawController from "../map/DrawController";
 import { addListener, removeListener } from "../../util/Commander";
 import LandNameOverlay from "../map/LandNameOverlay";
-import { useFilter } from "../../store/useFilter";
 import { DataId, FeatureType } from "279map-common";
 import { MapMode } from "../../types/types";
 import useFilteredTopographyStyle from "../map/useFilteredTopographyStyle";
@@ -29,6 +28,7 @@ import { itemMapState } from "../../store/data/dataAtom";
 import { mapModeState, mapViewState, selectedItemIdsState } from "../../store/operation/operationAtom";
 import { dataSourceGroupsState } from "../../store/datasource";
 import { currentMapKindState, defaultExtentState } from "../../store/session";
+import { filteredItemIdListState } from "../../store/filter";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
@@ -81,7 +81,7 @@ export default function MapChart() {
     /**
      * フィルタ時にフィルタ対象がExtentに入るようにする
      */
-    const { filteredItemIdList } = useFilter();
+    const filteredItemIdList = useRecoilValue(filteredItemIdListState);
     const prevFilteredItemIdList = usePrevious(filteredItemIdList);
     useWatch(() => {
         if (!mapRef.current) return;

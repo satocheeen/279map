@@ -12,10 +12,9 @@ import useDataSource from '../../store/datasource/useDataSource';
 import { useSubscribe } from '../../util/useSubscribe';
 import { useItem } from '../../store/data/useItem';
 import { useContents } from '../../store/data/useContents';
-import { useRecoilValue, useResetRecoilState, useRecoilState } from 'recoil';
-import { filteredItemsState, mapKindState, selectedItemIdsState } from '../../store/operation/operationAtom';
-import { useSearch } from '../../store/operation/useSearch';
-import { dataSourceGroupsState, visibleDataSourceIdsState } from '../../store/datasource';
+import { useRecoilValue, useRecoilState } from 'recoil';
+import { mapKindState, selectedItemIdsState } from '../../store/operation/operationAtom';
+import { dataSourceGroupsState } from '../../store/datasource';
 import { connectStatusState, currentMapKindState } from '../../store/session';
 
 type Props = {};
@@ -262,21 +261,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
             });
         }
     }, [selectedItemIds]);
-
-    const visibleDataSourceIds = useRecoilValue(visibleDataSourceIdsState);
-    const resetFilteredItems = useResetRecoilState(filteredItemsState);
-    const { search } = useSearch();
-
-    /**
-     * set filter
-     */
-    useWatch(() => {
-        if (ownerContext.filter && ownerContext.filter.conditions.length > 0) {
-            search(ownerContext.filter.conditions);
-        } else {
-            resetFilteredItems();
-        }
-    }, [ownerContext.filter, visibleDataSourceIds]);
 
     return (
         <MapChart />

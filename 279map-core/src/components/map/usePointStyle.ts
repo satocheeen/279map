@@ -4,7 +4,6 @@ import { Fill, Icon, Style, Text } from 'ol/style';
 import { getStructureScale } from "../../util/MapUtility";
 import { SystemIconDefine } from "../../types/types";
 import useFilterStatus from "./useFilterStatus";
-import { useFilter } from "../../store/useFilter";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import { IconInfo } from "279map-common";
 import { Geometry } from "ol/geom";
@@ -14,6 +13,7 @@ import { useMapOptions } from "../../util/useMapOptions";
 import { useRecoilValue } from "recoil";
 import { selectedItemIdsState } from "../../store/operation/operationAtom";
 import useIcon from "../../store/icon/useIcon";
+import { filteredItemIdListState } from "../../store/filter";
 
 // 建物ラベルを表示するresolution境界値（これ以下の値の時に表示）
 const StructureLabelResolution = 0.003;
@@ -27,7 +27,7 @@ const STRUCTURE_SELECTED_COLOR = '#8888ff';
  */
 export default function usePointStyle() {
     const { getForceColor, getFilterStatus } = useFilterStatus();
-    const { filteredItemIdList } = useFilter();
+    const filteredItemIdList = useRecoilValue(filteredItemIdListState);
     const { disabledLabel } = useMapOptions();
     const { filter } = useContext(OwnerContext);
     const { getIconDefine } = useIcon();

@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo } from "react";
 import styles from './PointsPopup.module.scss';
-import { useFilter } from "../../store/useFilter";
 import { ContentsDefine, DataId, ItemContentInfo, ItemDefine } from "279map-common";
 import { useContents } from "../../store/useContents";
 import { MapMode } from "../../types/types";
@@ -13,6 +12,7 @@ import { doCommand } from "../../util/Commander";
 import { itemMapState } from "../../store/data/dataAtom";
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { mapModeState, selectedItemIdsState } from "../../store/operation/operationAtom";
+import { filteredContentIdListState, filteredItemIdListState } from "../../store/filter";
 
 type Props = {
     // このポップアップにて情報表示する対象アイテム
@@ -39,7 +39,8 @@ function hasImageItem(item: ItemDefine): boolean {
 export default function PointsPopup(props: Props) {
     const { getMap } = useMap();
     const itemMap = useRecoilValue(itemMapState);
-    const { filteredItemIdList, filteredContentIdList } = useFilter();
+    const filteredItemIdList = useRecoilValue(filteredItemIdListState);
+    const filteredContentIdList = useRecoilValue(filteredContentIdListState);
     const { getDescendantContentsIdList } = useContents();
 
     /**

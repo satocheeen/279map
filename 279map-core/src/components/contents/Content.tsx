@@ -12,7 +12,6 @@ import PopupMenuIcon from "../popup/PopupMenuIcon";
 import AddContentMenu from "../popup/AddContentMenu";
 import { ContentAttr, ContentsDefine, DataId, MapKind } from "279map-common";
 import Spinner from "../common/spinner/Spinner";
-import { useFilter } from "../../store/useFilter";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
 import { getMapKey, isEqualId } from "../../store/data/dataUtility";
@@ -24,6 +23,7 @@ import { useRecoilValue } from "recoil";
 import { categoryState } from "../../store/category";
 import { dataSourcesState } from "../../store/datasource";
 import { currentMapKindState } from "../../store/session";
+import { filteredContentIdListState } from "../../store/filter";
 
 type Props = {
     itemId: DataId;
@@ -39,7 +39,7 @@ type Props = {
  */
 export default function Content(props: Props) {
     const { confirm } = useConfirm();
-    const { filteredContentIdList } = useFilter();
+    const filteredContentIdList = useRecoilValue(filteredContentIdListState);
     const { onEditContent }  = useContext(OwnerContext);
     const { getApi } = useMap();
 

@@ -6,10 +6,11 @@ import { categoryState } from '../../store/category';
 import { eventState } from '../../store/event';
 import { useSetRecoilState } from 'recoil';
 import { defaultIconDefineState } from '../../store/icon';
-import { filteredItemsState, mapModeState, selectedItemIdsState } from '../../store/operation/operationAtom';
+import { mapModeState, selectedItemIdsState } from '../../store/operation/operationAtom';
 import { dataSourceGroupsState } from '../../store/datasource';
 import { currentMapKindState, mapDefineState } from '../../store/session';
 import { contentsState, itemMapState } from '../../store/data/dataAtom';
+import { filterConditionState, filteredItemsState } from '../../store/filter';
 
 /**
  * OwnerContextとRecoilを繋ぐコンポーネントもどき
@@ -40,15 +41,18 @@ export default function ValueConnectorWithOwner() {
         onEventsLoadedRef.current = ownerContext.onEventsLoaded;
     }, [ownerContext]);
 
+    const setFilterCondition = useSetRecoilState(filterConditionState);
+    useWatch(() => {
+        setFilterCondition(ownerContext.filter?.conditions);
+    }, [ownerContext.filter])
+
     // TODO: 仮置き場
     const mapDefine = useRecoilValue(mapDefineState);
     const resetItemMap = useResetRecoilState(itemMapState);
     const resetContents = useResetRecoilState(contentsState);
-    const resetFilteredItems = useResetRecoilState(filteredItemsState);
     useWatch(() => {
         resetItemMap();
         resetContents();
-        resetFilteredItems();
     }, [mapDefine])
 
     const currentMapKind = useRecoilValue(currentMapKindState);

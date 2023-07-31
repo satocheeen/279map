@@ -1,16 +1,16 @@
 import { DataId, ItemContentInfo } from '279map-common';
 import { useCallback } from 'react';
-import { useFilter } from './useFilter';
 import { getMapKey, isEqualId } from './data/dataUtility';
 import { itemMapState } from './data/dataAtom';
 import { useRecoilValue } from 'recoil';
+import { filteredContentIdListState } from './filter';
 
 /**
  * Hook for Contents
  */
 export function useContents() {
     const itemMap = useRecoilValue(itemMapState);
-    const { filteredContentIdList } = useFilter();
+    const filteredContentIdList = useRecoilValue(filteredContentIdListState);
 
     /**
      * @params itemId {string} the item ID getting descendants' contents
