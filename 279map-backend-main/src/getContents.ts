@@ -7,7 +7,7 @@ import { ContentsInfo, ContentsTable, DataSourceTable, ItemContentLink, ItemsTab
 import { CurrentMap } from '../279map-backend-common/src';
 
 type ContentsDatasourceRecord = ContentsTable & DataSourceTable;
-export async function getContents({ param, currentMap, authLv }: {param: GetContentsParam; currentMap: CurrentMap, authLv: Auth}): Promise<GetContentsResult> {
+export async function getContents({ param, currentMap }: {param: GetContentsParam; currentMap: CurrentMap}): Promise<GetContentsResult> {
     if (!currentMap) {
         throw 'mapKind not defined.';
     }
@@ -32,8 +32,6 @@ export async function getContents({ param, currentMap, authLv }: {param: GetCont
             const usingAnotherMap = anotherMapItemIds.length > 0 ? true : await checkUsingAnotherMap(con, id, currentMap.mapId);
 
             const isEditable = function() {
-                if (authLv !== Auth.Edit) return false;
-        
                 // SNSコンテンツは編集不可
                 if (isSnsContent) return false;
         
@@ -41,8 +39,6 @@ export async function getContents({ param, currentMap, authLv }: {param: GetCont
             }();
 
             const isDeletable = function() {
-                if (authLv !== Auth.Edit) return false;
-        
                 // 別の地図で使用されている場合は削除不可にする
                 if (usingAnotherMap) return false;
         

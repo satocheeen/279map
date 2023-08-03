@@ -381,11 +381,18 @@ export type GetUserListResult = {
 export type WebSocketMessage = {
     // 地図に更新が行われた場合
     type: 'mapitem-update';
+    param?: undefined;
 } | {
     // 地図上のアイテムが削除された場合
     type: 'mapitem-delete';
+    param?: undefined;
     itemPageIdList: DataId[];
 } | {
     // ユーザ一覧情報が更新された場合
     type: 'userlist-update';
+    param?: undefined;
+} | {
+    // 指定のアイテム配下のコンテンツが更新された場合
+    type: 'content-update/parent';
+    param: DataId;
 }

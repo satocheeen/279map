@@ -52,10 +52,20 @@ export default class MqttBroadcaster {
 
         const mapKinds = mapKind ? [mapKind] : [MapKind.Real, MapKind.Virtual];
         mapKinds.forEach(mk => {
-            const topic = `${mapPageId}/${mk}/${message.type}`;
+            const topic = makeTopic(mapPageId, mk, message.type, message.param);
             mqttClient.publish(topic, JSON.stringify(message));
             apiLogger.debug('publish', topic);
         })
     }
 
+}
+function makeTopic(mapId: string, mapKind: MapKind | undefined, msg: WebSocketMessage['type'], param: WebSocketMessage['param']) {
+    const paramStr = function() {
+        if (param === undefined) return undefined;
+        if (typeof param === 'object') {
+            return JSON.stringify(param);
+        }
+        return param + '';
+    }();
+    return `${mapId}/${mapKind}/${msg}${paramStr ? '/' + paramStr : ''}`;
 }

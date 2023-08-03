@@ -45,10 +45,10 @@ export default function UserListModal() {
         if (!show) return;
 
         loadUsers();
-        subscribe('userlist-update', loadUsers);
+        subscribe('userlist-update', undefined, loadUsers);
 
         return () => {
-            unsubscribe('userlist-update');
+            unsubscribe('userlist-update', undefined);
         }
     }, [show])
 

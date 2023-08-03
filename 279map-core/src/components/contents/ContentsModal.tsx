@@ -13,6 +13,7 @@ import { useWatch } from '../../util/useWatch';
 import { useRecoilValue } from 'recoil';
 import { itemMapState } from '../../store/item';
 import { useMap } from '../map/useMap';
+import { useSubscribe } from '../../util/useSubscribe';
 
 type Target = {
     type: 'item';
@@ -50,6 +51,23 @@ export default function ContentsModal() {
     const { showProcessMessage, hideProcessMessage} = useProcessMessage();
     const [ contentsList, setContentsList ] = useState<ContentsDefine[]>([]);
     const { getApi } = useMap();
+    const { subscribe, unsubscribe } = useSubscribe();
+
+    const loadContentsInItem = useCallback(async(itemId: DataId) => {
+        const h = showProcessMessage({
+            overlay: true,
+            spinner: true,
+        });
+        const result = await getApi().getContents([
+            {
+                itemId,
+            }
+        ]);
+        setContentsList(result);
+        hideProcessMessage(h);
+
+    }, []);
+
     useWatch(() => {
         if (!target) return;
 
@@ -62,22 +80,11 @@ export default function ContentsModal() {
     
             // 最新コンテンツ取得
             if (item.contents.length > 0) {
-                const h = showProcessMessage({
-                    overlay: true,
-                    spinner: true,
-                });
-                getApi().getContents([
-                        {
-                            itemId: target.itemId,
-                        }
-                    ],
-                ).then(result => {
-                    setContentsList(result);
-    
-                }).finally(() => {
+                loadContentsInItem(target.itemId)
+                .finally(() => {
                     setLoaded(true);
-                    hideProcessMessage(h);
                 });
+                subscribe('content-update/parent', target.itemId, () => loadContentsInItem(target.itemId));
             } else {
                 setLoaded(true);
             }
@@ -98,6 +105,12 @@ export default function ContentsModal() {
                 setLoaded(true);
             });
 
+        }
+
+        return () => {
+            if (target.type === 'item') {
+                unsubscribe('content-update/parent', target.itemId);
+            }
         }
 
     }, [target, itemMap]);

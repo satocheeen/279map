@@ -220,21 +220,21 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     useWatch(() => {
         if (!currentMapKind) return;
 
-        subscribe('mapitem-update', () => {
+        subscribe('mapitem-update', undefined, () => {
             doCommand({
                 command: "LoadLatestData",
                 param: undefined,
             });
         });
-        subscribe('mapitem-delete', (payload) => {
+        subscribe('mapitem-delete', undefined, (payload) => {
             if (payload.type === 'mapitem-delete')
                 // アイテム削除
                 removeItems(payload.itemPageIdList);
         })
 
         return () => {
-            unsubscribe('mapitem-update');
-            unsubscribe('mapitem-delete');
+            unsubscribe('mapitem-update', undefined);
+            unsubscribe('mapitem-delete', undefined);
         }
     }, [currentMapKind]);
 

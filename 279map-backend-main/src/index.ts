@@ -675,7 +675,6 @@ app.post(`/api/${GetContentsAPI.uri}`,
             const result = await getContents({
                 param,
                 currentMap: req.currentMap,
-                authLv: req.connect?.authLv ?? Auth.None,
             });
 
             apiLogger.debug('result', result);
@@ -906,8 +905,18 @@ app.post(`/api/${UpdateContentAPI.uri}`,
             }, param));
     
             // 更新通知
+            const target = (await getContents({
+                param: [
+                    {
+                        contentId: param.id,
+                    }
+                ],
+                currentMap: req.currentMap,
+            })).contents[0];
+
             broadCaster.broadcast(req.currentMap.mapId, req.currentMap.mapKind, {
-                type: 'mapitem-update',
+                type: 'content-update/parent',
+                param: target.itemId,
             });
         
             res.send('complete');
