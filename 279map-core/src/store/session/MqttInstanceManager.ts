@@ -1,6 +1,7 @@
-import mqtt from "precompiled-mqtt";
+import { MqttClient } from "mqtt/*";
+const mqtt = require('../../../node_modules/mqtt/dist/mqtt.min');
 
-const instansMap = new Map<string, mqtt.Client>();
+const instansMap = new Map<string, MqttClient>();
 
 /**
  * MQTTClietnインスタンスを生成する
