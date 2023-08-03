@@ -870,11 +870,15 @@ app.post(`/api/${RegistContentAPI.uri}`,
                 currentMap: req.currentMap,
             }, param));
     
+            // TODO: OdbaRegistContentAPIの戻り値をcontentIdにして、それを元にgetContentsしてitemIdを取得するように変更する
             // 更新通知
-            broadCaster.broadcast(req.currentMap.mapId, req.currentMap.mapKind, {
-                type: 'mapitem-update',
-            });
-        
+            if ('itemId' in param.parent) {
+                broadCaster.broadcast(req.currentMap.mapId, req.currentMap.mapKind, {
+                    type: 'childcontents-update',
+                    param: param.parent.itemId,
+                });
+            }
+       
             res.send('complete');
     
             next();
@@ -915,7 +919,7 @@ app.post(`/api/${UpdateContentAPI.uri}`,
             })).contents[0];
 
             broadCaster.broadcast(req.currentMap.mapId, req.currentMap.mapKind, {
-                type: 'content-update/parent',
+                type: 'childcontents-update',
                 param: target.itemId,
             });
         
@@ -989,9 +993,12 @@ app.post(`/api/${LinkContentToItemAPI.uri}`,
             }, param));
 
             // 更新通知
-            broadCaster.broadcast(req.currentMap.mapId, req.currentMap.mapKind, {
-                type: 'mapitem-update',
-            });
+            if ('itemId' in param.parent) {
+                broadCaster.broadcast(req.currentMap.mapId, req.currentMap.mapKind, {
+                    type: 'childcontents-update',
+                    param: param.parent.itemId,
+                });
+            }
             
             res.send('complete');
 
@@ -1025,7 +1032,8 @@ app.post(`/api/${RemoveContentAPI.uri}`,
     
             // 更新通知
             broadCaster.broadcast(req.currentMap.mapId, req.currentMap.mapKind, {
-                type: 'mapitem-update',
+                type: 'childcontents-update',
+                param: param.itemId,
             });
 
             res.send('complete');

@@ -84,7 +84,7 @@ export default function ContentsModal() {
                 .finally(() => {
                     setLoaded(true);
                 });
-                subscribe('content-update/parent', target.itemId, () => loadContentsInItem(target.itemId));
+                subscribe('childcontents-update', target.itemId, () => loadContentsInItem(target.itemId));
             } else {
                 setLoaded(true);
             }
@@ -109,7 +109,7 @@ export default function ContentsModal() {
 
         return () => {
             if (target.type === 'item') {
-                unsubscribe('content-update/parent', target.itemId);
+                unsubscribe('childcontents-update', target.itemId);
             }
         }
 

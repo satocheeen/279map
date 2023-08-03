@@ -392,7 +392,7 @@ export type WebSocketMessage = {
     type: 'userlist-update';
     param?: undefined;
 } | {
-    // 指定のアイテム配下のコンテンツが更新された場合
-    type: 'content-update/parent';
+    // 指定のアイテム配下のコンテンツに変更（登録・更新・削除）があった場合
+    type: 'childcontents-update';
     param: DataId;
 }
