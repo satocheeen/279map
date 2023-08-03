@@ -14,10 +14,6 @@ export type ApiAccessError = {
     type: ErrorType;
     detail?: string;
 }
-type ConnectFailureResult = {
-    result: 'failure';
-    error: ApiAccessError;
-}
 export type OnConnectParam = {
     mapDefine: MapDefine;
 };
