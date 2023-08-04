@@ -38,6 +38,7 @@ module.exports = {
             resourceRegExp: /canvas/,
             contextRegExp: /jsdom$/
         }),
+        new webpack.NormalModuleReplacementPlugin(/^hexoid$/, require.resolve('hexoid/dist/index.js'))
     ],
     ignoreWarnings: [
         {

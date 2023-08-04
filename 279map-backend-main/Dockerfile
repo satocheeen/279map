@@ -16,7 +16,7 @@ RUN npm init -y
 RUN npm install --platform=linuxmusl --arch=x64 sharp
 
 # 2. deploy stage
-FROM alpine:latest
+FROM node:16-alpine
 
 RUN apk add --no-cache nodejs
 # -- setup ca-certificates
