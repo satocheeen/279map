@@ -66,7 +66,7 @@ export default function ContentsModal() {
         setContentsList(result);
         hideProcessMessage(h);
 
-    }, []);
+    }, [getApi, hideProcessMessage, showProcessMessage]);
 
     useWatch(() => {
         if (!target) return;

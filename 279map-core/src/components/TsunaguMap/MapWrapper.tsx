@@ -16,7 +16,9 @@ import { mapKindState, selectedItemIdsState } from '../../store/operation';
 import { dataSourceGroupsState } from '../../store/datasource';
 import { connectStatusState, currentMapKindState } from '../../store/session';
 
-type Props = {};
+type Props = {
+    onInitialized?: () => void;
+};
 
 /**
  * 地図コンポーネント。
@@ -209,6 +211,9 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
             }
             setMapKind(mk);
         });
+        if (props.onInitialized) {
+            props.onInitialized();
+        }
 
         return () => {
             removeListener(h);

@@ -63,7 +63,7 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
      * 初回処理
      */
     useMounted(() => {
-        // 呼び出し元がJavaScriptの場合を考慮して、必須パラメータチェック
+        // 必須パラメータチェック（呼び出し元がTypeScriptではなくJavaScriptだと漏れている可能性があるので）
         if (!props.mapId) {
             throw new Error('mapId not found in TsunaguMap props');
         }
@@ -73,6 +73,7 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
     })
 
     const mapRef = useRef<TsunaguMapHandler>(null);
+    const [mapInitializedFlag, setMapInitializedFlag] = useState(false);
     useImperativeHandle(ref, () => mapRef.current ?? {
         switchMapKind() {},
         focusItem() {},
@@ -95,22 +96,21 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
         getThumbnail() { throw ''},
         changeVisibleLayer() {},
         showUserList() {},
-    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mapInitializedFlag])
 
     return (
         <div className={styles.TsunaguMap}>
             <OwnerContext.Provider value={ownerContextValue}>
                 <RecoilRoot>
-                    <Suspense>
+                    <Suspense >
                         <MapConnector>
                             <ProcessOverlay />
                             <Suspense>
                                 <ValueConnectorWithOwner />
                             </Suspense>
                             <TooltipContext.Provider value={tooltipContextValue}>
-                                <Suspense>
-                                    <MapWrapper ref={mapRef} />
-                                </Suspense>
+                                <MapWrapper ref={mapRef} onInitialized={()=>setMapInitializedFlag(true)} />
                                 <Suspense>
                                     <ConfirmDialog />
                                     <ContentsModal />
