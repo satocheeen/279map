@@ -106,12 +106,6 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                 const [rows] = await con.execute(sql, [target.itemId.id, target.itemId.dataSourceId, mapKind]);
                 myRows = rows as ContentsDatasourceRecord[];
 
-                const itemSql = `
-                select i.*, ds.* from items i
-                inner join data_source ds on ds.data_source_id = i.data_source_id
-                where i.item_page_id = ? and i.data_source_id = ?
-                `;
-                const [itemRows] = await con.execute(itemSql, [target.itemId.id, target.itemId.dataSourceId]);
             } else {
                 // contentId指定の場合
 
