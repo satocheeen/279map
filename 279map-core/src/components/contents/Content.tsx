@@ -215,8 +215,16 @@ export default function Content(props: Props) {
     const dataSources = useRecoilValue(dataSourcesState);
     const unlinkable = useMemo(() => {
         const itemDataSource = dataSources.find(ds => ds.dataSourceId === props.itemId.dataSourceId);
-        return itemDataSource?.itemContents.Content?.linkableContents.find(lc => lc.contentDatasourceId === props.content.id.dataSourceId)?.unlinkable ?? false;
-    }, [dataSources, props.content, props.itemId]);
+        if (!itemDataSource) {
+            console.warn('itemDataSource not found');
+            return false;
+        }
+        // アイテムとコンテンツの関係定義情報取得
+        const targetDs = (mapKind === MapKind.Real) ? itemDataSource.itemContents.RealItem : itemDataSource.itemContents.VirtualItem;
+        const targetContentDs = targetDs?.linkableContents.find(lc => lc.contentDatasourceId === props.content.id.dataSourceId);
+
+        return targetContentDs?.unlinkable ?? false;
+    }, [dataSources, props.content, props.itemId, mapKind]);
 
     const onDelete = useCallback(async() => {
         const result = await confirm({
@@ -231,9 +239,10 @@ export default function Content(props: Props) {
                 message: '元データも削除しますか。\nはい→元データごと削除する\nいいえ→地図上からのみ削除する',
                 btnPattern: ConfirmBtnPattern.YesNo,
             });
+            if (result2 === ConfirmResult.Cancel) {
+                return;
+            }
             deleteOnlyLink = result2 === ConfirmResult.No;
-        } else if (!props.content.isDeletable) {
-            deleteOnlyLink = true;
         }
 
         setShowSpinner(true);

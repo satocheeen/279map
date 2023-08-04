@@ -72,8 +72,13 @@ export default function ConfirmDialog() {
 
     }, [btnPattern, confirmHook]);
 
+    const onCloseBtnClicked = useCallback(() => {
+        confirmHook.onConfirm(ConfirmResult.Cancel);
+
+    }, [confirmHook]);
+
     return (
-        <Modal show={isShow}>
+        <Modal show={isShow} onCloseBtnClicked={onCloseBtnClicked}>
             <Modal.Header>
                 {title}
             </Modal.Header>
