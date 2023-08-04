@@ -9,6 +9,9 @@
   "keywords": [],
   "author": "Satocheeen (https://satocheeen.com)",
   "license": "MPL-2.0",
+  "engines": {
+    "node": "16.x"
+  },
   "repository": {
     "type": "git",
     "url": "https://codeberg.org/satocheeen/279map-common"
