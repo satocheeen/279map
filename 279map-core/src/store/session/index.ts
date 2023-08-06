@@ -1,11 +1,10 @@
 import { atom, selector } from 'recoil';
-import { ConnectResult, ErrorType, GetMapInfoAPI } from 'tsunagumap-api';
+import { ConnectResult, ErrorType, GetMapInfoResult } from 'tsunagumap-api';
 import { getAPICallerInstance } from '../../api/ApiCaller';
 import { createMqttClientInstance } from './MqttInstanceManager';
 import { ServerInfo } from '../../types/types';
 import { MapKind } from '279map-common';
 import { ApiException } from '../../api';
-import { mapKindState } from '../operation';
 import { Extent } from "ol/extent";
 
 export const instanceIdState = atom<string>({
@@ -50,22 +49,14 @@ export const connectStatusState = selector<ConnectResult>({
     }
 })
 
-export const mapDefineState = selector({
+export const mapDefineState = atom<GetMapInfoResult>({
     key: 'mapDefineState',
-    get: async({ get }) => {
-        const connectStatus = get(connectStatusState);
-        
-        const instanceId = get(instanceIdState);
-        const apiCaller = getAPICallerInstance(instanceId);
-
-        const mapKind = get(mapKindState);
-
-        const apiResult = await apiCaller.callApi(GetMapInfoAPI, {
-            mapKind: mapKind ?? connectStatus.mapDefine.defaultMapKind,
-        });
-        return apiResult;
+    default: {
+        mapKind: MapKind.Real,
+        extent: [0,0,0,0],
+        dataSourceGroups: [],
     }
-})
+});
 
 export const currentMapKindState = selector<MapKind|undefined>({
     key: 'currentMapKindSelector',

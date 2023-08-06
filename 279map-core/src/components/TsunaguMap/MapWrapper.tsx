@@ -1,9 +1,9 @@
-import React, { useImperativeHandle, useContext, useRef } from 'react';
+import React, { useImperativeHandle, useContext, useRef, useState } from 'react';
 import { addListener, doCommand, removeListener } from '../../util/Commander';
 import MapChart from './MapChart';
 import { OwnerContext } from './TsunaguMap';
 import { TsunaguMapHandler } from '../../types/types';
-import { GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam, GetContentsParam, RegistContentAPI, UpdateContentAPI, LinkContentToItemAPI } from "tsunagumap-api";
+import { GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam, GetContentsParam, RegistContentAPI, UpdateContentAPI, LinkContentToItemAPI, GetMapInfoAPI } from "tsunagumap-api";
 import { useMounted } from '../../util/useMounted';
 import { Auth, ContentsDefine, DataId, FeatureType, MapKind, UnpointContent } from '279map-common';
 import { useWatch } from '../../util/useWatch';
@@ -11,10 +11,10 @@ import { useMap } from '../map/useMap';
 import useDataSource from '../../store/datasource/useDataSource';
 import { useSubscribe } from '../../util/useSubscribe';
 import { useItem } from '../../store/item/useItem';
-import { useRecoilValue, useRecoilState } from 'recoil';
-import { mapKindState, selectedItemIdsState } from '../../store/operation';
+import { useRecoilValue, useSetRecoilState, useRecoilCallback } from 'recoil';
+import { selectedItemIdsState } from '../../store/operation';
 import { dataSourceGroupsState } from '../../store/datasource';
-import { connectStatusState, currentMapKindState } from '../../store/session';
+import { connectStatusState, currentMapKindState, mapDefineState } from '../../store/session';
 
 type Props = {
     onInitialized?: () => void;
@@ -203,17 +203,36 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     /**
      * load map define when mapkind has changed.
      */
-    const [ mapKind, setMapKind ] = useRecoilState(mapKindState);
+    const setMapDefine = useSetRecoilState(mapDefineState);
+    const [initialized, setInitialized] = useState(false);
+    const changeMapKind = useRecoilCallback(({snapshot, set}) => async(mk: MapKind) => {
+        const mapKind = await snapshot.getPromise(currentMapKindState);
+        console.log('ChangeMapKind', mk, mapKind);
+        if (mk === mapKind) {
+            return;
+        }
+        const res = await getApi().callApi(GetMapInfoAPI, {
+            mapKind: mk,
+        });
+        console.log('setMapDefine', res);
+        set(mapDefineState, res);
+    }, []);
+
     useMounted(() => {
         const h = addListener('ChangeMapKind', async(mk: MapKind) => {
-            if (mk === mapKind) {
-                return;
-            }
-            setMapKind(mk);
+            changeMapKind(mk);
         });
-        if (props.onInitialized) {
-            props.onInitialized();
-        }
+
+        // 初期地図読み込み
+        getApi().callApi(GetMapInfoAPI, {
+            mapKind: connectStatus.mapDefine.defaultMapKind,
+        }).then(res => {
+            setMapDefine(res);
+            setInitialized(true);
+            if (props.onInitialized) {
+                props.onInitialized();
+            }
+        })
 
         return () => {
             removeListener(h);
@@ -265,6 +284,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         }
     }, [selectedItemIds]);
 
+    if (!initialized) return null;
     return (
         <MapChart />
     );
