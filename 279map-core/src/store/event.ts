@@ -1,5 +1,5 @@
 import { selector } from 'recoil';
-import { EventDefine } from "../entry";
+import { EventDefine } from "279map-common";
 import { instanceIdState } from './session';
 import { getAPICallerInstance } from '../api/ApiCaller';
 import { visibleDataSourceIdsState } from './datasource';

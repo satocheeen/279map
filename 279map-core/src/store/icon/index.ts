@@ -3,7 +3,7 @@ import { SystemIconDefine, TsunaguMapProps } from '../../types/types';
 import { currentMapKindState, instanceIdState } from '../session';
 import { getAPICallerInstance } from '../../api/ApiCaller';
 import { GetOriginalIconDefineAPI } from 'tsunagumap-api';
-import { MapKind } from '../../entry';
+import { MapKind } from '279map-common';
 import defaultIcon from './pin.png'
 
 const originalIconDefineState = selector<SystemIconDefine[]>({

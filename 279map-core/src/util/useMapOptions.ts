@@ -1,6 +1,6 @@
 import { useContext, useMemo } from 'react';
 import { OwnerContext } from '../components/TsunaguMap/TsunaguMap';
-import { TsunaguMapProps } from '../entry';
+import { TsunaguMapProps } from '../types/types';
 import useMyMedia from './useMyMedia';
 import { useRecoilValue } from 'recoil';
 import { connectStatusState } from '../store/session';
