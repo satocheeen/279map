@@ -11,10 +11,11 @@ import { useMap } from '../map/useMap';
 import useDataSource from '../../store/datasource/useDataSource';
 import { useSubscribe } from '../../util/useSubscribe';
 import { useItem } from '../../store/item/useItem';
-import { useRecoilValue, useSetRecoilState, useRecoilCallback } from 'recoil';
+import { useRecoilValue, useSetRecoilState, useRecoilCallback, useResetRecoilState } from 'recoil';
 import { selectedItemIdsState } from '../../store/operation';
 import { dataSourceGroupsState } from '../../store/datasource';
 import { connectStatusState, currentMapKindState, mapDefineState } from '../../store/session';
+import { itemMapState } from '../../store/item';
 
 type Props = {
     onInitialized?: () => void;
@@ -205,6 +206,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
      */
     const setMapDefine = useSetRecoilState(mapDefineState);
     const [initialized, setInitialized] = useState(false);
+    const resetItemMap = useResetRecoilState(itemMapState);
     const changeMapKind = useRecoilCallback(({snapshot, set}) => async(mk: MapKind) => {
         const mapKind = await snapshot.getPromise(currentMapKindState);
         console.log('ChangeMapKind', mk, mapKind);
@@ -216,6 +218,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         });
         console.log('setMapDefine', res);
         set(mapDefineState, res);
+        resetItemMap();
     }, []);
 
     useMounted(() => {

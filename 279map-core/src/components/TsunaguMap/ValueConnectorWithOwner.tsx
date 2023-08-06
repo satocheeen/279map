@@ -1,6 +1,6 @@
 import React, { useRef, useContext } from 'react';
 import { useWatch } from '../../util/useWatch';
-import { useRecoilValue, useResetRecoilState } from 'recoil';
+import { useRecoilValue } from 'recoil';
 import { OwnerContext } from './TsunaguMap';
 import { categoryState } from '../../store/category';
 import { eventState } from '../../store/event';
@@ -8,8 +8,7 @@ import { useSetRecoilState } from 'recoil';
 import { defaultIconDefineState } from '../../store/icon';
 import { mapModeState, selectedItemIdsState } from '../../store/operation';
 import { dataSourceGroupsState, visibleDataSourceIdsState } from '../../store/datasource';
-import { connectStatusState, currentMapKindState, mapDefineState } from '../../store/session';
-import { itemMapState } from '../../store/item';
+import { connectStatusState, currentMapKindState } from '../../store/session';
 import { filteredItemsState } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { SearchAPI } from 'tsunagumap-api';
@@ -72,13 +71,6 @@ export default function ValueConnectorWithOwner() {
         });
 
     }, [ownerContext.filter])
-
-    // TODO: 仮置き場
-    const mapDefine = useRecoilValue(mapDefineState);
-    const resetItemMap = useResetRecoilState(itemMapState);
-    useWatch(() => {
-        resetItemMap();
-    }, [mapDefine])
 
     const connetStatus = useRecoilValue(connectStatusState);
     useWatch(() => {
