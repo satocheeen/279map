@@ -1,5 +1,6 @@
 import { MqttClient } from "mqtt/*";
-const mqtt = require('../../../node_modules/mqtt/dist/mqtt.min');
+// @ts-ignore
+import * as mqtt from '../../util/mqtt.min';
 
 const instansMap = new Map<string, MqttClient>();
 
