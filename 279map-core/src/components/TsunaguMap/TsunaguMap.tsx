@@ -13,6 +13,7 @@ import { RecoilRoot } from 'recoil';
 import ValueConnectorWithOwner from './ValueConnectorWithOwner';
 import MapConnector from './MapConnector';
 import ProcessOverlay from './ProcessOverlay';
+import Overlay from '../common/spinner/Overlay';
 
 type SomeRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 type OwnerContextType = SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'> & {
@@ -103,7 +104,7 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
         <div className={styles.TsunaguMap}>
             <OwnerContext.Provider value={ownerContextValue}>
                 <RecoilRoot>
-                    <Suspense >
+                    <Suspense fallback={<Overlay spinner message='ロード中...' />} >
                         <MapConnector>
                             <ProcessOverlay />
                             <Suspense>

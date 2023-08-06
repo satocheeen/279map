@@ -1,5 +1,5 @@
 import { MqttClient } from "mqtt/*";
-// @ts-ignore
+// @ts-ignore mqtt/dist配下にアクセスできないので、コピーしてきたものをimportしている
 import * as mqtt from '../../util/mqtt.min';
 
 const instansMap = new Map<string, MqttClient>();

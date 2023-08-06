@@ -7,10 +7,13 @@ import { eventState } from '../../store/event';
 import { useSetRecoilState } from 'recoil';
 import { defaultIconDefineState } from '../../store/icon';
 import { mapModeState, selectedItemIdsState } from '../../store/operation';
-import { dataSourceGroupsState } from '../../store/datasource';
+import { dataSourceGroupsState, visibleDataSourceIdsState } from '../../store/datasource';
 import { connectStatusState, currentMapKindState, mapDefineState } from '../../store/session';
 import { itemMapState } from '../../store/item';
-import { filterConditionState } from '../../store/filter';
+import { filteredItemsState } from '../../store/filter';
+import { useMap } from '../map/useMap';
+import { SearchAPI } from 'tsunagumap-api';
+import { useProcessMessage } from '../common/spinner/useProcessMessage';
 
 /**
  * OwnerContextとRecoilを繋ぐコンポーネントもどき
@@ -43,9 +46,31 @@ export default function ValueConnectorWithOwner() {
         onEventsLoadedRef.current = ownerContext.onEventsLoaded;
     }, [ownerContext]);
 
-    const setFilterCondition = useSetRecoilState(filterConditionState);
+    // 検索
+    const setFilteredItem = useSetRecoilState(filteredItemsState);
+    const { getApi } = useMap();
+    const visibleDataSourceIds = useRecoilValue(visibleDataSourceIdsState);
+    const { showProcessMessage, hideProcessMessage } = useProcessMessage();
     useWatch(() => {
-        setFilterCondition(ownerContext.filter?.conditions);
+        const conditions = ownerContext.filter?.conditions;
+        if (!conditions) {
+            setFilteredItem(null);
+            return;
+        };
+
+        const h = showProcessMessage({
+            overlay: true,
+            spinner: true,
+        });
+        getApi().callApi(SearchAPI, {
+            conditions,
+            dataSourceIds: visibleDataSourceIds,
+        }).then(res => {
+            setFilteredItem(res.items);
+        }).finally(() => {
+            hideProcessMessage(h);
+        });
+
     }, [ownerContext.filter])
 
     // TODO: 仮置き場
