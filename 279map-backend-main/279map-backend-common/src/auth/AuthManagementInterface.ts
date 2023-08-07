@@ -30,8 +30,10 @@ export abstract class AuthManagementInterface {
      * 指定の地図に対して、指定のユーザを登録申請する
      * @param userId 
      * @param mapId
+     * @param name ユーザ名
+     * @param newUserAuthLevel 付与する権限
      */
-    abstract requestForEnterMap(userId: string, param: {mapId: string; name: string}): Promise<void>;
+    abstract requestForEnterMap(param: {userId: string; mapId: string; name: string; newUserAuthLevel: Auth}): Promise<void>;
 
     /**
      * 指定の地図のユーザ一覧を返す

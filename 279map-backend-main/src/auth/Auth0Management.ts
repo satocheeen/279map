@@ -95,30 +95,30 @@ export class Auth0Management extends AuthManagementInterface {
      * @param userId 
      * @param mapId
      */
-    public async requestForEnterMap(userId: string, param: {mapId: string; name: string}) {
+    public async requestForEnterMap(param: {userId: string; mapId: string; name: string; newUserAuthLevel: Auth}) {
         if (!this.#management) {
             throw new Error('authManagementClient not initialize');
         }
         const mapId = param.mapId;
         const name = param.name;
-        const resUser = await this.#management.getUser({id: userId});
+        const resUser = await this.#management.getUser({id: param.userId});
         const metadata: AppMetaData = (resUser.app_metadata as AppMetaData) ?? { maps: {} };
         // 現在の権限を確認
         if (metadata.maps[mapId]) {
             if (metadata.maps[mapId].auth_lv !== Auth.None) {
                 // 既に権限ついているので、何もしない
-                apiLogger.warn('the user already has authentication.', userId, mapId);
+                apiLogger.warn('the user already has authentication.', param.userId, mapId);
                 return;
             }
         }
 
         // リクエスト状態にする
         metadata.maps[mapId] = {
-            auth_lv: Auth.Request,
+            auth_lv: param.newUserAuthLevel,
             name,
         };
         await this.#management.updateAppMetadata({
-            id: userId,
+            id: param.userId,
         }, metadata);
     }
 

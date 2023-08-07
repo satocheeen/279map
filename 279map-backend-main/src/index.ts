@@ -330,7 +330,7 @@ app.post(`/api/${RequestAPI.uri}`,
     async(req: Request, res: Response) => {
 
         try {
-            const param = req.query as RequestParam;
+            const param = req.body as RequestParam;
             apiLogger.info('[start] request', param);
 
             const queryMapId = param.mapId;
@@ -347,9 +347,11 @@ app.post(`/api/${RequestAPI.uri}`,
             if (!userId) {
                 throw new Error('userId undefined');
             }
-            await authManagementClient.requestForEnterMap(userId, {
+            await authManagementClient.requestForEnterMap({
+                userId,
                 mapId: mapInfo.map_page_id,
                 name: param.name,
+                newUserAuthLevel: (mapInfo.options as MapPageOptions)?.newUserAuthLevel ?? Auth.None,
             });
             res.send('ok');
 
@@ -647,7 +649,7 @@ app.post(`/api/${GetItemsAPI.uri}`,
             });
             session.addItems(result.items, param.extent, param.zoom);
 
-            apiLogger.debug('result', result);
+            // apiLogger.debug('result', result);
 
             res.send(result);
 
