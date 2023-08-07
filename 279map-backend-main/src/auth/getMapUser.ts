@@ -25,6 +25,7 @@ export const getUserIdByRequest = (req: Request): string | undefined => {
 }
 
 type UserAuthInfo = {
+    userId?: string;
     authLv: Auth;
     userName?: string;
 }
@@ -60,6 +61,7 @@ export async function getUserAuthInfoInTheMap(mapPageInfo: MapPageInfoTable, req
 
     if (mapUserInfo && mapUserInfo.auth_lv !== Auth.None) {
         return {
+            userId,
             authLv: mapUserInfo.auth_lv,
             userName: mapUserInfo.name,
         };
@@ -68,11 +70,13 @@ export async function getUserAuthInfoInTheMap(mapPageInfo: MapPageInfoTable, req
         if (mapPageInfo.public_range === PublicRange.Public) {
             // 地図がPublicの場合、View権限
             return {
+                userId,
                 authLv: Auth.View,
             };
         } else {
             // 地図がprivateの場合、権限なし
             return {
+                userId,
                 authLv: Auth.None,
             }
         }

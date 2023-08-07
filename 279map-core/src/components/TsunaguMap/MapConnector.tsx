@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useContext, useMemo } from 'react';
 import { OwnerContext } from './TsunaguMap';
 import { useWatch } from '../../util/useWatch';
-import { useRecoilValueLoadable, useSetRecoilState } from 'recoil';
+import { useRecoilRefresher_UNSTABLE, useRecoilValueLoadable, useSetRecoilState } from 'recoil';
 import { connectStatusState, instanceIdState, mapDefineState, mapIdState, mapServerState } from '../../store/session';
 import { createAPICallerInstance } from '../../api/ApiCaller';
 import { ApiException } from '../../api';
@@ -11,6 +11,8 @@ import { useMap } from '../map/useMap';
 import { Button } from '../common';
 import Input from '../common/form/Input';
 import styles from './MapConnector.module.scss';
+import { useSubscribe } from '../../util/useSubscribe';
+import { createMqttClientInstance } from '../../store/session/MqttInstanceManager';
 
 type Props = {
     children: React.ReactNode | React.ReactNode[];
@@ -33,6 +35,9 @@ export default function MapConnector(props: Props) {
     useWatch(() => {
         console.log('setInstanceId', ownerContext.mapInstanceId);
         setInstanceId(ownerContext.mapInstanceId);
+
+        createMqttClientInstance(ownerContext.mapInstanceId, ownerContext.mapServer.host);
+
     }, [ownerContext.mapInstanceId]);
 
     useWatch(() => {
@@ -57,6 +62,19 @@ export default function MapConnector(props: Props) {
         return mapDefineLoadable.state;
 
     }, [connectLoadable, mapDefineLoadable]);
+
+    const { subscribeUser, unsubscribeUser } = useSubscribe();
+    const refreshConnectStatus = useRecoilRefresher_UNSTABLE(connectStatusState);
+    useWatch(() => {
+        subscribeUser('update-userauth', () => {
+            // 権限変更されたので再接続
+            refreshConnectStatus();
+        });
+
+        return () => {
+            unsubscribeUser('update-userauth');
+        }
+    }, [subscribeUser, unsubscribeUser]);
 
     switch (loadableState) {
         case 'hasValue':

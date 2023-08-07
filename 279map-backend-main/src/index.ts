@@ -276,6 +276,7 @@ app.get('/api/connect',
                 // 権限なしエラーを返却
                 res.status(403).send({
                     type: ErrorType.NoAuthenticate,
+                    userId: userAccessInfo.userId,
                 } as ApiError);
                 return;
             }
@@ -283,6 +284,7 @@ app.get('/api/connect',
                 // 承認待ちエラーを返却
                 res.status(403).send({
                     type: ErrorType.Requesting,
+                    userId: userAccessInfo.userId,
                 } as ApiError);
                 return;
             }
@@ -305,6 +307,7 @@ app.get('/api/connect',
                     options: mapInfo.options as MapPageOptions,
                 },
                 sid: session.sid,
+                userId: userAccessInfo.userId,
             }
 
             res.send(result);
@@ -354,6 +357,11 @@ app.post(`/api/${RequestAPI.uri}`,
                 newUserAuthLevel: (mapInfo.options as MapPageOptions)?.newUserAuthLevel ?? Auth.None,
             });
             res.send('ok');
+
+            // publish
+            broadCaster.publishUserMessage(userId, {
+                type: 'update-userauth',
+            });
 
         } catch(e) {
             apiLogger.warn('request error', e);
@@ -768,7 +776,7 @@ app.post(`/api/${RegistItemAPI.uri}`,
     
             // 更新通知
             sessionManager.clearSendedExtent(param.dataSourceId);
-            broadCaster.broadcast(req.currentMap.mapId, req.currentMap.mapKind, {
+            broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                 type: 'mapitem-update',
             });
             
@@ -803,7 +811,7 @@ app.post(`/api/${UpdateItemAPI.uri}`,
     
             // 更新通知
             sessionManager.clearSendedExtent(param.id.dataSourceId);
-            broadCaster.broadcast(req.currentMap.mapId, req.currentMap.mapKind, {
+            broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                 type: 'mapitem-update',
             });
             
@@ -838,7 +846,7 @@ app.post(`/api/${RemoveItemAPI.uri}`,
     
             // 更新通知
             sessionManager.clearSendedExtent(param.id.dataSourceId);
-            broadCaster.broadcast(req.currentMap.mapId, req.currentMap.mapKind, {
+            broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                 type: 'mapitem-delete',
                 itemPageIdList: [param.id],
             });
@@ -875,7 +883,7 @@ app.post(`/api/${RegistContentAPI.uri}`,
             // TODO: OdbaRegistContentAPIの戻り値をcontentIdにして、それを元にgetContentsしてitemIdを取得するように変更する
             // 更新通知
             if ('itemId' in param.parent) {
-                broadCaster.broadcast(req.currentMap.mapId, req.currentMap.mapKind, {
+                broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                     type: 'childcontents-update',
                     param: param.parent.itemId,
                 });
@@ -920,7 +928,7 @@ app.post(`/api/${UpdateContentAPI.uri}`,
                 currentMap: req.currentMap,
             })).contents[0];
 
-            broadCaster.broadcast(req.currentMap.mapId, req.currentMap.mapKind, {
+            broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                 type: 'childcontents-update',
                 param: target.itemId,
             });
@@ -996,7 +1004,7 @@ app.post(`/api/${LinkContentToItemAPI.uri}`,
 
             // 更新通知
             if ('itemId' in param.parent) {
-                broadCaster.broadcast(req.currentMap.mapId, req.currentMap.mapKind, {
+                broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                     type: 'childcontents-update',
                     param: param.parent.itemId,
                 });
@@ -1033,7 +1041,7 @@ app.post(`/api/${RemoveContentAPI.uri}`,
             }, param));
     
             // 更新通知
-            broadCaster.broadcast(req.currentMap.mapId, req.currentMap.mapKind, {
+            broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                 type: 'childcontents-update',
                 param: param.itemId,
             });
@@ -1237,7 +1245,7 @@ app.post(`/api/${ChangeAuthLevelAPI.uri}`,
                 authLv: param.authLv,
             });
             res.send('ok');
-            broadCaster.broadcast(mapId, undefined, {
+            broadCaster.publish(mapId, undefined, {
                 type: 'userlist-update',
             })
 
@@ -1283,21 +1291,21 @@ internalApp.post('/api/broadcast', (req: Request, res: Response) => {
             param.itemIdList.forEach(id => {
                 sessionManager.clearSendedExtent(id.dataSourceId);
             });
-            broadCaster.broadcast(param.mapId, undefined, {
+            broadCaster.publish(param.mapId, undefined, {
                 type: 'mapitem-update',
             });
             break;
         case 'update':
             // 送信済みアイテム情報から当該アイテムを除去する
             sessionManager.removeSendedItem(param.itemIdList);
-            broadCaster.broadcast(param.mapId, undefined, {
+            broadCaster.publish(param.mapId, undefined, {
                 type: 'mapitem-update',
             });
             break;
         case 'delete':
             // 送信済みアイテム情報から当該アイテムを除去する
             sessionManager.removeSendedItem(param.itemIdList);
-            broadCaster.broadcast(param.mapId, undefined, {
+            broadCaster.publish(param.mapId, undefined, {
                 type: 'mapitem-delete',
                 itemPageIdList: param.itemIdList
             });

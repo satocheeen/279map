@@ -243,7 +243,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     })
 
     const { removeItems } = useItem();
-    const { subscribe, unsubscribe } = useSubscribe();
+    const { subscribeMap: subscribe, unsubscribeMap: unsubscribe } = useSubscribe();
     useWatch(() => {
         if (!currentMapKind) return;
 

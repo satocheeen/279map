@@ -38,7 +38,6 @@ export const connectStatusState = selector<ConnectResult>({
             const apiCaller = getAPICallerInstance(instanceId);
 
             const json = await apiCaller.connect(mapId);
-            createMqttClientInstance(instanceId, mapServer.host, json.sid);
 
             return json;
 

@@ -11,4 +11,5 @@ export enum ErrorType {
 export type ApiError = {
     type: ErrorType;
     detail?: string;
+    userId?: string;    // userIDは判明している場合、クライアントに送る
 }

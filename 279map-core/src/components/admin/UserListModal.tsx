@@ -40,7 +40,7 @@ export default function UserListModal() {
         })
     }, [getApi]);
     
-    const { subscribe, unsubscribe } = useSubscribe();
+    const { subscribeMap: subscribe, unsubscribeMap: unsubscribe } = useSubscribe();
     useWatch(() => {
         if (!show) return;
 

@@ -34,6 +34,7 @@ export type ConnectParam = {
 export type ConnectResult = {
     mapDefine: MapDefine;
     sid: string;   // セッションID
+    userId?: string;
 }
 
 /**
@@ -376,9 +377,17 @@ export type GetUserListResult = {
 }
 
 /**
- * WebSocket
+ * Publishメッセージ（ユーザに対するもの）
  */
-export type WebSocketMessage = {
+export type PublishUserMessage = {
+    // ユーザ権限に更新があった場合
+    type: 'update-userauth';
+}
+
+/**
+ * Publishメッセージ（地図に対するもの）
+ */
+export type PublishMapMessage = {
     // 地図に更新が行われた場合
     type: 'mapitem-update';
     param?: undefined;

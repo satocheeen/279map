@@ -8,10 +8,8 @@ const instansMap = new Map<string, MqttClient>();
  * MQTTClietnインスタンスを生成する
  * @param id instanceを特定するID
  */
-export function createMqttClientInstance(id: string, host: string, sid: string) {
-    const mq = mqtt.connect("mqtt://" + host, {
-        clientId: sid,
-    });
+export function createMqttClientInstance(id: string, host: string) {
+    const mq = mqtt.connect("mqtt://" + host);
     mq.on('connect', () => {
         console.log('mqtt server connected');
     });

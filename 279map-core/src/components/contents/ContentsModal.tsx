@@ -51,7 +51,7 @@ export default function ContentsModal() {
     const { showProcessMessage, hideProcessMessage} = useProcessMessage();
     const [ contentsList, setContentsList ] = useState<ContentsDefine[]>([]);
     const { getApi } = useMap();
-    const { subscribe, unsubscribe } = useSubscribe();
+    const { subscribeMap: subscribe, unsubscribeMap: unsubscribe } = useSubscribe();
 
     const loadContentsInItem = useCallback(async(itemId: DataId) => {
         const h = showProcessMessage({
