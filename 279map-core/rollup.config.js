@@ -18,7 +18,7 @@ function getPlugins(name) {
           comments: false,
         },
         compress: {
-          drop_console: true,
+          drop_console: false,
         }
       }),
       resolve(),

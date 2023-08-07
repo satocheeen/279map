@@ -112,7 +112,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         },
         showUserList() {
             if (connectStatus.mapDefine.authLv !== Auth.Admin) {
-                console.warn('no authorization');
+                console.warn('no authorization', connectStatus.mapDefine.authLv);
                 return;
             }
             doCommand({
