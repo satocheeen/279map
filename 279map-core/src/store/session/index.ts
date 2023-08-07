@@ -1,7 +1,6 @@
 import { atom, selector } from 'recoil';
 import { ConnectResult, ErrorType, GetMapInfoResult } from 'tsunagumap-api';
 import { getAPICallerInstance } from '../../api/ApiCaller';
-import { createMqttClientInstance } from './MqttInstanceManager';
 import { ServerInfo } from '../../types/types';
 import { MapKind } from '279map-common';
 import { ApiException } from '../../api';

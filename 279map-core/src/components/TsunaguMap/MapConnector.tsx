@@ -36,7 +36,7 @@ export default function MapConnector(props: Props) {
         console.log('setInstanceId', ownerContext.mapInstanceId);
         setInstanceId(ownerContext.mapInstanceId);
 
-        createMqttClientInstance(ownerContext.mapInstanceId, ownerContext.mapServer.host);
+        createMqttClientInstance(ownerContext.mapInstanceId, ownerContext.mapServer);
 
     }, [ownerContext.mapInstanceId]);
 
