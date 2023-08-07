@@ -37,6 +37,18 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const { getApi, getMap } = useMap();
     const { updateDatasourceVisible } = useDataSource();
 
+    const showUserList = useRecoilCallback(({snapshot}) => async() => {
+        const connectStatus =await snapshot.getPromise(connectStatusState);
+        if (connectStatus.mapDefine.authLv !== Auth.Admin) {
+            console.warn('no authorization', connectStatus.mapDefine.authLv);
+            return;
+        }
+        doCommand({
+            command: 'ShowUserList',
+            param: undefined,
+        });
+    }, []);
+
     useImperativeHandle(ref, () => ({
         switchMapKind(mapKind: MapKind) {
             doCommand({
@@ -111,14 +123,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
             });
         },
         showUserList() {
-            if (connectStatus.mapDefine.authLv !== Auth.Admin) {
-                console.warn('no authorization', connectStatus.mapDefine.authLv);
-                return;
-            }
-            doCommand({
-                command: 'ShowUserList',
-                param: undefined,
-            });
+            showUserList();
         },
         async loadContentsAPI(param: GetContentsParam): Promise<ContentsDefine[]> {
             try {
