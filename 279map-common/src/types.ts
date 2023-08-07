@@ -71,6 +71,7 @@ export interface MapPageOptions {
     } | {
         group: string;
     })[];
+    newUserAuthLevel: Auth; // 新規登録ユーザに設定する権限
 }
 /**
  * 地図定義情報
