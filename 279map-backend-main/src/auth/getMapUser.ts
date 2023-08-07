@@ -34,9 +34,9 @@ type UserAuthInfo = {
  * 指定の地図へのユーザアクセス権限情報を返す
  * @param mapPageInfo 地図テーブルレコード
  * @param req リクエスト情報
- * @returns アクセス権限情報
+ * @returns アクセス権限情報。ログインが必要な地図で、ユーザが未ログインの場合はundfined。
  */
-export async function getUserAuthInfoInTheMap(mapPageInfo: MapPageInfoTable, req: Request): Promise<UserAuthInfo> {
+export async function getUserAuthInfoInTheMap(mapPageInfo: MapPageInfoTable, req: Request): Promise<UserAuthInfo|undefined> {
     
     const userId = getUserIdByRequest(req);
     if (!userId) {
@@ -49,9 +49,7 @@ export async function getUserAuthInfoInTheMap(mapPageInfo: MapPageInfoTable, req
             }
         } else {
             apiLogger.debug('未ログイン-Private');
-            return {
-                authLv: Auth.None,
-            }
+            return undefined;
         }
     }
 

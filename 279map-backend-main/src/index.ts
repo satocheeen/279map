@@ -251,7 +251,7 @@ app.get('/api/connect',
     authManagementClient.checkJwt,
     authenticateErrorProcess,
     async(req: Request, res: Response) => {
-        apiLogger.info('[start] connect');
+        apiLogger.info('[start] connect', req.query);
 
         try {
             const queryMapId = req.query.mapId;
@@ -272,6 +272,14 @@ app.get('/api/connect',
             }
 
             const userAccessInfo = await getUserAuthInfoInTheMap(mapInfo, req);
+            if (!userAccessInfo) {
+                // ログインが必要な地図の場合
+                res.status(403).send({
+                    type: ErrorType.Unauthorized,
+                } as ApiError);
+                return;
+            }
+
             if (userAccessInfo.authLv === Auth.None) {
                 // 権限なしエラーを返却
                 res.status(403).send({
