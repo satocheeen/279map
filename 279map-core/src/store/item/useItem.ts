@@ -1,11 +1,11 @@
 import { useCallback } from "react";
 import { useMap } from "../../components/map/useMap";
 import { GetItemsAPI, GetItemsParam } from "tsunagumap-api";
-import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { useRecoilCallback, useRecoilValue, useSetRecoilState } from 'recoil';
 import { itemMapState } from ".";
 import { getMapKey, isEqualId } from "../../util/dataUtility";
 import { DataId, ItemContentInfo } from "279map-common";
-import { dataSourceGroupsState } from "../datasource";
+import { visibleDataSourceIdsState } from "../datasource";
 import { filteredContentIdListState } from "../filter";
 
 /**
@@ -13,23 +13,15 @@ import { filteredContentIdListState } from "../filter";
  * @returns 
  */
 export function useItem() {
-    const dataSourceGroups = useRecoilValue(dataSourceGroupsState);
     const { getApi } = useMap();
     const setItemMap = useSetRecoilState(itemMapState);
 
     /**
      * 指定のズームLv., extentに該当するアイテムをロードする
      */
-    const loadItems = useCallback(async(param: Omit<GetItemsParam, 'dataSourceIds'>) => {
+    const loadItems = useRecoilCallback(({ snapshot }) => async(param: Omit<GetItemsParam, 'dataSourceIds'>) => {
         try {
-            const dataSourceIds: string[] = [];
-            for (const group of dataSourceGroups) {
-                if (!group.visible) continue;
-                for (const ds of group.dataSources) {
-                    if (!ds.visible) continue;
-                    dataSourceIds.push(ds.dataSourceId);
-                }
-            }
+            const dataSourceIds = await snapshot.getPromise(visibleDataSourceIdsState);
             const apiResult = await getApi().callApi(GetItemsAPI, {
                 extent: param.extent,
                 zoom: param.zoom,
@@ -52,7 +44,7 @@ export function useItem() {
             throw e;
         }
 
-    }, [dataSourceGroups, getApi, setItemMap]);
+    }, [getApi, setItemMap]);
 
     const removeItems = useCallback(async(target: DataId[]) => {
         if (target.length === 0) return;

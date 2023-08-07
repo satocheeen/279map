@@ -62,7 +62,7 @@ export async function getItemsSub(currentMap: CurrentMap, param: GetItemsParam, 
         const trackContents = targetDataSourceIds.length === 0 ? [] : await selectTrackInArea(con, param, currentMap.mapId);
         const contents = pointContents.concat(...trackContents);
 
-        console.log('isSended', dataSourceIds.length === 0, targetDataSourceIds.length === 0);
+        // console.log('isSended', dataSourceIds.length === 0, targetDataSourceIds.length === 0);
         return contents;
 
     } catch(e){

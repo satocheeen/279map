@@ -21,20 +21,22 @@ export default function useDataSource() {
         if ('group' in param.target) {
             const group = param.target.group ?? '';
             setDataSourceVisible(current => {
-                return Object.assign({}, current, {
-                    group: {
+                return {
+                    group: Object.assign({}, current.group, {
                         [group]: param.visible,
-                    }
-                });
+                    }),
+                    datasource: current.datasource,
+                }
             })
         } else {
             const ds = param.target.dataSourceId;
             setDataSourceVisible(current => {
-                return Object.assign({}, current, {
-                    datasource: {
-                        [ds]: param.visible
-                    }
-                });
+                return {
+                    group: current.group,
+                    datasource: Object.assign({}, current.datasource, {
+                        [ds]: param.visible,
+                    })
+                }
             })
         }
     }, [setDataSourceVisible]);

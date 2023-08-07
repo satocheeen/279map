@@ -1103,7 +1103,6 @@ app.post(`/api/${SearchAPI.uri}`,
     async(req, res, next) => {
         try {
             const param = req.body as SearchParam;
-            console.log('search debug', param);
             const result = await search(req.currentMap, param);
             res.send(result);
 
