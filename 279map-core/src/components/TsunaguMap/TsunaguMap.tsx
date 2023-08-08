@@ -13,7 +13,6 @@ import { RecoilRoot } from 'recoil';
 import ValueConnectorWithOwner from './ValueConnectorWithOwner';
 import MapConnector from './MapConnector';
 import ProcessOverlay from './ProcessOverlay';
-import Overlay from '../common/spinner/Overlay';
 
 type SomeRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 type OwnerContextType = SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'> & {
