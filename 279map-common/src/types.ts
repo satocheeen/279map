@@ -71,7 +71,7 @@ export interface MapPageOptions {
     } | {
         group: string;
     })[];
-    guestUserAuth: Auth;    // ゲストユーザの操作権限
+    guestUserAuthLevel: Auth;    // ゲストユーザの操作権限
     newUserAuthLevel: Auth; // 新規登録ユーザに設定する権限
 }
 /**
