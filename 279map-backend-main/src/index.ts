@@ -498,37 +498,17 @@ app.all('/api/*',
             return;
         }
 
-        const userId = getUserIdByRequest(req);
-        if (!userId) {
-            // 未ログイン（地図の公開範囲public）の場合は、View権限
-            apiLogger.debug('未ログイン', mapDefine.public_range);
-            req.connect.authLv = Auth.View;
-            next();
+        const userAuth = await getUserAuthInfoInTheMap(mapDefine, req);
+        if (!userAuth) {
+            // ログインが必要な地図の場合
+            res.status(403).send({
+                type: ErrorType.Unauthorized,
+            } as ApiError);
             return;
         }
-
-        // ユーザの地図に対する権限を取得
-        const mapUserInfo = await authManagementClient.getUserInfoOfTheMap(userId, mapId);
-        apiLogger.debug('mapUserInfo', mapUserInfo);
-
-        if (mapUserInfo && mapUserInfo.auth_lv !== Auth.None) {
-            req.connect.authLv = mapUserInfo.auth_lv;
-            req.connect.userName = mapUserInfo.name;
-        } else {
-            // ユーザが権限を持たない場合
-            if (mapDefine.public_range === PublicRange.Public) {
-                // 地図がPublicの場合、View権限
-                req.connect.authLv = Auth.View;
-            } else {
-                // 地図がprivateの場合、権限なしエラーを返却
-                res.status(403).send({
-                    type: ErrorType.NoAuthenticate,
-                } as ApiError);
-                return;
-            }
-        }
+        req.connect.authLv = userAuth.authLv;
+        req.connect.userName = userAuth.userName;
         next();
-
     }
 );
 
