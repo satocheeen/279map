@@ -311,7 +311,7 @@ app.get('/api/connect',
                     }),
                     defaultMapKind: mapInfo.default_map,
                     authLv: userAccessInfo.authLv,
-                    userName: userAccessInfo.userName || '',
+                    userName: userAccessInfo.userName,
                     options: mapInfo.options as MapPageOptions,
                 },
                 sid: session.sid,
@@ -457,17 +457,17 @@ app.all('/api/*',
         }
         req.connect.mapPageInfo = mapPageInfo;
 
+        // checkJWTを実行する必要があるかどうかチェック
         if (!req.headers.authorization) {
-            // 未ログインの場合は、地図がpublicか確認
-            if (mapPageInfo.public_range === PublicRange.Private) {
-                // privateの場合 -> error
+            // 未ログインの場合は、ゲストユーザ権限があるか確認
+            const userAuthInfo = await getUserAuthInfoInTheMap(mapPageInfo, req);
+            if (!userAuthInfo) {
                 apiLogger.debug('not auth');
                 next({
                     name: 'Unauthenticated',
                     message: 'this map is private, please login.',
                 });
             } else {
-                // publicの場合
                 apiLogger.debug('skip checkJwt');
                 next('route');
             }

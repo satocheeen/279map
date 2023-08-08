@@ -1,5 +1,5 @@
 import { authManagementClient } from "..";
-import { Auth, AuthMethod } from '279map-common';
+import { Auth, AuthMethod, MapPageOptions } from '279map-common';
 import { getLogger } from 'log4js';
 import { authMethod } from '..';
 import { Request } from 'express';
@@ -40,16 +40,23 @@ export async function getUserAuthInfoInTheMap(mapPageInfo: MapPageInfoTable, req
     
     const userId = getUserIdByRequest(req);
     if (!userId) {
-        // 未ログインの場合
-        if (mapPageInfo.public_range === PublicRange.Public) {
-            // 地図の公開範囲publicの場合は、View権限
-            apiLogger.debug('未ログイン-Public');
-            return {
-                authLv: Auth.View,
+        // 未ログインの場合、ゲストユーザ権限を返す
+        const guestUserAuth = (mapPageInfo.options as MapPageOptions | undefined)?.guestUserAuthLevel ?? Auth.None;
+        if (guestUserAuth === Auth.None) {
+            if (mapPageInfo.public_range === PublicRange.Public) {
+                // 地図の公開範囲publicの場合は、View権限
+                apiLogger.debug('未ログイン-Public');
+                return {
+                    authLv: Auth.View,
+                }
+            } else {
+                apiLogger.debug('未ログイン-Private');
+                return undefined;
             }
         } else {
-            apiLogger.debug('未ログイン-Private');
-            return undefined;
+            return {
+                authLv: guestUserAuth,
+            }
         }
     }
 
