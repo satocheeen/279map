@@ -43,5 +43,15 @@ services:
     volumes:
         - ./log:/var/log/www
         - 279map-dev-session-volume:/var/session
+  nginx:
+    build: .
+    image: nginx_docker_image
+    ports:
+      - 443:443
+    volumes:
+      - ./log:/var/log/www
+      - ./conf:/etc/nginx/conf.d
+      - ./ssl:/etc/nginx/ssl
+    tty: true
 volumes:
   279map-dev-session-volume:
