@@ -14,13 +14,7 @@ export default function AuthPanel() {
         switch(authConfig.authMethod) {
             case AuthMethod.Auth0:
                 if (!isAuthenticated) return;
-                getAccessTokenSilently(
-                    {
-                        authorizationParams: {
-                            audience: authConfig.auth0.audience,
-                        }
-                    }
-                )
+                getAccessTokenSilently()
                 .then(token => {
                     setToken(token);
                     console.log('token', token);

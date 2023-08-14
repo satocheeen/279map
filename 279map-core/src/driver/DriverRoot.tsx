@@ -53,7 +53,8 @@ export default function DriverRoot() {
                 domain={authConfig.auth0.domain}
                 clientId={authConfig.auth0.clientId}
                 authorizationParams={{
-                    redirect_uri: window.location.origin
+                    redirect_uri: window.location.origin,
+                    audience: authConfig.auth0.audience,
                 }}
             >
                 <AuthContext.Provider value={authContextValue}>
