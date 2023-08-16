@@ -1,9 +1,9 @@
-import React, { useCallback, useState, useContext, useMemo } from 'react';
+import React, { useCallback, useState, useContext, useMemo, useEffect } from 'react';
 import { OwnerContext } from './TsunaguMap';
 import { useWatch } from '../../util/useWatch';
-import { useRecoilRefresher_UNSTABLE, useRecoilValueLoadable, useSetRecoilState } from 'recoil';
+import { useRecoilRefresher_UNSTABLE, useRecoilValueLoadable, useResetRecoilState, useSetRecoilState } from 'recoil';
 import { connectStatusState, instanceIdState, mapDefineState, mapIdState, mapServerState } from '../../store/session';
-import { createAPICallerInstance } from '../../api/ApiCaller';
+import { createAPICallerInstance, destroyAPICallerInstance } from '../../api/ApiCaller';
 import { ApiException } from '../../api';
 import { ApiError, ErrorType, RequestAPI } from 'tsunagumap-api';
 import Overlay from '../common/spinner/Overlay';
@@ -12,7 +12,8 @@ import { Button } from '../common';
 import Input from '../common/form/Input';
 import styles from './MapConnector.module.scss';
 import { useSubscribe } from '../../util/useSubscribe';
-import { createMqttClientInstance } from '../../store/session/MqttInstanceManager';
+import { Auth } from '279map-common';
+import { createMqttClientInstance, destroyMqttClientInstance } from '../../store/session/MqttInstanceManager';
 
 type Props = {
     children: React.ReactNode | React.ReactNode[];
@@ -27,41 +28,41 @@ type Props = {
 export default function MapConnector(props: Props) {
     const ownerContext = useContext(OwnerContext);
     const setInstanceId = useSetRecoilState(instanceIdState);
+    const resetInstanceId = useResetRecoilState(instanceIdState);
     const setMapId = useSetRecoilState(mapIdState);
     const setMapServer = useSetRecoilState(mapServerState);
+    const resetMapServer = useResetRecoilState(mapServerState);
     const connectLoadable = useRecoilValueLoadable(connectStatusState);
     const mapDefineLoadable = useRecoilValueLoadable(mapDefineState);
 
-    useWatch(() => {
-        console.log('setInstanceId', ownerContext.mapInstanceId);
-        setInstanceId(ownerContext.mapInstanceId);
+    useEffect(() => {
+        setMapId(ownerContext.mapId);
+    }, [ownerContext.mapId, setMapId]);
 
-        createMqttClientInstance(ownerContext.mapInstanceId, ownerContext.mapServer);
-
-    }, [ownerContext.mapInstanceId]);
-
-    useWatch(() => {
+    // 地図接続情報が変化したら、API, Mqtt初期化
+    useEffect(() => {
         console.log('setMapServer', ownerContext.mapInstanceId, ownerContext.mapServer);
+
         // API Accessor用意
-        createAPICallerInstance(ownerContext.mapInstanceId, ownerContext.mapServer, (error) => {
+        const id = ownerContext.mapInstanceId;
+        createAPICallerInstance(id, ownerContext.mapServer, (error) => {
             // コネクションエラー時(リロードが必要なエラー)
             console.warn('connection error', error);
         });
+        // Mqtt接続
+        createMqttClientInstance(id, ownerContext.mapServer);
 
+        setInstanceId(ownerContext.mapInstanceId);
         setMapServer(ownerContext.mapServer);
-    }, [ownerContext.mapServer]);
 
-    useWatch(() => {
-        setMapId(ownerContext.mapId);
-    }, [ownerContext.mapId]);
-
-    const loadableState = useMemo(() => {
-        if (connectLoadable.state !== 'hasValue') {
-            return connectLoadable.state;
+        return () => {
+            destroyAPICallerInstance(id);
+            destroyMqttClientInstance(id);
+            resetInstanceId();
+            resetMapServer();
         }
-        return mapDefineLoadable.state;
+    }, [ownerContext.mapInstanceId, ownerContext.mapServer, resetInstanceId, resetMapServer, setInstanceId, setMapServer]);
 
-    }, [connectLoadable, mapDefineLoadable]);
 
     const { subscribeUser, unsubscribeUser } = useSubscribe();
     const refreshConnectStatus = useRecoilRefresher_UNSTABLE(connectStatusState);
@@ -76,8 +77,32 @@ export default function MapConnector(props: Props) {
         }
     }, [subscribeUser, unsubscribeUser]);
 
+    const loadableState = useMemo(() => {
+        if (connectLoadable.state !== 'hasValue') {
+            return connectLoadable.state;
+        }
+        return mapDefineLoadable.state;
+
+    }, [connectLoadable, mapDefineLoadable]);
+
+    const userAuth = useMemo(() => {
+        if (connectLoadable.state !== 'hasValue') {
+            return Auth.None;
+        } else {
+            return connectLoadable.contents.mapDefine.authLv;
+        }
+
+    }, [connectLoadable]);
+
     switch (loadableState) {
         case 'hasValue':
+            if (ownerContext.mapServer.token && userAuth === Auth.None) {
+                return (
+                    <Overlay>
+                        <RequestComponet />
+                    </Overlay>
+                )
+            }
             return (
                 <>
                     {props.children}

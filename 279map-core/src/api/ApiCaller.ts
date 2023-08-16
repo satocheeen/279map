@@ -143,6 +143,11 @@ export function createAPICallerInstance(id: string, serverInfo: ServerInfo, erro
     return instance;
 }
 
+export function destroyAPICallerInstance(id: string) {
+    console.log('destroy api', id);
+    instansMap.delete(id);
+}
+
 export function getAPICallerInstance(id: string) {
     if (!instansMap.has(id)) {
         console.warn('no api instance', id);

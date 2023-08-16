@@ -1,4 +1,4 @@
-import React, { Suspense, useImperativeHandle, useState, useMemo, useRef } from 'react';
+import React, { Suspense, useImperativeHandle, useState, useMemo, useRef, useEffect } from 'react';
 import MapWrapper from './MapWrapper';
 import styles from './TsunaguMap.module.scss';
 import './TsunaguMap.scss';
@@ -7,7 +7,6 @@ import ContentsModal from '../contents/ContentsModal';
 import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
 import { AddNewContentParam, EditContentParam, LinkUnpointContentParam, TsunaguMapHandler, TsunaguMapProps } from '../../types/types';
 import DefaultComponents from '../default/DefaultComponents';
-import { useMounted } from '../../util/useMounted';
 import UserListModal from '../admin/UserListModal';
 import { RecoilRoot } from 'recoil';
 import ValueConnectorWithOwner from './ValueConnectorWithOwner';
@@ -34,6 +33,14 @@ export const OwnerContext = React.createContext<OwnerContextType>({
 
 let componentCnt = 0;
 function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHandler>) {
+    // 必須パラメータチェック（呼び出し元がTypeScriptではなくJavaScriptだと漏れている可能性があるので）
+    if (!props.mapId) {
+        throw new Error('mapId not found in TsunaguMap props');
+    }
+    if (!props.mapServer) {
+        throw new Error('mapServer not found in TsunaguMap props');
+    }
+
     const mapInstanceId = useRef('map-' + (++componentCnt));
     const [ showTooltipId, setShowTooltipId ] = useState<{[name: string]: string}>({});
     const tooltipContextValue = {
@@ -58,19 +65,6 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
             onLinkUnpointedContent: props.onLinkUnpointedContent ?? function(param: LinkUnpointContentParam){setDefaultLinkUnpointedContentParam(param)},
         })
     }, [props, mapInstanceId]);
-
-    /**
-     * 初回処理
-     */
-    useMounted(() => {
-        // 必須パラメータチェック（呼び出し元がTypeScriptではなくJavaScriptだと漏れている可能性があるので）
-        if (!props.mapId) {
-            throw new Error('mapId not found in TsunaguMap props');
-        }
-        if (!props.mapServer) {
-            throw new Error('mapServer not found in TsunaguMap props');
-        }
-    })
 
     const mapRef = useRef<TsunaguMapHandler>(null);
     const [mapInitializedFlag, setMapInitializedFlag] = useState(false);
