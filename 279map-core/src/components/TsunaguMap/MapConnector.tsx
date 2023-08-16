@@ -85,21 +85,21 @@ export default function MapConnector(props: Props) {
 
     }, [connectLoadable, mapDefineLoadable]);
 
-    const userAuth = useMemo(() => {
+    const isUser = useMemo(() => {
         if (connectLoadable.state !== 'hasValue') {
-            return Auth.None;
+            return false;
         } else {
-            return connectLoadable.contents.mapDefine.authLv;
+            return connectLoadable.contents.mapDefine.userName !== undefined;
         }
 
     }, [connectLoadable]);
 
     switch (loadableState) {
         case 'hasValue':
-            if (ownerContext.mapServer.token && userAuth === Auth.None) {
+            if (ownerContext.mapServer.token && !isUser) {
                 return (
                     <Overlay>
-                        <RequestComponet />
+                        <RequestComponet stage='input' />
                     </Overlay>
                 )
             }
@@ -149,10 +149,14 @@ export default function MapConnector(props: Props) {
  * 登録申請コンポーネント
  * @returns 
  */
-function RequestComponet() {
+type RequestComponetStage = 'button' | 'input' | 'requested';
+type RequestComponetProps = {
+   stage?: RequestComponetStage;
+}
+function RequestComponet(props: RequestComponetProps) {
     const { getApi } = useMap();
     const { mapId } = useContext(OwnerContext);
-    const [ stage, setStage ] = useState<'button' | 'input' | 'requested'>('button');
+    const [ stage, setStage ] = useState<RequestComponetStage>(props.stage ?? 'button');
     const [ name, setName ] = useState('');
     const [ errorMessage, setErrorMessage ] = useState<string|undefined>();
 

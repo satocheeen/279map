@@ -35,9 +35,11 @@ let componentCnt = 0;
 function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHandler>) {
     // 必須パラメータチェック（呼び出し元がTypeScriptではなくJavaScriptだと漏れている可能性があるので）
     if (!props.mapId) {
+        console.warn('mapId not found in TsunaguMap props', props);
         throw new Error('mapId not found in TsunaguMap props');
     }
     if (!props.mapServer) {
+        console.warn('mapServer not found in TsunaguMap props', props);
         throw new Error('mapServer not found in TsunaguMap props');
     }
 
