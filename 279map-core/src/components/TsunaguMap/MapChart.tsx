@@ -24,7 +24,7 @@ import { useProcessMessage } from "../common/spinner/useProcessMessage";
 import { isEqualId } from "../../util/dataUtility";
 import { useItem } from "../../store/item/useItem";
 import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { itemMapState } from "../../store/item";
+import { initialItemLoadedState, itemMapState } from "../../store/item";
 import { mapModeState, mapViewState, selectedItemIdsState } from "../../store/operation";
 import { dataSourceGroupsState } from "../../store/datasource";
 import { currentMapKindState, defaultExtentState } from "../../store/session";
@@ -278,13 +278,15 @@ export default function MapChart() {
         return Object.values(itemMap);
     }, [itemMap]);
     const prevGeoJsonItems = usePrevious(geoJsonItems);
+    const initialItemLoaded = useRecoilValue(initialItemLoadedState);
     useWatch(() => {
         if (!mapRef.current) return;
         // 追加、更新
         const progressH = showProcessMessage({
-            overlay: prevGeoJsonItems?.length === 0,    // 初回ロード時はオーバーレイ
+            overlay: !initialItemLoaded,    // 初回ロード時はオーバーレイ
             spinner: true,
         });
+        // TODO: OlMapWrapperに追加有無判断は任せる
         const updateItems = geoJsonItems.filter(item => {
             const before = prevGeoJsonItems?.find(pre => isEqualId(pre.id, item.id));
             if (!before) return true;   // 追加Item

@@ -5,3 +5,9 @@ export const itemMapState = atom<{[id: string]: ItemDefine}>({
     key: 'itemMapAtom',
     default: {}
 })
+
+// アイテムの初回ロード完了しているかどうかのフラグ
+export const initialItemLoadedState = atom<boolean>({
+    key: 'initialItemLoadedAtom',
+    default: false,
+})

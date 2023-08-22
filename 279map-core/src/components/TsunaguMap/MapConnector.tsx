@@ -109,16 +109,15 @@ export default function MapConnector(props: Props) {
     switch (loadableState) {
         case 'hasValue':
             // Auth0ログイン済みだが、地図ユーザ未登録の場合
-            if (ownerContext.mapServer.token && !isUser && !guestMode) {
-                return (
-                    <Overlay message="ユーザ登録しますか？">
-                        <RequestComponet stage='input' onCancel={onRequestCancel} />
-                    </Overlay>
-                )
-            }
+            const showRequestPanel = (ownerContext.mapServer.token && !isUser && !guestMode);
             return (
                 <>
                     {props.children}
+                    {showRequestPanel &&
+                        <Overlay message="ユーザ登録しますか？">
+                            <RequestComponet stage='input' onCancel={onRequestCancel} />
+                        </Overlay>
+                    }
                 </>
             );
         case 'loading':

@@ -205,13 +205,13 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         onConnectRef.current = ownerContext.onConnect;
     }, [ownerContext]);
 
+    const { removeItems, resetItems } = useItem();
 
     /**
      * load map define when mapkind has changed.
      */
     const setMapDefine = useSetRecoilState(mapDefineState);
     const [initialized, setInitialized] = useState(false);
-    const resetItemMap = useResetRecoilState(itemMapState);
     const changeMapKind = useRecoilCallback(({snapshot, set}) => async(mk: MapKind) => {
         const mapKind = await snapshot.getPromise(currentMapKindState);
         console.log('ChangeMapKind', mk, mapKind);
@@ -223,7 +223,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         });
         console.log('setMapDefine', res);
         set(mapDefineState, res);
-        resetItemMap();
+        resetItems();
     }, []);
 
     useMounted(() => {
@@ -247,7 +247,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         }
     })
 
-    const { removeItems } = useItem();
     const { subscribeMap: subscribe, unsubscribeMap: unsubscribe } = useSubscribe();
     useWatch(() => {
         if (!currentMapKind) return;

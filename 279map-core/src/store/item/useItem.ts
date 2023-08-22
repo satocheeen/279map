@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useMap } from "../../components/map/useMap";
 import { GetItemsAPI, GetItemsParam } from "tsunagumap-api";
 import { useRecoilCallback, useRecoilValue, useSetRecoilState } from 'recoil';
-import { itemMapState } from ".";
+import { initialItemLoadedState, itemMapState } from ".";
 import { getMapKey, isEqualId } from "../../util/dataUtility";
 import { DataId, ItemContentInfo } from "279map-common";
 import { visibleDataSourceIdsState } from "../datasource";
@@ -16,10 +16,15 @@ export function useItem() {
     const { getApi } = useMap();
     const setItemMap = useSetRecoilState(itemMapState);
 
+    const resetItems = useRecoilCallback(({reset}) => async() => {
+        reset(itemMapState);
+        reset(initialItemLoadedState);
+    }, []);
+
     /**
      * 指定のズームLv., extentに該当するアイテムをロードする
      */
-    const loadItems = useRecoilCallback(({ snapshot }) => async(param: Omit<GetItemsParam, 'dataSourceIds'>) => {
+    const loadItems = useRecoilCallback(({ snapshot, set }) => async(param: Omit<GetItemsParam, 'dataSourceIds'>) => {
         try {
             const dataSourceIds = await snapshot.getPromise(visibleDataSourceIdsState);
             const apiResult = await getApi().callApi(GetItemsAPI, {
@@ -38,6 +43,10 @@ export function useItem() {
                 });
                 return itemMap;
             });
+            const initialItemLoaded = await snapshot.getPromise(initialItemLoadedState);
+            if (!initialItemLoaded) {
+                set(initialItemLoadedState, true);
+            }
     
         } catch (e) {
             console.warn('loadItems error', e);
@@ -107,6 +116,7 @@ export function useItem() {
     }, [itemMap, filteredContentIdList]);
 
     return {
+        resetItems,
         loadItems,
         removeItems,
         getDescendantContentsIdList,
