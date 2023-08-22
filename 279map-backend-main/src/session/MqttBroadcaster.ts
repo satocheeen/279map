@@ -29,6 +29,7 @@ export default class MqttBroadcaster {
      */
     publishUserMessage(userId: string, message: PublishUserMessage) {
         const topic = `${userId}/${message.type}`;
+        apiLogger.debug('publish user', topic);
         this.#server.publish({
             cmd: 'publish',
             topic,

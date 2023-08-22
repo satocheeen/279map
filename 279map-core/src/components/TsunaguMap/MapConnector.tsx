@@ -97,7 +97,6 @@ export default function MapConnector(props: Props) {
         } else {
             switch(connectLoadable.contents.mapDefine.authLv) {
                 case Auth.None:
-                case Auth.Request:
                     return false;
                 default:
                     return true;

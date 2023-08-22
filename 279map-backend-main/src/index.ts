@@ -377,6 +377,9 @@ app.post(`/api/${RequestAPI.uri}`,
             res.send('ok');
 
             // publish
+            broadCaster.publish(queryMapId, undefined, {
+                type: 'userlist-update',
+            })
             broadCaster.publishUserMessage(userId, {
                 type: 'update-userauth',
             });
@@ -1257,6 +1260,9 @@ app.post(`/api/${ChangeAuthLevelAPI.uri}`,
             broadCaster.publish(mapId, undefined, {
                 type: 'userlist-update',
             })
+            broadCaster.publishUserMessage(param.userId, {
+                type: 'update-userauth',
+            });
 
         } catch(e) {
             apiLogger.warn(e);
