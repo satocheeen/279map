@@ -10,7 +10,7 @@ import useConfirm, { ConfirmBtnPattern, ConfirmResult } from "../common/confirm/
 import reactStringReplace from "react-string-replace";
 import PopupMenuIcon from "../popup/PopupMenuIcon";
 import AddContentMenu from "../popup/AddContentMenu";
-import { ContentAttr, ContentsDefine, DataId, MapKind } from "279map-common";
+import { Auth, ContentAttr, ContentsDefine, DataId, MapKind } from "279map-common";
 import Spinner from "../common/spinner/Spinner";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
@@ -21,7 +21,7 @@ import { useMap } from "../map/useMap";
 import { useRecoilValue } from "recoil";
 import { categoryState } from "../../store/category";
 import { dataSourcesState } from "../../store/datasource";
-import { currentMapKindState } from "../../store/session";
+import { authLvState, currentMapKindState } from "../../store/session";
 import { filteredContentIdListState } from "../../store/filter";
 
 type Props = {
@@ -294,6 +294,15 @@ export default function Content(props: Props) {
 
     }, [props.content.overview]);
 
+    const authLv = useRecoilValue(authLvState);
+    const editable = useMemo(() => {
+        return props.content.isEditable && CommonUtility.compareAuth(authLv, Auth.Edit) >= 0
+    }, [authLv, props.content]);
+
+    const deletable = useMemo(() => {
+        return (props.content.isDeletable || unlinkable) && CommonUtility.compareAuth(authLv, Auth.Edit) >= 0
+    }, [authLv, props.content, unlinkable]);
+
     const header = useMemo(() => {
         return (
             <div className={styles.ItemHeader}>
@@ -301,12 +310,12 @@ export default function Content(props: Props) {
                     {title}
                 </span>
                 <div className={styles.IconAreas}>
-                    {props.content.isEditable &&
+                    {editable &&
                         <PopupMenuIcon tooltip='編集' onClick={onEdit}>
                             <MdEdit />
                         </PopupMenuIcon>
                     }
-                    {(props.content.isDeletable || unlinkable) &&
+                    {deletable &&
                         <PopupMenuIcon tooltip="削除" onClick={onDelete}>
                             <MdDelete />
                         </PopupMenuIcon>
@@ -322,7 +331,7 @@ export default function Content(props: Props) {
                 </div>
             </div>
         )
-    }, [props.content, title, onGoToAnotherMap, existAnoterMap, onDelete, onEdit, toolTipMessage, unlinkable]);
+    }, [props.content, title, onGoToAnotherMap, existAnoterMap, onDelete, onEdit, toolTipMessage, deletable, editable]);
 
     const body = useMemo(() => {
         return (
