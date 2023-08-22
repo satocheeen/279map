@@ -85,6 +85,12 @@ export default function MapConnector(props: Props) {
 
     }, [connectLoadable, mapDefineLoadable]);
 
+    // ゲストモードで動作させる場合、true
+    const [guestMode, setGuestMode] = useState(false);
+    const onRequestCancel = useCallback(() => {
+        setGuestMode(true);
+    }, []);
+
     const isUser = useMemo(() => {
         if (connectLoadable.state !== 'hasValue') {
             return false;
@@ -103,10 +109,10 @@ export default function MapConnector(props: Props) {
     switch (loadableState) {
         case 'hasValue':
             // Auth0ログイン済みだが、地図ユーザ未登録の場合
-            if (ownerContext.mapServer.token && !isUser) {
+            if (ownerContext.mapServer.token && !isUser && !guestMode) {
                 return (
-                    <Overlay>
-                        <RequestComponet stage='input' />
+                    <Overlay message="ユーザ登録しますか？">
+                        <RequestComponet stage='input' onCancel={onRequestCancel} />
                     </Overlay>
                 )
             }

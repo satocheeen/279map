@@ -2,7 +2,7 @@ import { atom, selector } from 'recoil';
 import { ConnectResult, ErrorType, GetMapInfoResult } from 'tsunagumap-api';
 import { getAPICallerInstance } from '../../api/ApiCaller';
 import { ServerInfo } from '../../types/types';
-import { MapKind } from '279map-common';
+import { Auth, MapKind } from '279map-common';
 import { ApiException } from '../../api';
 import { Extent } from "ol/extent";
 
@@ -73,5 +73,19 @@ export const defaultExtentState = selector<Extent>({
     get: ( { get } ) => {
         const mapDefine = get(mapDefineState);
         return mapDefine?.extent ?? [0,0,0,0];
+    }
+})
+
+export const authLvState = selector<Auth>({
+    key: 'authSelector',
+    get: ( { get } ) => {
+        const connectStatus = get(connectStatusState);
+        switch(connectStatus.mapDefine.authLv) {
+            case Auth.None:
+            case Auth.Request:
+                return connectStatus.mapDefine.guestAuthLv;
+            default:
+                return connectStatus.mapDefine.authLv;
+        }
     }
 })

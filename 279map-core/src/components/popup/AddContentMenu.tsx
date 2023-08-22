@@ -14,7 +14,7 @@ import { useRecoilValue } from 'recoil';
 import { itemMapState } from '../../store/item';
 import { compareAuth } from '../../util/CommonUtility';
 import { dataSourcesState } from '../../store/datasource';
-import { connectStatusState, currentMapKindState } from '../../store/session';
+import { authLvState, currentMapKindState } from '../../store/session';
 
 type Props = {
     target: {
@@ -36,12 +36,11 @@ export default function AddContentMenu(props: Props) {
     const { getApi } = useMap();
     const mapKind = useRecoilValue(currentMapKindState);
     const dataSources = useRecoilValue(dataSourcesState);
-    const connectStatus = useRecoilValue(connectStatusState);
+    const authLv = useRecoilValue(authLvState);
 
     const editableAuthLv = useMemo(() => {
-        const authLv = connectStatus.mapDefine.authLv;
         return compareAuth(authLv, Auth.Edit) >= 0;
-    }, [connectStatus]);
+    }, [authLv]);
 
     /**
      * 追加可能なコンテンツ定義を返す
