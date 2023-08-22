@@ -1,8 +1,10 @@
 .PromptMessageBox {
     position: absolute;
     top: 20px;
-    left: calc(50% - 280px);
+    left: 50%;
     width: 560px;
+    max-width: 90%;
+    transform: translateX(-50%);
     background: var(--dark-026);
     color: var(--white);
     z-index: 10;
