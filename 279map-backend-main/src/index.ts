@@ -300,22 +300,22 @@ app.get('/api/connect',
                     userName: userAccessInfo.userName,
                 });
 
-            // if (userAccessInfo.authLv === Auth.None) {
-            //     // 権限なしエラーを返却
-            //     res.status(403).send({
-            //         type: ErrorType.NoAuthenticate,
-            //         userId: userAccessInfo.userId,
-            //     } as ApiError);
-            //     return;
-            // }
-            // if (userAccessInfo.authLv === Auth.Request) {
-            //     // 承認待ちエラーを返却
-            //     res.status(403).send({
-            //         type: ErrorType.Requesting,
-            //         userId: userAccessInfo.userId,
-            //     } as ApiError);
-            //     return;
-            // }
+            if (userAccessInfo.authLv === Auth.None && userAccessInfo.guestAuthLv === Auth.None) {
+                // 権限なしエラーを返却
+                res.status(403).send({
+                    type: ErrorType.NoAuthenticate,
+                    userId: userAccessInfo.userId,
+                } as ApiError);
+                return;
+            }
+            if (userAccessInfo.authLv === Auth.Request && userAccessInfo.guestAuthLv === Auth.None) {
+                // 承認待ちエラーを返却
+                res.status(403).send({
+                    type: ErrorType.Requesting,
+                    userId: userAccessInfo.userId,
+                } as ApiError);
+                return;
+            }
 
             const session = sessionManager.createSession({
                 mapId: mapInfo.map_page_id,
