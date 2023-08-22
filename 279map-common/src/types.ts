@@ -82,10 +82,18 @@ export type MapDefine = {
     name: string;
     useMaps: MapKind[];
     defaultMapKind: MapKind;
-    authLv: Auth;   // ユーザの接続権限
-    userName?: string;  // ゲストの場合は、undefined
     options?: MapPageOptions;
-}
+} & (
+    {
+        // ゲストユーザの場合
+        authLv: Auth.Request | Auth.None;
+        guestAuthLv: Auth;  // ゲスト接続権限
+    } | {
+        // 登録済みユーザの場合
+        authLv: Auth.Admin | Auth.Edit | Auth.View;
+        userName: string;
+    }
+)
 export type DataSourceGroup = {
     name?: string;
     visible: boolean;
