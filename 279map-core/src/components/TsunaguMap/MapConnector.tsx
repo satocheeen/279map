@@ -89,13 +89,20 @@ export default function MapConnector(props: Props) {
         if (connectLoadable.state !== 'hasValue') {
             return false;
         } else {
-            return connectLoadable.contents.mapDefine.userName !== undefined;
+            switch(connectLoadable.contents.mapDefine.authLv) {
+                case Auth.None:
+                case Auth.Request:
+                    return false;
+                default:
+                    return true;
+            }
         }
 
     }, [connectLoadable]);
 
     switch (loadableState) {
         case 'hasValue':
+            // Auth0ログイン済みだが、地図ユーザ未登録の場合
             if (ownerContext.mapServer.token && !isUser) {
                 return (
                     <Overlay>
@@ -152,6 +159,7 @@ export default function MapConnector(props: Props) {
 type RequestComponetStage = 'button' | 'input' | 'requested';
 type RequestComponetProps = {
    stage?: RequestComponetStage;
+   onCancel?: () => void;
 }
 function RequestComponet(props: RequestComponetProps) {
     const { getApi } = useMap();
@@ -172,6 +180,12 @@ function RequestComponet(props: RequestComponetProps) {
         });
     }, [getApi, mapId, name]);
 
+    const onCancel = useCallback(() => {
+        if (props.onCancel) {
+            props.onCancel();
+        }
+    }, [props]);
+
     switch(stage) {
         case 'button':
             return <Button variant='secondary' onClick={()=>setStage('input')}>登録申請</Button>
@@ -182,6 +196,9 @@ function RequestComponet(props: RequestComponetProps) {
                     <div>
                         <Input type="text" placeholder='名前' value={name} onChange={(evt)=>setName(evt.target.value)} />
                         <Button variant='secondary' onClick={onRequest}>登録申請</Button>
+                        {props.onCancel &&
+                            <Button variant='secondary' onClick={onCancel}>キャンセル</Button>
+                        }
                     </div>
                     <div className={styles.ErrorMessage}>
                         {errorMessage}

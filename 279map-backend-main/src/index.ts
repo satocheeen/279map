@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import mysql from 'mysql2/promise';
 import { getMapInfo } from './getMapInfo';
-import { Auth, MapKind, AuthMethod, ServerConfig, DataId, MapPageOptions } from '279map-common';
+import { Auth, MapKind, AuthMethod, ServerConfig, DataId, MapPageOptions, MapDefine } from '279map-common';
 import { getItems } from './getItems';
 import { configure, getLogger } from "log4js";
 import { DbSetting, LogSetting } from './config';
@@ -20,7 +20,7 @@ import cors from 'cors';
 import { exit } from 'process';
 import { getMapInfoById } from './getMapDefine';
 import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
-import { getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
+import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
 import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, GetEventParam, GetCategoryParam, RequestAPI, RequestParam, GetUserListAPI, GetUserListResult, ChangeAuthLevelAPI, ChangeAuthLevelParam } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
@@ -43,8 +43,8 @@ declare global {
                 sessionKey: string; // SID or Token
                 mapId: string;
                 mapPageInfo?: MapPageInfoTable;
-                authLv?: Auth;
-                userName?: string;
+                userAuthInfo?: UserAuthInfo;
+                // userName?: string;
             },
             currentMap: CurrentMap;
         }
@@ -280,22 +280,42 @@ app.get('/api/connect',
                 return;
             }
 
-            if (userAccessInfo.authLv === Auth.None) {
-                // 権限なしエラーを返却
-                res.status(403).send({
-                    type: ErrorType.NoAuthenticate,
-                    userId: userAccessInfo.userId,
-                } as ApiError);
-                return;
-            }
-            if (userAccessInfo.authLv === Auth.Request) {
-                // 承認待ちエラーを返却
-                res.status(403).send({
-                    type: ErrorType.Requesting,
-                    userId: userAccessInfo.userId,
-                } as ApiError);
-                return;
-            }
+            const mapDefine: MapDefine = Object.assign({
+                mapId: mapInfo.map_page_id,
+                name: mapInfo.title,
+                useMaps: mapInfo.use_maps.split(',').map(mapKindStr => {
+                    return mapKindStr as MapKind;
+                }),
+                defaultMapKind: mapInfo.default_map,
+                options: mapInfo.options as MapPageOptions,
+            }, 
+            (userAccessInfo.authLv === Auth.None || userAccessInfo.authLv === Auth.Request)
+                ? {
+                    authLv: userAccessInfo.authLv,
+                    guestAuthLv: userAccessInfo.guestAuthLv,
+                }
+                : {
+                    authLv: userAccessInfo.authLv,
+                    // @ts-ignore なぜかTypeScriptエラーになるので
+                    userName: userAccessInfo.userName,
+                });
+
+            // if (userAccessInfo.authLv === Auth.None) {
+            //     // 権限なしエラーを返却
+            //     res.status(403).send({
+            //         type: ErrorType.NoAuthenticate,
+            //         userId: userAccessInfo.userId,
+            //     } as ApiError);
+            //     return;
+            // }
+            // if (userAccessInfo.authLv === Auth.Request) {
+            //     // 承認待ちエラーを返却
+            //     res.status(403).send({
+            //         type: ErrorType.Requesting,
+            //         userId: userAccessInfo.userId,
+            //     } as ApiError);
+            //     return;
+            // }
 
             const session = sessionManager.createSession({
                 mapId: mapInfo.map_page_id,
@@ -303,17 +323,7 @@ app.get('/api/connect',
             });
         
             const result: ConnectResult = {
-                mapDefine: {
-                    mapId: mapInfo.map_page_id,
-                    name: mapInfo.title,
-                    useMaps: mapInfo.use_maps.split(',').map(mapKindStr => {
-                        return mapKindStr as MapKind;
-                    }),
-                    defaultMapKind: mapInfo.default_map,
-                    authLv: userAccessInfo.authLv,
-                    userName: userAccessInfo.userName,
-                    options: mapInfo.options as MapPageOptions,
-                },
+                mapDefine,
                 sid: session.sid,
                 userId: userAccessInfo.userId,
             }
@@ -506,8 +516,8 @@ app.all('/api/*',
             } as ApiError);
             return;
         }
-        req.connect.authLv = userAuth.authLv;
-        req.connect.userName = userAuth.userName;
+        req.connect.userAuthInfo = userAuth;
+        // req.connect.userName = userAuth.userName;
         next();
     }
 );
@@ -525,7 +535,19 @@ const checkApiAuthLv = (needAuthLv: Auth) => {
             default:
                 allowAuthList = [Auth.Admin];
         }
-        if (!req.connect?.authLv || !allowAuthList.includes(req.connect.authLv)) {
+        const userAuthLv = function() {
+            if (!req.connect?.userAuthInfo) {
+                return Auth.None;
+            }
+            switch(req.connect.userAuthInfo.authLv) {
+                case Auth.None:
+                case Auth.Request:
+                    return req.connect.userAuthInfo.guestAuthLv;
+                default:
+                    return req.connect.userAuthInfo.authLv;
+            }
+        }();
+        if (!userAuthLv || !allowAuthList.includes(userAuthLv)) {
             res.status(403).send({
                 type: ErrorType.OperationForbidden,
             } as ApiError);

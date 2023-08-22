@@ -50,7 +50,7 @@
     "@types/proj4": "^2.5.2",
     "@types/react": "^18.0.9",
     "@types/react-toggle": "^4.0.3",
-    "279map-common": "^0.12.2",
+    "279map-common": "^0.13.0",
     "dayjs": "^1.11.6",
     "geojson": "^0.5.0",
     "geolib": "^3.3.3",
