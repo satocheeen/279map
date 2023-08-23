@@ -100,7 +100,6 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
             <OwnerContext.Provider value={ownerContextValue}>
                 <RecoilRoot>
                     <MapConnector>
-                        <ProcessOverlay />
                         <Suspense>
                             <ValueConnectorWithOwner />
                         </Suspense>
@@ -122,6 +121,7 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
                                 }
                             </Suspense>
                         </TooltipContext.Provider>
+                        <ProcessOverlay />
                     </MapConnector>
                 </RecoilRoot>
             </OwnerContext.Provider>
