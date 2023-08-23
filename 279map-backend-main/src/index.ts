@@ -272,7 +272,7 @@ app.get('/api/connect',
             }
 
             const userAccessInfo = await getUserAuthInfoInTheMap(mapInfo, req);
-            if (!userAccessInfo) {
+            if (userAccessInfo.authLv === undefined && userAccessInfo.guestAuthLv === Auth.None) {
                 // ログインが必要な地図の場合
                 res.status(403).send({
                     type: ErrorType.Unauthorized,
@@ -289,9 +289,9 @@ app.get('/api/connect',
                 defaultMapKind: mapInfo.default_map,
                 options: mapInfo.options as MapPageOptions,
             }, 
-            (userAccessInfo.authLv === Auth.None || userAccessInfo.authLv === Auth.Request)
+            (userAccessInfo.authLv === undefined || userAccessInfo.authLv === Auth.None || userAccessInfo.authLv === Auth.Request)
                 ? {
-                    authLv: userAccessInfo.authLv,
+                    authLv: userAccessInfo.authLv ?? Auth.None,
                     guestAuthLv: userAccessInfo.guestAuthLv,
                 }
                 : {
@@ -543,6 +543,7 @@ const checkApiAuthLv = (needAuthLv: Auth) => {
                 return Auth.None;
             }
             switch(req.connect.userAuthInfo.authLv) {
+                case undefined:
                 case Auth.None:
                 case Auth.Request:
                     return req.connect.userAuthInfo.guestAuthLv;

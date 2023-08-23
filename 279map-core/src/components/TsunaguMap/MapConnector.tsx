@@ -124,12 +124,10 @@ export default function MapConnector(props: Props) {
 
         case 'hasError':
             const e = connectLoadable.contents;
-            console.log('debug0', e);
             const error: ApiError = ('apiError' in e) ? e.apiError
                                 : {type: ErrorType.IllegalError, detail: e + ''};
 
             const errorMessage = function(): string {
-                console.log('debug1', error.type, ErrorType.NoAuthenticate);
                 switch(error.type) {
                     case ErrorType.UndefinedMap:
                         return '指定の地図は存在しません';

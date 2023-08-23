@@ -27,7 +27,7 @@ export const getUserIdByRequest = (req: Request): string | undefined => {
 export type UserAuthInfo = {
     userId?: string;
 } & ({
-    authLv: Auth.Request | Auth.None;
+    authLv: Auth.Request | Auth.None | undefined;   // undefined=未ログイン、None=ログインしているがユーザ登録されていない
     guestAuthLv: Auth;
 } | {
     authLv: Auth.Admin | Auth.Edit | Auth.View;
@@ -40,7 +40,7 @@ export type UserAuthInfo = {
  * @param req リクエスト情報
  * @returns アクセス権限情報。ログインが必要な地図で、ユーザが未ログインの場合はundfined。
  */
-export async function getUserAuthInfoInTheMap(mapPageInfo: MapPageInfoTable, req: Request): Promise<UserAuthInfo|undefined> {
+export async function getUserAuthInfoInTheMap(mapPageInfo: MapPageInfoTable, req: Request): Promise<UserAuthInfo> {
     const guestUserAuth = function() {
         const auth = (mapPageInfo.options as MapPageOptions | undefined)?.guestUserAuthLevel ?? Auth.None;
         if (auth === Auth.None && mapPageInfo.public_range === PublicRange.Public) {
@@ -56,7 +56,7 @@ export async function getUserAuthInfoInTheMap(mapPageInfo: MapPageInfoTable, req
         // 未ログインの場合、ゲストユーザ権限を返す
         apiLogger.debug('未ログイン');
         return {
-            authLv: Auth.None,
+            authLv: undefined,
             guestAuthLv: guestUserAuth,
         }
     }
