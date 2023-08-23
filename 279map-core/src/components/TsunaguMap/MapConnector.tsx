@@ -4,7 +4,6 @@ import { useWatch } from '../../util/useWatch';
 import { useRecoilRefresher_UNSTABLE, useRecoilValueLoadable, useResetRecoilState, useSetRecoilState } from 'recoil';
 import { connectStatusState, instanceIdState, mapDefineState, mapIdState, mapServerState } from '../../store/session';
 import { createAPICallerInstance, destroyAPICallerInstance } from '../../api/ApiCaller';
-import { ApiException } from '../../api';
 import { ApiError, ErrorType, RequestAPI } from 'tsunagumap-api';
 import Overlay from '../common/spinner/Overlay';
 import { useMap } from '../map/useMap';
@@ -91,24 +90,25 @@ export default function MapConnector(props: Props) {
         setGuestMode(true);
     }, []);
 
-    const isUser = useMemo(() => {
-        if (connectLoadable.state !== 'hasValue') {
-            return false;
-        } else {
-            switch(connectLoadable.contents.mapDefine.authLv) {
-                case Auth.None:
-                    return false;
-                default:
-                    return true;
-            }
-        }
-
-    }, [connectLoadable]);
-
     switch (loadableState) {
         case 'hasValue':
-            // Auth0ログイン済みだが、地図ユーザ未登録の場合
-            const showRequestPanel = (ownerContext.mapServer.token && !isUser && !guestMode);
+            // Auth0ログイン済みだが、地図ユーザ未登録の場合は、登録申請フォーム表示
+            const showRequestPanel = function() {
+                if (guestMode) {
+                    return false;
+                }
+                if (!ownerContext.mapServer.token) {
+                    return false;
+                }
+                if (connectLoadable.state !== 'hasValue') {
+                    return false;
+                }
+                if (connectLoadable.contents.mapDefine.options?.newUserAuthLevel === Auth.None) {
+                    // 新規ユーザ登録禁止の地図では表示しない
+                    return false;
+                }
+                return connectLoadable.contents.mapDefine.authLv === Auth.None;
+            }();
             return (
                 <>
                     {props.children}
