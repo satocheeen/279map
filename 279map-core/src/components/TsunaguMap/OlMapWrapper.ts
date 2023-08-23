@@ -82,7 +82,7 @@ class OlMapWrapper {
                 projection: 'EPSG:4326',
                 maxZoom: 20,
             }),
-            interactions: defaults({ doubleClickZoom: false }),
+            interactions: defaults({ doubleClickZoom: false, pinchRotate: false }),
         });
 
         // cancel right click
