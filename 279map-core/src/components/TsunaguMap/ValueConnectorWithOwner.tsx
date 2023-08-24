@@ -13,7 +13,7 @@ import { filteredItemsState } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { SearchAPI } from 'tsunagumap-api';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { CategoryDefine, DataSourceGroup, EventDefine, MapKind } from '279map-common';
+import { CategoryDefine, DataId, DataSourceGroup, EventDefine, MapKind } from '279map-common';
 import { MapMode } from '../../entry';
 
 /**
@@ -33,6 +33,7 @@ export default function ValueConnectorWithOwner() {
             <CategoryLoadListener />
             <EventLoadListener />
             <MapModeChangeListener />
+            <SelectChangeLister />
         </>
     )
 }
@@ -41,15 +42,12 @@ function SubValueConnectorWithOwner() {
 
     const ownerContext = useContext(OwnerContext);
 
-    const onSelectRef = useRef<typeof ownerContext.onSelect>();
-
     const setDefaultIconDefine = useSetRecoilState(defaultIconDefineState);
 
     useWatch(() => {
         if (ownerContext.iconDefine)
             setDefaultIconDefine(ownerContext.iconDefine);
 
-        onSelectRef.current = ownerContext.onSelect;
     }, [ownerContext]);
 
     // 検索
@@ -79,15 +77,6 @@ function SubValueConnectorWithOwner() {
 
     }, [ownerContext.filter])
 
-    /**
-     * 選択アイテムが変更されたらコールバック
-     */
-    const selectedItemIds = useRecoilValue(selectedItemIdsState);
-    useWatch(() => {
-        if (onSelectRef.current) {
-            onSelectRef.current(selectedItemIds);
-        }
-    }, [selectedItemIds]);
     
     return null;
 }
@@ -227,6 +216,28 @@ function MapModeChangeListener() {
             latestMapModeRef.current = mapMode;
         }
     })
+
+    return null;
+}
+
+/**
+ * 選択アイテムが変化した場合に呼び出し元にイベント発火する
+ * @returns 
+ */
+function SelectChangeLister() {
+    const { onSelect}  = useContext(OwnerContext);
+    const selectedItemIds = useRecoilValue(selectedItemIdsState);
+    const latestItemIdsRef = useRef<DataId[]>();
+
+    // マウント後でないとイベント発火できないので、useEffect内で処理
+    useEffect(() => {
+        if (JSON.stringify(selectedItemIds) !== JSON.stringify(latestItemIdsRef.current)) {
+            if (onSelect) {
+                onSelect(selectedItemIds);
+            }
+            latestItemIdsRef.current = selectedItemIds;
+        }
+    });
 
     return null;
 }
