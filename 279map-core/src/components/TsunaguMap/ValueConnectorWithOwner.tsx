@@ -13,7 +13,7 @@ import { filteredItemsState } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { SearchAPI } from 'tsunagumap-api';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { CategoryDefine, DataSourceGroup, MapKind } from '279map-common';
+import { CategoryDefine, DataSourceGroup, EventDefine, MapKind } from '279map-common';
 import { MapMode } from '../../entry';
 
 /**
@@ -31,6 +31,7 @@ export default function ValueConnectorWithOwner() {
             <MapLoadListener />
             <DataSourceChangeListener />
             <CategoryLoadListener />
+            <EventLoadListener />
             <MapModeChangeListener />
         </>
     )
@@ -41,7 +42,6 @@ function SubValueConnectorWithOwner() {
     const ownerContext = useContext(OwnerContext);
 
     const onSelectRef = useRef<typeof ownerContext.onSelect>();
-    const onEventsLoadedRef = useRef<typeof ownerContext.onEventsLoaded>();
 
     const setDefaultIconDefine = useSetRecoilState(defaultIconDefineState);
 
@@ -50,7 +50,6 @@ function SubValueConnectorWithOwner() {
             setDefaultIconDefine(ownerContext.iconDefine);
 
         onSelectRef.current = ownerContext.onSelect;
-        onEventsLoadedRef.current = ownerContext.onEventsLoaded;
     }, [ownerContext]);
 
     // 検索
@@ -90,16 +89,6 @@ function SubValueConnectorWithOwner() {
         }
     }, [selectedItemIds]);
     
-    /**
-     * callback when events has loaded or changed.
-     */
-    const events = useRecoilValue(eventState);
-    useWatch(() => {
-        if(onEventsLoadedRef.current) {
-            onEventsLoadedRef.current(events);
-        }
-    }, [events]);
-
     return null;
 }
 
@@ -191,6 +180,29 @@ function CategoryLoadListener() {
                 onCategoriesLoaded(categoriesLoadable.contents);
             }
             latestCategories.current = categoriesLoadable.contents;
+        }
+    });
+
+    return null;
+}
+
+/**
+ * イベントロード時に呼び出し元にイベント発火する
+ */
+function EventLoadListener() {
+    const { onEventsLoaded }  = useContext(OwnerContext);
+    const eventLoadable = useRecoilValueLoadable(eventState);
+    const latestEvents = useRef<EventDefine[]>();
+
+     // マウント後でないとイベント発火できないので、useEffect内で処理
+     useEffect(() => {
+        if (eventLoadable.state !== 'hasValue') return;
+
+        if (JSON.stringify(eventLoadable.contents) !== JSON.stringify(latestEvents.current)) {
+            if (onEventsLoaded) {
+                onEventsLoaded(eventLoadable.contents);
+            }
+            latestEvents.current = eventLoadable.contents;
         }
     });
 
