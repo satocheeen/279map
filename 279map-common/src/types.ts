@@ -55,11 +55,16 @@ export type DataSourceLinkableContent = {
  * データソースに含まれるitemやcontentの情報。
  */
 type ItemContentDefineOfDatasource = {
-    kind: DataSourceKindType;
     editable: boolean;
     deletable: boolean;
     linkableContents: DataSourceLinkableContent[];  // 紐づけ可能なコンテンツの定義
-}
+} & ({
+    kind: DataSourceKindType.RealItem | DataSourceKindType.VirtualItem,
+    icon?: IconKey;
+} | {
+    kind: DataSourceKindType.Content | DataSourceKindType.Track;
+});
+
 export type ItemContentDefine = {[kind in DataSourceKindType]?: ItemContentDefineOfDatasource};
 
 export interface MapPageOptions {
@@ -119,7 +124,7 @@ export enum FeatureType {
     TRACK = 'TRACK',
 }
 
-export type IconInfo = {
+export type IconKey = {
     type: 'system' | 'original';
     id: string;
 }
@@ -138,7 +143,7 @@ export type GeocoderId = {
 
 export type GeoProperties = {
     featureType: FeatureType.STRUCTURE;
-    icon?: IconInfo;
+    icon?: IconKey;
 } | {
     featureType: FeatureType.ROAD;
     lineJson: GeoJSON.Feature;  // 元のLine
