@@ -5,7 +5,7 @@ import { getStructureScale } from "../../util/MapUtility";
 import { SystemIconDefine } from "../../types/types";
 import useFilterStatus from "./useFilterStatus";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
-import { IconInfo } from "279map-common";
+import { IconKey } from "279map-common";
 import { Geometry } from "ol/geom";
 import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
 import { useMap } from "./useMap";
@@ -167,7 +167,7 @@ export default function usePointStyle() {
     const _createPointStyle = useCallback((feature: Feature<Geometry>, resolution: number, forceColor?: string): Style => {
         const { mainFeature, showFeaturesLength } = _analysisFeatures(feature);
 
-        const icon = mainFeature.getProperties().icon as IconInfo | undefined;
+        const icon = mainFeature.getProperties().icon as IconKey | undefined;
         const iconDefine = getIconDefine(icon);
 
         // 色設定

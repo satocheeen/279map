@@ -1,4 +1,4 @@
-import { IconInfo } from "279map-common";
+import { IconKey } from "279map-common";
 import { useCallback } from "react";
 import { useRecoilValue } from "recoil";
 import { currentDefaultIconState, currentMapIconDefineState } from ".";
@@ -14,7 +14,7 @@ export default function useIcon() {
     /**
      * 指定のアイコンキーに対応するアイコン定義を返す
      */
-    const getIconDefine = useCallback((iconInfo?: IconInfo) => {
+    const getIconDefine = useCallback((iconInfo?: IconKey) => {
         if (!iconInfo) {
             return currentDefaultIcon;
         }
