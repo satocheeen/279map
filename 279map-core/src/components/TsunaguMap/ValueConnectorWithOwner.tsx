@@ -1,6 +1,6 @@
-import React, { useRef, useContext } from 'react';
+import React, { Suspense, useRef, useContext, useEffect } from 'react';
 import { useWatch } from '../../util/useWatch';
-import { useRecoilValue } from 'recoil';
+import { useRecoilValue, useRecoilValueLoadable } from 'recoil';
 import { OwnerContext } from './TsunaguMap';
 import { categoryState } from '../../store/category';
 import { eventState } from '../../store/event';
@@ -23,7 +23,10 @@ import { DataSourceGroup } from '279map-common';
 export default function ValueConnectorWithOwner() {
     return (
         <>
-            <SubValueConnectorWithOwner />
+            <Suspense>
+                <SubValueConnectorWithOwner />
+            </Suspense>
+            <ConnectListener />
             <DataSourceChangeListener />
         </>
     )
@@ -33,7 +36,6 @@ function SubValueConnectorWithOwner() {
 
     const ownerContext = useContext(OwnerContext);
 
-    const onConnectRef = useRef<typeof ownerContext.onConnect>();
     const onMapKindChangedRef = useRef<typeof ownerContext.onMapLoad>();
     const onModeChangedRef = useRef<typeof ownerContext.onModeChanged>();
     const onSelectRef = useRef<typeof ownerContext.onSelect>();
@@ -46,7 +48,6 @@ function SubValueConnectorWithOwner() {
         if (ownerContext.iconDefine)
             setDefaultIconDefine(ownerContext.iconDefine);
 
-        onConnectRef.current = ownerContext.onConnect;
         onMapKindChangedRef.current = ownerContext.onMapLoad;
         onModeChangedRef.current = ownerContext.onModeChanged;
         onSelectRef.current = ownerContext.onSelect;
@@ -80,15 +81,6 @@ function SubValueConnectorWithOwner() {
         });
 
     }, [ownerContext.filter])
-
-    const connetStatus = useRecoilValue(connectStatusState);
-    useWatch(() => {
-        if (onConnectRef.current) {
-            onConnectRef.current({
-                mapDefine: connetStatus.mapDefine,
-            })
-        }
-    }, [connetStatus]);
 
     const currentMapKind = useRecoilValue(currentMapKindState);
     useWatch(() => {
@@ -143,6 +135,25 @@ function SubValueConnectorWithOwner() {
     return null;
 }
 
+/**
+ * connect時に呼び出し元にイベント発火する
+ */
+function ConnectListener() {
+    const { onConnect } = useContext(OwnerContext);
+    const connectLoadable = useRecoilValueLoadable(connectStatusState);
+    const connectedRef = useRef(false);
+
+    if (!connectedRef.current && connectLoadable.state === 'hasValue') {
+        connectedRef.current = true;
+        if (onConnect) {
+            onConnect({
+                mapDefine: connectLoadable.contents.mapDefine,
+            })
+        }
+    }
+
+    return null;
+}
 /**
  * Datasource定義、表示状態が変化した場合に呼び出し元にイベント発火する
  * @returns 

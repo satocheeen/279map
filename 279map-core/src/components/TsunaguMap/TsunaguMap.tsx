@@ -100,9 +100,7 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
             <OwnerContext.Provider value={ownerContextValue}>
                 <RecoilRoot>
                     <MapConnector>
-                        <Suspense>
-                            <ValueConnectorWithOwner />
-                        </Suspense>
+                        <ValueConnectorWithOwner />
                         <TooltipContext.Provider value={tooltipContextValue}>
                             <MapWrapper ref={mapRef} onInitialized={()=>setMapInitializedFlag(true)} />
                             <Suspense>
