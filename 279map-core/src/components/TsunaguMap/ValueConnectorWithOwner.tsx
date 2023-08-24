@@ -25,7 +25,7 @@ export default function ValueConnectorWithOwner() {
     return (
         <>
             <Suspense>
-                <SubValueConnectorWithOwner />
+                <FilterListner />
             </Suspense>
             <ConnectListener />
             <MapLoadListener />
@@ -34,21 +34,29 @@ export default function ValueConnectorWithOwner() {
             <EventLoadListener />
             <MapModeChangeListener />
             <SelectChangeLister />
+            <RecoilSetter/>
         </>
     )
 }
 
-function SubValueConnectorWithOwner() {
-
-    const ownerContext = useContext(OwnerContext);
-
+/**
+ * OwnerContextで設定された値のうち、必要なものをRecoilに設定する
+ */
+function RecoilSetter() {
+    const { iconDefine } = useContext(OwnerContext);
     const setDefaultIconDefine = useSetRecoilState(defaultIconDefineState);
 
-    useWatch(() => {
-        if (ownerContext.iconDefine)
-            setDefaultIconDefine(ownerContext.iconDefine);
+    useEffect(() => {
+        if (iconDefine)
+            setDefaultIconDefine(iconDefine);
 
-    }, [ownerContext]);
+    }, [iconDefine, setDefaultIconDefine]);
+
+    return null;
+}
+
+function FilterListner() {
+    const { filter } = useContext(OwnerContext);
 
     // 検索
     const setFilteredItem = useSetRecoilState(filteredItemsState);
@@ -56,7 +64,7 @@ function SubValueConnectorWithOwner() {
     const visibleDataSourceIds = useRecoilValue(visibleDataSourceIdsState);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
     useWatch(() => {
-        const conditions = ownerContext.filter?.conditions;
+        const conditions = filter?.conditions;
         if (!conditions) {
             setFilteredItem(null);
             return;
@@ -75,7 +83,7 @@ function SubValueConnectorWithOwner() {
             hideProcessMessage(h);
         });
 
-    }, [ownerContext.filter])
+    }, [filter])
 
     
     return null;
