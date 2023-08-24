@@ -14,6 +14,7 @@ import { useMap } from '../map/useMap';
 import { SearchAPI } from 'tsunagumap-api';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { DataSourceGroup, MapKind } from '279map-common';
+import { MapMode } from '../../entry';
 
 /**
  * OwnerContextとRecoilを繋ぐコンポーネントもどき
@@ -29,6 +30,7 @@ export default function ValueConnectorWithOwner() {
             <ConnectListener />
             <MapLoadListener />
             <DataSourceChangeListener />
+            <MapModeChangeListener />
         </>
     )
 }
@@ -37,7 +39,6 @@ function SubValueConnectorWithOwner() {
 
     const ownerContext = useContext(OwnerContext);
 
-    const onModeChangedRef = useRef<typeof ownerContext.onModeChanged>();
     const onSelectRef = useRef<typeof ownerContext.onSelect>();
     const onCategoriesLoadedRef = useRef<typeof ownerContext.onCategoriesLoaded>();
     const onEventsLoadedRef = useRef<typeof ownerContext.onEventsLoaded>();
@@ -48,7 +49,6 @@ function SubValueConnectorWithOwner() {
         if (ownerContext.iconDefine)
             setDefaultIconDefine(ownerContext.iconDefine);
 
-        onModeChangedRef.current = ownerContext.onModeChanged;
         onSelectRef.current = ownerContext.onSelect;
         onCategoriesLoadedRef.current = ownerContext.onCategoriesLoaded;
         onEventsLoadedRef.current = ownerContext.onEventsLoaded;
@@ -80,16 +80,6 @@ function SubValueConnectorWithOwner() {
         });
 
     }, [ownerContext.filter])
-
-    /**
-     * callback when map mode has changed.
-     */
-    const mapMode = useRecoilValue(mapModeState);
-    useWatch(() => {
-        if (onModeChangedRef.current) {
-            onModeChangedRef.current(mapMode);
-        }
-    }, [mapMode]);
 
     /**
      * 選択アイテムが変更されたらコールバック
@@ -191,6 +181,28 @@ function DataSourceChangeListener() {
             }
         }
      })
+
+    return null;
+}
+
+/**
+ * 地図モードが変化した場合に呼び出し元にイベント発火する
+ * @returns 
+ */
+function MapModeChangeListener() {
+    const { onModeChanged}  = useContext(OwnerContext);
+    const mapMode = useRecoilValue(mapModeState);
+    const latestMapModeRef = useRef<MapMode>();
+
+     // マウント後でないとイベント発火できないので、useEffect内で処理
+     useEffect(() => {
+        if(mapMode !== latestMapModeRef.current) {
+            if (onModeChanged) {
+                onModeChanged(mapMode);
+            }
+            latestMapModeRef.current = mapMode;
+        }
+    })
 
     return null;
 }
