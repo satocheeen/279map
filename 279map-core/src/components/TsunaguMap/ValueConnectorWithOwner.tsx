@@ -13,7 +13,7 @@ import { filteredItemsState } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { SearchAPI } from 'tsunagumap-api';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { DataSourceGroup } from '279map-common';
+import { DataSourceGroup, MapKind } from '279map-common';
 
 /**
  * OwnerContextとRecoilを繋ぐコンポーネントもどき
@@ -27,6 +27,7 @@ export default function ValueConnectorWithOwner() {
                 <SubValueConnectorWithOwner />
             </Suspense>
             <ConnectListener />
+            <MapLoadListener />
             <DataSourceChangeListener />
         </>
     )
@@ -36,7 +37,6 @@ function SubValueConnectorWithOwner() {
 
     const ownerContext = useContext(OwnerContext);
 
-    const onMapKindChangedRef = useRef<typeof ownerContext.onMapLoad>();
     const onModeChangedRef = useRef<typeof ownerContext.onModeChanged>();
     const onSelectRef = useRef<typeof ownerContext.onSelect>();
     const onCategoriesLoadedRef = useRef<typeof ownerContext.onCategoriesLoaded>();
@@ -48,7 +48,6 @@ function SubValueConnectorWithOwner() {
         if (ownerContext.iconDefine)
             setDefaultIconDefine(ownerContext.iconDefine);
 
-        onMapKindChangedRef.current = ownerContext.onMapLoad;
         onModeChangedRef.current = ownerContext.onModeChanged;
         onSelectRef.current = ownerContext.onSelect;
         onCategoriesLoadedRef.current = ownerContext.onCategoriesLoaded;
@@ -82,16 +81,6 @@ function SubValueConnectorWithOwner() {
 
     }, [ownerContext.filter])
 
-    const currentMapKind = useRecoilValue(currentMapKindState);
-    useWatch(() => {
-        if (onMapKindChangedRef.current && currentMapKind) {
-            onMapKindChangedRef.current({
-                mapKind: currentMapKind,
-            });
-        }
-
-    }, [currentMapKind]);
-    
     /**
      * callback when map mode has changed.
      */
@@ -143,17 +132,44 @@ function ConnectListener() {
     const connectLoadable = useRecoilValueLoadable(connectStatusState);
     const connectedRef = useRef(false);
 
-    if (!connectedRef.current && connectLoadable.state === 'hasValue') {
-        connectedRef.current = true;
-        if (onConnect) {
-            onConnect({
-                mapDefine: connectLoadable.contents.mapDefine,
-            })
+    // マウント後でないとイベント発火できないので、useEffect内で処理
+    useEffect(() => {
+        if (!connectedRef.current && connectLoadable.state === 'hasValue') {
+            connectedRef.current = true;
+            if (onConnect) {
+                onConnect({
+                    mapDefine: connectLoadable.contents.mapDefine,
+                })
+            }
         }
-    }
+    });
 
     return null;
 }
+
+/**
+ * 地図ロード時に呼び出し元にイベント発火する
+ */
+function MapLoadListener() {
+    const { onMapLoad } = useContext(OwnerContext);
+    const currentMapKindLoadable = useRecoilValueLoadable(currentMapKindState);
+    const latestMapKindRef = useRef<MapKind>();
+
+    // マウント後でないとイベント発火できないので、useEffect内で処理
+    useEffect(() => {
+        if (currentMapKindLoadable.state === 'hasValue' && currentMapKindLoadable.contents && latestMapKindRef.current !== currentMapKindLoadable.contents) {
+            latestMapKindRef.current = currentMapKindLoadable.contents;
+            if (onMapLoad) {
+                onMapLoad({
+                    mapKind: currentMapKindLoadable.contents,
+                })
+            }
+        }
+    });
+
+    return null;    
+}
+
 /**
  * Datasource定義、表示状態が変化した場合に呼び出し元にイベント発火する
  * @returns 
@@ -163,15 +179,18 @@ function DataSourceChangeListener() {
     const currentDataSourceGroups = useRecoilValue(dataSourceGroupsState);
     const latestDataSourceGroupsRef = useRef<DataSourceGroup[]>();
 
-    if (JSON.stringify(latestDataSourceGroupsRef.current) !== JSON.stringify(currentDataSourceGroups)) {
-        console.log('DataSourceChange');
-        if (ownerContext.onDatasourceChanged) {
-            ownerContext.onDatasourceChanged({
-                dataSourceGroups: currentDataSourceGroups,
-            })
-            latestDataSourceGroupsRef.current = currentDataSourceGroups;
+     // マウント後でないとイベント発火できないので、useEffect内で処理
+     useEffect(() => {
+        if (JSON.stringify(latestDataSourceGroupsRef.current) !== JSON.stringify(currentDataSourceGroups)) {
+            console.log('DataSourceChange');
+            if (ownerContext.onDatasourceChanged) {
+                ownerContext.onDatasourceChanged({
+                    dataSourceGroups: currentDataSourceGroups,
+                })
+                latestDataSourceGroupsRef.current = currentDataSourceGroups;
+            }
         }
-    }
+     })
 
     return null;
 }
