@@ -59,10 +59,10 @@ type ItemContentDefineOfDatasource = {
     deletable: boolean;
     linkableContents: DataSourceLinkableContent[];  // 紐づけ可能なコンテンツの定義
 } & ({
-    kind: DataSourceKindType.RealItem | DataSourceKindType.VirtualItem,
-    icon?: IconKey;
+    kind: DataSourceKindType.RealItem,
+    defaultIcon?: IconKey;
 } | {
-    kind: DataSourceKindType.Content | DataSourceKindType.Track;
+    kind: DataSourceKindType.Content | DataSourceKindType.Track | DataSourceKindType.VirtualItem;
 });
 
 export type ItemContentDefine = {[kind in DataSourceKindType]?: ItemContentDefineOfDatasource};
