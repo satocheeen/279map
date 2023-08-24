@@ -13,6 +13,7 @@ import { filteredItemsState } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { SearchAPI } from 'tsunagumap-api';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
+import { DataSourceGroup } from '279map-common';
 
 /**
  * OwnerContextとRecoilを繋ぐコンポーネントもどき
@@ -20,13 +21,22 @@ import { useProcessMessage } from '../common/spinner/useProcessMessage';
  * - Recoilの各値の変更検知して呼び出し元に返す
  */
 export default function ValueConnectorWithOwner() {
+    return (
+        <>
+            <SubValueConnectorWithOwner />
+            <DataSourceChangeListener />
+        </>
+    )
+}
+
+function SubValueConnectorWithOwner() {
+
     const ownerContext = useContext(OwnerContext);
 
     const onConnectRef = useRef<typeof ownerContext.onConnect>();
     const onMapKindChangedRef = useRef<typeof ownerContext.onMapLoad>();
     const onModeChangedRef = useRef<typeof ownerContext.onModeChanged>();
     const onSelectRef = useRef<typeof ownerContext.onSelect>();
-    const onDatasourceChangedRef = useRef<typeof ownerContext.onDatasourceChanged>();
     const onCategoriesLoadedRef = useRef<typeof ownerContext.onCategoriesLoaded>();
     const onEventsLoadedRef = useRef<typeof ownerContext.onEventsLoaded>();
 
@@ -40,7 +50,6 @@ export default function ValueConnectorWithOwner() {
         onMapKindChangedRef.current = ownerContext.onMapLoad;
         onModeChangedRef.current = ownerContext.onModeChanged;
         onSelectRef.current = ownerContext.onSelect;
-        onDatasourceChangedRef.current = ownerContext.onDatasourceChanged;
         onCategoriesLoadedRef.current = ownerContext.onCategoriesLoaded;
         onEventsLoadedRef.current = ownerContext.onEventsLoaded;
     }, [ownerContext]);
@@ -111,15 +120,6 @@ export default function ValueConnectorWithOwner() {
         }
     }, [selectedItemIds]);
     
-    const currentDataSourceGroups = useRecoilValue(dataSourceGroupsState);
-    useWatch(() => {
-        if (onDatasourceChangedRef.current) {
-            onDatasourceChangedRef.current({
-                dataSourceGroups: currentDataSourceGroups,
-            })
-        }
-    }, [currentDataSourceGroups]);
-
     /**
      * callback when categories has loaded or changed.
      */
@@ -139,6 +139,28 @@ export default function ValueConnectorWithOwner() {
             onEventsLoadedRef.current(events);
         }
     }, [events]);
+
+    return null;
+}
+
+/**
+ * Datasource定義、表示状態が変化した場合に呼び出し元にイベント発火する
+ * @returns 
+ */
+function DataSourceChangeListener() {
+    const ownerContext = useContext(OwnerContext);
+    const currentDataSourceGroups = useRecoilValue(dataSourceGroupsState);
+    const latestDataSourceGroupsRef = useRef<DataSourceGroup[]>();
+
+    if (JSON.stringify(latestDataSourceGroupsRef.current) !== JSON.stringify(currentDataSourceGroups)) {
+        console.log('DataSourceChange');
+        if (ownerContext.onDatasourceChanged) {
+            ownerContext.onDatasourceChanged({
+                dataSourceGroups: currentDataSourceGroups,
+            })
+            latestDataSourceGroupsRef.current = currentDataSourceGroups;
+        }
+    }
 
     return null;
 }
