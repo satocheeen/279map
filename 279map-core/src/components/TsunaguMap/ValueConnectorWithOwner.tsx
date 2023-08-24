@@ -13,7 +13,7 @@ import { filteredItemsState } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { SearchAPI } from 'tsunagumap-api';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { DataSourceGroup, MapKind } from '279map-common';
+import { CategoryDefine, DataSourceGroup, MapKind } from '279map-common';
 import { MapMode } from '../../entry';
 
 /**
@@ -30,6 +30,7 @@ export default function ValueConnectorWithOwner() {
             <ConnectListener />
             <MapLoadListener />
             <DataSourceChangeListener />
+            <CategoryLoadListener />
             <MapModeChangeListener />
         </>
     )
@@ -40,7 +41,6 @@ function SubValueConnectorWithOwner() {
     const ownerContext = useContext(OwnerContext);
 
     const onSelectRef = useRef<typeof ownerContext.onSelect>();
-    const onCategoriesLoadedRef = useRef<typeof ownerContext.onCategoriesLoaded>();
     const onEventsLoadedRef = useRef<typeof ownerContext.onEventsLoaded>();
 
     const setDefaultIconDefine = useSetRecoilState(defaultIconDefineState);
@@ -50,7 +50,6 @@ function SubValueConnectorWithOwner() {
             setDefaultIconDefine(ownerContext.iconDefine);
 
         onSelectRef.current = ownerContext.onSelect;
-        onCategoriesLoadedRef.current = ownerContext.onCategoriesLoaded;
         onEventsLoadedRef.current = ownerContext.onEventsLoaded;
     }, [ownerContext]);
 
@@ -91,16 +90,6 @@ function SubValueConnectorWithOwner() {
         }
     }, [selectedItemIds]);
     
-    /**
-     * callback when categories has loaded or changed.
-     */
-    const categories = useRecoilValue(categoryState);
-    useWatch(() => {
-        if (onCategoriesLoadedRef.current) {
-            onCategoriesLoadedRef.current(categories);
-        }
-    }, [categories]);
-
     /**
      * callback when events has loaded or changed.
      */
@@ -181,6 +170,29 @@ function DataSourceChangeListener() {
             }
         }
      })
+
+    return null;
+}
+
+/**
+ * カテゴリロード時に呼び出し元にイベント発火する
+ */
+function CategoryLoadListener() {
+    const { onCategoriesLoaded}  = useContext(OwnerContext);
+    const categoriesLoadable = useRecoilValueLoadable(categoryState);
+    const latestCategories = useRef<CategoryDefine[]>();
+
+     // マウント後でないとイベント発火できないので、useEffect内で処理
+     useEffect(() => {
+        if (categoriesLoadable.state !== 'hasValue') return;
+
+        if (JSON.stringify(categoriesLoadable.contents) !== JSON.stringify(latestCategories.current)) {
+            if (onCategoriesLoaded) {
+                onCategoriesLoaded(categoriesLoadable.contents);
+            }
+            latestCategories.current = categoriesLoadable.contents;
+        }
+    });
 
     return null;
 }
