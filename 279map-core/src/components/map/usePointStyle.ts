@@ -5,7 +5,7 @@ import { getStructureScale } from "../../util/MapUtility";
 import { SystemIconDefine } from "../../types/types";
 import useFilterStatus from "./useFilterStatus";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
-import { IconKey } from "279map-common";
+import { DataSourceKindType, IconKey } from "279map-common";
 import { Geometry } from "ol/geom";
 import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
 import { useMap } from "./useMap";
@@ -14,6 +14,7 @@ import { useRecoilValue } from "recoil";
 import { selectedItemIdsState } from "../../store/operation";
 import useIcon from "../../store/icon/useIcon";
 import { filteredItemIdListState } from "../../store/filter";
+import { dataSourcesState } from "../../store/datasource";
 
 // 建物ラベルを表示するresolution境界値（これ以下の値の時に表示）
 const StructureLabelResolution = 0.003;
@@ -164,10 +165,17 @@ export default function usePointStyle() {
 
     }, [filteredItemIdList, selectedItemIds]);
 
+    const dataSources = useRecoilValue(dataSourcesState);
     const _createPointStyle = useCallback((feature: Feature<Geometry>, resolution: number, forceColor?: string): Style => {
         const { mainFeature, showFeaturesLength } = _analysisFeatures(feature);
 
-        const icon = mainFeature.getProperties().icon as IconKey | undefined;
+        let icon = mainFeature.getProperties().icon as IconKey | undefined;
+        const itemId = convertDataIdFromFeatureId(mainFeature.getId() as string);
+        if (!icon) {
+            // icon未指定の場合はレイヤデフォルトアイコンを設定
+            const datasource = dataSources.find(ds => ds.dataSourceId === itemId.dataSourceId);
+            icon = datasource?.itemContents.RealItem?.kind === DataSourceKindType.RealItem ? datasource.itemContents.RealItem.defaultIcon : undefined;
+        }
         const iconDefine = getIconDefine(icon);
 
         // 色設定
@@ -214,7 +222,7 @@ export default function usePointStyle() {
         }
         return style;
 
-    }, [disabledLabel, _createStyle, getFilterStatus, getForceColor, _analysisFeatures, getIconDefine, filter]);
+    }, [dataSources, disabledLabel, _createStyle, getFilterStatus, getForceColor, _analysisFeatures, getIconDefine, filter]);
 
     /**
      * the style function for ordinaly.
