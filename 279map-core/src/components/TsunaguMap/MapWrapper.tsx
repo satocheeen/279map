@@ -15,7 +15,6 @@ import { useRecoilValue, useSetRecoilState, useRecoilCallback, useResetRecoilSta
 import { selectedItemIdsState } from '../../store/operation';
 import { dataSourceGroupsState } from '../../store/datasource';
 import { connectStatusState, currentMapKindState, mapDefineState } from '../../store/session';
-import { itemMapState } from '../../store/item';
 
 type Props = {
     onInitialized?: () => void;

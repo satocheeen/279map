@@ -7,7 +7,7 @@ import { eventState } from '../../store/event';
 import { useSetRecoilState } from 'recoil';
 import { defaultIconDefineState } from '../../store/icon';
 import { mapModeState, selectedItemIdsState } from '../../store/operation';
-import { dataSourceGroupsState, visibleDataSourceIdsState } from '../../store/datasource';
+import { itemDataSourcesState, visibleDataSourceIdsState } from '../../store/datasource';
 import { connectStatusState, currentMapKindState } from '../../store/session';
 import { filteredItemsState } from '../../store/filter';
 import { useMap } from '../map/useMap';
@@ -141,7 +141,7 @@ function MapLoadListener() {
  */
 function DataSourceChangeListener() {
     const ownerContext = useContext(OwnerContext);
-    const currentDataSourceGroups = useRecoilValue(dataSourceGroupsState);
+    const currentDataSourceGroups = useRecoilValue(itemDataSourcesState);
     const latestDataSourceGroupsRef = useRef<DataSourceGroup[]>();
 
      // マウント後でないとイベント発火できないので、useEffect内で処理

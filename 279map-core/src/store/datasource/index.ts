@@ -1,6 +1,7 @@
-import { DataSourceGroup, DataSourceInfo } from "279map-common";
+import { DataSourceGroup, DataSourceInfo, MapKind } from "279map-common";
 import { atom, selector } from "recoil";
 import { mapDefineState } from "../session";
+import { mapKindState } from "../operation";
 
 /**
  * データソース関連のRecoil
@@ -59,6 +60,29 @@ export const dataSourcesState = selector<DataSourceInfo[]>({
     }
 })
 
+/**
+ * アイテムのデータソース
+ */
+export const itemDataSourcesState = selector<DataSourceGroup[]>({
+    key: 'itemDataSourcesState',
+    get: ( { get } ) => {
+        const groups = get(dataSourceGroupsState);
+        const mapKind = get(mapKindState);
+        // コンテンツのみのデータソースは除外する
+        return groups.map(group => {
+            const newDataSources = group.dataSources.filter(ds => {
+                if (mapKind === MapKind.Real) {
+                    return ds.itemContents.RealItem || ds.itemContents.Track;
+                } else {
+                    return ds.itemContents.VirtualItem;
+                }
+            });
+            return Object.assign({}, group, {
+                dataSources: newDataSources,
+            });
+        })
+    }
+})
 /**
  * 表示状態のデータソースID
  */
