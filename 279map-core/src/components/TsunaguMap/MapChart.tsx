@@ -26,7 +26,7 @@ import { useItem } from "../../store/item/useItem";
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { initialItemLoadedState, itemMapState } from "../../store/item";
 import { mapModeState, mapViewState, selectedItemIdsState } from "../../store/operation";
-import { dataSourceGroupsState } from "../../store/datasource";
+import { itemDataSourcesState } from "../../store/datasource";
 import { currentMapKindState, defaultExtentState } from "../../store/session";
 import { filteredItemIdListState } from "../../store/filter";
 
@@ -54,7 +54,7 @@ export default function MapChart() {
     }, [pointStyleFunction, topographyStyleFunction, trackStyleFunction])
 
     const mapKind = useRecoilValue(currentMapKindState);
-    const dataSources = useRecoilValue(dataSourceGroupsState);
+    const dataSources = useRecoilValue(itemDataSourcesState);
 
     const defaultExtent = useRecoilValue(defaultExtentState);
     const itemMap = useRecoilValue(itemMapState);

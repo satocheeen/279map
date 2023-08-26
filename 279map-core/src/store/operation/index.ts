@@ -1,13 +1,7 @@
-import { DataId, MapKind } from "279map-common";
+import { DataId } from "279map-common";
 import { atom } from "recoil";
 import { MapMode } from "../../types/types";
 import { Extent } from "ol/extent";
-
-// ユーザが指定した地図種別
-export const mapKindState = atom<MapKind|undefined>({
-    key: 'mapKindState',
-    default: undefined,
-});
 
 // 選択中アイテムID
 export const selectedItemIdsState = atom<DataId[]>({

@@ -11,9 +11,9 @@ import { useMap } from '../map/useMap';
 import useDataSource from '../../store/datasource/useDataSource';
 import { useSubscribe } from '../../util/useSubscribe';
 import { useItem } from '../../store/item/useItem';
-import { useRecoilValue, useSetRecoilState, useRecoilCallback, useResetRecoilState } from 'recoil';
+import { useRecoilValue, useSetRecoilState, useRecoilCallback } from 'recoil';
 import { selectedItemIdsState } from '../../store/operation';
-import { dataSourceGroupsState } from '../../store/datasource';
+import { itemDataSourcesState } from '../../store/datasource';
 import { connectStatusState, currentMapKindState, mapDefineState } from '../../store/session';
 
 type Props = {
@@ -29,7 +29,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const ownerContext = useContext(OwnerContext);
     const connectStatus = useRecoilValue(connectStatusState);
     const currentMapKind = useRecoilValue(currentMapKindState);
-    const currentDataSourceGroups = useRecoilValue(dataSourceGroupsState);
+    const currentDataSourceGroups = useRecoilValue(itemDataSourcesState);
 
     const onConnectRef = useRef<typeof ownerContext.onConnect>();
 
