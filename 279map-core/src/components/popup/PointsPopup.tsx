@@ -1,15 +1,15 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import styles from './PointsPopup.module.scss';
 import { ContentsDefine, DataId, ItemContentInfo, ItemDefine } from "279map-common";
 import { MapMode } from "../../types/types";
-import { getMapKey, isEqualId } from "../../util/dataUtility";
+import { isEqualId } from "../../util/dataUtility";
 import MyThumbnail from "../common/image/MyThumbnail";
 import { BsThreeDots } from 'react-icons/bs';
 import { useMapOptions } from "../../util/useMapOptions";
 import { useMap } from "../map/useMap";
 import { doCommand } from "../../util/Commander";
-import { itemMapState } from "../../store/item";
-import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { itemState } from "../../store/item";
+import { useRecoilCallback, useRecoilValue, useSetRecoilState } from 'recoil';
 import { mapModeState, selectedItemIdsState } from "../../store/operation";
 import { filteredContentIdListState, filteredItemIdListState } from "../../store/filter";
 import { useItem } from "../../store/item/useItem";
@@ -38,10 +38,23 @@ function hasImageItem(item: ItemDefine): boolean {
 }
 export default function PointsPopup(props: Props) {
     const { getMap } = useMap();
-    const itemMap = useRecoilValue(itemMapState);
     const filteredItemIdList = useRecoilValue(filteredItemIdListState);
     const filteredContentIdList = useRecoilValue(filteredContentIdListState);
     const { getDescendantContentsIdList } = useItem();
+    const [ targetItems, setTargetItems ] = useState<ItemDefine[]>([]);
+
+    const getTarget = useRecoilCallback(({ snapshot }) => async(itemIds: DataId[]): Promise<ItemDefine[]> => {
+        const items = await Promise.all(itemIds.map(itemId => {
+            return snapshot.getPromise(itemState(itemId));
+        }));
+        return items.filter(item => item!==undefined) as ItemDefine[];
+
+    }, []);
+
+    useEffect(() => {
+        getTarget(props.itemIds)
+        .then(items => setTargetItems(items));
+    }, [props.itemIds, getTarget]);
 
     /**
      * このポップアップで表示するアイテム情報
@@ -50,14 +63,7 @@ export default function PointsPopup(props: Props) {
         if (props.itemIds.length === 0) {
             return undefined;
         }
-        let infos = props.itemIds.reduce((acc, cur) => {
-            const item = itemMap[getMapKey(cur)];
-            if (!item) {
-                // 地図種別切り替え直後にこのルートに入る可能性がある
-                return acc;
-            }
-            return acc.concat(item);
-        }, [] as ItemDefine[])
+        let infos = targetItems;
         // フィルタがかかっている場合は、フィルタ対象のものに絞る
         if (filteredItemIdList) {
             infos = infos.filter(info => filteredItemIdList.some(filteredItemId => isEqualId(filteredItemId, info.id)));
@@ -73,7 +79,7 @@ export default function PointsPopup(props: Props) {
         }
         // 最初の画像のみ表示
         return ownImageInfos[0];
-    }, [props.itemIds, itemMap, filteredItemIdList]);
+    }, [props.itemIds, targetItems, filteredItemIdList]);
 
     const { popupMode } = useMapOptions();
 

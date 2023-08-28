@@ -2,9 +2,9 @@ import { useCallback } from "react";
 import { useMap } from "../../components/map/useMap";
 import { GetItemsAPI, GetItemsParam } from "tsunagumap-api";
 import { useRecoilCallback, useRecoilValue, useSetRecoilState } from 'recoil';
-import { initialItemLoadedState, itemMapState } from ".";
+import { initialItemLoadedState, itemMapState, itemsState } from ".";
 import { getMapKey, isEqualId } from "../../util/dataUtility";
-import { DataId, ItemContentInfo } from "279map-common";
+import { DataId, ItemContentInfo, ItemDefine } from "279map-common";
 import { visibleDataSourceIdsState } from "../datasource";
 import { filteredContentIdListState } from "../filter";
 
@@ -35,6 +35,21 @@ export function useItem() {
     
             const items = apiResult.items;
             if (items.length === 0) return;
+
+            // データソース単位で保管
+            const dsMap = {} as {[id: string]: ItemDefine[]};
+            items.forEach(item => {
+                const dsId = item.id.dataSourceId;
+                if (dsId in dsMap) {
+                    dsMap[dsId].push(item);
+                } else {
+                    dsMap[dsId] = [item];
+                }
+            });
+            for(const entry of Object.entries(dsMap)) {
+                const datasourceId = entry[0];
+                set(itemsState({ datasourceId }), entry[1]);
+            }
 
             setItemMap((currentItemMap) => {
                 const itemMap = Object.assign({}, currentItemMap);

@@ -243,28 +243,28 @@ export default function TestMap() {
                 {authLv !== Auth.View &&
                 <>
                     <div className={styles.Col}>
-                        <button onClick={mapRef.current?.moveStructure}>移築</button>
-                        <button onClick={mapRef.current?.changeStructure}>改築</button>
-                        <button onClick={mapRef.current?.removeStructure}>建物解体</button>
+                        <button onClick={() => mapRef.current?.moveStructure()}>移築</button>
+                        <button onClick={() => mapRef.current?.changeStructure()}>改築</button>
+                        <button onClick={() => mapRef.current?.removeStructure()}>建物解体</button>
                     </div>
                     <div className={styles.Col}>
                         {mapKind === MapKind.Real ?
                             <>
-                                <button onClick={mapRef.current?.editTopography}>エリア編集</button>
-                                <button onClick={mapRef.current?.removeTopography}>エリア削除</button>
+                                <button onClick={() => mapRef.current?.editTopography()}>エリア編集</button>
+                                <button onClick={() => mapRef.current?.removeTopography()}>エリア削除</button>
                             </>
                             :
                             <>
-                                <button onClick={mapRef.current?.editTopography}>地形編集</button>
-                                <button onClick={mapRef.current?.removeTopography}>地形削除</button>
-                                <button onClick={mapRef.current?.editTopographyInfo}>地名編集</button>
+                                <button onClick={() => mapRef.current?.editTopography()}>地形編集</button>
+                                <button onClick={() => mapRef.current?.removeTopography()}>地形削除</button>
+                                <button onClick={() => mapRef.current?.editTopographyInfo()}>地名編集</button>
                             </>
                         }
                     </div>
                 </>
                 }
                 <div className={styles.Col}>
-                    <button onClick={mapRef.current?.showUserList}>ユーザ一覧</button>
+                    <button onClick={() => mapRef.current?.showUserList()}>ユーザ一覧</button>
                     <button onClick={callGetSnsPreview}>GetSNS</button>
                     <button onClick={getThumbnail}>GetThumbnail</button>
                 </div>

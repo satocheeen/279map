@@ -6,8 +6,8 @@ import PromptMessageBox from '../PromptMessageBox';
 import SelectFeature from '../SelectFeature';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
-import { itemMapState } from '../../../../store/item';
-import { useRecoilValue } from 'recoil';
+import { itemState } from '../../../../store/item';
+import { useRecoilCallback } from 'recoil';
 import { useMap } from '../../useMap';
 import { UpdateItemAPI } from 'tsunagumap-api';
 
@@ -22,17 +22,18 @@ export default function EditTopographyInfoController(props: Props) {
     const [stage, setStage] = useState(Stage.SELECTING_FEATURE);
     const selectedFeatureId = useRef<string>();
     const [name, setName] = useState('');
-    const itemMap = useRecoilValue(itemMapState);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
-    const onSelectFeature = useCallback((feature: FeatureLike) => {
+    const onSelectFeature = useRecoilCallback(({ snapshot }) => async(feature: FeatureLike) => {
         const id = feature.getId() as string;
         selectedFeatureId.current = id;
+        const itemId = convertDataIdFromFeatureId(id);
 
-        setName(itemMap[id].name);
+        const item = await snapshot.getPromise(itemState(itemId));
+        setName(item?.name ?? '');
 
         setStage(Stage.INPUT_NAME);
-    }, [itemMap]);
+    }, []);
 
     const onClose = useCallback(() => {
         props.close();

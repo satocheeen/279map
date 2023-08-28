@@ -6,12 +6,11 @@ import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
 import { Auth, DataId, DataSourceLinkableContent, MapKind } from '279map-common';
-import { getMapKey } from '../../util/dataUtility';
 import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam } from 'tsunagumap-api';
 import { useMap } from '../map/useMap';
 import { Button } from '../common';
 import { useRecoilValue } from 'recoil';
-import { itemMapState } from '../../store/item';
+import { itemState } from '../../store/item';
 import { compareAuth } from '../../util/CommonUtility';
 import { dataSourcesState } from '../../store/datasource';
 import { authLvState, currentMapKindState } from '../../store/session';
@@ -32,7 +31,7 @@ export default function AddContentMenu(props: Props) {
     const id = useRef('add-content-menu-'+maxId++);
     const { onAddNewContent, onLinkUnpointedContent } = useContext(OwnerContext);
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
-    const itemMap = useRecoilValue(itemMapState);
+    const item = useRecoilValue(itemState('itemId' in props.target ? props.target.itemId : {dataSourceId: '', id: ''}))
     const { getApi } = useMap();
     const mapKind = useRecoilValue(currentMapKindState);
     const dataSources = useRecoilValue(dataSourcesState);
@@ -89,7 +88,6 @@ export default function AddContentMenu(props: Props) {
             // linkableContent.Singleの場合は、
             // 同一データソースの既存コンテンツが存在しない場合のみOK
             if ('itemId' in props.target) {
-                const item = itemMap[getMapKey(props.target.itemId)];
                 const exist = item?.contents.some(content => content.id.dataSourceId === def.contentDatasourceId);
                 return !exist;
             } else {
@@ -98,7 +96,7 @@ export default function AddContentMenu(props: Props) {
             }
         });
 
-    }, [itemMap, props.target, dataSources, mapKind]);
+    }, [item, props.target, dataSources, mapKind]);
 
     const creatableContentDataSources = useMemo((): LinkUnpointContentParam['dataSources'] => {
         return dataSources

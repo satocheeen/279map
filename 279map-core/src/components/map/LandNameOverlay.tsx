@@ -6,16 +6,21 @@ import styles from './LandNameOverlay.module.scss';
 import { FeatureType } from '279map-common';
 import { getMapKey } from '../../util/dataUtility';
 import { useMap } from './useMap';
-import { itemMapState } from '../../store/item';
 import { useRecoilValue } from 'recoil';
 import { mapViewState } from '../../store/operation';
+import { dataSourcesState } from '../../store/datasource';
+import { itemsState } from '../../store/item';
 
 // 島名を常時表示するズームLv.境界値（この値よりも小さい場合に、常時表示）
 const LandNameShowZoomLv = 8.17
 
 export default function LandNameOverlay() {
     const { getMap } = useMap();
-    const itemMap = useRecoilValue(itemMapState);
+    const datasources = useRecoilValue(dataSourcesState);
+    const virtualItemDatasource = useMemo(() => {
+        return datasources.find(ds => ds.itemContents.VirtualItem);
+    }, [datasources]);
+    const items = useRecoilValue(itemsState({ datasourceId: virtualItemDatasource?.dataSourceId ?? ''}));
 
     const [landNameRefMap] = useState({} as { [id: string]: HTMLDivElement });
     const [landNameOverlayMap] = useState({} as  { [id: string]: Overlay });
@@ -24,13 +29,13 @@ export default function LandNameOverlay() {
 
     // 名前を持つ島
     const namedEarth = useMemo(() => {
-        return Object.values(itemMap).filter(item => {
+        return items.filter(item => {
             if (item.name.length === 0) {
                 return false;
             }
             return item.geoProperties?.featureType === FeatureType.EARTH;
         });
-    }, [itemMap]);
+    }, [items]);
 
     // 表示範囲の島
     const currentAreaNamedEarth = useMemo(() => {

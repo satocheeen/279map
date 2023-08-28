@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useMemo, useCallback } from 'react';
 import { Overlay } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import styles from './ClusterMenu.module.scss';
-import { itemMapState } from '../../store/item';
+import { itemState } from '../../store/item';
 import { useRecoilValue } from 'recoil';
 import useIcon from '../../store/icon/useIcon';
 import { DataId } from '279map-common';
@@ -93,14 +93,11 @@ type MenuItemProp = {
     onClose?: () => void;
 }
 function MenuItem(props: MenuItemProp) {
-    const itemMap = useRecoilValue(itemMapState);
-
-    const item = useMemo(() => itemMap[getMapKey(props.id)], [props.id, itemMap]);
-
+    const item = useRecoilValue(itemState(props.id));
     const { getIconDefine } = useIcon();
 
     const iconDefine = useMemo(() => {
-        if (!item.geoProperties) {
+        if (!item?.geoProperties) {
             return getIconDefine();
         }
         if (!('icon' in item.geoProperties)) {
@@ -112,7 +109,7 @@ function MenuItem(props: MenuItemProp) {
     }, [getIconDefine, item]);
 
     const hasImage = useMemo(() => {
-        return item.contents.some(c => c.hasImage);
+        return item?.contents.some(c => c.hasImage);
     }, [item]);
 
     const itemName = useMemo(() => {

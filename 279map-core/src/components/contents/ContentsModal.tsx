@@ -1,17 +1,15 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { Modal }  from '../common';
 import Content from './Content';
 import { addListener, removeListener } from '../../util/Commander';
-import { ContentsDefine, DataId } from '279map-common';
+import { ContentsDefine, DataId, ItemDefine } from '279map-common';
 import AddContentMenu from '../popup/AddContentMenu';
 import styles from './ContentsModal.module.scss';
 import { getMapKey } from '../../util/dataUtility';
-import { isEqualId } from '../../util/dataUtility';
 import { useMounted } from '../../util/useMounted';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { useWatch } from '../../util/useWatch';
-import { useRecoilValue } from 'recoil';
-import { itemMapState } from '../../store/item';
+import { useRecoilCallback } from 'recoil';
+import { itemState } from '../../store/item';
 import { useMap } from '../map/useMap';
 import { useSubscribe } from '../../util/useSubscribe';
 
@@ -25,8 +23,8 @@ type Target = {
 export default function ContentsModal() {
     const [show, setShow] = useState(false);
     const [loaded, setLoaded] = useState(false);
-    const itemMap = useRecoilValue(itemMapState);
     const [target, setTarget] = useState<Target|undefined>();
+    const [item, setItem] = useState<ItemDefine | undefined>();
 
     useMounted(() => {
         const h = addListener('ShowContentInfo', async(contentId: DataId) => {
@@ -53,7 +51,10 @@ export default function ContentsModal() {
     const { getApi } = useMap();
     const { subscribeMap: subscribe, unsubscribeMap: unsubscribe } = useSubscribe();
 
-    const loadContentsInItem = useCallback(async(itemId: DataId) => {
+    const loadContentsInItem = useRecoilCallback(({ snapshot }) => async(itemId: DataId) => {
+        const item = await snapshot.getPromise(itemState(itemId));
+        if (!item || item.contents.length === 0) return;
+
         const h = showProcessMessage({
             overlay: true,
             spinner: true,
@@ -66,28 +67,30 @@ export default function ContentsModal() {
         setContentsList(result);
         hideProcessMessage(h);
 
-    }, [getApi, hideProcessMessage, showProcessMessage]);
+    }, []);
 
-    useWatch(() => {
+    const setTargetsItem = useRecoilCallback(({ snapshot }) => async(itemId: DataId) => {
+        const item = await snapshot.getPromise(itemState(itemId));
+        setItem(item);
+    }, []);
+
+    // 表示対象が指定されたらコンテンツロード
+    useEffect(() => {
         if (!target) return;
 
         if (target.type === 'item') {
-            const item = itemMap[getMapKey(target.itemId)];
-            if (!item) return;
-    
             setLoaded(false);
             setShow(true);
     
             // 最新コンテンツ取得
-            if (item.contents.length > 0) {
-                loadContentsInItem(target.itemId)
-                .finally(() => {
-                    setLoaded(true);
-                });
-                subscribe('childcontents-update', target.itemId, () => loadContentsInItem(target.itemId));
-            } else {
+            loadContentsInItem(target.itemId)
+            .finally(() => {
                 setLoaded(true);
-            }
+            });
+            subscribe('childcontents-update', target.itemId, () => loadContentsInItem(target.itemId));
+
+            setTargetsItem(target.itemId);
+
         } else {
             setLoaded(false);
             setShow(true);
@@ -100,12 +103,17 @@ export default function ContentsModal() {
                 ],
             ).then(result => {
                 setContentsList(result);
-
+                if (result.length === 0) {
+                    setItem(undefined);
+                } else {
+                    setTargetsItem(result[0].itemId);
+                }
+    
             }).finally(() => {
                 setLoaded(true);
             });
-
         }
+
 
         return () => {
             if (target.type === 'item') {
@@ -113,7 +121,7 @@ export default function ContentsModal() {
             }
         }
 
-    }, [target, itemMap]);
+    }, [target, getApi, subscribe, unsubscribe, setTargetsItem, loadContentsInItem]);
 
     const contents = useMemo((): ContentsDefine[] => {
         return contentsList.sort((a, b) => {
@@ -123,20 +131,9 @@ export default function ContentsModal() {
     }, [contentsList])
 
     const title = useMemo(() => {
-        if (!target) return '';
-        let itemId: DataId;
-        if (target.type === 'item') {
-            itemId = target.itemId;
-        } else {
-            const content = contentsList.find(c => isEqualId(c.id, target.contentId));
-            if (!content) return '';
-            itemId = content.itemId;
-        }
-
-        const item = itemMap[getMapKey(itemId)];
         if (!item) return '';
         return item.name;
-    }, [target, contentsList, itemMap]);
+    }, [item]);
 
     const onCloseBtnClicked = useCallback(() => {
         setShow(false);
