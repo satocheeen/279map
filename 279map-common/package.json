@@ -1,6 +1,6 @@
 {
   "name": "279map-common",
-  "version": "0.14.1",
+  "version": "0.14.2",
   "description": "The modules which are used by 279map packages.",
   "scripts": {
     "deploy": "rimraf ../279map-core/src/279map-common && ncp ./src ../279map-core/src/279map-common && rimraf ../279map-backend-common/src/279map-common && ncp ./src ../279map-backend-common/src/279map-common",
@@ -9,9 +9,6 @@
   "keywords": [],
   "author": "Satocheeen (https://satocheeen.com)",
   "license": "MPL-2.0",
-  "engines": {
-    "node": "16.x"
-  },
   "repository": {
     "type": "git",
     "url": "https://codeberg.org/satocheeen/279map-common"
