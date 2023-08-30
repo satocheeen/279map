@@ -8,7 +8,7 @@ import { DataId, ItemContentInfo } from "279map-common";
 import { filteredContentIdListState } from "../filter";
 import { useAtomCallback } from 'jotai/utils';
 import { useAtom } from 'jotai';
-import { visibleDataSourceIdsAtom } from "../datasource";
+import { dataSourcesAtom, visibleDataSourceIdsAtom } from "../datasource";
 import { Extent } from '279map-common';
 
 function divideExtent(ext: Extent): Extent[] {
@@ -35,7 +35,6 @@ function divideExtent(ext: Extent): Extent[] {
  */
 export function useItem() {
     const { getApi } = useMap();
-    const [ visibleDataSourceIds ] = useAtom(visibleDataSourceIdsAtom);
     const setInitialItemLoaded = useSetRecoilState(initialItemLoadedState);
     const setInitialItemLoadedState = useSetRecoilState(initialItemLoadedState);
     const [_, setAllItems ] = useAtom(allItemsAtom);
@@ -57,20 +56,37 @@ export function useItem() {
                 // 未ロードのデータのみロードする
                 // -- extentは一定サイズに分割する
                 const extents = divideExtent(param.extent);
+                // -- zoomは小数点以下は切り捨てる
+                const zoom = Math.floor(param.zoom);
                 const loadedItemsKeys = get(loadedItemKeysAtom);
+                const datasources = get(dataSourcesAtom);
+                const visibleDataSourceIds = get(visibleDataSourceIdsAtom);
 
                 const targetKeys = extents.reduce((acc, cur) => {
                     const keys = visibleDataSourceIds.map((datasourceId): LoadedItemKey => {
+                        // データソースがGPXの場合は、ZoomLv.も
+                        const dsInfo = datasources.find(ds => ds.dataSourceId === datasourceId);
+                        const zoomKey = dsInfo?.itemContents.Track ? zoom : undefined;
                         return {
                             datasourceId,
                             extent: cur,
+                            zoom: zoomKey,
                         }
                     });
                     return acc.concat(keys);
                 }, [] as LoadedItemKey[])
                 .filter(key => {
                     return !loadedItemsKeys.some(loaded => {
-                        return loaded.datasourceId === key.datasourceId && JSON.stringify(loaded.extent) === JSON.stringify(key.extent);
+                        if (loaded.datasourceId !== key.datasourceId) {
+                            return false;
+                        }
+                        if (JSON.stringify(loaded.extent) !== JSON.stringify(key.extent)) {
+                            return false;
+                        }
+                        if (loaded.zoom && loaded.zoom !== key.zoom) {
+                            return false;
+                        }
+                        return true;
                     });
                 });
 
@@ -79,7 +95,7 @@ export function useItem() {
                 for (const key of targetKeys) {
                     const apiResult = await getApi().callApi(GetItemsAPI, {
                         extent: key.extent,
-                        zoom: param.zoom,
+                        zoom,
                         dataSourceIds: [key.datasourceId],
                     });
                     const items = apiResult.items;
@@ -110,7 +126,7 @@ export function useItem() {
                 throw e;
             }
     
-        }, [getApi, setInitialItemLoaded, visibleDataSourceIds])
+        }, [getApi, setInitialItemLoaded])
     )
 
     const removeItems = useCallback(async(target: DataId[]) => {
