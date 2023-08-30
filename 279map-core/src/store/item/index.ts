@@ -6,7 +6,7 @@ export type ItemsMap = {[id: string]: ItemDefine};
 
 export type LoadedItemKey = {
     datasourceId: string;
-    // extent: Extent;
+    extent: Extent;
 }
 export const loadedItemKeysAtom = atom<LoadedItemKey[]>([]);
 

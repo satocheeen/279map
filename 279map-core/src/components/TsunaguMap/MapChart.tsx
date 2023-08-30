@@ -30,6 +30,7 @@ import { currentMapKindState, defaultExtentAtom } from "../../store/session";
 import { filteredItemIdListState } from "../../store/filter";
 import { useAtom } from 'jotai';
 import { itemDataSourcesAtom } from "../../store/datasource";
+import { useAtomCallback } from 'jotai/utils';
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
@@ -57,8 +58,6 @@ export default function MapChart() {
     const mapKind = useRecoilValue(currentMapKindState);
     const [ itemDataSources ] = useAtom(itemDataSourcesAtom);
     
-    const [ defaultExtent ] = useAtom(defaultExtentAtom);
-    
     const loadingCurrentAreaContents = useRef(false);
     // trueにすると回転アニメーション発生
     const [flipping, setFlipping] = useState(false);
@@ -66,17 +65,21 @@ export default function MapChart() {
     /**
      * 全アイテムが含まれる領域でフィットさせる
      */
-    const fitToDefaultExtent = useCallback((animation: boolean) => {
-        if (!defaultExtent || !mapRef.current) {
-            return;
-        }
-        // アイテム0件の時はフィットさせない
-        if (defaultExtent.some(i => i !== 0)) {
-            mapRef.current.fit(defaultExtent, {
-                animation,
-            });
-        }
-    }, [defaultExtent]);
+    const fitToDefaultExtent = useAtomCallback(
+        useCallback((get, set, animation: boolean) => {
+            const defaultExtent = get(defaultExtentAtom); 
+            if (!defaultExtent || !mapRef.current) {
+                return;
+            }
+            // アイテム0件の時はフィットさせない
+            if (defaultExtent.some(i => i !== 0)) {
+                mapRef.current.fit(defaultExtent, {
+                    animation,
+                });
+            }
+
+        }, [])
+    );
 
     /**
      * フィルタ時にフィルタ対象がExtentに入るようにする
@@ -311,6 +314,7 @@ export default function MapChart() {
             if (!before) return true;   // 追加Item
             return before.lastEditedTime !== item.lastEditedTime;   // 更新Item
         })
+        console.log('debug updateItems', updateItems);
         mapRef.current.addFeatures(updateItems)
         .then(() => {
             // 削除
