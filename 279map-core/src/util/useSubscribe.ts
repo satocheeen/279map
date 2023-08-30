@@ -2,10 +2,11 @@ import { useContext, useCallback, useMemo } from 'react';
 import { OwnerContext } from '../components/TsunaguMap/TsunaguMap';
 import { ApiError, PublishMapMessage, PublishUserMessage } from 'tsunagumap-api';
 import { getMqttClientInstance } from '../store/session/MqttInstanceManager';
-import { useRecoilValue, useRecoilValueLoadable } from 'recoil';
-import { connectStatusState, currentMapKindState } from '../store/session';
+import { useRecoilValueLoadable } from 'recoil';
+import { connectStatusState, currentMapKindAtom } from '../store/session';
 import { MapKind } from '279map-common';
 import { ApiException } from '../api';
+import { useAtom } from 'jotai';
 
 function makeTopic(mapId: string, mapKind: MapKind | undefined, msg: PublishMapMessage['type'], param: PublishMapMessage['param']) {
     const paramStr = function() {
@@ -20,7 +21,7 @@ function makeTopic(mapId: string, mapKind: MapKind | undefined, msg: PublishMapM
 //TODO: 別の箇所から同一messageをsubscribeすると、片方がunsubscribeするともう一方もunsubscribeになると思うので、その対処
 export function useSubscribe() {
     const { mapInstanceId, mapId } = useContext(OwnerContext);
-    const currentMapKind = useRecoilValue(currentMapKindState);
+    const [ currentMapKind ] = useAtom(currentMapKindAtom);
     const connectStatusLoadable = useRecoilValueLoadable(connectStatusState);
 
     const userId = useMemo(() => {

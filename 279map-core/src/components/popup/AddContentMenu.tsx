@@ -11,9 +11,10 @@ import { useMap } from '../map/useMap';
 import { Button } from '../common';
 import { useRecoilValue } from 'recoil';
 import { compareAuth } from '../../util/CommonUtility';
-import { dataSourcesState } from '../../store/datasource';
 import { authLvState, currentMapKindState } from '../../store/session';
 import { useItem } from '../../store/item/useItem';
+import { dataSourcesAtom } from '../../store/datasource';
+import { useAtom } from 'jotai';
 
 type Props = {
     target: {
@@ -33,7 +34,7 @@ export default function AddContentMenu(props: Props) {
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
     const { getApi } = useMap();
     const mapKind = useRecoilValue(currentMapKindState);
-    const dataSources = useRecoilValue(dataSourcesState);
+    const [ dataSources ] = useAtom(dataSourcesAtom);
     const authLv = useRecoilValue(authLvState);
     const { getItem } = useItem();
     const item = useMemo(() => {

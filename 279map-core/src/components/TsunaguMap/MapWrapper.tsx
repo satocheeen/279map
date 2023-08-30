@@ -13,8 +13,9 @@ import { useSubscribe } from '../../util/useSubscribe';
 import { useItem } from '../../store/item/useItem';
 import { useRecoilValue, useSetRecoilState, useRecoilCallback } from 'recoil';
 import { selectedItemIdsState } from '../../store/operation';
-import { itemDataSourcesState } from '../../store/datasource';
-import { connectStatusState, currentMapKindState, mapDefineState } from '../../store/session';
+import { connectStatusState, currentMapKindState, mapDefineAtom, mapDefineState } from '../../store/session';
+import { itemDataSourcesAtom } from '../../store/datasource';
+import { useAtom } from 'jotai';
 
 type Props = {
     onInitialized?: () => void;
@@ -29,7 +30,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const ownerContext = useContext(OwnerContext);
     const connectStatus = useRecoilValue(connectStatusState);
     const currentMapKind = useRecoilValue(currentMapKindState);
-    const currentDataSourceGroups = useRecoilValue(itemDataSourcesState);
+    const [ itemDataSources ] = useAtom(itemDataSourcesAtom);
 
     const onConnectRef = useRef<typeof ownerContext.onConnect>();
 
@@ -210,6 +211,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
      * load map define when mapkind has changed.
      */
     const setMapDefine = useSetRecoilState(mapDefineState);
+    const [_, setMapDefineForJotai] = useAtom(mapDefineAtom);
     const [initialized, setInitialized] = useState(false);
     const changeMapKind = useRecoilCallback(({snapshot, set}) => async(mk: MapKind) => {
         const mapKind = await snapshot.getPromise(currentMapKindState);
@@ -220,10 +222,10 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         const res = await getApi().callApi(GetMapInfoAPI, {
             mapKind: mk,
         });
-        console.log('setMapDefine', res);
         set(mapDefineState, res);
+        setMapDefineForJotai(res);
         resetItems();
-    }, []);
+    }, [setMapDefineForJotai]);
 
     useMounted(() => {
         const h = addListener('ChangeMapKind', async(mk: MapKind) => {
@@ -235,6 +237,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
             mapKind: connectStatus.mapDefine.defaultMapKind,
         }).then(res => {
             setMapDefine(res);
+            setMapDefineForJotai(res);
             setInitialized(true);
             if (props.onInitialized) {
                 props.onInitialized();
@@ -272,9 +275,9 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
      * レイヤの表示・非表示切り替え
      */
     useWatch(() => {
-        getMap()?.updateLayerVisible(currentDataSourceGroups);
+        getMap()?.updateLayerVisible(itemDataSources);
 
-    }, [currentDataSourceGroups]);
+    }, [itemDataSources]);
 
     /**
      * 1アイテムが選択されたら詳細ダイアログ表示

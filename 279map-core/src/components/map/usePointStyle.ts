@@ -14,7 +14,8 @@ import { useRecoilValue } from "recoil";
 import { selectedItemIdsState } from "../../store/operation";
 import useIcon from "../../store/icon/useIcon";
 import { filteredItemIdListState } from "../../store/filter";
-import { dataSourcesState } from "../../store/datasource";
+import { dataSourcesAtom } from "../../store/datasource";
+import { useAtom } from 'jotai';
 
 // 建物ラベルを表示するresolution境界値（これ以下の値の時に表示）
 const StructureLabelResolution = 0.003;
@@ -165,7 +166,7 @@ export default function usePointStyle() {
 
     }, [filteredItemIdList, selectedItemIds]);
 
-    const dataSources = useRecoilValue(dataSourcesState);
+    const [ dataSources ] = useAtom(dataSourcesAtom);
     const _createPointStyle = useCallback((feature: Feature<Geometry>, resolution: number, forceColor?: string): Style => {
         const { mainFeature, showFeaturesLength } = _analysisFeatures(feature);
 

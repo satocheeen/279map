@@ -19,10 +19,11 @@ import { GetImageUrlAPI, GetSnsPreviewAPI, RemoveContentAPI, UpdateContentAPI, U
 import { doCommand } from "../../util/Commander";
 import { useMap } from "../map/useMap";
 import { useRecoilValue } from "recoil";
-import { categoryState } from "../../store/category";
-import { dataSourcesState } from "../../store/datasource";
 import { authLvState, currentMapKindState } from "../../store/session";
 import { filteredContentIdListState } from "../../store/filter";
+import { dataSourcesAtom } from "../../store/datasource";
+import { useAtom } from 'jotai';
+import { categoriesAtom } from "../../store/category";
 
 type Props = {
     itemId: DataId;
@@ -106,7 +107,7 @@ export default function Content(props: Props) {
         }
     }, [props.content, icon, onClick]);
 
-    const categories = useRecoilValue(categoryState);
+    const [ categories ] = useAtom(categoriesAtom);
 
     const categoryTag = useMemo(() => {
         return props.content.category?.map(category => {
@@ -212,7 +213,7 @@ export default function Content(props: Props) {
         })
     }, [props.content, onEditContent, getApi]);
 
-    const dataSources = useRecoilValue(dataSourcesState);
+    const [ dataSources ] = useAtom(dataSourcesAtom);
     const unlinkable = useMemo(() => {
         const itemDataSource = dataSources.find(ds => ds.dataSourceId === props.itemId.dataSourceId);
         if (!itemDataSource) {

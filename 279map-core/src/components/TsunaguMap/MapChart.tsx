@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState, useContext } from "react";
+import React, { useCallback, useMemo, useRef, useState, useContext, useEffect } from "react";
 import { Vector as VectorSource } from "ol/source";
 import styles from './MapChart.module.scss';
 import PopupContainer from "../popup/PopupContainer";
@@ -26,10 +26,10 @@ import { useItem } from "../../store/item/useItem";
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { allItemsAtom, initialItemLoadedState } from "../../store/item";
 import { mapModeState, mapViewState, selectedItemIdsState } from "../../store/operation";
-import { itemDataSourcesState } from "../../store/datasource";
-import { currentMapKindState, defaultExtentState } from "../../store/session";
+import { currentMapKindState, defaultExtentAtom } from "../../store/session";
 import { filteredItemIdListState } from "../../store/filter";
 import { useAtom } from 'jotai';
+import { itemDataSourcesAtom } from "../../store/datasource";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
@@ -55,9 +55,9 @@ export default function MapChart() {
     }, [pointStyleFunction, topographyStyleFunction, trackStyleFunction])
 
     const mapKind = useRecoilValue(currentMapKindState);
-    const dataSources = useRecoilValue(itemDataSourcesState);
-
-    const defaultExtent = useRecoilValue(defaultExtentState);
+    const [ itemDataSources ] = useAtom(itemDataSourcesAtom);
+    
+    const [ defaultExtent ] = useAtom(defaultExtentAtom);
     
     const loadingCurrentAreaContents = useRef(false);
     // trueにすると回転アニメーション発生
@@ -198,10 +198,34 @@ export default function MapChart() {
         mapRef.current.setTopographyLayerStyle(topographyStyleFunction);
         mapRef.current.setTrackLayerStyle(trackStyleFunction);
 
+        // アイテムフォーカスイベントの登録
+        const focusItemHandler = addListener('FocusItem', async(param: {itemId: DataId; zoom?: boolean}) => {
+            focusItem(param.itemId, param.zoom);
+            setSelectedItemIds([param.itemId]);
+        });
+
+        setInitialized(true);
+
+        return () => {
+            map.dispose();
+            destroyMapInstance(mapInstanceId);
+            removeListener(focusItemHandler);
+        }
+    });
+
+    /**
+     * 地図パンニング等に伴うアイテムロード処理フック
+     */
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map) {
+            return;
+        }
+
         const loadLatestDataHandler = addListener('LoadLatestData', async() => {
             await loadCurrentAreaContents();
         });
-    
+
         // 地図移動時にコンテンツロード
         const loadContentFunc = async() => {
             const h = showProcessMessage({
@@ -216,22 +240,14 @@ export default function MapChart() {
         };
         map.on('moveend', loadContentFunc);
 
-        // アイテムフォーカスイベントの登録
-        const focusItemHandler = addListener('FocusItem', async(param: {itemId: DataId; zoom?: boolean}) => {
-            focusItem(param.itemId, param.zoom);
-            setSelectedItemIds([param.itemId]);
-        });
-
-        setInitialized(true);
-
         return () => {
             map.un('moveend', loadContentFunc);
-            map.dispose();
-            destroyMapInstance(mapInstanceId);
             removeListener(loadLatestDataHandler);
-            removeListener(focusItemHandler);
         }
-    });
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [loadCurrentAreaContents]);
+
     useWatch(() => {
         mapRef.current?.changeDevice(isPC ? 'pc' : 'sp');
     }, [isPC]);
@@ -264,7 +280,7 @@ export default function MapChart() {
         mapRef.current.clearAllLayers();
         
         // 初期レイヤ生成
-        mapRef.current.initialize(mapKind, dataSources);
+        mapRef.current.initialize(mapKind, itemDataSources);
 
         fitToDefaultExtent(false);
         loadCurrentAreaContents()

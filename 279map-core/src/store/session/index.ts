@@ -1,22 +1,24 @@
-import { atom, selector } from 'recoil';
+import { atom as atomAsRecoil, selector } from 'recoil';
 import { ConnectResult, ErrorType, GetMapInfoResult } from 'tsunagumap-api';
 import { getAPICallerInstance } from '../../api/ApiCaller';
 import { ServerInfo } from '../../types/types';
 import { Auth, MapKind } from '279map-common';
 import { ApiException } from '../../api';
 import { Extent } from "ol/extent";
+import { atom } from 'jotai';
 
-export const instanceIdState = atom<string>({
+export const instanceIdState = atomAsRecoil<string>({
     key: 'instanceIdState',
     default: '',
 })
+export const instanceIdAtom = atom('');
 
-export const mapIdState = atom<string>({
+export const mapIdState = atomAsRecoil<string>({
     key: 'mapIdState',
     default: '',
 });
 
-export const mapServerState = atom<ServerInfo|undefined>({
+export const mapServerState = atomAsRecoil<ServerInfo|undefined>({
     key: 'mapServerState',
     default: undefined,
 });
@@ -47,7 +49,7 @@ export const connectStatusState = selector<ConnectResult>({
     }
 })
 
-export const mapDefineState = atom<GetMapInfoResult>({
+export const mapDefineState = atomAsRecoil<GetMapInfoResult>({
     key: 'mapDefineState',
     default: {
         mapKind: MapKind.Real,
@@ -55,6 +57,11 @@ export const mapDefineState = atom<GetMapInfoResult>({
         dataSourceGroups: [],
     }
 });
+export const mapDefineAtom = atom<GetMapInfoResult>({
+    mapKind: MapKind.Real,
+    extent: [0,0,0,0],
+    dataSourceGroups: [],
+})
 
 export const currentMapKindState = selector<MapKind|undefined>({
     key: 'currentMapKindSelector',
@@ -64,16 +71,18 @@ export const currentMapKindState = selector<MapKind|undefined>({
     }
 })
 
+export const currentMapKindAtom = atom<MapKind|undefined>((get) => {
+    const mapDefine = get(mapDefineAtom);
+    return mapDefine?.mapKind;
+})
+
 /**
  * 初期エクステント
  * （将来的には、ユーザが最後に参照していたエクステントを記録して、それを反映するようにしたい）
  */
-export const defaultExtentState = selector<Extent>({
-    key: 'defaultExtentSelector',
-    get: ( { get } ) => {
-        const mapDefine = get(mapDefineState);
-        return mapDefine?.extent ?? [0,0,0,0];
-    }
+export const defaultExtentAtom = atom<Extent>((get) => {
+    const mapDefine = get(mapDefineAtom);
+    return mapDefine?.extent ?? [0,0,0,0];
 })
 
 export const authLvState = selector<Auth>({

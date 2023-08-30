@@ -8,19 +8,19 @@ import { getMapKey } from '../../util/dataUtility';
 import { useMap } from './useMap';
 import { useRecoilValue } from 'recoil';
 import { mapViewState } from '../../store/operation';
-import { dataSourcesState } from '../../store/datasource';
 import { allItemsAtom } from '../../store/item';
 import { useAtom } from 'jotai';
+import { dataSourcesAtom } from '../../store/datasource';
 
 // 島名を常時表示するズームLv.境界値（この値よりも小さい場合に、常時表示）
 const LandNameShowZoomLv = 8.17
 
 export default function LandNameOverlay() {
     const { getMap } = useMap();
-    const datasources = useRecoilValue(dataSourcesState);
+    const [ dataSources ] = useAtom(dataSourcesAtom);
     const virtualItemDatasource = useMemo(() => {
-        return datasources.find(ds => ds.itemContents.VirtualItem);
-    }, [datasources]);
+        return dataSources.find(ds => ds.itemContents.VirtualItem);
+    }, [dataSources]);
 
     const [ allItems ] = useAtom(allItemsAtom);
     const items = useMemo(() => {

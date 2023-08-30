@@ -2,7 +2,7 @@ import React, { useCallback, useState, useContext, useMemo, useEffect } from 're
 import { OwnerContext } from './TsunaguMap';
 import { useWatch } from '../../util/useWatch';
 import { useRecoilRefresher_UNSTABLE, useRecoilValueLoadable, useResetRecoilState, useSetRecoilState } from 'recoil';
-import { connectStatusState, instanceIdState, mapDefineState, mapIdState, mapServerState } from '../../store/session';
+import { connectStatusState, instanceIdAtom, instanceIdState, mapIdState, mapServerState } from '../../store/session';
 import { createAPICallerInstance, destroyAPICallerInstance } from '../../api/ApiCaller';
 import { ApiError, ErrorType, RequestAPI } from 'tsunagumap-api';
 import Overlay from '../common/spinner/Overlay';
@@ -13,6 +13,7 @@ import styles from './MapConnector.module.scss';
 import { useSubscribe } from '../../util/useSubscribe';
 import { Auth } from '279map-common';
 import { createMqttClientInstance, destroyMqttClientInstance } from '../../store/session/MqttInstanceManager';
+import { useAtom } from 'jotai';
 
 type Props = {
     children: React.ReactNode | React.ReactNode[];
@@ -32,7 +33,7 @@ export default function MapConnector(props: Props) {
     const setMapServer = useSetRecoilState(mapServerState);
     const resetMapServer = useResetRecoilState(mapServerState);
     const connectLoadable = useRecoilValueLoadable(connectStatusState);
-    const mapDefineLoadable = useRecoilValueLoadable(mapDefineState);
+    const [_, setInstanceIdForJotai ] = useAtom(instanceIdAtom);
 
     useEffect(() => {
         setMapId(ownerContext.mapId);
@@ -52,6 +53,7 @@ export default function MapConnector(props: Props) {
         createMqttClientInstance(id, ownerContext.mapServer);
 
         setInstanceId(ownerContext.mapInstanceId);
+        setInstanceIdForJotai(ownerContext.mapInstanceId);
         setMapServer(ownerContext.mapServer);
 
         return () => {
@@ -60,7 +62,7 @@ export default function MapConnector(props: Props) {
             resetInstanceId();
             resetMapServer();
         }
-    }, [ownerContext.mapInstanceId, ownerContext.mapServer, resetInstanceId, resetMapServer, setInstanceId, setMapServer]);
+    }, [setInstanceIdForJotai, ownerContext.mapInstanceId, ownerContext.mapServer, resetInstanceId, resetMapServer, setInstanceId, setMapServer]);
 
 
     const { subscribeUser, unsubscribeUser } = useSubscribe();
@@ -77,12 +79,9 @@ export default function MapConnector(props: Props) {
     }, [subscribeUser, unsubscribeUser]);
 
     const loadableState = useMemo(() => {
-        if (connectLoadable.state !== 'hasValue') {
-            return connectLoadable.state;
-        }
-        return mapDefineLoadable.state;
+        return connectLoadable.state;
 
-    }, [connectLoadable, mapDefineLoadable]);
+    }, [connectLoadable]);
 
     // ゲストモードで動作させる場合、true
     const [guestMode, setGuestMode] = useState(false);

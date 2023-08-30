@@ -12,10 +12,10 @@ import { useMapOptions } from '../../util/useMapOptions';
 import { allItemsAtom } from '../../store/item';
 import { useRecoilValue } from 'recoil';
 import { mapViewState } from '../../store/operation';
-import { visibleDataSourceIdsState } from '../../store/datasource';
 import { filteredItemIdListState } from '../../store/filter';
 import { ItemDefine } from '../../entry';
 import { useAtom } from 'jotai';
+import { visibleDataSourceIdsAtom } from '../../store/datasource';
 
 function createKeyFromPopupInfo(param: PopupGroupWithPosition): string {
     if (!param) {
@@ -34,7 +34,7 @@ export default function PopupContainer() {
     const { getMap } = useMap();
 
     const [itemsMap] = useAtom(allItemsAtom)
-    const visibleDataSourceIds = useRecoilValue(visibleDataSourceIdsState);
+    const [ visibleDataSourceIds ] = useAtom(visibleDataSourceIdsAtom);
 
     const filteredItemIdList = useRecoilValue(filteredItemIdListState);
 

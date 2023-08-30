@@ -1,8 +1,8 @@
 import React, { useRef, useState, useMemo, useCallback, useEffect } from 'react';
 import { CategoryBadge } from '../../common';
 import styles from './CategorySelector.module.scss';
-import { useRecoilValue } from 'recoil';
-import { categoryState } from '../../../store/category';
+import { categoriesAtom } from '../../../store/category';
+import { useAtom } from 'jotai';
 
 type Props = {
     selected: string[]; // 選択中のカテゴリname
@@ -11,7 +11,7 @@ type Props = {
 
 export default function CategorySelector(props: Props) {
     const [ isEditMode, setEditMode ] = useState(false);
-    const categories = useRecoilValue(categoryState);
+    const [ categories ] = useAtom(categoriesAtom);
     const categoryNames = useMemo(() => categories.map(c => c.name), [categories]);
     const inputRef = useRef<HTMLInputElement>(null);
     const [ inputValue, setInputValue ] = useState('');

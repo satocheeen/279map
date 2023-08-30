@@ -2,19 +2,20 @@ import React, { Suspense, useRef, useContext, useEffect } from 'react';
 import { useWatch } from '../../util/useWatch';
 import { useRecoilValue, useRecoilValueLoadable } from 'recoil';
 import { OwnerContext } from './TsunaguMap';
-import { categoryState } from '../../store/category';
-import { eventState } from '../../store/event';
+import { categoriesLoadableAtom } from '../../store/category';
+import { eventsLoadableAtom } from '../../store/event';
 import { useSetRecoilState } from 'recoil';
 import { defaultIconDefineState } from '../../store/icon';
 import { mapModeState, selectedItemIdsState } from '../../store/operation';
-import { itemDataSourcesState, visibleDataSourceIdsState } from '../../store/datasource';
 import { connectStatusState, currentMapKindState } from '../../store/session';
 import { filteredItemsState } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { SearchAPI } from 'tsunagumap-api';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { CategoryDefine, DataId, DataSourceGroup, EventDefine, MapKind } from '279map-common';
-import { MapMode } from '../../entry';
+import { MapMode } from '../../types/types';
+import { useAtom } from 'jotai';
+import { itemDataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 
 /**
  * OwnerContextとRecoilを繋ぐコンポーネントもどき
@@ -61,7 +62,7 @@ function FilterListner() {
     // 検索
     const setFilteredItem = useSetRecoilState(filteredItemsState);
     const { getApi } = useMap();
-    const visibleDataSourceIds = useRecoilValue(visibleDataSourceIdsState);
+    const [ visibleDataSourceIds ] = useAtom(visibleDataSourceIdsAtom);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
     useWatch(() => {
         const conditions = filter?.conditions;
@@ -141,18 +142,18 @@ function MapLoadListener() {
  */
 function DataSourceChangeListener() {
     const ownerContext = useContext(OwnerContext);
-    const currentDataSourceGroups = useRecoilValue(itemDataSourcesState);
+    const [ itemDataSources ] = useAtom(itemDataSourcesAtom);
     const latestDataSourceGroupsRef = useRef<DataSourceGroup[]>();
 
      // マウント後でないとイベント発火できないので、useEffect内で処理
      useEffect(() => {
-        if (JSON.stringify(latestDataSourceGroupsRef.current) !== JSON.stringify(currentDataSourceGroups)) {
+        if (JSON.stringify(latestDataSourceGroupsRef.current) !== JSON.stringify(itemDataSources)) {
             console.log('DataSourceChange');
             if (ownerContext.onDatasourceChanged) {
                 ownerContext.onDatasourceChanged({
-                    dataSourceGroups: currentDataSourceGroups,
+                    dataSourceGroups: itemDataSources,
                 })
-                latestDataSourceGroupsRef.current = currentDataSourceGroups;
+                latestDataSourceGroupsRef.current = itemDataSources;
             }
         }
      })
@@ -165,18 +166,18 @@ function DataSourceChangeListener() {
  */
 function CategoryLoadListener() {
     const { onCategoriesLoaded}  = useContext(OwnerContext);
-    const categoriesLoadable = useRecoilValueLoadable(categoryState);
+    const [ categoriesLoadable ] = useAtom(categoriesLoadableAtom);
     const latestCategories = useRef<CategoryDefine[]>();
 
      // マウント後でないとイベント発火できないので、useEffect内で処理
      useEffect(() => {
-        if (categoriesLoadable.state !== 'hasValue') return;
+        if (categoriesLoadable.state !== 'hasData') return;
 
-        if (JSON.stringify(categoriesLoadable.contents) !== JSON.stringify(latestCategories.current)) {
+        if (JSON.stringify(categoriesLoadable.data) !== JSON.stringify(latestCategories.current)) {
             if (onCategoriesLoaded) {
-                onCategoriesLoaded(categoriesLoadable.contents);
+                onCategoriesLoaded(categoriesLoadable.data);
             }
-            latestCategories.current = categoriesLoadable.contents;
+            latestCategories.current = categoriesLoadable.data;
         }
     });
 
@@ -188,18 +189,19 @@ function CategoryLoadListener() {
  */
 function EventLoadListener() {
     const { onEventsLoaded }  = useContext(OwnerContext);
-    const eventLoadable = useRecoilValueLoadable(eventState);
     const latestEvents = useRef<EventDefine[]>();
+    const [ eventLoadable ] = useAtom(eventsLoadableAtom);
 
      // マウント後でないとイベント発火できないので、useEffect内で処理
      useEffect(() => {
-        if (eventLoadable.state !== 'hasValue') return;
+        if (eventLoadable.state !== 'hasData') return;
+        const events = eventLoadable.data;
 
-        if (JSON.stringify(eventLoadable.contents) !== JSON.stringify(latestEvents.current)) {
+        if (JSON.stringify(events) !== JSON.stringify(latestEvents.current)) {
             if (onEventsLoaded) {
-                onEventsLoaded(eventLoadable.contents);
+                onEventsLoaded(events);
             }
-            latestEvents.current = eventLoadable.contents;
+            latestEvents.current = events;
         }
     });
 

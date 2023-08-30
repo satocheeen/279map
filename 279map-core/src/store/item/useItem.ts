@@ -1,14 +1,14 @@
 import { useCallback } from "react";
 import { useMap } from "../../components/map/useMap";
 import { GetItemsAPI, GetItemsParam } from "tsunagumap-api";
-import { useRecoilCallback, useRecoilValue, useSetRecoilState } from 'recoil';
-import { ItemsMap, initialItemLoadedState, allItemsAtom } from ".";
+import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { ItemsMap, initialItemLoadedState, allItemsAtom, loadedItemKeysAtom, LoadedItemKey } from ".";
 import { isEqualId } from "../../util/dataUtility";
 import { DataId, ItemContentInfo, ItemDefine } from "279map-common";
-import { visibleDataSourceIdsState } from "../datasource";
 import { filteredContentIdListState } from "../filter";
 import { useAtomCallback } from 'jotai/utils';
 import { useAtom } from 'jotai';
+import { visibleDataSourceIdsAtom } from "../datasource";
 
 /**
  * アイテム関連フック
@@ -16,14 +16,18 @@ import { useAtom } from 'jotai';
  */
 export function useItem() {
     const { getApi } = useMap();
-    const visibleDataSourceIds = useRecoilValue(visibleDataSourceIdsState);
+    const [ visibleDataSourceIds ] = useAtom(visibleDataSourceIdsAtom);
     const setInitialItemLoaded = useSetRecoilState(initialItemLoadedState);
-
+    const setInitialItemLoadedState = useSetRecoilState(initialItemLoadedState);
     const [_, setAllItems ] = useAtom(allItemsAtom);
-    const resetItems = useRecoilCallback(({reset}) => async() => {
-        setAllItems({});
-        reset(initialItemLoadedState);
-    }, []);
+
+    const resetItems = useAtomCallback(
+        useCallback(async(get, set) => {
+            set(allItemsAtom, {});
+            set(loadedItemKeysAtom, []);
+            setInitialItemLoadedState(false);
+        }, [setInitialItemLoadedState])
+    );
 
     /**
      * 指定のズームLv., extentに該当するアイテムをロードする
@@ -31,10 +35,18 @@ export function useItem() {
     const loadItems = useAtomCallback(
         useCallback(async(get, set, param: Omit<GetItemsParam, 'dataSourceIds'>) => {
             try {
+                // 未ロードのデータのみロードする
+                const loadedItemsKeys = get(loadedItemKeysAtom);
+                const unloadedDataSources = visibleDataSourceIds.filter(id => {
+                    return !loadedItemsKeys.some(key => key.datasourceId === id);
+                });
+
+                if (unloadedDataSources.length === 0) return;
+
                 const apiResult = await getApi().callApi(GetItemsAPI, {
                     extent: param.extent,
                     zoom: param.zoom,
-                    dataSourceIds: visibleDataSourceIds,
+                    dataSourceIds: unloadedDataSources,
                 });
         
                 const items = apiResult.items;
@@ -60,6 +72,16 @@ export function useItem() {
                         newItemsMap[entry[0]] = itemMap;
                     }
                     return newItemsMap;
+                })
+
+                // ロード済みデータ条件を保管
+                set(loadedItemKeysAtom, (current) => {
+                    const keys = unloadedDataSources.map((id): LoadedItemKey => {
+                        return {
+                            datasourceId: id,
+                        }
+                    });
+                    return current.concat(keys);
                 })
 
                 setInitialItemLoaded(true);
