@@ -5,7 +5,7 @@ import PopupContainer from "../popup/PopupContainer";
 import DrawController from "../map/DrawController";
 import { addListener, removeListener } from "../../util/Commander";
 import LandNameOverlay from "../map/LandNameOverlay";
-import { DataId, FeatureType } from "279map-common";
+import { DataId, FeatureType, ItemDefine } from "279map-common";
 import { MapMode } from "../../types/types";
 import useFilteredTopographyStyle from "../map/useFilteredTopographyStyle";
 import useTrackStyle from "../map/useTrackStyle";
@@ -24,11 +24,12 @@ import { useProcessMessage } from "../common/spinner/useProcessMessage";
 import { isEqualId } from "../../util/dataUtility";
 import { useItem } from "../../store/item/useItem";
 import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { initialItemLoadedState, itemMapState } from "../../store/item";
+import { allItemsAtom, initialItemLoadedState } from "../../store/item";
 import { mapModeState, mapViewState, selectedItemIdsState } from "../../store/operation";
 import { itemDataSourcesState } from "../../store/datasource";
 import { currentMapKindState, defaultExtentState } from "../../store/session";
 import { filteredItemIdListState } from "../../store/filter";
+import { useAtom } from 'jotai';
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
@@ -57,8 +58,7 @@ export default function MapChart() {
     const dataSources = useRecoilValue(itemDataSourcesState);
 
     const defaultExtent = useRecoilValue(defaultExtentState);
-    const itemMap = useRecoilValue(itemMapState);
-
+    
     const loadingCurrentAreaContents = useRef(false);
     // trueにすると回転アニメーション発生
     const [flipping, setFlipping] = useState(false);
@@ -271,11 +271,14 @@ export default function MapChart() {
 
     }, [mapKind]);
 
+    const [ itemMap ] = useAtom(allItemsAtom);
     /**
      * アイテムFeatureを地図に反映する
      */
     const geoJsonItems = useMemo(() => {
-        return Object.values(itemMap);
+        return Object.values(itemMap).reduce((acc, cur) => {
+            return acc.concat(Object.values(cur));
+        }, [] as ItemDefine[]);
     }, [itemMap]);
     const prevGeoJsonItems = usePrevious(geoJsonItems);
     const initialItemLoaded = useRecoilValue(initialItemLoadedState);

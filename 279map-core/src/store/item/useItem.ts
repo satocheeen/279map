@@ -2,11 +2,13 @@ import { useCallback } from "react";
 import { useMap } from "../../components/map/useMap";
 import { GetItemsAPI, GetItemsParam } from "tsunagumap-api";
 import { useRecoilCallback, useRecoilValue, useSetRecoilState } from 'recoil';
-import { initialItemLoadedState, itemMapState, itemsState } from ".";
-import { getMapKey, isEqualId } from "../../util/dataUtility";
+import { ItemsMap, initialItemLoadedState, allItemsAtom } from ".";
+import { isEqualId } from "../../util/dataUtility";
 import { DataId, ItemContentInfo, ItemDefine } from "279map-common";
 import { visibleDataSourceIdsState } from "../datasource";
 import { filteredContentIdListState } from "../filter";
+import { useAtomCallback } from 'jotai/utils';
+import { useAtom } from 'jotai';
 
 /**
  * アイテム関連フック
@@ -14,71 +16,71 @@ import { filteredContentIdListState } from "../filter";
  */
 export function useItem() {
     const { getApi } = useMap();
-    const setItemMap = useSetRecoilState(itemMapState);
+    const visibleDataSourceIds = useRecoilValue(visibleDataSourceIdsState);
+    const setInitialItemLoaded = useSetRecoilState(initialItemLoadedState);
 
+    const [_, setAllItems ] = useAtom(allItemsAtom);
     const resetItems = useRecoilCallback(({reset}) => async() => {
-        reset(itemMapState);
+        setAllItems({});
         reset(initialItemLoadedState);
     }, []);
 
     /**
      * 指定のズームLv., extentに該当するアイテムをロードする
      */
-    const loadItems = useRecoilCallback(({ snapshot, set }) => async(param: Omit<GetItemsParam, 'dataSourceIds'>) => {
-        try {
-            const dataSourceIds = await snapshot.getPromise(visibleDataSourceIdsState);
-            const apiResult = await getApi().callApi(GetItemsAPI, {
-                extent: param.extent,
-                zoom: param.zoom,
-                dataSourceIds,
-            });
-    
-            const items = apiResult.items;
-            if (items.length === 0) return;
-
-            // データソース単位で保管
-            const dsMap = {} as {[id: string]: ItemDefine[]};
-            items.forEach(item => {
-                const dsId = item.id.dataSourceId;
-                if (dsId in dsMap) {
-                    dsMap[dsId].push(item);
-                } else {
-                    dsMap[dsId] = [item];
-                }
-            });
-            for(const entry of Object.entries(dsMap)) {
-                const datasourceId = entry[0];
-                set(itemsState({ datasourceId }), entry[1]);
-            }
-
-            setItemMap((currentItemMap) => {
-                const itemMap = Object.assign({}, currentItemMap);
-                items.forEach(def => {
-                    itemMap[getMapKey(def.id)] = def;
+    const loadItems = useAtomCallback(
+        useCallback(async(get, set, param: Omit<GetItemsParam, 'dataSourceIds'>) => {
+            try {
+                const apiResult = await getApi().callApi(GetItemsAPI, {
+                    extent: param.extent,
+                    zoom: param.zoom,
+                    dataSourceIds: visibleDataSourceIds,
                 });
-                return itemMap;
-            });
-            const initialItemLoaded = await snapshot.getPromise(initialItemLoadedState);
-            if (!initialItemLoaded) {
-                set(initialItemLoadedState, true);
+        
+                const items = apiResult.items;
+                if (items.length === 0) return;
+    
+                // データソース単位で保管
+                const dsMap = {} as {[id: string]: ItemDefine[]};
+                items.forEach(item => {
+                    const dsId = item.id.dataSourceId;
+                    if (dsId in dsMap) {
+                        dsMap[dsId].push(item);
+                    } else {
+                        dsMap[dsId] = [item];
+                    }
+                });
+                set(allItemsAtom, (currentItemMap) => {
+                    const newItemsMap = Object.assign({}, currentItemMap);
+                    for(const entry of Object.entries(dsMap)) {
+                        const itemMap = entry[1].reduce((acc, cur) => {
+                            acc[cur.id.id] = cur;
+                            return acc;
+                        }, {} as ItemsMap)
+                        newItemsMap[entry[0]] = itemMap;
+                    }
+                    return newItemsMap;
+                })
+
+                setInitialItemLoaded(true);
+        
+            } catch (e) {
+                console.warn('loadItems error', e);
+                throw e;
             }
     
-        } catch (e) {
-            console.warn('loadItems error', e);
-            throw e;
-        }
-
-    }, [getApi, setItemMap]);
+        }, [getApi, setInitialItemLoaded, visibleDataSourceIds])
+    )
 
     const removeItems = useCallback(async(target: DataId[]) => {
         if (target.length === 0) return;
 
-        setItemMap((currentItemMap) => {
-            const itemMap = Object.assign({}, currentItemMap);
+        setAllItems((currentItemMap) => {
+            const newItemsMap = Object.assign({}, currentItemMap);
             target.forEach(def => {
-                delete itemMap[getMapKey(def)];
+                delete newItemsMap[def.dataSourceId][def.id];
             });
-            return itemMap;
+            return newItemsMap;
         });
 
         // TODO: contentsから除去
@@ -89,16 +91,22 @@ export function useItem() {
 
         // eventから除去 TODO: サーバーから再取得して設定
 
-    }, [setItemMap]);
+    }, [setAllItems]);
 
-    const itemMap = useRecoilValue(itemMapState);
+    const getItem = useAtomCallback(
+        useCallback((get, set, id: DataId) => {
+            const itemMap = get(allItemsAtom)[id.dataSourceId] ?? {};
+            return itemMap[id.id];
+        }, [])
+    )
+
     const filteredContentIdList = useRecoilValue(filteredContentIdListState);
     /**
      * @params itemId {string} the item ID getting descendants' contents
      * @params filtering {boolean} when true, return the length of contents which are fitted with filter conditions.
      */
     const getDescendantContentsIdList = useCallback((itemId: DataId, filtering: boolean): DataId[] => {
-        const item = itemMap[getMapKey(itemId)];
+        const item = getItem(itemId);
         if (!item) return [];
         if (item.contents.length===0) return [];
 
@@ -128,12 +136,13 @@ export function useItem() {
 
         return idList;
 
-    }, [itemMap, filteredContentIdList]);
+    }, [getItem, filteredContentIdList]);
 
     return {
         resetItems,
         loadItems,
         removeItems,
         getDescendantContentsIdList,
+        getItem,
     }
 }

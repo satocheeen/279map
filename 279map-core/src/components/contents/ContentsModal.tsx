@@ -8,10 +8,9 @@ import styles from './ContentsModal.module.scss';
 import { getMapKey } from '../../util/dataUtility';
 import { useMounted } from '../../util/useMounted';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { useRecoilCallback } from 'recoil';
-import { itemState } from '../../store/item';
 import { useMap } from '../map/useMap';
 import { useSubscribe } from '../../util/useSubscribe';
+import { useItem } from '../../store/item/useItem';
 
 type Target = {
     type: 'item';
@@ -51,8 +50,9 @@ export default function ContentsModal() {
     const { getApi } = useMap();
     const { subscribeMap: subscribe, unsubscribeMap: unsubscribe } = useSubscribe();
 
-    const loadContentsInItem = useRecoilCallback(({ snapshot }) => async(itemId: DataId) => {
-        const item = await snapshot.getPromise(itemState(itemId));
+    const { getItem } = useItem();
+    const loadContentsInItem = useCallback(async(itemId: DataId) => {
+        const item = getItem(itemId);
         if (!item || item.contents.length === 0) return;
 
         const h = showProcessMessage({
@@ -67,12 +67,14 @@ export default function ContentsModal() {
         setContentsList(result);
         hideProcessMessage(h);
 
-    }, []);
+    // TODO: useEffectから無限呼び出しされないために無効にしている。時間ある時に依存関係見直し
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [getApi, getItem, /* hideProcessMessage, showProcessMessage */]);
 
-    const setTargetsItem = useRecoilCallback(({ snapshot }) => async(itemId: DataId) => {
-        const item = await snapshot.getPromise(itemState(itemId));
+    const setTargetsItem = useCallback(async(itemId: DataId) => {
+        const item = getItem(itemId);
         setItem(item);
-    }, []);
+    }, [getItem]);
 
     // 表示対象が指定されたらコンテンツロード
     useEffect(() => {

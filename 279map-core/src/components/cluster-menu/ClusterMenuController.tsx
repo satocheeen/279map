@@ -8,10 +8,10 @@ import { usePrevious } from '../../util/usePrevious';
 import { isEqualId } from '../../util/dataUtility';
 import { useMap } from '../map/useMap';
 import { addListener, removeListener } from '../../util/Commander';
-import { itemState } from '../../store/item';
-import { useRecoilCallback, useRecoilValue } from 'recoil';
+import { useRecoilValue } from 'recoil';
 import { mapModeState, mapViewState, selectedItemIdsState } from '../../store/operation';
 import { filteredItemIdListState } from '../../store/filter';
+import { useItem } from '../../store/item/useItem';
 
 /**
  * 地図上のアイテムがクリックされた際に、
@@ -63,12 +63,13 @@ export default function ClusterMenuController(props: Props) {
         }
     }, [selectedItemIds]);
 
+    const { getItem } = useItem();
     /**
      * get the selectable features.
      * クリック位置付近に存在する選択可能な地物を返す
      * @params evt {MapBrowserEvent} 地図クリック時のイベント
      */
-    const getSelectableFeatures = useRecoilCallback(({ snapshot }) => async(evt: MapBrowserEvent<any>) => {
+    const getSelectableFeatures = useCallback(async(evt: MapBrowserEvent<any>) => {
         const map = getMap();
         if (!map) return [];
         // クリック位置付近にあるアイテムIDを取得
@@ -77,7 +78,7 @@ export default function ClusterMenuController(props: Props) {
         if (props.targets) {
             // 対象種別指定されている場合は、対象種別のものに絞る
             const filterResults = await Promise.all(pointIds.map(async(point) => {
-                const item = await snapshot.getPromise(itemState(point.id));
+                const item = getItem(point.id);
                 if (!item) {
                     return false;
                 }
@@ -100,7 +101,7 @@ export default function ClusterMenuController(props: Props) {
         }
 
         return pointIds;
-    }, [getMap, props.targets]);
+    }, [getMap, props.targets, getItem]);
 
     // イベントコールバック用意
     useEffect(() => {

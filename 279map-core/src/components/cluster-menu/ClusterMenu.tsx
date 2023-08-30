@@ -2,13 +2,12 @@ import React, { useEffect, useRef, useMemo, useCallback } from 'react';
 import { Overlay } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import styles from './ClusterMenu.module.scss';
-import { itemState } from '../../store/item';
-import { useRecoilValue } from 'recoil';
 import useIcon from '../../store/icon/useIcon';
 import { DataId } from '279map-common';
 import { getMapKey } from '../../util/dataUtility';
 import { useMap } from '../map/useMap';
 import { BsImage } from 'react-icons/bs';
+import { useItem } from '../../store/item/useItem';
 
 const ARROW_HEIGHT = 20;
 const ARROW_OFFSET_LEFT = 45;
@@ -93,7 +92,11 @@ type MenuItemProp = {
     onClose?: () => void;
 }
 function MenuItem(props: MenuItemProp) {
-    const item = useRecoilValue(itemState(props.id));
+    const { getItem } = useItem();
+    const item = useMemo(() => {
+        return getItem(props.id);
+    }, [props.id, getItem]);
+
     const { getIconDefine } = useIcon();
 
     const iconDefine = useMemo(() => {

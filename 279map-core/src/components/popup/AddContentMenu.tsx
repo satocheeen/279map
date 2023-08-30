@@ -10,10 +10,10 @@ import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentT
 import { useMap } from '../map/useMap';
 import { Button } from '../common';
 import { useRecoilValue } from 'recoil';
-import { itemState } from '../../store/item';
 import { compareAuth } from '../../util/CommonUtility';
 import { dataSourcesState } from '../../store/datasource';
 import { authLvState, currentMapKindState } from '../../store/session';
+import { useItem } from '../../store/item/useItem';
 
 type Props = {
     target: {
@@ -31,11 +31,19 @@ export default function AddContentMenu(props: Props) {
     const id = useRef('add-content-menu-'+maxId++);
     const { onAddNewContent, onLinkUnpointedContent } = useContext(OwnerContext);
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
-    const item = useRecoilValue(itemState('itemId' in props.target ? props.target.itemId : {dataSourceId: '', id: ''}))
     const { getApi } = useMap();
     const mapKind = useRecoilValue(currentMapKindState);
     const dataSources = useRecoilValue(dataSourcesState);
     const authLv = useRecoilValue(authLvState);
+    const { getItem } = useItem();
+    const item = useMemo(() => {
+        if ('itemId' in props.target) {
+            return getItem(props.target.itemId);
+        } else {
+            return undefined;
+        }
+
+    }, [props.target, getItem]);
 
     const editableAuthLv = useMemo(() => {
         return compareAuth(authLv, Auth.Edit) >= 0;

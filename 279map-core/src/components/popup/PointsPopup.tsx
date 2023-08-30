@@ -8,7 +8,6 @@ import { BsThreeDots } from 'react-icons/bs';
 import { useMapOptions } from "../../util/useMapOptions";
 import { useMap } from "../map/useMap";
 import { doCommand } from "../../util/Commander";
-import { itemState } from "../../store/item";
 import { useRecoilCallback, useRecoilValue, useSetRecoilState } from 'recoil';
 import { mapModeState, selectedItemIdsState } from "../../store/operation";
 import { filteredContentIdListState, filteredItemIdListState } from "../../store/filter";
@@ -42,10 +41,11 @@ export default function PointsPopup(props: Props) {
     const filteredContentIdList = useRecoilValue(filteredContentIdListState);
     const { getDescendantContentsIdList } = useItem();
     const [ targetItems, setTargetItems ] = useState<ItemDefine[]>([]);
+    const { getItem } = useItem();
 
     const getTarget = useRecoilCallback(({ snapshot }) => async(itemIds: DataId[]): Promise<ItemDefine[]> => {
         const items = await Promise.all(itemIds.map(itemId => {
-            return snapshot.getPromise(itemState(itemId));
+            return getItem(itemId);
         }));
         return items.filter(item => item!==undefined) as ItemDefine[];
 

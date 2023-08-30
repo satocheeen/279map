@@ -9,7 +9,8 @@ import { useMap } from './useMap';
 import { useRecoilValue } from 'recoil';
 import { mapViewState } from '../../store/operation';
 import { dataSourcesState } from '../../store/datasource';
-import { itemsState } from '../../store/item';
+import { allItemsAtom } from '../../store/item';
+import { useAtom } from 'jotai';
 
 // 島名を常時表示するズームLv.境界値（この値よりも小さい場合に、常時表示）
 const LandNameShowZoomLv = 8.17
@@ -20,7 +21,14 @@ export default function LandNameOverlay() {
     const virtualItemDatasource = useMemo(() => {
         return datasources.find(ds => ds.itemContents.VirtualItem);
     }, [datasources]);
-    const items = useRecoilValue(itemsState({ datasourceId: virtualItemDatasource?.dataSourceId ?? ''}));
+
+    const [ allItems ] = useAtom(allItemsAtom);
+    const items = useMemo(() => {
+        if (!virtualItemDatasource?.dataSourceId) {
+            return [];
+        }
+        return allItems[virtualItemDatasource.dataSourceId] ?? [];
+    }, [allItems, virtualItemDatasource]);
 
     const [landNameRefMap] = useState({} as { [id: string]: HTMLDivElement });
     const [landNameOverlayMap] = useState({} as  { [id: string]: Overlay });
@@ -29,7 +37,7 @@ export default function LandNameOverlay() {
 
     // 名前を持つ島
     const namedEarth = useMemo(() => {
-        return items.filter(item => {
+        return Object.values(items).filter(item => {
             if (item.name.length === 0) {
                 return false;
             }

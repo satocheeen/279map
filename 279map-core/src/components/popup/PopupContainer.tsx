@@ -9,11 +9,13 @@ import PopupContainerCalculator, { PopupGroupWithPosition } from './PopupContain
 import { useMap } from '../map/useMap';
 import { useWatch } from '../../util/useWatch';
 import { useMapOptions } from '../../util/useMapOptions';
-import { itemMapState } from '../../store/item';
+import { allItemsAtom } from '../../store/item';
 import { useRecoilValue } from 'recoil';
 import { mapViewState } from '../../store/operation';
 import { visibleDataSourceIdsState } from '../../store/datasource';
 import { filteredItemIdListState } from '../../store/filter';
+import { ItemDefine } from '../../entry';
+import { useAtom } from 'jotai';
 
 function createKeyFromPopupInfo(param: PopupGroupWithPosition): string {
     if (!param) {
@@ -25,13 +27,13 @@ export default function PopupContainer() {
     const elementRefMap = useRef<{ [key: string]: HTMLDivElement }>({});
     const overlayRefMap = useRef<{ [key: string]: Overlay }>({});
 
-    const itemMap = useRecoilValue(itemMapState);
     const { extent, zoom } = useRecoilValue(mapViewState);
 
     const { popupMode } = useMapOptions();
     
     const { getMap } = useMap();
 
+    const [itemsMap] = useAtom(allItemsAtom)
     const visibleDataSourceIds = useRecoilValue(visibleDataSourceIdsState);
 
     const filteredItemIdList = useRecoilValue(filteredItemIdListState);
@@ -41,20 +43,18 @@ export default function PopupContainer() {
         if (popupMode === 'hidden') {
             return [];
         }
-        const list = Object.values(itemMap).filter(item => {
-            if (item.contents.length === 0) return false;
-
-            // 非表示のものは無視する
-            return visibleDataSourceIds.includes(item.id.dataSourceId);
-
-        })
+        // 表示中のアイテム
+        const list = visibleDataSourceIds.reduce((acc, cur) => {
+            const items = itemsMap[cur] ?? {};
+            return acc.concat(Object.values(items));
+        }, [] as ItemDefine[])
         .filter(item => {
             // フィルタが掛かっている場合は条件外のものは除外する
             if (!filteredItemIdList) return true;
             return filteredItemIdList.some(filteredItemId => isEqualId(filteredItemId, item.id));
         });
         return list;
-    }, [itemMap, popupMode, visibleDataSourceIds, filteredItemIdList]);
+    }, [itemsMap, popupMode, visibleDataSourceIds, filteredItemIdList]);
 
     // 表示するポップアップ情報群
     const [popupGroups, setPopupGroups] = useState<PopupGroupWithPosition[]>([]);
