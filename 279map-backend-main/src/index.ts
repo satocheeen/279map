@@ -30,11 +30,12 @@ import { checkLinkableDatasource } from './api/getUnpointData';
 import { Auth0Management } from './auth/Auth0Management';
 import { OriginalAuthManagement } from './auth/OriginalAuthManagement';
 import { NoneAuthManagement } from './auth/NoneAuthManagement';
-import { MapPageInfoTable, PublicRange } from '../279map-backend-common/src/types/schema';
+import { MapPageInfoTable } from '../279map-backend-common/src/types/schema';
 import { CurrentMap, sleep } from '../279map-backend-common/src';
 import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaRegistContentAPI, OdbaRegistItemAPI, OdbaRemoveContentAPI, OdbaRemoveItemAPI, OdbaUpdateContentAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
 import MqttBroadcaster from './session/MqttBroadcaster';
 import SessionManager from './session/SessionManager';
+import { Extent } from '279map-common';
 
 declare global {
     namespace Express {
@@ -796,7 +797,12 @@ app.post(`/api/${RegistItemAPI.uri}`,
             } else {
                 broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                     type: 'mapitem-update',
-                    extent,
+                    targets: [
+                        {
+                            datasourceId: id.dataSourceId,
+                            extent,
+                        }
+                    ]
                 });
             }
             
@@ -837,7 +843,12 @@ app.post(`/api/${UpdateItemAPI.uri}`,
             } else {
                 broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                     type: 'mapitem-update',
-                    extent,
+                    targets: [
+                        {
+                            datasourceId: param.id.dataSourceId,
+                            extent,
+                        }
+                    ]
                 });
             }
             
@@ -1315,32 +1326,43 @@ internalApp.post('/api/broadcast', async(req: Request, res: Response) => {
     const param = req.body as BroadcastItemParam;
     logger.info('broadcast', param);
     // 変更範囲を取得する
-    const extent = await getItemsExtent(param.itemIdList);
+    const itemIdListByDataSource = param.itemIdList.reduce((acc, cur) => {
+        if (cur.dataSourceId in acc) {
+            acc[cur.dataSourceId].push(cur);
+        } else {
+            acc[cur.dataSourceId] = [cur];
+        }
+        return acc;
+    }, {} as {[datasourceId: string]: DataId[]});
+    const targets = [] as {datasourceId: string; extent: Extent}[];
+    for (const entry of Object.entries(itemIdListByDataSource)) {
+        const datasourceId = entry[0];
+        const itemIdList = entry[1];
+        const extent = await getItemsExtent(itemIdList);
+        if (extent) {
+            targets.push({
+                datasourceId,
+                extent,
+            })
+        }
+    }
     switch(param.operation) {
         case 'insert':
             param.itemIdList.forEach(id => {
                 sessionManager.clearSendedExtent(id.dataSourceId);
             });
-            if (!extent) {
-                logger.warn('not found extent', param.itemIdList);
-            } else {
-                broadCaster.publish(param.mapId, undefined, {
-                    type: 'mapitem-update',
-                    extent,
-                });
-            }
+            broadCaster.publish(param.mapId, undefined, {
+                type: 'mapitem-update',
+                targets,
+            });
             break;
         case 'update':
             // 送信済みアイテム情報から当該アイテムを除去する
             sessionManager.removeSendedItem(param.itemIdList);
-            if (!extent) {
-                logger.warn('not found extent', param.itemIdList);
-            } else {
-                broadCaster.publish(param.mapId, undefined, {
-                    type: 'mapitem-update',
-                    extent,
-                });
-            }
+            broadCaster.publish(param.mapId, undefined, {
+                type: 'mapitem-update',
+                targets,
+            });
             break;
         case 'delete':
             // 送信済みアイテム情報から当該アイテムを除去する

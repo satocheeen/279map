@@ -3,13 +3,11 @@ import { OwnerContext } from '../components/TsunaguMap/TsunaguMap';
 import { ApiError, PublishMapMessage, PublishUserMessage } from 'tsunagumap-api';
 import { getMqttClientInstance } from '../store/session/MqttInstanceManager';
 import { useRecoilValueLoadable } from 'recoil';
-import { connectStatusState, currentMapKindAtom } from '../store/session';
+import { connectStatusState } from '../store/session';
 import { MapKind } from '279map-common';
 import { ApiException } from '../api';
-import { useAtom } from 'jotai';
-import { useAtomCallback } from 'jotai/utils';
 
-function makeTopic(mapId: string, mapKind: MapKind | undefined, msg: PublishMapMessage['type'], param: PublishMapMessage['param']) {
+function makeTopic(mapId: string, mapKind: MapKind | undefined, msg: PublishMapMessage['type'], param: PublishMapMessage['subtype']) {
     const paramStr = function() {
         if (param === undefined) return undefined;
         if (typeof param === 'object') {
@@ -87,8 +85,8 @@ export function useSubscribe() {
     /**
      * 接続中の地図に関するtopicを購読
      */
-    const subscribeMap = useAtomCallback(
-        useCallback((get, set, msg: PublishMapMessage['type'], mapKind: MapKind | undefined, param: PublishMapMessage['param'], callback: (payload: PublishMapMessage) => void) => {
+    const subscribeMap = 
+        useCallback((msg: PublishMapMessage['type'], mapKind: MapKind | undefined, param: PublishMapMessage['subtype'], callback: (payload: PublishMapMessage) => void) => {
             const mqtt = getMqttClientInstance(mapInstanceId);
             if (!mqtt) {
                 console.warn('mqtt not find');
@@ -107,14 +105,13 @@ export function useSubscribe() {
                 }
             });
 
-        }, [mapInstanceId, mapId])
-    )
+        }, [mapInstanceId, mapId]);
 
     /**
      * 接続中の地図に関するtopicの購読停止
      */
-    const unsubscribeMap = useAtomCallback(
-        useCallback((get, set, msg: PublishMapMessage['type'], mapKind: MapKind | undefined, param: PublishMapMessage['param']) => {
+    const unsubscribeMap = 
+        useCallback((msg: PublishMapMessage['type'], mapKind: MapKind | undefined, param: PublishMapMessage['subtype']) => {
             const mqtt = getMqttClientInstance(mapInstanceId);
             if (!mqtt) {
                 console.warn('mqtt not find');
@@ -125,8 +122,7 @@ export function useSubscribe() {
                 console.log('unsubscribe', topic)
             });
 
-        }, [mapInstanceId, mapId])
-    );
+        }, [mapInstanceId, mapId]);
 
     return {
         subscribeUser,

@@ -391,7 +391,10 @@ export type PublishMapMessage = {
     // 地図に更新が行われた場合
     type: 'mapitem-update';
     subtype?: undefined;
-    extent: Extent; // 更新された範囲
+    targets: {
+        datasourceId: string;   // 更新対象データソースID
+        extent: Extent; // 更新された範囲
+    }[];
 } | {
     // 地図上のアイテムが削除された場合
     type: 'mapitem-delete';

@@ -1,11 +1,11 @@
-import React, { useImperativeHandle, useContext, useRef, useState } from 'react';
+import React, { useImperativeHandle, useContext, useRef, useState, useCallback } from 'react';
 import { addListener, doCommand, removeListener } from '../../util/Commander';
 import MapChart from './MapChart';
 import { OwnerContext } from './TsunaguMap';
 import { TsunaguMapHandler } from '../../types/types';
 import { GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam, GetContentsParam, RegistContentAPI, UpdateContentAPI, LinkContentToItemAPI, GetMapInfoAPI } from "tsunagumap-api";
 import { useMounted } from '../../util/useMounted';
-import { Auth, ContentsDefine, DataId, FeatureType, MapKind, UnpointContent } from '279map-common';
+import { Auth, ContentsDefine, DataId, Extent, FeatureType, MapKind, UnpointContent } from '279map-common';
 import { useWatch } from '../../util/useWatch';
 import { useMap } from '../map/useMap';
 import useDataSource from '../../store/datasource/useDataSource';
@@ -16,6 +16,9 @@ import { selectedItemIdsState } from '../../store/operation';
 import { connectStatusState, currentMapKindState, mapDefineAtom, mapDefineState } from '../../store/session';
 import { itemDataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
+import { useAtomCallback } from 'jotai/utils';
+import { loadedItemKeysAtom } from '../../store/item';
+import { checkContaining } from '../../util/MapUtility';
 
 type Props = {
     onInitialized?: () => void;
@@ -249,15 +252,39 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         }
     })
 
+    const clearLoadedArea = useAtomCallback(
+        useCallback((get, set, targets: {datasourceId: string, extent: Extent}[]) => {
+            set(loadedItemKeysAtom, (current) => {
+                return current.filter(cur => {
+                    // ヒットしないもののみを残す
+                    return targets.some(target => {
+                        if (target.datasourceId !== cur.datasourceId) {
+                            return false;
+                        }
+                        if (checkContaining(target.extent, cur.extent) === 0) {
+                            return false;
+                        }
+                        return true;
+                    })
+                });
+            });
+
+        }, [])
+    )
     const { subscribeMap: subscribe, unsubscribeMap: unsubscribe } = useSubscribe();
     useWatch(() => {
         if (!currentMapKind) return;
 
-        subscribe('mapitem-update', currentMapKind, undefined, () => {
-            doCommand({
-                command: "LoadLatestData",
-                param: undefined,
-            });
+        subscribe('mapitem-update', currentMapKind, undefined, (payload) => {
+            if (payload.type === 'mapitem-update') {
+                // 指定のエクステントをロード済み対象から除去する
+                clearLoadedArea(payload.targets);
+
+                doCommand({
+                    command: "LoadLatestData",
+                    param: undefined,
+                });
+            }
         });
         subscribe('mapitem-delete', currentMapKind, undefined, (payload) => {
             if (payload.type === 'mapitem-delete')
