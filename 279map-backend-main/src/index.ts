@@ -10,7 +10,7 @@ import { getContents } from './getContents';
 import { getEvents } from './getEvents';
 import proxy from 'express-http-proxy';
 import http from 'http';
-import { convertBase64ToBinary, getItemExtent } from './util/utility';
+import { convertBase64ToBinary, getItemExtent, getItemsExtent } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
 import { getSnsPreview } from './api/getSnsPreview';
@@ -831,10 +831,15 @@ app.post(`/api/${UpdateItemAPI.uri}`,
     
             // 更新通知
             sessionManager.clearSendedExtent(param.id.dataSourceId);
-            broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                type: 'mapitem-update',
-                extent: [0,0,0,0],  // TODO:
-            });
+            const extent = await getItemExtent(param.id);
+            if (!extent) {
+                logger.warn('not found extent', param.id);
+            } else {
+                broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
+                    type: 'mapitem-update',
+                    extent,
+                });
+            }
             
             res.send('complete');
     
@@ -1306,29 +1311,36 @@ internalApp.use(express.urlencoded({extended: true}));
 internalApp.use(express.json({
     limit: '1mb',
 })); 
-internalApp.post('/api/broadcast', (req: Request, res: Response) => {
+internalApp.post('/api/broadcast', async(req: Request, res: Response) => {
     const param = req.body as BroadcastItemParam;
     logger.info('broadcast', param);
     // 変更範囲を取得する
-    const extent = [0,0,0,0];
+    const extent = await getItemsExtent(param.itemIdList);
     switch(param.operation) {
         case 'insert':
             param.itemIdList.forEach(id => {
                 sessionManager.clearSendedExtent(id.dataSourceId);
             });
-            // 
-            broadCaster.publish(param.mapId, undefined, {
-                type: 'mapitem-update',
-                extent,
-            });
+            if (!extent) {
+                logger.warn('not found extent', param.itemIdList);
+            } else {
+                broadCaster.publish(param.mapId, undefined, {
+                    type: 'mapitem-update',
+                    extent,
+                });
+            }
             break;
         case 'update':
             // 送信済みアイテム情報から当該アイテムを除去する
             sessionManager.removeSendedItem(param.itemIdList);
-            broadCaster.publish(param.mapId, undefined, {
-                type: 'mapitem-update',
-                extent,
-            });
+            if (!extent) {
+                logger.warn('not found extent', param.itemIdList);
+            } else {
+                broadCaster.publish(param.mapId, undefined, {
+                    type: 'mapitem-update',
+                    extent,
+                });
+            }
             break;
         case 'delete':
             // 送信済みアイテム情報から当該アイテムを除去する

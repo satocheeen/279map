@@ -213,3 +213,21 @@ export async function getItemExtent(itemId: DataId): Promise<Extent|undefined> {
     }
 
 }
+
+export async function getItemsExtent(itemIdList: DataId[]): Promise<Extent|undefined> {
+    let result: Extent | undefined;
+    for (const id of itemIdList) {
+        const extent = await getItemExtent(id);
+        if (!result) {
+            result = extent;
+        } else if(extent) {
+            result = [
+                Math.min(result[0], extent[0]),
+                Math.min(result[1], extent[1]),
+                Math.max(result[2], extent[2]),
+                Math.max(result[3], extent[3]),
+            ]
+        }
+    }
+    return result;
+}
