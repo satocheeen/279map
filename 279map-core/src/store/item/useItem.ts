@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 import { useMap } from "../../components/map/useMap";
 import { GetItemsAPI, GetItemsParam } from "tsunagumap-api";
-import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { ItemsMap, initialItemLoadedState, allItemsAtom, loadedItemKeysAtom, LoadedItemKey } from ".";
+import { useRecoilValue } from 'recoil';
+import { ItemsMap, initialItemLoadedAtom, allItemsAtom, loadedItemKeysAtom, LoadedItemKey } from ".";
 import { isEqualId } from "../../util/dataUtility";
 import { DataId, ItemContentInfo } from "279map-common";
 import { filteredContentIdListState } from "../filter";
@@ -35,16 +35,14 @@ function divideExtent(ext: Extent): Extent[] {
  */
 export function useItem() {
     const { getApi } = useMap();
-    const setInitialItemLoaded = useSetRecoilState(initialItemLoadedState);
-    const setInitialItemLoadedState = useSetRecoilState(initialItemLoadedState);
     const [_, setAllItems ] = useAtom(allItemsAtom);
 
     const resetItems = useAtomCallback(
         useCallback(async(get, set) => {
             set(allItemsAtom, {});
             set(loadedItemKeysAtom, []);
-            setInitialItemLoadedState(false);
-        }, [setInitialItemLoadedState])
+            set(initialItemLoadedAtom, false);
+        }, [])
     );
 
     /**
@@ -119,14 +117,14 @@ export function useItem() {
                     })
                 }
 
-                setInitialItemLoaded(true);
+                set(initialItemLoadedAtom, true);
         
             } catch (e) {
                 console.warn('loadItems error', e);
                 throw e;
             }
     
-        }, [getApi, setInitialItemLoaded])
+        }, [getApi])
     )
 
     const removeItems = useCallback(async(target: DataId[]) => {

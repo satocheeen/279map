@@ -24,7 +24,7 @@ import { useProcessMessage } from "../common/spinner/useProcessMessage";
 import { isEqualId } from "../../util/dataUtility";
 import { useItem } from "../../store/item/useItem";
 import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { allItemsAtom, initialItemLoadedState } from "../../store/item";
+import { allItemsAtom, initialItemLoadedAtom } from "../../store/item";
 import { mapModeState, mapViewState, selectedItemIdsState } from "../../store/operation";
 import { currentMapKindState, defaultExtentAtom } from "../../store/session";
 import { filteredItemIdListState } from "../../store/filter";
@@ -300,7 +300,7 @@ export default function MapChart() {
         }, [] as ItemDefine[]);
     }, [itemMap]);
     const prevGeoJsonItems = usePrevious(geoJsonItems);
-    const initialItemLoaded = useRecoilValue(initialItemLoadedState);
+    const [initialItemLoaded] = useAtom(initialItemLoadedAtom);
     useWatch(() => {
         if (!mapRef.current) return;
         // 追加、更新
