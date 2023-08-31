@@ -2,15 +2,14 @@ import { FeatureType, ItemContentInfo, ItemDefine, MapKind } from '279map-common
 import { getLogger } from 'log4js';
 import { ConnectionPool } from '.';
 import { GetItemsParam, GetItemsResult } from '../279map-api-interface/src';
-import { checkContaining, getExtentWkt } from './util/utility';
-import { SendedExtentInfo } from './session/SessionInfo';
+import { getExtentWkt } from './util/utility';
 import { PoolConnection } from 'mysql2/promise';
 import { CurrentMap } from '../279map-backend-common/src';
 import { ContentsTable, ItemContentLink, ItemsTable, TrackGeoJsonTable, TracksTable } from '../279map-backend-common/src/types/schema';
 
 const apiLogger = getLogger('api');
 
-export async function getItems({ param, currentMap, sendedExtent }: {param:GetItemsParam; currentMap: CurrentMap; sendedExtent: SendedExtentInfo}): Promise<GetItemsResult> {
+export async function getItems({ param, currentMap }: {param:GetItemsParam; currentMap: CurrentMap}): Promise<GetItemsResult> {
     if (!currentMap) {
         throw 'no currentMap';
     }
@@ -20,27 +19,17 @@ export async function getItems({ param, currentMap, sendedExtent }: {param:GetIt
         throw 'no currentMap';
     }
 
-    const items = await getItemsSub(currentMap, param, sendedExtent);
+    const items = await getItemsSub(currentMap, param);
 
     return {
         items,
     };
 }
-export async function getItemsSub(currentMap: CurrentMap, param: GetItemsParam, sendedExtent: SendedExtentInfo): Promise<ItemDefine[]> {
+export async function getItemsSub(currentMap: CurrentMap, param: GetItemsParam): Promise<ItemDefine[]> {
     const con = await ConnectionPool.getConnection();
     
     try {
-        // 既に送信済みのExtentかチェック。ItemはZoomレベル関係ない。
-        const dataSourceIds = param.dataSourceIds?.filter(dataSourceId => {
-            const dsSendedExtent = sendedExtent[dataSourceId];
-            if (!dsSendedExtent) return true;
-            const isSended = Object.values(dsSendedExtent).some(exts => {
-                return exts.some(ext => {
-                    return checkContaining(ext, param.extent) === 1;
-                });
-            })
-            return !isSended;
-        })
+        const dataSourceIds = param.dataSourceIds;
         const pointContents = dataSourceIds.length === 0 ? [] : await selectItems(con, dataSourceIds, currentMap);
 
         if (currentMap.mapKind === MapKind.Virtual) {
@@ -48,16 +37,7 @@ export async function getItemsSub(currentMap: CurrentMap, param: GetItemsParam, 
         }
 
         // 既に送信済みのExtentかチェック。
-        const zoom = Math.floor(param.zoom);
-        const targetDataSourceIds = param.dataSourceIds?.filter(dataSourceId => {
-            const dsSendedExtent = sendedExtent[dataSourceId];
-            if (!dsSendedExtent) return true;
-            const isSended = dsSendedExtent[zoom] ? dsSendedExtent[zoom].some(ext => {
-                return checkContaining(ext, param.extent) === 1;
-            }) : false;
-    
-            return !isSended;
-        })
+        const targetDataSourceIds = param.dataSourceIds;
         // 軌跡コンテンツ
         const trackContents = targetDataSourceIds.length === 0 ? [] : await selectTrackInArea(con, param, currentMap.mapId);
         const contents = pointContents.concat(...trackContents);

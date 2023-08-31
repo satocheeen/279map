@@ -19,7 +19,7 @@ import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import cors from 'cors';
 import { exit } from 'process';
 import { getMapInfoById } from './getMapDefine';
-import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
+import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
 import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, GetEventParam, GetCategoryParam, RequestAPI, RequestParam, GetUserListAPI, GetUserListResult, ChangeAuthLevelAPI, ChangeAuthLevelParam } from '../279map-api-interface/src/api';
@@ -581,7 +581,6 @@ app.post(`/api/${GetMapInfoAPI.uri}`,
 
             // TODO
             if (session) {
-                session.resetItems();
                 session.setMapKind(result.mapKind);
             }
 
@@ -661,16 +660,7 @@ app.post(`/api/${GetItemsAPI.uri}`,
             const result = await getItems({
                 param,
                 currentMap: req.currentMap,
-                sendedExtent: session.sendedExtent,
             });
-
-            // 送信済みのコンテンツ情報は除外する
-            // TODO: 削除考慮
-            result.items = (result as GetItemsResult).items.filter(item => {
-                const isSend = session.isSendedItem(item);
-                return !isSend;
-            });
-            session.addItems(result.items, param.extent, param.zoom);
 
             // apiLogger.debug('result', result);
 
@@ -790,7 +780,6 @@ app.post(`/api/${RegistItemAPI.uri}`,
             });
     
             // 更新通知
-            sessionManager.clearSendedExtent(param.dataSourceId);
             const extent = await getItemExtent(id);
             if (!extent) {
                 logger.warn('not found extent', id);
@@ -836,7 +825,6 @@ app.post(`/api/${UpdateItemAPI.uri}`,
             }, param));
     
             // 更新通知
-            sessionManager.clearSendedExtent(param.id.dataSourceId);
             const extent = await getItemExtent(param.id);
             if (!extent) {
                 logger.warn('not found extent', param.id);
@@ -882,7 +870,6 @@ app.post(`/api/${RemoveItemAPI.uri}`,
             }, param));
     
             // 更新通知
-            sessionManager.clearSendedExtent(param.id.dataSourceId);
             broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                 type: 'mapitem-delete',
                 itemPageIdList: [param.id],
@@ -1348,25 +1335,18 @@ internalApp.post('/api/broadcast', async(req: Request, res: Response) => {
     }
     switch(param.operation) {
         case 'insert':
-            param.itemIdList.forEach(id => {
-                sessionManager.clearSendedExtent(id.dataSourceId);
-            });
             broadCaster.publish(param.mapId, undefined, {
                 type: 'mapitem-update',
                 targets,
             });
             break;
         case 'update':
-            // 送信済みアイテム情報から当該アイテムを除去する
-            sessionManager.removeSendedItem(param.itemIdList);
             broadCaster.publish(param.mapId, undefined, {
                 type: 'mapitem-update',
                 targets,
             });
             break;
         case 'delete':
-            // 送信済みアイテム情報から当該アイテムを除去する
-            sessionManager.removeSendedItem(param.itemIdList);
             broadCaster.publish(param.mapId, undefined, {
                 type: 'mapitem-delete',
                 itemPageIdList: param.itemIdList
