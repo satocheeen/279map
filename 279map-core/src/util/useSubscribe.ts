@@ -88,15 +88,14 @@ export function useSubscribe() {
      * 接続中の地図に関するtopicを購読
      */
     const subscribeMap = useAtomCallback(
-        useCallback((get, set, msg: PublishMapMessage['type'], param: PublishMapMessage['param'], callback: (payload: PublishMapMessage) => void) => {
+        useCallback((get, set, msg: PublishMapMessage['type'], mapKind: MapKind | undefined, param: PublishMapMessage['param'], callback: (payload: PublishMapMessage) => void) => {
             const mqtt = getMqttClientInstance(mapInstanceId);
             if (!mqtt) {
                 console.warn('mqtt not find');
                 return;
             }
-            const currentMapKind = get(currentMapKindAtom);
 
-            const mytopic = makeTopic(mapId, currentMapKind, msg, param);
+            const mytopic = makeTopic(mapId, mapKind, msg, param);
             mqtt.subscribe(mytopic, () => {
                 console.log('subscribe', mytopic)
             });
@@ -115,14 +114,13 @@ export function useSubscribe() {
      * 接続中の地図に関するtopicの購読停止
      */
     const unsubscribeMap = useAtomCallback(
-        useCallback((get, set, msg: PublishMapMessage['type'], param: PublishMapMessage['param']) => {
+        useCallback((get, set, msg: PublishMapMessage['type'], mapKind: MapKind | undefined, param: PublishMapMessage['param']) => {
             const mqtt = getMqttClientInstance(mapInstanceId);
             if (!mqtt) {
                 console.warn('mqtt not find');
                 return;
             }
-            const currentMapKind = get(currentMapKindAtom);
-            const topic = makeTopic(mapId, currentMapKind, msg, param);
+            const topic = makeTopic(mapId, mapKind, msg, param);
             mqtt.unsubscribe(topic, () => {
                 console.log('unsubscribe', topic)
             });

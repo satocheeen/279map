@@ -11,6 +11,8 @@ import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { useMap } from '../map/useMap';
 import { useSubscribe } from '../../util/useSubscribe';
 import { useItem } from '../../store/item/useItem';
+import { useAtom } from 'jotai';
+import { currentMapKindAtom } from '../../store/session';
 
 type Target = {
     type: 'item';
@@ -77,6 +79,7 @@ export default function ContentsModal() {
     }, [getItem]);
 
     // 表示対象が指定されたらコンテンツロード
+    const [ mapKind ] = useAtom(currentMapKindAtom);
     useEffect(() => {
         if (!target) return;
 
@@ -89,7 +92,7 @@ export default function ContentsModal() {
             .finally(() => {
                 setLoaded(true);
             });
-            subscribe('childcontents-update', target.itemId, () => loadContentsInItem(target.itemId));
+            subscribe('childcontents-update', mapKind, target.itemId, () => loadContentsInItem(target.itemId));
 
             setTargetsItem(target.itemId);
 
@@ -119,7 +122,7 @@ export default function ContentsModal() {
 
         return () => {
             if (target.type === 'item') {
-                unsubscribe('childcontents-update', target.itemId);
+                unsubscribe('childcontents-update', mapKind, target.itemId);
             }
         }
 
