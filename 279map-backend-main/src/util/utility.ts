@@ -172,3 +172,44 @@ export function checkContaining(ext1: Extent, ext2: Extent) {
     }
     return 0;
 }
+
+/**
+ * 指定のアイテムのextentを返す
+ * @param itemId 
+ * @returns 
+ */
+export async function getItemExtent(itemId: DataId): Promise<Extent|undefined> {
+    const con = await ConnectionPool.getConnection();
+
+    try {
+        const sql = `
+        SELECT ST_AsText(ST_Envelope(location)) as location
+        from items i 
+        where data_source_id = ? and item_page_id = ?
+        `;
+        const [rows] = await con.execute(sql, [itemId.dataSourceId, itemId.id]);
+        if ((rows as []).length === 0) {
+            return;
+        }
+        const location = (rows as {location: string}[])[0].location;
+        if (location.startsWith('POINT')) {
+            const match = location.match(/(?<=POINT\()\d+\.\d+\s\d+\.\d+(?=\))/);
+            if (!match) return;
+            const p = match[0].split(' ').map(str => parseFloat(str));
+            return [p[0], p[1], p[0], p[1]];
+        } else {
+            const match = location.match(/(?<=POLYGON\(\().*(?=\)\))/);
+            if (!match) return;
+            const p = match[0].split(',').map(str => {
+                const xy = str.split(' ').map(s => parseFloat(s));
+                return [xy[0], xy[1]]
+            });
+            return [p[0][0], p[0][1], p[3][0], p[3][1]];
+        }
+    
+    } finally {
+        await con.rollback();
+        con.release();
+    }
+
+}

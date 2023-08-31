@@ -53,7 +53,7 @@ export default class MqttBroadcaster {
 
         const mapKinds = mapKind ? [mapKind] : [MapKind.Real, MapKind.Virtual];
         mapKinds.forEach(mk => {
-            const topic = makeTopic(mapPageId, mk, message.type, message.param);
+            const topic = makeTopic(mapPageId, mk, message.type, message.subtype);
             this.#server.publish({
                 cmd: 'publish',
                 topic,
@@ -62,14 +62,16 @@ export default class MqttBroadcaster {
                 qos: 2,
                 retain: false,
             }, (err) => {
-                console.warn('publish err', err);
+                if (err) {
+                    apiLogger.warn('publish err', err);
+                }
             });
-            apiLogger.debug('publish', topic);
+            apiLogger.debug('publish', topic, message);
         })
     }
 
 }
-function makeTopic(mapId: string, mapKind: MapKind | undefined, msg: PublishMapMessage['type'], param: PublishMapMessage['param']) {
+function makeTopic(mapId: string, mapKind: MapKind | undefined, msg: PublishMapMessage['type'], param: PublishMapMessage['subtype']) {
     const paramStr = function() {
         if (param === undefined) return undefined;
         if (typeof param === 'object') {

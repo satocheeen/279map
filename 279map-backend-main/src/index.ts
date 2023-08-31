@@ -10,7 +10,7 @@ import { getContents } from './getContents';
 import { getEvents } from './getEvents';
 import proxy from 'express-http-proxy';
 import http from 'http';
-import { convertBase64ToBinary } from './util/utility';
+import { convertBase64ToBinary, getItemExtent } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
 import { getSnsPreview } from './api/getSnsPreview';
@@ -790,9 +790,15 @@ app.post(`/api/${RegistItemAPI.uri}`,
     
             // 更新通知
             sessionManager.clearSendedExtent(param.dataSourceId);
-            broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                type: 'mapitem-update',
-            });
+            const extent = await getItemExtent(id);
+            if (!extent) {
+                logger.warn('not found extent', id);
+            } else {
+                broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
+                    type: 'mapitem-update',
+                    extent,
+                });
+            }
             
             res.send(id);
     
@@ -827,6 +833,7 @@ app.post(`/api/${UpdateItemAPI.uri}`,
             sessionManager.clearSendedExtent(param.id.dataSourceId);
             broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                 type: 'mapitem-update',
+                extent: [0,0,0,0],  // TODO:
             });
             
             res.send('complete');
@@ -899,7 +906,7 @@ app.post(`/api/${RegistContentAPI.uri}`,
             if ('itemId' in param.parent) {
                 broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                     type: 'childcontents-update',
-                    param: param.parent.itemId,
+                    subtype: param.parent.itemId,
                 });
             }
        
@@ -944,7 +951,7 @@ app.post(`/api/${UpdateContentAPI.uri}`,
 
             broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                 type: 'childcontents-update',
-                param: target.itemId,
+                subtype: target.itemId,
             });
         
             res.send('complete');
@@ -1020,7 +1027,7 @@ app.post(`/api/${LinkContentToItemAPI.uri}`,
             if ('itemId' in param.parent) {
                 broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                     type: 'childcontents-update',
-                    param: param.parent.itemId,
+                    subtype: param.parent.itemId,
                 });
             }
             
@@ -1057,7 +1064,7 @@ app.post(`/api/${RemoveContentAPI.uri}`,
             // 更新通知
             broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                 type: 'childcontents-update',
-                param: param.itemId,
+                subtype: param.itemId,
             });
 
             res.send('complete');
@@ -1302,13 +1309,17 @@ internalApp.use(express.json({
 internalApp.post('/api/broadcast', (req: Request, res: Response) => {
     const param = req.body as BroadcastItemParam;
     logger.info('broadcast', param);
+    // 変更範囲を取得する
+    const extent = [0,0,0,0];
     switch(param.operation) {
         case 'insert':
             param.itemIdList.forEach(id => {
                 sessionManager.clearSendedExtent(id.dataSourceId);
             });
+            // 
             broadCaster.publish(param.mapId, undefined, {
                 type: 'mapitem-update',
+                extent,
             });
             break;
         case 'update':
@@ -1316,6 +1327,7 @@ internalApp.post('/api/broadcast', (req: Request, res: Response) => {
             sessionManager.removeSendedItem(param.itemIdList);
             broadCaster.publish(param.mapId, undefined, {
                 type: 'mapitem-update',
+                extent,
             });
             break;
         case 'delete':

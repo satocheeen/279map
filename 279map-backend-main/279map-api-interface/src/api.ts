@@ -390,18 +390,19 @@ export type PublishUserMessage = {
 export type PublishMapMessage = {
     // 地図に更新が行われた場合
     type: 'mapitem-update';
-    param?: undefined;
+    subtype?: undefined;
+    extent: Extent; // 更新された範囲
 } | {
     // 地図上のアイテムが削除された場合
     type: 'mapitem-delete';
-    param?: undefined;
+    subtype?: undefined;
     itemPageIdList: DataId[];
 } | {
     // ユーザ一覧情報が更新された場合
     type: 'userlist-update';
-    param?: undefined;
+    subtype?: undefined;
 } | {
     // 指定のアイテム配下のコンテンツに変更（登録・更新・削除）があった場合
     type: 'childcontents-update';
-    param: DataId;
+    subtype: DataId;
 }

@@ -7,6 +7,7 @@ import { connectStatusState, currentMapKindAtom } from '../store/session';
 import { MapKind } from '279map-common';
 import { ApiException } from '../api';
 import { useAtom } from 'jotai';
+import { useAtomCallback } from 'jotai/utils';
 
 function makeTopic(mapId: string, mapKind: MapKind | undefined, msg: PublishMapMessage['type'], param: PublishMapMessage['param']) {
     const paramStr = function() {
@@ -21,7 +22,6 @@ function makeTopic(mapId: string, mapKind: MapKind | undefined, msg: PublishMapM
 //TODO: 別の箇所から同一messageをsubscribeすると、片方がunsubscribeするともう一方もunsubscribeになると思うので、その対処
 export function useSubscribe() {
     const { mapInstanceId, mapId } = useContext(OwnerContext);
-    const [ currentMapKind ] = useAtom(currentMapKindAtom);
     const connectStatusLoadable = useRecoilValueLoadable(connectStatusState);
 
     const userId = useMemo(() => {
@@ -87,41 +87,48 @@ export function useSubscribe() {
     /**
      * 接続中の地図に関するtopicを購読
      */
-    const subscribeMap = useCallback((msg: PublishMapMessage['type'], param: PublishMapMessage['param'], callback: (payload: PublishMapMessage) => void) => {
-        const mqtt = getMqttClientInstance(mapInstanceId);
-        if (!mqtt) {
-            console.warn('mqtt not find');
-            return;
-        }
-        const mytopic = makeTopic(mapId, currentMapKind, msg, param);
-        mqtt.subscribe(mytopic, () => {
-            console.log('subscribe', mytopic)
-        });
-        mqtt.on('message', (topic, payloadBuff) => {
-            const payload = JSON.parse(new String(payloadBuff) as string) as PublishMapMessage;
-            if (mytopic === topic) {
-                console.log('message', topic, payload);
-                callback(payload);
+    const subscribeMap = useAtomCallback(
+        useCallback((get, set, msg: PublishMapMessage['type'], param: PublishMapMessage['param'], callback: (payload: PublishMapMessage) => void) => {
+            const mqtt = getMqttClientInstance(mapInstanceId);
+            if (!mqtt) {
+                console.warn('mqtt not find');
+                return;
             }
-        });
+            const currentMapKind = get(currentMapKindAtom);
 
-    }, [mapInstanceId, mapId, currentMapKind]);
+            const mytopic = makeTopic(mapId, currentMapKind, msg, param);
+            mqtt.subscribe(mytopic, () => {
+                console.log('subscribe', mytopic)
+            });
+            mqtt.on('message', (topic, payloadBuff) => {
+                const payload = JSON.parse(new String(payloadBuff) as string) as PublishMapMessage;
+                if (mytopic === topic) {
+                    console.log('message', topic, payload);
+                    callback(payload);
+                }
+            });
+
+        }, [mapInstanceId, mapId])
+    )
 
     /**
      * 接続中の地図に関するtopicの購読停止
      */
-    const unsubscribeMap = useCallback((msg: PublishMapMessage['type'], param: PublishMapMessage['param']) => {
-        const mqtt = getMqttClientInstance(mapInstanceId);
-        if (!mqtt) {
-            console.warn('mqtt not find');
-            return;
-        }
-        const topic = makeTopic(mapId, currentMapKind, msg, param);
-        mqtt.unsubscribe(topic, () => {
-            console.log('unsubscribe', topic)
-        });
+    const unsubscribeMap = useAtomCallback(
+        useCallback((get, set, msg: PublishMapMessage['type'], param: PublishMapMessage['param']) => {
+            const mqtt = getMqttClientInstance(mapInstanceId);
+            if (!mqtt) {
+                console.warn('mqtt not find');
+                return;
+            }
+            const currentMapKind = get(currentMapKindAtom);
+            const topic = makeTopic(mapId, currentMapKind, msg, param);
+            mqtt.unsubscribe(topic, () => {
+                console.log('unsubscribe', topic)
+            });
 
-    }, [mapInstanceId, mapId, currentMapKind]);
+        }, [mapInstanceId, mapId])
+    );
 
     return {
         subscribeUser,
