@@ -6,6 +6,7 @@ import { Auth, MapKind } from '279map-common';
 import { ApiException } from '../../api';
 import { Extent } from "ol/extent";
 import { atom } from 'jotai';
+import { loadable } from 'jotai/utils';
 
 export const instanceIdState = atomAsRecoil<string>({
     key: 'instanceIdState',
@@ -13,41 +14,36 @@ export const instanceIdState = atomAsRecoil<string>({
 })
 export const instanceIdAtom = atom('');
 
-export const mapIdState = atomAsRecoil<string>({
-    key: 'mapIdState',
-    default: '',
-});
+export const mapIdAtom = atom<string>('');
 
-export const mapServerState = atomAsRecoil<ServerInfo|undefined>({
-    key: 'mapServerState',
-    default: undefined,
-});
+export const mapServerAtom = atom<ServerInfo|undefined>(undefined);
 
-export const connectStatusState = selector<ConnectResult>({
-    key: 'connectionState',
-    get: async({ get }) => {
-        try {
-            const instanceId = get(instanceIdState);
-            const mapId = get(mapIdState);
-            const mapServer = get(mapServerState);
-            if (instanceId.length === 0 || mapId.length === 0 || !mapServer) {
-                // まだ初期化されていない状態なら何もしない
-                throw new ApiException({
-                    type: ErrorType.UndefinedMap,
-                })
-            }
-            const apiCaller = getAPICallerInstance(instanceId);
-
-            const json = await apiCaller.connect(mapId);
-
-            return json;
-
-        } catch(e) {
-            console.warn('connect error', e);
-            throw e;
+export const refreshConnectStatusAtom = atom(0);
+export const connectStatusAtom = atom<Promise<ConnectResult>>(async( get ) => {
+    try {
+        get(refreshConnectStatusAtom);
+        const instanceId = get(instanceIdAtom);
+        const mapId = get(mapIdAtom);
+        const mapServer = get(mapServerAtom);
+        if (instanceId.length === 0 || mapId.length === 0 || !mapServer) {
+            // まだ初期化されていない状態なら何もしない
+            throw new ApiException({
+                type: ErrorType.UndefinedMap,
+            })
         }
+        const apiCaller = getAPICallerInstance(instanceId);
+
+        const json = await apiCaller.connect(mapId);
+
+        return json;
+
+    } catch(e) {
+        console.warn('connect error', e);
+        throw e;
     }
 })
+
+export const connectStatusLoadableAtom = loadable(connectStatusAtom);
 
 export const mapDefineAtom = atom<GetMapInfoResult|undefined>(undefined);
 
@@ -65,16 +61,13 @@ export const defaultExtentAtom = atom<Extent>((get) => {
     return mapDefine?.extent ?? [0,0,0,0];
 })
 
-export const authLvState = selector<Auth>({
-    key: 'authSelector',
-    get: ( { get } ) => {
-        const connectStatus = get(connectStatusState);
-        switch(connectStatus.mapDefine.authLv) {
-            case Auth.None:
-            case Auth.Request:
-                return connectStatus.mapDefine.guestAuthLv;
-            default:
-                return connectStatus.mapDefine.authLv;
-        }
+export const authLvAtom = atom<Promise<Auth>>(async( get ) => {
+    const connectStatus = await get(connectStatusAtom);
+    switch(connectStatus.mapDefine.authLv) {
+        case Auth.None:
+        case Auth.Request:
+            return connectStatus.mapDefine.guestAuthLv;
+        default:
+            return connectStatus.mapDefine.authLv;
     }
 })

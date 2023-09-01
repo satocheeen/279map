@@ -9,9 +9,8 @@ import { Auth, DataId, DataSourceLinkableContent, MapKind } from '279map-common'
 import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam } from 'tsunagumap-api';
 import { useMap } from '../map/useMap';
 import { Button } from '../common';
-import { useRecoilValue } from 'recoil';
 import { compareAuth } from '../../util/CommonUtility';
-import { authLvState, currentMapKindAtom } from '../../store/session';
+import { authLvAtom, currentMapKindAtom } from '../../store/session';
 import { useItem } from '../../store/item/useItem';
 import { dataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
@@ -35,7 +34,7 @@ export default function AddContentMenu(props: Props) {
     const { getApi } = useMap();
     const [ mapKind ] = useAtom(currentMapKindAtom);
     const [ dataSources ] = useAtom(dataSourcesAtom);
-    const authLv = useRecoilValue(authLvState);
+    const [ authLv ] = useAtom(authLvAtom);
     const { getItem } = useItem();
     const item = useMemo(() => {
         if ('itemId' in props.target) {

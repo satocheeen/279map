@@ -1,8 +1,8 @@
-import React, { useCallback, useState, useContext, useMemo, useEffect } from 'react';
+import React, { useCallback, useState, useContext, useEffect } from 'react';
 import { OwnerContext } from './TsunaguMap';
 import { useWatch } from '../../util/useWatch';
-import { useRecoilRefresher_UNSTABLE, useRecoilValueLoadable, useResetRecoilState, useSetRecoilState } from 'recoil';
-import { connectStatusState, instanceIdAtom, instanceIdState, mapIdState, mapServerState } from '../../store/session';
+import { useResetRecoilState, useSetRecoilState } from 'recoil';
+import { connectStatusLoadableAtom, instanceIdAtom, instanceIdState, mapIdAtom, mapServerAtom, refreshConnectStatusAtom } from '../../store/session';
 import { createAPICallerInstance, destroyAPICallerInstance } from '../../api/ApiCaller';
 import { ApiError, ErrorType, RequestAPI } from 'tsunagumap-api';
 import Overlay from '../common/spinner/Overlay';
@@ -29,11 +29,10 @@ export default function MapConnector(props: Props) {
     const ownerContext = useContext(OwnerContext);
     const setInstanceId = useSetRecoilState(instanceIdState);
     const resetInstanceId = useResetRecoilState(instanceIdState);
-    const setMapId = useSetRecoilState(mapIdState);
-    const setMapServer = useSetRecoilState(mapServerState);
-    const resetMapServer = useResetRecoilState(mapServerState);
-    const connectLoadable = useRecoilValueLoadable(connectStatusState);
-    const [_, setInstanceIdForJotai ] = useAtom(instanceIdAtom);
+    const [mapId, setMapId] = useAtom(mapIdAtom);
+    const [mapServer, setMapServer] = useAtom(mapServerAtom);
+    const [connectLoadable] = useAtom(connectStatusLoadableAtom);
+    const [instanceId, setInstanceIdForJotai ] = useAtom(instanceIdAtom);
 
     useEffect(() => {
         setMapId(ownerContext.mapId);
@@ -60,17 +59,17 @@ export default function MapConnector(props: Props) {
             destroyAPICallerInstance(id);
             destroyMqttClientInstance(id);
             resetInstanceId();
-            resetMapServer();
+            setMapServer(undefined);
         }
-    }, [setInstanceIdForJotai, ownerContext.mapInstanceId, ownerContext.mapServer, resetInstanceId, resetMapServer, setInstanceId, setMapServer]);
+    }, [setInstanceIdForJotai, ownerContext.mapInstanceId, ownerContext.mapServer, resetInstanceId, setInstanceId, setMapServer]);
 
 
     const { subscribeUser, unsubscribeUser } = useSubscribe();
-    const refreshConnectStatus = useRecoilRefresher_UNSTABLE(connectStatusState);
+    const [refreshConnectStatus, setRefreshConnectStatus] = useAtom(refreshConnectStatusAtom);
     useWatch(() => {
         subscribeUser('update-userauth', () => {
             // 権限変更されたので再接続
-            refreshConnectStatus();
+            setRefreshConnectStatus((cur) => cur+1);
         });
 
         return () => {
@@ -78,19 +77,14 @@ export default function MapConnector(props: Props) {
         }
     }, [subscribeUser, unsubscribeUser]);
 
-    const loadableState = useMemo(() => {
-        return connectLoadable.state;
-
-    }, [connectLoadable]);
-
     // ゲストモードで動作させる場合、true
     const [guestMode, setGuestMode] = useState(false);
     const onRequestCancel = useCallback(() => {
         setGuestMode(true);
     }, []);
 
-    switch (loadableState) {
-        case 'hasValue':
+    switch (connectLoadable.state) {
+        case 'hasData':
             // Auth0ログイン済みだが、地図ユーザ未登録の場合は、登録申請フォーム表示
             const showRequestPanel = function() {
                 if (guestMode) {
@@ -99,14 +93,11 @@ export default function MapConnector(props: Props) {
                 if (!ownerContext.mapServer.token) {
                     return false;
                 }
-                if (connectLoadable.state !== 'hasValue') {
-                    return false;
-                }
-                if (connectLoadable.contents.mapDefine.options?.newUserAuthLevel === Auth.None) {
+                if (connectLoadable.data.mapDefine.options?.newUserAuthLevel === Auth.None) {
                     // 新規ユーザ登録禁止の地図では表示しない
                     return false;
                 }
-                return connectLoadable.contents.mapDefine.authLv === Auth.None;
+                return connectLoadable.data.mapDefine.authLv === Auth.None;
             }();
             return (
                 <>
@@ -122,7 +113,7 @@ export default function MapConnector(props: Props) {
             return <Overlay spinner message='ロード中...' />
 
         case 'hasError':
-            const e = connectLoadable.contents;
+            const e = connectLoadable.error as any;
             const error: ApiError = ('apiError' in e) ? e.apiError
                                 : {type: ErrorType.IllegalError, detail: e + ''};
 

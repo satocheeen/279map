@@ -13,7 +13,7 @@ import { useSubscribe } from '../../util/useSubscribe';
 import { useItem } from '../../store/item/useItem';
 import { useRecoilValue, useRecoilCallback } from 'recoil';
 import { selectedItemIdsState } from '../../store/operation';
-import { connectStatusState, currentMapKindAtom, mapDefineAtom } from '../../store/session';
+import { connectStatusAtom, currentMapKindAtom, mapDefineAtom } from '../../store/session';
 import { itemDataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
 import { useAtomCallback } from 'jotai/utils';
@@ -31,7 +31,7 @@ type Props = {
  */
 function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const ownerContext = useContext(OwnerContext);
-    const connectStatus = useRecoilValue(connectStatusState);
+    const [ connectStatus ] = useAtom(connectStatusAtom);
     const [ currentMapKind ] = useAtom(currentMapKindAtom);
     const [ itemDataSources ] = useAtom(itemDataSourcesAtom);
 
@@ -40,8 +40,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const { getApi, getMap } = useMap();
     const { updateDatasourceVisible } = useDataSource();
 
-    const showUserList = useRecoilCallback(({snapshot}) => async() => {
-        const connectStatus =await snapshot.getPromise(connectStatusState);
+    const showUserList = useCallback(() => {
         if (connectStatus.mapDefine.authLv !== Auth.Admin) {
             console.warn('no authorization', connectStatus.mapDefine.authLv);
             return;
@@ -50,7 +49,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
             command: 'ShowUserList',
             param: undefined,
         });
-    }, []);
+    }, [connectStatus]);
 
     useImperativeHandle(ref, () => ({
         switchMapKind(mapKind: MapKind) {

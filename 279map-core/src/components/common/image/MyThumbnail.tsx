@@ -5,7 +5,8 @@ import { useMap } from '../../map/useMap';
 import { useWatch } from '../../../util/useWatch';
 import Spinner from '../spinner/Spinner';
 import { useRecoilValue } from 'recoil';
-import { connectStatusState } from '../../../store/session';
+import { connectStatusAtom } from '../../../store/session';
+import { useAtom } from 'jotai';
 
 type Props = {
     id: DataId; // サムネイル画像id（コンテンツID）
@@ -23,7 +24,7 @@ type Props = {
  */
 export default function MyThumbnail(props: Props) {
     const myRef = useRef<HTMLImageElement>(null);
-    const connectStatus = useRecoilValue(connectStatusState);
+    const [connectStatus] = useAtom(connectStatusAtom);
     const sid = useMemo(() => {
         return connectStatus.sid;
     }, [connectStatus]);

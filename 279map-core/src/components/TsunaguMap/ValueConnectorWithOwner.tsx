@@ -1,13 +1,13 @@
 import React, { Suspense, useRef, useContext, useEffect } from 'react';
 import { useWatch } from '../../util/useWatch';
-import { useRecoilValue, useRecoilValueLoadable } from 'recoil';
+import { useRecoilValue } from 'recoil';
 import { OwnerContext } from './TsunaguMap';
 import { categoriesLoadableAtom } from '../../store/category';
 import { eventsLoadableAtom } from '../../store/event';
 import { useSetRecoilState } from 'recoil';
 import { defaultIconDefineAtom } from '../../store/icon';
 import { mapModeState, selectedItemIdsState } from '../../store/operation';
-import { connectStatusState, mapDefineAtom } from '../../store/session';
+import { connectStatusLoadableAtom, mapDefineAtom } from '../../store/session';
 import { filteredItemsState } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { SearchAPI } from 'tsunagumap-api';
@@ -95,16 +95,16 @@ function FilterListner() {
  */
 function ConnectListener() {
     const { onConnect } = useContext(OwnerContext);
-    const connectLoadable = useRecoilValueLoadable(connectStatusState);
+    const [ connectLoadable ] = useAtom(connectStatusLoadableAtom);
     const connectedRef = useRef(false);
 
     // マウント後でないとイベント発火できないので、useEffect内で処理
     useEffect(() => {
-        if (!connectedRef.current && connectLoadable.state === 'hasValue') {
+        if (!connectedRef.current && connectLoadable.state === 'hasData') {
             connectedRef.current = true;
             if (onConnect) {
                 onConnect({
-                    mapDefine: connectLoadable.contents.mapDefine,
+                    mapDefine: connectLoadable.data.mapDefine,
                 })
             }
         }

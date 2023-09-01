@@ -19,7 +19,7 @@ import { GetImageUrlAPI, GetSnsPreviewAPI, RemoveContentAPI, UpdateContentAPI, U
 import { doCommand } from "../../util/Commander";
 import { useMap } from "../map/useMap";
 import { useRecoilValue } from "recoil";
-import { authLvState, currentMapKindAtom } from "../../store/session";
+import { authLvAtom, currentMapKindAtom } from "../../store/session";
 import { filteredContentIdListState } from "../../store/filter";
 import { dataSourcesAtom } from "../../store/datasource";
 import { useAtom } from 'jotai';
@@ -295,7 +295,7 @@ export default function Content(props: Props) {
 
     }, [props.content.overview]);
 
-    const authLv = useRecoilValue(authLvState);
+    const [authLv] = useAtom(authLvAtom);
     const editable = useMemo(() => {
         return props.content.isEditable && CommonUtility.compareAuth(authLv, Auth.Edit) >= 0
     }, [authLv, props.content]);
