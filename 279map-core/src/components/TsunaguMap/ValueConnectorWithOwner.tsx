@@ -4,7 +4,7 @@ import { OwnerContext } from './TsunaguMap';
 import { categoriesLoadableAtom } from '../../store/category';
 import { eventsLoadableAtom } from '../../store/event';
 import { defaultIconDefineAtom } from '../../store/icon';
-import { mapModeAtom, selectedItemIdsAtom } from '../../store/operation';
+import { dialogTargetAtom, mapModeAtom, selectedItemIdsAtom } from '../../store/operation';
 import { authLvAtom, connectStatusLoadableAtom, mapDefineLoadableAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
@@ -42,6 +42,12 @@ function ValueConnectorWithOwner(props: {}, ref: React.ForwardedRef<TsunaguMapHa
                 command: 'ShowUserList',
                 param: undefined,
             });
+        }, [])
+    );
+
+    const showDetailDialog = useAtomCallback(
+        useCallback((get, set, param: {type: 'item' | 'content'; id: DataId}) => {
+            set(dialogTargetAtom, param);
         }, [])
     );
 
@@ -128,19 +134,10 @@ function ValueConnectorWithOwner(props: {}, ref: React.ForwardedRef<TsunaguMapHa
             }
         },
 
-        async showDetailDialog(param: {type: 'item' | 'content'; id: DataId}) {
-            if (param.type === 'content') {
-                doCommand({
-                    command: 'ShowContentInfo',
-                    param: param.id,
-                });
-            } else {
-                doCommand({
-                    command: 'ShowItemInfo',
-                    param: param.id,
-                });
-            }
+        showDetailDialog(param: {type: 'item' | 'content'; id: DataId}) {
+            showDetailDialog(param);
         },
+        
         async registContentAPI(param: RegistContentParam) {
             try {
                 await getApi().callApi(RegistContentAPI, param);

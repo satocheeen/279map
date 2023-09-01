@@ -1,9 +1,7 @@
 import React, { Suspense, useImperativeHandle, useState, useMemo, useRef, useEffect } from 'react';
-import MapWrapper from './MapWrapper';
 import styles from './TsunaguMap.module.scss';
 import './TsunaguMap.scss';
 import ConfirmDialog from '../common/confirm/ConfirmDialog';
-import ContentsModal from '../contents/ContentsModal';
 import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
 import { AddNewContentParam, EditContentParam, LinkUnpointContentParam, TsunaguMapHandler, TsunaguMapProps } from '../../types/types';
 import DefaultComponents from '../default/DefaultComponents';
@@ -12,6 +10,8 @@ import ValueConnectorWithOwner from './ValueConnectorWithOwner';
 import MapConnector from './MapConnector';
 import ProcessOverlay from './ProcessOverlay';
 import { Provider } from 'jotai';
+import EventFire from './EventFire';
+import MapChart from './MapChart';
 
 type SomeRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 type OwnerContextType = SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'> & {
@@ -69,7 +69,6 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
     }, [props, mapInstanceId]);
 
     const controlRef = useRef<TsunaguMapHandler>(null);
-    const [mapInitializedFlag, setMapInitializedFlag] = useState(false);
     useImperativeHandle(ref, () => {
         return controlRef.current ?? {
             switchMapKind() { console.log('default')},
@@ -94,8 +93,7 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
             changeVisibleLayer() {},
             showUserList() {},
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [mapInitializedFlag])
+    })
 
     return (
         <div className={styles.TsunaguMap}>
@@ -103,11 +101,11 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
                 <Provider>
                     <MapConnector>
                         <ValueConnectorWithOwner ref={controlRef} />
+                        <EventFire />
                         <TooltipContext.Provider value={tooltipContextValue}>
-                            <MapWrapper onInitialized={()=>setMapInitializedFlag(true)} />
+                            <MapChart />
                             <Suspense>
                                 <ConfirmDialog />
-                                <ContentsModal />
                                 <UserListModal />
 
                                 {defaultLinkUnpointedContentParam &&

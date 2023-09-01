@@ -14,38 +14,17 @@ import { useItem } from '../../store/item/useItem';
 import { useAtom } from 'jotai';
 import { currentMapKindAtom } from '../../store/session';
 
-type Target = {
-    type: 'item';
-    itemId: DataId;
-} | {
-    type: 'content';
-    contentId: DataId;
+export type Props = ({
+    type: 'item' | 'content';
+    id: DataId;
+}) & {
+    onClose?: () => void;
 }
-export default function ContentsModal() {
+
+export default function ContentsModal(props: Props) {
     const [show, setShow] = useState(false);
     const [loaded, setLoaded] = useState(false);
-    const [target, setTarget] = useState<Target|undefined>();
     const [item, setItem] = useState<ItemDefine | undefined>();
-
-    useMounted(() => {
-        const h = addListener('ShowContentInfo', async(contentId: DataId) => {
-            setTarget({
-                type: 'content',
-                contentId,
-            });
-        });
-        const h2 = addListener('ShowItemInfo', async(itemId: DataId) => {
-            setTarget({
-                type: 'item',
-                itemId,
-            });
-        });
-
-        return () => {
-            removeListener(h);
-            removeListener(h2);
-        }
-    });
 
     const { showProcessMessage, hideProcessMessage} = useProcessMessage();
     const [ contentsList, setContentsList ] = useState<ContentsDefine[]>([]);
@@ -81,20 +60,18 @@ export default function ContentsModal() {
     // 表示対象が指定されたらコンテンツロード
     const [ mapKind ] = useAtom(currentMapKindAtom);
     useEffect(() => {
-        if (!target) return;
-
-        if (target.type === 'item') {
+        if (props.type === 'item') {
             setLoaded(false);
             setShow(true);
     
             // 最新コンテンツ取得
-            loadContentsInItem(target.itemId)
+            loadContentsInItem(props.id)
             .finally(() => {
                 setLoaded(true);
             });
-            subscribe('childcontents-update', mapKind, target.itemId, () => loadContentsInItem(target.itemId));
+            subscribe('childcontents-update', mapKind, props.id, () => loadContentsInItem(props.id));
 
-            setTargetsItem(target.itemId);
+            setTargetsItem(props.id);
 
         } else {
             setLoaded(false);
@@ -103,7 +80,7 @@ export default function ContentsModal() {
             // 最新コンテンツ取得
             getApi().getContents([
                     {
-                        contentId: target.contentId,
+                        contentId: props.id,
                     }
                 ],
             ).then(result => {
@@ -121,12 +98,12 @@ export default function ContentsModal() {
 
 
         return () => {
-            if (target.type === 'item') {
-                unsubscribe('childcontents-update', mapKind, target.itemId);
+            if (props.type === 'item') {
+                unsubscribe('childcontents-update', mapKind, props.id);
             }
         }
 
-    }, [target, getApi, subscribe, unsubscribe, setTargetsItem, loadContentsInItem]);
+    }, [props, getApi, subscribe, unsubscribe, setTargetsItem, loadContentsInItem]);
 
     const contents = useMemo((): ContentsDefine[] => {
         return contentsList.sort((a, b) => {
@@ -145,18 +122,20 @@ export default function ContentsModal() {
     }, []);
 
     const onClosed = useCallback(() => {
-        setTarget(undefined);
-    }, []);
+        if (props.onClose) {
+            props.onClose();
+        }
+    }, [props]);
 
     const body = useMemo(() => {
-        if (!target) return null;
+        if (!props) return null;
 
         if (contents.length === 0) {
             return (
                 <div className={styles.NoContentParagraph}>
                     <p>コンテンツなし</p>
-                    {target.type === 'item' &&
-                        <AddContentMenu style='button' target={{itemId: target.itemId}} />
+                    {props.type === 'item' &&
+                        <AddContentMenu style='button' target={{itemId: props.id}} />
                     }
                 </div>
             )
@@ -168,7 +147,7 @@ export default function ContentsModal() {
             )
         })
 
-    }, [contents, target]);
+    }, [contents, props]);
 
     return (
         <Modal show={show} spinner={!loaded}
@@ -178,8 +157,8 @@ export default function ContentsModal() {
             <Modal.Header>
                 <div className={styles.ItemHeader}>
                     {title}
-                    {(target?.type === 'item' && contents.length > 0) &&
-                    <AddContentMenu target={{itemId: target.itemId}} />
+                    {(props?.type === 'item' && contents.length > 0) &&
+                    <AddContentMenu target={{itemId: props.id}} />
                 }
                 </div>
             </Modal.Header>

@@ -6,6 +6,13 @@ import { Extent } from "ol/extent";
 // 選択中アイテムID
 export const selectedItemIdsAtom = atom<DataId[]>([]);
 
+// 詳細ダイアログ表示対象
+type Target = {
+    type: 'item' | 'content';
+    id: DataId;
+}
+export const dialogTargetAtom = atom<Target|undefined>(undefined);
+
 export const mapModeAtom = atom<MapMode>(MapMode.Normal);
 
 type ViewInfo = {

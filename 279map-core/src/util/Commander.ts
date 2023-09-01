@@ -38,8 +38,6 @@ type CommandDefine =
     | TCommandDefine<'RemoveTopography', undefined>
     // 最新地図アイテム取得命令
     | TCommandDefine<'LoadLatestData', undefined>
-    // コンテンツ情報表示 引数: contentId. 
-    | TCommandDefine<'ShowContentInfo', DataId>
     // アイテム情報表示 引数: itemId. 
     | TCommandDefine<'ShowItemInfo', DataId>
     // 指定のアイテムにフォーカスする
