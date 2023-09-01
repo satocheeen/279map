@@ -68,10 +68,10 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
         })
     }, [props, mapInstanceId]);
 
-    const mapRef = useRef<TsunaguMapHandler>(null);
+    const controlRef = useRef<TsunaguMapHandler>(null);
     const [mapInitializedFlag, setMapInitializedFlag] = useState(false);
     useImperativeHandle(ref, () => {
-        return mapRef.current ?? {
+        return controlRef.current ?? {
             switchMapKind() { console.log('default')},
             focusItem() {},
             drawStructure() {},
@@ -102,9 +102,9 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
             <OwnerContext.Provider value={ownerContextValue}>
                 <Provider>
                     <MapConnector>
-                        <ValueConnectorWithOwner />
+                        <ValueConnectorWithOwner ref={controlRef} />
                         <TooltipContext.Provider value={tooltipContextValue}>
-                            <MapWrapper ref={mapRef} onInitialized={()=>setMapInitializedFlag(true)} />
+                            <MapWrapper onInitialized={()=>setMapInitializedFlag(true)} />
                             <Suspense>
                                 <ConfirmDialog />
                                 <ContentsModal />
