@@ -6,6 +6,7 @@ import { Auth, MapKind } from '279map-common';
 import { ApiException } from '../../api';
 import { Extent } from "ol/extent";
 import { atom } from 'jotai';
+import { loadable } from 'jotai/utils';
 
 export const instanceIdState = atomAsRecoil<string>({
     key: 'instanceIdState',
@@ -62,6 +63,8 @@ export const mapDefineAtom = atom<GetMapInfoResult>({
     extent: [0,0,0,0],
     dataSourceGroups: [],
 })
+
+export const mapDefineLoadableAtom = loadable(mapDefineAtom);
 
 export const currentMapKindState = selector<MapKind|undefined>({
     key: 'currentMapKindSelector',

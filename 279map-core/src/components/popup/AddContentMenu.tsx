@@ -11,7 +11,7 @@ import { useMap } from '../map/useMap';
 import { Button } from '../common';
 import { useRecoilValue } from 'recoil';
 import { compareAuth } from '../../util/CommonUtility';
-import { authLvState, currentMapKindState } from '../../store/session';
+import { authLvState, currentMapKindAtom } from '../../store/session';
 import { useItem } from '../../store/item/useItem';
 import { dataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
@@ -33,7 +33,7 @@ export default function AddContentMenu(props: Props) {
     const { onAddNewContent, onLinkUnpointedContent } = useContext(OwnerContext);
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
     const { getApi } = useMap();
-    const mapKind = useRecoilValue(currentMapKindState);
+    const [ mapKind ] = useAtom(currentMapKindAtom);
     const [ dataSources ] = useAtom(dataSourcesAtom);
     const authLv = useRecoilValue(authLvState);
     const { getItem } = useItem();

@@ -13,7 +13,7 @@ import { useSubscribe } from '../../util/useSubscribe';
 import { useItem } from '../../store/item/useItem';
 import { useRecoilValue, useSetRecoilState, useRecoilCallback } from 'recoil';
 import { selectedItemIdsState } from '../../store/operation';
-import { connectStatusState, currentMapKindState, mapDefineAtom, mapDefineState } from '../../store/session';
+import { connectStatusState, currentMapKindAtom, mapDefineAtom, mapDefineState } from '../../store/session';
 import { itemDataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
 import { useAtomCallback } from 'jotai/utils';
@@ -32,7 +32,7 @@ type Props = {
 function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const ownerContext = useContext(OwnerContext);
     const connectStatus = useRecoilValue(connectStatusState);
-    const currentMapKind = useRecoilValue(currentMapKindState);
+    const [ currentMapKind ] = useAtom(currentMapKindAtom);
     const [ itemDataSources ] = useAtom(itemDataSourcesAtom);
 
     const onConnectRef = useRef<typeof ownerContext.onConnect>();
@@ -216,19 +216,20 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const setMapDefine = useSetRecoilState(mapDefineState);
     const [_, setMapDefineForJotai] = useAtom(mapDefineAtom);
     const [initialized, setInitialized] = useState(false);
-    const changeMapKind = useRecoilCallback(({snapshot, set}) => async(mk: MapKind) => {
-        const mapKind = await snapshot.getPromise(currentMapKindState);
-        console.log('ChangeMapKind', mk, mapKind);
-        if (mk === mapKind) {
-            return;
-        }
-        const res = await getApi().callApi(GetMapInfoAPI, {
-            mapKind: mk,
-        });
-        set(mapDefineState, res);
-        setMapDefineForJotai(res);
-        resetItems();
-    }, [setMapDefineForJotai]);
+    const changeMapKind = useAtomCallback(
+        useCallback(async(get, set, mk: MapKind) => {
+            const mapKind = get(currentMapKindAtom);
+            if (mk === mapKind) {
+                return;
+            }
+            const res = await getApi().callApi(GetMapInfoAPI, {
+                mapKind: mk,
+            });
+            setMapDefine(res);
+            setMapDefineForJotai(res);
+            resetItems();
+        }, [setMapDefineForJotai, setMapDefine, getApi, resetItems])
+    );
 
     useMounted(() => {
         const h = addListener('ChangeMapKind', async(mk: MapKind) => {

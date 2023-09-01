@@ -14,9 +14,9 @@ import { FeatureType, GeoProperties, MapKind } from '279map-common';
 import { SystemIconDefine } from '../../../../types/types';
 import VectorLayer from 'ol/layer/Vector';
 import { useMap } from '../../useMap';
-import { useRecoilValue } from 'recoil';
 import { RegistItemAPI } from 'tsunagumap-api';
-import { currentMapKindState } from '../../../../store/session';
+import { currentMapKindAtom } from '../../../../store/session';
+import { useAtom } from 'jotai';
 
 type Props = {
     dataSourceId: string;   // 作図対象のデータソース
@@ -42,7 +42,7 @@ export default function DrawStructureController(props: Props) {
     const { getMap } = useMap();
     const pointStyleHook = usePointStyle();
 
-    const mapKind = useRecoilValue(currentMapKindState);
+    const [ mapKind ] = useAtom(currentMapKindAtom);
     const searchAddressRef = useRef<SearchAddressHandler>(null);
     const drawingLayer = useRef<VectorLayer<VectorSource>>();
     const drawingSource = useRef<VectorSource|null>(null);

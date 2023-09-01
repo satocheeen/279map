@@ -15,8 +15,8 @@ import { MapStyles } from '../../../util/constant-defines';
 import { LayerInfo, LayerType } from '../../TsunaguMap/VectorLayerMap';
 import { containFeatureInLayer } from '../../../util/MapUtility';
 import { useMap } from '../useMap';
-import { useRecoilValue } from 'recoil';
-import { currentMapKindState } from '../../../store/session';
+import { currentMapKindAtom } from '../../../store/session';
+import { useAtom } from 'jotai';
 
 type Props = {
     targetType: LayerType;
@@ -36,7 +36,7 @@ export default function SelectFeature(props: Props) {
     const topographyStyleHook = useTopographyStyle({});
     const { getMap } = useMap();
     const { selectedStyleFunction } = usePointStyle();
-    const mapKind = useRecoilValue(currentMapKindState);
+    const [ mapKind ] = useAtom(currentMapKindAtom);
 
     const targetLayers = useMemo((): LayerInfo[] => {
         const map = getMap();

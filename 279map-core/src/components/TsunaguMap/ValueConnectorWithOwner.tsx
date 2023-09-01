@@ -5,9 +5,9 @@ import { OwnerContext } from './TsunaguMap';
 import { categoriesLoadableAtom } from '../../store/category';
 import { eventsLoadableAtom } from '../../store/event';
 import { useSetRecoilState } from 'recoil';
-import { defaultIconDefineState } from '../../store/icon';
+import { defaultIconDefineAtom } from '../../store/icon';
 import { mapModeState, selectedItemIdsState } from '../../store/operation';
-import { connectStatusState, currentMapKindState } from '../../store/session';
+import { connectStatusState, mapDefineLoadableAtom } from '../../store/session';
 import { filteredItemsState } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { SearchAPI } from 'tsunagumap-api';
@@ -45,7 +45,7 @@ export default function ValueConnectorWithOwner() {
  */
 function RecoilSetter() {
     const { iconDefine } = useContext(OwnerContext);
-    const setDefaultIconDefine = useSetRecoilState(defaultIconDefineState);
+    const [ _, setDefaultIconDefine ] = useAtom(defaultIconDefineAtom);
 
     useEffect(() => {
         if (iconDefine)
@@ -118,16 +118,16 @@ function ConnectListener() {
  */
 function MapLoadListener() {
     const { onMapLoad } = useContext(OwnerContext);
-    const currentMapKindLoadable = useRecoilValueLoadable(currentMapKindState);
+    const [ currentMapKindLoadable ] = useAtom(mapDefineLoadableAtom);
     const latestMapKindRef = useRef<MapKind>();
 
     // マウント後でないとイベント発火できないので、useEffect内で処理
     useEffect(() => {
-        if (currentMapKindLoadable.state === 'hasValue' && currentMapKindLoadable.contents && latestMapKindRef.current !== currentMapKindLoadable.contents) {
-            latestMapKindRef.current = currentMapKindLoadable.contents;
+        if (currentMapKindLoadable.state === 'hasData' && latestMapKindRef.current !== currentMapKindLoadable.data.mapKind) {
+            latestMapKindRef.current = currentMapKindLoadable.data.mapKind;
             if (onMapLoad) {
                 onMapLoad({
-                    mapKind: currentMapKindLoadable.contents,
+                    mapKind: currentMapKindLoadable.data.mapKind,
                 })
             }
         }

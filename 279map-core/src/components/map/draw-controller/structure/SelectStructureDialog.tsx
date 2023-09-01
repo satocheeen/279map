@@ -4,9 +4,9 @@ import Modal from  '../../../common/modal/Modal';
 import styles from './SelectStructureDialog.module.scss';
 import { MapKind } from '279map-common';
 import { SystemIconDefine } from '../../../../types/types';
-import { useRecoilValue } from 'recoil';
-import { currentMapIconDefineState } from '../../../../store/icon';
-import { currentMapKindState } from '../../../../store/session';
+import { currentMapIconDefineAtom } from '../../../../store/icon';
+import { currentMapKindAtom } from '../../../../store/session';
+import { useAtom } from 'jotai';
 
 type Props = {
     currentIconId?: string;         // 現在の画像ID
@@ -16,9 +16,9 @@ type Props = {
 
 export default function SelectStructureDialog(props: Props) {
     const [show, setShow] = useState(true);
-    const currentMapIconDefine = useRecoilValue(currentMapIconDefineState);
+    const [ currentMapIconDefine ] = useAtom(currentMapIconDefineAtom);
     const [selectedDefine, setSelectedDefine] = useState(null as SystemIconDefine | null);
-    const mapKind = useRecoilValue(currentMapKindState);
+    const [ mapKind ] = useAtom(currentMapKindAtom);
 
     useEffect(() => {
         if (props.currentIconId !== undefined) {

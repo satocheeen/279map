@@ -26,7 +26,7 @@ import { useItem } from "../../store/item/useItem";
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { allItemsAtom, initialItemLoadedAtom } from "../../store/item";
 import { mapModeState, mapViewState, selectedItemIdsState } from "../../store/operation";
-import { currentMapKindState, defaultExtentAtom } from "../../store/session";
+import { currentMapKindAtom, defaultExtentAtom } from "../../store/session";
 import { filteredItemIdListState } from "../../store/filter";
 import { useAtom } from 'jotai';
 import { itemDataSourcesAtom } from "../../store/datasource";
@@ -55,7 +55,7 @@ export default function MapChart() {
         
     }, [pointStyleFunction, topographyStyleFunction, trackStyleFunction])
 
-    const mapKind = useRecoilValue(currentMapKindState);
+    const [ mapKind ] = useAtom(currentMapKindAtom);
     const [ itemDataSources ] = useAtom(itemDataSourcesAtom);
     
     const loadingCurrentAreaContents = useRef(false);

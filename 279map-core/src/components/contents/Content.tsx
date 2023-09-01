@@ -19,7 +19,7 @@ import { GetImageUrlAPI, GetSnsPreviewAPI, RemoveContentAPI, UpdateContentAPI, U
 import { doCommand } from "../../util/Commander";
 import { useMap } from "../map/useMap";
 import { useRecoilValue } from "recoil";
-import { authLvState, currentMapKindState } from "../../store/session";
+import { authLvState, currentMapKindAtom } from "../../store/session";
 import { filteredContentIdListState } from "../../store/filter";
 import { dataSourcesAtom } from "../../store/datasource";
 import { useAtom } from 'jotai';
@@ -131,7 +131,7 @@ export default function Content(props: Props) {
         return props.content.anotherMapItemId;
     }, [props.content]);
 
-    const mapKind = useRecoilValue(currentMapKindState);
+    const [ mapKind ] = useAtom(currentMapKindAtom);
 
     const toolTipMessage = useMemo(() => {
         const mapName = mapKind === MapKind.Real ? '村マップ' : '世界地図';
