@@ -3,11 +3,10 @@ import { useWatch } from '../../util/useWatch';
 import { OwnerContext } from './TsunaguMap';
 import { categoriesLoadableAtom } from '../../store/category';
 import { eventsLoadableAtom } from '../../store/event';
-import { useSetRecoilState } from 'recoil';
 import { defaultIconDefineAtom } from '../../store/icon';
 import { mapModeAtom, selectedItemIdsAtom } from '../../store/operation';
 import { connectStatusLoadableAtom, mapDefineAtom } from '../../store/session';
-import { filteredItemsState } from '../../store/filter';
+import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { SearchAPI } from 'tsunagumap-api';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
@@ -59,7 +58,7 @@ function FilterListner() {
     const { filter } = useContext(OwnerContext);
 
     // 検索
-    const setFilteredItem = useSetRecoilState(filteredItemsState);
+    const [filteredItem, setFilteredItem] = useAtom(filteredItemsAtom);
     const { getApi } = useMap();
     const [ visibleDataSourceIds ] = useAtom(visibleDataSourceIdsAtom);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();

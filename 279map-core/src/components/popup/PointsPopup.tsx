@@ -8,9 +8,8 @@ import { BsThreeDots } from 'react-icons/bs';
 import { useMapOptions } from "../../util/useMapOptions";
 import { useMap } from "../map/useMap";
 import { doCommand } from "../../util/Commander";
-import { useRecoilCallback, useRecoilValue, useSetRecoilState } from 'recoil';
 import { mapModeAtom, selectedItemIdsAtom } from "../../store/operation";
-import { filteredContentIdListState, filteredItemIdListState } from "../../store/filter";
+import { filteredContentIdListAtom, filteredItemIdListAtom } from "../../store/filter";
 import { useItem } from "../../store/item/useItem";
 import { useAtom } from "jotai";
 
@@ -38,19 +37,19 @@ function hasImageItem(item: ItemDefine): boolean {
 }
 export default function PointsPopup(props: Props) {
     const { getMap } = useMap();
-    const filteredItemIdList = useRecoilValue(filteredItemIdListState);
-    const filteredContentIdList = useRecoilValue(filteredContentIdListState);
+    const [ filteredItemIdList ] = useAtom(filteredItemIdListAtom);
+    const [ filteredContentIdList ] = useAtom(filteredContentIdListAtom);
     const { getDescendantContentsIdList } = useItem();
     const [ targetItems, setTargetItems ] = useState<ItemDefine[]>([]);
     const { getItem } = useItem();
 
-    const getTarget = useRecoilCallback(({ snapshot }) => async(itemIds: DataId[]): Promise<ItemDefine[]> => {
+    const getTarget = useCallback(async(itemIds: DataId[]): Promise<ItemDefine[]> => {
         const items = await Promise.all(itemIds.map(itemId => {
             return getItem(itemId);
         }));
         return items.filter(item => item!==undefined) as ItemDefine[];
 
-    }, []);
+    }, [getItem]);
 
     useEffect(() => {
         getTarget(props.itemIds)

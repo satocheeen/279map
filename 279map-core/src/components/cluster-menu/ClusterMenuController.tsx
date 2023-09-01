@@ -8,9 +8,8 @@ import { usePrevious } from '../../util/usePrevious';
 import { isEqualId } from '../../util/dataUtility';
 import { useMap } from '../map/useMap';
 import { addListener, removeListener } from '../../util/Commander';
-import { useRecoilValue } from 'recoil';
 import { mapModeAtom, mapViewAtom, selectedItemIdsAtom } from '../../store/operation';
-import { filteredItemIdListState } from '../../store/filter';
+import { filteredItemIdListAtom } from '../../store/filter';
 import { useItem } from '../../store/item/useItem';
 import { useAtom } from 'jotai';
 
@@ -37,7 +36,7 @@ export default function ClusterMenuController(props: Props) {
     const { onClick } = useContext(OwnerContext);
     const [mapMode] = useAtom(mapModeAtom);
 
-    const filteredItemIdList = useRecoilValue(filteredItemIdListState);
+    const [filteredItemIdList] = useAtom(filteredItemIdListAtom);
     const filteredItemIdListRef = useRef(filteredItemIdList);   // for using in map event funtion
     useEffect(() => {
         filteredItemIdListRef.current = filteredItemIdList;

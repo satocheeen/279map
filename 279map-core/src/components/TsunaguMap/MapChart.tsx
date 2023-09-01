@@ -23,11 +23,10 @@ import useMyMedia from "../../util/useMyMedia";
 import { useProcessMessage } from "../common/spinner/useProcessMessage";
 import { isEqualId } from "../../util/dataUtility";
 import { useItem } from "../../store/item/useItem";
-import { useRecoilValue } from 'recoil';
 import { allItemsAtom, initialItemLoadedAtom } from "../../store/item";
 import { mapModeAtom, mapViewAtom, selectedItemIdsAtom } from "../../store/operation";
 import { currentMapKindAtom, defaultExtentAtom } from "../../store/session";
-import { filteredItemIdListState } from "../../store/filter";
+import { filteredItemIdListAtom } from "../../store/filter";
 import { useAtom } from 'jotai';
 import { itemDataSourcesAtom } from "../../store/datasource";
 import { useAtomCallback } from 'jotai/utils';
@@ -84,7 +83,7 @@ export default function MapChart() {
     /**
      * フィルタ時にフィルタ対象がExtentに入るようにする
      */
-    const filteredItemIdList = useRecoilValue(filteredItemIdListState);
+    const [filteredItemIdList] = useAtom(filteredItemIdListAtom);
     const prevFilteredItemIdList = usePrevious(filteredItemIdList);
     useWatch(() => {
         if (!mapRef.current) return;

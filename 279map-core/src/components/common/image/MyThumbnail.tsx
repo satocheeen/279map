@@ -4,7 +4,6 @@ import { GetImageUrlAPI, GetThumbAPI } from 'tsunagumap-api';
 import { useMap } from '../../map/useMap';
 import { useWatch } from '../../../util/useWatch';
 import Spinner from '../spinner/Spinner';
-import { useRecoilValue } from 'recoil';
 import { connectStatusAtom } from '../../../store/session';
 import { useAtom } from 'jotai';
 

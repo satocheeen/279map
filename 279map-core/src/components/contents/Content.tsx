@@ -18,9 +18,8 @@ import { getMapKey, isEqualId } from "../../util/dataUtility";
 import { GetImageUrlAPI, GetSnsPreviewAPI, RemoveContentAPI, UpdateContentAPI, UpdateContentParam } from 'tsunagumap-api';
 import { doCommand } from "../../util/Commander";
 import { useMap } from "../map/useMap";
-import { useRecoilValue } from "recoil";
 import { authLvAtom, currentMapKindAtom } from "../../store/session";
-import { filteredContentIdListState } from "../../store/filter";
+import { filteredContentIdListAtom } from "../../store/filter";
 import { dataSourcesAtom } from "../../store/datasource";
 import { useAtom } from 'jotai';
 import { categoriesAtom } from "../../store/category";
@@ -39,7 +38,7 @@ type Props = {
  */
 export default function Content(props: Props) {
     const { confirm } = useConfirm();
-    const filteredContentIdList = useRecoilValue(filteredContentIdListState);
+    const [ filteredContentIdList ] = useAtom(filteredContentIdListAtom);
     const { onEditContent }  = useContext(OwnerContext);
     const { getApi } = useMap();
 

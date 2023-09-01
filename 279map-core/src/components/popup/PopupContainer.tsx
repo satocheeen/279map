@@ -10,9 +10,8 @@ import { useMap } from '../map/useMap';
 import { useWatch } from '../../util/useWatch';
 import { useMapOptions } from '../../util/useMapOptions';
 import { allItemsAtom } from '../../store/item';
-import { useRecoilValue } from 'recoil';
 import { mapViewAtom } from '../../store/operation';
-import { filteredItemIdListState } from '../../store/filter';
+import { filteredItemIdListAtom } from '../../store/filter';
 import { ItemDefine } from '279map-common';
 import { useAtom } from 'jotai';
 import { visibleDataSourceIdsAtom } from '../../store/datasource';
@@ -36,7 +35,7 @@ export default function PopupContainer() {
     const [itemsMap] = useAtom(allItemsAtom)
     const [ visibleDataSourceIds ] = useAtom(visibleDataSourceIdsAtom);
 
-    const filteredItemIdList = useRecoilValue(filteredItemIdListState);
+    const [filteredItemIdList] = useAtom(filteredItemIdListAtom);
 
     // コンテンツを持つアイテムID一覧
     const hasContentsItemList = useMemo(() => {

@@ -10,10 +10,9 @@ import { Geometry } from "ol/geom";
 import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
 import { useMap } from "./useMap";
 import { useMapOptions } from "../../util/useMapOptions";
-import { useRecoilValue } from "recoil";
 import { selectedItemIdsAtom } from "../../store/operation";
 import useIcon from "../../store/icon/useIcon";
-import { filteredItemIdListState } from "../../store/filter";
+import { filteredItemIdListAtom } from "../../store/filter";
 import { dataSourcesAtom } from "../../store/datasource";
 import { useAtom } from 'jotai';
 
@@ -29,7 +28,7 @@ const STRUCTURE_SELECTED_COLOR = '#8888ff';
  */
 export default function usePointStyle() {
     const { getForceColor, getFilterStatus } = useFilterStatus();
-    const filteredItemIdList = useRecoilValue(filteredItemIdListState);
+    const [ filteredItemIdList ] = useAtom(filteredItemIdListAtom);
     const { disabledLabel } = useMapOptions();
     const { filter } = useContext(OwnerContext);
     const { getIconDefine } = useIcon();
