@@ -101,8 +101,8 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
                 <Provider>
                     <MapConnector>
                         <ValueConnectorWithOwner ref={controlRef} />
-                        <EventFire />
                         <TooltipContext.Provider value={tooltipContextValue}>
+                            <EventFire />
                             <MapChart />
                             <Suspense>
                                 <ConfirmDialog />
