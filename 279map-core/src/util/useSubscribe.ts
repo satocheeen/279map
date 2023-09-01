@@ -1,10 +1,10 @@
 import { useContext, useCallback, useMemo } from 'react';
 import { OwnerContext } from '../components/TsunaguMap/TsunaguMap';
-import { ApiError, PublishMapMessage, PublishUserMessage } from 'tsunagumap-api';
+import { ErrorType, PublishMapMessage, PublishUserMessage } from 'tsunagumap-api';
 import { getMqttClientInstance } from '../store/session/MqttInstanceManager';
 import { connectStatusLoadableAtom } from '../store/session';
 import { MapKind } from '279map-common';
-import { ApiException } from '../api';
+import { MyError } from '../api';
 import { useAtom } from 'jotai';
 
 function makeTopic(mapId: string, mapKind: MapKind | undefined, msg: PublishMapMessage['type'], param: PublishMapMessage['subtype']) {
@@ -24,8 +24,9 @@ export function useSubscribe() {
 
     const userId = useMemo(() => {
         if (connectStatusLoadable.state === 'hasError') {
-            const e = connectStatusLoadable.error;
-            const error: ApiError | undefined = (e instanceof ApiException) ? e.apiError : undefined;
+            const e = connectStatusLoadable.error as any;
+            const error: MyError = ('apiError' in e) ? e.apiError
+                                : {type: ErrorType.IllegalError, detail: e + ''};
             return error?.userId;
         } else if (connectStatusLoadable.state === 'hasData') {
             return connectStatusLoadable.data.userId;

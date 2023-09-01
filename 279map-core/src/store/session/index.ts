@@ -1,15 +1,15 @@
-import { ConnectResult, ErrorType, GetMapInfoResult } from 'tsunagumap-api';
+import { ConnectResult, GetMapInfoResult } from 'tsunagumap-api';
 import { getAPICallerInstance } from '../../api/ApiCaller';
 import { ServerInfo } from '../../types/types';
 import { Auth, MapKind } from '279map-common';
-import { ApiException } from '../../api';
+import { ApiException, MyErrorType } from '../../api';
 import { Extent } from "ol/extent";
 import { atom } from 'jotai';
 import { loadable } from 'jotai/utils';
 
 export const instanceIdAtom = atom('');
 
-export const mapIdAtom = atom<string>('');
+export const mapIdAtom = atom<string|undefined>(undefined);
 
 export const mapServerAtom = atom<ServerInfo|undefined>(undefined);
 
@@ -17,13 +17,13 @@ export const refreshConnectStatusAtom = atom(0);
 export const connectStatusAtom = atom<Promise<ConnectResult>>(async( get ) => {
     try {
         get(refreshConnectStatusAtom);
-        const instanceId = get(instanceIdAtom);
         const mapId = get(mapIdAtom);
+        const instanceId = get(instanceIdAtom);
         const mapServer = get(mapServerAtom);
-        if (instanceId.length === 0 || mapId.length === 0 || !mapServer) {
+        if (instanceId.length === 0 || !mapId || !mapServer) {
             // まだ初期化されていない状態なら何もしない
             throw new ApiException({
-                type: ErrorType.UndefinedMap,
+                type: MyErrorType.NonInitialize,
             })
         }
         const apiCaller = getAPICallerInstance(instanceId);

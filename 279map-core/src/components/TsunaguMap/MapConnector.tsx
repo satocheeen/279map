@@ -3,7 +3,7 @@ import { OwnerContext } from './TsunaguMap';
 import { useWatch } from '../../util/useWatch';
 import { connectStatusLoadableAtom, instanceIdAtom, mapIdAtom, mapServerAtom, refreshConnectStatusAtom } from '../../store/session';
 import { createAPICallerInstance, destroyAPICallerInstance } from '../../api/ApiCaller';
-import { ApiError, ErrorType, RequestAPI } from 'tsunagumap-api';
+import { ErrorType, RequestAPI } from 'tsunagumap-api';
 import Overlay from '../common/spinner/Overlay';
 import { useMap } from '../map/useMap';
 import { Button } from '../common';
@@ -13,6 +13,7 @@ import { useSubscribe } from '../../util/useSubscribe';
 import { Auth } from '279map-common';
 import { createMqttClientInstance, destroyMqttClientInstance } from '../../store/session/MqttInstanceManager';
 import { useAtom } from 'jotai';
+import { MyError, MyErrorType } from '../../api';
 
 type Props = {
     children: React.ReactNode | React.ReactNode[];
@@ -110,9 +111,12 @@ export default function MapConnector(props: Props) {
 
         case 'hasError':
             const e = connectLoadable.error as any;
-            const error: ApiError = ('apiError' in e) ? e.apiError
+            const error: MyError = ('apiError' in e) ? e.apiError
                                 : {type: ErrorType.IllegalError, detail: e + ''};
 
+            if (error.type === MyErrorType.NonInitialize) {
+                return <Overlay spinner message='初期化中...' />
+            }
             const errorMessage = function(): string {
                 switch(error.type) {
                     case ErrorType.UndefinedMap:

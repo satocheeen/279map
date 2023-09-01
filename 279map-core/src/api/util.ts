@@ -1,12 +1,20 @@
-import { ApiError, ConfigAPI, GetMapListAPI } from "tsunagumap-api";
+import { ConfigAPI, ErrorType, GetMapListAPI } from "tsunagumap-api";
 import { ServerInfo } from '../types/types';
 import { ServerConfig } from "279map-common";
 import { createAPICallerInstance } from "./ApiCaller";
 
+export enum MyErrorType {
+    NonInitialize = "NonInitialize"
+}
+export type MyError = {
+    type: ErrorType | MyErrorType;
+    detail?: string;
+    userId?: string;
+}
 export class ApiException extends Error {
-    apiError: ApiError;
+    apiError: MyError;
 
-    constructor(error: ApiError) {
+    constructor(error: MyError) {
         super();
         this.apiError = error;
         this.message = `ApiError: ${error.type} ${error.detail ?? ''}`;
