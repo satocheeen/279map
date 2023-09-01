@@ -1,4 +1,4 @@
-import { ConnectResult, GetMapInfoResult } from 'tsunagumap-api';
+import { ConnectResult, GetMapInfoAPI, GetMapInfoResult } from 'tsunagumap-api';
 import { getAPICallerInstance } from '../../api/ApiCaller';
 import { ServerInfo } from '../../types/types';
 import { Auth, MapKind } from '279map-common';
@@ -40,11 +40,29 @@ export const connectStatusAtom = atom<Promise<ConnectResult>>(async( get ) => {
 
 export const connectStatusLoadableAtom = loadable(connectStatusAtom);
 
-export const mapDefineAtom = atom<GetMapInfoResult|undefined>(undefined);
+// ユーザに表示指定された地図種別
+export const specifiedMapKindAtom = atom<MapKind|undefined>(undefined);
+export const mapDefineAtom = atom<Promise<GetMapInfoResult>>(async(get) => {
+    const connectStatus = await get(connectStatusAtom);
+    const specifiedMapKind = get(specifiedMapKindAtom);
+    const mapKind = specifiedMapKind ?? connectStatus.mapDefine.defaultMapKind;
+    const instanceId = get(instanceIdAtom);
+    const apiCaller = getAPICallerInstance(instanceId);
+    const res = await apiCaller.callApi(GetMapInfoAPI, {
+        mapKind,
+    });
+    return res;
+});
+export const mapDefineLoadableAtom = loadable(mapDefineAtom);
 
+// 現在表示中の地図種別。地図情報ロード完了後は、specifiedMapKindと等しい値になる。
 export const currentMapKindAtom = atom<MapKind|undefined>((get) => {
-    const mapDefine = get(mapDefineAtom);
-    return mapDefine?.mapKind;
+    const mapDefineLoadable = get(mapDefineLoadableAtom);
+    if (mapDefineLoadable.state === 'hasData') {
+        return mapDefineLoadable.data.mapKind;
+    } else {
+        return;
+    }
 })
 
 /**
@@ -52,17 +70,22 @@ export const currentMapKindAtom = atom<MapKind|undefined>((get) => {
  * （将来的には、ユーザが最後に参照していたエクステントを記録して、それを反映するようにしたい）
  */
 export const defaultExtentAtom = atom<Extent>((get) => {
-    const mapDefine = get(mapDefineAtom);
-    return mapDefine?.extent ?? [0,0,0,0];
+    const mapDefineLoadable = get(mapDefineLoadableAtom);
+    if (mapDefineLoadable.state === 'hasData') {
+        return mapDefineLoadable.data.extent;
+    } else {
+        return [0,0,0,0];
+    }
 })
 
-export const authLvAtom = atom<Promise<Auth>>(async( get ) => {
-    const connectStatus = await get(connectStatusAtom);
-    switch(connectStatus.mapDefine.authLv) {
+export const authLvAtom = atom<Auth>(( get ) => {
+    const connectStatus = get(connectStatusLoadableAtom);
+    if (connectStatus.state !== 'hasData') return Auth.None;
+    switch(connectStatus.data.mapDefine.authLv) {
         case Auth.None:
         case Auth.Request:
-            return connectStatus.mapDefine.guestAuthLv;
+            return connectStatus.data.mapDefine.guestAuthLv;
         default:
-            return connectStatus.mapDefine.authLv;
+            return connectStatus.data.mapDefine.authLv;
     }
 })

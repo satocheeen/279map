@@ -36,14 +36,6 @@ export function useItem() {
     const { getApi } = useMap();
     const [_, setAllItems ] = useAtom(allItemsAtom);
 
-    const resetItems = useAtomCallback(
-        useCallback(async(get, set) => {
-            set(allItemsAtom, {});
-            set(loadedItemKeysAtom, []);
-            set(initialItemLoadedAtom, false);
-        }, [])
-    );
-
     /**
      * 指定のズームLv., extentに該当するアイテムをロードする
      */
@@ -195,7 +187,6 @@ export function useItem() {
     )
 
     return {
-        resetItems,
         loadItems,
         removeItems,
         getDescendantContentsIdList,

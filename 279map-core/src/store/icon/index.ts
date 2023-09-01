@@ -5,6 +5,7 @@ import { GetOriginalIconDefineAPI } from 'tsunagumap-api';
 import { MapKind } from '279map-common';
 import defaultIcon from './pin.png'
 import { atom } from 'jotai';
+import { loadable } from 'jotai/utils';
 
 const originalIconDefineAtom = atom<Promise<SystemIconDefine[]>>(async(get) => {
     try {
@@ -27,12 +28,13 @@ const originalIconDefineAtom = atom<Promise<SystemIconDefine[]>>(async(get) => {
         return [];
     }
 });
+const originalIconDefineLoadableAtom = loadable(originalIconDefineAtom);
 
 export const defaultIconDefineAtom = atom<Required<TsunaguMapProps>['iconDefine']>([]);
 
-const iconDefineAtom = atom<Promise<SystemIconDefine[]>>(async(get) => {
+const iconDefineAtom = atom<SystemIconDefine[]>((get) => {
     const defaultIconDefine = get(defaultIconDefineAtom);
-    const originalIconDefine = await get(originalIconDefineAtom);
+    const originalIconDefineLoadable = get(originalIconDefineLoadableAtom);
     const list = defaultIconDefine.map(def => {
         if (def.id === 'default') {
             return getDefaultIconDefine(def.useMaps);
@@ -41,27 +43,29 @@ const iconDefineAtom = atom<Promise<SystemIconDefine[]>>(async(get) => {
             type: 'system',
         } as SystemIconDefine, def);
     });
-    Array.prototype.push.apply(list, originalIconDefine);
+    if (originalIconDefineLoadable.state === 'hasData') {
+        Array.prototype.push.apply(list, originalIconDefineLoadable.data);
+    }
     return list;        
 })
 
 /**
  * アイコン未指定の場合に設定するアイコン
  */
-export const currentDefaultIconAtom = atom<Promise<SystemIconDefine>>(async(get) => {
+export const currentDefaultIconAtom = atom<SystemIconDefine>((get) => {
     // とりあえず冒頭のアイコン
-    const currentMapIconDefine = await get(currentMapIconDefineAtom);
+    const currentMapIconDefine = get(currentMapIconDefineAtom);
     return currentMapIconDefine[0];
 })
 
 /**
  * 現在の地図で使用可能なアイコン定義情報
  */
-export const currentMapIconDefineAtom = atom<Promise<SystemIconDefine[]>>(async(get) => {
+export const currentMapIconDefineAtom = atom<SystemIconDefine[]>((get) => {
     const currentMapKind = get(currentMapKindAtom); 
     if (!currentMapKind) return [];
     
-    const iconDefine = await get(iconDefineAtom);
+    const iconDefine = get(iconDefineAtom);
     const list = iconDefine.filter(def => def.useMaps.indexOf(currentMapKind) !== -1);
     if (list.length > 0) {
         return list;

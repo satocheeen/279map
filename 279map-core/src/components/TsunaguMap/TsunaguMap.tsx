@@ -70,28 +70,30 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
 
     const mapRef = useRef<TsunaguMapHandler>(null);
     const [mapInitializedFlag, setMapInitializedFlag] = useState(false);
-    useImperativeHandle(ref, () => mapRef.current ?? {
-        switchMapKind() {},
-        focusItem() {},
-        drawStructure() {},
-        moveStructure() {},
-        changeStructure() {},
-        removeStructure() {},
-        drawTopography() {},
-        drawRoad() {},
-        editTopography() {},
-        removeTopography() {},
-        editTopographyInfo() {},
-        loadContentsAPI() { throw ''},
-        showDetailDialog() {},
-        registContentAPI() { throw ''},
-        updateContentAPI() { throw ''},
-        linkContentToItemAPI() { throw ''},
-        getSnsPreviewAPI() { throw '' },
-        getUnpointDataAPI() { throw ''},
-        getThumbnail() { throw ''},
-        changeVisibleLayer() {},
-        showUserList() {},
+    useImperativeHandle(ref, () => {
+        return mapRef.current ?? {
+            switchMapKind() { console.log('default')},
+            focusItem() {},
+            drawStructure() {},
+            moveStructure() {},
+            changeStructure() {},
+            removeStructure() {},
+            drawTopography() {},
+            drawRoad() {},
+            editTopography() {},
+            removeTopography() {},
+            editTopographyInfo() {},
+            loadContentsAPI() { throw ''},
+            showDetailDialog() {},
+            registContentAPI() { throw ''},
+            updateContentAPI() { throw ''},
+            linkContentToItemAPI() { throw ''},
+            getSnsPreviewAPI() { throw '' },
+            getUnpointDataAPI() { throw ''},
+            getThumbnail() { throw ''},
+            changeVisibleLayer() {},
+            showUserList() {},
+        }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mapInitializedFlag])
 

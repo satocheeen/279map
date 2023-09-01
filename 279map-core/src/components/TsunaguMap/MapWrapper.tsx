@@ -1,10 +1,9 @@
-import React, { useImperativeHandle, useContext, useRef, useState, useCallback } from 'react';
-import { addListener, doCommand, removeListener } from '../../util/Commander';
+import React, { useImperativeHandle, useContext, useRef, useEffect, useCallback } from 'react';
+import { doCommand } from '../../util/Commander';
 import MapChart from './MapChart';
 import { OwnerContext } from './TsunaguMap';
 import { TsunaguMapHandler } from '../../types/types';
 import { GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemParam, RegistContentParam, UpdateContentParam, GetContentsParam, RegistContentAPI, UpdateContentAPI, LinkContentToItemAPI, GetMapInfoAPI } from "tsunagumap-api";
-import { useMounted } from '../../util/useMounted';
 import { Auth, ContentsDefine, DataId, Extent, FeatureType, MapKind, UnpointContent } from '279map-common';
 import { useWatch } from '../../util/useWatch';
 import { useMap } from '../map/useMap';
@@ -12,7 +11,7 @@ import useDataSource from '../../store/datasource/useDataSource';
 import { useSubscribe } from '../../util/useSubscribe';
 import { useItem } from '../../store/item/useItem';
 import { selectedItemIdsAtom } from '../../store/operation';
-import { connectStatusAtom, currentMapKindAtom, mapDefineAtom } from '../../store/session';
+import { connectStatusAtom, currentMapKindAtom, mapDefineLoadableAtom } from '../../store/session';
 import { itemDataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
 import { useAtomCallback } from 'jotai/utils';
@@ -204,25 +203,14 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         onConnectRef.current = ownerContext.onConnect;
     }, [ownerContext]);
 
-    const { removeItems, resetItems } = useItem();
+    const { removeItems } = useItem();
 
     /**
      * load map define when mapkind has changed.
      */
-    const [initialized, setInitialized] = useState(false);
+    // const [initialized, setInitialized] = useState(false);
 
-    const { loadMapDefine, changeMapKind } = useMapController();
-
-    useMounted(() => {
-        // 初期地図読み込み
-        loadMapDefine(connectStatus.mapDefine.defaultMapKind)
-        .then(() => {
-            setInitialized(true);
-            if (props.onInitialized) {
-                props.onInitialized();
-            }
-        })
-    })
+    const { changeMapKind } = useMapController();
 
     const clearLoadedArea = useAtomCallback(
         useCallback((get, set, targets: {datasourceId: string, extent: Extent}[]) => {
@@ -292,7 +280,16 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         }
     }, [selectedItemIds]);
 
-    if (!initialized) return null;
+    const [mapDefineLoadable] = useAtom(mapDefineLoadableAtom);
+
+    useEffect(() => {
+        if (mapDefineLoadable.state === 'hasData') {
+            if (props.onInitialized) {
+                props.onInitialized();
+            }
+        }
+    }, [mapDefineLoadable, props])
+
     return (
         <MapChart />
     );

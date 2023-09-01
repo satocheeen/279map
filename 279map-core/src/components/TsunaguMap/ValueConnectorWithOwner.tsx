@@ -1,11 +1,11 @@
-import React, { Suspense, useRef, useContext, useEffect } from 'react';
+import React, { Suspense, useRef, useContext, useEffect, useCallback } from 'react';
 import { useWatch } from '../../util/useWatch';
 import { OwnerContext } from './TsunaguMap';
 import { categoriesLoadableAtom } from '../../store/category';
 import { eventsLoadableAtom } from '../../store/event';
 import { defaultIconDefineAtom } from '../../store/icon';
 import { mapModeAtom, selectedItemIdsAtom } from '../../store/operation';
-import { connectStatusLoadableAtom, mapDefineAtom } from '../../store/session';
+import { connectStatusLoadableAtom, mapDefineLoadableAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { SearchAPI } from 'tsunagumap-api';
@@ -14,6 +14,8 @@ import { CategoryDefine, DataId, DataSourceGroup, EventDefine, MapKind } from '2
 import { MapMode } from '../../types/types';
 import { useAtom } from 'jotai';
 import { itemDataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
+import { useAtomCallback } from 'jotai/utils';
+import { allItemsAtom, initialItemLoadedAtom, loadedItemKeysAtom } from '../../store/item';
 
 /**
  * OwnerContextとJotaiを繋ぐコンポーネントもどき
@@ -116,18 +118,27 @@ function ConnectListener() {
  */
 function MapLoadListener() {
     const { onMapLoad } = useContext(OwnerContext);
-    const [ mapDefine ] = useAtom(mapDefineAtom);
+    const [ mapDefineLoadable ] = useAtom(mapDefineLoadableAtom);
     const latestMapKindRef = useRef<MapKind>();
+
+    const resetItems = useAtomCallback(
+        useCallback(async(get, set) => {
+            set(allItemsAtom, {});
+            set(loadedItemKeysAtom, []);
+            set(initialItemLoadedAtom, false);
+        }, [])
+    );
 
     // マウント後でないとイベント発火できないので、useEffect内で処理
     useEffect(() => {
-        if (mapDefine && latestMapKindRef.current !== mapDefine.mapKind) {
-            latestMapKindRef.current = mapDefine.mapKind;
+        if (mapDefineLoadable.state === 'hasData' && latestMapKindRef.current !== mapDefineLoadable.data.mapKind) {
+            latestMapKindRef.current = mapDefineLoadable.data.mapKind;
             if (onMapLoad) {
                 onMapLoad({
-                    mapKind: mapDefine.mapKind,
+                    mapKind: mapDefineLoadable.data.mapKind,
                 })
             }
+            resetItems();
         }
     });
 
