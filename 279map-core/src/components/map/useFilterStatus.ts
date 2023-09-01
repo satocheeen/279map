@@ -2,8 +2,8 @@ import { FeatureLike } from 'ol/Feature';
 import { useCallback } from 'react';
 import { useFilter } from '../../store/filter/useFilter';
 import { convertDataIdFromFeatureId, isEqualId } from '../../util/dataUtility';
-import { useRecoilValue } from 'recoil';
-import { selectedItemIdsState } from '../../store/operation';
+import { selectedItemIdsAtom } from '../../store/operation';
+import { useAtom } from 'jotai';
 
 const FORCE_COLOR = '#8888ff';
 
@@ -12,7 +12,7 @@ const FORCE_COLOR = '#8888ff';
  */
 export default function useFilterStatus() {
     const { getFilterStatusOfTheItem } = useFilter();
-    const selectedItemIds = useRecoilValue(selectedItemIdsState);
+    const [selectedItemIds] = useAtom(selectedItemIdsAtom);
 
     /**
      * 指定の地物のフィルタ状態を返す

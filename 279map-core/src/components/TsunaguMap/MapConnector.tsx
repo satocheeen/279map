@@ -1,8 +1,7 @@
 import React, { useCallback, useState, useContext, useEffect } from 'react';
 import { OwnerContext } from './TsunaguMap';
 import { useWatch } from '../../util/useWatch';
-import { useResetRecoilState, useSetRecoilState } from 'recoil';
-import { connectStatusLoadableAtom, instanceIdAtom, instanceIdState, mapIdAtom, mapServerAtom, refreshConnectStatusAtom } from '../../store/session';
+import { connectStatusLoadableAtom, instanceIdAtom, mapIdAtom, mapServerAtom, refreshConnectStatusAtom } from '../../store/session';
 import { createAPICallerInstance, destroyAPICallerInstance } from '../../api/ApiCaller';
 import { ApiError, ErrorType, RequestAPI } from 'tsunagumap-api';
 import Overlay from '../common/spinner/Overlay';
@@ -27,12 +26,10 @@ type Props = {
  */
 export default function MapConnector(props: Props) {
     const ownerContext = useContext(OwnerContext);
-    const setInstanceId = useSetRecoilState(instanceIdState);
-    const resetInstanceId = useResetRecoilState(instanceIdState);
     const [mapId, setMapId] = useAtom(mapIdAtom);
     const [mapServer, setMapServer] = useAtom(mapServerAtom);
     const [connectLoadable] = useAtom(connectStatusLoadableAtom);
-    const [instanceId, setInstanceIdForJotai ] = useAtom(instanceIdAtom);
+    const [instanceId, setInstanceId ] = useAtom(instanceIdAtom);
 
     useEffect(() => {
         setMapId(ownerContext.mapId);
@@ -52,16 +49,15 @@ export default function MapConnector(props: Props) {
         createMqttClientInstance(id, ownerContext.mapServer);
 
         setInstanceId(ownerContext.mapInstanceId);
-        setInstanceIdForJotai(ownerContext.mapInstanceId);
         setMapServer(ownerContext.mapServer);
 
         return () => {
             destroyAPICallerInstance(id);
             destroyMqttClientInstance(id);
-            resetInstanceId();
+            setInstanceId('');
             setMapServer(undefined);
         }
-    }, [setInstanceIdForJotai, ownerContext.mapInstanceId, ownerContext.mapServer, resetInstanceId, setInstanceId, setMapServer]);
+    }, [ownerContext.mapInstanceId, ownerContext.mapServer, setInstanceId, setMapServer]);
 
 
     const { subscribeUser, unsubscribeUser } = useSubscribe();

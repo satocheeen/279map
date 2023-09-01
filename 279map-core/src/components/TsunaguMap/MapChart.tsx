@@ -23,9 +23,9 @@ import useMyMedia from "../../util/useMyMedia";
 import { useProcessMessage } from "../common/spinner/useProcessMessage";
 import { isEqualId } from "../../util/dataUtility";
 import { useItem } from "../../store/item/useItem";
-import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { useRecoilValue } from 'recoil';
 import { allItemsAtom, initialItemLoadedAtom } from "../../store/item";
-import { mapModeState, mapViewState, selectedItemIdsState } from "../../store/operation";
+import { mapModeAtom, mapViewAtom, selectedItemIdsAtom } from "../../store/operation";
 import { currentMapKindAtom, defaultExtentAtom } from "../../store/session";
 import { filteredItemIdListState } from "../../store/filter";
 import { useAtom } from 'jotai';
@@ -36,7 +36,7 @@ export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
     const [initialized, setInitialized] = useState(false);
     const mapRef = useRef<OlMapType>();
-    const mapMode = useRecoilValue(mapModeState);
+    const [mapMode] = useAtom(mapModeAtom);
 
     // スタイル設定
     // -- コンテンツ（建物・ポイント）レイヤ
@@ -185,12 +185,12 @@ export default function MapChart() {
     const { isPC } = useMyMedia();
     const { mapInstanceId } = useContext(OwnerContext);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
-    const setSelectedItemIds = useSetRecoilState(selectedItemIdsState);
+    const [ selectedItemIds, setSelectedItemIds ] = useAtom(selectedItemIdsAtom);
 
     /**
      * 地図初期化
      */
-    const setMapView = useSetRecoilState(mapViewState);
+    const [mapView, setMapView] = useAtom(mapViewAtom);
     useMounted(() => {
         if (myRef.current === null) {
             return;

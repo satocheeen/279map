@@ -11,8 +11,7 @@ import { useMap } from '../map/useMap';
 import useDataSource from '../../store/datasource/useDataSource';
 import { useSubscribe } from '../../util/useSubscribe';
 import { useItem } from '../../store/item/useItem';
-import { useRecoilValue, useRecoilCallback } from 'recoil';
-import { selectedItemIdsState } from '../../store/operation';
+import { selectedItemIdsAtom } from '../../store/operation';
 import { connectStatusAtom, currentMapKindAtom, mapDefineAtom } from '../../store/session';
 import { itemDataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
@@ -310,7 +309,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     /**
      * 1アイテムが選択されたら詳細ダイアログ表示
      */
-    const selectedItemIds = useRecoilValue(selectedItemIdsState);
+    const [selectedItemIds] = useAtom(selectedItemIdsAtom);
     const { disabledContentDialog } = useContext(OwnerContext);
     useWatch(() => {
         if (selectedItemIds.length === 1 && !disabledContentDialog) {

@@ -9,9 +9,10 @@ import { useMapOptions } from "../../util/useMapOptions";
 import { useMap } from "../map/useMap";
 import { doCommand } from "../../util/Commander";
 import { useRecoilCallback, useRecoilValue, useSetRecoilState } from 'recoil';
-import { mapModeState, selectedItemIdsState } from "../../store/operation";
+import { mapModeAtom, selectedItemIdsAtom } from "../../store/operation";
 import { filteredContentIdListState, filteredItemIdListState } from "../../store/filter";
 import { useItem } from "../../store/item/useItem";
+import { useAtom } from "jotai";
 
 type Props = {
     // このポップアップにて情報表示する対象アイテム
@@ -126,7 +127,7 @@ export default function PointsPopup(props: Props) {
         }, 0);
     }, [props.itemIds, getDescendantContentsIdList]);
 
-    const setSelectedItemIds = useSetRecoilState(selectedItemIdsState);
+    const [selectedItemIds, setSelectedItemIds] = useAtom(selectedItemIdsAtom);
     const onClick = useCallback((evt: React.MouseEvent) => {
         if (props.itemIds.length === 1) {
             setSelectedItemIds([props.itemIds[0]]);
@@ -147,7 +148,7 @@ export default function PointsPopup(props: Props) {
         }
     }, [setSelectedItemIds, props.itemIds, getMap]);
 
-    const mapMode = useRecoilValue(mapModeState);
+    const [mapMode] = useAtom(mapModeAtom);
 
     if (!target) {
         return null;

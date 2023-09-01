@@ -9,9 +9,10 @@ import { isEqualId } from '../../util/dataUtility';
 import { useMap } from '../map/useMap';
 import { addListener, removeListener } from '../../util/Commander';
 import { useRecoilValue } from 'recoil';
-import { mapModeState, mapViewState, selectedItemIdsState } from '../../store/operation';
+import { mapModeAtom, mapViewAtom, selectedItemIdsAtom } from '../../store/operation';
 import { filteredItemIdListState } from '../../store/filter';
 import { useItem } from '../../store/item/useItem';
+import { useAtom } from 'jotai';
 
 /**
  * 地図上のアイテムがクリックされた際に、
@@ -34,7 +35,7 @@ export default function ClusterMenuController(props: Props) {
     const { getMap } = useMap();
     const [clusterMenuInfo, setClusterMenuInfo] = useState<ClusterMenuTarget|null>(null);
     const { onClick } = useContext(OwnerContext);
-    const mapMode = useRecoilValue(mapModeState);
+    const [mapMode] = useAtom(mapModeAtom);
 
     const filteredItemIdList = useRecoilValue(filteredItemIdListState);
     const filteredItemIdListRef = useRef(filteredItemIdList);   // for using in map event funtion
@@ -47,7 +48,7 @@ export default function ClusterMenuController(props: Props) {
     }, [mapMode]);
 
     // close cluster menu when zoom level is changed
-    const mapView = useRecoilValue(mapViewState);
+    const [mapView] = useAtom(mapViewAtom);
     const prevMapView = usePrevious(mapView);
     useEffect(() => {
         if (mapView.zoom === prevMapView?.zoom) {
@@ -56,7 +57,7 @@ export default function ClusterMenuController(props: Props) {
         setClusterMenuInfo(null);
     }, [mapView, prevMapView]);
 
-    const selectedItemIds = useRecoilValue(selectedItemIdsState);
+    const [selectedItemIds] = useAtom(selectedItemIdsAtom);
     useEffect(() => {
         if (selectedItemIds.length > 0) {
             setClusterMenuInfo(null);

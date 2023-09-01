@@ -1,4 +1,3 @@
-import { atom as atomAsRecoil, selector } from 'recoil';
 import { ConnectResult, ErrorType, GetMapInfoResult } from 'tsunagumap-api';
 import { getAPICallerInstance } from '../../api/ApiCaller';
 import { ServerInfo } from '../../types/types';
@@ -8,10 +7,6 @@ import { Extent } from "ol/extent";
 import { atom } from 'jotai';
 import { loadable } from 'jotai/utils';
 
-export const instanceIdState = atomAsRecoil<string>({
-    key: 'instanceIdState',
-    default: '',
-})
 export const instanceIdAtom = atom('');
 
 export const mapIdAtom = atom<string>('');

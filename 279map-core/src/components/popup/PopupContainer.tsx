@@ -11,9 +11,9 @@ import { useWatch } from '../../util/useWatch';
 import { useMapOptions } from '../../util/useMapOptions';
 import { allItemsAtom } from '../../store/item';
 import { useRecoilValue } from 'recoil';
-import { mapViewState } from '../../store/operation';
+import { mapViewAtom } from '../../store/operation';
 import { filteredItemIdListState } from '../../store/filter';
-import { ItemDefine } from '../../entry';
+import { ItemDefine } from '279map-common';
 import { useAtom } from 'jotai';
 import { visibleDataSourceIdsAtom } from '../../store/datasource';
 
@@ -27,7 +27,7 @@ export default function PopupContainer() {
     const elementRefMap = useRef<{ [key: string]: HTMLDivElement }>({});
     const overlayRefMap = useRef<{ [key: string]: Overlay }>({});
 
-    const { extent, zoom } = useRecoilValue(mapViewState);
+    const [{ extent, zoom }] = useAtom(mapViewAtom);
 
     const { popupMode } = useMapOptions();
     

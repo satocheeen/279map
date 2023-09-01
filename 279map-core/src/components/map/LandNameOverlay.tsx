@@ -6,8 +6,7 @@ import styles from './LandNameOverlay.module.scss';
 import { FeatureType } from '279map-common';
 import { getMapKey } from '../../util/dataUtility';
 import { useMap } from './useMap';
-import { useRecoilValue } from 'recoil';
-import { mapViewState } from '../../store/operation';
+import { mapViewAtom } from '../../store/operation';
 import { allItemsAtom } from '../../store/item';
 import { useAtom } from 'jotai';
 import { dataSourcesAtom } from '../../store/datasource';
@@ -33,7 +32,7 @@ export default function LandNameOverlay() {
     const [landNameRefMap] = useState({} as { [id: string]: HTMLDivElement });
     const [landNameOverlayMap] = useState({} as  { [id: string]: Overlay });
 
-    const mapView = useRecoilValue(mapViewState);
+    const [mapView] = useAtom(mapViewAtom);
 
     // 名前を持つ島
     const namedEarth = useMemo(() => {

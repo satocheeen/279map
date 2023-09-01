@@ -11,7 +11,7 @@ import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
 import { useMap } from "./useMap";
 import { useMapOptions } from "../../util/useMapOptions";
 import { useRecoilValue } from "recoil";
-import { selectedItemIdsState } from "../../store/operation";
+import { selectedItemIdsAtom } from "../../store/operation";
 import useIcon from "../../store/icon/useIcon";
 import { filteredItemIdListState } from "../../store/filter";
 import { dataSourcesAtom } from "../../store/datasource";
@@ -34,7 +34,7 @@ export default function usePointStyle() {
     const { filter } = useContext(OwnerContext);
     const { getIconDefine } = useIcon();
     const { getMap } = useMap();
-    const selectedItemIds = useRecoilValue(selectedItemIdsState);
+    const [selectedItemIds] = useAtom(selectedItemIdsAtom);
 
     const getZindex = useCallback((feature: Feature<Geometry>): number => {
         const map = getMap();

@@ -5,8 +5,8 @@ import EditTopographyInfoController from './draw-controller/topography/EditTopog
 import { FeatureType } from '279map-common';
 import { LayerType } from '../TsunaguMap/VectorLayerMap';
 import LoadingOverlay from '../common/spinner/LoadingOverlay';
-import { useSetRecoilState } from 'recoil';
-import { mapModeState } from '../../store/operation';
+import { mapModeAtom } from '../../store/operation';
+import { useAtom } from 'jotai';
 
 const DrawStructureController = lazy(() => import('./draw-controller/structure/DrawStructureController'));
 const MoveItemController = lazy(() => import('./draw-controller/structure/MoveItemController'));
@@ -23,7 +23,7 @@ type Props = {
 
 export default function DrawController(props: Props) {
     const [drawController, setDrawController] = useState(undefined as JSX.Element | undefined);
-    const setMapMode = useSetRecoilState(mapModeState);
+    const [mapMode, setMapMode] = useAtom(mapModeAtom);
 
     useEffect(() => {
         const terminate = () => {

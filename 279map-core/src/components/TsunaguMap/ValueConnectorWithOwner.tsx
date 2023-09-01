@@ -1,12 +1,11 @@
 import React, { Suspense, useRef, useContext, useEffect } from 'react';
 import { useWatch } from '../../util/useWatch';
-import { useRecoilValue } from 'recoil';
 import { OwnerContext } from './TsunaguMap';
 import { categoriesLoadableAtom } from '../../store/category';
 import { eventsLoadableAtom } from '../../store/event';
 import { useSetRecoilState } from 'recoil';
 import { defaultIconDefineAtom } from '../../store/icon';
-import { mapModeState, selectedItemIdsState } from '../../store/operation';
+import { mapModeAtom, selectedItemIdsAtom } from '../../store/operation';
 import { connectStatusLoadableAtom, mapDefineAtom } from '../../store/session';
 import { filteredItemsState } from '../../store/filter';
 import { useMap } from '../map/useMap';
@@ -214,7 +213,7 @@ function EventLoadListener() {
  */
 function MapModeChangeListener() {
     const { onModeChanged}  = useContext(OwnerContext);
-    const mapMode = useRecoilValue(mapModeState);
+    const [mapMode] = useAtom(mapModeAtom);
     const latestMapModeRef = useRef<MapMode>();
 
      // マウント後でないとイベント発火できないので、useEffect内で処理
@@ -236,7 +235,7 @@ function MapModeChangeListener() {
  */
 function SelectChangeLister() {
     const { onSelect}  = useContext(OwnerContext);
-    const selectedItemIds = useRecoilValue(selectedItemIdsState);
+    const [selectedItemIds] = useAtom(selectedItemIdsAtom);
     const latestItemIdsRef = useRef<DataId[]>();
 
     // マウント後でないとイベント発火できないので、useEffect内で処理
