@@ -44,8 +44,6 @@ type CommandDefine =
     | TCommandDefine<'ShowItemInfo', DataId>
     // 指定のアイテムにフォーカスする
     | TCommandDefine<'FocusItem', {itemId: DataId; zoom?: boolean}>
-    // 地図種別を切り替える
-    | TCommandDefine<'ChangeMapKind', MapKind>
     // 重畳選択メニュー表示
     | TCommandDefine<'ShowClusterMenu', {position: Coordinate; targets: DataId[]}>
     // ユーザ一覧表示（管理者）

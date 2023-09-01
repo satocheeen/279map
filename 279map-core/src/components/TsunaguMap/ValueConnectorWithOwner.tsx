@@ -16,9 +16,9 @@ import { useAtom } from 'jotai';
 import { itemDataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 
 /**
- * OwnerContextとRecoilを繋ぐコンポーネントもどき
- * - OwnerContextで設定された値のうち、必要なものをRecoilに設定する
- * - Recoilの各値の変更検知して呼び出し元に返す
+ * OwnerContextとJotaiを繋ぐコンポーネントもどき
+ * - OwnerContextで設定された値のうち、必要なものをJotaiに設定する
+ * - Jotaiの各値の変更検知して呼び出し元に返す
  */
 export default function ValueConnectorWithOwner() {
     return (
@@ -33,15 +33,15 @@ export default function ValueConnectorWithOwner() {
             <EventLoadListener />
             <MapModeChangeListener />
             <SelectChangeLister />
-            <RecoilSetter/>
+            <JotaiSetter/>
         </>
     )
 }
 
 /**
- * OwnerContextで設定された値のうち、必要なものをRecoilに設定する
+ * OwnerContextで設定された値のうち、必要なものをJotaiに設定する
  */
-function RecoilSetter() {
+function JotaiSetter() {
     const { iconDefine } = useContext(OwnerContext);
     const [ _, setDefaultIconDefine ] = useAtom(defaultIconDefineAtom);
 

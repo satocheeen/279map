@@ -24,6 +24,7 @@ import { dataSourcesAtom } from "../../store/datasource";
 import { useAtom } from 'jotai';
 import { categoriesAtom } from "../../store/category";
 import { ConfirmBtnPattern, ConfirmResult } from "../common/confirm/types";
+import { useMapController } from "../../store/useMapController";
 
 type Props = {
     itemId: DataId;
@@ -138,23 +139,22 @@ export default function Content(props: Props) {
         return mapName + 'で見る';
     }, [mapKind]);
 
+    const { changeMapKind } = useMapController();
     const onGoToAnotherMap = useCallback(async() => {
         if (!props.content.anotherMapItemId) {
             console.warn('別地図にアイテムなし');
             return;
         }
         const anotherMap = mapKind === MapKind.Real ? MapKind.Virtual : MapKind.Real;
-        await doCommand({
-            command: 'ChangeMapKind',
-            param: anotherMap,
-        });
+
+        await changeMapKind(anotherMap);
         doCommand({
             command: 'FocusItem',
             param: {
                 itemId: props.content.anotherMapItemId,
             }
         });
-    }, [mapKind, props.content.anotherMapItemId]);
+    }, [mapKind, props.content.anotherMapItemId, changeMapKind]);
 
     /**
      * イメージロード

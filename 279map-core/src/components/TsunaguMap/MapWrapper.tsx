@@ -18,6 +18,7 @@ import { useAtom } from 'jotai';
 import { useAtomCallback } from 'jotai/utils';
 import { loadedItemKeysAtom } from '../../store/item';
 import { checkContaining } from '../../util/MapUtility';
+import { useMapController } from '../../store/useMapController';
 
 type Props = {
     onInitialized?: () => void;
@@ -52,10 +53,7 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
 
     useImperativeHandle(ref, () => ({
         switchMapKind(mapKind: MapKind) {
-            doCommand({
-                command: 'ChangeMapKind',
-                param: mapKind,
-            });
+            changeMapKind(mapKind);
         },
         focusItem(itemId: DataId, opts?: {zoom?: boolean}) {
             doCommand({
@@ -213,31 +211,9 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
      */
     const [initialized, setInitialized] = useState(false);
 
-    const loadMapDefine = useAtomCallback(
-        useCallback(async(get, set, mk: MapKind) => {
-            const res = await getApi().callApi(GetMapInfoAPI, {
-                mapKind: mk,
-            });
-            set(mapDefineAtom, res);
-            resetItems();
-        }, [resetItems, getApi])
-    )
-
-    const changeMapKind = useAtomCallback(
-        useCallback(async(get, set, mk: MapKind) => {
-            const mapKind = get(currentMapKindAtom);
-            if (mk === mapKind) {
-                return;
-            }
-            await loadMapDefine(mk);
-        }, [loadMapDefine])
-    );
+    const { loadMapDefine, changeMapKind } = useMapController();
 
     useMounted(() => {
-        const h = addListener('ChangeMapKind', async(mk: MapKind) => {
-            changeMapKind(mk);
-        });
-
         // 初期地図読み込み
         loadMapDefine(connectStatus.mapDefine.defaultMapKind)
         .then(() => {
@@ -246,10 +222,6 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
                 props.onInitialized();
             }
         })
-
-        return () => {
-            removeListener(h);
-        }
     })
 
     const clearLoadedArea = useAtomCallback(
