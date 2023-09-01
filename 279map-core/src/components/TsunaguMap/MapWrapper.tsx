@@ -11,9 +11,9 @@ import { useMap } from '../map/useMap';
 import useDataSource from '../../store/datasource/useDataSource';
 import { useSubscribe } from '../../util/useSubscribe';
 import { useItem } from '../../store/item/useItem';
-import { useRecoilValue, useSetRecoilState, useRecoilCallback } from 'recoil';
+import { useRecoilValue, useRecoilCallback } from 'recoil';
 import { selectedItemIdsState } from '../../store/operation';
-import { connectStatusState, currentMapKindAtom, mapDefineAtom, mapDefineState } from '../../store/session';
+import { connectStatusState, currentMapKindAtom, mapDefineAtom } from '../../store/session';
 import { itemDataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
 import { useAtomCallback } from 'jotai/utils';
@@ -213,22 +213,26 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
     /**
      * load map define when mapkind has changed.
      */
-    const setMapDefine = useSetRecoilState(mapDefineState);
-    const [_, setMapDefineForJotai] = useAtom(mapDefineAtom);
     const [initialized, setInitialized] = useState(false);
+
+    const loadMapDefine = useAtomCallback(
+        useCallback(async(get, set, mk: MapKind) => {
+            const res = await getApi().callApi(GetMapInfoAPI, {
+                mapKind: mk,
+            });
+            set(mapDefineAtom, res);
+            resetItems();
+        }, [resetItems, getApi])
+    )
+
     const changeMapKind = useAtomCallback(
         useCallback(async(get, set, mk: MapKind) => {
             const mapKind = get(currentMapKindAtom);
             if (mk === mapKind) {
                 return;
             }
-            const res = await getApi().callApi(GetMapInfoAPI, {
-                mapKind: mk,
-            });
-            setMapDefine(res);
-            setMapDefineForJotai(res);
-            resetItems();
-        }, [setMapDefineForJotai, setMapDefine, getApi, resetItems])
+            await loadMapDefine(mk);
+        }, [loadMapDefine])
     );
 
     useMounted(() => {
@@ -237,11 +241,8 @@ function MapWrapper(props: Props, ref: React.ForwardedRef<TsunaguMapHandler>) {
         });
 
         // 初期地図読み込み
-        getApi().callApi(GetMapInfoAPI, {
-            mapKind: connectStatus.mapDefine.defaultMapKind,
-        }).then(res => {
-            setMapDefine(res);
-            setMapDefineForJotai(res);
+        loadMapDefine(connectStatus.mapDefine.defaultMapKind)
+        .then(() => {
             setInitialized(true);
             if (props.onInitialized) {
                 props.onInitialized();

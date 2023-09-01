@@ -1,5 +1,5 @@
 import { atom } from 'jotai';
-import { DataSourceInfo, MapKind } from '../../entry';
+import { DataSourceInfo, MapKind } from '279map-common';
 import { mapDefineAtom } from '../session';
 
 /**
@@ -23,8 +23,8 @@ export const dataSourceVisibleState = atom<DatasourceVisibleInfo>({
  */
 const dataSourceGroupsAtom = atom((get) => {
     const mapDefine = get(mapDefineAtom);
+    if (!mapDefine) return [];
     const dataSourceVisibleInfo = get(dataSourceVisibleState);
-    console.log('debug mapDefine', mapDefine);
 
     return mapDefine.dataSourceGroups.map(group => {
         const groupVisible = dataSourceVisibleInfo.group[group.name ?? ''] ?? group.visible;
@@ -55,6 +55,7 @@ export const dataSourcesAtom = atom((get) => {
  */
 export const itemDataSourcesAtom = atom((get) => {
     const mapDefine = get(mapDefineAtom);
+    if (!mapDefine) return [];
     const mapKind = mapDefine.mapKind;
     const dataSourceGroups = get(dataSourceGroupsAtom);
 

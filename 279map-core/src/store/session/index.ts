@@ -6,7 +6,6 @@ import { Auth, MapKind } from '279map-common';
 import { ApiException } from '../../api';
 import { Extent } from "ol/extent";
 import { atom } from 'jotai';
-import { loadable } from 'jotai/utils';
 
 export const instanceIdState = atomAsRecoil<string>({
     key: 'instanceIdState',
@@ -50,29 +49,7 @@ export const connectStatusState = selector<ConnectResult>({
     }
 })
 
-export const mapDefineState = atomAsRecoil<GetMapInfoResult>({
-    key: 'mapDefineState',
-    default: {
-        mapKind: MapKind.Real,
-        extent: [0,0,0,0],
-        dataSourceGroups: [],
-    }
-});
-export const mapDefineAtom = atom<GetMapInfoResult>({
-    mapKind: MapKind.Real,
-    extent: [0,0,0,0],
-    dataSourceGroups: [],
-})
-
-export const mapDefineLoadableAtom = loadable(mapDefineAtom);
-
-export const currentMapKindState = selector<MapKind|undefined>({
-    key: 'currentMapKindSelector',
-    get: ( { get } ) => {
-        const mapDefine = get(mapDefineState);
-        return mapDefine?.mapKind;
-    }
-})
+export const mapDefineAtom = atom<GetMapInfoResult|undefined>(undefined);
 
 export const currentMapKindAtom = atom<MapKind|undefined>((get) => {
     const mapDefine = get(mapDefineAtom);

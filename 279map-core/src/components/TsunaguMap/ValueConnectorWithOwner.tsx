@@ -7,7 +7,7 @@ import { eventsLoadableAtom } from '../../store/event';
 import { useSetRecoilState } from 'recoil';
 import { defaultIconDefineAtom } from '../../store/icon';
 import { mapModeState, selectedItemIdsState } from '../../store/operation';
-import { connectStatusState, mapDefineLoadableAtom } from '../../store/session';
+import { connectStatusState, mapDefineAtom } from '../../store/session';
 import { filteredItemsState } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { SearchAPI } from 'tsunagumap-api';
@@ -118,16 +118,16 @@ function ConnectListener() {
  */
 function MapLoadListener() {
     const { onMapLoad } = useContext(OwnerContext);
-    const [ currentMapKindLoadable ] = useAtom(mapDefineLoadableAtom);
+    const [ mapDefine ] = useAtom(mapDefineAtom);
     const latestMapKindRef = useRef<MapKind>();
 
     // マウント後でないとイベント発火できないので、useEffect内で処理
     useEffect(() => {
-        if (currentMapKindLoadable.state === 'hasData' && latestMapKindRef.current !== currentMapKindLoadable.data.mapKind) {
-            latestMapKindRef.current = currentMapKindLoadable.data.mapKind;
+        if (mapDefine && latestMapKindRef.current !== mapDefine.mapKind) {
+            latestMapKindRef.current = mapDefine.mapKind;
             if (onMapLoad) {
                 onMapLoad({
-                    mapKind: currentMapKindLoadable.data.mapKind,
+                    mapKind: mapDefine.mapKind,
                 })
             }
         }
