@@ -1,12 +1,13 @@
 import React, { useCallback } from 'react';
 import { FeatureLike } from 'ol/Feature';
-import useConfirm, { ConfirmResult } from '../../../common/confirm/useConfirm';
+import useConfirm from '../../../common/confirm/useConfirm';
 import SelectFeature from '../SelectFeature';
 import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useMap } from '../../useMap';
 import { RemoveItemAPI } from 'tsunagumap-api';
+import { ConfirmResult } from '../../../common/confirm/types';
 
 type Props = {
     target: LayerType;

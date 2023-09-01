@@ -3,7 +3,7 @@ import { Modify } from 'ol/interaction';
 import VectorSource from 'ol/source/Vector';
 import { Stroke, Style } from 'ol/style';
 import React, { useEffect, useCallback, useRef, useState } from 'react';
-import useConfirm, { ConfirmResult } from '../../../common/confirm/useConfirm';
+import useConfirm from '../../../common/confirm/useConfirm';
 import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import { createGeoJson, extractGeoProperty, getOriginalLine } from '../../../../util/MapUtility';
 import useTopographyStyle from '../../useTopographyStyle';
@@ -17,6 +17,7 @@ import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useMap } from '../../useMap';
 import { UpdateItemAPI } from 'tsunagumap-api';
+import { ConfirmResult } from '../../../common/confirm/types';
 
 type Props = {
     close: () => void;  // 作図完了時のコールバック

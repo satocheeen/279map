@@ -8,7 +8,6 @@ import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
 import { AddNewContentParam, EditContentParam, LinkUnpointContentParam, TsunaguMapHandler, TsunaguMapProps } from '../../types/types';
 import DefaultComponents from '../default/DefaultComponents';
 import UserListModal from '../admin/UserListModal';
-import { RecoilRoot } from 'recoil';
 import ValueConnectorWithOwner from './ValueConnectorWithOwner';
 import MapConnector from './MapConnector';
 import ProcessOverlay from './ProcessOverlay';
@@ -100,30 +99,28 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
         <div className={styles.TsunaguMap}>
             <OwnerContext.Provider value={ownerContextValue}>
                 <Provider>
-                    <RecoilRoot>
-                        <MapConnector>
-                            <ValueConnectorWithOwner />
-                            <TooltipContext.Provider value={tooltipContextValue}>
-                                <MapWrapper ref={mapRef} onInitialized={()=>setMapInitializedFlag(true)} />
-                                <Suspense>
-                                    <ConfirmDialog />
-                                    <ContentsModal />
-                                    <UserListModal />
+                    <MapConnector>
+                        <ValueConnectorWithOwner />
+                        <TooltipContext.Provider value={tooltipContextValue}>
+                            <MapWrapper ref={mapRef} onInitialized={()=>setMapInitializedFlag(true)} />
+                            <Suspense>
+                                <ConfirmDialog />
+                                <ContentsModal />
+                                <UserListModal />
 
-                                    {defaultLinkUnpointedContentParam &&
-                                        <DefaultComponents linkUnpointedContentParam={defaultLinkUnpointedContentParam} onClose={()=>{setDefaultLinkUnpointedContentParam(undefined)}} />
-                                    }
-                                    {defaultNewContentParam &&
-                                        <DefaultComponents newContentParam={defaultNewContentParam} onClose={()=>{setDefaultNewContentParam(undefined)}} />
-                                    }
-                                    {defaultEditContentParam &&
-                                        <DefaultComponents editContentParam={defaultEditContentParam} onClose={()=>{setDefaultEditContentParam(undefined)}} />
-                                    }
-                                </Suspense>
-                            </TooltipContext.Provider>
-                            <ProcessOverlay />
-                        </MapConnector>
-                    </RecoilRoot>
+                                {defaultLinkUnpointedContentParam &&
+                                    <DefaultComponents linkUnpointedContentParam={defaultLinkUnpointedContentParam} onClose={()=>{setDefaultLinkUnpointedContentParam(undefined)}} />
+                                }
+                                {defaultNewContentParam &&
+                                    <DefaultComponents newContentParam={defaultNewContentParam} onClose={()=>{setDefaultNewContentParam(undefined)}} />
+                                }
+                                {defaultEditContentParam &&
+                                    <DefaultComponents editContentParam={defaultEditContentParam} onClose={()=>{setDefaultEditContentParam(undefined)}} />
+                                }
+                            </Suspense>
+                        </TooltipContext.Provider>
+                        <ProcessOverlay />
+                    </MapConnector>
                 </Provider>
             </OwnerContext.Provider>
         </div>

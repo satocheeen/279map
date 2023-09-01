@@ -1,44 +1,15 @@
 import { useCallback } from "react";
-import { atom, useSetRecoilState } from "recoil";
+import { ConfirmParam, ConfirmResult } from "./types";
+import { useAtom } from "jotai";
+import { confirmInfoAtom, confirmResultAtom, showConfirmDialogAtom } from "./atoms";
 
-export const showConfirmDialogState = atom<boolean>({
-    key: 'showConfirmDialogAtom',
-    default: false,
-});
-
-export const confirmInfoState = atom<undefined | ConfirmParam>({
-    key: 'confirmInfoAtom',
-    default: undefined,
-});
-
-export const confirmResultState = atom<undefined | ConfirmResult>({
-    key: 'confirmResultAtom',
-    default: undefined,
-});
-
-export enum ConfirmResult {
-    Ok,
-    Cancel,
-    Yes,
-    No,
-}
-export enum ConfirmBtnPattern {
-    OkCancel,
-    OkOnly,
-    YesNo,
-}
-export type ConfirmParam = {
-    message: string;
-    title?: string;
-    btnPattern?: ConfirmBtnPattern;
-}
 
 let resolveCallback = null as null | ((value: ConfirmResult | PromiseLike<ConfirmResult>) => void);
 
 export default function useConfirm() {
-    const setShowConfirmDialog = useSetRecoilState(showConfirmDialogState);
-    const setConfirmInfo = useSetRecoilState(confirmInfoState);
-    const setConfirmResult = useSetRecoilState(confirmResultState);
+    const [ showConfirmDialog, setShowConfirmDialog ] = useAtom(showConfirmDialogAtom);
+    const [ confirmInfo, setConfirmInfo ] = useAtom(confirmInfoAtom);
+    const [ confirmResult, setConfirmResult ] = useAtom(confirmResultAtom);
 
     const confirm = useCallback(async(param: ConfirmParam): Promise<ConfirmResult> => {
         setShowConfirmDialog(true);

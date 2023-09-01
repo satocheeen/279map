@@ -1,14 +1,16 @@
 import React, { useCallback, useMemo } from 'react';
 import Button from '../button/Button';
 import Modal from '../modal/Modal';
-import useConfirm, { ConfirmBtnPattern, ConfirmResult, confirmInfoState, showConfirmDialogState } from './useConfirm';
+import useConfirm from './useConfirm';
 import styles from './ConfirmDialog.module.scss';
 import { usePrevious } from '../../../util/usePrevious';
-import { useRecoilValue } from 'recoil';
+import { useAtom } from 'jotai';
+import { confirmInfoAtom, showConfirmDialogAtom } from './atoms';
+import { ConfirmBtnPattern, ConfirmResult } from './types';
 
 export default function ConfirmDialog() {
-    const isShow = useRecoilValue(showConfirmDialogState);
-    const originalConfirmInfo = useRecoilValue(confirmInfoState);
+    const [ isShow ] = useAtom(showConfirmDialogAtom);
+    const [ originalConfirmInfo ] = useAtom(confirmInfoAtom);
     const prevOriginalConfirmInfo = usePrevious(originalConfirmInfo);
 
     const confirmInfo = useMemo(() => {

@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 import CategoryBadge from "../common/CategoryBadge";
 import * as CommonUtility from '../../util/CommonUtility';
 import { CgArrowsExchangeAlt } from "react-icons/cg";
-import useConfirm, { ConfirmBtnPattern, ConfirmResult } from "../common/confirm/useConfirm";
+import useConfirm from "../common/confirm/useConfirm";
 import reactStringReplace from "react-string-replace";
 import PopupMenuIcon from "../popup/PopupMenuIcon";
 import AddContentMenu from "../popup/AddContentMenu";
@@ -23,6 +23,7 @@ import { filteredContentIdListAtom } from "../../store/filter";
 import { dataSourcesAtom } from "../../store/datasource";
 import { useAtom } from 'jotai';
 import { categoriesAtom } from "../../store/category";
+import { ConfirmBtnPattern, ConfirmResult } from "../common/confirm/types";
 
 type Props = {
     itemId: DataId;
