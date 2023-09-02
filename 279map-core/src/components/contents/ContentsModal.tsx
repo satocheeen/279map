@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Modal }  from '../common';
 import Content from './Content';
 import { addListener, removeListener } from '../../util/Commander';
-import { ContentsDefine, DataId } from '279map-common';
+import { Auth, ContentsDefine, DataId } from '279map-common';
 import AddContentMenu from '../popup/AddContentMenu';
 import styles from './ContentsModal.module.scss';
 import { getMapKey } from '../../util/dataUtility';
@@ -14,6 +14,11 @@ import { useRecoilValue } from 'recoil';
 import { itemMapState } from '../../store/item';
 import { useMap } from '../map/useMap';
 import { useSubscribe } from '../../util/useSubscribe';
+import { authLvState } from '../../store/session';
+import { compareAuth } from '../../util/CommonUtility';
+import { MdEdit } from 'react-icons/md';
+import PopupMenuIcon from '../popup/PopupMenuIcon';
+import EditItemNameModal from './EditItemNameModal';
 
 type Target = {
     type: 'item';
@@ -135,6 +140,17 @@ export default function ContentsModal() {
         return item.name;
     }, [target, contentsList, itemMap]);
 
+    const authLv = useRecoilValue(authLvState);
+    const isShowItemNameEditBtn = useMemo(() => {
+        if (target?.type !== 'item') return false;
+        return compareAuth(authLv, Auth.Edit) >= 0
+    }, [target, authLv])
+
+    const [showEditItemNameModal, setShowEditItemNameModal] = useState(false);
+    const onEditItemName = useCallback(() => {
+        setShowEditItemNameModal(true);
+    }, []);
+
     const onCloseBtnClicked = useCallback(() => {
         setShow(false);
     }, []);
@@ -166,24 +182,33 @@ export default function ContentsModal() {
     }, [contents, target]);
 
     return (
-        <Modal show={show} spinner={!loaded}
-            onCloseBtnClicked={onCloseBtnClicked}
-            onClosed={onClosed}
-            >
-            <Modal.Header>
-                <div className={styles.ItemHeader}>
-                    {title}
-                    {(target?.type === 'item' && contents.length > 0) &&
-                    <AddContentMenu target={{itemId: target.itemId}} />
-                }
-                </div>
-            </Modal.Header>
-            <Modal.Body>
-                {body}
-            </Modal.Body>
-            <Modal.Footer>
-
-            </Modal.Footer>
-        </Modal>
+        <>
+            <Modal show={show} spinner={!loaded}
+                onCloseBtnClicked={onCloseBtnClicked}
+                onClosed={onClosed}
+                >
+                <Modal.Header>
+                    <div className={styles.ItemHeader}>
+                        {title}
+                        {(target?.type === 'item' && contents.length > 0) &&
+                        <AddContentMenu target={{itemId: target.itemId}} />
+                        }
+                        {isShowItemNameEditBtn &&
+                            <PopupMenuIcon tooltip='建物名変更' onClick={onEditItemName}>
+                                <MdEdit />
+                            </PopupMenuIcon>
+                        }
+                    </div>
+                </Modal.Header>
+                <Modal.Body>
+                    {body}
+                </Modal.Body>
+                <Modal.Footer>
+                </Modal.Footer>
+            </Modal>
+            {showEditItemNameModal &&
+                <EditItemNameModal onClose={() => setShowEditItemNameModal(false)} />
+            }
+        </>
     );
 }
