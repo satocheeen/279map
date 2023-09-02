@@ -1,8 +1,6 @@
 import { atom } from "jotai";
 import { ProcessMessageWithID } from "./types";
 
-export const processMessageCounterAtom = atom<number>(0);
-
 export const processMessagesAtom = atom<ProcessMessageWithID[]>([]);
 
 /**

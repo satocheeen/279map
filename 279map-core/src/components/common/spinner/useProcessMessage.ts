@@ -1,10 +1,10 @@
 import { useCallback } from "react";
-import { processMessageCounterAtom, processMessagesAtom } from "./atoms";
+import { processMessagesAtom } from "./atoms";
 import { useAtom } from "jotai";
 import { ProcessMessageType } from "./types";
 
+let processCnt = 0
 export function useProcessMessage() {
-    const [currentProcessCnt, setProcessCnt] = useAtom(processMessageCounterAtom);
     const [processMessages, setProcessMessages] = useAtom(processMessagesAtom);
     
     /**
@@ -13,7 +13,7 @@ export function useProcessMessage() {
      */
     const showProcessMessage = useCallback((param: ProcessMessageType): number => {
         // キー発行
-        const id = currentProcessCnt + 1;
+        const id = ++processCnt;
 
         const withID = Object.assign({}, param, {
             id,
@@ -22,9 +22,8 @@ export function useProcessMessage() {
         setProcessMessages((current) => {
             return current.concat(withID);
         });
-        setProcessCnt(id);
         return id;
-    }, [setProcessMessages, currentProcessCnt, setProcessCnt]);
+    }, [setProcessMessages]);
 
     /**
      * 表示中のメッセージを消す
