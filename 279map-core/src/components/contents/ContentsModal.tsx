@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Modal }  from '../common';
 import Content from './Content';
 import { addListener, removeListener } from '../../util/Commander';
-import { Auth, ContentsDefine, DataId } from '279map-common';
+import { Auth, ContentsDefine, DataId, MapKind } from '279map-common';
 import AddContentMenu from '../popup/AddContentMenu';
 import styles from './ContentsModal.module.scss';
 import { getMapKey } from '../../util/dataUtility';
@@ -14,11 +14,12 @@ import { useRecoilValue } from 'recoil';
 import { itemMapState } from '../../store/item';
 import { useMap } from '../map/useMap';
 import { useSubscribe } from '../../util/useSubscribe';
-import { authLvState } from '../../store/session';
+import { authLvState, currentMapKindState } from '../../store/session';
 import { compareAuth } from '../../util/CommonUtility';
 import { MdEdit } from 'react-icons/md';
 import PopupMenuIcon from '../popup/PopupMenuIcon';
 import EditItemNameModal from './EditItemNameModal';
+import { dataSourcesState } from '../../store/datasource';
 
 type Target = {
     type: 'item';
@@ -141,10 +142,16 @@ export default function ContentsModal() {
     }, [target, contentsList, itemMap]);
 
     const authLv = useRecoilValue(authLvState);
+    const datasources = useRecoilValue(dataSourcesState);
+    const mapKind = useRecoilValue(currentMapKindState);
     const isShowItemNameEditBtn = useMemo(() => {
         if (target?.type !== 'item') return false;
-        return compareAuth(authLv, Auth.Edit) >= 0
-    }, [target, authLv])
+        const targetDs = datasources.find(ds => ds.dataSourceId === target.itemId.dataSourceId);
+        if (!targetDs) return false;
+        const info = mapKind === MapKind.Real ? targetDs.itemContents.RealItem : targetDs.itemContents.VirtualItem;
+        if (!info) return false;
+        return info.editable && compareAuth(authLv, Auth.Edit) >= 0
+    }, [target, authLv, datasources])
 
     const [showEditItemNameModal, setShowEditItemNameModal] = useState(false);
     const onEditItemName = useCallback(() => {
