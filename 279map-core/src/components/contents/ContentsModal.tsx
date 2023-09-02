@@ -69,6 +69,7 @@ export default function ContentsModal() {
     }, [getApi, hideProcessMessage, showProcessMessage]);
 
     useWatch(() => {
+        setContentsList([]);
         if (!target) return;
 
         if (target.type === 'item') {
@@ -79,15 +80,11 @@ export default function ContentsModal() {
             setShow(true);
     
             // 最新コンテンツ取得
-            if (item.contents.length > 0) {
-                loadContentsInItem(target.itemId)
-                .finally(() => {
-                    setLoaded(true);
-                });
-                subscribe('childcontents-update', target.itemId, () => loadContentsInItem(target.itemId));
-            } else {
+            loadContentsInItem(target.itemId)
+            .finally(() => {
                 setLoaded(true);
-            }
+            });
+            subscribe('childcontents-update', target.itemId, () => loadContentsInItem(target.itemId));
         } else {
             setLoaded(false);
             setShow(true);
