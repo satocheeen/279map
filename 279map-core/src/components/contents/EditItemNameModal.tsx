@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Button, Modal } from '../common';
-import { DataId } from '279map-common';
+import { DataId, MapKind } from '279map-common';
 import { itemMapState } from '../../store/item';
 import { useRecoilValue } from 'recoil';
 import { getMapKey } from '../../util/dataUtility';
@@ -9,6 +9,7 @@ import Input from '../common/form/Input';
 import { useMap } from '../map/useMap';
 import { UpdateItemAPI } from 'tsunagumap-api';
 import useConfirm, { ConfirmBtnPattern } from '../common/confirm/useConfirm';
+import { currentMapKindState } from '../../store/session';
 
 type Props = {
     target: DataId;
@@ -45,11 +46,22 @@ export default function EditItemNameModal(props: Props) {
         }
     }, [getApi, props, title, confirm])
 
+    const mapKind = useRecoilValue(currentMapKindState);
+    const label = useMemo(() => {
+        if (mapKind === MapKind.Real) {
+            return '地名'
+        } else {
+            return '建物名'
+        }
+    }, [mapKind])
+
     return (
         <Modal show onCloseBtnClicked={props.onClose} spinner={registing}>
-            <Modal.Header>建物名編集</Modal.Header>
+            <Modal.Header>
+                <span>{label}編集</span>
+            </Modal.Header>
             <Modal.Body>
-                <FormGroup label='建物名'>
+                <FormGroup label={label}>
                     <Input value={title} onChange={(e) => setTitle(e.target.value)} />
                 </FormGroup>
             </Modal.Body>

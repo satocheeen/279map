@@ -151,7 +151,15 @@ export default function ContentsModal() {
         const info = mapKind === MapKind.Real ? targetDs.itemContents.RealItem : targetDs.itemContents.VirtualItem;
         if (!info) return false;
         return info.editable && compareAuth(authLv, Auth.Edit) >= 0
-    }, [target, authLv, datasources])
+    }, [target, authLv, datasources, mapKind])
+
+    const itemNameEditTipLabel = useMemo(() => {
+        if (mapKind === MapKind.Real) {
+            return '地名編集'
+        } else {
+            return '建物名編集'
+        }
+    }, [mapKind])
 
     const [showEditItemNameModal, setShowEditItemNameModal] = useState(false);
     const onEditItemName = useCallback(() => {
@@ -201,7 +209,7 @@ export default function ContentsModal() {
                         <AddContentMenu target={{itemId: target.itemId}} />
                         }
                         {isShowItemNameEditBtn &&
-                            <PopupMenuIcon tooltip='建物名変更' onClick={onEditItemName}>
+                            <PopupMenuIcon tooltip={itemNameEditTipLabel} onClick={onEditItemName}>
                                 <MdEdit />
                             </PopupMenuIcon>
                         }
