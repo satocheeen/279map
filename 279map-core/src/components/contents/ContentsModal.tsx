@@ -206,8 +206,8 @@ export default function ContentsModal() {
                 <Modal.Footer>
                 </Modal.Footer>
             </Modal>
-            {showEditItemNameModal &&
-                <EditItemNameModal onClose={() => setShowEditItemNameModal(false)} />
+            {target?.type === 'item' && showEditItemNameModal &&
+                <EditItemNameModal target={target.itemId} onClose={() => setShowEditItemNameModal(false)} />
             }
         </>
     );
