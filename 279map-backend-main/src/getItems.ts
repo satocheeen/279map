@@ -1,4 +1,4 @@
-import { FeatureType, ItemContentInfo, ItemDefine, MapKind } from '279map-common';
+import { Extent, FeatureType, ItemContentInfo, ItemDefine, MapKind } from '279map-common';
 import { getLogger } from 'log4js';
 import { ConnectionPool } from '.';
 import { GetItemsParam, GetItemsResult } from '../279map-api-interface/src';
@@ -30,7 +30,7 @@ export async function getItemsSub(currentMap: CurrentMap, param: GetItemsParam):
     
     try {
         const dataSourceIds = param.dataSourceIds;
-        const pointContents = dataSourceIds.length === 0 ? [] : await selectItems(con, dataSourceIds, currentMap);
+        const pointContents = dataSourceIds.length === 0 ? [] : await selectItems(con, dataSourceIds, param.extent, currentMap);
 
         if (currentMap.mapKind === MapKind.Virtual) {
             return pointContents;
@@ -58,7 +58,7 @@ export async function getItemsSub(currentMap: CurrentMap, param: GetItemsParam):
     
 }
 
-async function selectItems(con: PoolConnection, dataSourceIds:string[], currentMap: CurrentMap): Promise<ItemDefine[]> {
+async function selectItems(con: PoolConnection, dataSourceIds:string[], extent: Extent, currentMap: CurrentMap): Promise<ItemDefine[]> {
     try {
         // 位置コンテンツ
         const sql = `
@@ -67,8 +67,10 @@ async function selectItems(con: PoolConnection, dataSourceIds:string[], currentM
         inner join data_source ds on ds.data_source_id = i.data_source_id 
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
         where map_page_id = ? and i.map_kind = ?
+        and ST_Intersects(location, ST_GeomFromText(?,4326));
         `;
-        const [rows] = await con.execute(sql, [currentMap.mapId, currentMap.mapKind]);
+        const extentPolygon = `POLYGON((${extent[0]} ${extent[1]}, ${extent[2]} ${extent[1]}, ${extent[2]} ${extent[3]}, ${extent[0]} ${extent[3]}, ${extent[0]} ${extent[1]}))`
+        const [rows] = await con.execute(sql, [currentMap.mapId, currentMap.mapKind, extentPolygon]);
         const pointContents = [] as ItemDefine[];
         for(const row of rows as (ItemsTable & {geojson: any})[]) {
             // 指定されているデータソースのもののみに絞る
