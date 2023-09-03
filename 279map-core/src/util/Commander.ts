@@ -36,8 +36,6 @@ type CommandDefine =
     | TCommandDefine<'EditTopographyInfo', undefined>
     // 解体
     | TCommandDefine<'RemoveTopography', undefined>
-    // 最新地図アイテム取得命令
-    | TCommandDefine<'LoadLatestData', undefined>
     // アイテム情報表示 引数: itemId. 
     | TCommandDefine<'ShowItemInfo', DataId>
     // 重畳選択メニュー表示

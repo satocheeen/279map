@@ -73,6 +73,7 @@ function useMapInitializer() {
     const [ currentMapKind ] = useAtom(currentMapKindAtom);
     const { subscribeMap, unsubscribeMap } = useSubscribe();
     const { removeItems } = useItem();
+    const { map, fitToDefaultExtent, loadCurrentAreaContents } = useMap();
 
     useEffect(() => {
         if (!currentMapKind) return;
@@ -82,10 +83,7 @@ function useMapInitializer() {
                 // 指定のエクステントをロード済み対象から除去する
                 clearLoadedArea(payload.targets);
 
-                doCommand({
-                    command: "LoadLatestData",
-                    param: undefined,
-                });
+                loadCurrentAreaContents();
             }
         });
         subscribeMap('mapitem-delete', currentMapKind, undefined, (payload) => {
@@ -98,9 +96,8 @@ function useMapInitializer() {
             unsubscribeMap('mapitem-update', currentMapKind, undefined);
             unsubscribeMap('mapitem-delete', currentMapKind, undefined);
         }
-    }, [currentMapKind, removeItems, subscribeMap, unsubscribeMap, clearLoadedArea]);
+    }, [currentMapKind, removeItems, subscribeMap, unsubscribeMap, clearLoadedArea, loadCurrentAreaContents]);
 
-    const { map, fitToDefaultExtent, loadCurrentAreaContents } = useMap();
     const [ itemDataSources ] = useAtom(itemDataSourcesAtom);
     /**
      * 地図が切り替わったら、レイヤ再配置

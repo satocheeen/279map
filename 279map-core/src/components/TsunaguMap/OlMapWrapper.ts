@@ -611,13 +611,6 @@ export class OlMapWrapper {
                 }, ds.visible);
             });
         })
-        // 非表示レイヤが表示に切り替わった場合は、最新アイテム取得
-        if (hiddenToShowFlag) {
-            doCommand({
-                command: "LoadLatestData",
-                param: undefined,
-            });
-        }
     }
 
     dispose() {

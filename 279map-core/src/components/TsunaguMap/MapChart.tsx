@@ -2,16 +2,12 @@ import React, { useCallback, useMemo, useRef, useState, useEffect } from "react"
 import styles from './MapChart.module.scss';
 import PopupContainer from "../popup/PopupContainer";
 import DrawController from "../map/DrawController";
-import { addListener, removeListener } from "../../util/Commander";
 import LandNameOverlay from "../map/LandNameOverlay";
 import { DataId, FeatureType } from "279map-common";
 import { MapMode } from "../../types/types";
-import Feature from "ol/Feature";
 import ClusterMenuController from "../cluster-menu/ClusterMenuController";
 import { OlMapType } from "./OlMapWrapper";
 import { useWatch } from "../../util/useWatch";
-import { Geometry } from "ol/geom";
-import { sleep } from "../../util/CommonUtility";
 import { useProcessMessage } from "../common/spinner/useProcessMessage";
 import { mapModeAtom, mapViewAtom, selectedItemIdsAtom } from "../../store/operation";
 import { currentMapKindAtom } from "../../store/session";
@@ -61,10 +57,6 @@ export default function MapChart() {
             return;
         }
 
-        const loadLatestDataHandler = addListener('LoadLatestData', async() => {
-            await loadCurrentAreaContents();
-        });
-
         // 地図移動時にコンテンツロード
         const loadContentFunc = async() => {
             const h = showProcessMessage({
@@ -81,7 +73,6 @@ export default function MapChart() {
 
         return () => {
             map.un('moveend', loadContentFunc);
-            removeListener(loadLatestDataHandler);
         }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -28,7 +28,7 @@ const mapIdAtom = atom((get) => {
 })
 
 /**
- * mapインスタンス、apiインスタンスを渡すためのフック
+ * mapインスタンスを操作するためのフック
  * @returns 
  */
 export function useMap() {
