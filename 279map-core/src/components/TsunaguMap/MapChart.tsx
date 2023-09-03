@@ -1,28 +1,17 @@
-import React, { useCallback, useMemo, useRef, useState, useEffect } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import styles from './MapChart.module.scss';
-import PopupContainer from "../popup/PopupContainer";
-import DrawController from "../map/DrawController";
-import LandNameOverlay from "../map/LandNameOverlay";
-import { DataId, FeatureType } from "279map-common";
-import { MapMode } from "../../types/types";
-import ClusterMenuController from "../cluster-menu/ClusterMenuController";
 import { useWatch } from "../../util/useWatch";
-import { mapModeAtom, mapViewAtom, selectedItemIdsAtom } from "../../store/operation";
+import { mapViewAtom } from "../../store/operation";
 import { currentMapKindAtom } from "../../store/session";
 import { useAtom } from 'jotai';
 import { useMap } from "../map/useMap";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
-    const [initialized, setInitialized] = useState(false);
-    const [mapMode] = useAtom(mapModeAtom);
-
     const [ mapKind ] = useAtom(currentMapKindAtom);
     
     // trueにすると回転アニメーション発生
     const [flipping, setFlipping] = useState(false);
-
-    const [ selectedItemIds, setSelectedItemIds ] = useAtom(selectedItemIdsAtom);
 
     /**
      * 地図初期化
@@ -34,8 +23,6 @@ export default function MapChart() {
             return;
         }
         const map = createMapInstance(myRef.current);
-
-        setInitialized(true);
 
         return () => {
             map.dispose();
@@ -65,15 +52,6 @@ export default function MapChart() {
         }
     }, [map, loadCurrentAreaContents, setMapView]);
 
-    const onSelectItem = useCallback((feature: DataId | undefined) => {
-        if (!feature) {
-            setSelectedItemIds([]);
-        } else {
-            setSelectedItemIds([feature]);
-        }
-
-    }, [setSelectedItemIds]);
-
     /**
      * 地図が切り替わったら、レイヤ再配置
      */
@@ -102,20 +80,6 @@ export default function MapChart() {
     return (
         <div className={styles.Container}>
             <div ref={myRef} className={`${styles.Chart} ${optionClassName}`} />
-            {initialized &&
-                (
-                    <>
-                        <PopupContainer />
-                        <LandNameOverlay />
-                        {mapMode === MapMode.Normal &&
-                            <ClusterMenuController
-                                targets={[FeatureType.STRUCTURE, FeatureType.AREA]}
-                                onSelect={onSelectItem} />
-                        }
-                        <DrawController />
-                    </>
-                )
-            }
         </div>
     )
 }

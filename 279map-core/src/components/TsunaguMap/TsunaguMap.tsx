@@ -12,6 +12,10 @@ import ProcessOverlay from './ProcessOverlay';
 import { Provider } from 'jotai';
 import EventFire from './EventFire';
 import MapChart from './MapChart';
+import PopupContainer from '../popup/PopupContainer';
+import LandNameOverlay from '../map/LandNameOverlay';
+import DrawController from '../map/DrawController';
+import ClusterMenuContainer from '../cluster-menu/ClusterMenuContainer';
 
 type SomeRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 type OwnerContextType = SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'> & {
@@ -104,6 +108,10 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
                         <TooltipContext.Provider value={tooltipContextValue}>
                             <EventFire />
                             <MapChart />
+                            <PopupContainer />
+                            <LandNameOverlay />
+                            <DrawController />
+                            <ClusterMenuContainer />
                             <Suspense>
                                 <ConfirmDialog />
                                 <UserListModal />
