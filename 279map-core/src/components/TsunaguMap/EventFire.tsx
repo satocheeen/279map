@@ -99,11 +99,13 @@ function useMapInitializer() {
     }, [currentMapKind, removeItems, subscribeMap, unsubscribeMap, clearLoadedArea, loadCurrentAreaContents]);
 
     const [ itemDataSources ] = useAtom(itemDataSourcesAtom);
+    const prevMapKind = usePrevious(currentMapKind);
     /**
      * 地図が切り替わったら、レイヤ再配置
      */
     useEffect(() => {
         if (!map || !currentMapKind) return;
+        if (currentMapKind === prevMapKind) return;
 
         // 現在のレイヤ、データソースを削除
         map.clearAllLayers();
@@ -114,7 +116,7 @@ function useMapInitializer() {
         fitToDefaultExtent(false);
         loadCurrentAreaContents();
 
-    }, [map, currentMapKind, itemDataSources, loadCurrentAreaContents, fitToDefaultExtent]);
+    }, [map, currentMapKind, prevMapKind, itemDataSources, loadCurrentAreaContents, fitToDefaultExtent]);
 }
 
 /**
