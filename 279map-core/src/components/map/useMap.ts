@@ -14,6 +14,7 @@ import { selectedItemIdsAtom } from '../../store/operation';
 import Feature from "ol/Feature";
 import { Geometry } from 'ol/geom';
 import { sleep } from '../../util/CommonUtility';
+import { useProcessMessage } from '../common/spinner/useProcessMessage';
 
 const instansMap = new Map<string, OlMapWrapper>();
 
@@ -175,6 +176,7 @@ export function useMap() {
      * 現在の地図表示範囲内に存在するコンテンツをロードする
      */
     const loadingCurrentAreaContents = useRef(false);
+    const { showProcessMessage, hideProcessMessage } = useProcessMessage();
     const loadCurrentAreaContents = useCallback(async() => {
         console.log('loadCurrentAreaContents');
         if (!map) {
@@ -192,10 +194,18 @@ export function useMap() {
         }
         loadingCurrentAreaContents.current = true;
         const ext = map.getExtent();
+
+        const h = showProcessMessage({
+            overlay: false, // TODO: 初回ロード時はtrueにする
+            spinner: true,
+        });
+
         await loadItems({zoom, extent: ext});
+        hideProcessMessage(h);
+
         loadingCurrentAreaContents.current = false;
 
-    }, [loadItems, map]);
+    }, [loadItems, map, showProcessMessage, hideProcessMessage]);
 
     /**
      * 全アイテムが含まれる領域でフィットさせる
