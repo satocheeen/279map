@@ -5,7 +5,7 @@ import PopupContainer from "../popup/PopupContainer";
 import DrawController from "../map/DrawController";
 import { addListener, removeListener } from "../../util/Commander";
 import LandNameOverlay from "../map/LandNameOverlay";
-import { DataId, FeatureType, ItemDefine } from "279map-common";
+import { DataId, FeatureType } from "279map-common";
 import { MapMode } from "../../types/types";
 import useFilteredTopographyStyle from "../map/useFilteredTopographyStyle";
 import useTrackStyle from "../map/useTrackStyle";
@@ -21,9 +21,7 @@ import { Geometry } from "ol/geom";
 import { sleep } from "../../util/CommonUtility";
 import useMyMedia from "../../util/useMyMedia";
 import { useProcessMessage } from "../common/spinner/useProcessMessage";
-import { isEqualId } from "../../util/dataUtility";
-import { useItem } from "../../store/item/useItem";
-import { allItemsAtom, initialItemLoadedAtom } from "../../store/item";
+import { useLoadItem } from "../../store/item/useItem";
 import { mapModeAtom, mapViewAtom, selectedItemIdsAtom } from "../../store/operation";
 import { currentMapKindAtom, defaultExtentAtom } from "../../store/session";
 import { filteredItemIdListAtom } from "../../store/filter";
@@ -118,7 +116,7 @@ export default function MapChart() {
 
     }, [filteredItemIdList]);
 
-    const { loadItems } = useItem();
+    const { loadItems } = useLoadItem();
 
     /**
      * 現在の地図表示範囲内に存在するコンテンツをロードする
@@ -288,50 +286,6 @@ export default function MapChart() {
         loadCurrentAreaContents()
 
     }, [mapKind]);
-
-    const [ itemMap ] = useAtom(allItemsAtom);
-    /**
-     * アイテムFeatureを地図に反映する
-     */
-    const geoJsonItems = useMemo(() => {
-        return Object.values(itemMap).reduce((acc, cur) => {
-            return acc.concat(Object.values(cur));
-        }, [] as ItemDefine[]);
-    }, [itemMap]);
-    const prevGeoJsonItems = usePrevious(geoJsonItems);
-    const [initialItemLoaded] = useAtom(initialItemLoadedAtom);
-    useWatch(() => {
-        if (!mapRef.current) return;
-        // 追加、更新
-        const progressH = showProcessMessage({
-            overlay: !initialItemLoaded,    // 初回ロード時はオーバーレイ
-            spinner: true,
-        });
-        // TODO: OlMapWrapperに追加有無判断は任せる
-        const updateItems = geoJsonItems.filter(item => {
-            const before = prevGeoJsonItems?.find(pre => isEqualId(pre.id, item.id));
-            if (!before) return true;   // 追加Item
-            return before.lastEditedTime !== item.lastEditedTime;   // 更新Item
-        })
-        console.log('debug updateItems', updateItems);
-        mapRef.current.addFeatures(updateItems)
-        .then(() => {
-            // 削除
-            // 削除アイテム＝prevGeoJsonItemに存在して、geoJsonItemsに存在しないもの
-            const currentIds = geoJsonItems.map(item => item.id);
-            const deleteItems = prevGeoJsonItems?.filter(pre => {
-                return !currentIds.some(current => isEqualId(current, pre.id));
-            });
-            deleteItems?.forEach(item => {
-                mapRef.current?.removeFeature(item);
-            });
-
-        })
-        .finally(() => {
-            hideProcessMessage(progressH);
-        });
-
-    }, [geoJsonItems]);
 
     const optionClassName = useMemo(() => {
         if (flipping) {

@@ -6,7 +6,6 @@ import { isEqualId } from "../../util/dataUtility";
 import { DataId, ItemContentInfo } from "279map-common";
 import { filteredContentIdListAtom } from "../filter";
 import { useAtomCallback } from 'jotai/utils';
-import { useAtom } from 'jotai';
 import { dataSourcesAtom, visibleDataSourceIdsAtom } from "../datasource";
 import { Extent } from '279map-common';
 
@@ -27,14 +26,65 @@ function divideExtent(ext: Extent): Extent[] {
     }
     return list;
 }
+function combineKeys(keys: LoadedItemKey[]): LoadedItemKey[] {
+    // データソースごとに、まとめる
+    const keyMap = new Map<string, LoadedItemKey[]>();
+    keys.forEach(key => {
+        if (keyMap.has(key.datasourceId)) {
+            keyMap.get(key.datasourceId)?.push(key);
+        } else {
+            keyMap.set(key.datasourceId, [key]);
+        }
+    });
 
-/**
- * アイテム関連フック
- * @returns 
- */
-export function useItem() {
+    // Extentが隣接するものは１つにする
+    const combinedList = [] as LoadedItemKey[];
+    keyMap.forEach((value) => {
+        // -- X軸でまとめられるものをまとめる
+        const list = value.reduce((acc, cur) => {
+            if (acc.length === 0) {
+                return [cur];
+            }
+            const lastItem = acc[acc.length - 1];
+            if (lastItem.extent[1] !== cur.extent[1] || lastItem.extent[3] !== cur.extent[3]) {
+                // Y座標がことなる場合はまとめない
+                return acc.concat(cur);
+            }
+            if (lastItem.extent[2] !== cur.extent[0]) {
+                // 隣接していない場合はまとめない
+                return acc.concat(cur);
+            }
+            // まとめる
+            lastItem.extent[2] = cur.extent[2];
+            return acc;
+        }, [] as LoadedItemKey[])
+        // -- Y軸でまとめられるものをまとめる
+        .reduce((acc, cur) => {
+            if (acc.length === 0) {
+                return [cur];
+            }
+            const lastItem = acc[acc.length - 1];
+
+            if (lastItem.extent[0] !== cur.extent[0] || lastItem.extent[2] !== cur.extent[2]) {
+                // X座標がことなる場合はまとめない
+                return acc.concat(cur);
+            }
+            if (lastItem.extent[3] !== cur.extent[1]) {
+                // 隣接していない場合はまとめない
+                return acc.concat(cur);
+            }
+            // まとめる
+            lastItem.extent[3] = cur.extent[3];
+            return acc;
+        }, [] as LoadedItemKey[]);
+        
+        Array.prototype.push.apply(combinedList, list);
+    })
+
+    return combinedList;
+}
+export function useLoadItem() {
     const { getApi } = useMap();
-    const [_, setAllItems ] = useAtom(allItemsAtom);
 
     /**
      * 指定のズームLv., extentに該当するアイテムをロードする
@@ -58,7 +108,7 @@ export function useItem() {
                         const zoomKey = dsInfo?.itemContents.Track ? zoom : undefined;
                         return {
                             datasourceId,
-                            extent: cur,
+                            extent: cur.concat(),   // combineKeys処理でデータソースごとにExtentに対して処理を行うので、別オブジェクトとして代入
                             zoom: zoomKey,
                         }
                     });
@@ -81,7 +131,10 @@ export function useItem() {
 
                 if (targetKeys.length === 0) return;
 
-                for (const key of targetKeys) {
+                // ひとまとめにできる条件は、ひとまとめにする
+                const combinedKeys = combineKeys(targetKeys);
+
+                for (const key of combinedKeys) {
                     const apiResult = await getApi().callApi(GetItemsAPI, {
                         extent: key.extent,
                         zoom,
@@ -118,26 +171,40 @@ export function useItem() {
         }, [getApi])
     )
 
-    const removeItems = useCallback(async(target: DataId[]) => {
-        if (target.length === 0) return;
+    return {
+        loadItems,
+    }
+}
 
-        setAllItems((currentItemMap) => {
-            const newItemsMap = Object.assign({}, currentItemMap);
-            target.forEach(def => {
-                delete newItemsMap[def.dataSourceId][def.id];
+
+/**
+ * アイテム関連フック
+ * @returns 
+ */
+export function useItem() {
+
+    const removeItems = useAtomCallback(
+        useCallback(async(get, set, target: DataId[]) => {
+            if (target.length === 0) return;
+
+            set(allItemsAtom, (currentItemMap) => {
+                const newItemsMap = Object.assign({}, currentItemMap);
+                target.forEach(def => {
+                    delete newItemsMap[def.dataSourceId][def.id];
+                });
+                return newItemsMap;
             });
-            return newItemsMap;
-        });
 
-        // TODO: contentsから除去
-        // state.contentsList = state.contentsList.filter(content => {
-        //     const isDeleted = action.payload.some(id => isEqualId(content.itemId, id));
-        //     return !isDeleted;
-        // });
+            // TODO: contentsから除去
+            // state.contentsList = state.contentsList.filter(content => {
+            //     const isDeleted = action.payload.some(id => isEqualId(content.itemId, id));
+            //     return !isDeleted;
+            // });
 
-        // eventから除去 TODO: サーバーから再取得して設定
+            // eventから除去 TODO: サーバーから再取得して設定
 
-    }, [setAllItems]);
+        }, [])
+    );
 
     const getItem = useAtomCallback(
         useCallback((get, set, id: DataId) => {
@@ -187,7 +254,6 @@ export function useItem() {
     )
 
     return {
-        loadItems,
         removeItems,
         getDescendantContentsIdList,
         getItem,

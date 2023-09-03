@@ -1,7 +1,7 @@
-import { Extent } from '279map-common';
+import { Extent, ItemDefine } from '279map-common';
 import { useAtomCallback } from 'jotai/utils';
-import React, { useCallback, useContext, useEffect, lazy, Suspense } from 'react';
-import { loadedItemKeysAtom } from '../../store/item';
+import React, { useMemo, useCallback, useContext, useEffect, lazy, Suspense } from 'react';
+import { allItemsAtom, initialItemLoadedAtom, loadedItemKeysAtom } from '../../store/item';
 import { checkContaining } from '../../util/MapUtility';
 import { useSubscribe } from '../../util/useSubscribe';
 import { currentMapKindAtom } from '../../store/session';
@@ -13,6 +13,8 @@ import { useMap } from '../map/useMap';
 import { dialogTargetAtom, selectedItemIdsAtom } from '../../store/operation';
 import { OwnerContext } from './TsunaguMap';
 import { usePrevious } from '../../util/usePrevious';
+import { useProcessMessage } from '../common/spinner/useProcessMessage';
+import { isEqualId } from '../../util/dataUtility';
 
 const ContentsModal = lazy(() => import('../contents/ContentsModal'));
 
@@ -21,6 +23,8 @@ const ContentsModal = lazy(() => import('../contents/ContentsModal'));
  * @returns 
  */
 export default function EventFire() {
+    useItemUpdater();
+
     return (
         <>
             <MapSubscriber />
@@ -86,6 +90,62 @@ function MapSubscriber() {
     }, [currentMapKind, removeItems, subscribeMap, unsubscribeMap, clearLoadedArea]);
 
     return null;
+
+}
+
+/**
+ * アイテムの変更検知して、地図に反映
+ */
+function useItemUpdater() {
+    const { getMap } = useMap();
+    const [ itemMap ] = useAtom(allItemsAtom);
+    const { showProcessMessage, hideProcessMessage } = useProcessMessage();
+
+    /**
+     * アイテムFeatureを地図に反映する
+     */
+    const geoJsonItems = useMemo(() => {
+        return Object.values(itemMap).reduce((acc, cur) => {
+            return acc.concat(Object.values(cur));
+        }, [] as ItemDefine[]);
+    }, [itemMap]);
+    const prevGeoJsonItems = usePrevious(geoJsonItems);
+    const [initialItemLoaded] = useAtom(initialItemLoadedAtom);
+
+    useEffect(() => {
+        const map = getMap();
+        if (!map) return;
+
+        // 追加、更新
+        const progressH = showProcessMessage({
+            overlay: !initialItemLoaded,    // 初回ロード時はオーバーレイ
+            spinner: true,
+        });
+        // TODO: OlMapWrapperに追加有無判断は任せる
+        const updateItems = geoJsonItems.filter(item => {
+            const before = prevGeoJsonItems?.find(pre => isEqualId(pre.id, item.id));
+            if (!before) return true;   // 追加Item
+            return before.lastEditedTime !== item.lastEditedTime;   // 更新Item
+        })
+        console.log('debug updateItems', updateItems);
+        map.addFeatures(updateItems)
+        .then(() => {
+            // 削除
+            // 削除アイテム＝prevGeoJsonItemに存在して、geoJsonItemsに存在しないもの
+            const currentIds = geoJsonItems.map(item => item.id);
+            const deleteItems = prevGeoJsonItems?.filter(pre => {
+                return !currentIds.some(current => isEqualId(current, pre.id));
+            });
+            deleteItems?.forEach(item => {
+                map.removeFeature(item);
+            });
+
+        })
+        .finally(() => {
+            hideProcessMessage(progressH);
+        });
+
+    }, [geoJsonItems, getMap, hideProcessMessage, showProcessMessage]);
 
 }
 
