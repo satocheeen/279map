@@ -33,7 +33,7 @@ enum Stage {
  * 地形編集用コントロールクラス
  */
  export default function EditTopographyController(props: Props) {
-    const { getMap } = useMap();
+    const { map } = useMap();
     const [stage, setStage] = useState(Stage.SELECTING_FEATURE);
     const selectedFeature = useRef<FeatureLike>();
     const styleHook = useTopographyStyle({});
@@ -46,7 +46,6 @@ enum Stage {
      * 初期化
      */
     useEffect(() => {
-        const map = getMap();
         if (!map) return;
         const style = styleHook.getStyleFunction(() => {
             return new Style({
@@ -80,7 +79,7 @@ enum Stage {
         }
     
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [getMap]);
+    }, [map]);
 
     const onSelectFeature = useCallback((feature: FeatureLike) => {
         console.log('select feature', feature);
@@ -97,10 +96,10 @@ enum Stage {
         modifySource.current?.addFeature(editFeature);
         // 編集インタラクションOn
         if (modify.current)
-            getMap()?.addInteraction(modify.current);
+            map?.addInteraction(modify.current);
 
         setStage(Stage.EDITING);
-    }, [getMap]);
+    }, [map]);
 
     const onClose = useCallback(() => {
         props.close();

@@ -32,11 +32,10 @@ export default function usePointStyle() {
     const { disabledLabel } = useMapOptions();
     const { filter } = useContext(OwnerContext);
     const { getIconDefine } = useIcon();
-    const { getMap } = useMap();
+    const { map } = useMap();
     const [selectedItemIds] = useAtom(selectedItemIdsAtom);
 
     const getZindex = useCallback((feature: Feature<Geometry>): number => {
-        const map = getMap();
         if (!map) return 0;
         // featureが属するレイヤソース取得
         const pointsSource = map.getLayerInfoContainedTheFeature(feature)?.layer.getSource();
@@ -53,7 +52,7 @@ export default function usePointStyle() {
         const zIndex = Math.round(Math.abs(extent[1] - maxY));
     
         return zIndex;
-    }, [getMap]);
+    }, [map]);
 
     const _createStyle = useCallback((param: {iconDefine: SystemIconDefine; feature: Feature<Geometry>; resolution: number; color?: string; opacity?: number}) => {
         const type = param.feature.getGeometry()?.getType();

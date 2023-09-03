@@ -36,7 +36,7 @@ function hasImageItem(item: ItemDefine): boolean {
 
 }
 export default function PointsPopup(props: Props) {
-    const { getMap } = useMap();
+    const { map } = useMap();
     const [ filteredItemIdList ] = useAtom(filteredItemIdListAtom);
     const [ filteredContentIdList ] = useAtom(filteredContentIdListAtom);
     const { getDescendantContentsIdList } = useItem();
@@ -133,7 +133,6 @@ export default function PointsPopup(props: Props) {
             return;
         }
         // 対象が２つ以上ある場合は、重畳選択メニューを表示
-        const map = getMap();
         const rect = map?.container.getBoundingClientRect();
         const coordinate = map?.getCoordinateFromPixel([evt.clientX - (rect?.x ?? 0), evt.clientY - (rect?.y ?? 0)]);
         if (coordinate) {
@@ -145,7 +144,7 @@ export default function PointsPopup(props: Props) {
                 }
             });
         }
-    }, [setSelectedItemIds, props.itemIds, getMap]);
+    }, [setSelectedItemIds, props.itemIds, map]);
 
     const [mapMode] = useAtom(mapModeAtom);
 

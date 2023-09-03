@@ -31,7 +31,7 @@ type ClusterMenuTarget = {
 }
 
 export default function ClusterMenuController(props: Props) {
-    const { getMap } = useMap();
+    const { map } = useMap();
     const [clusterMenuInfo, setClusterMenuInfo] = useState<ClusterMenuTarget|null>(null);
     const { onClick } = useContext(OwnerContext);
     const [mapMode] = useAtom(mapModeAtom);
@@ -70,7 +70,6 @@ export default function ClusterMenuController(props: Props) {
      * @params evt {MapBrowserEvent} 地図クリック時のイベント
      */
     const getSelectableFeatures = useCallback(async(evt: MapBrowserEvent<any>) => {
-        const map = getMap();
         if (!map) return [];
         // クリック位置付近にあるアイテムIDを取得
         let pointIds = map.getNearlyFeatures(evt.pixel);
@@ -101,11 +100,10 @@ export default function ClusterMenuController(props: Props) {
         }
 
         return pointIds;
-    }, [getMap, props.targets, getItem]);
+    }, [map, props.targets, getItem]);
 
     // イベントコールバック用意
     useEffect(() => {
-        const map = getMap();
         if (!map) return;
         const clickFunc =  async(evt: MapBrowserEvent<any>) => {
             setClusterMenuInfo(null);
@@ -160,7 +158,7 @@ export default function ClusterMenuController(props: Props) {
             removeListener(listenerH);
         }
 
-    }, [props, getSelectableFeatures, onClick, getMap]);
+    }, [props, getSelectableFeatures, onClick, map]);
 
     /**
      * 重畳選択メニュー選択時のコールバック

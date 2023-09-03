@@ -30,7 +30,7 @@ export default function PopupContainer() {
 
     const { popupMode } = useMapOptions();
     
-    const { getMap } = useMap();
+    const { map } = useMap();
 
     const [itemsMap] = useAtom(allItemsAtom)
     const [ visibleDataSourceIds ] = useAtom(visibleDataSourceIdsAtom);
@@ -63,21 +63,19 @@ export default function PopupContainer() {
      * useMemoではなくuseCallbackで実装している。
      */
     const updatePopupGroups = useCallback(async() => {
-        const map = getMap();
         if (!map) return;
         const calculator = new PopupContainerCalculator(map, extent);
         calculator.setHasContentsItemIdList(hasContentsItemList);
         const popupGroups = await calculator.calculatePopupGroup();
         setPopupGroups(popupGroups);
 
-    }, [getMap, hasContentsItemList, extent]);
+    }, [map, hasContentsItemList, extent]);
 
     /**
      * 初期化処理。
      * 地図へのFeature追加検知して、表示するポップアップ情報を更新する。
      */
     useEffect(() => {
-        const map = getMap();
         if (!map) return;
         // 画像ロード完了していないと、imagePositionの取得に失敗するので、ここでイベント検知して再描画させる
         const loadendFunc = () => {
@@ -102,7 +100,7 @@ export default function PopupContainer() {
             });
         }
 
-    }, [getMap, updatePopupGroups]);
+    }, [map, updatePopupGroups]);
 
     /**
      * 表示対象コンテンツや表示エクステントが変わった契機でポップアップ情報更新
@@ -152,7 +150,7 @@ export default function PopupContainer() {
                 stopEvent: false,
                 element: elementRefMap.current[key],
             });
-            getMap()?.addOverlay(overlay);
+            map?.addOverlay(overlay);
             overlay.setPosition([position.longitude, position.latitude]);
             overlayRefMap.current[key] = overlay;
         });
@@ -181,11 +179,11 @@ export default function PopupContainer() {
             return !exist;
         });
         removeChildren.forEach(key => {
-            getMap()?.removeOverlay(overlayRefMap.current[key]);
+            map?.removeOverlay(overlayRefMap.current[key]);
             delete overlayRefMap.current[key];
         });
 
-    }, [getMap, popupGroups, zoom]);
+    }, [map, popupGroups, zoom]);
 
     return (
         <>

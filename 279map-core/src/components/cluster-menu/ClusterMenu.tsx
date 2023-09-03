@@ -29,11 +29,10 @@ type Props = {
 }
 
 export default function ClusterMenu(props: Props) {
-    const { getMap } = useMap();
+    const { map } = useMap();
     const elementRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const map = getMap();
         if (!map) return;
         const overlay = new Overlay({
             positioning: 'bottom-left', //OverlayPositioning.BOTTOM_CENTER,
@@ -49,10 +48,9 @@ export default function ClusterMenu(props: Props) {
         return () => {
             map.removeOverlay(overlay);
         }
-    }, [getMap, props.position]);
+    }, [map, props.position]);
 
     const style = useMemo(() => {
-        const map = getMap();
         if (!map) return {};
 
         // 地図からはみ出ない高さにする
@@ -60,7 +58,7 @@ export default function ClusterMenu(props: Props) {
         return {
             maxHeight: pixel[1] - ARROW_HEIGHT - 10,// - rect.y,
         }
-    }, [getMap, props.position]);
+    }, [map, props.position]);
 
     const onItemClick = useCallback((id: DataId) => {
         if (props.onSelect) {

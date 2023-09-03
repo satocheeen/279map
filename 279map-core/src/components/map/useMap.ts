@@ -72,14 +72,6 @@ export function useMap() {
         }, [])
     )
 
-    const getMap = useAtomCallback(
-        useCallback((get) => {
-            const mapId = get(mapIdAtom);
-            console.log('debug getMap', mapId);
-            return instansMap.get(mapId);
-        }, [])
-    )
-
     const [mapId] = useAtom(mapIdAtom);
     const map = useMemo(() => {
         console.log('debug map', mapId);
@@ -271,7 +263,6 @@ export function useMap() {
         createMapInstance,
         destroyMapInstance,
         getApi,
-        getMap,
         map,
         loadCurrentAreaContents,
         fitToDefaultExtent,
