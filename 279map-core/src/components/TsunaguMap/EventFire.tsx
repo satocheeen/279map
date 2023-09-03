@@ -15,6 +15,9 @@ import { OwnerContext } from './TsunaguMap';
 import { usePrevious } from '../../util/usePrevious';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { isEqualId } from '../../util/dataUtility';
+import usePointStyle from '../map/usePointStyle';
+import useFilteredTopographyStyle from '../map/useFilteredTopographyStyle';
+import useTrackStyle from '../map/useTrackStyle';
 
 const ContentsModal = lazy(() => import('../contents/ContentsModal'));
 
@@ -24,6 +27,7 @@ const ContentsModal = lazy(() => import('../contents/ContentsModal'));
  */
 export default function EventFire() {
     useItemUpdater();
+    useMapStyleUpdater();
 
     return (
         <>
@@ -94,10 +98,10 @@ function MapSubscriber() {
 }
 
 /**
- * アイテムの変更検知して、地図に反映
+ * アイテムの変更検知して、地図に反映するフック
  */
 function useItemUpdater() {
-    const { getMap } = useMap();
+    const { map } = useMap();
     const [ itemMap ] = useAtom(allItemsAtom);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
@@ -113,7 +117,6 @@ function useItemUpdater() {
     const [initialItemLoaded] = useAtom(initialItemLoadedAtom);
 
     useEffect(() => {
-        const map = getMap();
         if (!map) return;
 
         // 追加、更新
@@ -127,7 +130,6 @@ function useItemUpdater() {
             if (!before) return true;   // 追加Item
             return before.lastEditedTime !== item.lastEditedTime;   // 更新Item
         })
-        console.log('debug updateItems', updateItems);
         map.addFeatures(updateItems)
         .then(() => {
             // 削除
@@ -145,7 +147,42 @@ function useItemUpdater() {
             hideProcessMessage(progressH);
         });
 
-    }, [geoJsonItems, getMap, hideProcessMessage, showProcessMessage]);
+    }, [geoJsonItems, prevGeoJsonItems, map, hideProcessMessage, showProcessMessage]);
+
+}
+
+/**
+ * スタイル定義の変更検知して、地図にスタイル設定するフック
+ */
+function useMapStyleUpdater() {
+    const { map } = useMap();
+
+    // スタイル設定
+    // -- コンテンツ（建物・ポイント）レイヤ
+    const { pointStyleFunction } = usePointStyle();
+    useEffect(() => {
+        if (!map) return;
+
+        map.setPointLayerStyle(pointStyleFunction);
+    }, [map, pointStyleFunction])
+
+    // -- コンテンツ（地形）レイヤ
+    const { topographyStyleFunction } = useFilteredTopographyStyle();
+    useEffect(() => {
+        if (!map) return;
+
+        map.setTopographyLayerStyle(topographyStyleFunction);
+
+    }, [map, topographyStyleFunction])
+
+    // -- 軌跡レイヤ
+    const { trackStyleFunction } = useTrackStyle();
+    useEffect(() => {
+        if (!map) return;
+
+        map.setTrackLayerStyle(trackStyleFunction);
+
+    }, [map, trackStyleFunction])
 
 }
 

@@ -25,7 +25,6 @@ import { getAPICallerInstance } from '../../api/ApiCaller';
 import { Coordinate } from 'ol/coordinate';
 import { doCommand } from '../../util/Commander';
 
-const instansMap = new Map<string, OlMapWrapper>();
 export type FeatureInfo = {
     id: DataId;
     feature: Feature<Geometry>;
@@ -33,26 +32,6 @@ export type FeatureInfo = {
 
 type Device = 'pc' | 'sp';
 
-/**
- * OlMapWrapperインスタンスを生成する
- * @param id instanceを特定するID
- * @param target 地図を配置するDivElement
- * @returns OlMapWrapperインスタンス
- */
-export function createMapInstance(id: string, target: HTMLDivElement, device: Device) {
-    const map = new OlMapWrapper(id, target, device);
-    console.log('create map', map._id);
-    instansMap.set(id, map);
-    return map;
-}
-export function destroyMapInstance(id: string) {
-    console.log('destroy map', id);
-    instansMap.delete(id);
-}
-
-export function getMapInstance(id: string) {
-    return instansMap.get(id);
-}
 const pcControls = olControl.defaults({attribution: true});
 const spControls = olControl.defaults({attribution: true, zoom: false});
 
@@ -60,7 +39,7 @@ const spControls = olControl.defaults({attribution: true, zoom: false});
  * OpenLayersの地図を内包したクラス。
  * 当該システムで必要な機能を実装している。
  */
-class OlMapWrapper {
+export class OlMapWrapper {
     readonly _id: string;
     _map: OlMap;
     _vectorLayerMap: VectorLayerMap;
@@ -258,12 +237,13 @@ class OlMapWrapper {
     }
 
     async _createFeatureGeometryFromItemDefine(def: ItemDefine): Promise<Feature<Geometry> | undefined> {
-        let feature: Feature<Geometry>;
+        let feature: Feature<Geometry> | undefined;
         if (def.geoProperties?.featureType === FeatureType.AREA && ('geocoderId' in def.geoProperties && def.geoProperties.geocoderId)) {
-            // Geocoderの図形の場合は、Geocoder図形呼び出し
-            const result = await getAPICallerInstance(this._id).callApi(GetGeocoderFeatureAPI, def.geoProperties.geocoderId);
+            // TODO: APIまわりの見直しが終わるまでコメントアウト
+            // // Geocoderの図形の場合は、Geocoder図形呼び出し
+            // const result = await getAPICallerInstance(this._id).callApi(GetGeocoderFeatureAPI, def.geoProperties.geocoderId);
 
-            feature = new GeoJSON().readFeatures(result.geoJson)[0];
+            // feature = new GeoJSON().readFeatures(result.geoJson)[0];
 
         } else {
             feature = MapUtility.createFeatureByGeoJson(def.geoJson, def.geoProperties);
@@ -295,15 +275,15 @@ class OlMapWrapper {
             const source = this._getTargetSource(def);
             if (!source) {
                 console.warn('追加対象レイヤ見つからず', def);
-                return;
+                continue;
             }
             const feature = await this._createFeatureGeometryFromItemDefine(def);
             if (!feature) {
-                return;
+                continue;
             }
             const geom = feature.getGeometry();
             if (!geom) {
-                return;
+                continue;
             }
 
             const existFeature = source.getFeatureById(getMapKey(def.id));
@@ -312,7 +292,7 @@ class OlMapWrapper {
                     existFeature.setGeometry(geom);
                     existFeature.setProperties(feature.getProperties());
                 }
-                return;
+                continue;
             }
     
             // 追加対象featureをmapに追加格納
@@ -642,7 +622,6 @@ class OlMapWrapper {
 
     dispose() {
         this._map.dispose();
-        instansMap.delete(this._id);
         console.log('dispose OlMapWrapper', this._id);
     }
 }

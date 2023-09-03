@@ -7,15 +7,11 @@ import { addListener, removeListener } from "../../util/Commander";
 import LandNameOverlay from "../map/LandNameOverlay";
 import { DataId, FeatureType } from "279map-common";
 import { MapMode } from "../../types/types";
-import useFilteredTopographyStyle from "../map/useFilteredTopographyStyle";
-import useTrackStyle from "../map/useTrackStyle";
 import Feature from "ol/Feature";
 import { usePrevious } from "../../util/usePrevious";
-import usePointStyle from "../map/usePointStyle";
 import ClusterMenuController from "../cluster-menu/ClusterMenuController";
 import { OwnerContext } from "./TsunaguMap";
-import { OlMapType, createMapInstance, destroyMapInstance } from "./OlMapWrapper";
-import { useMounted } from "../../util/useMounted";
+import { OlMapType } from "./OlMapWrapper";
 import { useWatch } from "../../util/useWatch";
 import { Geometry } from "ol/geom";
 import { sleep } from "../../util/CommonUtility";
@@ -28,29 +24,13 @@ import { filteredItemIdListAtom } from "../../store/filter";
 import { useAtom } from 'jotai';
 import { itemDataSourcesAtom } from "../../store/datasource";
 import { useAtomCallback } from 'jotai/utils';
+import { useMap } from "../map/useMap";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
     const [initialized, setInitialized] = useState(false);
     const mapRef = useRef<OlMapType>();
     const [mapMode] = useAtom(mapModeAtom);
-
-    // スタイル設定
-    // -- コンテンツ（建物・ポイント）レイヤ
-    const { pointStyleFunction } = usePointStyle();
-    // -- コンテンツ（地形）レイヤ
-    const { topographyStyleFunction } = useFilteredTopographyStyle();
-    // -- 軌跡レイヤ
-    const { trackStyleFunction } = useTrackStyle();
-    /**
-     * スタイル定義が変化したら、地図スタイル設定
-     */
-    useWatch(() => {
-        mapRef.current?.setPointLayerStyle(pointStyleFunction);
-        mapRef.current?.setTopographyLayerStyle(topographyStyleFunction);
-        mapRef.current?.setTrackLayerStyle(trackStyleFunction);
-        
-    }, [pointStyleFunction, topographyStyleFunction, trackStyleFunction])
 
     const [ mapKind ] = useAtom(currentMapKindAtom);
     const [ itemDataSources ] = useAtom(itemDataSourcesAtom);
@@ -188,15 +168,13 @@ export default function MapChart() {
      * 地図初期化
      */
     const [mapView, setMapView] = useAtom(mapViewAtom);
-    useMounted(() => {
+    const { createMapInstance, destroyMapInstance } = useMap();
+    useEffect(() => {
         if (myRef.current === null) {
             return;
         }
-        const map = createMapInstance(mapInstanceId, myRef.current, isPC ? 'pc' : 'sp');
+        const map = createMapInstance(myRef.current, isPC ? 'pc' : 'sp');
         mapRef.current = map;
-        mapRef.current.setPointLayerStyle(pointStyleFunction);
-        mapRef.current.setTopographyLayerStyle(topographyStyleFunction);
-        mapRef.current.setTrackLayerStyle(trackStyleFunction);
 
         // アイテムフォーカスイベントの登録
         const focusItemHandler = addListener('FocusItem', async(param: {itemId: DataId; zoom?: boolean}) => {
@@ -208,10 +186,10 @@ export default function MapChart() {
 
         return () => {
             map.dispose();
-            destroyMapInstance(mapInstanceId);
+            destroyMapInstance();
             removeListener(focusItemHandler);
         }
-    });
+    }, []);
 
     /**
      * 地図パンニング等に伴うアイテムロード処理フック
