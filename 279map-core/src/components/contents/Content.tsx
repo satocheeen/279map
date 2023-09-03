@@ -42,7 +42,7 @@ export default function Content(props: Props) {
     const { confirm } = useConfirm();
     const [ filteredContentIdList ] = useAtom(filteredContentIdListAtom);
     const { onEditContent }  = useContext(OwnerContext);
-    const { getApi } = useMap();
+    const { getApi, focusItem } = useMap();
 
     /**
      * 表示対象コンテンツかどうか。
@@ -148,13 +148,12 @@ export default function Content(props: Props) {
         const anotherMap = mapKind === MapKind.Real ? MapKind.Virtual : MapKind.Real;
 
         await changeMapKind(anotherMap);
-        doCommand({
-            command: 'FocusItem',
-            param: {
+        focusItem(
+            {
                 itemId: props.content.anotherMapItemId,
             }
-        });
-    }, [mapKind, props.content.anotherMapItemId, changeMapKind]);
+        );
+    }, [mapKind, props.content.anotherMapItemId, changeMapKind, focusItem]);
 
     /**
      * イメージロード

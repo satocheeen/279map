@@ -18,6 +18,9 @@ import { isEqualId } from '../../util/dataUtility';
 import usePointStyle from '../map/usePointStyle';
 import useFilteredTopographyStyle from '../map/useFilteredTopographyStyle';
 import useTrackStyle from '../map/useTrackStyle';
+import { filteredItemIdListAtom } from '../../store/filter';
+import VectorSource from 'ol/source/Vector';
+import useMyMedia from '../../util/useMyMedia';
 
 const ContentsModal = lazy(() => import('../contents/ContentsModal'));
 
@@ -26,22 +29,26 @@ const ContentsModal = lazy(() => import('../contents/ContentsModal'));
  * @returns 
  */
 export default function EventFire() {
+    useMapInitializer();
     useItemUpdater();
     useMapStyleUpdater();
+    useLayerVisibleChanger();
+    useFocusFilteredArea();
+    useDeviceListener();
 
     return (
         <>
-            <MapSubscriber />
-            <LayerVisibleChanger />
             <ItemSelectListener />
         </>
     )
 }
 
 /**
- * 地図種別の変更検知して、地図に対してsubscribe, unsubscribeする
+ * 地図種別の変更検知して、
+ * - 地図に対してsubscribe, unsubscribeする
+ * - 地図再作成する
  */
-function MapSubscriber() {
+function useMapInitializer() {
     const clearLoadedArea = useAtomCallback(
         useCallback((get, set, targets: {datasourceId: string, extent: Extent}[]) => {
             set(loadedItemKeysAtom, (current) => {
@@ -93,8 +100,24 @@ function MapSubscriber() {
         }
     }, [currentMapKind, removeItems, subscribeMap, unsubscribeMap, clearLoadedArea]);
 
-    return null;
+    const { map, fitToDefaultExtent, loadCurrentAreaContents } = useMap();
+    const [ itemDataSources ] = useAtom(itemDataSourcesAtom);
+    /**
+     * 地図が切り替わったら、レイヤ再配置
+     */
+    useEffect(() => {
+        if (!map || !currentMapKind) return;
 
+        // 現在のレイヤ、データソースを削除
+        map.clearAllLayers();
+        
+        // 初期レイヤ生成
+        map.initialize(currentMapKind, itemDataSources);
+
+        fitToDefaultExtent(false);
+        loadCurrentAreaContents();
+
+    }, [map, currentMapKind, itemDataSources, loadCurrentAreaContents, fitToDefaultExtent]);
 }
 
 /**
@@ -189,16 +212,15 @@ function useMapStyleUpdater() {
 /**
  * データソース情報の変更検知して、レイヤの表示・非表示切り替え
  */
-function LayerVisibleChanger() {
+function useLayerVisibleChanger() {
     const [ itemDataSources ] = useAtom(itemDataSourcesAtom);
-    const { getMap } = useMap();
+    const { map } = useMap();
 
     useEffect(() => {
-        getMap()?.updateLayerVisible(itemDataSources);
+        map?.updateLayerVisible(itemDataSources);
 
-    }, [itemDataSources, getMap]);
+    }, [itemDataSources, map]);
 
-    return null;
 }
 
 /**
@@ -229,5 +251,60 @@ function ItemSelectListener() {
             <ContentsModal {...dialogTarget} onClose={() => setDialogTarget(undefined)} />
         </Suspense>
     )
+
+}
+
+/**
+ * フィルタ時にフィルタ対象がExtentに入るようにする
+ */
+function useFocusFilteredArea() {
+    const { map, fitToDefaultExtent } = useMap();
+    const [filteredItemIdList] = useAtom(filteredItemIdListAtom);
+    const prevFilteredItemIdList = usePrevious(filteredItemIdList);
+    
+    useEffect(() => {
+        if (!map) return;
+        if (!filteredItemIdList || filteredItemIdList.length === 0) {
+            if (prevFilteredItemIdList && prevFilteredItemIdList.length > 0) {
+                // フィルタ解除された場合、全体fit
+                fitToDefaultExtent(true);
+            }
+            return;
+        }
+        const source = new VectorSource();
+        filteredItemIdList.forEach(itemId => {
+            const feature = map.getFeatureById(itemId);
+            if (feature) {
+                // Cluster化している場合は、既にsourceに追加されている可能性があるので、
+                // 追加済みでない場合のみ追加
+                if (!source.hasFeature(feature)) {
+                    source.addFeature(feature);
+                }
+            } else {
+                console.warn('feature not found.', itemId);
+            }
+        });
+        if (source.getFeatures().length === 0) {
+            return;
+        }
+        const ext = source.getExtent();
+        map.fit(ext, {
+            animation: true,
+        });
+        source.dispose();
+
+    }, [filteredItemIdList, prevFilteredItemIdList, map, fitToDefaultExtent]);
+}
+
+/**
+ * デバイスの変更検知して地図に反映
+ */
+function useDeviceListener() {
+    const { map } = useMap();
+    const { isPC } = useMyMedia();
+
+    useEffect(() => {
+        map?.changeDevice(isPC ? 'pc' : 'sp');
+    }, [isPC, map]);
 
 }

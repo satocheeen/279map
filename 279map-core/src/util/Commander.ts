@@ -40,8 +40,6 @@ type CommandDefine =
     | TCommandDefine<'LoadLatestData', undefined>
     // アイテム情報表示 引数: itemId. 
     | TCommandDefine<'ShowItemInfo', DataId>
-    // 指定のアイテムにフォーカスする
-    | TCommandDefine<'FocusItem', {itemId: DataId; zoom?: boolean}>
     // 重畳選択メニュー表示
     | TCommandDefine<'ShowClusterMenu', {position: Coordinate; targets: DataId[]}>
     // ユーザ一覧表示（管理者）

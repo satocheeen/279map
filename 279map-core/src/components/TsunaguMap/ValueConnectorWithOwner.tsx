@@ -28,7 +28,7 @@ import useDataSource from '../../store/datasource/useDataSource';
  */
 function ValueConnectorWithOwner(props: {}, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const { changeMapKind } = useMapController();
-    const { getApi } = useMap();
+    const { getApi, focusItem } = useMap();
     const { updateDatasourceVisible } = useDataSource();
 
     const showUserList = useAtomCallback(
@@ -56,13 +56,10 @@ function ValueConnectorWithOwner(props: {}, ref: React.ForwardedRef<TsunaguMapHa
             changeMapKind(mapKind);
         },
         focusItem(itemId: DataId, opts?: {zoom?: boolean}) {
-            doCommand({
-                command: 'FocusItem',
-                param: {
-                    itemId,
-                    zoom: opts?.zoom,
-                }
-            });
+            focusItem({
+                itemId,
+                zoom: opts?.zoom,
+            })
         },
         drawStructure(dataSourceId: string) {
             doCommand({
