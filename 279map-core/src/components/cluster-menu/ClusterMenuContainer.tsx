@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react';
 import { mapModeAtom, selectedItemIdsAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
-import { DataId, FeatureType, MapMode } from '../../entry';
+import { MapMode } from '../../types/types';
+import { DataId, FeatureType } from '279map-common';
 import ClusterMenuController from './ClusterMenuController';
 import { useMap } from '../map/useMap';
 import { useAtomCallback } from 'jotai/utils';

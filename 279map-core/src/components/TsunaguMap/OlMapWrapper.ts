@@ -22,7 +22,6 @@ import { convertDataIdFromFeatureId, getMapKey } from '../../util/dataUtility';
 import { GetGeocoderFeatureAPI } from 'tsunagumap-api';
 import { FitOptions } from 'ol/View';
 import { Coordinate } from 'ol/coordinate';
-import { doCommand } from '../../util/Commander';
 
 export type FeatureInfo = {
     id: DataId;

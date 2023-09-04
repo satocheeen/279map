@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { ApiCaller, ApiCallerType, ErrorCallback } from './ApiCaller';
-import { ServerInfo } from '../entry';
+import { ServerInfo } from '../types/types';
 import { useAtomCallback } from 'jotai/utils';
 import { instanceIdAtom } from '../store/session';
 import { useAtom } from 'jotai';
