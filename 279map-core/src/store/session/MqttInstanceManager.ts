@@ -13,7 +13,7 @@ export function createMqttClientInstance(id: string, mapServer: TsunaguMapProps[
     const protocol = mapServer.ssl ? 'wss' : 'ws';
     const mq = mqtt.connect(`${protocol}://${mapServer.host}`) as MqttClient;
     mq.on('connect', () => {
-        console.log('mqtt connected');
+        console.log('mqtt connected', id);
     });
 
     instansMap.set(id, mq);
@@ -25,7 +25,7 @@ export function destroyMqttClientInstance(id: string) {
     if (!mq) return;
     instansMap.delete(id);
     mq.end(() => {
-        console.log('mqtt disconnect');
+        console.log('mqtt disconnect', id);
     });
 }
 export function getMqttClientInstance(id: string) {

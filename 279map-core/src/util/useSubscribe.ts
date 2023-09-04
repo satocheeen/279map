@@ -1,8 +1,7 @@
-import { useContext, useCallback, useMemo } from 'react';
-import { OwnerContext } from '../components/TsunaguMap/TsunaguMap';
+import { useCallback, useMemo, useEffect } from 'react';
 import { ErrorType, PublishMapMessage, PublishUserMessage } from 'tsunagumap-api';
 import { getMqttClientInstance } from '../store/session/MqttInstanceManager';
-import { connectStatusLoadableAtom } from '../store/session';
+import { connectStatusLoadableAtom, instanceIdAtom, mapIdAtom } from '../store/session';
 import { MapKind } from '279map-common';
 import { MyError } from '../api';
 import { useAtom } from 'jotai';
@@ -19,7 +18,8 @@ function makeTopic(mapId: string, mapKind: MapKind | undefined, msg: PublishMapM
 }
 //TODO: 別の箇所から同一messageをsubscribeすると、片方がunsubscribeするともう一方もunsubscribeになると思うので、その対処
 export function useSubscribe() {
-    const { mapInstanceId, mapId } = useContext(OwnerContext);
+    const [ mapInstanceId ] = useAtom(instanceIdAtom);
+    const [ mapId ] = useAtom(mapIdAtom);
     const [ connectStatusLoadable ] = useAtom(connectStatusLoadableAtom);
 
     const userId = useMemo(() => {
@@ -35,12 +35,15 @@ export function useSubscribe() {
         }
     }, [connectStatusLoadable]);
 
+    useEffect(() => {
+        console.log('userId', userId)
+    }, [userId]);
+
     /**
-     * 接続中のユーザに関するtopicを購読
+     * ログイン中のユーザに関するtopicを購読
      */
-    const subscribeUser = useCallback((msg: PublishUserMessage['type'], callback: (payload: PublishUserMessage) => void) => {
+    const userSubscribe = useMemo(() => {
         if (!userId) {
-            console.warn('not yet connected.');
             return;
         }
         const mqtt = getMqttClientInstance(mapInstanceId);
@@ -48,40 +51,34 @@ export function useSubscribe() {
             console.warn('mqtt not find');
             return;
         }
-        
-        const mytopic = `${userId}/${msg}`;
-        mqtt.subscribe(mytopic, () => {
-            console.log('subscribe', mytopic)
-        });
-        mqtt.on('message', (topic, payloadBuff) => {
-            const payload = JSON.parse(new String(payloadBuff) as string) as PublishUserMessage;
-            if (mytopic === topic) {
-                console.log('message', topic, payload);
-                callback(payload);
-            }
-        });
+
+        const subscribe = (msg: PublishUserMessage['type'], callback: (payload: PublishUserMessage) => void) => {
+            const mytopic = `${userId}/${msg}`;
+            mqtt.subscribe(mytopic, () => {
+                console.log('subscribe', mytopic)
+            });
+            mqtt.on('message', (topic, payloadBuff) => {
+                const payload = JSON.parse(new String(payloadBuff) as string) as PublishUserMessage;
+                if (mytopic === topic) {
+                    console.log('message', topic, payload);
+                    callback(payload);
+                }
+            });
+        }
+
+        const unsubscribe = (msg: PublishUserMessage['type']) => {
+            const topic = `${userId}/${msg}`;
+            mqtt.unsubscribe(topic, () => {
+                console.log('unsubscribe', topic)
+            });
+        }
+
+        return {
+            subscribe,
+            unsubscribe,
+        }
+
     }, [userId, mapInstanceId]);
-
-    /**
-     * 接続中のユーザに関するtopicの購読停止
-     */
-    const unsubscribeUser = useCallback((msg: PublishUserMessage['type']) => {
-        if (connectStatusLoadable.state !== 'hasData') {
-            console.warn('not yet connected.');
-            return;
-        }
-        const connectStatus = connectStatusLoadable.data;
-        const mqtt = getMqttClientInstance(mapInstanceId);
-        if (!mqtt) {
-            console.warn('mqtt not find');
-            return;
-        }
-        const topic = `${connectStatus.userId}/${msg}`;
-        mqtt.unsubscribe(topic, () => {
-            console.log('unsubscribe', topic)
-        });
-
-    }, [connectStatusLoadable, mapInstanceId]);
 
     /**
      * 接続中の地図に関するtopicを購読
@@ -126,9 +123,8 @@ export function useSubscribe() {
         }, [mapInstanceId, mapId]);
 
     return {
-        subscribeUser,
-        unsubscribeUser,
         subscribeMap,
         unsubscribeMap,
+        userSubscribe,
     }
 }

@@ -1,38 +1,24 @@
 import { ConnectResult, GetMapInfoAPI, GetMapInfoResult } from 'tsunagumap-api';
-import { ServerInfo } from '../../types/types';
 import { Auth, MapKind } from '279map-common';
 import { ApiException, MyErrorType } from '../../api';
 import { Extent } from "ol/extent";
 import { atom } from 'jotai';
-import { loadable } from 'jotai/utils';
-import { apiIdAtom, getAPICallerInstance } from '../../api/useApi';
+import { atomWithReducer, loadable } from 'jotai/utils';
+import { getAPICallerInstance } from '../../api/useApi';
 
 export const instanceIdAtom = atom('');
 
-export const mapIdAtom = atom<string|undefined>(undefined);
+export const mapIdAtom = atom<string>('');
 
-export const mapServerAtom = atom<ServerInfo|undefined>(undefined);
-
-export const refreshConnectStatusAtom = atom(0);
+export const connectReducerAtom = atomWithReducer(0, (prev) => prev+1);
 export const connectStatusAtom = atom<Promise<ConnectResult>>(async( get ) => {
     try {
-        get(refreshConnectStatusAtom);
+        get(connectReducerAtom);
         const mapId = get(mapIdAtom);
-        const instanceId = get(instanceIdAtom);
-        const mapServer = get(mapServerAtom);
-        if (instanceId.length === 0 || !mapId || !mapServer) {
-            // まだ初期化されていない状態なら何もしない
-            throw new ApiException({
-                type: MyErrorType.NonInitialize,
-            })
-        }
-        const apiId = get(apiIdAtom);
+        console.log('connect to', mapId);
+
+        const apiId = get(instanceIdAtom);
         const apiCaller = getAPICallerInstance(apiId);
-        if (!apiCaller) {
-            throw new ApiException({
-                type: MyErrorType.NonInitialize,
-            })
-        }
 
         const json = await apiCaller.connect(mapId);
 
@@ -40,8 +26,10 @@ export const connectStatusAtom = atom<Promise<ConnectResult>>(async( get ) => {
 
     } catch(e) {
         console.warn('connect error', e);
-        throw e;
-    }
+        throw new ApiException({
+            type: MyErrorType.NonInitialize,
+        })
+}
 })
 
 export const connectStatusLoadableAtom = loadable(connectStatusAtom);
@@ -52,7 +40,7 @@ export const mapDefineAtom = atom<Promise<GetMapInfoResult>>(async(get) => {
     const connectStatus = await get(connectStatusAtom);
     const specifiedMapKind = get(specifiedMapKindAtom);
     const mapKind = specifiedMapKind ?? connectStatus.mapDefine.defaultMapKind;
-    const apiId = get(apiIdAtom);
+    const apiId = get(instanceIdAtom);
     const apiCaller = getAPICallerInstance(apiId);
     if (!apiCaller) {
         throw new ApiException({

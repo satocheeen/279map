@@ -1,22 +1,28 @@
-import { useContext, useCallback, useMemo } from 'react';
-import { OwnerContext } from '../components/TsunaguMap/TsunaguMap';
+import { useCallback, useMemo } from 'react';
 import { ApiCaller, ApiCallerType, ErrorCallback } from './ApiCaller';
 import { ServerInfo } from '../entry';
-import { atomWithReducer, useAtomCallback } from 'jotai/utils';
-import { instanceIdAtom, mapServerAtom } from '../store/session';
-import { atom, useAtom } from 'jotai';
+import { useAtomCallback } from 'jotai/utils';
+import { instanceIdAtom } from '../store/session';
+import { useAtom } from 'jotai';
 
+/**
+ * インスタンス管理マップ
+ * ※複数の地図コンポーネントが１画面上に配置されるケースに対応するため、Mapで管理している
+ */
 const instansMap = new Map<string, ApiCaller>();
 
-// instance生成回数。再生成した時にapi参照しているコンポーネントで再レンダリングを走らせるために用いている。
-const apiInstanceCntReducerAtom = atomWithReducer(0, (prev) => {
-    return prev + 1;
-});
-export const apiIdAtom = atom((get) => {
-    const instanceId = get(instanceIdAtom);
-    const cnt = get(apiInstanceCntReducerAtom);
-    return instanceId + cnt;
-})
+export function createAPICallerInstance(id: string, serverInfo: ServerInfo,  errorCallback: ErrorCallback) {
+    const instance = new ApiCaller(id, serverInfo, errorCallback);
+    console.log('createAPI', id);
+    instansMap.set(id, instance);
+}
+
+export function destroyAPICallerInstance(id: string) {
+    const api = instansMap.get(id);
+    if (!api) return;
+    console.log('destroyAPI', id);
+    instansMap.delete(id);
+}
 
 // コンポーネント外（jotai等）からAPIを用いる場合向け
 export function getAPICallerInstance(id: string) {
@@ -26,45 +32,11 @@ export function getAPICallerInstance(id: string) {
     }
     return instance;
 }
-
 export function useApi() {
-    const { mapInstanceId } = useContext(OwnerContext);
-    const [_, dispatch] = useAtom(apiInstanceCntReducerAtom);
-    
-    const createAPI = useAtomCallback(
-        useCallback((get, set, errorCallback: ErrorCallback) => {
-            dispatch();
-            const apiId = get(apiIdAtom);
-            const serverInfo = get(mapServerAtom); 
-            if (!serverInfo) {
-                throw new Error('mapServerAtom undefined');
-            }
-            const instance = new ApiCaller(apiId, serverInfo, errorCallback);
-
-            console.log('create api', apiId);
-            instansMap.set(apiId, instance);
-            return instance;
-        }, [])
-    )
-    
-    const destroyAPI = useAtomCallback(
-        useCallback((get) => {
-            const apiId = get(apiIdAtom);
-            const api = instansMap.get(apiId);
-            if (!api) return;
-            console.log('destroy api', apiId);
-            instansMap.delete(apiId);
-        }, [])
-    )
-
-    const [apiId] = useAtom(apiIdAtom);
-    const api = useMemo(() => {
-        return instansMap.get(apiId);        
-    }, [apiId])
 
     const callApi: ApiCallerType['callApi'] = useAtomCallback(
         useCallback((get, set, ...args) => {
-            const apiId = get(apiIdAtom);
+            const apiId = get(instanceIdAtom);
             const api = instansMap.get(apiId);
             if (!api) {
                 console.warn('api undefined');
@@ -74,9 +46,14 @@ export function useApi() {
         }, [])
     )
 
+    const [apiId] = useAtom(instanceIdAtom);
+    const hasToken = useMemo(() => {
+        const api = instansMap.get(apiId);
+        return api?._serverInfo.token !== undefined;
+    }, [apiId]);
+
     return {
-        createAPI,
-        destroyAPI,
         callApi,
+        hasToken,
     }
 }

@@ -1,7 +1,5 @@
-import React, { useCallback, useState, useContext, useEffect } from 'react';
-import { OwnerContext } from './TsunaguMap';
-import { useWatch } from '../../util/useWatch';
-import { connectStatusLoadableAtom, instanceIdAtom, mapIdAtom, mapServerAtom, refreshConnectStatusAtom } from '../../store/session';
+import React, { useCallback, useState, useEffect } from 'react';
+import { connectStatusLoadableAtom, instanceIdAtom, mapIdAtom, connectReducerAtom } from '../../store/session';
 import { ErrorType, RequestAPI } from 'tsunagumap-api';
 import Overlay from '../common/spinner/Overlay';
 import { Button } from '../common';
@@ -9,13 +7,14 @@ import Input from '../common/form/Input';
 import styles from './MapConnector.module.scss';
 import { useSubscribe } from '../../util/useSubscribe';
 import { Auth } from '279map-common';
-import { createMqttClientInstance, destroyMqttClientInstance } from '../../store/session/MqttInstanceManager';
 import { useAtom } from 'jotai';
 import { MyError, MyErrorType } from '../../api';
-import { useApi } from '../../api/useApi';
-import { usePrevious } from '../../util/usePrevious';
+import { createAPICallerInstance, destroyAPICallerInstance, useApi } from '../../api/useApi';
+import { ServerInfo } from '../../entry';
+import { createMqttClientInstance, destroyMqttClientInstance } from '../../store/session/MqttInstanceManager';
 
 type Props = {
+    server: ServerInfo;
     children: React.ReactNode | React.ReactNode[];
 }
 
@@ -26,70 +25,55 @@ type Props = {
  * @returns 
  */
 export default function MapConnector(props: Props) {
-    const ownerContext = useContext(OwnerContext);
-    const [mapId, setMapId] = useAtom(mapIdAtom);
-    const [mapServer, setMapServer] = useAtom(mapServerAtom);
     const [connectLoadable] = useAtom(connectStatusLoadableAtom);
-    const [instanceId, setInstanceId ] = useAtom(instanceIdAtom);
-    const { createAPI, destroyAPI } = useApi();
-
+    const [instanceId ] = useAtom(instanceIdAtom);
+    
+    // API用意
+    const [apiPrepared, setApiPrepared] = useState(false);
+    const [, connectDispatch] = useAtom(connectReducerAtom);
     useEffect(() => {
-        setMapId(ownerContext.mapId);
-    }, [ownerContext.mapId, setMapId]);
+        createAPICallerInstance(instanceId, props.server, () => {});
+        createMqttClientInstance(instanceId, props.server);
 
-    useEffect(() => {
-        setInstanceId(ownerContext.mapInstanceId);
-        setMapServer(ownerContext.mapServer);
+        if (apiPrepared) {
+            connectDispatch();
+        } else {
+            setApiPrepared(true);
+        }
 
         return () => {
-            setInstanceId('');
-            setMapServer(undefined);
+            destroyAPICallerInstance(instanceId);
+            destroyMqttClientInstance(instanceId);
         }
-    }, [ownerContext.mapInstanceId, ownerContext.mapServer, setInstanceId, setMapServer]);
+    }, [instanceId, props.server, connectDispatch, apiPrepared]);
 
-    /**
-     * 地図接続情報が変化したら、API, Mqtt初期化
-     */
-    const prevMapServer = usePrevious(ownerContext.mapServer);
+    const { userSubscribe } = useSubscribe();
+
     useEffect(() => {
-        if (JSON.stringify(ownerContext.mapServer) === JSON.stringify(prevMapServer)) {
-            return;
-        }
+        if (!userSubscribe) return;
 
-        // API Accessor用意
-        createAPI((error) => {
-            // コネクションエラー時(リロードが必要なエラー)
-            console.warn('connection error', error);
-        });
-        // Mqtt接続
-        const id = ownerContext.mapInstanceId;
-        createMqttClientInstance(id, ownerContext.mapServer);
-
-        return () => {
-            destroyAPI();
-            destroyMqttClientInstance(id);
-        }
-
-    }, [createAPI, destroyAPI]);
-
-    const { subscribeUser, unsubscribeUser } = useSubscribe();
-    const [refreshConnectStatus, setRefreshConnectStatus] = useAtom(refreshConnectStatusAtom);
-    useWatch(() => {
-        subscribeUser('update-userauth', () => {
+        userSubscribe.subscribe('update-userauth', () => {
             // 権限変更されたので再接続
-            setRefreshConnectStatus((cur) => cur+1);
+            connectDispatch();
         });
 
         return () => {
-            unsubscribeUser('update-userauth');
+            userSubscribe.unsubscribe('update-userauth');
         }
-    }, [subscribeUser, unsubscribeUser]);
+    }, [userSubscribe, connectDispatch]);
 
     // ゲストモードで動作させる場合、true
     const [guestMode, setGuestMode] = useState(false);
     const onRequestCancel = useCallback(() => {
         setGuestMode(true);
     }, []);
+
+    const { hasToken } = useApi()
+
+    if (!apiPrepared) {
+        // API準備完了を待ってからレンダリング開始
+        return null;
+    }
 
     switch (connectLoadable.state) {
         case 'hasData':
@@ -98,7 +82,7 @@ export default function MapConnector(props: Props) {
                 if (guestMode) {
                     return false;
                 }
-                if (!ownerContext.mapServer.token) {
+                if (!hasToken) {
                     return false;
                 }
                 if (connectLoadable.data.mapDefine.options?.newUserAuthLevel === Auth.None) {
@@ -168,7 +152,7 @@ type RequestComponetProps = {
 }
 function RequestComponet(props: RequestComponetProps) {
     const { callApi } = useApi();
-    const { mapId } = useContext(OwnerContext);
+    const [ mapId ] = useAtom(mapIdAtom);
     const [ stage, setStage ] = useState<RequestComponetStage>(props.stage ?? 'button');
     const [ name, setName ] = useState('');
     const [ errorMessage, setErrorMessage ] = useState<string|undefined>();

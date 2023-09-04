@@ -3,11 +3,12 @@ import { GetCategoryAPI } from 'tsunagumap-api';
 import { atom } from 'jotai';
 import { loadable } from "jotai/utils";
 import { visibleDataSourceIdsAtom } from './datasource';
-import { apiIdAtom, getAPICallerInstance } from '../api/useApi';
+import { getAPICallerInstance } from '../api/useApi';
+import { instanceIdAtom } from './session';
 
 export const categoriesAtom = atom(async(get): Promise<CategoryDefine[]> => {
     try {
-        const instanceId = get(apiIdAtom);
+        const instanceId = get(instanceIdAtom);
         const apiCaller = getAPICallerInstance(instanceId)
 
         // 表示中のデータソースに紐づくカテゴリを取得

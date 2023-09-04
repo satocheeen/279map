@@ -97,40 +97,41 @@ export class ApiCaller {
         return res;
     }
 
-    async getContents(param: GetContentsParam): Promise<ContentsDefine[]> {
-        try {
-            // 重複する内容は除去する
-            const itemIdSet = new Set<string>();
-            const contentIdSet = new Set<string>();
-            const fixedParam = param.filter(item => {
-                if ('itemId' in item) {
-                    if (itemIdSet.has(getMapKey(item.itemId))) {
-                        return false;
-                    } else {
-                        itemIdSet.add(getMapKey(item.itemId));
-                        return true;
-                    }
-                } else {
-                    if (contentIdSet.has(getMapKey(item.contentId))) {
-                        return false;
-                    } else {
-                        contentIdSet.add(getMapKey(item.contentId));
-                        return true;
-                    }
-                }
-            });
-            if (fixedParam.length === 0) {
-                return [];
-            }
-            const apiResult = await this.callApi(GetContentsAPI, fixedParam);
+    // // TODO: deprecate
+    // async getContents(param: GetContentsParam): Promise<ContentsDefine[]> {
+    //     try {
+    //         // 重複する内容は除去する
+    //         const itemIdSet = new Set<string>();
+    //         const contentIdSet = new Set<string>();
+    //         const fixedParam = param.filter(item => {
+    //             if ('itemId' in item) {
+    //                 if (itemIdSet.has(getMapKey(item.itemId))) {
+    //                     return false;
+    //                 } else {
+    //                     itemIdSet.add(getMapKey(item.itemId));
+    //                     return true;
+    //                 }
+    //             } else {
+    //                 if (contentIdSet.has(getMapKey(item.contentId))) {
+    //                     return false;
+    //                 } else {
+    //                     contentIdSet.add(getMapKey(item.contentId));
+    //                     return true;
+    //                 }
+    //             }
+    //         });
+    //         if (fixedParam.length === 0) {
+    //             return [];
+    //         }
+    //         const apiResult = await this.callApi(GetContentsAPI, fixedParam);
     
-            return apiResult.contents;
+    //         return apiResult.contents;
     
-        } catch (e) {
-            console.warn('getContents error', e);
-            throw new Error('getContents failed.');
-        }
+    //     } catch (e) {
+    //         console.warn('getContents error', e);
+    //         throw new Error('getContents failed.');
+    //     }
     
-    }
+    // }
 }
 export type ApiCallerType = InstanceType<typeof ApiCaller>;
