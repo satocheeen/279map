@@ -7,7 +7,7 @@ import styles from './ContentsModal.module.scss';
 import { getMapKey } from '../../util/dataUtility';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { useMap } from '../map/useMap';
-import { useSubscribe } from '../../util/useSubscribe';
+import { useSubscribe } from '../../api/useSubscribe';
 import { useItem } from '../../store/item/useItem';
 import { useAtom } from 'jotai';
 import { currentMapKindAtom } from '../../store/session';

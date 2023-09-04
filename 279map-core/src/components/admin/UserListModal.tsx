@@ -7,7 +7,7 @@ import { ChangeAuthLevelAPI, GetUserListAPI } from 'tsunagumap-api';
 import { useWatch } from '../../util/useWatch';
 import { Auth, User} from '279map-common';
 import Select from '../common/form/Select';
-import { useSubscribe } from '../../util/useSubscribe';
+import { useSubscribe } from '../../api/useSubscribe';
 import { useApi } from '../../api/useApi';
 
 export default function UserListModal() {

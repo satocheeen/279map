@@ -3,7 +3,7 @@ import { useAtomCallback } from 'jotai/utils';
 import React, { useMemo, useCallback, useContext, useEffect, lazy, Suspense } from 'react';
 import { allItemsAtom, initialItemLoadedAtom, loadedItemKeysAtom } from '../../store/item';
 import { checkContaining } from '../../util/MapUtility';
-import { useSubscribe } from '../../util/useSubscribe';
+import { useSubscribe } from '../../api/useSubscribe';
 import { currentMapKindAtom } from '../../store/session';
 import { useAtom } from 'jotai';
 import { useItem } from '../../store/item/useItem';

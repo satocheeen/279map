@@ -5,13 +5,12 @@ import Overlay from '../common/spinner/Overlay';
 import { Button } from '../common';
 import Input from '../common/form/Input';
 import styles from './MapConnector.module.scss';
-import { useSubscribe } from '../../util/useSubscribe';
+import { createMqttClientInstance, destroyMqttClientInstance, useSubscribe } from '../../api/useSubscribe';
 import { Auth } from '279map-common';
 import { useAtom } from 'jotai';
 import { MyError, MyErrorType } from '../../api';
 import { createAPICallerInstance, destroyAPICallerInstance, useApi } from '../../api/useApi';
-import { ServerInfo } from '../../entry';
-import { createMqttClientInstance, destroyMqttClientInstance } from '../../store/session/MqttInstanceManager';
+import { ServerInfo } from '../../types/types';
 
 type Props = {
     server: ServerInfo;
