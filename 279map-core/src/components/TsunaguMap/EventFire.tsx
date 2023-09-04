@@ -1,13 +1,12 @@
-import { Extent, ItemDefine } from '279map-common';
+import { Extent, ItemDefine, MapKind } from '279map-common';
 import { useAtomCallback } from 'jotai/utils';
-import React, { useMemo, useCallback, useContext, useEffect, lazy, Suspense } from 'react';
-import { allItemsAtom, initialItemLoadedAtom, loadedItemKeysAtom } from '../../store/item';
+import React, { useRef, useMemo, useCallback, useContext, useEffect, lazy, Suspense, useState } from 'react';
+import { allItemsAtom, loadedItemKeysAtom } from '../../store/item';
 import { checkContaining } from '../../util/MapUtility';
 import { useSubscribe } from '../../api/useSubscribe';
-import { currentMapKindAtom } from '../../store/session';
+import { currentMapDefineAtom, currentMapKindAtom } from '../../store/session';
 import { useAtom } from 'jotai';
 import { useItem } from '../../store/item/useItem';
-import { doCommand } from '../../util/Commander';
 import { itemDataSourcesAtom } from '../../store/datasource';
 import { useMap } from '../map/useMap';
 import { dialogTargetAtom, selectedItemIdsAtom } from '../../store/operation';
@@ -73,7 +72,7 @@ function useMapInitializer() {
     const [ currentMapKind ] = useAtom(currentMapKindAtom);
     const { subscribeMap, unsubscribeMap } = useSubscribe();
     const { removeItems } = useItem();
-    const { map, fitToDefaultExtent, loadCurrentAreaContents } = useMap();
+    const { loadCurrentAreaContents } = useMap();
 
     useEffect(() => {
         if (!currentMapKind) return;
@@ -98,34 +97,45 @@ function useMapInitializer() {
         }
     }, [currentMapKind, removeItems, subscribeMap, unsubscribeMap, clearLoadedArea, loadCurrentAreaContents]);
 
-    const [ itemDataSources ] = useAtom(itemDataSourcesAtom);
-    const prevMapKind = usePrevious(currentMapKind);
-    /**
-     * 地図が切り替わったら、レイヤ再配置
-     */
-    useEffect(() => {
-        if (!map || !currentMapKind) return;
-        if (currentMapKind === prevMapKind) return;
-
-        // 現在のレイヤ、データソースを削除
-        map.clearAllLayers();
-        
-        // 初期レイヤ生成
-        map.initialize(currentMapKind, itemDataSources);
-
-        fitToDefaultExtent(false);
-        loadCurrentAreaContents();
-
-    }, [map, currentMapKind, prevMapKind, itemDataSources, loadCurrentAreaContents, fitToDefaultExtent]);
 }
 
 /**
  * アイテムの変更検知して、地図に反映するフック
  */
 function useItemUpdater() {
-    const { map } = useMap();
+    const { map, fitToDefaultExtent, loadCurrentAreaContents } = useMap();
     const [ itemMap ] = useAtom(allItemsAtom);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
+
+    const [ itemDataSources ] = useAtom(itemDataSourcesAtom);
+    const [ currentMapKind ] = useAtom(currentMapKindAtom);
+    // 地図初期化済みの地図種別
+    const [ initializedMapKind, setInitializedMapKind ] = useState<MapKind|undefined>();
+    const [ , setLoadedItemKeys] = useAtom(loadedItemKeysAtom);
+    const initialLoadingRef = useRef(false);
+    const [ currentMapDefine ] = useAtom(currentMapDefineAtom);
+
+    /**
+     * 地図が切り替わったら、レイヤ再配置
+     */
+    useEffect(() => {
+        if (!map || !currentMapKind) return;
+        if (initializedMapKind ===  currentMapKind) return;
+
+        // 現在のレイヤ、データソースを削除
+        map.clearAllLayers();
+        
+        // 初期レイヤ生成
+        map.initialize(currentMapKind, itemDataSources, currentMapDefine?.extent);
+
+        fitToDefaultExtent(false);
+        loadCurrentAreaContents();
+        setInitializedMapKind(currentMapKind);
+        prevGeoJsonItemsRef.current = [];
+        setLoadedItemKeys([]);
+        initialLoadingRef.current = true;
+
+    }, [map, currentMapDefine, currentMapKind, initializedMapKind, itemDataSources, loadCurrentAreaContents, fitToDefaultExtent, setLoadedItemKeys]);
 
     /**
      * アイテムFeatureを地図に反映する
@@ -135,20 +145,22 @@ function useItemUpdater() {
             return acc.concat(Object.values(cur));
         }, [] as ItemDefine[]);
     }, [itemMap]);
-    const prevGeoJsonItems = usePrevious(geoJsonItems);
-    const [initialItemLoaded] = useAtom(initialItemLoadedAtom);
+    // 追加済みアイテム
+    const prevGeoJsonItemsRef = useRef<ItemDefine[]>([]);
 
     useEffect(() => {
-        if (!map) return;
+        if (!map || !initializedMapKind) return;
+        if (initializedMapKind !== currentMapKind) return;
 
         // 追加、更新
         const progressH = showProcessMessage({
-            overlay: !initialItemLoaded,    // 初回ロード時はオーバーレイ
+            overlay: initialLoadingRef.current,    // 初回ロード時はオーバーレイ
             spinner: true,
         });
+        initialLoadingRef.current = false;
         // TODO: OlMapWrapperに追加有無判断は任せる
         const updateItems = geoJsonItems.filter(item => {
-            const before = prevGeoJsonItems?.find(pre => isEqualId(pre.id, item.id));
+            const before = prevGeoJsonItemsRef.current.find(pre => isEqualId(pre.id, item.id));
             if (!before) return true;   // 追加Item
             return before.lastEditedTime !== item.lastEditedTime;   // 更新Item
         })
@@ -157,7 +169,7 @@ function useItemUpdater() {
             // 削除
             // 削除アイテム＝prevGeoJsonItemに存在して、geoJsonItemsに存在しないもの
             const currentIds = geoJsonItems.map(item => item.id);
-            const deleteItems = prevGeoJsonItems?.filter(pre => {
+            const deleteItems = prevGeoJsonItemsRef.current.filter(pre => {
                 return !currentIds.some(current => isEqualId(current, pre.id));
             });
             deleteItems?.forEach(item => {
@@ -166,10 +178,11 @@ function useItemUpdater() {
 
         })
         .finally(() => {
+            prevGeoJsonItemsRef.current = geoJsonItems.concat();
             hideProcessMessage(progressH);
         });
 
-    }, [geoJsonItems, prevGeoJsonItems, map, hideProcessMessage, showProcessMessage]);
+    }, [geoJsonItems, map, hideProcessMessage, showProcessMessage, initializedMapKind, currentMapKind]);
 
 }
 

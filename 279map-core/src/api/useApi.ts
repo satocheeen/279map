@@ -32,6 +32,9 @@ export function getAPICallerInstance(id: string) {
     }
     return instance;
 }
+export function hasAPICallerInstance(id: string) {
+    return instansMap.has(id);
+}
 export function useApi() {
 
     const callApi: ApiCallerType['callApi'] = useAtomCallback(

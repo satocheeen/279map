@@ -4,7 +4,7 @@ import { atom, useAtom } from 'jotai';
 import { useAtomCallback, atomWithReducer } from 'jotai/utils';
 import { defaultExtentAtom, instanceIdAtom } from '../../store/session';
 import { GetItemsAPI, GetItemsParam } from 'tsunagumap-api';
-import { ItemsMap, LoadedItemKey, allItemsAtom, initialItemLoadedAtom, loadedItemKeysAtom } from '../../store/item';
+import { ItemsMap, LoadedItemKey, allItemsAtom, loadedItemKeysAtom } from '../../store/item';
 import { DataId, Extent } from '279map-common';
 import { dataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import useMyMedia from '../../util/useMyMedia';
@@ -67,7 +67,7 @@ export function useMap() {
 
     const [mapId] = useAtom(mapIdAtom);
     const map = useMemo(() => {
-        console.log('debug map', mapId);
+        // console.log('debug map', mapId);
         return instansMap.get(mapId);
     }, [mapId]);
 
@@ -148,8 +148,6 @@ export function useMap() {
                 })
             }
 
-            set(initialItemLoadedAtom, true);
-    
         } catch (e) {
             console.warn('loadItems error', e);
             throw e;

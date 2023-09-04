@@ -15,7 +15,7 @@ import { MapMode, TsunaguMapHandler } from '../../types/types';
 import { useAtom } from 'jotai';
 import { itemDataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import { useAtomCallback } from 'jotai/utils';
-import { allItemsAtom, initialItemLoadedAtom, loadedItemKeysAtom } from '../../store/item';
+import { allItemsAtom, loadedItemKeysAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import { doCommand } from '../../util/Commander';
 import useDataSource from '../../store/datasource/useDataSource';
@@ -292,7 +292,6 @@ function MapLoadListener() {
         useCallback(async(get, set) => {
             set(allItemsAtom, {});
             set(loadedItemKeysAtom, []);
-            set(initialItemLoadedAtom, false);
         }, [])
     );
 

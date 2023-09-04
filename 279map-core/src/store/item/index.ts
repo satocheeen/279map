@@ -12,6 +12,3 @@ export const loadedItemKeysAtom = atom<LoadedItemKey[]>([]);
 
 type ItemsByDatasourceMap = {[dsId: string]: ItemsMap};
 export const allItemsAtom = atom({} as ItemsByDatasourceMap);
-
-// アイテムの初回ロード完了しているかどうかのフラグ
-export const initialItemLoadedAtom = atom<boolean>(false);

@@ -19,7 +19,7 @@ type Props = {
 
 /**
  * 地図サーバとのセッションを確立する。
- * OwnerContextで設定された値のうち、必要なものをRecoilに設定する。
+ * セッション確立後、子コンポーネントを描画する。
  * @param props 
  * @returns 
  */
@@ -28,23 +28,18 @@ export default function MapConnector(props: Props) {
     const [instanceId ] = useAtom(instanceIdAtom);
     
     // API用意
-    const [apiPrepared, setApiPrepared] = useState(false);
     const [, connectDispatch] = useAtom(connectReducerAtom);
     useEffect(() => {
         createAPICallerInstance(instanceId, props.server, () => {});
         createMqttClientInstance(instanceId, props.server);
 
-        if (apiPrepared) {
-            connectDispatch();
-        } else {
-            setApiPrepared(true);
-        }
+        connectDispatch();
 
         return () => {
             destroyAPICallerInstance(instanceId);
             destroyMqttClientInstance(instanceId);
         }
-    }, [instanceId, props.server, connectDispatch, apiPrepared]);
+    }, [instanceId, props.server, connectDispatch]);
 
     const { userSubscribe } = useSubscribe();
 
@@ -68,11 +63,6 @@ export default function MapConnector(props: Props) {
     }, []);
 
     const { hasToken } = useApi()
-
-    if (!apiPrepared) {
-        // API準備完了を待ってからレンダリング開始
-        return null;
-    }
 
     switch (connectLoadable.state) {
         case 'hasData':

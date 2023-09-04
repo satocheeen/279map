@@ -113,13 +113,14 @@ export class OlMapWrapper {
     /**
      * 地図種別に対応した初期レイヤを設定する
      */
-    initialize(mapKind: MapKind, dataSourceGroups: DataSourceGroup[]) {
+    initialize(mapKind: MapKind, dataSourceGroups: DataSourceGroup[], fitExtent?: Extent) {
         this._mapKind = mapKind;
-        let extent: Extent = [0, 0, 2, 2];
+        let extent = fitExtent;
         if (mapKind === MapKind.Real) {
             // 都道府県レイヤ
             const features = new GeoJSON().readFeatures(prefJson);
             const prefSource = new VectorSource({ features });
+            extent ??= prefSource.getExtent();
 
             const layers = [
                 new TileLayer({
@@ -144,7 +145,6 @@ export class OlMapWrapper {
                 }),
             ];
             this._map.setLayers(layers);
-            extent = prefSource.getExtent();
 
             dataSourceGroups.forEach(group => {
                 group.dataSources.forEach(ds => {
@@ -180,6 +180,7 @@ export class OlMapWrapper {
 
         } else {
             // 村マップ
+            extent ??= [0, 0, 2, 2];
             dataSourceGroups.forEach(group => {
                 group.dataSources.forEach(ds => {
                     if (!ds.itemContents.VirtualItem) {

@@ -1,10 +1,11 @@
-import { ConnectResult, GetMapInfoAPI, GetMapInfoResult } from 'tsunagumap-api';
+import { ConnectResult, ErrorType, GetMapInfoAPI, GetMapInfoResult } from 'tsunagumap-api';
 import { Auth, MapKind } from '279map-common';
 import { ApiException, MyErrorType } from '../../api';
 import { Extent } from "ol/extent";
 import { atom } from 'jotai';
-import { atomWithReducer, loadable } from 'jotai/utils';
-import { getAPICallerInstance } from '../../api/useApi';
+import { atomWithReducer, loadable, selectAtom } from 'jotai/utils';
+import { getAPICallerInstance, hasAPICallerInstance } from '../../api/useApi';
+import { Loadable } from 'jotai/vanilla/utils/loadable';
 
 export const instanceIdAtom = atom('');
 
@@ -14,39 +15,39 @@ export const connectReducerAtom = atomWithReducer(0, (prev) => prev+1);
 export const connectStatusAtom = atom<Promise<ConnectResult>>(async( get ) => {
     try {
         get(connectReducerAtom);
+
         const mapId = get(mapIdAtom);
         console.log('connect to', mapId);
 
         const apiId = get(instanceIdAtom);
+        if (!hasAPICallerInstance(apiId)) {
+            throw new ApiException({
+                type: MyErrorType.NonInitialize,
+            })
+        }
         const apiCaller = getAPICallerInstance(apiId);
-
         const json = await apiCaller.connect(mapId);
 
         return json;
 
     } catch(e) {
-        console.warn('connect error', e);
         throw new ApiException({
-            type: MyErrorType.NonInitialize,
+            type: ErrorType.IllegalError,
+            detail: e + '',
         })
-}
+    }
 })
 
 export const connectStatusLoadableAtom = loadable(connectStatusAtom);
 
 // ユーザに表示指定された地図種別
 export const specifiedMapKindAtom = atom<MapKind|undefined>(undefined);
-export const mapDefineAtom = atom<Promise<GetMapInfoResult>>(async(get) => {
+const mapDefineAtom = atom<Promise<GetMapInfoResult>>(async(get) => {
     const connectStatus = await get(connectStatusAtom);
     const specifiedMapKind = get(specifiedMapKindAtom);
     const mapKind = specifiedMapKind ?? connectStatus.mapDefine.defaultMapKind;
     const apiId = get(instanceIdAtom);
     const apiCaller = getAPICallerInstance(apiId);
-    if (!apiCaller) {
-        throw new ApiException({
-            type: MyErrorType.NonInitialize,
-        })
-    }
     const res = await apiCaller.callApi(GetMapInfoAPI, {
         mapKind,
     });
@@ -54,14 +55,22 @@ export const mapDefineAtom = atom<Promise<GetMapInfoResult>>(async(get) => {
 });
 export const mapDefineLoadableAtom = loadable(mapDefineAtom);
 
+/**
+ * 地図定義情報。
+ * 地図種別切り替え時、新データ取得までは切替前の情報を保持する
+ */
+export const currentMapDefineAtom = selectAtom<Loadable<Promise<GetMapInfoResult>>, GetMapInfoResult|undefined>(mapDefineLoadableAtom, (current, prev) => {
+    if (current?.state === 'hasData') {
+        return current.data;
+    } else {
+        return prev;
+    }
+})
+
 // 現在表示中の地図種別。地図情報ロード完了後は、specifiedMapKindと等しい値になる。
 export const currentMapKindAtom = atom<MapKind|undefined>((get) => {
-    const mapDefineLoadable = get(mapDefineLoadableAtom);
-    if (mapDefineLoadable.state === 'hasData') {
-        return mapDefineLoadable.data.mapKind;
-    } else {
-        return;
-    }
+    const mapDefine = get(currentMapDefineAtom);
+    return mapDefine?.mapKind;
 })
 
 /**

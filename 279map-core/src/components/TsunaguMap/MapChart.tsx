@@ -1,10 +1,10 @@
 import React, { useMemo, useRef, useState, useEffect } from "react";
 import styles from './MapChart.module.scss';
-import { useWatch } from "../../util/useWatch";
 import { mapViewAtom } from "../../store/operation";
 import { currentMapKindAtom } from "../../store/session";
 import { useAtom } from 'jotai';
 import { useMap } from "../map/useMap";
+import { usePrevious } from "../../util/usePrevious";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
@@ -16,16 +16,15 @@ export default function MapChart() {
     /**
      * 地図初期化
      */
-    const [mapView, setMapView] = useAtom(mapViewAtom);
+    const [, setMapView] = useAtom(mapViewAtom);
     const { createMapInstance, destroyMapInstance, map, loadCurrentAreaContents } = useMap();
     useEffect(() => {
         if (myRef.current === null) {
             return;
         }
-        const map = createMapInstance(myRef.current);
+        createMapInstance(myRef.current);
 
         return () => {
-            map.dispose();
             destroyMapInstance();
         }
     }, [createMapInstance, destroyMapInstance]);
@@ -52,22 +51,25 @@ export default function MapChart() {
         }
     }, [map, loadCurrentAreaContents, setMapView]);
 
+    const prevMapKind = usePrevious(mapKind);
     /**
-     * 地図が切り替わったら、レイヤ再配置
+     * 地図が切り替わったら、アニメーション
      */
-    useWatch(() => {
-        if (!mapKind || !map) {
+    useEffect(() => {
+        if (!mapKind || !prevMapKind) {
+            // 起動時はアニメーションしない
             return;
         }
-        if (map.getLayerLength() > 0) {
-            // 起動時以外の地図切り替えはアニメーション
-            setFlipping(true);
-            setTimeout(() => {
-                setFlipping(false);
-            }, 1500);
+        if (prevMapKind === mapKind) {
+            return;
         }
+        // 起動時以外の地図切り替えはアニメーション
+        setFlipping(true);
+        setTimeout(() => {
+            setFlipping(false);
+        }, 1500);
 
-    }, [mapKind]);
+    }, [mapKind, prevMapKind]);
 
     const optionClassName = useMemo(() => {
         if (flipping) {
