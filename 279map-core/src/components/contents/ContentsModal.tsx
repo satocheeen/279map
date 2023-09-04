@@ -1,18 +1,18 @@
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { Modal }  from '../common';
 import Content from './Content';
-import { addListener, removeListener } from '../../util/Commander';
 import { ContentsDefine, DataId, ItemDefine } from '279map-common';
 import AddContentMenu from '../popup/AddContentMenu';
 import styles from './ContentsModal.module.scss';
 import { getMapKey } from '../../util/dataUtility';
-import { useMounted } from '../../util/useMounted';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { useMap } from '../map/useMap';
 import { useSubscribe } from '../../util/useSubscribe';
 import { useItem } from '../../store/item/useItem';
 import { useAtom } from 'jotai';
 import { currentMapKindAtom } from '../../store/session';
+import { useApi } from '../../api/useApi';
+import { GetContentsAPI } from 'tsunagumap-api';
 
 export type Props = ({
     type: 'item' | 'content';
@@ -28,7 +28,7 @@ export default function ContentsModal(props: Props) {
 
     const { showProcessMessage, hideProcessMessage} = useProcessMessage();
     const [ contentsList, setContentsList ] = useState<ContentsDefine[]>([]);
-    const { getApi } = useMap();
+    const { callApi } = useApi();
     const { subscribeMap: subscribe, unsubscribeMap: unsubscribe } = useSubscribe();
 
     const { getItem } = useItem();
@@ -40,17 +40,17 @@ export default function ContentsModal(props: Props) {
             overlay: true,
             spinner: true,
         });
-        const result = await getApi().getContents([
+        const result = await callApi(GetContentsAPI, [
             {
                 itemId,
             }
         ]);
-        setContentsList(result);
+        setContentsList(result.contents);
         hideProcessMessage(h);
 
     // TODO: useEffectから無限呼び出しされないために無効にしている。時間ある時に依存関係見直し
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [getApi, getItem, /* hideProcessMessage, showProcessMessage */]);
+    }, [callApi, getItem, /* hideProcessMessage, showProcessMessage */]);
 
     const setTargetsItem = useCallback(async(itemId: DataId) => {
         const item = getItem(itemId);
@@ -78,12 +78,13 @@ export default function ContentsModal(props: Props) {
             setShow(true);
     
             // 最新コンテンツ取得
-            getApi().getContents([
+            callApi(GetContentsAPI, [
                     {
                         contentId: props.id,
                     }
                 ],
-            ).then(result => {
+            ).then(res => {
+                const result = res.contents;
                 setContentsList(result);
                 if (result.length === 0) {
                     setItem(undefined);
@@ -103,7 +104,7 @@ export default function ContentsModal(props: Props) {
             }
         }
 
-    }, [props, getApi, subscribe, unsubscribe, setTargetsItem, loadContentsInItem]);
+    }, [props, callApi, subscribe, unsubscribe, setTargetsItem, loadContentsInItem]);
 
     const contents = useMemo((): ContentsDefine[] => {
         return contentsList.sort((a, b) => {

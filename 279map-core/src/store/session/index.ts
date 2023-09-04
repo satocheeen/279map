@@ -1,11 +1,11 @@
 import { ConnectResult, GetMapInfoAPI, GetMapInfoResult } from 'tsunagumap-api';
-import { getAPICallerInstance } from '../../api/ApiCaller';
 import { ServerInfo } from '../../types/types';
 import { Auth, MapKind } from '279map-common';
 import { ApiException, MyErrorType } from '../../api';
 import { Extent } from "ol/extent";
 import { atom } from 'jotai';
 import { loadable } from 'jotai/utils';
+import { apiIdAtom, getAPICallerInstance } from '../../api/useApi';
 
 export const instanceIdAtom = atom('');
 
@@ -26,7 +26,13 @@ export const connectStatusAtom = atom<Promise<ConnectResult>>(async( get ) => {
                 type: MyErrorType.NonInitialize,
             })
         }
-        const apiCaller = getAPICallerInstance(instanceId);
+        const apiId = get(apiIdAtom);
+        const apiCaller = getAPICallerInstance(apiId);
+        if (!apiCaller) {
+            throw new ApiException({
+                type: MyErrorType.NonInitialize,
+            })
+        }
 
         const json = await apiCaller.connect(mapId);
 
@@ -46,8 +52,13 @@ export const mapDefineAtom = atom<Promise<GetMapInfoResult>>(async(get) => {
     const connectStatus = await get(connectStatusAtom);
     const specifiedMapKind = get(specifiedMapKindAtom);
     const mapKind = specifiedMapKind ?? connectStatus.mapDefine.defaultMapKind;
-    const instanceId = get(instanceIdAtom);
-    const apiCaller = getAPICallerInstance(instanceId);
+    const apiId = get(apiIdAtom);
+    const apiCaller = getAPICallerInstance(apiId);
+    if (!apiCaller) {
+        throw new ApiException({
+            type: MyErrorType.NonInitialize,
+        })
+    }
     const res = await apiCaller.callApi(GetMapInfoAPI, {
         mapKind,
     });

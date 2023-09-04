@@ -9,6 +9,7 @@ import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useMap } from '../../useMap';
 import { UpdateItemAPI } from 'tsunagumap-api';
 import { useItem } from '../../../../store/item/useItem';
+import { useApi } from '../../../../api/useApi';
 
 type Props = {
     close: () => void;  // 作図完了時のコールバック
@@ -39,7 +40,7 @@ export default function EditTopographyInfoController(props: Props) {
         props.close();
     }, [props]);
 
-    const { getApi } = useMap();
+    const { callApi } = useApi();
 
     const onInputOk = useCallback(async() => {
         const h = showProcessMessage({
@@ -50,7 +51,7 @@ export default function EditTopographyInfoController(props: Props) {
 
         const id = convertDataIdFromFeatureId(selectedFeatureId.current as string);
         // update DB
-        await getApi().callApi(UpdateItemAPI, {
+        await callApi(UpdateItemAPI, {
             id,
             name,
         });
@@ -58,7 +59,7 @@ export default function EditTopographyInfoController(props: Props) {
         hideProcessMessage(h);
         props.close();
 
-    }, [getApi, showProcessMessage, hideProcessMessage, name, props]);
+    }, [callApi, showProcessMessage, hideProcessMessage, name, props]);
 
     switch(stage) {
         case Stage.SELECTING_FEATURE:

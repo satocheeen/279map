@@ -8,6 +8,7 @@ import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useMap } from '../../useMap';
 import { RemoveItemAPI } from 'tsunagumap-api';
 import { ConfirmResult } from '../../../common/confirm/types';
+import { useApi } from '../../../../api/useApi';
 
 type Props = {
     target: LayerType;
@@ -22,7 +23,7 @@ type Props = {
 export default function RemoveFeatureController(props: Props) {
     const confirmHook = useConfirm();
     const spinnerHook = useProcessMessage();
-    const { getApi } = useMap();
+    const { callApi } = useApi();
 
     const onRemoveOkClicked = useCallback(async(feature: FeatureLike) => {
         // 確認メッセージ
@@ -41,14 +42,14 @@ export default function RemoveFeatureController(props: Props) {
 
         const dataId = convertDataIdFromFeatureId(feature.getId() as string);
         // DB更新
-        await getApi().callApi(RemoveItemAPI, {
+        await callApi(RemoveItemAPI, {
             id: dataId,
         });
 
         spinnerHook.hideProcessMessage(h);
 
         props.close();
-    }, [props, confirmHook, getApi, spinnerHook]);
+    }, [props, confirmHook, callApi, spinnerHook]);
 
     const onCancel = useCallback(() => {
         props.close();

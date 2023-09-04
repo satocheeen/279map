@@ -3,17 +3,17 @@ import { useMounted } from '../../util/useMounted';
 import { addListener, removeListener } from '../../util/Commander';
 import { Button, Modal } from '../common';
 import styles from './UserListModal.module.scss';
-import { useMap } from '../map/useMap';
 import { ChangeAuthLevelAPI, GetUserListAPI } from 'tsunagumap-api';
 import { useWatch } from '../../util/useWatch';
 import { Auth, User} from '279map-common';
 import Select from '../common/form/Select';
 import { useSubscribe } from '../../util/useSubscribe';
+import { useApi } from '../../api/useApi';
 
 export default function UserListModal() {
     const [ show, setShow ] = useState(false);
     const [ loading, setLoading ] = useState(false);
-    const { getApi } = useMap();
+    const { callApi } = useApi();
     const [ users, setUsers ] = useState<User[]>([]);
 
     useMounted(() => {
@@ -28,7 +28,7 @@ export default function UserListModal() {
 
     const loadUsers = useCallback(() => {
         setLoading(true);
-        getApi().callApi(GetUserListAPI, undefined)
+        callApi(GetUserListAPI, undefined)
         .then(result => {
             setUsers(result.users);
         })
@@ -38,7 +38,7 @@ export default function UserListModal() {
         .finally(() => {
             setLoading(false);
         })
-    }, [getApi]);
+    }, [callApi]);
     
     const { subscribeMap: subscribe, unsubscribeMap: unsubscribe } = useSubscribe();
     useWatch(() => {
@@ -113,7 +113,7 @@ type UserRecordProp = {
 }
 function UserRecord(props: UserRecordProp) {
     const [ requestAuth, setRequestAuth ] = useState<Auth|undefined>();
-    const { getApi } = useMap();
+    const { callApi } = useApi();
     const [ stage, setStage ] = useState<'normal' | 'selectAuth'>('normal');
 
     const authName = useMemo(() => {
@@ -134,13 +134,13 @@ function UserRecord(props: UserRecordProp) {
     const onUpdateAuth = useCallback(async() => {
         if (!requestAuth) return;
         props.setLoading(true);
-        await getApi().callApi(ChangeAuthLevelAPI, {
+        await callApi(ChangeAuthLevelAPI, {
             userId: props.user.id,
             authLv: requestAuth,
         })
         props.setLoading(false);
         setStage('normal');
-    }, [getApi, requestAuth, props]);
+    }, [callApi, requestAuth, props]);
 
     console.log('requestAuth', requestAuth);
     const action = useMemo(() => {

@@ -1,7 +1,5 @@
-import { useContext, useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { OlMapWrapper } from '../TsunaguMap/OlMapWrapper';
-import { OwnerContext } from '../TsunaguMap/TsunaguMap';
-import { getAPICallerInstance } from '../../api/ApiCaller';
 import { atom, useAtom } from 'jotai';
 import { useAtomCallback, atomWithReducer } from 'jotai/utils';
 import { defaultExtentAtom, instanceIdAtom } from '../../store/session';
@@ -15,10 +13,11 @@ import Feature from "ol/Feature";
 import { Geometry } from 'ol/geom';
 import { sleep } from '../../util/CommonUtility';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
+import { useApi } from '../../api/useApi';
 
 const instansMap = new Map<string, OlMapWrapper>();
 
-// OlMapWrapperの生成回数。再生成した時にgetMap参照しているクラスで再レンダリングを走らせるために用いている。
+// OlMapWrapperの生成回数。再生成した時にmap参照しているコンポーネントで再レンダリングを走らせるために用いている。
 const mapInstanceCntReducerAtom = atomWithReducer(0, (prev) => {
     return prev + 1;
 });
@@ -33,12 +32,6 @@ const mapIdAtom = atom((get) => {
  * @returns 
  */
 export function useMap() {
-    // TODO: useApiを作って移動する
-    const { mapInstanceId } = useContext(OwnerContext);
-    const getApi = useCallback(() => {
-        return getAPICallerInstance(mapInstanceId);
-    }, [mapInstanceId])
-
     const { isPC } = useMyMedia();
     const [_, dispatch] = useAtom(mapInstanceCntReducerAtom);
 
@@ -78,6 +71,7 @@ export function useMap() {
         return instansMap.get(mapId);
     }, [mapId]);
 
+    const { callApi } = useApi();
 
    /**
      * 指定のズームLv., extentに該当するアイテムをロードする
@@ -128,7 +122,7 @@ export function useMap() {
             const combinedKeys = combineKeys(targetKeys);
 
             for (const key of combinedKeys) {
-                const apiResult = await getApi().callApi(GetItemsAPI, {
+                const apiResult = await callApi(GetItemsAPI, {
                     extent: key.extent,
                     zoom,
                     dataSourceIds: [key.datasourceId],
@@ -161,7 +155,7 @@ export function useMap() {
             throw e;
         }
 
-    }, [getApi])
+    }, [callApi])
 )
 
     /**
@@ -262,7 +256,6 @@ export function useMap() {
     return {
         createMapInstance,
         destroyMapInstance,
-        getApi,
         map,
         loadCurrentAreaContents,
         fitToDefaultExtent,

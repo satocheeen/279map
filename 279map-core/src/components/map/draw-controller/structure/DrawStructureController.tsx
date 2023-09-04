@@ -17,6 +17,7 @@ import { useMap } from '../../useMap';
 import { RegistItemAPI } from 'tsunagumap-api';
 import { currentMapKindAtom } from '../../../../store/session';
 import { useAtom } from 'jotai';
+import { useApi } from '../../../../api/useApi';
 
 type Props = {
     dataSourceId: string;   // 作図対象のデータソース
@@ -106,7 +107,7 @@ export default function DrawStructureController(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [stage, map]);
 
-    const { getApi } = useMap();
+    const { callApi } = useApi();
 
     const registFeatureFunc = useCallback(async() => {
         if (!drawingFeature.current) {
@@ -121,7 +122,7 @@ export default function DrawStructureController(props: Props) {
         });
         const geoJson = createGeoJson(drawingFeature.current);
 
-        await getApi().callApi(RegistItemAPI, {
+        await callApi(RegistItemAPI, {
             dataSourceId: props.dataSourceId,
             geometry: geoJson.geometry,
             geoProperties: Object.assign({}, geoJson.properties, {
@@ -136,7 +137,7 @@ export default function DrawStructureController(props: Props) {
         spinner.hideProcessMessage(h);
         props.close();
 
-    }, [getApi, props, spinner]);
+    }, [callApi, props, spinner]);
 
     const onDrawEnd = useCallback((feature: Feature) => {
         if (!map) return;

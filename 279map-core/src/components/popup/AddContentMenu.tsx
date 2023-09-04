@@ -14,6 +14,7 @@ import { authLvAtom, currentMapKindAtom } from '../../store/session';
 import { useItem } from '../../store/item/useItem';
 import { dataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
+import { useApi } from '../../api/useApi';
 
 type Props = {
     target: {
@@ -31,7 +32,7 @@ export default function AddContentMenu(props: Props) {
     const id = useRef('add-content-menu-'+maxId++);
     const { onAddNewContent, onLinkUnpointedContent } = useContext(OwnerContext);
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
-    const { getApi } = useMap();
+    const { callApi } = useApi();
     const [ mapKind ] = useAtom(currentMapKindAtom);
     const [ dataSources ] = useAtom(dataSourcesAtom);
     const [ authLv ] = useAtom(authLvAtom);
@@ -167,13 +168,13 @@ export default function AddContentMenu(props: Props) {
                 dataSources: creatableContentDataSources,
                 registContentAPI: async(param: RegistContentParam) => {
                     try {
-                        await getApi().callApi(RegistContentAPI, param);
+                        await callApi(RegistContentAPI, param);
                     } catch(e) {
                         throw new Error('registContentAPI failed.' + e);
                     }
                 },
                 getSnsPreviewAPI: async(url: string) => {
-                    const res = await getApi().callApi(GetSnsPreviewAPI, {
+                    const res = await callApi(GetSnsPreviewAPI, {
                         url,
                     });
                     return res;
@@ -184,14 +185,14 @@ export default function AddContentMenu(props: Props) {
                 parent: props.target,
                 dataSources: linkableContentDataSources,
                 getUnpointDataAPI: async(dataSourceId: string, nextToken?: string) => {
-                    const result = await getApi().callApi(GetUnpointDataAPI, {
+                    const result = await callApi(GetUnpointDataAPI, {
                         dataSourceId,
                         nextToken,
                     });
                     return result;
                 },
                 linkContentToItemAPI: async(param: LinkContentToItemParam) => {
-                    await getApi().callApi(LinkContentToItemAPI, param);
+                    await callApi(LinkContentToItemAPI, param);
                 },
             });
         }
@@ -200,7 +201,7 @@ export default function AddContentMenu(props: Props) {
             props.onClick();
         }
 
-    }, [getApi, props, creatableContentDataSources, linkableContentDataSources, onAddNewContent, onLinkUnpointedContent]);
+    }, [callApi, props, creatableContentDataSources, linkableContentDataSources, onAddNewContent, onLinkUnpointedContent]);
 
     const caption = useMemo(() => {
         if ('itemId' in props.target) {

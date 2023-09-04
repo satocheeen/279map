@@ -7,8 +7,8 @@ import { SystemIconDefine } from '../../../../types/types';
 import { FeatureLike } from 'ol/Feature';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
-import { useMap } from '../../useMap';
 import { UpdateItemAPI } from 'tsunagumap-api';
+import { useApi } from '../../../../api/useApi';
 
 type Props = {
     close: () => void;  // 編集完了時のコールバック
@@ -33,7 +33,7 @@ export default function ChangeStructureIconController(props: Props) {
         setStage(Stage.SELECTING_STRUCTURE);
     }, []);
 
-    const { getApi } = useMap();
+    const { callApi } = useApi();
     const onSelectedStructure = useCallback(async(iconDefine: SystemIconDefine) => {
         if (!selectedFeature.current) {
             console.warn('選択アイテムなし');
@@ -47,7 +47,7 @@ export default function ChangeStructureIconController(props: Props) {
 
         // update DB
         const id = convertDataIdFromFeatureId(selectedFeature.current.getId() as string);
-        await getApi().callApi(UpdateItemAPI, {
+        await callApi(UpdateItemAPI, {
             id,
             geoProperties: {
                 featureType: FeatureType.STRUCTURE,
@@ -60,7 +60,7 @@ export default function ChangeStructureIconController(props: Props) {
 
         spinnerHook.hideProcessMessage(h);
         props.close();
-    }, [selectedFeature, getApi, spinnerHook, props]);
+    }, [selectedFeature, callApi, spinnerHook, props]);
 
     if (stage === Stage.SELECTING_TARGET) {
         return (

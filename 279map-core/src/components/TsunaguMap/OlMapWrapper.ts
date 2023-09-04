@@ -21,7 +21,6 @@ import { Pixel } from 'ol/pixel';
 import { convertDataIdFromFeatureId, getMapKey } from '../../util/dataUtility';
 import { GetGeocoderFeatureAPI } from 'tsunagumap-api';
 import { FitOptions } from 'ol/View';
-import { getAPICallerInstance } from '../../api/ApiCaller';
 import { Coordinate } from 'ol/coordinate';
 import { doCommand } from '../../util/Commander';
 

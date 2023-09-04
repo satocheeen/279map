@@ -11,6 +11,7 @@ import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import { FeatureType, GeoProperties } from '279map-common';
 import { useMap } from '../../useMap';
 import { RegistItemAPI } from 'tsunagumap-api';
+import { useApi } from '../../../../api/useApi';
 
 enum Stage {
     DRAWING,        // 描画
@@ -80,7 +81,7 @@ export default function DrawRoadController(props: Props) {
     }, [props]);
     
 
-    const { getApi } = useMap();
+    const { callApi } = useApi();
     const registFeatureFunc = useCallback(async() => {
         if (!drawingFeature.current) {
             console.warn('描画図形なし（想定外）');
@@ -102,7 +103,7 @@ export default function DrawRoadController(props: Props) {
             message: '登録中...'
         });
         console.log('geoJson', geoJson);
-        await getApi().callApi(RegistItemAPI, {
+        await callApi(RegistItemAPI, {
             dataSourceId: props.dataSourceId,
             geometry: geoJson.geometry,
             geoProperties: geoJson.properties as GeoProperties,
@@ -110,7 +111,7 @@ export default function DrawRoadController(props: Props) {
         spinnerHook.hideProcessMessage(h);
 
         props.close();
-    }, [props, spinnerHook, getApi]);
+    }, [props, spinnerHook, callApi]);
 
     const onWidthSelected = useCallback(async(feature: Feature) => {
         drawingFeature.current = feature;

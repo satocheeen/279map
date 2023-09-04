@@ -18,6 +18,7 @@ import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useMap } from '../../useMap';
 import { UpdateItemAPI } from 'tsunagumap-api';
 import { ConfirmResult } from '../../../common/confirm/types';
+import { useApi } from '../../../../api/useApi';
 
 type Props = {
     close: () => void;  // 作図完了時のコールバック
@@ -105,7 +106,7 @@ enum Stage {
         props.close();
     }, [props]);
 
-    const { getApi } = useMap();
+    const { callApi } = useApi();
     /**
      * 変更後Featureを保存する
      * @param feature 変更後Feature
@@ -128,7 +129,7 @@ enum Stage {
         const geoProperties = extractGeoProperty(feature.getProperties());
         const geoJson = geoProperties.featureType === FeatureType.ROAD ? geoProperties.lineJson : createGeoJson(feature);
         const id = convertDataIdFromFeatureId(selectedFeature.current?.getId() as string);
-        await getApi().callApi(UpdateItemAPI, {
+        await callApi(UpdateItemAPI, {
             id,
             geometry: geoJson.geometry,
             geoProperties: extractGeoProperty(geoJson.properties),
@@ -138,7 +139,7 @@ enum Stage {
 
         onClose();
 
-    }, [onClose, confirmHook, getApi, spinnerHook]);
+    }, [onClose, confirmHook, callApi, spinnerHook]);
 
     const onEditOkClicked = useCallback(() => {
         if ((selectedFeature.current?.getProperties() as GeoProperties).featureType === FeatureType.ROAD) {

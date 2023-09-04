@@ -6,6 +6,7 @@ import { useWatch } from '../../../util/useWatch';
 import Spinner from '../spinner/Spinner';
 import { connectStatusAtom } from '../../../store/session';
 import { useAtom } from 'jotai';
+import { useApi } from '../../../api/useApi';
 
 type Props = {
     id: DataId; // サムネイル画像id（コンテンツID）
@@ -28,7 +29,7 @@ export default function MyThumbnail(props: Props) {
         return connectStatus.sid;
     }, [connectStatus]);
     
-    const { getApi } = useMap();
+    const { callApi } = useApi();
     const [ loaded, setLoaded ] = useState(false);
 
     /**
@@ -38,7 +39,7 @@ export default function MyThumbnail(props: Props) {
         if (!sid) return;
 
         if (props.mode === 'thumb') {
-            getApi().callApi(GetThumbAPI, {
+            callApi(GetThumbAPI, {
                 id: props.id.id,
             }).then((imgData) => {
                 if (myRef.current) {
@@ -51,7 +52,7 @@ export default function MyThumbnail(props: Props) {
             });
     
         } else {
-            getApi().callApi(GetImageUrlAPI, {
+            callApi(GetImageUrlAPI, {
                 id: props.id,
             }).then((imageUrl) => {
                 if (myRef.current && imageUrl) {

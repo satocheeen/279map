@@ -15,8 +15,7 @@ import Spinner from "../common/spinner/Spinner";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
 import { getMapKey, isEqualId } from "../../util/dataUtility";
-import { GetImageUrlAPI, GetSnsPreviewAPI, RemoveContentAPI, UpdateContentAPI, UpdateContentParam } from 'tsunagumap-api';
-import { doCommand } from "../../util/Commander";
+import { GetContentsAPI, GetImageUrlAPI, GetSnsPreviewAPI, RemoveContentAPI, UpdateContentAPI, UpdateContentParam } from 'tsunagumap-api';
 import { useMap } from "../map/useMap";
 import { authLvAtom, currentMapKindAtom } from "../../store/session";
 import { filteredContentIdListAtom } from "../../store/filter";
@@ -25,6 +24,7 @@ import { useAtom } from 'jotai';
 import { categoriesAtom } from "../../store/category";
 import { ConfirmBtnPattern, ConfirmResult } from "../common/confirm/types";
 import { useMapController } from "../../store/useMapController";
+import { useApi } from "../../api/useApi";
 
 type Props = {
     itemId: DataId;
@@ -42,7 +42,8 @@ export default function Content(props: Props) {
     const { confirm } = useConfirm();
     const [ filteredContentIdList ] = useAtom(filteredContentIdListAtom);
     const { onEditContent }  = useContext(OwnerContext);
-    const { getApi, focusItem } = useMap();
+    const { focusItem } = useMap();
+    const { callApi } = useApi();
 
     /**
      * 表示対象コンテンツかどうか。
@@ -162,7 +163,7 @@ export default function Content(props: Props) {
     const onImageClick = useCallback(async() => {
         setShowSpinner(true);
         try {
-            const imageUrl = await getApi().callApi(GetImageUrlAPI, {
+            const imageUrl = await callApi(GetImageUrlAPI, {
                 id: props.content.id,
             });
             window.open(imageUrl, 'image' + props.content.id);
@@ -171,13 +172,13 @@ export default function Content(props: Props) {
         } finally {
             setShowSpinner(false);
         }
-    }, [props.content.id, getApi]);
+    }, [props.content.id, callApi]);
 
     const onEdit = useCallback(async() => {
         // 編集対象コンテンツをロード
-        const contents = (await getApi().getContents([{
+        const contents = (await callApi(GetContentsAPI, [{
             contentId: props.content.id,
-        }]));
+        }])).contents;
         if (!contents || contents?.length === 0) {
             return;
         }
@@ -200,17 +201,17 @@ export default function Content(props: Props) {
             contentId: props.content.id,
             currentAttr,
             getSnsPreviewAPI: async(url: string) => {
-                const res = await getApi().callApi(GetSnsPreviewAPI, {
+                const res = await callApi(GetSnsPreviewAPI, {
                     url,
                 });
                 return res;
             },
             updateContentAPI: async(param: UpdateContentParam) => {
-                await getApi().callApi(UpdateContentAPI, param);
+                await callApi(UpdateContentAPI, param);
         
             },
         })
-    }, [props.content, onEditContent, getApi]);
+    }, [props.content, onEditContent, callApi]);
 
     const [ dataSources ] = useAtom(dataSourcesAtom);
     const unlinkable = useMemo(() => {
@@ -248,7 +249,7 @@ export default function Content(props: Props) {
         setShowSpinner(true);
 
         try {
-            await getApi().callApi(RemoveContentAPI, {
+            await callApi(RemoveContentAPI, {
                 id: props.content.id,
                 itemId: props.itemId,
                 parentContentId: props.parentContentId,
@@ -266,7 +267,7 @@ export default function Content(props: Props) {
 
         }
 
-    }, [getApi, props.itemId, props.parentContentId, confirm, props.content, unlinkable]);
+    }, [callApi, props.itemId, props.parentContentId, confirm, props.content, unlinkable]);
 
     const overview = useMemo(() => {
         if (!props.content.overview) {

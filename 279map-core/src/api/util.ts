@@ -1,7 +1,7 @@
 import { ConfigAPI, ErrorType, GetMapListAPI } from "tsunagumap-api";
 import { ServerInfo } from '../types/types';
 import { ServerConfig } from "279map-common";
-import { createAPICallerInstance } from "./ApiCaller";
+import { ApiCaller } from "./ApiCaller";
 
 export enum MyErrorType {
     NonInitialize = "NonInitialize"
@@ -31,7 +31,8 @@ export async function getAccessableMapList(host: string, ssl: boolean, token: st
         ssl,
         token,
     } as ServerInfo;
-    const apiCaller = createAPICallerInstance('no-instance', mapServer, () => {});
+
+    const apiCaller = new ApiCaller('no-instance', mapServer, () => {});
     try {
         const result = await apiCaller.callApi(GetMapListAPI, undefined);
         return result;
@@ -53,7 +54,7 @@ export async function getAuthConfig(host: string, ssl: boolean) {
         host,
         ssl,
     } as ServerInfo;
-    const apiCaller = createAPICallerInstance('no-instance', mapServer, () => {});
+    const apiCaller = new ApiCaller('no-instance', mapServer, () => {});
     try {
         const result = await apiCaller.callApi(ConfigAPI, undefined) as ServerConfig;
         return result;

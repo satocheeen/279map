@@ -5,8 +5,8 @@ import { getMapKey } from '../util/dataUtility';
 import { ApiException } from './util';
 import { RequestAPI } from 'tsunagumap-api';
 
-type ErrorCallback = (errorType: ApiError) => void;
-class ApiCaller {
+export type ErrorCallback = (errorType: ApiError) => void;
+export class ApiCaller {
     readonly _id: string;    // インスタンスID
     readonly _serverInfo: ServerInfo;
     _sid?: string;   // セッションID。特定地図とのセッション確立後にサーバーから返される値。
@@ -132,27 +132,5 @@ class ApiCaller {
         }
     
     }
-
-}
-
-const instansMap = new Map<string, ApiCaller>();
-export function createAPICallerInstance(id: string, serverInfo: ServerInfo, errorCallback: ErrorCallback) {
-    console.log('create api', id);
-    const instance = new ApiCaller(id, serverInfo, errorCallback);
-    instansMap.set(id, instance);
-    return instance;
-}
-
-export function destroyAPICallerInstance(id: string) {
-    console.log('destroy api', id);
-    instansMap.delete(id);
-}
-
-export function getAPICallerInstance(id: string) {
-    if (!instansMap.has(id)) {
-        console.warn('no api instance', id);
-        throw new Error('no api instance: ' + id);
-    }
-    return instansMap.get(id) as ApiCaller;
 }
 export type ApiCallerType = InstanceType<typeof ApiCaller>;

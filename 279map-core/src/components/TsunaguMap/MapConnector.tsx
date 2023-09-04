@@ -2,10 +2,8 @@ import React, { useCallback, useState, useContext, useEffect } from 'react';
 import { OwnerContext } from './TsunaguMap';
 import { useWatch } from '../../util/useWatch';
 import { connectStatusLoadableAtom, instanceIdAtom, mapIdAtom, mapServerAtom, refreshConnectStatusAtom } from '../../store/session';
-import { createAPICallerInstance, destroyAPICallerInstance } from '../../api/ApiCaller';
 import { ErrorType, RequestAPI } from 'tsunagumap-api';
 import Overlay from '../common/spinner/Overlay';
-import { useMap } from '../map/useMap';
 import { Button } from '../common';
 import Input from '../common/form/Input';
 import styles from './MapConnector.module.scss';
@@ -14,6 +12,8 @@ import { Auth } from '279map-common';
 import { createMqttClientInstance, destroyMqttClientInstance } from '../../store/session/MqttInstanceManager';
 import { useAtom } from 'jotai';
 import { MyError, MyErrorType } from '../../api';
+import { useApi } from '../../api/useApi';
+import { usePrevious } from '../../util/usePrevious';
 
 type Props = {
     children: React.ReactNode | React.ReactNode[];
@@ -31,35 +31,46 @@ export default function MapConnector(props: Props) {
     const [mapServer, setMapServer] = useAtom(mapServerAtom);
     const [connectLoadable] = useAtom(connectStatusLoadableAtom);
     const [instanceId, setInstanceId ] = useAtom(instanceIdAtom);
+    const { createAPI, destroyAPI } = useApi();
 
     useEffect(() => {
         setMapId(ownerContext.mapId);
     }, [ownerContext.mapId, setMapId]);
 
-    // 地図接続情報が変化したら、API, Mqtt初期化
     useEffect(() => {
-        console.log('setMapServer', ownerContext.mapInstanceId, ownerContext.mapServer);
-
-        // API Accessor用意
-        const id = ownerContext.mapInstanceId;
-        createAPICallerInstance(id, ownerContext.mapServer, (error) => {
-            // コネクションエラー時(リロードが必要なエラー)
-            console.warn('connection error', error);
-        });
-        // Mqtt接続
-        createMqttClientInstance(id, ownerContext.mapServer);
-
         setInstanceId(ownerContext.mapInstanceId);
         setMapServer(ownerContext.mapServer);
 
         return () => {
-            destroyAPICallerInstance(id);
-            destroyMqttClientInstance(id);
             setInstanceId('');
             setMapServer(undefined);
         }
     }, [ownerContext.mapInstanceId, ownerContext.mapServer, setInstanceId, setMapServer]);
 
+    /**
+     * 地図接続情報が変化したら、API, Mqtt初期化
+     */
+    const prevMapServer = usePrevious(ownerContext.mapServer);
+    useEffect(() => {
+        if (JSON.stringify(ownerContext.mapServer) === JSON.stringify(prevMapServer)) {
+            return;
+        }
+
+        // API Accessor用意
+        createAPI((error) => {
+            // コネクションエラー時(リロードが必要なエラー)
+            console.warn('connection error', error);
+        });
+        // Mqtt接続
+        const id = ownerContext.mapInstanceId;
+        createMqttClientInstance(id, ownerContext.mapServer);
+
+        return () => {
+            destroyAPI();
+            destroyMqttClientInstance(id);
+        }
+
+    }, [createAPI, destroyAPI]);
 
     const { subscribeUser, unsubscribeUser } = useSubscribe();
     const [refreshConnectStatus, setRefreshConnectStatus] = useAtom(refreshConnectStatusAtom);
@@ -156,7 +167,7 @@ type RequestComponetProps = {
    onCancel?: () => void;
 }
 function RequestComponet(props: RequestComponetProps) {
-    const { getApi } = useMap();
+    const { callApi } = useApi();
     const { mapId } = useContext(OwnerContext);
     const [ stage, setStage ] = useState<RequestComponetStage>(props.stage ?? 'button');
     const [ name, setName ] = useState('');
@@ -168,11 +179,11 @@ function RequestComponet(props: RequestComponetProps) {
             return;
         }
         setStage('requested');
-        await getApi().callApi(RequestAPI, {
+        await callApi(RequestAPI, {
             mapId,
             name,
         });
-    }, [getApi, mapId, name]);
+    }, [callApi, mapId, name]);
 
     const onCancel = useCallback(() => {
         if (props.onCancel) {

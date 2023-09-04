@@ -8,7 +8,7 @@ import { dialogTargetAtom, mapModeAtom, selectedItemIdsAtom } from '../../store/
 import { authLvAtom, connectStatusLoadableAtom, mapDefineLoadableAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
-import { GetContentsParam, GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, SearchAPI, UpdateContentAPI, UpdateContentParam } from 'tsunagumap-api';
+import { GetContentsAPI, GetContentsParam, GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, SearchAPI, UpdateContentAPI, UpdateContentParam } from 'tsunagumap-api';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { Auth, CategoryDefine, ContentsDefine, DataId, DataSourceGroup, EventDefine, FeatureType, MapKind, UnpointContent } from '279map-common';
 import { MapMode, TsunaguMapHandler } from '../../types/types';
@@ -19,6 +19,7 @@ import { allItemsAtom, initialItemLoadedAtom, loadedItemKeysAtom } from '../../s
 import { useMapController } from '../../store/useMapController';
 import { doCommand } from '../../util/Commander';
 import useDataSource from '../../store/datasource/useDataSource';
+import { useApi } from '../../api/useApi';
 
 /**
  * OwnerContextとJotaiを繋ぐコンポーネントもどき
@@ -28,7 +29,8 @@ import useDataSource from '../../store/datasource/useDataSource';
  */
 function ValueConnectorWithOwner(props: {}, ref: React.ForwardedRef<TsunaguMapHandler>) {
     const { changeMapKind } = useMapController();
-    const { getApi, focusItem } = useMap();
+    const { focusItem } = useMap();
+    const { callApi } = useApi();
     const { updateDatasourceVisible } = useDataSource();
 
     const showUserList = useAtomCallback(
@@ -123,8 +125,8 @@ function ValueConnectorWithOwner(props: {}, ref: React.ForwardedRef<TsunaguMapHa
         },
         async loadContentsAPI(param: GetContentsParam): Promise<ContentsDefine[]> {
             try {
-                const res = await getApi().getContents(param);
-                return res;
+                const res = await callApi(GetContentsAPI, param);
+                return res.contents;
 
             } catch(err) {
                 throw new Error('registContentAPI failed.' + err);
@@ -137,28 +139,28 @@ function ValueConnectorWithOwner(props: {}, ref: React.ForwardedRef<TsunaguMapHa
         
         async registContentAPI(param: RegistContentParam) {
             try {
-                await getApi().callApi(RegistContentAPI, param);
+                await callApi(RegistContentAPI, param);
 
             } catch(e) {
                 throw new Error('registContentAPI failed.' + e);
             }
         },
         async updateContentAPI(param: UpdateContentParam) {
-            await getApi().callApi(UpdateContentAPI, param);
+            await callApi(UpdateContentAPI, param);
         },
         async linkContentToItemAPI(param: LinkContentToItemParam) {
-            await getApi().callApi(LinkContentToItemAPI, param);
+            await callApi(LinkContentToItemAPI, param);
         },
     
         async getSnsPreviewAPI(url: string) {
-            const res = await getApi().callApi(GetSnsPreviewAPI, {
+            const res = await callApi(GetSnsPreviewAPI, {
                 url,
             });
             return res;
         },
     
         async getUnpointDataAPI(dataSourceId: string, nextToken?: string) {
-            const result = await getApi().callApi(GetUnpointDataAPI, {
+            const result = await callApi(GetUnpointDataAPI, {
                 dataSourceId,
                 nextToken,
             });
@@ -173,7 +175,7 @@ function ValueConnectorWithOwner(props: {}, ref: React.ForwardedRef<TsunaguMapHa
          * 指定のコンテンツのサムネイル画像（Blob）を取得する
          */
         async getThumbnail(contentId: DataId) {
-            const imgData = await getApi().callApi(GetThumbAPI, {
+            const imgData = await callApi(GetThumbAPI, {
                 id: contentId.id,
             });
             return URL.createObjectURL(imgData);
@@ -226,7 +228,7 @@ function FilterListner() {
 
     // 検索
     const [filteredItem, setFilteredItem] = useAtom(filteredItemsAtom);
-    const { getApi } = useMap();
+    const { callApi } = useApi();
     const [ visibleDataSourceIds ] = useAtom(visibleDataSourceIdsAtom);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
     useWatch(() => {
@@ -240,7 +242,7 @@ function FilterListner() {
             overlay: true,
             spinner: true,
         });
-        getApi().callApi(SearchAPI, {
+        callApi(SearchAPI, {
             conditions,
             dataSourceIds: visibleDataSourceIds,
         }).then(res => {

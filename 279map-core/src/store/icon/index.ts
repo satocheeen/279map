@@ -1,15 +1,15 @@
 import { SystemIconDefine, TsunaguMapProps } from '../../types/types';
-import { currentMapKindAtom, instanceIdAtom } from '../session';
-import { getAPICallerInstance } from '../../api/ApiCaller';
+import { currentMapKindAtom } from '../session';
 import { GetOriginalIconDefineAPI } from 'tsunagumap-api';
 import { MapKind } from '279map-common';
 import defaultIcon from './pin.png'
 import { atom } from 'jotai';
 import { loadable } from 'jotai/utils';
+import { apiIdAtom, getAPICallerInstance } from '../../api/useApi';
 
 const originalIconDefineAtom = atom<Promise<SystemIconDefine[]>>(async(get) => {
     try {
-        const instanceId = get(instanceIdAtom);
+        const instanceId = get(apiIdAtom);
         const apiCaller = getAPICallerInstance(instanceId)
         const apiResult = await apiCaller.callApi(GetOriginalIconDefineAPI, undefined);
         const originalDefines = apiResult.map(def => {
