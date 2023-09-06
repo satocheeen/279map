@@ -111,7 +111,7 @@ export function useMap() {
                 return acc.concat(keys);
             }, [] as LoadedItemKey[])
             .filter(key => {
-                return !loadedItemsKeys.some(loaded => {
+                const loaded =loadedItemsKeys.some(loaded => {
                     if (loaded.datasourceId !== key.datasourceId) {
                         return false;
                     }
@@ -123,10 +123,12 @@ export function useMap() {
                     }
                     return true;
                 });
+                return !loaded;
             });
 
             if (targetKeys.length === 0) return;
 
+            const copiedTargetKeys = JSON.parse(JSON.stringify(targetKeys));
             // ひとまとめにできる条件は、ひとまとめにする
             const combinedKeys = combineKeys(targetKeys);
 
@@ -137,11 +139,6 @@ export function useMap() {
                     dataSourceIds: [key.datasourceId],
                 });
                 const items = apiResult.items;
-
-                // ロード済みデータ条件を保管
-                set(loadedItemKeysAtom, (current) => {
-                    return current.concat(key);
-                })
 
                 if (items.length === 0) continue;
 
@@ -156,6 +153,10 @@ export function useMap() {
                     return newItemsMap;
                 })
             }
+            // ロード済みデータ条件を保管
+            set(loadedItemKeysAtom, (current) => {
+                return current.concat(copiedTargetKeys);
+            })
 
         } catch (e) {
             console.warn('loadItems error', e);
@@ -175,7 +176,7 @@ export function useMap() {
     const loadCurrentAreaContents = useCallback(async() => {
         console.log('loadCurrentAreaContents');
         if (!map) {
-            console.warn('map is undefined');
+            console.trace('map is undefined', mapId);
             return;
         }
         if (loadingCurrentAreaContents.current) {
@@ -194,7 +195,7 @@ export function useMap() {
 
         loadingCurrentAreaContents.current = false;
 
-    }, [loadItems, map]);
+    }, [loadItems, map, mapId]);
 
     /**
      * 全アイテムが含まれる領域でフィットさせる
@@ -267,7 +268,7 @@ export function useMap() {
 }
 
 function divideExtent(ext: Extent): Extent[] {
-    const d = 10;
+    const d = 2;
     const startX = Math.floor(Math.min(ext[0], ext[2]) / d) * d;
     const endX = Math.max(ext[0], ext[2]);
     const startY = Math.floor(Math.min(ext[1], ext[3]) / d) * d;
