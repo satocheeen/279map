@@ -80,13 +80,14 @@ export function useMap() {
      */
    const loadItems = useAtomCallback(
     useCallback(async(get, set, param: Omit<GetItemsParam, 'dataSourceIds'>) => {
-        try {
-            const overlay = get(initialLoadingAtom);
-            const h = showProcessMessage({
-                overlay, // 初回ロード時はoverlay表示
-                spinner: true,
-            });
+        const overlay = get(initialLoadingAtom);
+        const h = showProcessMessage({
+            overlay, // 初回ロード時はoverlay表示
+            spinner: true,
+        });
+        set(initialLoadingAtom, false);
 
+        try {
             // 未ロードのデータのみロードする
             // -- extentは一定サイズに分割する
             const extents = divideExtent(param.extent);
@@ -155,11 +156,13 @@ export function useMap() {
                     return newItemsMap;
                 })
             }
-            hideProcessMessage(h);
 
         } catch (e) {
             console.warn('loadItems error', e);
             throw e;
+        } finally {
+            hideProcessMessage(h);
+
         }
 
     }, [callApi, showProcessMessage, hideProcessMessage])
