@@ -10,7 +10,7 @@ import ValueConnectorWithOwner from './ValueConnectorWithOwner';
 import MapConnector from './MapConnector';
 import ProcessOverlay from './ProcessOverlay';
 import { Provider, createStore } from 'jotai';
-import EventFire from './EventFire';
+import MapController from './EventFire';
 import MapChart from './MapChart';
 import PopupContainer from '../popup/PopupContainer';
 import LandNameOverlay from '../map/LandNameOverlay';
@@ -119,7 +119,7 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
                     <MapConnector server={props.mapServer}>
                         <ValueConnectorWithOwner ref={controlRef} />
                         <TooltipContext.Provider value={tooltipContextValue}>
-                            <EventFire />
+                            <MapController />
                             <MapChart />
                             <PopupContainer />
                             <LandNameOverlay />

@@ -24,10 +24,10 @@ import useMyMedia from '../../util/useMyMedia';
 const ContentsModal = lazy(() => import('../contents/ContentsModal'));
 
 /**
- * Jotaiの変更検知して、特定のイベントを実行するコンポーネントもどき
+ * Jotaiの変更検知して、地図に対して特定のイベントを実行するコンポーネントもどき
  * @returns 
  */
-export default function EventFire() {
+export default function MapController() {
     useMapInitializer();
     useItemUpdater();
     useMapStyleUpdater();
