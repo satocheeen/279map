@@ -32,8 +32,6 @@ export default function MapConnector(props: Props) {
     useEffect(() => {
         createMqttClientInstance(instanceId, props.server);
 
-        connectDispatch();
-
         return () => {
             destroyMqttClientInstance(instanceId);
         }

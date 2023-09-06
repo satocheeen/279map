@@ -39,28 +39,37 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
         throw new Error('mapServer not found in TsunaguMap props');
     }
 
+    const initializeFlagRef = useRef(false);
     const mapInstanceId = useId();
     const myStoreRef = useRef(createStore());
 
     useEffect(() => {
         console.log('TsunaguMap mounted', mapInstanceId);
 
+        initializeFlagRef.current = true;
         return () => {
             console.log('TsunaguMap unmounted', mapInstanceId);
         }
     }, [mapInstanceId]);
 
-    if (myStoreRef.current.get(instanceIdAtom) !== mapInstanceId) {
+    // レンダリング前に初期値設定する
+    if (!initializeFlagRef.current) {
         myStoreRef.current.set(instanceIdAtom, mapInstanceId);
-    }
-
-    if (myStoreRef.current.get(mapIdAtom) !== props.mapId) {
         myStoreRef.current.set(mapIdAtom, props.mapId);
-    }
-
-    if (myStoreRef.current.get(serverInfoAtom) !== props.mapServer) {
         myStoreRef.current.set(serverInfoAtom, props.mapServer);
     }
+
+    useEffect(() => {
+        if (myStoreRef.current.get(mapIdAtom) !== props.mapId) {
+            myStoreRef.current.set(mapIdAtom, props.mapId);
+        }    
+    }, [props.mapId])
+
+    useEffect(() => {
+        if (myStoreRef.current.get(serverInfoAtom) !== props.mapServer) {
+            myStoreRef.current.set(serverInfoAtom, props.mapServer);
+        }    
+    }, [props.mapServer])
 
     const [ showTooltipId, setShowTooltipId ] = useState<{[name: string]: string}>({});
     const tooltipContextValue = {
