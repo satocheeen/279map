@@ -14,7 +14,7 @@ import { Geometry } from 'ol/geom';
 import { sleep } from '../../util/CommonUtility';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { useApi } from '../../api/useApi';
-import { initialLoadingAtom } from '../TsunaguMap/EventFire';
+import { initialLoadingAtom } from '../TsunaguMap/MapController';
 
 const instansMap = new Map<string, OlMapWrapper>();
 

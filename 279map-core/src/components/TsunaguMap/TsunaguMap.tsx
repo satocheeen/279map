@@ -10,7 +10,7 @@ import ValueConnectorWithOwner from './ValueConnectorWithOwner';
 import MapConnector from './MapConnector';
 import ProcessOverlay from './ProcessOverlay';
 import { Provider, createStore } from 'jotai';
-import MapController from './EventFire';
+import MapController from './MapController';
 import MapChart from './MapChart';
 import PopupContainer from '../popup/PopupContainer';
 import LandNameOverlay from '../map/LandNameOverlay';

@@ -130,13 +130,12 @@ function useItemUpdater() {
         map.initialize(currentMapKind, itemDataSources, currentMapDefine?.extent);
 
         fitToDefaultExtent(false);
-        loadCurrentAreaContents();
         setInitializedMapKind(currentMapKind);
         prevGeoJsonItemsRef.current = [];
         setLoadedItemKeys([]);
         setInitialLoading(true);
 
-    }, [map, currentMapDefine, currentMapKind, initializedMapKind, itemDataSources, loadCurrentAreaContents, fitToDefaultExtent, setLoadedItemKeys, setInitialLoading]);
+    }, [map, currentMapDefine, currentMapKind, initializedMapKind, itemDataSources, fitToDefaultExtent, setLoadedItemKeys, setInitialLoading]);
 
     /**
      * アイテムFeatureを地図に反映する
