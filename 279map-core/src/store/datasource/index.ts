@@ -1,6 +1,6 @@
 import { atom } from 'jotai';
 import { DataSourceInfo, MapKind } from '279map-common';
-import { currentMapKindAtom, mapDefineLoadableAtom } from '../session';
+import { currentMapDefineAtom, currentMapKindAtom } from '../session';
 
 /**
  * データソース関連のRecoil
@@ -22,13 +22,11 @@ export const dataSourceVisibleState = atom<DatasourceVisibleInfo>({
  * データソースグループ（表示情報付き）
  */
 const dataSourceGroupsAtom = atom((get) => {
-    const mapDefineLoadable = get(mapDefineLoadableAtom);
-    if (mapDefineLoadable.state !== 'hasData') {
-        return [];
-    }
+    const mapDefine = get(currentMapDefineAtom);
+    if (!mapDefine) return [];
     const dataSourceVisibleInfo = get(dataSourceVisibleState);
 
-    return mapDefineLoadable.data.dataSourceGroups.map(group => {
+    return mapDefine.dataSourceGroups.map(group => {
         const groupVisible = dataSourceVisibleInfo.group[group.name ?? ''] ?? group.visible;
         const newValue = Object.assign({}, group);
         newValue.visible = groupVisible;

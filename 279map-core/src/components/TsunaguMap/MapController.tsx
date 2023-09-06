@@ -104,7 +104,7 @@ export const initialLoadingAtom = atom(false);
  * アイテムの変更検知して、地図に反映するフック
  */
 function useItemUpdater() {
-    const { map, fitToDefaultExtent, loadCurrentAreaContents } = useMap();
+    const { map, fitToDefaultExtent } = useMap();
     const [ itemMap ] = useAtom(allItemsAtom);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
