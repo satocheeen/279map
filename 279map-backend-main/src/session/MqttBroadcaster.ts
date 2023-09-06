@@ -49,7 +49,7 @@ export default class MqttBroadcaster {
      * @param message 送信する通知
      */
     publish(mapPageId: string, mapKind: MapKind | undefined, message: PublishMapMessage) {
-        apiLogger.debug('broadcast', mapKind, message);
+        apiLogger.debug('broadcast', mapKind, JSON.stringify(message, undefined, 4));
 
         const mapKinds = mapKind ? [mapKind] : [MapKind.Real, MapKind.Virtual];
         mapKinds.forEach(mk => {

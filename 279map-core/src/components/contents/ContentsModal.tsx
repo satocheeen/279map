@@ -27,7 +27,7 @@ export type Props = ({
 export default function ContentsModal(props: Props) {
     const [show, setShow] = useState(false);
     const [loaded, setLoaded] = useState(false);
-    const [item, setItem] = useState<ItemDefine | undefined>();
+    const [itemId, setItemId] = useState<DataId | undefined>();
 
     const [ contentsList, setContentsList ] = useState<ContentsDefine[]>([]);
     const { callApi } = useApi();
@@ -49,11 +49,6 @@ export default function ContentsModal(props: Props) {
 
     }, [callApi, getItem]);
 
-    const setTargetsItem = useCallback(async(itemId: DataId) => {
-        const item = getItem(itemId);
-        setItem(item);
-    }, [getItem]);
-
     // 表示対象が指定されたらコンテンツロード
     const [ mapKind ] = useAtom(currentMapKindAtom);
     useEffect(() => {
@@ -68,7 +63,7 @@ export default function ContentsModal(props: Props) {
             });
             subscribe('childcontents-update', mapKind, props.id, () => loadContentsInItem(props.id));
 
-            setTargetsItem(props.id);
+            setItemId(props.id);
 
         } else {
             setLoaded(false);
@@ -84,9 +79,9 @@ export default function ContentsModal(props: Props) {
                 const result = res.contents;
                 setContentsList(result);
                 if (result.length === 0) {
-                    setItem(undefined);
+                    setItemId(undefined);
                 } else {
-                    setTargetsItem(result[0].itemId);
+                    setItemId(result[0].itemId);
                 }
     
             }).finally(() => {
@@ -101,7 +96,7 @@ export default function ContentsModal(props: Props) {
             }
         }
 
-    }, [props.id, props.type, mapKind, callApi, subscribe, unsubscribe, setTargetsItem, loadContentsInItem]);
+    }, [props.id, props.type, mapKind, callApi, subscribe, unsubscribe, loadContentsInItem]);
 
     const contents = useMemo((): ContentsDefine[] => {
         return contentsList.sort((a, b) => {
@@ -111,9 +106,10 @@ export default function ContentsModal(props: Props) {
     }, [contentsList])
 
     const title = useMemo(() => {
-        if (!item) return '';
-        return item.name;
-    }, [item]);
+        if (!itemId) return '';
+        const item = getItem(itemId);
+        return item?.name;
+    }, [itemId, getItem]);
 
     const [ authLv ] = useAtom(authLvAtom);
     const [ datasources ] = useAtom(dataSourcesAtom);

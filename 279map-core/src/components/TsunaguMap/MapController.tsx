@@ -53,7 +53,7 @@ function useMapInitializer() {
             set(loadedItemKeysAtom, (current) => {
                 return current.filter(cur => {
                     // ヒットしないもののみを残す
-                    return targets.some(target => {
+                    const hit = targets.some(target => {
                         if (target.datasourceId !== cur.datasourceId) {
                             return false;
                         }
@@ -62,6 +62,7 @@ function useMapInitializer() {
                         }
                         return true;
                     })
+                    return !hit;
                 });
             });
 

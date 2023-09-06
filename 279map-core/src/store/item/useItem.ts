@@ -4,6 +4,7 @@ import { isEqualId } from "../../util/dataUtility";
 import { DataId, ItemContentInfo } from "279map-common";
 import { filteredContentIdListAtom } from "../filter";
 import { useAtomCallback } from 'jotai/utils';
+import { useAtom } from "jotai";
 
 /**
  * アイテム関連フック
@@ -34,12 +35,11 @@ export function useItem() {
         }, [])
     );
 
-    const getItem = useAtomCallback(
-        useCallback((get, set, id: DataId) => {
-            const itemMap = get(allItemsAtom)[id.dataSourceId] ?? {};
-            return itemMap[id.id];
-        }, [])
-    )
+    const [allItems] = useAtom(allItemsAtom);
+    const getItem = useCallback((id: DataId) => {
+        const itemMap = allItems[id.dataSourceId] ?? {};
+        return itemMap[id.id];
+    }, [allItems]);
 
     /**
      * @params itemId {string} the item ID getting descendants' contents
