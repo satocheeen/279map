@@ -6,7 +6,6 @@ import AddContentMenu from '../popup/AddContentMenu';
 import styles from './ContentsModal.module.scss';
 import { getMapKey } from '../../util/dataUtility';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { useMap } from '../map/useMap';
 import { useSubscribe } from '../../api/useSubscribe';
 import { useItem } from '../../store/item/useItem';
 import { useAtom } from 'jotai';
@@ -104,7 +103,7 @@ export default function ContentsModal(props: Props) {
             }
         }
 
-    }, [props, callApi, subscribe, unsubscribe, setTargetsItem, loadContentsInItem]);
+    }, [props.id, props.type, mapKind, callApi, subscribe, unsubscribe, setTargetsItem, loadContentsInItem]);
 
     const contents = useMemo((): ContentsDefine[] => {
         return contentsList.sort((a, b) => {
