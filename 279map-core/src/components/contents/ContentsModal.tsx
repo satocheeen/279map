@@ -1,17 +1,21 @@
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { Modal }  from '../common';
 import Content from './Content';
-import { ContentsDefine, DataId, ItemDefine } from '279map-common';
+import { Auth, ContentsDefine, DataId, ItemDefine, MapKind } from '279map-common';
 import AddContentMenu from '../popup/AddContentMenu';
 import styles from './ContentsModal.module.scss';
 import { getMapKey } from '../../util/dataUtility';
-import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { useSubscribe } from '../../api/useSubscribe';
 import { useItem } from '../../store/item/useItem';
 import { useAtom } from 'jotai';
-import { currentMapKindAtom } from '../../store/session';
+import { authLvAtom, currentMapKindAtom } from '../../store/session';
 import { useApi } from '../../api/useApi';
 import { GetContentsAPI } from 'tsunagumap-api';
+import { compareAuth } from '../../util/CommonUtility';
+import EditItemNameModal from './EditItemNameModal';
+import PopupMenuIcon from '../popup/PopupMenuIcon';
+import { MdEdit } from 'react-icons/md';
+import { dataSourcesAtom } from '../../store/datasource';
 
 export type Props = ({
     type: 'item' | 'content';
@@ -25,7 +29,6 @@ export default function ContentsModal(props: Props) {
     const [loaded, setLoaded] = useState(false);
     const [item, setItem] = useState<ItemDefine | undefined>();
 
-    const { showProcessMessage, hideProcessMessage} = useProcessMessage();
     const [ contentsList, setContentsList ] = useState<ContentsDefine[]>([]);
     const { callApi } = useApi();
     const { subscribeMap: subscribe, unsubscribeMap: unsubscribe } = useSubscribe();
@@ -35,21 +38,16 @@ export default function ContentsModal(props: Props) {
         const item = getItem(itemId);
         if (!item || item.contents.length === 0) return;
 
-        const h = showProcessMessage({
-            overlay: true,
-            spinner: true,
-        });
+        setLoaded(false);
         const result = await callApi(GetContentsAPI, [
             {
                 itemId,
             }
         ]);
         setContentsList(result.contents);
-        hideProcessMessage(h);
+        setLoaded(true);
 
-    // TODO: useEffectから無限呼び出しされないために無効にしている。時間ある時に依存関係見直し
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [callApi, getItem, /* hideProcessMessage, showProcessMessage */]);
+    }, [callApi, getItem]);
 
     const setTargetsItem = useCallback(async(itemId: DataId) => {
         const item = getItem(itemId);
@@ -117,6 +115,30 @@ export default function ContentsModal(props: Props) {
         return item.name;
     }, [item]);
 
+    const [ authLv ] = useAtom(authLvAtom);
+    const [ datasources ] = useAtom(dataSourcesAtom);
+    const isShowItemNameEditBtn = useMemo(() => {
+        if (props.type !== 'item') return false;
+        const targetDs = datasources.find(ds => ds.dataSourceId === props.id.dataSourceId);
+        if (!targetDs) return false;
+        const info = mapKind === MapKind.Real ? targetDs.itemContents.RealItem : targetDs.itemContents.VirtualItem;
+        if (!info) return false;
+        return info.editable && compareAuth(authLv, Auth.Edit) >= 0
+    }, [props, authLv, datasources, mapKind])
+
+    const itemNameEditTipLabel = useMemo(() => {
+        if (mapKind === MapKind.Real) {
+            return '地名編集'
+        } else {
+            return '建物名編集'
+        }
+    }, [mapKind])
+
+    const [showEditItemNameModal, setShowEditItemNameModal] = useState(false);
+    const onEditItemName = useCallback(() => {
+        setShowEditItemNameModal(true);
+    }, []);
+
     const onCloseBtnClicked = useCallback(() => {
         setShow(false);
     }, []);
@@ -150,24 +172,33 @@ export default function ContentsModal(props: Props) {
     }, [contents, props]);
 
     return (
-        <Modal show={show} spinner={!loaded}
-            onCloseBtnClicked={onCloseBtnClicked}
-            onClosed={onClosed}
-            >
-            <Modal.Header>
-                <div className={styles.ItemHeader}>
-                    {title}
-                    {(props?.type === 'item' && contents.length > 0) &&
-                    <AddContentMenu target={{itemId: props.id}} />
-                }
-                </div>
-            </Modal.Header>
-            <Modal.Body>
-                {body}
-            </Modal.Body>
-            <Modal.Footer>
-
-            </Modal.Footer>
-        </Modal>
+        <>
+            <Modal show={show} spinner={!loaded}
+                onCloseBtnClicked={onCloseBtnClicked}
+                onClosed={onClosed}
+                >
+                <Modal.Header>
+                    <div className={styles.ItemHeader}>
+                        {title}
+                        {(props.type === 'item' && contents.length > 0) &&
+                        <AddContentMenu target={{itemId: props.id}} />
+                        }
+                        {isShowItemNameEditBtn &&
+                            <PopupMenuIcon tooltip={itemNameEditTipLabel} onClick={onEditItemName}>
+                                <MdEdit />
+                            </PopupMenuIcon>
+                        }
+                    </div>
+                </Modal.Header>
+                <Modal.Body>
+                    {body}
+                </Modal.Body>
+                <Modal.Footer>
+                </Modal.Footer>
+            </Modal>
+            {props.type === 'item' && showEditItemNameModal &&
+                <EditItemNameModal target={props.id} onClose={() => setShowEditItemNameModal(false)} />
+            }
+        </>
     );
 }

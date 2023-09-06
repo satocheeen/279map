@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useMemo } from 'react';
 import styles from './Modal.module.scss';
 import { MdClose } from 'react-icons/md';
-import { useProcessMessage } from '../spinner/useProcessMessage';
-import { useWatch } from '../../../util/useWatch';
+import Overlay from '../spinner/Overlay';
 
 type Props = {
     show: boolean;
@@ -17,7 +16,6 @@ type Props = {
 export default function Modal(props: Props) {
     const myRef = useRef<HTMLDialogElement|null>(null);
     const closing = useRef(false);  // when closing dialog, seted tre.
-    const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
     useEffect(() => {
         if (props.show) {
@@ -56,21 +54,18 @@ export default function Modal(props: Props) {
         return props.children.find(child => child.type === ModalFooter);
     }, [props.children]);
 
-    const messageIdRef = useRef<number>();
-    useWatch(() => {
-        if (props.spinner && props.show) {
-            const message = typeof props.spinner === 'string' ? props.spinner : '処理中...';
-            messageIdRef.current = showProcessMessage({
-                overlay: true,
-                spinner: true,
-                message
-            });
+    const showSpinner = useMemo(() => {
+        if (!props.spinner) return false;
+        return true;
+    }, [props.spinner]);
+
+    const spinnerMessage = useMemo(() => {
+        if (typeof props.spinner === 'string') {
+            return props.spinner;
         } else {
-            if (messageIdRef.current) {
-                hideProcessMessage(messageIdRef.current);
-            }
+            return '処理中...';
         }
-    }, [props.spinner, props.show])
+    }, [props.spinner]);
 
     return (
         <dialog ref={myRef} className={`${styles.Dialog} ${props.show ? styles.Show : styles.Close}`}>
@@ -88,6 +83,9 @@ export default function Modal(props: Props) {
             <div className={styles.Footer}>
                 {footer?.props.children}
             </div>
+            {showSpinner &&
+                <Overlay spinner message={spinnerMessage} />
+            }
         </dialog>
     );
 }
