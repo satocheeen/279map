@@ -14,6 +14,7 @@ import { Geometry } from 'ol/geom';
 import { sleep } from '../../util/CommonUtility';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { useApi } from '../../api/useApi';
+import { initialLoadingAtom } from '../TsunaguMap/EventFire';
 
 const instansMap = new Map<string, OlMapWrapper>();
 
@@ -72,6 +73,7 @@ export function useMap() {
     }, [mapId]);
 
     const { callApi } = useApi();
+    const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
    /**
      * 指定のズームLv., extentに該当するアイテムをロードする
@@ -79,6 +81,12 @@ export function useMap() {
    const loadItems = useAtomCallback(
     useCallback(async(get, set, param: Omit<GetItemsParam, 'dataSourceIds'>) => {
         try {
+            const overlay = get(initialLoadingAtom);
+            const h = showProcessMessage({
+                overlay, // 初回ロード時はoverlay表示
+                spinner: true,
+            });
+
             // 未ロードのデータのみロードする
             // -- extentは一定サイズに分割する
             const extents = divideExtent(param.extent);
@@ -147,20 +155,20 @@ export function useMap() {
                     return newItemsMap;
                 })
             }
+            hideProcessMessage(h);
 
         } catch (e) {
             console.warn('loadItems error', e);
             throw e;
         }
 
-    }, [callApi])
+    }, [callApi, showProcessMessage, hideProcessMessage])
 )
 
     /**
      * 現在の地図表示範囲内に存在するコンテンツをロードする
      */
     const loadingCurrentAreaContents = useRef(false);
-    const { showProcessMessage, hideProcessMessage } = useProcessMessage();
     const loadCurrentAreaContents = useCallback(async() => {
         console.log('loadCurrentAreaContents');
         if (!map) {
@@ -179,17 +187,11 @@ export function useMap() {
         loadingCurrentAreaContents.current = true;
         const ext = map.getExtent();
 
-        const h = showProcessMessage({
-            overlay: false, // TODO: 初回ロード時はtrueにする
-            spinner: true,
-        });
-
         await loadItems({zoom, extent: ext});
-        hideProcessMessage(h);
 
         loadingCurrentAreaContents.current = false;
 
-    }, [loadItems, map, showProcessMessage, hideProcessMessage]);
+    }, [loadItems, map]);
 
     /**
      * 全アイテムが含まれる領域でフィットさせる

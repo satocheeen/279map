@@ -5,7 +5,7 @@ import { allItemsAtom, loadedItemKeysAtom } from '../../store/item';
 import { checkContaining } from '../../util/MapUtility';
 import { useSubscribe } from '../../api/useSubscribe';
 import { currentMapDefineAtom, currentMapKindAtom } from '../../store/session';
-import { useAtom } from 'jotai';
+import { atom, useAtom } from 'jotai';
 import { useItem } from '../../store/item/useItem';
 import { itemDataSourcesAtom } from '../../store/datasource';
 import { useMap } from '../map/useMap';
@@ -99,6 +99,7 @@ function useMapInitializer() {
 
 }
 
+export const initialLoadingAtom = atom(false);
 /**
  * アイテムの変更検知して、地図に反映するフック
  */
@@ -112,7 +113,7 @@ function useItemUpdater() {
     // 地図初期化済みの地図種別
     const [ initializedMapKind, setInitializedMapKind ] = useState<MapKind|undefined>();
     const [ , setLoadedItemKeys] = useAtom(loadedItemKeysAtom);
-    const initialLoadingRef = useRef(false);
+    const [ , setInitialLoading ] = useAtom(initialLoadingAtom);
     const [ currentMapDefine ] = useAtom(currentMapDefineAtom);
 
     /**
@@ -133,9 +134,9 @@ function useItemUpdater() {
         setInitializedMapKind(currentMapKind);
         prevGeoJsonItemsRef.current = [];
         setLoadedItemKeys([]);
-        initialLoadingRef.current = true;
+        setInitialLoading(true);
 
-    }, [map, currentMapDefine, currentMapKind, initializedMapKind, itemDataSources, loadCurrentAreaContents, fitToDefaultExtent, setLoadedItemKeys]);
+    }, [map, currentMapDefine, currentMapKind, initializedMapKind, itemDataSources, loadCurrentAreaContents, fitToDefaultExtent, setLoadedItemKeys, setInitialLoading]);
 
     /**
      * アイテムFeatureを地図に反映する
@@ -153,11 +154,6 @@ function useItemUpdater() {
         if (initializedMapKind !== currentMapKind) return;
 
         // 追加、更新
-        const progressH = showProcessMessage({
-            overlay: initialLoadingRef.current,    // 初回ロード時はオーバーレイ
-            spinner: true,
-        });
-        initialLoadingRef.current = false;
         // TODO: OlMapWrapperに追加有無判断は任せる
         const updateItems = geoJsonItems.filter(item => {
             const before = prevGeoJsonItemsRef.current.find(pre => isEqualId(pre.id, item.id));
@@ -179,7 +175,6 @@ function useItemUpdater() {
         })
         .finally(() => {
             prevGeoJsonItemsRef.current = geoJsonItems.concat();
-            hideProcessMessage(progressH);
         });
 
     }, [geoJsonItems, map, hideProcessMessage, showProcessMessage, initializedMapKind, currentMapKind]);
