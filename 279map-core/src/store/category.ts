@@ -3,17 +3,17 @@ import { GetCategoryAPI } from 'tsunagumap-api';
 import { atom } from 'jotai';
 import { loadable } from "jotai/utils";
 import { visibleDataSourceIdsAtom } from './datasource';
-import { getAPICallerInstance } from '../api/useApi';
-import { instanceIdAtom } from './session';
+import { connectStatusAtom, serverInfoAtom } from './session';
+import { callApi } from '../api/api';
 
 export const categoriesAtom = atom(async(get): Promise<CategoryDefine[]> => {
     try {
-        const instanceId = get(instanceIdAtom);
-        const apiCaller = getAPICallerInstance(instanceId)
+        const serverInfo = get(serverInfoAtom);
+        const sid = (await get(connectStatusAtom)).sid;
 
         // 表示中のデータソースに紐づくカテゴリを取得
         const targetDataSourceIds = get(visibleDataSourceIdsAtom);
-        const apiResult = await apiCaller.callApi(GetCategoryAPI, {
+        const apiResult = await callApi(serverInfo, sid, GetCategoryAPI, {
             dataSourceIds: targetDataSourceIds,
         });
 

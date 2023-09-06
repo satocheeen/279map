@@ -1,25 +1,8 @@
-import { ConfigAPI, ErrorType, GetMapListAPI } from "tsunagumap-api";
+import { ConfigAPI, GetMapListAPI } from "tsunagumap-api";
 import { ServerInfo } from '../types/types';
 import { ServerConfig } from "279map-common";
-import { ApiCaller } from "./ApiCaller";
+import { callApi } from "./api";
 
-export enum MyErrorType {
-    NonInitialize = "NonInitialize"
-}
-export type MyError = {
-    type: ErrorType | MyErrorType;
-    detail?: string;
-    userId?: string;
-}
-export class ApiException extends Error {
-    apiError: MyError;
-
-    constructor(error: MyError) {
-        super();
-        this.apiError = error;
-        this.message = `ApiError: ${error.type} ${error.detail ?? ''}`;
-    }
-}
 /**
  * ユーザがアクセス可能な地図一覧を返す
  * @param host 
@@ -32,9 +15,8 @@ export async function getAccessableMapList(host: string, ssl: boolean, token: st
         token,
     } as ServerInfo;
 
-    const apiCaller = new ApiCaller('no-instance', mapServer, () => {});
     try {
-        const result = await apiCaller.callApi(GetMapListAPI, undefined);
+        const result = await callApi(mapServer, undefined, GetMapListAPI, undefined);
         return result;
 
     } catch(e) {
@@ -54,9 +36,8 @@ export async function getAuthConfig(host: string, ssl: boolean) {
         host,
         ssl,
     } as ServerInfo;
-    const apiCaller = new ApiCaller('no-instance', mapServer, () => {});
     try {
-        const result = await apiCaller.callApi(ConfigAPI, undefined) as ServerConfig;
+        const result = await callApi(mapServer, undefined, ConfigAPI, undefined) as ServerConfig;
         return result;
 
     } catch(e) {

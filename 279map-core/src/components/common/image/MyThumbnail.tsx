@@ -1,7 +1,6 @@
 import React, { useMemo, useState, useRef } from 'react';
 import { DataId } from '279map-common';
 import { GetImageUrlAPI, GetThumbAPI } from 'tsunagumap-api';
-import { useMap } from '../../map/useMap';
 import { useWatch } from '../../../util/useWatch';
 import Spinner from '../spinner/Spinner';
 import { connectStatusAtom } from '../../../store/session';

@@ -8,8 +8,8 @@ import styles from './MapConnector.module.scss';
 import { createMqttClientInstance, destroyMqttClientInstance, useSubscribe } from '../../api/useSubscribe';
 import { Auth } from '279map-common';
 import { useAtom } from 'jotai';
-import { MyError, MyErrorType } from '../../api';
-import { createAPICallerInstance, destroyAPICallerInstance, useApi } from '../../api/useApi';
+import { MyError, MyErrorType } from '../../api/api';
+import { useApi } from '../../api/useApi';
 import { ServerInfo } from '../../types/types';
 
 type Props = {
@@ -30,13 +30,11 @@ export default function MapConnector(props: Props) {
     // API用意
     const [, connectDispatch] = useAtom(connectReducerAtom);
     useEffect(() => {
-        createAPICallerInstance(instanceId, props.server, () => {});
         createMqttClientInstance(instanceId, props.server);
 
         connectDispatch();
 
         return () => {
-            destroyAPICallerInstance(instanceId);
             destroyMqttClientInstance(instanceId);
         }
     }, [instanceId, props.server, connectDispatch]);

@@ -1,15 +1,20 @@
-import { ConnectResult, ErrorType, GetMapInfoAPI, GetMapInfoResult } from 'tsunagumap-api';
+import { ConnectAPI, ConnectResult, ErrorType, GetMapInfoAPI, GetMapInfoResult } from 'tsunagumap-api';
 import { Auth, MapKind } from '279map-common';
-import { ApiException, MyErrorType } from '../../api';
+import { ApiException, callApi } from '../../api/api';
 import { Extent } from "ol/extent";
 import { atom } from 'jotai';
 import { atomWithReducer, loadable, selectAtom } from 'jotai/utils';
-import { getAPICallerInstance, hasAPICallerInstance } from '../../api/useApi';
 import { Loadable } from 'jotai/vanilla/utils/loadable';
+import { ServerInfo } from '../../types/types';
 
 export const instanceIdAtom = atom('');
 
 export const mapIdAtom = atom<string>('');
+
+export const serverInfoAtom = atom<ServerInfo>({
+    host: window.location.host,
+    ssl: window.location.protocol === 'https:',
+});
 
 export const connectReducerAtom = atomWithReducer(0, (prev) => prev+1);
 export const connectStatusAtom = atom<Promise<ConnectResult>>(async( get ) => {
@@ -19,14 +24,8 @@ export const connectStatusAtom = atom<Promise<ConnectResult>>(async( get ) => {
         const mapId = get(mapIdAtom);
         console.log('connect to', mapId);
 
-        const apiId = get(instanceIdAtom);
-        if (!hasAPICallerInstance(apiId)) {
-            throw new ApiException({
-                type: MyErrorType.NonInitialize,
-            })
-        }
-        const apiCaller = getAPICallerInstance(apiId);
-        const json = await apiCaller.connect(mapId);
+        const serverInfo = get(serverInfoAtom);
+        const json = await callApi(serverInfo, undefined, ConnectAPI, {mapId});
 
         return json;
 
@@ -46,9 +45,10 @@ const mapDefineAtom = atom<Promise<GetMapInfoResult>>(async(get) => {
     const connectStatus = await get(connectStatusAtom);
     const specifiedMapKind = get(specifiedMapKindAtom);
     const mapKind = specifiedMapKind ?? connectStatus.mapDefine.defaultMapKind;
-    const apiId = get(instanceIdAtom);
-    const apiCaller = getAPICallerInstance(apiId);
-    const res = await apiCaller.callApi(GetMapInfoAPI, {
+    
+    const serverInfo = get(serverInfoAtom);
+    const sid = connectStatus.sid;
+    const res = await callApi(serverInfo, sid, GetMapInfoAPI, {
         mapKind,
     });
     return res;

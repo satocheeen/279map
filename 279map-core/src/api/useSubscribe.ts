@@ -2,7 +2,7 @@ import { useCallback, useMemo, useEffect } from 'react';
 import { ErrorType, PublishMapMessage, PublishUserMessage } from 'tsunagumap-api';
 import { connectStatusLoadableAtom, instanceIdAtom, mapIdAtom } from '../store/session';
 import { MapKind } from '279map-common';
-import { MyError } from '.';
+import { MyError } from './api';
 import { useAtom } from 'jotai';
 import { MqttClient } from "mqtt/*";
 // @ts-ignore mqtt/dist配下にアクセスできないので、コピーしてきたものをimportしている
@@ -57,7 +57,7 @@ export function useSubscribe() {
                                 : {type: ErrorType.IllegalError, detail: e + ''};
             return error?.userId;
         } else if (connectStatusLoadable.state === 'hasData') {
-            return connectStatusLoadable.data.userId;
+            return connectStatusLoadable.data?.userId;
         } else {
             return undefined;
         }

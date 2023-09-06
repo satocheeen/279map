@@ -9,14 +9,14 @@ import UserListModal from '../admin/UserListModal';
 import ValueConnectorWithOwner from './ValueConnectorWithOwner';
 import MapConnector from './MapConnector';
 import ProcessOverlay from './ProcessOverlay';
-import { Provider, createStore, useAtom } from 'jotai';
+import { Provider, createStore } from 'jotai';
 import EventFire from './EventFire';
 import MapChart from './MapChart';
 import PopupContainer from '../popup/PopupContainer';
 import LandNameOverlay from '../map/LandNameOverlay';
 import DrawController from '../map/DrawController';
 import ClusterMenuContainer from '../cluster-menu/ClusterMenuContainer';
-import { instanceIdAtom, mapIdAtom } from '../../store/session';
+import { instanceIdAtom, mapIdAtom, serverInfoAtom } from '../../store/session';
 
 type SomeRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 type OwnerContextType = Omit<SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'>, 'mapServer' | 'mapId'>;
@@ -56,6 +56,10 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
 
     if (myStoreRef.current.get(mapIdAtom) !== props.mapId) {
         myStoreRef.current.set(mapIdAtom, props.mapId);
+    }
+
+    if (myStoreRef.current.get(serverInfoAtom) !== props.mapServer) {
+        myStoreRef.current.set(serverInfoAtom, props.mapServer);
     }
 
     const [ showTooltipId, setShowTooltipId ] = useState<{[name: string]: string}>({});
