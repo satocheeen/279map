@@ -1,5 +1,5 @@
 import { Auth, CategoryDefine, ContentsDefine, DataId, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, ServerConfig, UnpointContent, User } from "279map-common";
-import { GeoJsonObject } from "geojson";
+import { GeoJsonObject, Position } from "geojson";
 import { APIDefine, ContentAttr, SnsPreviewPost, MapDefine } from '279map-common';
 import { FilterDefine, DataSourceGroup } from "279map-common";
 
@@ -142,7 +142,8 @@ export const GetItemsAPI = {
     resultType: 'json',
 } as APIDefine<GetItemsParam, GetItemsResult>;
 export type GetItemsParam = {
-    extent: Extent;
+    // extent: Extent;
+    wkt: string;
     zoom: number;
     dataSourceIds: string[];   // 指定のデータソースのアイテムのみ返す
 }

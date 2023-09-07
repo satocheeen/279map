@@ -16,6 +16,7 @@ import VectorSource from 'ol/source/Vector';
 import { FeatureType, GeoProperties } from '279map-common';
 import { getCenter as getExtentCenter } from 'ol/extent';
 import { Cluster } from 'ol/source';
+import * as turf from '@turf/turf';
 
 /**
  * GeoJSONを元に対応するジオメトリを生成して返す
@@ -284,4 +285,10 @@ export function checkContaining(ext1: Extent, ext2: Extent) {
         return 1;
     }
     return 0;
+}
+
+export function convertTurfPolygon(extent: Extent) {
+    const line = turf.lineString([[extent[0], extent[1]], [extent[2], extent[3]]]);
+    const bbox = turf.bbox(line);
+    return turf.bboxPolygon(bbox);
 }

@@ -4,7 +4,7 @@ import { atom, useAtom } from 'jotai';
 import { useAtomCallback, atomWithReducer } from 'jotai/utils';
 import { defaultExtentAtom, instanceIdAtom } from '../../store/session';
 import { GetItemsAPI, GetItemsParam } from 'tsunagumap-api';
-import { ItemsMap, LoadedItemKey, allItemsAtom, loadedItemKeysAtom } from '../../store/item';
+import { ItemsMap, LoadedItemInfo, allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { DataId, Extent } from '279map-common';
 import { dataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import useMyMedia from '../../util/useMyMedia';
@@ -15,7 +15,10 @@ import { sleep } from '../../util/CommonUtility';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { useApi } from '../../api/useApi';
 import { initialLoadingAtom } from '../TsunaguMap/MapController';
-import { checkContaining } from '../../util/MapUtility';
+import { checkContaining, convertTurfPolygon } from '../../util/MapUtility';
+import * as turf from '@turf/turf';
+// @ts-ignore
+import { stringify as wktStringify } from 'wkt';
 
 /**
  * 地図インスタンス管理マップ。
@@ -81,7 +84,7 @@ export function useMap() {
      * 指定のズームLv., extentに該当するアイテムをロードする
      */
    const loadItems = useAtomCallback(
-    useCallback(async(get, set, param: Omit<GetItemsParam, 'dataSourceIds'>) => {
+    useCallback(async(get, set, param: { extent: Extent; zoom: number }) => {
         const overlay = get(initialLoadingAtom);
         const h = showProcessMessage({
             overlay, // 初回ロード時はoverlay表示
@@ -91,73 +94,133 @@ export function useMap() {
 
         try {
             // 未ロードのデータのみロードする
-            // -- extentは一定サイズに分割する
-            const extents = divideExtent(param.extent);
             // -- zoomは小数点以下は切り捨てる
             const zoom = Math.floor(param.zoom);
-            const loadedItemsKeys = get(loadedItemKeysAtom);
-            const datasources = get(dataSourcesAtom);
+            const loadedItemMap = get(loadedItemMapAtom);
             const visibleDataSourceIds = get(visibleDataSourceIdsAtom);
 
-            const targetKeys = extents.reduce((acc, cur) => {
-                const keys = visibleDataSourceIds.map((datasourceId): LoadedItemKey => {
-                    // データソースがGPXの場合は、ZoomLv.も
-                    const dsInfo = datasources.find(ds => ds.dataSourceId === datasourceId);
-                    const zoomKey = dsInfo?.itemContents.Track ? zoom : undefined;
-                    return {
-                        datasourceId,
-                        extent: cur.concat(),   // combineKeys処理でデータソースごとにExtentに対して処理を行うので、別オブジェクトとして代入
-                        zoom: zoomKey,
+            const extentPolygon = convertTurfPolygon(param.extent);
+            // ロード対象
+            const loadTargets = visibleDataSourceIds.map((datasourceId): LoadedItemInfo => {
+                // ロード済みの範囲は除外したPolygonを生成
+                const loadedInfo = loadedItemMap[datasourceId];
+                let polygon: LoadedItemInfo['polygon'];
+                if (loadedInfo) {
+                    if (loadedInfo.polygon.type === 'Polygon') {
+                        const loadedPolygon = turf.polygon(loadedInfo.polygon.coordinates);
+                        const p = turf.mask(loadedPolygon, extentPolygon)
+                        polygon = {
+                            type: 'Polygon',
+                            coordinates: p.geometry.coordinates,
+                        }
+                    } else {
+                        const loadedPolygon = turf.multiPolygon(loadedInfo.polygon.coordinates);
+                        const p = turf.mask(loadedPolygon, extentPolygon)
+                        polygon = {
+                            type: 'Polygon',
+                            coordinates: p.geometry.coordinates,
+                        }
                     }
-                });
-                return acc.concat(keys);
-            }, [] as LoadedItemKey[])
-            .filter(key => {
-                const loaded =loadedItemsKeys.some(loaded => {
-                    if (loaded.datasourceId !== key.datasourceId) {
-                        return false;
+                } else {
+                    polygon = {
+                        type: 'Polygon',
+                        coordinates: extentPolygon.geometry.coordinates
                     }
-                    if (JSON.stringify(loaded.extent) !== JSON.stringify(key.extent)) {
-                        return false;
-                    }
-                    if (loaded.zoom && loaded.zoom !== key.zoom) {
-                        return false;
-                    }
-                    return true;
-                });
-                return !loaded;
+                }
+                return {
+                    datasourceId,
+                    polygon,
+                }
             });
+            console.log('debug loadTargets', loadTargets);
+            console.log('debug newLoaded', get(loadedItemMapAtom));
+            // const targetKeys = extents.reduce((acc, cur) => {
+            //     const keys = visibleDataSourceIds.map((datasourceId): LoadedItemKey => {
+            //         // データソースがGPXの場合は、ZoomLv.も
+            //         const dsInfo = datasources.find(ds => ds.dataSourceId === datasourceId);
+            //         const zoomKey = dsInfo?.itemContents.Track ? zoom : undefined;
+            //         return {
+            //             datasourceId,
+            //             extent: cur.concat(),   // combineKeys処理でデータソースごとにExtentに対して処理を行うので、別オブジェクトとして代入
+            //             zoom: zoomKey,
+            //         }
+            //     });
+            //     return acc.concat(keys);
+            // }, [] as LoadedItemKey[])
+            // .filter(key => {
+            //     const loaded =loadedItemsKeys.some(loaded => {
+            //         if (loaded.datasourceId !== key.datasourceId) {
+            //             return false;
+            //         }
+            //         if (JSON.stringify(loaded.extent) !== JSON.stringify(key.extent)) {
+            //             return false;
+            //         }
+            //         if (loaded.zoom && loaded.zoom !== key.zoom) {
+            //             return false;
+            //         }
+            //         return true;
+            //     });
+            //     return !loaded;
+            // });
 
-            if (targetKeys.length === 0) return;
+            // if (targetKeys.length === 0) return;
 
-            const copiedTargetKeys = JSON.parse(JSON.stringify(targetKeys));
-            // ひとまとめにできる条件は、ひとまとめにする
-            const combinedKeys = combineKeys(targetKeys);
+            // const copiedTargetKeys = JSON.parse(JSON.stringify(targetKeys));
+            // // ひとまとめにできる条件は、ひとまとめにする
+            // const combinedKeys = combineKeys(targetKeys);
 
-            for (const key of combinedKeys) {
+            for (const target of loadTargets) {
+                const wkt = wktStringify(target.polygon) as string;
                 const apiResult = await callApi(GetItemsAPI, {
-                    extent: key.extent,
+                    wkt,
                     zoom,
-                    dataSourceIds: [key.datasourceId],
+                    dataSourceIds: [target.datasourceId],
                 });
                 const items = apiResult.items;
 
                 if (items.length === 0) continue;
 
-                const itemMap: ItemsMap = {};
+                const itemMap: ItemsMap = get(allItemsAtom)[target.datasourceId] ?? {};
                 items.forEach(item => {
                     itemMap[item.id.id] = item;
                 });
                 set(allItemsAtom, (currentItemMap) => {
                     const newItemsMap = Object.assign({}, currentItemMap, {
-                        [key.datasourceId]: itemMap,
+                        [target.datasourceId]: itemMap,
                     });
                     return newItemsMap;
                 })
             }
-            // ロード済みデータ条件を保管
-            set(loadedItemKeysAtom, (current) => {
-                return current.concat(copiedTargetKeys);
+            // ロード済みの範囲と併せたものを保管
+            loadTargets.forEach(info => {
+                const currentData = loadedItemMap[info.datasourceId];
+                let polygon: LoadedItemInfo['polygon'];
+                if (currentData) {
+                    const newPolygon = turf.union(
+                        currentData.polygon.type === 'Polygon' ? turf.polygon(currentData.polygon.coordinates) : turf.multiPolygon(currentData.polygon.coordinates),
+                        info.polygon.type === 'Polygon' ? turf.polygon(info.polygon.coordinates) : turf.multiPolygon(info.polygon.coordinates),
+                    );
+                    if (newPolygon) {
+                        polygon = newPolygon.geometry.type === 'Polygon' ? {
+                            type: newPolygon.geometry.type,
+                            coordinates: newPolygon.geometry.coordinates,
+                        } : {
+                            type: newPolygon.geometry.type,
+                            coordinates: newPolygon.geometry.coordinates,
+                        }
+                    }
+
+                } else {
+                    polygon = info.polygon;
+                }
+                set(loadedItemMapAtom, (prev) => {
+                    return Object.assign({}, prev, {
+                        [info.datasourceId]: {
+                            datasourceId: info.datasourceId,
+                            polygon: polygon,
+                        } as LoadedItemInfo,
+                    })
+                })
             })
 
         } catch (e) {
@@ -213,16 +276,19 @@ export function useMap() {
             if (!zoom) {
                 return;
             }
-            const loadedItemKeys = get(loadedItemKeysAtom);
-            const isLoaded = loadedItemKeys.some(key => {
-                if (key.datasourceId !== dataSourceId) return false;
-                return checkContaining(key.extent, extent) !== 0;
-            })
+            // TODO:
+            // const loadedItemKeys = get(loadedItemKeysAtom);
+            const isLoaded = false;
+            // const isLoaded = loadedItemKeys.some(key => {
+            //     if (key.datasourceId !== dataSourceId) return false;
+            //     return checkContaining(key.extent, extent) !== 0;
+            // })
             // 未ロード範囲ならば何もしない
             if (!isLoaded) return;
 
             const apiResult = await callApi(GetItemsAPI, {
-                extent,
+                // TODO
+                wkt: '',
                 zoom,
                 dataSourceIds: [dataSourceId],
             });
@@ -310,79 +376,4 @@ export function useMap() {
         focusItem,
         updateAreaItems,
     }
-}
-
-function divideExtent(ext: Extent): Extent[] {
-    const d = 2;
-    const startX = Math.floor(Math.min(ext[0], ext[2]) / d) * d;
-    const endX = Math.max(ext[0], ext[2]);
-    const startY = Math.floor(Math.min(ext[1], ext[3]) / d) * d;
-    const endY = Math.max(ext[1], ext[3]);
-
-    const list = [] as Extent[];
-    for (let y = startY; y<=endY; y+=d) {
-        for (let x = startX; x <= endX; x+=d) {
-            list.push([
-                x, y, x + d, y + d
-            ])
-        }
-    }
-    return list;
-}
-function combineKeys(keys: LoadedItemKey[]): LoadedItemKey[] {
-    // データソースごとに、まとめる
-    const keyMap = new Map<string, LoadedItemKey[]>();
-    keys.forEach(key => {
-        if (keyMap.has(key.datasourceId)) {
-            keyMap.get(key.datasourceId)?.push(key);
-        } else {
-            keyMap.set(key.datasourceId, [key]);
-        }
-    });
-
-    // Extentが隣接するものは１つにする
-    const combinedList = [] as LoadedItemKey[];
-    keyMap.forEach((value) => {
-        // -- X軸でまとめられるものをまとめる
-        const list = value.reduce((acc, cur) => {
-            if (acc.length === 0) {
-                return [cur];
-            }
-            const lastItem = acc[acc.length - 1];
-            if (lastItem.extent[1] !== cur.extent[1] || lastItem.extent[3] !== cur.extent[3]) {
-                // Y座標がことなる場合はまとめない
-                return acc.concat(cur);
-            }
-            if (lastItem.extent[2] !== cur.extent[0]) {
-                // 隣接していない場合はまとめない
-                return acc.concat(cur);
-            }
-            // まとめる
-            lastItem.extent[2] = cur.extent[2];
-            return acc;
-        }, [] as LoadedItemKey[])
-        // -- Y軸でまとめられるものをまとめる
-        .reduce((acc, cur) => {
-            if (acc.length === 0) {
-                return [cur];
-            }
-            const lastItem = acc[acc.length - 1];
-
-            if (lastItem.extent[0] !== cur.extent[0] || lastItem.extent[2] !== cur.extent[2]) {
-                // X座標がことなる場合はまとめない
-                return acc.concat(cur);
-            }
-            if (lastItem.extent[3] !== cur.extent[1]) {
-                // 隣接していない場合はまとめない
-                return acc.concat(cur);
-            }
-            // まとめる
-            lastItem.extent[3] = cur.extent[3];
-            return acc;
-        }, [] as LoadedItemKey[]);
-        
-        Array.prototype.push.apply(combinedList, list);
-    })
-
-    return combinedList;
 }

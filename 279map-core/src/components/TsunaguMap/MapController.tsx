@@ -1,10 +1,8 @@
-import { Extent, ItemDefine, MapKind } from '279map-common';
-import { useAtomCallback } from 'jotai/utils';
-import React, { useRef, useMemo, useCallback, useContext, useEffect, lazy, Suspense, useState } from 'react';
-import { allItemsAtom, loadedItemKeysAtom } from '../../store/item';
-import { checkContaining } from '../../util/MapUtility';
+import { ItemDefine, MapKind } from '279map-common';
+import React, { useRef, useMemo, useContext, useEffect, lazy, Suspense, useState } from 'react';
+import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useSubscribe } from '../../api/useSubscribe';
-import { currentMapDefineAtom, currentMapKindAtom, instanceIdAtom } from '../../store/session';
+import { currentMapDefineAtom, currentMapKindAtom } from '../../store/session';
 import { atom, useAtom } from 'jotai';
 import { useItem } from '../../store/item/useItem';
 import { itemDataSourcesAtom } from '../../store/datasource';
@@ -98,7 +96,7 @@ function useItemUpdater() {
     const [ currentMapKind ] = useAtom(currentMapKindAtom);
     // 地図初期化済みの地図種別
     const [ initializedMapKind, setInitializedMapKind ] = useState<MapKind|undefined>();
-    const [ , setLoadedItemKeys] = useAtom(loadedItemKeysAtom);
+    const [ , setLoadedItemMap] = useAtom(loadedItemMapAtom);
     const [ , setInitialLoading ] = useAtom(initialLoadingAtom);
     const [ currentMapDefine ] = useAtom(currentMapDefineAtom);
 
@@ -118,10 +116,10 @@ function useItemUpdater() {
         fitToDefaultExtent(false);
         setInitializedMapKind(currentMapKind);
         prevGeoJsonItemsRef.current = [];
-        setLoadedItemKeys([]);
+        setLoadedItemMap({});
         setInitialLoading(true);
 
-    }, [map, currentMapDefine, currentMapKind, initializedMapKind, itemDataSources, fitToDefaultExtent, setLoadedItemKeys, setInitialLoading]);
+    }, [map, currentMapDefine, currentMapKind, initializedMapKind, itemDataSources, fitToDefaultExtent, setLoadedItemMap, setInitialLoading]);
 
     /**
      * アイテムFeatureを地図に反映する

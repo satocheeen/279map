@@ -30,7 +30,7 @@ export async function getItemsSub(currentMap: CurrentMap, param: GetItemsParam):
     
     try {
         const dataSourceIds = param.dataSourceIds;
-        const pointContents = dataSourceIds.length === 0 ? [] : await selectItems(con, dataSourceIds, param.extent, currentMap);
+        const pointContents = dataSourceIds.length === 0 ? [] : await selectItems(con, dataSourceIds, param.wkt, currentMap);
 
         if (currentMap.mapKind === MapKind.Virtual) {
             return pointContents;
@@ -58,7 +58,7 @@ export async function getItemsSub(currentMap: CurrentMap, param: GetItemsParam):
     
 }
 
-async function selectItems(con: PoolConnection, dataSourceIds:string[], extent: Extent, currentMap: CurrentMap): Promise<ItemDefine[]> {
+async function selectItems(con: PoolConnection, dataSourceIds:string[], wkt: string, currentMap: CurrentMap): Promise<ItemDefine[]> {
     try {
         // 位置コンテンツ
         const sql = `
@@ -69,10 +69,10 @@ async function selectItems(con: PoolConnection, dataSourceIds:string[], extent: 
         where map_page_id = ? and i.map_kind = ?
         and ST_Intersects(location, ST_GeomFromText(?,4326));
         `;
-        const extentPolygon = (extent[0] === extent[2] && extent[1] === extent[3]) ?
-            `POINT(${extent[0]} ${extent[1]})`
-            : `POLYGON((${extent[0]} ${extent[1]}, ${extent[2]} ${extent[1]}, ${extent[2]} ${extent[3]}, ${extent[0]} ${extent[3]}, ${extent[0]} ${extent[1]}))`
-        const [rows] = await con.execute(sql, [currentMap.mapId, currentMap.mapKind, extentPolygon]);
+        // const extentPolygon = (extent[0] === extent[2] && extent[1] === extent[3]) ?
+        //     `POINT(${extent[0]} ${extent[1]})`
+        //     : `POLYGON((${extent[0]} ${extent[1]}, ${extent[2]} ${extent[1]}, ${extent[2]} ${extent[3]}, ${extent[0]} ${extent[3]}, ${extent[0]} ${extent[1]}))`
+        const [rows] = await con.execute(sql, [currentMap.mapId, currentMap.mapKind, wkt]);
         const pointContents = [] as ItemDefine[];
         for(const row of rows as (ItemsTable & {geojson: any})[]) {
             // 指定されているデータソースのもののみに絞る
@@ -130,7 +130,7 @@ async function selectItems(con: PoolConnection, dataSourceIds:string[], extent: 
  */
 async function selectTrackInArea(con: PoolConnection, param: GetItemsParam, mapPageId: string): Promise<ItemDefine[]> {
     try {
-        const wkt = getExtentWkt(param.extent);
+        const wkt = param.wkt;// getExtentWkt(param.extent);
         const sql = `
                     SELECT tg.track_file_id, tg.sub_id, tg.min_zoom, tg.max_zoom, ST_AsGeoJSON(geojson) as geojson, t.*  FROM track_geojson tg
                     inner join track_files tf on tf.track_file_id = tg.track_file_id 
