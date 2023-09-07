@@ -3,8 +3,8 @@ import { OlMapWrapper } from '../TsunaguMap/OlMapWrapper';
 import { atom, useAtom } from 'jotai';
 import { useAtomCallback, atomWithReducer } from 'jotai/utils';
 import { defaultExtentAtom, instanceIdAtom } from '../../store/session';
-import { GetItemsAPI, GetItemsParam } from 'tsunagumap-api';
-import { ItemsMap, LoadedItemInfo, allItemsAtom, loadedItemMapAtom } from '../../store/item';
+import { GetItemsAPI } from 'tsunagumap-api';
+import { ItemsMap, LoadedItemInfo, LoadedItemKey, allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { DataId, Extent } from '279map-common';
 import { dataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import useMyMedia from '../../util/useMyMedia';
@@ -15,7 +15,7 @@ import { sleep } from '../../util/CommonUtility';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { useApi } from '../../api/useApi';
 import { initialLoadingAtom } from '../TsunaguMap/MapController';
-import { checkContaining, convertTurfPolygon } from '../../util/MapUtility';
+import { convertTurfPolygon } from '../../util/MapUtility';
 import * as turf from '@turf/turf';
 // @ts-ignore
 import { stringify as wktStringify } from 'wkt';
@@ -98,12 +98,19 @@ export function useMap() {
             const zoom = Math.floor(param.zoom);
             const loadedItemMap = get(loadedItemMapAtom);
             const visibleDataSourceIds = get(visibleDataSourceIdsAtom);
+            const datasources = get(dataSourcesAtom);
 
             const extentPolygon = convertTurfPolygon(param.extent);
             // ロード対象
             const loadTargets = visibleDataSourceIds.map((datasourceId): LoadedItemInfo => {
+                // データソースがGPXの場合は、ZoomLv.もkeyとして扱う
+                const dsInfo = datasources.find(ds => ds.dataSourceId === datasourceId);
                 // ロード済みの範囲は除外したPolygonを生成
-                const loadedInfo = loadedItemMap[datasourceId];
+                const key: LoadedItemKey = {
+                    datasourceId,
+                    zoom:  dsInfo?.itemContents.Track ? zoom : undefined,
+                }
+                const loadedInfo = loadedItemMap[JSON.stringify(key)];
                 let polygon: LoadedItemInfo['polygon'];
                 if (loadedInfo) {
                     if (loadedInfo.polygon.type === 'Polygon') {
@@ -129,45 +136,10 @@ export function useMap() {
                 }
                 return {
                     datasourceId,
+                    zoom:  dsInfo?.itemContents.Track ? zoom : undefined,
                     polygon,
                 }
             });
-            console.log('debug loadTargets', loadTargets);
-            console.log('debug newLoaded', get(loadedItemMapAtom));
-            // const targetKeys = extents.reduce((acc, cur) => {
-            //     const keys = visibleDataSourceIds.map((datasourceId): LoadedItemKey => {
-            //         // データソースがGPXの場合は、ZoomLv.も
-            //         const dsInfo = datasources.find(ds => ds.dataSourceId === datasourceId);
-            //         const zoomKey = dsInfo?.itemContents.Track ? zoom : undefined;
-            //         return {
-            //             datasourceId,
-            //             extent: cur.concat(),   // combineKeys処理でデータソースごとにExtentに対して処理を行うので、別オブジェクトとして代入
-            //             zoom: zoomKey,
-            //         }
-            //     });
-            //     return acc.concat(keys);
-            // }, [] as LoadedItemKey[])
-            // .filter(key => {
-            //     const loaded =loadedItemsKeys.some(loaded => {
-            //         if (loaded.datasourceId !== key.datasourceId) {
-            //             return false;
-            //         }
-            //         if (JSON.stringify(loaded.extent) !== JSON.stringify(key.extent)) {
-            //             return false;
-            //         }
-            //         if (loaded.zoom && loaded.zoom !== key.zoom) {
-            //             return false;
-            //         }
-            //         return true;
-            //     });
-            //     return !loaded;
-            // });
-
-            // if (targetKeys.length === 0) return;
-
-            // const copiedTargetKeys = JSON.parse(JSON.stringify(targetKeys));
-            // // ひとまとめにできる条件は、ひとまとめにする
-            // const combinedKeys = combineKeys(targetKeys);
 
             for (const target of loadTargets) {
                 const wkt = wktStringify(target.polygon) as string;
@@ -193,7 +165,12 @@ export function useMap() {
             }
             // ロード済みの範囲と併せたものを保管
             loadTargets.forEach(info => {
-                const currentData = loadedItemMap[info.datasourceId];
+                const key: LoadedItemKey = {
+                    datasourceId: info.datasourceId,
+                    zoom: info.zoom,
+                }
+                const keyStr = JSON.stringify(key);
+                const currentData = loadedItemMap[keyStr];
                 let polygon: LoadedItemInfo['polygon'];
                 if (currentData) {
                     const newPolygon = turf.union(
@@ -208,19 +185,24 @@ export function useMap() {
                             type: newPolygon.geometry.type,
                             coordinates: newPolygon.geometry.coordinates,
                         }
+                    } else {
+                        polygon = info.polygon;
                     }
 
                 } else {
+                    console.log('debug newpolygon');
                     polygon = info.polygon;
                 }
                 set(loadedItemMapAtom, (prev) => {
                     return Object.assign({}, prev, {
-                        [info.datasourceId]: {
+                        [keyStr]: {
                             datasourceId: info.datasourceId,
                             polygon: polygon,
+                            zoom: info.zoom,
                         } as LoadedItemInfo,
                     })
                 })
+                console.log('debug save', get(loadedItemMapAtom));
             })
 
         } catch (e) {
