@@ -69,7 +69,9 @@ async function selectItems(con: PoolConnection, dataSourceIds:string[], extent: 
         where map_page_id = ? and i.map_kind = ?
         and ST_Intersects(location, ST_GeomFromText(?,4326));
         `;
-        const extentPolygon = `POLYGON((${extent[0]} ${extent[1]}, ${extent[2]} ${extent[1]}, ${extent[2]} ${extent[3]}, ${extent[0]} ${extent[3]}, ${extent[0]} ${extent[1]}))`
+        const extentPolygon = (extent[0] === extent[2] && extent[1] === extent[3]) ?
+            `POINT(${extent[0]} ${extent[1]})`
+            : `POLYGON((${extent[0]} ${extent[1]}, ${extent[2]} ${extent[1]}, ${extent[2]} ${extent[3]}, ${extent[0]} ${extent[3]}, ${extent[0]} ${extent[1]}))`
         const [rows] = await con.execute(sql, [currentMap.mapId, currentMap.mapKind, extentPolygon]);
         const pointContents = [] as ItemDefine[];
         for(const row of rows as (ItemsTable & {geojson: any})[]) {

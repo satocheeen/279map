@@ -48,33 +48,11 @@ export default function MapController() {
  * - 地図再作成する
  */
 function useMapInitializer() {
-    const clearLoadedArea = useAtomCallback(
-        useCallback((get, set, targets: {datasourceId: string, extent: Extent}[]) => {
-            set(loadedItemKeysAtom, (current) => {
-                return current.filter(cur => {
-                    // ヒットしないもののみを残す
-                    const hit = targets.some(target => {
-                        if (target.datasourceId !== cur.datasourceId) {
-                            return false;
-                        }
-                        if (checkContaining(target.extent, cur.extent) === 0) {
-                            return false;
-                        }
-                        return true;
-                    })
-                    return !hit;
-                });
-            });
-
-        }, [])
-    )
-
     // 地図種別が変更されたら、地図に対してsubscribe, unsubscribeする
     const [ currentMapKind ] = useAtom(currentMapKindAtom);
     const { getSubscriber } = useSubscribe();
     const { removeItems } = useItem();
-    const { loadCurrentAreaContents } = useMap();
-    const [ instanceId ] = useAtom(instanceIdAtom);
+    const { updateAreaItems } = useMap();
     const [ mapInstanceId ] = useAtom(mapInstanceIdAtom);
 
     useEffect(() => {
@@ -85,10 +63,10 @@ function useMapInitializer() {
 
         const h1 = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapitem-update', undefined, (payload) => {
             if (payload.type === 'mapitem-update') {
-                // 指定のエクステントをロード済み対象から除去する
-                clearLoadedArea(payload.targets);
-
-                loadCurrentAreaContents();
+                // 表示中エリアの場合は最新ロードする
+                payload.targets.forEach(target => {
+                    updateAreaItems(target.extent, target.datasourceId);
+                })
             }
         });
         const h2 = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapitem-delete', undefined, (payload) => {
@@ -103,7 +81,7 @@ function useMapInitializer() {
             if (h2)
                 subscriber.unsubscribe(h2);
         }
-    }, [currentMapKind, removeItems, getSubscriber, clearLoadedArea, loadCurrentAreaContents, mapInstanceId]);
+    }, [currentMapKind, removeItems, getSubscriber, updateAreaItems, mapInstanceId]);
 
 }
 

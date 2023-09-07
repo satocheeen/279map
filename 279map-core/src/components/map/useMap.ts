@@ -15,6 +15,7 @@ import { sleep } from '../../util/CommonUtility';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { useApi } from '../../api/useApi';
 import { initialLoadingAtom } from '../TsunaguMap/MapController';
+import { checkContaining } from '../../util/MapUtility';
 
 /**
  * 地図インスタンス管理マップ。
@@ -197,7 +198,48 @@ export function useMap() {
 
         loadingCurrentAreaContents.current = false;
 
-    }, [loadItems, map, mapInstanceId])
+    }, [loadItems, map, mapInstanceId]);
+
+    /**
+     * 指定範囲のアイテムを更新する
+     */
+    const updateAreaItems = useAtomCallback(
+        useCallback(async(get, set, extent: Extent, dataSourceId: string) => {
+            if (!map) {
+                console.warn('map is undefined', mapInstanceId);
+                return;
+            }
+            const zoom = map.getZoom();
+            if (!zoom) {
+                return;
+            }
+            const loadedItemKeys = get(loadedItemKeysAtom);
+            const isLoaded = loadedItemKeys.some(key => {
+                if (key.datasourceId !== dataSourceId) return false;
+                return checkContaining(key.extent, extent) !== 0;
+            })
+            // 未ロード範囲ならば何もしない
+            if (!isLoaded) return;
+
+            const apiResult = await callApi(GetItemsAPI, {
+                extent,
+                zoom,
+                dataSourceIds: [dataSourceId],
+            });
+            const items = apiResult.items;
+
+            const itemMap: ItemsMap = {};
+            items.forEach(item => {
+                itemMap[item.id.id] = item;
+            });
+            set(allItemsAtom, (currentItemMap) => {
+                const newItemsMap = Object.assign({}, currentItemMap, {
+                    [dataSourceId]: itemMap,
+                });
+                return newItemsMap;
+            })
+        }, [callApi, map, mapInstanceId])
+    )
 
     /**
      * 全アイテムが含まれる領域でフィットさせる
@@ -266,6 +308,7 @@ export function useMap() {
         loadCurrentAreaContents,
         fitToDefaultExtent,
         focusItem,
+        updateAreaItems,
     }
 }
 
