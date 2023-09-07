@@ -16,17 +16,19 @@ import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { useApi } from '../../api/useApi';
 import { initialLoadingAtom } from '../TsunaguMap/MapController';
 
+/**
+ * 地図インスタンス管理マップ。
+ * TsunaguMapが呼び出し元で複数配置される可能性を考慮して、
+ * idをkeyにして、複数保持できるようにしている。
+ */
 const instansMap = new Map<string, OlMapWrapper>();
 
 // OlMapWrapperの生成回数。再生成した時にmap参照しているコンポーネントで再レンダリングを走らせるために用いている。
 const mapInstanceCntReducerAtom = atomWithReducer(0, (prev) => {
     return prev + 1;
 });
-const mapIdAtom = atom((get) => {
-    const instanceId = get(instanceIdAtom);
-    const cnt = get(mapInstanceCntReducerAtom);
-    return instanceId + cnt;
-})
+// 現在使用している地図インスタンスID
+export const mapInstanceIdAtom = atom('');
 
 /**
  * mapインスタンスを操作するためのフック
@@ -40,23 +42,23 @@ export function useMap() {
      * 地図インスタンスを生成する
      * @param target 地図を配置するDivElement
      * @param デバイス種別
-     * @returns 地図インスタンス
+     * @returns 地図ID
      */
     const createMapInstance = useAtomCallback(
         useCallback((get, set, target: HTMLDivElement) => {
             dispatch();
-            const mapId = get(mapIdAtom);
-            const map = new OlMapWrapper(mapId, target, isPC ? 'pc' : 'sp');
-            console.log('create map', mapId);
+            const mapInstanceId = get(instanceIdAtom) + '-' + get(mapInstanceCntReducerAtom);
+            set(mapInstanceIdAtom, mapInstanceId);
+            const map = new OlMapWrapper(mapInstanceId, target, isPC ? 'pc' : 'sp');
+            console.log('create map', mapInstanceId);
 
-            instansMap.set(mapId, map);
-            return map;
+            instansMap.set(mapInstanceId, map);
+            return mapInstanceId;
         }, [dispatch, isPC])
     );
 
     const destroyMapInstance = useAtomCallback(
-        useCallback((get) => {
-            const mapId = get(mapIdAtom);
+        useCallback((get, set, mapId: string) => {
             const map = instansMap.get(mapId);
             if (!map) return;
             console.log('destroy map', mapId);
@@ -66,11 +68,10 @@ export function useMap() {
         }, [])
     )
 
-    const [mapId] = useAtom(mapIdAtom);
+    const [mapInstanceId] = useAtom(mapInstanceIdAtom);
     const map = useMemo(() => {
-        // console.log('debug map', mapId);
-        return instansMap.get(mapId);
-    }, [mapId]);
+        return instansMap.get(mapInstanceId);
+    }, [mapInstanceId]);
 
     const { callApi } = useApi();
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
@@ -174,9 +175,10 @@ export function useMap() {
      */
     const loadingCurrentAreaContents = useRef(false);
     const loadCurrentAreaContents = useCallback(async() => {
-        console.log('loadCurrentAreaContents');
+        console.log('loadCurrentAreaContents', mapInstanceId);
+
         if (!map) {
-            console.trace('map is undefined', mapId);
+            console.warn('map is undefined', mapInstanceId);
             return;
         }
         if (loadingCurrentAreaContents.current) {
@@ -195,7 +197,7 @@ export function useMap() {
 
         loadingCurrentAreaContents.current = false;
 
-    }, [loadItems, map, mapId]);
+    }, [loadItems, map, mapInstanceId])
 
     /**
      * 全アイテムが含まれる領域でフィットさせる

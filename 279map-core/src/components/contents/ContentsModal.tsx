@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { Modal }  from '../common';
 import Content from './Content';
-import { Auth, ContentsDefine, DataId, ItemDefine, MapKind } from '279map-common';
+import { Auth, ContentsDefine, DataId, MapKind } from '279map-common';
 import AddContentMenu from '../popup/AddContentMenu';
 import styles from './ContentsModal.module.scss';
 import { getMapKey } from '../../util/dataUtility';
@@ -31,7 +31,7 @@ export default function ContentsModal(props: Props) {
 
     const [ contentsList, setContentsList ] = useState<ContentsDefine[]>([]);
     const { callApi } = useApi();
-    const { subscribeMap: subscribe, unsubscribeMap: unsubscribe } = useSubscribe();
+    const { getSubscriber } = useSubscribe();
 
     const { getItem } = useItem();
     const loadContentsInItem = useCallback(async(itemId: DataId) => {
@@ -52,6 +52,8 @@ export default function ContentsModal(props: Props) {
     // 表示対象が指定されたらコンテンツロード
     const [ mapKind ] = useAtom(currentMapKindAtom);
     useEffect(() => {
+        const subscriber = getSubscriber();
+        let h: number | undefined;
         if (props.type === 'item') {
             setLoaded(false);
             setShow(true);
@@ -61,7 +63,7 @@ export default function ContentsModal(props: Props) {
             .finally(() => {
                 setLoaded(true);
             });
-            subscribe('childcontents-update', mapKind, props.id, () => loadContentsInItem(props.id));
+            h = subscriber?.subscribeMap({mapKind}, 'childcontents-update', props.id, () => loadContentsInItem(props.id));
 
             setItemId(props.id);
 
@@ -91,12 +93,12 @@ export default function ContentsModal(props: Props) {
 
 
         return () => {
-            if (props.type === 'item') {
-                unsubscribe('childcontents-update', mapKind, props.id);
+            if (h) {
+                subscriber?.unsubscribe(h);
             }
         }
 
-    }, [props.id, props.type, mapKind, callApi, subscribe, unsubscribe, loadContentsInItem]);
+    }, [props.id, props.type, mapKind, callApi, getSubscriber, loadContentsInItem]);
 
     const contents = useMemo((): ContentsDefine[] => {
         return contentsList.sort((a, b) => {

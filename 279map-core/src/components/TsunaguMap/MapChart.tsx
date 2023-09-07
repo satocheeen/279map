@@ -22,10 +22,10 @@ export default function MapChart() {
         if (myRef.current === null) {
             return;
         }
-        createMapInstance(myRef.current);
+        const id = createMapInstance(myRef.current);
 
         return () => {
-            destroyMapInstance();
+            destroyMapInstance(id);
         }
     }, [createMapInstance, destroyMapInstance]);
 

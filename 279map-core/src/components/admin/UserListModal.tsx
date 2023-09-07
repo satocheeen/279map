@@ -40,15 +40,17 @@ export default function UserListModal() {
         })
     }, [callApi]);
     
-    const { subscribeMap: subscribe, unsubscribeMap: unsubscribe } = useSubscribe();
+    const { getSubscriber } = useSubscribe();
     useWatch(() => {
         if (!show) return;
 
         loadUsers();
-        subscribe('userlist-update', undefined, undefined, loadUsers);
+        const subscriber = getSubscriber();
+        const h = subscriber?.subscribeMap({}, 'userlist-update', undefined, loadUsers);
 
         return () => {
-            unsubscribe('userlist-update', undefined, undefined);
+            if (h)
+                subscriber?.unsubscribe(h);
         }
     }, [show])
 

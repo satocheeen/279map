@@ -26,31 +26,49 @@ type Props = {
 export default function MapConnector(props: Props) {
     const [connectLoadable] = useAtom(connectStatusLoadableAtom);
     const [instanceId ] = useAtom(instanceIdAtom);
+    const [ mapId ] = useAtom(mapIdAtom);
     
-    // API用意
-    const [, connectDispatch] = useAtom(connectReducerAtom);
+    const { getSubscriber } = useSubscribe();
+
+    // Subscriber用意
     useEffect(() => {
-        createMqttClientInstance(instanceId, props.server);
+        createMqttClientInstance(instanceId, props.server, mapId);
 
         return () => {
             destroyMqttClientInstance(instanceId);
         }
-    }, [instanceId, props.server, connectDispatch]);
+    }, [instanceId, props.server, mapId]);
 
-    const { userSubscribe } = useSubscribe();
-
+    const [, connectDispatch] = useAtom(connectReducerAtom);
     useEffect(() => {
-        if (!userSubscribe) return;
+        const userId = function() {
+            if (connectLoadable.state === 'hasError') {
+                const e = connectLoadable.error as any;
+                const error: MyError = ('apiError' in e) ? e.apiError
+                                    : {type: ErrorType.IllegalError, detail: e + ''};
+                return error?.userId;
+            } else if (connectLoadable.state === 'hasData') {
+                return connectLoadable.data?.userId;
+            } else {
+                return undefined;
+            }
+        }();
+        if (!userId) return;
+        const subscriber = getSubscriber();
+        if (!subscriber) return;
+        subscriber?.setUser(userId);
 
-        userSubscribe.subscribe('update-userauth', () => {
+        const h = subscriber.subscribeUser('update-userauth', () => {
             // 権限変更されたので再接続
             connectDispatch();
         });
 
         return () => {
-            userSubscribe.unsubscribe('update-userauth');
+            if (h)
+                subscriber.unsubscribe(h);
         }
-    }, [userSubscribe, connectDispatch]);
+    }, [connectLoadable, getSubscriber, connectDispatch])
+
 
     // ゲストモードで動作させる場合、true
     const [guestMode, setGuestMode] = useState(false);

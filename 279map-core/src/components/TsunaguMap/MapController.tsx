@@ -4,11 +4,11 @@ import React, { useRef, useMemo, useCallback, useContext, useEffect, lazy, Suspe
 import { allItemsAtom, loadedItemKeysAtom } from '../../store/item';
 import { checkContaining } from '../../util/MapUtility';
 import { useSubscribe } from '../../api/useSubscribe';
-import { currentMapDefineAtom, currentMapKindAtom } from '../../store/session';
+import { currentMapDefineAtom, currentMapKindAtom, instanceIdAtom } from '../../store/session';
 import { atom, useAtom } from 'jotai';
 import { useItem } from '../../store/item/useItem';
 import { itemDataSourcesAtom } from '../../store/datasource';
-import { useMap } from '../map/useMap';
+import { mapInstanceIdAtom, useMap } from '../map/useMap';
 import { dialogTargetAtom, selectedItemIdsAtom } from '../../store/operation';
 import { OwnerContext } from './TsunaguMap';
 import { usePrevious } from '../../util/usePrevious';
@@ -71,14 +71,19 @@ function useMapInitializer() {
 
     // 地図種別が変更されたら、地図に対してsubscribe, unsubscribeする
     const [ currentMapKind ] = useAtom(currentMapKindAtom);
-    const { subscribeMap, unsubscribeMap } = useSubscribe();
+    const { getSubscriber } = useSubscribe();
     const { removeItems } = useItem();
     const { loadCurrentAreaContents } = useMap();
+    const [ instanceId ] = useAtom(instanceIdAtom);
+    const [ mapInstanceId ] = useAtom(mapInstanceIdAtom);
 
     useEffect(() => {
         if (!currentMapKind) return;
 
-        subscribeMap('mapitem-update', currentMapKind, undefined, (payload) => {
+        const subscriber = getSubscriber();
+        if (!subscriber) return;
+
+        const h1 = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapitem-update', undefined, (payload) => {
             if (payload.type === 'mapitem-update') {
                 // 指定のエクステントをロード済み対象から除去する
                 clearLoadedArea(payload.targets);
@@ -86,17 +91,19 @@ function useMapInitializer() {
                 loadCurrentAreaContents();
             }
         });
-        subscribeMap('mapitem-delete', currentMapKind, undefined, (payload) => {
+        const h2 = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapitem-delete', undefined, (payload) => {
             if (payload.type === 'mapitem-delete')
                 // アイテム削除
                 removeItems(payload.itemPageIdList);
         })
 
         return () => {
-            unsubscribeMap('mapitem-update', currentMapKind, undefined);
-            unsubscribeMap('mapitem-delete', currentMapKind, undefined);
+            if (h1) 
+                subscriber.unsubscribe(h1);
+            if (h2)
+                subscriber.unsubscribe(h2);
         }
-    }, [currentMapKind, removeItems, subscribeMap, unsubscribeMap, clearLoadedArea, loadCurrentAreaContents]);
+    }, [currentMapKind, removeItems, getSubscriber, clearLoadedArea, loadCurrentAreaContents, mapInstanceId]);
 
 }
 

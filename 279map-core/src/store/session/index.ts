@@ -6,8 +6,9 @@ import { atom } from 'jotai';
 import { atomWithReducer, loadable, selectAtom } from 'jotai/utils';
 import { Loadable } from 'jotai/vanilla/utils/loadable';
 import { ServerInfo } from '../../types/types';
+import { atomWithCountup } from '../../util/jotaiUtility';
 
-export const instanceIdAtom = atom('');
+export const instanceIdAtom = atomWithCountup('instance-');
 
 export const mapIdAtom = atom<string>('');
 

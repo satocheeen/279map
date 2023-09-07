@@ -40,21 +40,24 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
     }
 
     const initializeFlagRef = useRef(false);
-    const mapInstanceId = useId();
     const myStoreRef = useRef(createStore());
 
     useEffect(() => {
-        console.log('TsunaguMap mounted', mapInstanceId);
+        const myStore = myStoreRef.current;
+        const id = myStore.get(instanceIdAtom);
+        console.log('TsunaguMap mounted', id);
 
         initializeFlagRef.current = true;
         return () => {
-            console.log('TsunaguMap unmounted', mapInstanceId);
+            // 再レンダリングされたらIDカウントアップ
+            myStore.set(instanceIdAtom);
+            console.log('TsunaguMap unmounted', id);
         }
-    }, [mapInstanceId]);
+    }, []);
 
     // レンダリング前に初期値設定する
     if (!initializeFlagRef.current) {
-        myStoreRef.current.set(instanceIdAtom, mapInstanceId);
+        myStoreRef.current.set(instanceIdAtom);
         myStoreRef.current.set(mapIdAtom, props.mapId);
         myStoreRef.current.set(serverInfoAtom, props.mapServer);
     }
