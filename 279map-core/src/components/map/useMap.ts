@@ -112,11 +112,9 @@ export function useMap() {
             }
             const extentPolygon = turf.bboxPolygon(extent as [number,number,number,number]);
             return Object.values(itemMap).filter(item => {
-                // TODO: ItemDefineの型定義見直し
-                const geoJson = item.geoJson as geojson.Geometry;
                 let hit: boolean = false;
-                if (geoJson.type === 'GeometryCollection') {
-                    hit = geoJson.geometries.some(g => {
+                if (item.geoJson.type === 'GeometryCollection') {
+                    hit = item.geoJson.geometries.some(g => {
                         const polygon = geoJsonToTurfPolygon(g);
                         if (!polygon) return false;
                         const intersect = turf.intersect(extentPolygon, polygon);
