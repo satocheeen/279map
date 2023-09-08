@@ -36,7 +36,10 @@ export default function ContentsModal(props: Props) {
     const { getItem } = useItem();
     const loadContentsInItem = useCallback(async(itemId: DataId) => {
         const item = getItem(itemId);
-        if (!item || item.contents.length === 0) return;
+        if (!item || item.contents.length === 0) {
+            setContentsList([]);
+            return;
+        }
 
         setLoaded(false);
         const result = await callApi(GetContentsAPI, [

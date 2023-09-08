@@ -1038,10 +1038,21 @@ app.post(`/api/${LinkContentToItemAPI.uri}`,
 
             // 更新通知
             if ('itemId' in param.parent) {
-                broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                    type: 'childcontents-update',
-                    subtype: param.parent.itemId,
-                });
+                const id = param.parent.itemId;
+                const wkt = await getItemWkt(id);
+                if (!wkt) {
+                    logger.warn('not found extent', id);
+                } else {
+                    broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
+                        type: 'mapitem-update',
+                        targets: [
+                            {
+                                datasourceId: id.dataSourceId,
+                                wkt,
+                            }
+                        ]
+                    });
+                }
             }
             
             res.send('complete');
@@ -1075,10 +1086,21 @@ app.post(`/api/${RemoveContentAPI.uri}`,
             }, param));
     
             // 更新通知
-            broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                type: 'childcontents-update',
-                subtype: param.itemId,
-            });
+            const id = param.itemId;
+            const wkt = await getItemWkt(id);
+            if (!wkt) {
+                logger.warn('not found extent', id);
+            } else {
+                broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
+                    type: 'mapitem-update',
+                    targets: [
+                        {
+                            datasourceId: id.dataSourceId,
+                            wkt,
+                        }
+                    ]
+                });
+            }
 
             res.send('complete');
     
