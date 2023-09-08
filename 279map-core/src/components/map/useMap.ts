@@ -18,6 +18,7 @@ import { initialLoadingAtom } from '../TsunaguMap/MapController';
 import { geoJsonToTurfPolygon } from '../../util/MapUtility';
 import * as turf from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
+import * as geojson from 'geojson';
 
 /**
  * 地図インスタンス管理マップ。
@@ -82,15 +83,49 @@ export function useMap() {
     const getLoadedAreaMapKey = useAtomCallback(
         useCallback((get, set, datasourceId: string, zoom: number): LoadedItemKey => {
             const datasources = get(dataSourcesAtom);
-                // データソースがGPXの場合は、ZoomLv.もkeyとして扱う
-                const dsInfo = datasources.find(ds => ds.dataSourceId === datasourceId);
-                const key: LoadedItemKey = {
-                    datasourceId,
-                    zoom: dsInfo?.itemContents.Track ? zoom : undefined,
+            // データソースがGPXの場合は、ZoomLv.もkeyとして扱う
+            const dsInfo = datasources.find(ds => ds.dataSourceId === datasourceId);
+            const key: LoadedItemKey = {
+                datasourceId,
+                zoom: dsInfo?.itemContents.Track ? zoom : undefined,
+            }
+            return key;
+        }, [])        
+    )
+
+    /**
+     * getitemsの除外対象とするアイテムIDを返す
+     */
+    const getExcludeItemIds = useAtomCallback(
+        useCallback((get, set, datasourceId: string, extent: Extent) => {
+            const datasources = get(dataSourcesAtom);
+            const dsInfo = datasources.find(ds => ds.dataSourceId === datasourceId);
+            if (!dsInfo?.itemContents.Track) {
+                // Track以外は関係なし
+                return undefined;
+            }
+            // 取得済みのアイテムを抽出
+            const allItems = get(allItemsAtom);
+            const itemMap = allItems[datasourceId];
+            if (!itemMap) {
+                return undefined;
+            }
+            const extentPolygon = turf.bboxPolygon(extent as [number,number,number,number]);
+            return Object.values(itemMap).filter(item => {
+                // TODO: ItemDefineの型定義見直し
+                const geoJson = item.geoJson as geojson.Geometry;
+                let hit: boolean = false;
+                if (geoJson.type === 'GeometryCollection') {
+                    hit = geoJson.geometries.some(g => {
+                        const polygon = geoJsonToTurfPolygon(g);
+                        if (!polygon) return false;
+                        const intersect = turf.intersect(extentPolygon, polygon);
+                        return intersect !== null;
+                    })
                 }
-                return key;
-            }, [])
-        
+                return hit;
+            }).map(item => item.id.id);
+        }, [])
     )
    /**
      * 指定のズームLv., extentに該当するアイテムをロードする
@@ -142,10 +177,12 @@ export function useMap() {
 
             for (const target of loadTargets) {
                 const wkt = geojsonToWKT(target.geometry);
+                const excludeItemIds = getExcludeItemIds(target.datasourceId, param.extent);
                 const apiResult = await callApi(GetItemsAPI, {
                     wkt,
                     zoom,
                     dataSourceId: target.datasourceId,
+                    excludeItemIds,
                 });
                 const items = apiResult.items;
 
@@ -199,7 +236,7 @@ export function useMap() {
 
         }
 
-    }, [callApi, showProcessMessage, hideProcessMessage, getLoadedAreaMapKey])
+    }, [callApi, showProcessMessage, hideProcessMessage, getLoadedAreaMapKey, getExcludeItemIds])
 )
 
     /**

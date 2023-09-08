@@ -1,8 +1,7 @@
-import { Extent, FeatureType, ItemContentInfo, ItemDefine, MapKind } from '279map-common';
+import { FeatureType, ItemContentInfo, ItemDefine, MapKind } from '279map-common';
 import { getLogger } from 'log4js';
 import { ConnectionPool } from '.';
 import { GetItemsParam, GetItemsResult } from '../279map-api-interface/src';
-import { getExtentWkt } from './util/utility';
 import { PoolConnection } from 'mysql2/promise';
 import { CurrentMap } from '../279map-backend-common/src';
 import { ContentsTable, ItemContentLink, ItemsTable, TrackGeoJsonTable, TracksTable } from '../279map-backend-common/src/types/schema';
@@ -21,9 +20,16 @@ export async function getItems({ param, currentMap }: {param:GetItemsParam; curr
 
     const items = await getItemsSub(currentMap, param);
 
+    if (param.excludeItemIds) {
+    // 除外対象のアイテムを除く
     return {
-        items,
-    };
+            items: items.filter(item => !param.excludeItemIds?.includes(item.id.id))
+        };
+    } else {
+        return {
+            items,
+        };
+    }
 }
 export async function getItemsSub(currentMap: CurrentMap, param: GetItemsParam): Promise<ItemDefine[]> {
     const con = await ConnectionPool.getConnection();
@@ -39,7 +45,6 @@ export async function getItemsSub(currentMap: CurrentMap, param: GetItemsParam):
         const trackContents = await selectTrackInArea(con, param, currentMap.mapId);
         const contents = pointContents.concat(...trackContents);
 
-        // console.log('isSended', dataSourceIds.length === 0, targetDataSourceIds.length === 0);
         return contents;
 
     } catch(e){

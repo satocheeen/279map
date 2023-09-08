@@ -145,6 +145,7 @@ export type GetItemsParam = {
     wkt: string;
     zoom: number;
     dataSourceId: string;
+    excludeItemIds?: string[];  // 指定されている場合、このidｎアイテムは結果から除く
 }
 export type GetItemsResult = {
     items: ItemDefine[],

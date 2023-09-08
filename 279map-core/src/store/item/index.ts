@@ -5,8 +5,6 @@ export type LoadedItemKey = {
     datasourceId: string;
     zoom?: number;
 }
-// keyはLoadedItemKeyをstringifyしたもの
-export type ItemsMap = {[key: string]: ItemDefine};
 
 export type LoadedAreaInfo = {
     geometry: GeoJSON.Geometry;
@@ -14,5 +12,6 @@ export type LoadedAreaInfo = {
 type LoadedItemMap = {[datasourceId: string]: LoadedAreaInfo};
 export const loadedItemMapAtom = atom<LoadedItemMap>({});
 
+export type ItemsMap = {[itemId: string]: ItemDefine};
 type ItemsByDatasourceMap = {[dsId: string]: ItemsMap};
 export const allItemsAtom = atom({} as ItemsByDatasourceMap);

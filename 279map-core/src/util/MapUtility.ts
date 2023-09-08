@@ -295,5 +295,7 @@ export function geoJsonToTurfPolygon(geoJson: geojson.Geometry) {
             return turf.multiPolygon(geoJson.coordinates);
         case 'Point':
             return turf.circle(geoJson.coordinates, .05);
+        case 'LineString':
+            return turf.lineStringToPolygon(turf.lineString(geoJson.coordinates));
     }
 }
