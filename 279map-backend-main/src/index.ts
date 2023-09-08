@@ -271,7 +271,7 @@ app.get('/api/connect',
                 return;
             }
 
-            const userAccessInfo = await getUserAuthInfoInTheMap(mapInfo, req);
+            const userAccessInfo = await getUserAuthInfoInTheMap(mapInfo, req, true);
             if (userAccessInfo.authLv === undefined && userAccessInfo.guestAuthLv === Auth.None) {
                 // ログインが必要な地図の場合
                 res.status(403).send({
@@ -520,7 +520,6 @@ app.all('/api/*',
             return;
         }
         req.connect.userAuthInfo = userAuth;
-        // req.connect.userName = userAuth.userName;
         next();
     }
 );
