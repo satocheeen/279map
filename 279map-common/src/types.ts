@@ -173,7 +173,7 @@ export type ItemContentInfo = {
 export type ItemDefine = {
     id: DataId;
     name: string;
-    geoJson: GeoJsonObject;
+    geoJson: GeoJSON.Geometry;
     geoProperties: GeoProperties;
     lastEditedTime: string;
     contents: ItemContentInfo[];
