@@ -1,6 +1,5 @@
 import { Overlay } from 'ol';
 import React, { useEffect, useMemo, useRef } from 'react';
-import {buffer, getSize} from 'ol/extent';
 import styles from './LandNameOverlay.module.scss';
 import { FeatureType, ItemDefine } from '279map-common';
 import { getMapKey, isEqualId } from '../../util/dataUtility';
@@ -10,6 +9,8 @@ import { allItemsAtom } from '../../store/item';
 import { useAtom } from 'jotai';
 import { dataSourcesAtom } from '../../store/datasource';
 import { MapMode } from '../../types/types';
+import { geoJsonToTurfPolygon } from '../../util/MapUtility';
+import { bboxPolygon, booleanContains, centerOfMass } from '@turf/turf';
 
 // 島名を常時表示するズームLv.境界値（この値よりも小さい場合に、常時表示）
 const LandNameShowZoomLv = 8.17
@@ -53,21 +54,12 @@ export default function LandNameOverlay() {
     const currentAreaNamedEarth = useMemo(() => {
         // 表示範囲内の地物に絞る
         return namedEarth.filter(item => {
-            const feature = map?.getFeatureById(item.id);
-            if (!feature) {
-                return false;
-            }
-            const geometry = feature.getGeometry();
-            if (!geometry) {
-                return false;
-            }
-            // --表示範囲よりも少し内側に入ったときに名前表示する
-            const extentSize = getSize(mapView.extent);
-            const minLen = Math.min(extentSize[0], extentSize[1]);
-            const extent = buffer(mapView.extent, -(minLen/5));
-            return geometry.intersectsExtent(extent);
+            const extentPolygon = bboxPolygon(mapView.extent as [number,number,number,number]);
+            const itemPolygon = geoJsonToTurfPolygon(item.geoJson);
+            if (!itemPolygon) return false;
+            return booleanContains(extentPolygon, itemPolygon);
         });
-    }, [namedEarth, mapView.extent, map]);
+    }, [namedEarth, mapView.extent]);
 
     // 現在オーバーレイ表示中のアイテム一覧
     const currentOverlayItemRef = useRef<ItemDefine[]>([]);
@@ -93,16 +85,10 @@ export default function LandNameOverlay() {
                 },
                 className: styles.LandnameOverlayContainer,
             });
-            const olFeature = map?.getFeatureById(item.id);
-            const geometry = olFeature?.getGeometry();
-            if (!geometry) {
-                return;
-            }
-            const coord = geometry.getExtent();
-            overlay.setPosition([
-                coord[0] + (coord[2] - coord[0]) / 2, 
-                coord[1] + (coord[3] - coord[1]) / 2
-            ]);
+
+            const itemPolygon = geoJsonToTurfPolygon(item.geoJson);
+            const center = centerOfMass(itemPolygon);
+            overlay.setPosition(center.geometry.coordinates);
             map?.addOverlay(overlay);            
             landNameOverlayMapRef.current[getMapKey(item.id)] = overlay;
         });

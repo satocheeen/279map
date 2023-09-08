@@ -3,7 +3,7 @@ import { MapKind, Extent, DataId } from '279map-common';
 import mysql, { PoolConnection } from 'mysql2/promise';
 import { ContentsTable, ItemsTable } from '../../279map-backend-common/src/types/schema';
 import { CurrentMap } from '../../279map-backend-common/src';
-import * as turf from '@turf/turf';
+import { circle, multiPolygon, point, polygon, union } from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 
 export function getExtentWkt(ext: Extent): string {
@@ -180,28 +180,28 @@ export async function getItemWkt(itemId: DataId): Promise<string|undefined> {
 }
 
 export async function getItemsWkt(itemIdList: DataId[]): Promise<string|undefined> {
-    let unionFeature: turf.Feature<turf.Polygon|turf.MultiPolygon> | undefined;
+    let unionFeature;
     
     for (const id of itemIdList) {
         const wkt = await getItemWkt(id);
         if (!wkt) continue;
         const geoJson = wktToGeoJSON(wkt);
-        const polygon = function() {
+        const ply = function() {
             switch(geoJson.type) {
                 case 'Polygon':
-                    return turf.polygon(geoJson.coordinates);
+                    return polygon(geoJson.coordinates);
                 case 'MultiPolygon':
-                    return turf.multiPolygon(geoJson.coordinates);
+                    return multiPolygon(geoJson.coordinates);
                 case 'Point':
-                    const point = turf.point(geoJson.coordinates);
-                    return turf.circle(point, .05);
+                    const p = point(geoJson.coordinates);
+                    return circle(p, .05);
             }
         }();
-        if (!polygon) continue;
+        if (!ply) continue;
         if (!unionFeature) {
-            unionFeature = polygon;
+            unionFeature = ply;
         } else  {
-            unionFeature = turf.union(unionFeature, polygon) ?? unionFeature;
+            unionFeature = union(unionFeature, ply) ?? unionFeature;
         }
     }
     if (unionFeature)

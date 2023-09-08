@@ -16,7 +16,7 @@ import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { useApi } from '../../api/useApi';
 import { initialLoadingAtom } from '../TsunaguMap/MapController';
 import { geoJsonToTurfPolygon } from '../../util/MapUtility';
-import * as turf from '@turf/turf';
+import { bboxPolygon, intersect, union, mask } from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 
 /**
@@ -109,15 +109,15 @@ export function useMap() {
             if (!itemMap) {
                 return undefined;
             }
-            const extentPolygon = turf.bboxPolygon(extent as [number,number,number,number]);
+            const extentPolygon = bboxPolygon(extent as [number,number,number,number]);
             return Object.values(itemMap).filter(item => {
                 let hit: boolean = false;
                 if (item.geoJson.type === 'GeometryCollection') {
                     hit = item.geoJson.geometries.some(g => {
                         const polygon = geoJsonToTurfPolygon(g);
                         if (!polygon) return false;
-                        const intersect = turf.intersect(extentPolygon, polygon);
-                        return intersect !== null;
+                        const result = intersect(extentPolygon, polygon);
+                        return result !== null;
                     })
                 }
                 return hit;
@@ -143,7 +143,7 @@ export function useMap() {
             const loadedItemMap = get(loadedItemMapAtom);
             const visibleDataSourceIds = get(visibleDataSourceIdsAtom);
 
-            const extentPolygon = turf.bboxPolygon(param.extent as [number,number,number,number]);
+            const extentPolygon = bboxPolygon(param.extent as [number,number,number,number]);
 
             // ロード対象
             const loadTargets = visibleDataSourceIds.map((datasourceId): {datasourceId: string; geometry: GeoJSON.Geometry} => {
@@ -153,8 +153,8 @@ export function useMap() {
                 const loadedPolygon = loadedItemInfo ? geoJsonToTurfPolygon(loadedItemInfo.geometry) : undefined;
                 let polygon: LoadedAreaInfo['geometry'] | undefined;
                 if (loadedPolygon) {
-                    // @ts-ignore
-                    const p = turf.mask(loadedPolygon, extentPolygon)
+                    // @ts-ignore 第1引数がなぜかTypeScript Errorになるので
+                    const p = mask(loadedPolygon, extentPolygon)
                     polygon = {
                         type: 'Polygon',
                         coordinates: p.geometry.coordinates,
@@ -207,7 +207,7 @@ export function useMap() {
                     const newLoadedPolygon = geoJsonToTurfPolygon(info.geometry);
                     if (!newLoadedPolygon) return;
                     const newPolygon = loadedPolygon ?
-                        turf.union(
+                        union(
                             loadedPolygon,
                             newLoadedPolygon,
                         )
@@ -297,7 +297,7 @@ export function useMap() {
                 console.warn('wkt is not polygon', wkt, geoJson);
                 return;
             }
-            const intersectPolygon = turf.intersect(loadedPolygon, polygon);
+            const intersectPolygon = intersect(loadedPolygon, polygon);
             if (!intersectPolygon) {
                 // 未ロードエリアの場合、何もしない
                 return;

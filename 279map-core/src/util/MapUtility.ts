@@ -16,7 +16,7 @@ import VectorSource from 'ol/source/Vector';
 import { FeatureType, GeoProperties } from '279map-common';
 import { getCenter as getExtentCenter } from 'ol/extent';
 import { Cluster } from 'ol/source';
-import * as turf from '@turf/turf';
+import { circle, lineString, lineStringToPolygon, multiPolygon, polygon } from '@turf/turf';
 
 /**
  * GeoJSONを元に対応するジオメトリを生成して返す
@@ -291,13 +291,13 @@ export function geoJsonToTurfPolygon(geoJson: geojson.Geometry | geojson.GeoJSON
     try {
         switch(geoJson.type) {
             case 'Polygon':
-                return turf.polygon(geoJson.coordinates);
+                return polygon(geoJson.coordinates);
             case 'MultiPolygon':
-                return turf.multiPolygon(geoJson.coordinates);
+                return multiPolygon(geoJson.coordinates);
             case 'Point':
-                return turf.circle(geoJson.coordinates, .05);
+                return circle(geoJson.coordinates, .05);
             case 'LineString':
-                return turf.lineStringToPolygon(turf.lineString(geoJson.coordinates));
+                return lineStringToPolygon(lineString(geoJson.coordinates));
         }
     
     } catch(e) {
