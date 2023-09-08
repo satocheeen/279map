@@ -287,13 +287,7 @@ export function checkContaining(ext1: Extent, ext2: Extent) {
     return 0;
 }
 
-export function convertTurfPolygon(extent: Extent) {
-    const line = turf.lineString([[extent[0], extent[1]], [extent[2], extent[3]]]);
-    const bbox = turf.bbox(line);
-    return turf.bboxPolygon(bbox);
-}
-
-export function geoJsonToTurfPolygon(geoJson: geojson.GeoJSON) {
+export function geoJsonToTurfPolygon(geoJson: geojson.Geometry) {
     switch(geoJson.type) {
         case 'Polygon':
             return turf.polygon(geoJson.coordinates);

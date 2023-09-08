@@ -4,7 +4,7 @@ import { atom, useAtom } from 'jotai';
 import { useAtomCallback, atomWithReducer } from 'jotai/utils';
 import { defaultExtentAtom, instanceIdAtom } from '../../store/session';
 import { GetItemsAPI } from 'tsunagumap-api';
-import { ItemsMap, LoadedItemInfo, LoadedItemKey, allItemsAtom, loadedItemMapAtom } from '../../store/item';
+import { ItemsMap, LoadedAreaInfo, LoadedItemKey, allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { DataId, Extent } from '279map-common';
 import { dataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import useMyMedia from '../../util/useMyMedia';
@@ -15,7 +15,7 @@ import { sleep } from '../../util/CommonUtility';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { useApi } from '../../api/useApi';
 import { initialLoadingAtom } from '../TsunaguMap/MapController';
-import { convertTurfPolygon, geoJsonToTurfPolygon } from '../../util/MapUtility';
+import { geoJsonToTurfPolygon } from '../../util/MapUtility';
 import * as turf from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 
@@ -79,6 +79,19 @@ export function useMap() {
     const { callApi } = useApi();
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
+    const getLoadedAreaMapKey = useAtomCallback(
+        useCallback((get, set, datasourceId: string, zoom: number): LoadedItemKey => {
+            const datasources = get(dataSourcesAtom);
+                // データソースがGPXの場合は、ZoomLv.もkeyとして扱う
+                const dsInfo = datasources.find(ds => ds.dataSourceId === datasourceId);
+                const key: LoadedItemKey = {
+                    datasourceId,
+                    zoom: dsInfo?.itemContents.Track ? zoom : undefined,
+                }
+                return key;
+            }, [])
+        
+    )
    /**
      * 指定のズームLv., extentに該当するアイテムをロードする
      */
@@ -97,37 +110,25 @@ export function useMap() {
             const zoom = Math.floor(param.zoom);
             const loadedItemMap = get(loadedItemMapAtom);
             const visibleDataSourceIds = get(visibleDataSourceIdsAtom);
-            const datasources = get(dataSourcesAtom);
 
-            const extentPolygon = convertTurfPolygon(param.extent);
+            const extentPolygon = turf.bboxPolygon(param.extent as [number,number,number,number]);
+
             // ロード対象
-            const loadTargets = visibleDataSourceIds.map((datasourceId): LoadedItemInfo => {
-                // データソースがGPXの場合は、ZoomLv.もkeyとして扱う
-                const dsInfo = datasources.find(ds => ds.dataSourceId === datasourceId);
-                // ロード済みの範囲は除外したPolygonを生成
-                const key: LoadedItemKey = {
-                    datasourceId,
-                    zoom:  dsInfo?.itemContents.Track ? zoom : undefined,
-                }
-                const loadedInfo = loadedItemMap[JSON.stringify(key)];
-                let polygon: LoadedItemInfo['polygon'];
-                if (loadedInfo) {
-                    if (loadedInfo.polygon.type === 'Polygon') {
-                        const loadedPolygon = turf.polygon(loadedInfo.polygon.coordinates);
-                        const p = turf.mask(loadedPolygon, extentPolygon)
-                        polygon = {
-                            type: 'Polygon',
-                            coordinates: p.geometry.coordinates,
-                        }
-                    } else {
-                        const loadedPolygon = turf.multiPolygon(loadedInfo.polygon.coordinates);
-                        const p = turf.mask(loadedPolygon, extentPolygon)
-                        polygon = {
-                            type: 'Polygon',
-                            coordinates: p.geometry.coordinates,
-                        }
+            const loadTargets = visibleDataSourceIds.map((datasourceId): {datasourceId: string; geometry: GeoJSON.Geometry} => {
+                const loadedItemMap = get(loadedItemMapAtom);
+                const key = getLoadedAreaMapKey(datasourceId, zoom);
+                const loadedItemInfo = loadedItemMap[JSON.stringify(key)];
+                const loadedPolygon = loadedItemInfo ? geoJsonToTurfPolygon(loadedItemInfo.geometry) : undefined;
+                let polygon: LoadedAreaInfo['geometry'] | undefined;
+                if (loadedPolygon) {
+                    // @ts-ignore
+                    const p = turf.mask(loadedPolygon, extentPolygon)
+                    polygon = {
+                        type: 'Polygon',
+                        coordinates: p.geometry.coordinates,
                     }
-                } else {
+                }
+                if (!polygon) {
                     polygon = {
                         type: 'Polygon',
                         coordinates: extentPolygon.geometry.coordinates
@@ -135,13 +136,12 @@ export function useMap() {
                 }
                 return {
                     datasourceId,
-                    zoom:  dsInfo?.itemContents.Track ? zoom : undefined,
-                    polygon,
+                    geometry: polygon,
                 }
             });
 
             for (const target of loadTargets) {
-                const wkt = geojsonToWKT(target.polygon);
+                const wkt = geojsonToWKT(target.geometry);
                 const apiResult = await callApi(GetItemsAPI, {
                     wkt,
                     zoom,
@@ -163,46 +163,33 @@ export function useMap() {
                 })
             }
             // ロード済みの範囲と併せたものを保管
+            const newLoadedItemMap = Object.assign({}, loadedItemMap);
             loadTargets.forEach(info => {
-                const key: LoadedItemKey = {
-                    datasourceId: info.datasourceId,
-                    zoom: info.zoom,
-                }
+                const key = getLoadedAreaMapKey(info.datasourceId, zoom);
                 const keyStr = JSON.stringify(key);
                 const currentData = loadedItemMap[keyStr];
-                let polygon: LoadedItemInfo['polygon'];
+                let polygon: LoadedAreaInfo['geometry'];
                 if (currentData) {
-                    const newPolygon = turf.union(
-                        currentData.polygon.type === 'Polygon' ? turf.polygon(currentData.polygon.coordinates) : turf.multiPolygon(currentData.polygon.coordinates),
-                        info.polygon.type === 'Polygon' ? turf.polygon(info.polygon.coordinates) : turf.multiPolygon(info.polygon.coordinates),
-                    );
-                    if (newPolygon) {
-                        polygon = newPolygon.geometry.type === 'Polygon' ? {
-                            type: newPolygon.geometry.type,
-                            coordinates: newPolygon.geometry.coordinates,
-                        } : {
-                            type: newPolygon.geometry.type,
-                            coordinates: newPolygon.geometry.coordinates,
-                        }
-                    } else {
-                        polygon = info.polygon;
-                    }
+                    const loadedPolygon = geoJsonToTurfPolygon(currentData.geometry);
+                    const newLoadedPolygon = geoJsonToTurfPolygon(info.geometry);
+                    if (!newLoadedPolygon) return;
+                    const newPolygon = loadedPolygon ?
+                        turf.union(
+                            loadedPolygon,
+                            newLoadedPolygon,
+                        )
+                        : newLoadedPolygon;
+                    if (!newPolygon) return;
+                    polygon = newPolygon.geometry;
 
                 } else {
-                    console.log('debug newpolygon');
-                    polygon = info.polygon;
+                    polygon = info.geometry;
                 }
-                set(loadedItemMapAtom, (prev) => {
-                    return Object.assign({}, prev, {
-                        [keyStr]: {
-                            datasourceId: info.datasourceId,
-                            polygon: polygon,
-                            zoom: info.zoom,
-                        } as LoadedItemInfo,
-                    })
-                })
-                console.log('debug save', get(loadedItemMapAtom));
+                newLoadedItemMap[keyStr] = {
+                    geometry: polygon,
+                }
             })
+            set(loadedItemMapAtom, newLoadedItemMap);
 
         } catch (e) {
             console.warn('loadItems error', e);
@@ -212,7 +199,7 @@ export function useMap() {
 
         }
 
-    }, [callApi, showProcessMessage, hideProcessMessage])
+    }, [callApi, showProcessMessage, hideProcessMessage, getLoadedAreaMapKey])
 )
 
     /**
@@ -266,13 +253,13 @@ export function useMap() {
             if (!loadedItem) {
                 return;
             }
-            const loadedPolygon = geoJsonToTurfPolygon(loadedItem.polygon);
+            const loadedPolygon = geoJsonToTurfPolygon(loadedItem.geometry);
             if (!loadedPolygon) {
-                console.warn('loaded polygon can not analyze', loadedItem.polygon);
+                console.warn('loaded polygon can not analyze', loadedItem.geometry);
                 return;
             }
             const geoJson = wktToGeoJSON(wkt);
-            const polygon = geoJsonToTurfPolygon(geoJson);
+            const polygon = 'geometry' in geoJson ? geoJsonToTurfPolygon(geoJson.geometry) : undefined;
             if (!polygon) {
                 console.warn('wkt is not polygon', wkt);
                 return;

@@ -1,5 +1,4 @@
 import { ItemDefine } from '279map-common';
-import { Position } from 'geojson';
 import { atom } from 'jotai';
 
 export type LoadedItemKey = {
@@ -9,18 +8,10 @@ export type LoadedItemKey = {
 // keyはLoadedItemKeyをstringifyしたもの
 export type ItemsMap = {[key: string]: ItemDefine};
 
-export type LoadedItemInfo = {
-    datasourceId: string;
-    polygon: {
-        type: 'Polygon';
-        coordinates: Position[][]
-    } | {
-        type: 'MultiPolygon';
-        coordinates: Position[][][]
-    };
-    zoom?: number;
+export type LoadedAreaInfo = {
+    geometry: GeoJSON.Geometry;
 }
-type LoadedItemMap = {[datasourceId: string]: LoadedItemInfo};
+type LoadedItemMap = {[datasourceId: string]: LoadedAreaInfo};
 export const loadedItemMapAtom = atom<LoadedItemMap>({});
 
 type ItemsByDatasourceMap = {[dsId: string]: ItemsMap};
