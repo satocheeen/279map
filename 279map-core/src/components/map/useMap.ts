@@ -18,7 +18,6 @@ import { initialLoadingAtom } from '../TsunaguMap/MapController';
 import { geoJsonToTurfPolygon } from '../../util/MapUtility';
 import * as turf from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
-import * as geojson from 'geojson';
 
 /**
  * 地図インスタンス管理マップ。
@@ -313,13 +312,10 @@ export function useMap() {
             });
             const items = apiResult.items;
 
-            const itemMap: ItemsMap = {};
-            items.forEach(item => {
-                itemMap[item.id.id] = item;
-            });
             set(allItemsAtom, (currentItemMap) => {
-                const newItemsMap = Object.assign({}, currentItemMap, {
-                    [datasourceId]: itemMap,
+                const newItemsMap = Object.assign({}, currentItemMap);
+                items.forEach(item => {
+                    newItemsMap[datasourceId][item.id.id] = item;
                 });
                 return newItemsMap;
             })
