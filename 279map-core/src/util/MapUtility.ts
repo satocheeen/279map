@@ -288,14 +288,20 @@ export function checkContaining(ext1: Extent, ext2: Extent) {
 }
 
 export function geoJsonToTurfPolygon(geoJson: geojson.Geometry | geojson.GeoJSON) {
-    switch(geoJson.type) {
-        case 'Polygon':
-            return turf.polygon(geoJson.coordinates);
-        case 'MultiPolygon':
-            return turf.multiPolygon(geoJson.coordinates);
-        case 'Point':
-            return turf.circle(geoJson.coordinates, .05);
-        case 'LineString':
-            return turf.lineStringToPolygon(turf.lineString(geoJson.coordinates));
+    try {
+        switch(geoJson.type) {
+            case 'Polygon':
+                return turf.polygon(geoJson.coordinates);
+            case 'MultiPolygon':
+                return turf.multiPolygon(geoJson.coordinates);
+            case 'Point':
+                return turf.circle(geoJson.coordinates, .05);
+            case 'LineString':
+                return turf.lineStringToPolygon(turf.lineString(geoJson.coordinates));
+        }
+    
+    } catch(e) {
+        console.warn('geoJsonToTurfPolygon faile', geoJson, e);
+        return;
     }
 }

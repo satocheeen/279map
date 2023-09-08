@@ -190,9 +190,8 @@ export function useMap() {
                     itemMap[item.id.id] = item;
                 });
                 set(allItemsAtom, (currentItemMap) => {
-                    const newItemsMap = Object.assign({}, currentItemMap, {
-                        [target.datasourceId]: itemMap,
-                    });
+                    const newItemsMap = structuredClone(currentItemMap);
+                    newItemsMap[target.datasourceId] = itemMap;
                     return newItemsMap;
                 })
             }
@@ -313,7 +312,7 @@ export function useMap() {
             const items = apiResult.items;
 
             set(allItemsAtom, (currentItemMap) => {
-                const newItemsMap = Object.assign({}, currentItemMap);
+                const newItemsMap = structuredClone(currentItemMap);
                 items.forEach(item => {
                     newItemsMap[datasourceId][item.id.id] = item;
                 });

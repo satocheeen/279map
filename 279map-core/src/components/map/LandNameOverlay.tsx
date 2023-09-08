@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import {buffer, getSize} from 'ol/extent';
 import styles from './LandNameOverlay.module.scss';
 import { FeatureType, ItemDefine } from '279map-common';
-import { getMapKey } from '../../util/dataUtility';
+import { getMapKey, isEqualId } from '../../util/dataUtility';
 import { useMap } from './useMap';
 import { mapModeAtom, mapViewAtom } from '../../store/operation';
 import { allItemsAtom } from '../../store/item';
@@ -76,7 +76,7 @@ export default function LandNameOverlay() {
     useEffect(() => {
         // オーバレイを配置する
         currentAreaNamedEarth.forEach(item => {
-            const exist = currentOverlayItemRef.current.some(prev => prev.id === item.id);
+            const exist = currentOverlayItemRef.current.some(prev => isEqualId(prev.id, item.id));
             if (exist) return;
 
             // 追加
@@ -108,7 +108,7 @@ export default function LandNameOverlay() {
         });
 
         currentOverlayItemRef.current.forEach(item => {
-            const exist = currentAreaNamedEarth.some(cur => cur.id === item.id);
+            const exist = currentAreaNamedEarth.some(cur => isEqualId(cur.id, item.id));
             if (exist) return;
 
             // 削除
