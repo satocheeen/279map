@@ -1,122 +1,104 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { Modal }  from '../common';
 import Content from './Content';
-import { addListener, removeListener } from '../../util/Commander';
 import { Auth, ContentsDefine, DataId, MapKind } from '279map-common';
 import AddContentMenu from '../popup/AddContentMenu';
 import styles from './ContentsModal.module.scss';
 import { getMapKey } from '../../util/dataUtility';
-import { isEqualId } from '../../util/dataUtility';
-import { useMounted } from '../../util/useMounted';
-import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { useWatch } from '../../util/useWatch';
-import { useRecoilValue } from 'recoil';
-import { itemMapState } from '../../store/item';
-import { useMap } from '../map/useMap';
-import { useSubscribe } from '../../util/useSubscribe';
-import { authLvState, currentMapKindState } from '../../store/session';
+import { useSubscribe } from '../../api/useSubscribe';
+import { useItem } from '../../store/item/useItem';
+import { useAtom } from 'jotai';
+import { authLvAtom, currentMapKindAtom } from '../../store/session';
+import { useApi } from '../../api/useApi';
+import { GetContentsAPI } from 'tsunagumap-api';
 import { compareAuth } from '../../util/CommonUtility';
-import { MdEdit } from 'react-icons/md';
-import PopupMenuIcon from '../popup/PopupMenuIcon';
 import EditItemNameModal from './EditItemNameModal';
-import { dataSourcesState } from '../../store/datasource';
+import PopupMenuIcon from '../popup/PopupMenuIcon';
+import { MdEdit } from 'react-icons/md';
+import { dataSourcesAtom } from '../../store/datasource';
 
-type Target = {
-    type: 'item';
-    itemId: DataId;
-} | {
-    type: 'content';
-    contentId: DataId;
+export type Props = ({
+    type: 'item' | 'content';
+    id: DataId;
+}) & {
+    onClose?: () => void;
 }
-export default function ContentsModal() {
+
+export default function ContentsModal(props: Props) {
     const [show, setShow] = useState(false);
     const [loaded, setLoaded] = useState(false);
-    const itemMap = useRecoilValue(itemMapState);
-    const [target, setTarget] = useState<Target|undefined>();
+    const [itemId, setItemId] = useState<DataId | undefined>();
 
-    useMounted(() => {
-        const h = addListener('ShowContentInfo', async(contentId: DataId) => {
-            setTarget({
-                type: 'content',
-                contentId,
-            });
-        });
-        const h2 = addListener('ShowItemInfo', async(itemId: DataId) => {
-            setTarget({
-                type: 'item',
-                itemId,
-            });
-        });
-
-        return () => {
-            removeListener(h);
-            removeListener(h2);
-        }
-    });
-
-    const { showProcessMessage, hideProcessMessage} = useProcessMessage();
     const [ contentsList, setContentsList ] = useState<ContentsDefine[]>([]);
-    const { getApi } = useMap();
-    const { subscribeMap: subscribe, unsubscribeMap: unsubscribe } = useSubscribe();
+    const { callApi } = useApi();
+    const { getSubscriber } = useSubscribe();
 
+    const { getItem } = useItem();
     const loadContentsInItem = useCallback(async(itemId: DataId) => {
-        const h = showProcessMessage({
-            overlay: true,
-            spinner: true,
-        });
-        const result = await getApi().getContents([
+        const item = getItem(itemId);
+        if (!item || item.contents.length === 0) return;
+
+        setLoaded(false);
+        const result = await callApi(GetContentsAPI, [
             {
                 itemId,
             }
         ]);
-        setContentsList(result);
-        hideProcessMessage(h);
+        setContentsList(result.contents);
+        setLoaded(true);
 
-    }, [getApi, hideProcessMessage, showProcessMessage]);
+    }, [callApi, getItem]);
 
-    useWatch(() => {
-        setContentsList([]);
-        if (!target) return;
-
-        if (target.type === 'item') {
-            const item = itemMap[getMapKey(target.itemId)];
-            if (!item) return;
-    
+    // 表示対象が指定されたらコンテンツロード
+    const [ mapKind ] = useAtom(currentMapKindAtom);
+    useEffect(() => {
+        const subscriber = getSubscriber();
+        let h: number | undefined;
+        if (props.type === 'item') {
             setLoaded(false);
             setShow(true);
     
             // 最新コンテンツ取得
-            loadContentsInItem(target.itemId)
+            loadContentsInItem(props.id)
             .finally(() => {
                 setLoaded(true);
             });
-            subscribe('childcontents-update', target.itemId, () => loadContentsInItem(target.itemId));
+            h = subscriber?.subscribeMap({mapKind}, 'childcontents-update', props.id, () => loadContentsInItem(props.id));
+
+            setItemId(props.id);
+
         } else {
             setLoaded(false);
             setShow(true);
     
             // 最新コンテンツ取得
-            getApi().getContents([
+            callApi(GetContentsAPI, [
                     {
-                        contentId: target.contentId,
+                        contentId: props.id,
                     }
                 ],
-            ).then(result => {
+            ).then(res => {
+                const result = res.contents;
                 setContentsList(result);
-
+                if (result.length === 0) {
+                    setItemId(undefined);
+                } else {
+                    setItemId(result[0].itemId);
+                }
+    
             }).finally(() => {
                 setLoaded(true);
             });
-
         }
 
+
         return () => {
-            if (target.type === 'item') {
-                unsubscribe('childcontents-update', target.itemId);
+            if (h) {
+                subscriber?.unsubscribe(h);
             }
         }
 
-    }, [target, itemMap]);
+    }, [props.id, props.type, mapKind, callApi, getSubscriber, loadContentsInItem]);
 
     const contents = useMemo((): ContentsDefine[] => {
         return contentsList.sort((a, b) => {
@@ -126,32 +108,21 @@ export default function ContentsModal() {
     }, [contentsList])
 
     const title = useMemo(() => {
-        if (!target) return '';
-        let itemId: DataId;
-        if (target.type === 'item') {
-            itemId = target.itemId;
-        } else {
-            const content = contentsList.find(c => isEqualId(c.id, target.contentId));
-            if (!content) return '';
-            itemId = content.itemId;
-        }
+        if (!itemId) return '';
+        const item = getItem(itemId);
+        return item?.name;
+    }, [itemId, getItem]);
 
-        const item = itemMap[getMapKey(itemId)];
-        if (!item) return '';
-        return item.name;
-    }, [target, contentsList, itemMap]);
-
-    const authLv = useRecoilValue(authLvState);
-    const datasources = useRecoilValue(dataSourcesState);
-    const mapKind = useRecoilValue(currentMapKindState);
+    const [ authLv ] = useAtom(authLvAtom);
+    const [ datasources ] = useAtom(dataSourcesAtom);
     const isShowItemNameEditBtn = useMemo(() => {
-        if (target?.type !== 'item') return false;
-        const targetDs = datasources.find(ds => ds.dataSourceId === target.itemId.dataSourceId);
+        if (props.type !== 'item') return false;
+        const targetDs = datasources.find(ds => ds.dataSourceId === props.id.dataSourceId);
         if (!targetDs) return false;
         const info = mapKind === MapKind.Real ? targetDs.itemContents.RealItem : targetDs.itemContents.VirtualItem;
         if (!info) return false;
         return info.editable && compareAuth(authLv, Auth.Edit) >= 0
-    }, [target, authLv, datasources, mapKind])
+    }, [props, authLv, datasources, mapKind])
 
     const itemNameEditTipLabel = useMemo(() => {
         if (mapKind === MapKind.Real) {
@@ -171,18 +142,20 @@ export default function ContentsModal() {
     }, []);
 
     const onClosed = useCallback(() => {
-        setTarget(undefined);
-    }, []);
+        if (props.onClose) {
+            props.onClose();
+        }
+    }, [props]);
 
     const body = useMemo(() => {
-        if (!target) return null;
+        if (!props) return null;
 
         if (contents.length === 0) {
             return (
                 <div className={styles.NoContentParagraph}>
                     <p>コンテンツなし</p>
-                    {target.type === 'item' &&
-                        <AddContentMenu style='button' target={{itemId: target.itemId}} />
+                    {props.type === 'item' &&
+                        <AddContentMenu style='button' target={{itemId: props.id}} />
                     }
                 </div>
             )
@@ -194,7 +167,7 @@ export default function ContentsModal() {
             )
         })
 
-    }, [contents, target]);
+    }, [contents, props]);
 
     return (
         <>
@@ -205,8 +178,8 @@ export default function ContentsModal() {
                 <Modal.Header>
                     <div className={styles.ItemHeader}>
                         {title}
-                        {(target?.type === 'item' && contents.length > 0) &&
-                        <AddContentMenu target={{itemId: target.itemId}} />
+                        {(props.type === 'item' && contents.length > 0) &&
+                        <AddContentMenu target={{itemId: props.id}} />
                         }
                         {isShowItemNameEditBtn &&
                             <PopupMenuIcon tooltip={itemNameEditTipLabel} onClick={onEditItemName}>
@@ -221,8 +194,8 @@ export default function ContentsModal() {
                 <Modal.Footer>
                 </Modal.Footer>
             </Modal>
-            {target?.type === 'item' && showEditItemNameModal &&
-                <EditItemNameModal target={target.itemId} onClose={() => setShowEditItemNameModal(false)} />
+            {props.type === 'item' && showEditItemNameModal &&
+                <EditItemNameModal target={props.id} onClose={() => setShowEditItemNameModal(false)} />
             }
         </>
     );

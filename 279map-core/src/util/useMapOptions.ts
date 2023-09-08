@@ -2,8 +2,8 @@ import { useContext, useMemo } from 'react';
 import { OwnerContext } from '../components/TsunaguMap/TsunaguMap';
 import { TsunaguMapProps } from '../types/types';
 import useMyMedia from './useMyMedia';
-import { useRecoilValue } from 'recoil';
-import { connectStatusState } from '../store/session';
+import { connectStatusAtom } from '../store/session';
+import { useAtom } from 'jotai';
 
 /**
  * 呼び出し元から渡されたpropsと、地図固有のオプション値を加味して、
@@ -12,7 +12,7 @@ import { connectStatusState } from '../store/session';
 export function useMapOptions() {
     const ownerContext = useContext(OwnerContext);
     const { isPC } = useMyMedia();
-    const connectStatus = useRecoilValue(connectStatusState);
+    const [ connectStatus ] = useAtom(connectStatusAtom);
 
     const options = useMemo(() => {
         return connectStatus.mapDefine.options;

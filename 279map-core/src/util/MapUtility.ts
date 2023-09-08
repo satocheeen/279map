@@ -16,6 +16,7 @@ import VectorSource from 'ol/source/Vector';
 import { FeatureType, GeoProperties } from '279map-common';
 import { getCenter as getExtentCenter } from 'ol/extent';
 import { Cluster } from 'ol/source';
+import * as turf from '@turf/turf';
 
 /**
  * GeoJSONを元に対応するジオメトリを生成して返す
@@ -260,4 +261,41 @@ export function containFeatureInLayer(feature: Feature<Geometry>, layer: VectorL
         source = source.getSource();
     }
     return source?.hasFeature(feature) ?? false;
+}
+
+/**
+ * 2つのエクステントの関係を判断する
+ * @param ext1 
+ * @param ext2 
+ * @return ext2がext1に包含されている場合、1。ext1がext2に包含されている場合、2。包含関係にない場合、0。
+ */
+export function checkContaining(ext1: Extent, ext2: Extent) {
+    const isContain1in2 = (ext1: Extent, ext2: Extent) => {
+        if (ext1[0] < ext2[0]) return false;
+        if (ext1[2] > ext2[2]) return false;
+        if (ext1[1] < ext2[1]) return false;
+        if (ext1[3] > ext2[3]) return false;
+        return true;
+    }
+
+    if (isContain1in2(ext1, ext2)) {
+        return 2;
+    }
+    if (isContain1in2(ext2, ext1)) {
+        return 1;
+    }
+    return 0;
+}
+
+export function geoJsonToTurfPolygon(geoJson: geojson.Geometry) {
+    switch(geoJson.type) {
+        case 'Polygon':
+            return turf.polygon(geoJson.coordinates);
+        case 'MultiPolygon':
+            return turf.multiPolygon(geoJson.coordinates);
+        case 'Point':
+            return turf.circle(geoJson.coordinates, .05);
+        case 'LineString':
+            return turf.lineStringToPolygon(turf.lineString(geoJson.coordinates));
+    }
 }

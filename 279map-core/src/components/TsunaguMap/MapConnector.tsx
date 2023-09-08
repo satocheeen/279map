@@ -1,88 +1,74 @@
-import React, { useCallback, useState, useContext, useMemo, useEffect } from 'react';
-import { OwnerContext } from './TsunaguMap';
-import { useWatch } from '../../util/useWatch';
-import { useRecoilRefresher_UNSTABLE, useRecoilValueLoadable, useResetRecoilState, useSetRecoilState } from 'recoil';
-import { connectStatusState, instanceIdState, mapDefineState, mapIdState, mapServerState } from '../../store/session';
-import { createAPICallerInstance, destroyAPICallerInstance } from '../../api/ApiCaller';
-import { ApiError, ErrorType, RequestAPI } from 'tsunagumap-api';
+import React, { useCallback, useState, useEffect } from 'react';
+import { connectStatusLoadableAtom, instanceIdAtom, mapIdAtom, connectReducerAtom } from '../../store/session';
+import { ErrorType, RequestAPI } from 'tsunagumap-api';
 import Overlay from '../common/spinner/Overlay';
-import { useMap } from '../map/useMap';
 import { Button } from '../common';
 import Input from '../common/form/Input';
 import styles from './MapConnector.module.scss';
-import { useSubscribe } from '../../util/useSubscribe';
+import { createMqttClientInstance, destroyMqttClientInstance, useSubscribe } from '../../api/useSubscribe';
 import { Auth } from '279map-common';
-import { createMqttClientInstance, destroyMqttClientInstance } from '../../store/session/MqttInstanceManager';
+import { useAtom } from 'jotai';
+import { MyError, MyErrorType } from '../../api/api';
+import { useApi } from '../../api/useApi';
+import { ServerInfo } from '../../types/types';
 
 type Props = {
+    server: ServerInfo;
     children: React.ReactNode | React.ReactNode[];
 }
 
 /**
  * 地図サーバとのセッションを確立する。
- * OwnerContextで設定された値のうち、必要なものをRecoilに設定する。
+ * セッション確立後、子コンポーネントを描画する。
  * @param props 
  * @returns 
  */
 export default function MapConnector(props: Props) {
-    const ownerContext = useContext(OwnerContext);
-    const setInstanceId = useSetRecoilState(instanceIdState);
-    const resetInstanceId = useResetRecoilState(instanceIdState);
-    const setMapId = useSetRecoilState(mapIdState);
-    const setMapServer = useSetRecoilState(mapServerState);
-    const resetMapServer = useResetRecoilState(mapServerState);
-    const connectLoadable = useRecoilValueLoadable(connectStatusState);
-    const mapDefineLoadable = useRecoilValueLoadable(mapDefineState);
+    const [connectLoadable] = useAtom(connectStatusLoadableAtom);
+    const [instanceId ] = useAtom(instanceIdAtom);
+    const [ mapId ] = useAtom(mapIdAtom);
+    
+    const { getSubscriber } = useSubscribe();
 
+    // Subscriber用意
     useEffect(() => {
-        setMapId(ownerContext.mapId);
-    }, [ownerContext.mapId, setMapId]);
-
-    // 地図接続情報が変化したら、API, Mqtt初期化
-    useEffect(() => {
-        console.log('setMapServer', ownerContext.mapInstanceId, ownerContext.mapServer);
-
-        // API Accessor用意
-        const id = ownerContext.mapInstanceId;
-        createAPICallerInstance(id, ownerContext.mapServer, (error) => {
-            // コネクションエラー時(リロードが必要なエラー)
-            console.warn('connection error', error);
-        });
-        // Mqtt接続
-        createMqttClientInstance(id, ownerContext.mapServer);
-
-        setInstanceId(ownerContext.mapInstanceId);
-        setMapServer(ownerContext.mapServer);
+        createMqttClientInstance(instanceId, props.server, mapId);
 
         return () => {
-            destroyAPICallerInstance(id);
-            destroyMqttClientInstance(id);
-            resetInstanceId();
-            resetMapServer();
+            destroyMqttClientInstance(instanceId);
         }
-    }, [ownerContext.mapInstanceId, ownerContext.mapServer, resetInstanceId, resetMapServer, setInstanceId, setMapServer]);
+    }, [instanceId, props.server, mapId]);
 
+    const [, connectDispatch] = useAtom(connectReducerAtom);
+    useEffect(() => {
+        const userId = function() {
+            if (connectLoadable.state === 'hasError') {
+                const e = connectLoadable.error as any;
+                const error: MyError = ('apiError' in e) ? e.apiError
+                                    : {type: ErrorType.IllegalError, detail: e + ''};
+                return error?.userId;
+            } else if (connectLoadable.state === 'hasData') {
+                return connectLoadable.data?.userId;
+            } else {
+                return undefined;
+            }
+        }();
+        if (!userId) return;
+        const subscriber = getSubscriber();
+        if (!subscriber) return;
+        subscriber?.setUser(userId);
 
-    const { subscribeUser, unsubscribeUser } = useSubscribe();
-    const refreshConnectStatus = useRecoilRefresher_UNSTABLE(connectStatusState);
-    useWatch(() => {
-        subscribeUser('update-userauth', () => {
+        const h = subscriber.subscribeUser('update-userauth', () => {
             // 権限変更されたので再接続
-            refreshConnectStatus();
+            connectDispatch();
         });
 
         return () => {
-            unsubscribeUser('update-userauth');
+            if (h)
+                subscriber.unsubscribe(h);
         }
-    }, [subscribeUser, unsubscribeUser]);
+    }, [connectLoadable, getSubscriber, connectDispatch])
 
-    const loadableState = useMemo(() => {
-        if (connectLoadable.state !== 'hasValue') {
-            return connectLoadable.state;
-        }
-        return mapDefineLoadable.state;
-
-    }, [connectLoadable, mapDefineLoadable]);
 
     // ゲストモードで動作させる場合、true
     const [guestMode, setGuestMode] = useState(false);
@@ -90,24 +76,23 @@ export default function MapConnector(props: Props) {
         setGuestMode(true);
     }, []);
 
-    switch (loadableState) {
-        case 'hasValue':
+    const { hasToken } = useApi()
+
+    switch (connectLoadable.state) {
+        case 'hasData':
             // Auth0ログイン済みだが、地図ユーザ未登録の場合は、登録申請フォーム表示
             const showRequestPanel = function() {
                 if (guestMode) {
                     return false;
                 }
-                if (!ownerContext.mapServer.token) {
+                if (!hasToken) {
                     return false;
                 }
-                if (connectLoadable.state !== 'hasValue') {
-                    return false;
-                }
-                if (connectLoadable.contents.mapDefine.options?.newUserAuthLevel === Auth.None) {
+                if (connectLoadable.data.mapDefine.options?.newUserAuthLevel === Auth.None) {
                     // 新規ユーザ登録禁止の地図では表示しない
                     return false;
                 }
-                return connectLoadable.contents.mapDefine.authLv === Auth.None;
+                return connectLoadable.data.mapDefine.authLv === Auth.None;
             }();
             return (
                 <>
@@ -123,10 +108,13 @@ export default function MapConnector(props: Props) {
             return <Overlay spinner message='ロード中...' />
 
         case 'hasError':
-            const e = connectLoadable.contents;
-            const error: ApiError = ('apiError' in e) ? e.apiError
+            const e = connectLoadable.error as any;
+            const error: MyError = ('apiError' in e) ? e.apiError
                                 : {type: ErrorType.IllegalError, detail: e + ''};
 
+            if (error.type === MyErrorType.NonInitialize) {
+                return <Overlay spinner message='初期化中...' />
+            }
             const errorMessage = function(): string {
                 switch(error.type) {
                     case ErrorType.UndefinedMap:
@@ -166,8 +154,8 @@ type RequestComponetProps = {
    onCancel?: () => void;
 }
 function RequestComponet(props: RequestComponetProps) {
-    const { getApi } = useMap();
-    const { mapId } = useContext(OwnerContext);
+    const { callApi } = useApi();
+    const [ mapId ] = useAtom(mapIdAtom);
     const [ stage, setStage ] = useState<RequestComponetStage>(props.stage ?? 'button');
     const [ name, setName ] = useState('');
     const [ errorMessage, setErrorMessage ] = useState<string|undefined>();
@@ -178,11 +166,11 @@ function RequestComponet(props: RequestComponetProps) {
             return;
         }
         setStage('requested');
-        await getApi().callApi(RequestAPI, {
+        await callApi(RequestAPI, {
             mapId,
             name,
         });
-    }, [getApi, mapId, name]);
+    }, [callApi, mapId, name]);
 
     const onCancel = useCallback(() => {
         if (props.onCancel) {

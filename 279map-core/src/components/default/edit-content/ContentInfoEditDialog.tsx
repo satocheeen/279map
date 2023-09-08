@@ -4,8 +4,9 @@ import styles from './ContentInfoEditDialog.module.scss';
 import { AddNewContentParam, EditContentParam } from '../../../types/types';
 import { ContentAttr } from '279map-common';
 import { Button, Modal } from '../../common';
-import useConfirm, { ConfirmBtnPattern } from '../../common/confirm/useConfirm';
+import useConfirm from '../../common/confirm/useConfirm';
 import Select from '../../common/form/Select';
+import { ConfirmBtnPattern } from '../../common/confirm/types';
 
 type Props = {
     onClose?: () => void;

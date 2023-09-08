@@ -1,5 +1,5 @@
 import { Auth, CategoryDefine, ContentsDefine, DataId, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, ServerConfig, UnpointContent, User } from "279map-common";
-import { GeoJsonObject } from "geojson";
+import { GeoJsonObject, Position } from "geojson";
 import { APIDefine, ContentAttr, SnsPreviewPost, MapDefine } from '279map-common';
 import { FilterDefine, DataSourceGroup } from "279map-common";
 
@@ -142,9 +142,10 @@ export const GetItemsAPI = {
     resultType: 'json',
 } as APIDefine<GetItemsParam, GetItemsResult>;
 export type GetItemsParam = {
-    extent: Extent;
+    wkt: string;
     zoom: number;
-    dataSourceIds: string[];   // 指定のデータソースのアイテムのみ返す
+    dataSourceId: string;
+    excludeItemIds?: string[];  // 指定されている場合、このidｎアイテムは結果から除く
 }
 export type GetItemsResult = {
     items: ItemDefine[],
@@ -390,18 +391,22 @@ export type PublishUserMessage = {
 export type PublishMapMessage = {
     // 地図に更新が行われた場合
     type: 'mapitem-update';
-    param?: undefined;
+    subtype?: undefined;
+    targets: {
+        datasourceId: string;   // 更新対象データソースID
+        wkt: string; // 更新された範囲
+    }[];
 } | {
     // 地図上のアイテムが削除された場合
     type: 'mapitem-delete';
-    param?: undefined;
+    subtype?: undefined;
     itemPageIdList: DataId[];
 } | {
     // ユーザ一覧情報が更新された場合
     type: 'userlist-update';
-    param?: undefined;
+    subtype?: undefined;
 } | {
     // 指定のアイテム配下のコンテンツに変更（登録・更新・削除）があった場合
     type: 'childcontents-update';
-    param: DataId;
+    subtype: DataId;
 }

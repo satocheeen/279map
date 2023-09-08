@@ -1,18 +1,17 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import styles from './PointsPopup.module.scss';
 import { ContentsDefine, DataId, ItemContentInfo, ItemDefine } from "279map-common";
 import { MapMode } from "../../types/types";
-import { getMapKey, isEqualId } from "../../util/dataUtility";
+import { isEqualId } from "../../util/dataUtility";
 import MyThumbnail from "../common/image/MyThumbnail";
 import { BsThreeDots } from 'react-icons/bs';
 import { useMapOptions } from "../../util/useMapOptions";
 import { useMap } from "../map/useMap";
 import { doCommand } from "../../util/Commander";
-import { itemMapState } from "../../store/item";
-import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { mapModeState, selectedItemIdsState } from "../../store/operation";
-import { filteredContentIdListState, filteredItemIdListState } from "../../store/filter";
+import { mapModeAtom, selectedItemIdsAtom } from "../../store/operation";
+import { filteredContentIdListAtom, filteredItemIdListAtom } from "../../store/filter";
 import { useItem } from "../../store/item/useItem";
+import { useAtom } from "jotai";
 
 type Props = {
     // このポップアップにて情報表示する対象アイテム
@@ -37,11 +36,25 @@ function hasImageItem(item: ItemDefine): boolean {
 
 }
 export default function PointsPopup(props: Props) {
-    const { getMap } = useMap();
-    const itemMap = useRecoilValue(itemMapState);
-    const filteredItemIdList = useRecoilValue(filteredItemIdListState);
-    const filteredContentIdList = useRecoilValue(filteredContentIdListState);
+    const { map } = useMap();
+    const [ filteredItemIdList ] = useAtom(filteredItemIdListAtom);
+    const [ filteredContentIdList ] = useAtom(filteredContentIdListAtom);
     const { getDescendantContentsIdList } = useItem();
+    const [ targetItems, setTargetItems ] = useState<ItemDefine[]>([]);
+    const { getItem } = useItem();
+
+    const getTarget = useCallback(async(itemIds: DataId[]): Promise<ItemDefine[]> => {
+        const items = await Promise.all(itemIds.map(itemId => {
+            return getItem(itemId);
+        }));
+        return items.filter(item => item!==undefined) as ItemDefine[];
+
+    }, [getItem]);
+
+    useEffect(() => {
+        getTarget(props.itemIds)
+        .then(items => setTargetItems(items));
+    }, [props.itemIds, getTarget]);
 
     /**
      * このポップアップで表示するアイテム情報
@@ -50,14 +63,7 @@ export default function PointsPopup(props: Props) {
         if (props.itemIds.length === 0) {
             return undefined;
         }
-        let infos = props.itemIds.reduce((acc, cur) => {
-            const item = itemMap[getMapKey(cur)];
-            if (!item) {
-                // 地図種別切り替え直後にこのルートに入る可能性がある
-                return acc;
-            }
-            return acc.concat(item);
-        }, [] as ItemDefine[])
+        let infos = targetItems;
         // フィルタがかかっている場合は、フィルタ対象のものに絞る
         if (filteredItemIdList) {
             infos = infos.filter(info => filteredItemIdList.some(filteredItemId => isEqualId(filteredItemId, info.id)));
@@ -73,7 +79,7 @@ export default function PointsPopup(props: Props) {
         }
         // 最初の画像のみ表示
         return ownImageInfos[0];
-    }, [props.itemIds, itemMap, filteredItemIdList]);
+    }, [props.itemIds, targetItems, filteredItemIdList]);
 
     const { popupMode } = useMapOptions();
 
@@ -120,14 +126,13 @@ export default function PointsPopup(props: Props) {
         }, 0);
     }, [props.itemIds, getDescendantContentsIdList]);
 
-    const setSelectedItemIds = useSetRecoilState(selectedItemIdsState);
+    const [selectedItemIds, setSelectedItemIds] = useAtom(selectedItemIdsAtom);
     const onClick = useCallback((evt: React.MouseEvent) => {
         if (props.itemIds.length === 1) {
             setSelectedItemIds([props.itemIds[0]]);
             return;
         }
         // 対象が２つ以上ある場合は、重畳選択メニューを表示
-        const map = getMap();
         const rect = map?.container.getBoundingClientRect();
         const coordinate = map?.getCoordinateFromPixel([evt.clientX - (rect?.x ?? 0), evt.clientY - (rect?.y ?? 0)]);
         if (coordinate) {
@@ -139,9 +144,9 @@ export default function PointsPopup(props: Props) {
                 }
             });
         }
-    }, [setSelectedItemIds, props.itemIds, getMap]);
+    }, [setSelectedItemIds, props.itemIds, map]);
 
-    const mapMode = useRecoilValue(mapModeState);
+    const [mapMode] = useAtom(mapModeAtom);
 
     if (!target) {
         return null;

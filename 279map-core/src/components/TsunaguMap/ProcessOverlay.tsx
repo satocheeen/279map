@@ -1,15 +1,15 @@
 import React from 'react';
-import { useRecoilValue } from 'recoil';
-import { isShowOverlayState, isShowSpinnerState, processMessageState } from '../common/spinner/useProcessMessage';
 import Overlay from '../common/spinner/Overlay';
+import { useAtom } from 'jotai';
+import { isShowOverlayAtom, isShowSpinnerAtom, processMessageAtom } from '../common/spinner/atoms';
 
 /**
  * 地図の上にスピナーやメッセージをオーバーレイ表示するためのコンポーネント
  */
 export default function ProcessOverlay() {
-    const isShowOverlay = useRecoilValue(isShowOverlayState);
-    const isShowSpinner = useRecoilValue(isShowSpinnerState);
-    const processMessage = useRecoilValue(processMessageState);
+    const [isShowOverlay] = useAtom(isShowOverlayAtom);
+    const [isShowSpinner] = useAtom(isShowSpinnerAtom);
+    const [processMessage] = useAtom(processMessageAtom);
 
     return (
         <Overlay

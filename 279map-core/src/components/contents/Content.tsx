@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 import CategoryBadge from "../common/CategoryBadge";
 import * as CommonUtility from '../../util/CommonUtility';
 import { CgArrowsExchangeAlt } from "react-icons/cg";
-import useConfirm, { ConfirmBtnPattern, ConfirmResult } from "../common/confirm/useConfirm";
+import useConfirm from "../common/confirm/useConfirm";
 import reactStringReplace from "react-string-replace";
 import PopupMenuIcon from "../popup/PopupMenuIcon";
 import AddContentMenu from "../popup/AddContentMenu";
@@ -15,14 +15,16 @@ import Spinner from "../common/spinner/Spinner";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
 import { getMapKey, isEqualId } from "../../util/dataUtility";
-import { GetImageUrlAPI, GetSnsPreviewAPI, RemoveContentAPI, UpdateContentAPI, UpdateContentParam } from 'tsunagumap-api';
-import { doCommand } from "../../util/Commander";
+import { GetContentsAPI, GetImageUrlAPI, GetSnsPreviewAPI, RemoveContentAPI, UpdateContentAPI, UpdateContentParam } from 'tsunagumap-api';
 import { useMap } from "../map/useMap";
-import { useRecoilValue } from "recoil";
-import { categoryState } from "../../store/category";
-import { dataSourcesState } from "../../store/datasource";
-import { authLvState, currentMapKindState } from "../../store/session";
-import { filteredContentIdListState } from "../../store/filter";
+import { authLvAtom, currentMapKindAtom } from "../../store/session";
+import { filteredContentIdListAtom } from "../../store/filter";
+import { dataSourcesAtom } from "../../store/datasource";
+import { useAtom } from 'jotai';
+import { categoriesAtom } from "../../store/category";
+import { ConfirmBtnPattern, ConfirmResult } from "../common/confirm/types";
+import { useMapController } from "../../store/useMapController";
+import { useApi } from "../../api/useApi";
 
 type Props = {
     itemId: DataId;
@@ -38,9 +40,10 @@ type Props = {
  */
 export default function Content(props: Props) {
     const { confirm } = useConfirm();
-    const filteredContentIdList = useRecoilValue(filteredContentIdListState);
+    const [ filteredContentIdList ] = useAtom(filteredContentIdListAtom);
     const { onEditContent }  = useContext(OwnerContext);
-    const { getApi } = useMap();
+    const { focusItem } = useMap();
+    const { callApi } = useApi();
 
     /**
      * 表示対象コンテンツかどうか。
@@ -106,7 +109,7 @@ export default function Content(props: Props) {
         }
     }, [props.content, icon, onClick]);
 
-    const categories = useRecoilValue(categoryState);
+    const [ categories ] = useAtom(categoriesAtom);
 
     const categoryTag = useMemo(() => {
         return props.content.category?.map(category => {
@@ -130,30 +133,28 @@ export default function Content(props: Props) {
         return props.content.anotherMapItemId;
     }, [props.content]);
 
-    const mapKind = useRecoilValue(currentMapKindState);
+    const [ mapKind ] = useAtom(currentMapKindAtom);
 
     const toolTipMessage = useMemo(() => {
         const mapName = mapKind === MapKind.Real ? '村マップ' : '世界地図';
         return mapName + 'で見る';
     }, [mapKind]);
 
+    const { changeMapKind } = useMapController();
     const onGoToAnotherMap = useCallback(async() => {
         if (!props.content.anotherMapItemId) {
             console.warn('別地図にアイテムなし');
             return;
         }
         const anotherMap = mapKind === MapKind.Real ? MapKind.Virtual : MapKind.Real;
-        await doCommand({
-            command: 'ChangeMapKind',
-            param: anotherMap,
-        });
-        doCommand({
-            command: 'FocusItem',
-            param: {
+
+        await changeMapKind(anotherMap);
+        focusItem(
+            {
                 itemId: props.content.anotherMapItemId,
             }
-        });
-    }, [mapKind, props.content.anotherMapItemId]);
+        );
+    }, [mapKind, props.content.anotherMapItemId, changeMapKind, focusItem]);
 
     /**
      * イメージロード
@@ -162,7 +163,7 @@ export default function Content(props: Props) {
     const onImageClick = useCallback(async() => {
         setShowSpinner(true);
         try {
-            const imageUrl = await getApi().callApi(GetImageUrlAPI, {
+            const imageUrl = await callApi(GetImageUrlAPI, {
                 id: props.content.id,
             });
             window.open(imageUrl, 'image' + props.content.id);
@@ -171,13 +172,13 @@ export default function Content(props: Props) {
         } finally {
             setShowSpinner(false);
         }
-    }, [props.content.id, getApi]);
+    }, [props.content.id, callApi]);
 
     const onEdit = useCallback(async() => {
         // 編集対象コンテンツをロード
-        const contents = (await getApi().getContents([{
+        const contents = (await callApi(GetContentsAPI, [{
             contentId: props.content.id,
-        }]));
+        }])).contents;
         if (!contents || contents?.length === 0) {
             return;
         }
@@ -200,19 +201,19 @@ export default function Content(props: Props) {
             contentId: props.content.id,
             currentAttr,
             getSnsPreviewAPI: async(url: string) => {
-                const res = await getApi().callApi(GetSnsPreviewAPI, {
+                const res = await callApi(GetSnsPreviewAPI, {
                     url,
                 });
                 return res;
             },
             updateContentAPI: async(param: UpdateContentParam) => {
-                await getApi().callApi(UpdateContentAPI, param);
+                await callApi(UpdateContentAPI, param);
         
             },
         })
-    }, [props.content, onEditContent, getApi]);
+    }, [props.content, onEditContent, callApi]);
 
-    const dataSources = useRecoilValue(dataSourcesState);
+    const [ dataSources ] = useAtom(dataSourcesAtom);
     const unlinkable = useMemo(() => {
         const itemDataSource = dataSources.find(ds => ds.dataSourceId === props.itemId.dataSourceId);
         if (!itemDataSource) {
@@ -248,7 +249,7 @@ export default function Content(props: Props) {
         setShowSpinner(true);
 
         try {
-            await getApi().callApi(RemoveContentAPI, {
+            await callApi(RemoveContentAPI, {
                 id: props.content.id,
                 itemId: props.itemId,
                 parentContentId: props.parentContentId,
@@ -266,7 +267,7 @@ export default function Content(props: Props) {
 
         }
 
-    }, [getApi, props.itemId, props.parentContentId, confirm, props.content, unlinkable]);
+    }, [callApi, props.itemId, props.parentContentId, confirm, props.content, unlinkable]);
 
     const overview = useMemo(() => {
         if (!props.content.overview) {
@@ -294,7 +295,7 @@ export default function Content(props: Props) {
 
     }, [props.content.overview]);
 
-    const authLv = useRecoilValue(authLvState);
+    const [authLv] = useAtom(authLvAtom);
     const editable = useMemo(() => {
         return props.content.isEditable && CommonUtility.compareAuth(authLv, Auth.Edit) >= 0
     }, [authLv, props.content]);

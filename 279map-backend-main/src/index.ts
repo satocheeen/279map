@@ -10,7 +10,7 @@ import { getContents } from './getContents';
 import { getEvents } from './getEvents';
 import proxy from 'express-http-proxy';
 import http from 'http';
-import { convertBase64ToBinary } from './util/utility';
+import { convertBase64ToBinary, getItemWkt, getItemsWkt } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
 import { getSnsPreview } from './api/getSnsPreview';
@@ -19,7 +19,7 @@ import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import cors from 'cors';
 import { exit } from 'process';
 import { getMapInfoById } from './getMapDefine';
-import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetItemsResult, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
+import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
 import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, GetEventParam, GetCategoryParam, RequestAPI, RequestParam, GetUserListAPI, GetUserListResult, ChangeAuthLevelAPI, ChangeAuthLevelParam } from '../279map-api-interface/src/api';
@@ -30,7 +30,7 @@ import { checkLinkableDatasource } from './api/getUnpointData';
 import { Auth0Management } from './auth/Auth0Management';
 import { OriginalAuthManagement } from './auth/OriginalAuthManagement';
 import { NoneAuthManagement } from './auth/NoneAuthManagement';
-import { MapPageInfoTable, PublicRange } from '../279map-backend-common/src/types/schema';
+import { MapPageInfoTable } from '../279map-backend-common/src/types/schema';
 import { CurrentMap, sleep } from '../279map-backend-common/src';
 import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaRegistContentAPI, OdbaRegistItemAPI, OdbaRemoveContentAPI, OdbaRemoveItemAPI, OdbaUpdateContentAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
 import MqttBroadcaster from './session/MqttBroadcaster';
@@ -580,7 +580,6 @@ app.post(`/api/${GetMapInfoAPI.uri}`,
 
             // TODO
             if (session) {
-                session.resetItems();
                 session.setMapKind(result.mapKind);
             }
 
@@ -660,16 +659,7 @@ app.post(`/api/${GetItemsAPI.uri}`,
             const result = await getItems({
                 param,
                 currentMap: req.currentMap,
-                sendedExtent: session.sendedExtent,
             });
-
-            // 送信済みのコンテンツ情報は除外する
-            // TODO: 削除考慮
-            result.items = (result as GetItemsResult).items.filter(item => {
-                const isSend = session.isSendedItem(item);
-                return !isSend;
-            });
-            session.addItems(result.items, param.extent, param.zoom);
 
             // apiLogger.debug('result', result);
 
@@ -789,10 +779,20 @@ app.post(`/api/${RegistItemAPI.uri}`,
             });
     
             // 更新通知
-            sessionManager.clearSendedExtent(param.dataSourceId);
-            broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                type: 'mapitem-update',
-            });
+            const wkt = await getItemWkt(id);
+            if (!wkt) {
+                logger.warn('not found extent', id);
+            } else {
+                broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
+                    type: 'mapitem-update',
+                    targets: [
+                        {
+                            datasourceId: id.dataSourceId,
+                            wkt,
+                        }
+                    ]
+                });
+            }
             
             res.send(id);
     
@@ -824,10 +824,20 @@ app.post(`/api/${UpdateItemAPI.uri}`,
             }, param));
     
             // 更新通知
-            sessionManager.clearSendedExtent(param.id.dataSourceId);
-            broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                type: 'mapitem-update',
-            });
+            const wkt = await getItemWkt(param.id);
+            if (!wkt) {
+                logger.warn('not found extent', param.id);
+            } else {
+                broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
+                    type: 'mapitem-update',
+                    targets: [
+                        {
+                            datasourceId: param.id.dataSourceId,
+                            wkt,
+                        }
+                    ]
+                });
+            }
             
             res.send('complete');
     
@@ -859,7 +869,6 @@ app.post(`/api/${RemoveItemAPI.uri}`,
             }, param));
     
             // 更新通知
-            sessionManager.clearSendedExtent(param.id.dataSourceId);
             broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                 type: 'mapitem-delete',
                 itemPageIdList: [param.id],
@@ -899,7 +908,7 @@ app.post(`/api/${RegistContentAPI.uri}`,
             if ('itemId' in param.parent) {
                 broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                     type: 'childcontents-update',
-                    param: param.parent.itemId,
+                    subtype: param.parent.itemId,
                 });
             }
        
@@ -944,7 +953,7 @@ app.post(`/api/${UpdateContentAPI.uri}`,
 
             broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                 type: 'childcontents-update',
-                param: target.itemId,
+                subtype: target.itemId,
             });
         
             res.send('complete');
@@ -1020,7 +1029,7 @@ app.post(`/api/${LinkContentToItemAPI.uri}`,
             if ('itemId' in param.parent) {
                 broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                     type: 'childcontents-update',
-                    param: param.parent.itemId,
+                    subtype: param.parent.itemId,
                 });
             }
             
@@ -1057,7 +1066,7 @@ app.post(`/api/${RemoveContentAPI.uri}`,
             // 更新通知
             broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                 type: 'childcontents-update',
-                param: param.itemId,
+                subtype: param.itemId,
             });
 
             res.send('complete');
@@ -1299,28 +1308,44 @@ internalApp.use(express.urlencoded({extended: true}));
 internalApp.use(express.json({
     limit: '1mb',
 })); 
-internalApp.post('/api/broadcast', (req: Request, res: Response) => {
+internalApp.post('/api/broadcast', async(req: Request, res: Response) => {
     const param = req.body as BroadcastItemParam;
     logger.info('broadcast', param);
+    // 変更範囲を取得する
+    const itemIdListByDataSource = param.itemIdList.reduce((acc, cur) => {
+        if (cur.dataSourceId in acc) {
+            acc[cur.dataSourceId].push(cur);
+        } else {
+            acc[cur.dataSourceId] = [cur];
+        }
+        return acc;
+    }, {} as {[datasourceId: string]: DataId[]});
+    const targets = [] as {datasourceId: string; wkt: string}[];
+    for (const entry of Object.entries(itemIdListByDataSource)) {
+        const datasourceId = entry[0];
+        const itemIdList = entry[1];
+        const wkt = await getItemsWkt(itemIdList);
+        if (wkt) {
+            targets.push({
+                datasourceId,
+                wkt,
+            })
+        }
+    }
     switch(param.operation) {
         case 'insert':
-            param.itemIdList.forEach(id => {
-                sessionManager.clearSendedExtent(id.dataSourceId);
-            });
             broadCaster.publish(param.mapId, undefined, {
                 type: 'mapitem-update',
+                targets,
             });
             break;
         case 'update':
-            // 送信済みアイテム情報から当該アイテムを除去する
-            sessionManager.removeSendedItem(param.itemIdList);
             broadCaster.publish(param.mapId, undefined, {
                 type: 'mapitem-update',
+                targets,
             });
             break;
         case 'delete':
-            // 送信済みアイテム情報から当該アイテムを除去する
-            sessionManager.removeSendedItem(param.itemIdList);
             broadCaster.publish(param.mapId, undefined, {
                 type: 'mapitem-delete',
                 itemPageIdList: param.itemIdList
@@ -1361,4 +1386,3 @@ initializeDb()
     })
     checkSessionProcess();
 });
-

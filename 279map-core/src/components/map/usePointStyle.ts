@@ -10,11 +10,11 @@ import { Geometry } from "ol/geom";
 import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
 import { useMap } from "./useMap";
 import { useMapOptions } from "../../util/useMapOptions";
-import { useRecoilValue } from "recoil";
-import { selectedItemIdsState } from "../../store/operation";
+import { selectedItemIdsAtom } from "../../store/operation";
 import useIcon from "../../store/icon/useIcon";
-import { filteredItemIdListState } from "../../store/filter";
-import { dataSourcesState } from "../../store/datasource";
+import { filteredItemIdListAtom } from "../../store/filter";
+import { dataSourcesAtom } from "../../store/datasource";
+import { useAtom } from 'jotai';
 
 // 建物ラベルを表示するresolution境界値（これ以下の値の時に表示）
 const StructureLabelResolution = 0.003;
@@ -28,15 +28,14 @@ const STRUCTURE_SELECTED_COLOR = '#8888ff';
  */
 export default function usePointStyle() {
     const { getForceColor, getFilterStatus } = useFilterStatus();
-    const filteredItemIdList = useRecoilValue(filteredItemIdListState);
+    const [ filteredItemIdList ] = useAtom(filteredItemIdListAtom);
     const { disabledLabel } = useMapOptions();
     const { filter } = useContext(OwnerContext);
     const { getIconDefine } = useIcon();
-    const { getMap } = useMap();
-    const selectedItemIds = useRecoilValue(selectedItemIdsState);
+    const { map } = useMap();
+    const [selectedItemIds] = useAtom(selectedItemIdsAtom);
 
     const getZindex = useCallback((feature: Feature<Geometry>): number => {
-        const map = getMap();
         if (!map) return 0;
         // featureが属するレイヤソース取得
         const pointsSource = map.getLayerInfoContainedTheFeature(feature)?.layer.getSource();
@@ -53,7 +52,7 @@ export default function usePointStyle() {
         const zIndex = Math.round(Math.abs(extent[1] - maxY));
     
         return zIndex;
-    }, [getMap]);
+    }, [map]);
 
     const _createStyle = useCallback((param: {iconDefine: SystemIconDefine; feature: Feature<Geometry>; resolution: number; color?: string; opacity?: number}) => {
         const type = param.feature.getGeometry()?.getType();
@@ -165,7 +164,7 @@ export default function usePointStyle() {
 
     }, [filteredItemIdList, selectedItemIds]);
 
-    const dataSources = useRecoilValue(dataSourcesState);
+    const [ dataSources ] = useAtom(dataSourcesAtom);
     const _createPointStyle = useCallback((feature: Feature<Geometry>, resolution: number, forceColor?: string): Style => {
         const { mainFeature, showFeaturesLength } = _analysisFeatures(feature);
 

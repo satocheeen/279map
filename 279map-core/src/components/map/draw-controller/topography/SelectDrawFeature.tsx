@@ -3,8 +3,8 @@ import React from 'react';
 import ListGroup from '../../../common/list/ListGroup';
 import { TbCircle, TbHexagon } from 'react-icons/tb';
 import styles from './SelectDrawFeature.module.scss';
-import { useRecoilValue } from 'recoil';
-import { currentMapKindState } from '../../../../store/session';
+import { currentMapKindAtom } from '../../../../store/session';
+import { useAtom } from 'jotai';
 
 export enum DrawFeatureType {
     FreePolygon,
@@ -17,7 +17,7 @@ type Props = {
 }
 
 export default function SelectDrawFeature(props: Props) {
-    const mapKind = useRecoilValue(currentMapKindState);
+    const [ mapKind ] = useAtom(currentMapKindAtom);
 
     return (
         <ListGroup className={styles.LiteArea}>

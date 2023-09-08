@@ -2,13 +2,12 @@ import React, { useEffect, useRef, useMemo, useCallback } from 'react';
 import { Overlay } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import styles from './ClusterMenu.module.scss';
-import { itemMapState } from '../../store/item';
-import { useRecoilValue } from 'recoil';
 import useIcon from '../../store/icon/useIcon';
 import { DataId } from '279map-common';
 import { getMapKey } from '../../util/dataUtility';
 import { useMap } from '../map/useMap';
 import { BsImage } from 'react-icons/bs';
+import { useItem } from '../../store/item/useItem';
 
 const ARROW_HEIGHT = 20;
 const ARROW_OFFSET_LEFT = 45;
@@ -30,11 +29,10 @@ type Props = {
 }
 
 export default function ClusterMenu(props: Props) {
-    const { getMap } = useMap();
+    const { map } = useMap();
     const elementRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const map = getMap();
         if (!map) return;
         const overlay = new Overlay({
             positioning: 'bottom-left', //OverlayPositioning.BOTTOM_CENTER,
@@ -50,10 +48,9 @@ export default function ClusterMenu(props: Props) {
         return () => {
             map.removeOverlay(overlay);
         }
-    }, [getMap, props.position]);
+    }, [map, props.position]);
 
     const style = useMemo(() => {
-        const map = getMap();
         if (!map) return {};
 
         // 地図からはみ出ない高さにする
@@ -61,7 +58,7 @@ export default function ClusterMenu(props: Props) {
         return {
             maxHeight: pixel[1] - ARROW_HEIGHT - 10,// - rect.y,
         }
-    }, [getMap, props.position]);
+    }, [map, props.position]);
 
     const onItemClick = useCallback((id: DataId) => {
         if (props.onSelect) {
@@ -93,14 +90,15 @@ type MenuItemProp = {
     onClose?: () => void;
 }
 function MenuItem(props: MenuItemProp) {
-    const itemMap = useRecoilValue(itemMapState);
-
-    const item = useMemo(() => itemMap[getMapKey(props.id)], [props.id, itemMap]);
+    const { getItem } = useItem();
+    const item = useMemo(() => {
+        return getItem(props.id);
+    }, [props.id, getItem]);
 
     const { getIconDefine } = useIcon();
 
     const iconDefine = useMemo(() => {
-        if (!item.geoProperties) {
+        if (!item?.geoProperties) {
             return getIconDefine();
         }
         if (!('icon' in item.geoProperties)) {
@@ -112,7 +110,7 @@ function MenuItem(props: MenuItemProp) {
     }, [getIconDefine, item]);
 
     const hasImage = useMemo(() => {
-        return item.contents.some(c => c.hasImage);
+        return item?.contents.some(c => c.hasImage);
     }, [item]);
 
     const itemName = useMemo(() => {

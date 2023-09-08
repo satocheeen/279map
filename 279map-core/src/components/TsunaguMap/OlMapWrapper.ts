@@ -13,7 +13,7 @@ import VectorLayer from "ol/layer/Vector";
 import Style, { StyleFunction } from "ol/style/Style";
 import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
-import { DataId, FeatureType, ItemDefine, MapKind, DataSourceGroup } from '279map-common';
+import { DataId, FeatureType, ItemDefine, MapKind, DataSourceGroup, APIDefine } from '279map-common';
 import BaseEvent from 'ol/events/Event';
 import * as MapUtility from '../../util/MapUtility';
 import { FeatureProperties } from '../../types/types';
@@ -21,11 +21,8 @@ import { Pixel } from 'ol/pixel';
 import { convertDataIdFromFeatureId, getMapKey } from '../../util/dataUtility';
 import { GetGeocoderFeatureAPI } from 'tsunagumap-api';
 import { FitOptions } from 'ol/View';
-import { getAPICallerInstance } from '../../api/ApiCaller';
 import { Coordinate } from 'ol/coordinate';
-import { doCommand } from '../../util/Commander';
 
-const instansMap = new Map<string, OlMapWrapper>();
 export type FeatureInfo = {
     id: DataId;
     feature: Feature<Geometry>;
@@ -33,47 +30,30 @@ export type FeatureInfo = {
 
 type Device = 'pc' | 'sp';
 
-/**
- * OlMapWrapperインスタンスを生成する
- * @param id instanceを特定するID
- * @param target 地図を配置するDivElement
- * @returns OlMapWrapperインスタンス
- */
-export function createMapInstance(id: string, target: HTMLDivElement, device: Device) {
-    const map = new OlMapWrapper(id, target, device);
-    console.log('create map', map._id);
-    instansMap.set(id, map);
-    return map;
-}
-export function destroyMapInstance(id: string) {
-    console.log('destroy map', id);
-    instansMap.delete(id);
-}
-
-export function getMapInstance(id: string) {
-    return instansMap.get(id);
-}
 const pcControls = olControl.defaults({attribution: true});
 const spControls = olControl.defaults({attribution: true, zoom: false});
 
+type CallApiType = <API extends APIDefine<any, any>>(api: API, param: API['param']) => Promise<API['result']>
 /**
  * OpenLayersの地図を内包したクラス。
  * 当該システムで必要な機能を実装している。
  */
-class OlMapWrapper {
+export class OlMapWrapper {
     readonly _id: string;
     _map: OlMap;
     _vectorLayerMap: VectorLayerMap;
     _mapKind?: MapKind;
     _currentZoom: number;   // Zoomレベル変更検知用に保持
     _device: Device = 'pc';
+    _callApi: CallApiType;
 
     // 描画用レイヤ
     _drawingLayers: VectorLayer<VectorSource>[] = [];
 
-    constructor(id: string, target: HTMLDivElement, device: Device) {
+    constructor(id: string, target: HTMLDivElement, device: Device, mycallApi: CallApiType) {
         this._id = id;
         this._vectorLayerMap = new VectorLayerMap();
+        this._callApi = mycallApi;
         console.log('create OlMapWrapper', this._id);
 
         const map = new OlMap({
@@ -135,13 +115,14 @@ class OlMapWrapper {
     /**
      * 地図種別に対応した初期レイヤを設定する
      */
-    initialize(mapKind: MapKind, dataSourceGroups: DataSourceGroup[]) {
+    initialize(mapKind: MapKind, dataSourceGroups: DataSourceGroup[], fitExtent?: Extent) {
         this._mapKind = mapKind;
-        let extent: Extent = [0, 0, 2, 2];
+        let extent = fitExtent;
         if (mapKind === MapKind.Real) {
             // 都道府県レイヤ
             const features = new GeoJSON().readFeatures(prefJson);
             const prefSource = new VectorSource({ features });
+            extent ??= prefSource.getExtent();
 
             const layers = [
                 new TileLayer({
@@ -166,7 +147,6 @@ class OlMapWrapper {
                 }),
             ];
             this._map.setLayers(layers);
-            extent = prefSource.getExtent();
 
             dataSourceGroups.forEach(group => {
                 group.dataSources.forEach(ds => {
@@ -202,6 +182,7 @@ class OlMapWrapper {
 
         } else {
             // 村マップ
+            extent ??= [0, 0, 2, 2];
             dataSourceGroups.forEach(group => {
                 group.dataSources.forEach(ds => {
                     if (!ds.itemContents.VirtualItem) {
@@ -258,10 +239,10 @@ class OlMapWrapper {
     }
 
     async _createFeatureGeometryFromItemDefine(def: ItemDefine): Promise<Feature<Geometry> | undefined> {
-        let feature: Feature<Geometry>;
+        let feature: Feature<Geometry> | undefined;
         if (def.geoProperties?.featureType === FeatureType.AREA && ('geocoderId' in def.geoProperties && def.geoProperties.geocoderId)) {
             // Geocoderの図形の場合は、Geocoder図形呼び出し
-            const result = await getAPICallerInstance(this._id).callApi(GetGeocoderFeatureAPI, def.geoProperties.geocoderId);
+            const result = await this._callApi(GetGeocoderFeatureAPI, def.geoProperties.geocoderId);
 
             feature = new GeoJSON().readFeatures(result.geoJson)[0];
 
@@ -295,15 +276,15 @@ class OlMapWrapper {
             const source = this._getTargetSource(def);
             if (!source) {
                 console.warn('追加対象レイヤ見つからず', def);
-                return;
+                continue;
             }
             const feature = await this._createFeatureGeometryFromItemDefine(def);
             if (!feature) {
-                return;
+                continue;
             }
             const geom = feature.getGeometry();
             if (!geom) {
-                return;
+                continue;
             }
 
             const existFeature = source.getFeatureById(getMapKey(def.id));
@@ -312,7 +293,7 @@ class OlMapWrapper {
                     existFeature.setGeometry(geom);
                     existFeature.setProperties(feature.getProperties());
                 }
-                return;
+                continue;
             }
     
             // 追加対象featureをmapに追加格納
@@ -631,18 +612,10 @@ class OlMapWrapper {
                 }, ds.visible);
             });
         })
-        // 非表示レイヤが表示に切り替わった場合は、最新アイテム取得
-        if (hiddenToShowFlag) {
-            doCommand({
-                command: "LoadLatestData",
-                param: undefined,
-            });
-        }
     }
 
     dispose() {
         this._map.dispose();
-        instansMap.delete(this._id);
         console.log('dispose OlMapWrapper', this._id);
     }
 }

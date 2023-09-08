@@ -3,7 +3,7 @@ import { Modify } from 'ol/interaction';
 import VectorSource from 'ol/source/Vector';
 import { Stroke, Style } from 'ol/style';
 import React, { useEffect, useCallback, useRef, useState } from 'react';
-import useConfirm, { ConfirmResult } from '../../../common/confirm/useConfirm';
+import useConfirm from '../../../common/confirm/useConfirm';
 import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import { createGeoJson, extractGeoProperty, getOriginalLine } from '../../../../util/MapUtility';
 import useTopographyStyle from '../../useTopographyStyle';
@@ -17,6 +17,8 @@ import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useMap } from '../../useMap';
 import { UpdateItemAPI } from 'tsunagumap-api';
+import { ConfirmResult } from '../../../common/confirm/types';
+import { useApi } from '../../../../api/useApi';
 
 type Props = {
     close: () => void;  // 作図完了時のコールバック
@@ -32,7 +34,7 @@ enum Stage {
  * 地形編集用コントロールクラス
  */
  export default function EditTopographyController(props: Props) {
-    const { getMap } = useMap();
+    const { map } = useMap();
     const [stage, setStage] = useState(Stage.SELECTING_FEATURE);
     const selectedFeature = useRef<FeatureLike>();
     const styleHook = useTopographyStyle({});
@@ -45,7 +47,6 @@ enum Stage {
      * 初期化
      */
     useEffect(() => {
-        const map = getMap();
         if (!map) return;
         const style = styleHook.getStyleFunction(() => {
             return new Style({
@@ -79,7 +80,7 @@ enum Stage {
         }
     
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [getMap]);
+    }, [map]);
 
     const onSelectFeature = useCallback((feature: FeatureLike) => {
         console.log('select feature', feature);
@@ -96,16 +97,16 @@ enum Stage {
         modifySource.current?.addFeature(editFeature);
         // 編集インタラクションOn
         if (modify.current)
-            getMap()?.addInteraction(modify.current);
+            map?.addInteraction(modify.current);
 
         setStage(Stage.EDITING);
-    }, [getMap]);
+    }, [map]);
 
     const onClose = useCallback(() => {
         props.close();
     }, [props]);
 
-    const { getApi } = useMap();
+    const { callApi } = useApi();
     /**
      * 変更後Featureを保存する
      * @param feature 変更後Feature
@@ -128,7 +129,7 @@ enum Stage {
         const geoProperties = extractGeoProperty(feature.getProperties());
         const geoJson = geoProperties.featureType === FeatureType.ROAD ? geoProperties.lineJson : createGeoJson(feature);
         const id = convertDataIdFromFeatureId(selectedFeature.current?.getId() as string);
-        await getApi().callApi(UpdateItemAPI, {
+        await callApi(UpdateItemAPI, {
             id,
             geometry: geoJson.geometry,
             geoProperties: extractGeoProperty(geoJson.properties),
@@ -138,7 +139,7 @@ enum Stage {
 
         onClose();
 
-    }, [onClose, confirmHook, getApi, spinnerHook]);
+    }, [onClose, confirmHook, callApi, spinnerHook]);
 
     const onEditOkClicked = useCallback(() => {
         if ((selectedFeature.current?.getProperties() as GeoProperties).featureType === FeatureType.ROAD) {

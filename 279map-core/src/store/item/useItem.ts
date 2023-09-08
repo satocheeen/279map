@@ -1,124 +1,89 @@
 import { useCallback } from "react";
-import { useMap } from "../../components/map/useMap";
-import { GetItemsAPI, GetItemsParam } from "tsunagumap-api";
-import { useRecoilCallback, useRecoilValue, useSetRecoilState } from 'recoil';
-import { initialItemLoadedState, itemMapState } from ".";
-import { getMapKey, isEqualId } from "../../util/dataUtility";
+import { allItemsAtom } from ".";
+import { isEqualId } from "../../util/dataUtility";
 import { DataId, ItemContentInfo } from "279map-common";
-import { visibleDataSourceIdsState } from "../datasource";
-import { filteredContentIdListState } from "../filter";
+import { filteredContentIdListAtom } from "../filter";
+import { useAtomCallback } from 'jotai/utils';
+import { useAtom } from "jotai";
 
 /**
  * アイテム関連フック
  * @returns 
  */
 export function useItem() {
-    const { getApi } = useMap();
-    const setItemMap = useSetRecoilState(itemMapState);
 
-    const resetItems = useRecoilCallback(({reset}) => async() => {
-        reset(itemMapState);
-        reset(initialItemLoadedState);
-    }, []);
+    const removeItems = useAtomCallback(
+        useCallback(async(get, set, target: DataId[]) => {
+            if (target.length === 0) return;
 
-    /**
-     * 指定のズームLv., extentに該当するアイテムをロードする
-     */
-    const loadItems = useRecoilCallback(({ snapshot, set }) => async(param: Omit<GetItemsParam, 'dataSourceIds'>) => {
-        try {
-            const dataSourceIds = await snapshot.getPromise(visibleDataSourceIdsState);
-            const apiResult = await getApi().callApi(GetItemsAPI, {
-                extent: param.extent,
-                zoom: param.zoom,
-                dataSourceIds,
-            });
-    
-            const items = apiResult.items;
-            if (items.length === 0) return;
-
-            setItemMap((currentItemMap) => {
-                const itemMap = Object.assign({}, currentItemMap);
-                items.forEach(def => {
-                    itemMap[getMapKey(def.id)] = def;
+            set(allItemsAtom, (currentItemMap) => {
+                const newItemsMap = Object.assign({}, currentItemMap);
+                target.forEach(def => {
+                    delete newItemsMap[def.dataSourceId][def.id];
                 });
-                return itemMap;
+                return newItemsMap;
             });
-            const initialItemLoaded = await snapshot.getPromise(initialItemLoadedState);
-            if (!initialItemLoaded) {
-                set(initialItemLoadedState, true);
-            }
-    
-        } catch (e) {
-            console.warn('loadItems error', e);
-            throw e;
-        }
 
-    }, [getApi, setItemMap]);
+            // TODO: contentsから除去
+            // state.contentsList = state.contentsList.filter(content => {
+            //     const isDeleted = action.payload.some(id => isEqualId(content.itemId, id));
+            //     return !isDeleted;
+            // });
 
-    const removeItems = useCallback(async(target: DataId[]) => {
-        if (target.length === 0) return;
+            // eventから除去 TODO: サーバーから再取得して設定
 
-        setItemMap((currentItemMap) => {
-            const itemMap = Object.assign({}, currentItemMap);
-            target.forEach(def => {
-                delete itemMap[getMapKey(def)];
-            });
-            return itemMap;
-        });
+        }, [])
+    );
 
-        // TODO: contentsから除去
-        // state.contentsList = state.contentsList.filter(content => {
-        //     const isDeleted = action.payload.some(id => isEqualId(content.itemId, id));
-        //     return !isDeleted;
-        // });
+    const [allItems] = useAtom(allItemsAtom);
+    const getItem = useCallback((id: DataId) => {
+        const itemMap = allItems[id.dataSourceId] ?? {};
+        return itemMap[id.id];
+    }, [allItems]);
 
-        // eventから除去 TODO: サーバーから再取得して設定
-
-    }, [setItemMap]);
-
-    const itemMap = useRecoilValue(itemMapState);
-    const filteredContentIdList = useRecoilValue(filteredContentIdListState);
     /**
      * @params itemId {string} the item ID getting descendants' contents
      * @params filtering {boolean} when true, return the length of contents which are fitted with filter conditions.
      */
-    const getDescendantContentsIdList = useCallback((itemId: DataId, filtering: boolean): DataId[] => {
-        const item = itemMap[getMapKey(itemId)];
-        if (!item) return [];
-        if (item.contents.length===0) return [];
+    const getDescendantContentsIdList = useAtomCallback(
+        useCallback((get, set, itemId: DataId, filtering: boolean): DataId[] => {
+            const item = getItem(itemId);
+            if (!item) return [];
+            if (item.contents.length===0) return [];
 
-        const getDecendant = (content: ItemContentInfo) => {
-            const descendantList = [] as DataId[];
-            content.children.forEach(child => {
-                const isPush = (filtering && filteredContentIdList) ? filteredContentIdList.some(filtered => isEqualId(filtered, child.id)) : true;
-                if (isPush) {
-                    descendantList.push(child.id);
-                }
-                const childDescendants = getDecendant(child);
-                Array.prototype.push.apply(descendantList, childDescendants);
-            });
-            return descendantList;
-        }
+            const filteredContentIdList = get(filteredContentIdListAtom);
+            const getDecendant = (content: ItemContentInfo) => {
+                const descendantList = [] as DataId[];
+                content.children.forEach(child => {
+                    const isPush = (filtering && filteredContentIdList) ? filteredContentIdList.some(filtered => isEqualId(filtered, child.id)) : true;
+                    if (isPush) {
+                        descendantList.push(child.id);
+                    }
+                    const childDescendants = getDecendant(child);
+                    Array.prototype.push.apply(descendantList, childDescendants);
+                });
+                return descendantList;
+            }
 
-        const descendants = item.contents.reduce((acc, cur) => {
-            const decendants = getDecendant(cur);
-            return acc.concat(decendants);
-        }, [] as DataId[]);
+            const descendants = item.contents.reduce((acc, cur) => {
+                const decendants = getDecendant(cur);
+                return acc.concat(decendants);
+            }, [] as DataId[]);
 
-        const idList = item.contents.filter(c => {
-            const isPush = (filtering && filteredContentIdList) ? filteredContentIdList.some(filtered => isEqualId(filtered, c.id)) : true;
-            return isPush;
-        }).map(c => c.id);
-        Array.prototype.push.apply(idList, descendants);
+            const idList = item.contents.filter(c => {
+                const isPush = (filtering && filteredContentIdList) ? filteredContentIdList.some(filtered => isEqualId(filtered, c.id)) : true;
+                return isPush;
+            }).map(c => c.id);
+            Array.prototype.push.apply(idList, descendants);
 
-        return idList;
+            return idList;
 
-    }, [itemMap, filteredContentIdList]);
+        }, [getItem])
+    )
 
     return {
-        resetItems,
-        loadItems,
         removeItems,
         getDescendantContentsIdList,
+        getItem,
     }
 }

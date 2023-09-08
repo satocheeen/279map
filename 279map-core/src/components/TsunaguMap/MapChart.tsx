@@ -1,315 +1,75 @@
-import React, { useCallback, useMemo, useRef, useState, useContext } from "react";
-import { Vector as VectorSource } from "ol/source";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import styles from './MapChart.module.scss';
-import PopupContainer from "../popup/PopupContainer";
-import DrawController from "../map/DrawController";
-import { addListener, removeListener } from "../../util/Commander";
-import LandNameOverlay from "../map/LandNameOverlay";
-import { DataId, FeatureType } from "279map-common";
-import { MapMode } from "../../types/types";
-import useFilteredTopographyStyle from "../map/useFilteredTopographyStyle";
-import useTrackStyle from "../map/useTrackStyle";
-import Feature from "ol/Feature";
+import { mapViewAtom } from "../../store/operation";
+import { currentMapKindAtom } from "../../store/session";
+import { useAtom } from 'jotai';
+import { useMap } from "../map/useMap";
 import { usePrevious } from "../../util/usePrevious";
-import usePointStyle from "../map/usePointStyle";
-import ClusterMenuController from "../cluster-menu/ClusterMenuController";
-import { OwnerContext } from "./TsunaguMap";
-import { OlMapType, createMapInstance, destroyMapInstance } from "./OlMapWrapper";
-import { useMounted } from "../../util/useMounted";
-import { useWatch } from "../../util/useWatch";
-import { Geometry } from "ol/geom";
-import { sleep } from "../../util/CommonUtility";
-import useMyMedia from "../../util/useMyMedia";
-import { useProcessMessage } from "../common/spinner/useProcessMessage";
-import { isEqualId } from "../../util/dataUtility";
-import { useItem } from "../../store/item/useItem";
-import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { initialItemLoadedState, itemMapState } from "../../store/item";
-import { mapModeState, mapViewState, selectedItemIdsState } from "../../store/operation";
-import { itemDataSourcesState } from "../../store/datasource";
-import { currentMapKindState, defaultExtentState } from "../../store/session";
-import { filteredItemIdListState } from "../../store/filter";
 
 export default function MapChart() {
     const myRef = useRef(null as HTMLDivElement | null);
-    const [initialized, setInitialized] = useState(false);
-    const mapRef = useRef<OlMapType>();
-    const mapMode = useRecoilValue(mapModeState);
-
-    // スタイル設定
-    // -- コンテンツ（建物・ポイント）レイヤ
-    const { pointStyleFunction } = usePointStyle();
-    // -- コンテンツ（地形）レイヤ
-    const { topographyStyleFunction } = useFilteredTopographyStyle();
-    // -- 軌跡レイヤ
-    const { trackStyleFunction } = useTrackStyle();
-    /**
-     * スタイル定義が変化したら、地図スタイル設定
-     */
-    useWatch(() => {
-        mapRef.current?.setPointLayerStyle(pointStyleFunction);
-        mapRef.current?.setTopographyLayerStyle(topographyStyleFunction);
-        mapRef.current?.setTrackLayerStyle(trackStyleFunction);
-        
-    }, [pointStyleFunction, topographyStyleFunction, trackStyleFunction])
-
-    const mapKind = useRecoilValue(currentMapKindState);
-    const dataSources = useRecoilValue(itemDataSourcesState);
-
-    const defaultExtent = useRecoilValue(defaultExtentState);
-    const itemMap = useRecoilValue(itemMapState);
-
-    const loadingCurrentAreaContents = useRef(false);
+    const [ mapKind ] = useAtom(currentMapKindAtom);
+    
     // trueにすると回転アニメーション発生
     const [flipping, setFlipping] = useState(false);
 
     /**
-     * 全アイテムが含まれる領域でフィットさせる
-     */
-    const fitToDefaultExtent = useCallback((animation: boolean) => {
-        if (!defaultExtent || !mapRef.current) {
-            return;
-        }
-        // アイテム0件の時はフィットさせない
-        if (defaultExtent.some(i => i !== 0)) {
-            mapRef.current.fit(defaultExtent, {
-                animation,
-            });
-        }
-    }, [defaultExtent]);
-
-    /**
-     * フィルタ時にフィルタ対象がExtentに入るようにする
-     */
-    const filteredItemIdList = useRecoilValue(filteredItemIdListState);
-    const prevFilteredItemIdList = usePrevious(filteredItemIdList);
-    useWatch(() => {
-        if (!mapRef.current) return;
-        if (!filteredItemIdList || filteredItemIdList.length === 0) {
-            if (prevFilteredItemIdList && prevFilteredItemIdList.length > 0) {
-                // フィルタ解除された場合、全体fit
-                fitToDefaultExtent(true);
-            }
-            return;
-        }
-        const source = new VectorSource();
-        filteredItemIdList.forEach(itemId => {
-            const feature = mapRef.current?.getFeatureById(itemId);
-            if (feature) {
-                // Cluster化している場合は、既にsourceに追加されている可能性があるので、
-                // 追加済みでない場合のみ追加
-                if (!source.hasFeature(feature)) {
-                    source.addFeature(feature);
-                }
-            } else {
-                console.warn('feature not found.', itemId);
-            }
-        });
-        if (source.getFeatures().length === 0) {
-            return;
-        }
-        const ext = source.getExtent();
-        mapRef.current.fit(ext, {
-            animation: true,
-        });
-        source.dispose();
-
-    }, [filteredItemIdList]);
-
-    const { loadItems } = useItem();
-
-    /**
-     * 現在の地図表示範囲内に存在するコンテンツをロードする
-     */
-     const loadCurrentAreaContents = useCallback(async() => {
-        console.log('loadCurrentAreaContents', mapRef.current);
-        if (!mapRef.current) return;
-        if (loadingCurrentAreaContents.current) {
-            // 二重起動禁止
-            console.log('二重起動禁止');
-            return;
-        }
-        const zoom = mapRef.current.getZoom();
-        if (!zoom) {
-            return;
-        }
-        loadingCurrentAreaContents.current = true;
-        const ext = mapRef.current.getExtent();
-        await loadItems({zoom, extent: ext});
-        loadingCurrentAreaContents.current = false;
-
-    }, [loadItems]);
-
-    /**
-     * 指定のitemにfitさせる
-     */
-    const focusItem = useCallback(async(itemId: DataId, zoom?: boolean) => {
-        if (!mapRef.current) {
-            return;
-        }
-
-        const map = mapRef.current;
-        const getFeatureFunc = async() => {
-            let itemFeature: undefined | Feature<Geometry>;
-            let retryCnt = 0;
-            do {
-                itemFeature = map.getFeatureById(itemId);
-                if (!itemFeature) {
-                    // アイテムが存在しない場合は、データロード中の可能性があるので、しばらく待ってからリトライ
-                    retryCnt++;
-                    await sleep(0.5);
-                } else {
-                    return itemFeature;
-                }
-            } while(itemFeature === undefined && retryCnt < 5);
-            return itemFeature;
-        };
-        const itemFeature = await getFeatureFunc();
-        if (!itemFeature) {
-            console.warn('focusItem target not found', itemId);
-            return;
-        }
-
-        const ext = itemFeature.getGeometry()?.getExtent();
-        if (!ext) return;
-        mapRef.current.fit(ext, {
-            animation: true,
-            zoom,
-        });
-
-    }, []);
-
-    const { isPC } = useMyMedia();
-    const { mapInstanceId } = useContext(OwnerContext);
-    const { showProcessMessage, hideProcessMessage } = useProcessMessage();
-    const setSelectedItemIds = useSetRecoilState(selectedItemIdsState);
-
-    /**
      * 地図初期化
      */
-    const setMapView = useSetRecoilState(mapViewState);
-    useMounted(() => {
+    const [, setMapView] = useAtom(mapViewAtom);
+    const { createMapInstance, destroyMapInstance, map, loadCurrentAreaContents } = useMap();
+    useEffect(() => {
         if (myRef.current === null) {
             return;
         }
-        const map = createMapInstance(mapInstanceId, myRef.current, isPC ? 'pc' : 'sp');
-        mapRef.current = map;
-        mapRef.current.setPointLayerStyle(pointStyleFunction);
-        mapRef.current.setTopographyLayerStyle(topographyStyleFunction);
-        mapRef.current.setTrackLayerStyle(trackStyleFunction);
+        const id = createMapInstance(myRef.current);
 
-        const loadLatestDataHandler = addListener('LoadLatestData', async() => {
-            await loadCurrentAreaContents();
-        });
-    
+        return () => {
+            destroyMapInstance(id);
+        }
+    }, [createMapInstance, destroyMapInstance]);
+
+    /**
+     * 地図パンニング等に伴うアイテムロード処理フック
+     */
+    useEffect(() => {
+        if (!map) {
+            return;
+        }
+
         // 地図移動時にコンテンツロード
         const loadContentFunc = async() => {
-            const h = showProcessMessage({
-                overlay: false,
-                spinner: true,
-            });
             await loadCurrentAreaContents();
             const extent = map.getExtent();
             const zoom = map.getZoom();
             setMapView({extent, zoom});
-            hideProcessMessage(h);
         };
         map.on('moveend', loadContentFunc);
 
-        // アイテムフォーカスイベントの登録
-        const focusItemHandler = addListener('FocusItem', async(param: {itemId: DataId; zoom?: boolean}) => {
-            focusItem(param.itemId, param.zoom);
-            setSelectedItemIds([param.itemId]);
-        });
-
-        setInitialized(true);
-
         return () => {
             map.un('moveend', loadContentFunc);
-            map.dispose();
-            destroyMapInstance(mapInstanceId);
-            removeListener(loadLatestDataHandler);
-            removeListener(focusItemHandler);
         }
-    });
-    useWatch(() => {
-        mapRef.current?.changeDevice(isPC ? 'pc' : 'sp');
-    }, [isPC]);
+    }, [map, loadCurrentAreaContents, setMapView]);
 
-    const onSelectItem = useCallback((feature: DataId | undefined) => {
-        if (!feature) {
-            setSelectedItemIds([]);
-        } else {
-            setSelectedItemIds([feature]);
-        }
-
-    }, [setSelectedItemIds]);
-
+    const prevMapKind = usePrevious(mapKind);
     /**
-     * 地図が切り替わったら、レイヤ再配置
+     * 地図が切り替わったら、アニメーション
      */
-    useWatch(() => {
-        if (!mapKind || !mapRef.current) {
+    useEffect(() => {
+        if (!mapKind || !prevMapKind) {
+            // 起動時はアニメーションしない
             return;
         }
-        if (mapRef.current.getLayerLength() > 0) {
-            // 起動時以外の地図切り替えはアニメーション
-            setFlipping(true);
-            setTimeout(() => {
-                setFlipping(false);
-            }, 1500);
+        if (prevMapKind === mapKind) {
+            return;
         }
+        // 起動時以外の地図切り替えはアニメーション
+        setFlipping(true);
+        setTimeout(() => {
+            setFlipping(false);
+        }, 1500);
 
-        // 現在のレイヤ、データソースを削除
-        mapRef.current.clearAllLayers();
-        
-        // 初期レイヤ生成
-        mapRef.current.initialize(mapKind, dataSources);
-
-        fitToDefaultExtent(false);
-        loadCurrentAreaContents()
-
-    }, [mapKind]);
-
-    /**
-     * アイテムFeatureを地図に反映する
-     */
-    const geoJsonItems = useMemo(() => {
-        return Object.values(itemMap);
-    }, [itemMap]);
-    const prevGeoJsonItems = usePrevious(geoJsonItems);
-    const initialItemLoaded = useRecoilValue(initialItemLoadedState);
-    useWatch(() => {
-        if (!mapRef.current) return;
-        // 追加、更新
-        const progressH = showProcessMessage({
-            overlay: !initialItemLoaded,    // 初回ロード時はオーバーレイ
-            spinner: true,
-        });
-        // TODO: OlMapWrapperに追加有無判断は任せる
-        const updateItems = geoJsonItems.filter(item => {
-            const before = prevGeoJsonItems?.find(pre => isEqualId(pre.id, item.id));
-            if (!before) return true;   // 追加Item
-            return before.lastEditedTime !== item.lastEditedTime;   // 更新Item
-        })
-        mapRef.current.addFeatures(updateItems)
-        .then(() => {
-            // 削除
-            // 削除アイテム＝prevGeoJsonItemに存在して、geoJsonItemsに存在しないもの
-            const currentIds = geoJsonItems.map(item => item.id);
-            const deleteItems = prevGeoJsonItems?.filter(pre => {
-                return !currentIds.some(current => isEqualId(current, pre.id));
-            });
-            deleteItems?.forEach(item => {
-                mapRef.current?.removeFeature(item);
-            });
-
-        })
-        .finally(() => {
-            hideProcessMessage(progressH);
-        });
-
-    }, [geoJsonItems]);
+    }, [mapKind, prevMapKind]);
 
     const optionClassName = useMemo(() => {
         if (flipping) {
@@ -322,20 +82,6 @@ export default function MapChart() {
     return (
         <div className={styles.Container}>
             <div ref={myRef} className={`${styles.Chart} ${optionClassName}`} />
-            {initialized &&
-                (
-                    <>
-                        <PopupContainer />
-                        <LandNameOverlay />
-                        {mapMode === MapMode.Normal &&
-                            <ClusterMenuController
-                                targets={[FeatureType.STRUCTURE, FeatureType.AREA]}
-                                onSelect={onSelectItem} />
-                        }
-                        <DrawController />
-                    </>
-                )
-            }
         </div>
     )
 }

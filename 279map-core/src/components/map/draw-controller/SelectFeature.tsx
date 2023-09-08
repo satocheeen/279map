@@ -15,8 +15,8 @@ import { MapStyles } from '../../../util/constant-defines';
 import { LayerInfo, LayerType } from '../../TsunaguMap/VectorLayerMap';
 import { containFeatureInLayer } from '../../../util/MapUtility';
 import { useMap } from '../useMap';
-import { useRecoilValue } from 'recoil';
-import { currentMapKindState } from '../../../store/session';
+import { currentMapKindAtom } from '../../../store/session';
+import { useAtom } from 'jotai';
 
 type Props = {
     targetType: LayerType;
@@ -34,21 +34,19 @@ export default function SelectFeature(props: Props) {
     const select = useRef<Select>();
     const [selectedFeature, setSelectedFeature] = useState<Feature>();
     const topographyStyleHook = useTopographyStyle({});
-    const { getMap } = useMap();
+    const { map } = useMap();
     const { selectedStyleFunction } = usePointStyle();
-    const mapKind = useRecoilValue(currentMapKindState);
+    const [ mapKind ] = useAtom(currentMapKindAtom);
 
     const targetLayers = useMemo((): LayerInfo[] => {
-        const map = getMap();
         if (!map) return [];
         const layers = map.getLayersOfTheType(props.targetType);
         // 編集可能なレイヤに絞って返す
         return layers.filter(l => l.editable);
-    }, [props.targetType, getMap]);
+    }, [props.targetType, map]);
 
     // 初期化
     useEffect(() => {
-        const map = getMap();
         if (!map) return;
         const styleFunction = function(){
             if (props.targetType === LayerType.Topography) {
@@ -150,7 +148,7 @@ export default function SelectFeature(props: Props) {
             map.un('pointermove', pointerMoveEvent);
         }
      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [map]);
 
     const message= useMemo(() => {
         let name: string;

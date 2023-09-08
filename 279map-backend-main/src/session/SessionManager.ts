@@ -1,7 +1,7 @@
 import SessionInfo, { SerializableSessionInfo } from "./SessionInfo";
 import jsonfile from 'jsonfile';
 import { getLogger } from "log4js";
-import { CurrentMap, DataId } from "../../279map-backend-common/src";
+import { CurrentMap } from "../../279map-backend-common/src";
 import crypto from 'crypto';
 
 type SessionMapTypeForStorage = {[sid: string]: SerializableSessionInfo};
@@ -89,27 +89,6 @@ export default class SessionManager {
         this.#flushFile();
     }
 
-    /**
-     * 指定のデータソースについて、sendedItem情報をクリアする。
-     * （アイテムの追加・更新・削除が行われた場合の用途）
-     * @param dataSourceId 
-     */
-    clearSendedExtent(dataSourceId: string) {
-        Object.values(this.#sessionMap).forEach(session => session.clearSendedExtent(dataSourceId));
-    }
-
-    /**
-     * 送信済みアイテム情報から当該アイテムを除去する
-     * @param itemIdList 
-     */
-    removeSendedItem(itemIdList: DataId[]) {
-        Object.values(this.#sessionMap).forEach(client => {
-            client.removeItems(itemIdList);
-        });
-        itemIdList.forEach(id => {
-            this.clearSendedExtent(id.dataSourceId);
-        });
-    }
 }
 
 function createHash(): string {

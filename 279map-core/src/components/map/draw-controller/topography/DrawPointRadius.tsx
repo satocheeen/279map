@@ -45,7 +45,7 @@ export default function DrawPointRadius(props: Props) {
     const [circleFeature, setCircleFeature] = useState<Feature>();
 
     const draw = useRef<Draw|undefined>();
-    const { getMap } = useMap();
+    const { map } = useMap();
     const drawingSource = useRef<VectorSource|null>(null);
     const pointStyleHook = usePointStyle();
     const styleHook = useTopographyStyle({
@@ -62,7 +62,6 @@ export default function DrawPointRadius(props: Props) {
      * 初期化
      */
      useEffect(() => {
-        const map = getMap();
         if (!map) return;
         const style = styleHook.getStyleFunction((feature, resolution, defaultStyle) => {
             const type = feature.getGeometry()?.getType();
@@ -97,7 +96,7 @@ export default function DrawPointRadius(props: Props) {
         }
     }, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [getMap]);
+    [map]);
 
     // ステージ変更
     const startSelectCenter = useCallback(() => {
@@ -115,7 +114,7 @@ export default function DrawPointRadius(props: Props) {
         }
 
         if (draw.current) {
-            getMap()?.removeInteraction(draw.current);
+            map?.removeInteraction(draw.current);
         }
         draw.current = new Draw({
             source: drawingSource.current,
@@ -132,9 +131,9 @@ export default function DrawPointRadius(props: Props) {
                 searchAddressRef.current.setAddress(center[1] + ',' + center[0]);
             }
         });
-        getMap()?.addInteraction(draw.current);
+        map?.addInteraction(draw.current);
 
-    }, [pointStyleHook, getMap, iconHook]);
+    }, [pointStyleHook, map, iconHook]);
 
     const startDrawCircle = useCallback(() => {
         if (!drawingSource.current) {
@@ -145,7 +144,7 @@ export default function DrawPointRadius(props: Props) {
         const style = styleHook.getStyleFunction();
 
         if (draw.current) {
-            getMap()?.removeInteraction(draw.current);
+            map?.removeInteraction(draw.current);
         }
         if (!centerCoordinates) {
             return;
@@ -188,8 +187,8 @@ export default function DrawPointRadius(props: Props) {
             console.log('drawend');
             setCircleFeature(event.feature);
         });
-        getMap()?.addInteraction(draw.current);
-    }, [styleHook, getMap, centerCoordinates]);
+        map?.addInteraction(draw.current);
+    }, [styleHook, map, centerCoordinates]);
  
     useEffect(() => {
         if (stage === Stage.SelectCenter) {
@@ -210,12 +209,12 @@ export default function DrawPointRadius(props: Props) {
             return;
         }
         if (isFit.current) {
-            getMap()?.fit(extent);
+            map?.fit(extent);
         } else {
             isFit.current = true;
         }
         setCenterCoordinates(extent.slice(0, 2) as [number, number]);
-    }, [getMap]);
+    }, [map]);
 
 
     const onInputRadius = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -251,7 +250,7 @@ export default function DrawPointRadius(props: Props) {
 
         const extent = circle.getGeometry()?.getExtent();
         if (extent)
-            getMap()?.fit(extent);
+            map?.fit(extent);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [radius]);
 

@@ -6,10 +6,10 @@ import PromptMessageBox from '../PromptMessageBox';
 import SelectFeature from '../SelectFeature';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
-import { itemMapState } from '../../../../store/item';
-import { useRecoilValue } from 'recoil';
 import { useMap } from '../../useMap';
 import { UpdateItemAPI } from 'tsunagumap-api';
+import { useItem } from '../../../../store/item/useItem';
+import { useApi } from '../../../../api/useApi';
 
 type Props = {
     close: () => void;  // 作図完了時のコールバック
@@ -22,23 +22,25 @@ export default function EditTopographyInfoController(props: Props) {
     const [stage, setStage] = useState(Stage.SELECTING_FEATURE);
     const selectedFeatureId = useRef<string>();
     const [name, setName] = useState('');
-    const itemMap = useRecoilValue(itemMapState);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
+    const { getItem } = useItem();
 
-    const onSelectFeature = useCallback((feature: FeatureLike) => {
+    const onSelectFeature = useCallback(async(feature: FeatureLike) => {
         const id = feature.getId() as string;
         selectedFeatureId.current = id;
+        const itemId = convertDataIdFromFeatureId(id);
 
-        setName(itemMap[id].name);
+        const item = getItem(itemId);
+        setName(item?.name ?? '');
 
         setStage(Stage.INPUT_NAME);
-    }, [itemMap]);
+    }, [getItem]);
 
     const onClose = useCallback(() => {
         props.close();
     }, [props]);
 
-    const { getApi } = useMap();
+    const { callApi } = useApi();
 
     const onInputOk = useCallback(async() => {
         const h = showProcessMessage({
@@ -49,7 +51,7 @@ export default function EditTopographyInfoController(props: Props) {
 
         const id = convertDataIdFromFeatureId(selectedFeatureId.current as string);
         // update DB
-        await getApi().callApi(UpdateItemAPI, {
+        await callApi(UpdateItemAPI, {
             id,
             name,
         });
@@ -57,7 +59,7 @@ export default function EditTopographyInfoController(props: Props) {
         hideProcessMessage(h);
         props.close();
 
-    }, [getApi, showProcessMessage, hideProcessMessage, name, props]);
+    }, [callApi, showProcessMessage, hideProcessMessage, name, props]);
 
     switch(stage) {
         case Stage.SELECTING_FEATURE:

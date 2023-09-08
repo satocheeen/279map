@@ -6,15 +6,15 @@ import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
 import { Auth, DataId, DataSourceLinkableContent, MapKind } from '279map-common';
-import { getMapKey } from '../../util/dataUtility';
 import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam } from 'tsunagumap-api';
 import { useMap } from '../map/useMap';
 import { Button } from '../common';
-import { useRecoilValue } from 'recoil';
-import { itemMapState } from '../../store/item';
 import { compareAuth } from '../../util/CommonUtility';
-import { dataSourcesState } from '../../store/datasource';
-import { authLvState, currentMapKindState } from '../../store/session';
+import { authLvAtom, currentMapKindAtom } from '../../store/session';
+import { useItem } from '../../store/item/useItem';
+import { dataSourcesAtom } from '../../store/datasource';
+import { useAtom } from 'jotai';
+import { useApi } from '../../api/useApi';
 
 type Props = {
     target: {
@@ -32,11 +32,19 @@ export default function AddContentMenu(props: Props) {
     const id = useRef('add-content-menu-'+maxId++);
     const { onAddNewContent, onLinkUnpointedContent } = useContext(OwnerContext);
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
-    const itemMap = useRecoilValue(itemMapState);
-    const { getApi } = useMap();
-    const mapKind = useRecoilValue(currentMapKindState);
-    const dataSources = useRecoilValue(dataSourcesState);
-    const authLv = useRecoilValue(authLvState);
+    const { callApi } = useApi();
+    const [ mapKind ] = useAtom(currentMapKindAtom);
+    const [ dataSources ] = useAtom(dataSourcesAtom);
+    const [ authLv ] = useAtom(authLvAtom);
+    const { getItem } = useItem();
+    const item = useMemo(() => {
+        if ('itemId' in props.target) {
+            return getItem(props.target.itemId);
+        } else {
+            return undefined;
+        }
+
+    }, [props.target, getItem]);
 
     const editableAuthLv = useMemo(() => {
         return compareAuth(authLv, Auth.Edit) >= 0;
@@ -89,7 +97,6 @@ export default function AddContentMenu(props: Props) {
             // linkableContent.Singleの場合は、
             // 同一データソースの既存コンテンツが存在しない場合のみOK
             if ('itemId' in props.target) {
-                const item = itemMap[getMapKey(props.target.itemId)];
                 const exist = item?.contents.some(content => content.id.dataSourceId === def.contentDatasourceId);
                 return !exist;
             } else {
@@ -98,7 +105,7 @@ export default function AddContentMenu(props: Props) {
             }
         });
 
-    }, [itemMap, props.target, dataSources, mapKind]);
+    }, [item, props.target, dataSources, mapKind]);
 
     const creatableContentDataSources = useMemo((): LinkUnpointContentParam['dataSources'] => {
         return dataSources
@@ -161,13 +168,13 @@ export default function AddContentMenu(props: Props) {
                 dataSources: creatableContentDataSources,
                 registContentAPI: async(param: RegistContentParam) => {
                     try {
-                        await getApi().callApi(RegistContentAPI, param);
+                        await callApi(RegistContentAPI, param);
                     } catch(e) {
                         throw new Error('registContentAPI failed.' + e);
                     }
                 },
                 getSnsPreviewAPI: async(url: string) => {
-                    const res = await getApi().callApi(GetSnsPreviewAPI, {
+                    const res = await callApi(GetSnsPreviewAPI, {
                         url,
                     });
                     return res;
@@ -178,14 +185,14 @@ export default function AddContentMenu(props: Props) {
                 parent: props.target,
                 dataSources: linkableContentDataSources,
                 getUnpointDataAPI: async(dataSourceId: string, nextToken?: string) => {
-                    const result = await getApi().callApi(GetUnpointDataAPI, {
+                    const result = await callApi(GetUnpointDataAPI, {
                         dataSourceId,
                         nextToken,
                     });
                     return result;
                 },
                 linkContentToItemAPI: async(param: LinkContentToItemParam) => {
-                    await getApi().callApi(LinkContentToItemAPI, param);
+                    await callApi(LinkContentToItemAPI, param);
                 },
             });
         }
@@ -194,7 +201,7 @@ export default function AddContentMenu(props: Props) {
             props.onClick();
         }
 
-    }, [getApi, props, creatableContentDataSources, linkableContentDataSources, onAddNewContent, onLinkUnpointedContent]);
+    }, [callApi, props, creatableContentDataSources, linkableContentDataSources, onAddNewContent, onLinkUnpointedContent]);
 
     const caption = useMemo(() => {
         if ('itemId' in props.target) {

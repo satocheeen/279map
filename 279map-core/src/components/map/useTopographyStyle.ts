@@ -4,8 +4,8 @@ import { Fill, Stroke, Style } from "ol/style";
 import { useCallback } from "react";
 import { colorWithAlpha } from '../../util/CommonUtility';
 import { MapStyles } from "../../util/constant-defines";
-import { useRecoilValue } from "recoil";
-import { currentMapKindState } from "../../store/session";
+import { currentMapKindAtom } from "../../store/session";
+import { useAtomCallback } from "jotai/utils";
 
 const DRAWING_COLOR = '#eebbaa'
 
@@ -42,61 +42,62 @@ type Props = {
  * @param props 
  */
 export default function useTopographyStyle(props: Props) {
-    const mapKind = useRecoilValue(currentMapKindState);
+    const getStyleFunction = useAtomCallback(
+        useCallback((get, set, forceStyleFunc?: (feature: FeatureLike, resolution: number, defaultStyle: Style) => Style) => {
+            const mapKind = get(currentMapKindAtom);
+            return (feature: FeatureLike, resolution: number) => {
+                let featureType: FeatureType = feature.getProperties()['featureType'];
+                if (featureType === undefined && props.defaultFeatureType) {
+                    featureType = props.defaultFeatureType;
+                }
+                if (featureType === undefined) {
+                    featureType = mapKind === MapKind.Virtual ? FeatureType.EARTH : FeatureType.AREA;
+                    console.warn('FeatureType undefined', feature.getId(), feature.getGeometry()?.getType(), 'set', featureType);
+                }
+                let defaultColor;
+                let zIndex;
+                let alpha = 1;
+                switch(featureType) {
+                    case FeatureType.EARTH:
+                        defaultColor = MapStyles.Earth.color;
+                        zIndex = MapStyles.Earth.zIndex;
+                        break;
+                    case FeatureType.FOREST:
+                        defaultColor = MapStyles.Forest.color;
+                        zIndex = MapStyles.Forest.zIndex;
+                        break;
+                    case FeatureType.ROAD:
+                        defaultColor = MapStyles.Road.color;
+                        zIndex = MapStyles.Road.zIndex;
+                        break;
+                    case FeatureType.AREA:
+                        defaultColor = MapStyles.Area.color;
+                        zIndex = MapStyles.Area.zIndex;
+                        alpha = 0.3;
+                        break;
+                    default:
+                        defaultColor = MapStyles.Earth.color;
+                        zIndex = MapStyles.Earth.zIndex;
+                        break;
+                }
 
-    const getStyleFunction = useCallback((forceStyleFunc?: (feature: FeatureLike, resolution: number, defaultStyle: Style) => Style) => {
-        return (feature: FeatureLike, resolution: number) => {
-            let featureType: FeatureType = feature.getProperties()['featureType'];
-            if (featureType === undefined && props.defaultFeatureType) {
-                featureType = props.defaultFeatureType;
-            }
-            if (featureType === undefined) {
-                featureType = mapKind === MapKind.Virtual ? FeatureType.EARTH : FeatureType.AREA;
-                console.warn('FeatureType undefined', feature.getId(), feature.getGeometry()?.getType(), 'set', featureType);
-            }
-            let defaultColor;
-            let zIndex;
-            let alpha = 1;
-            switch(featureType) {
-                case FeatureType.EARTH:
-                    defaultColor = MapStyles.Earth.color;
-                    zIndex = MapStyles.Earth.zIndex;
-                    break;
-                case FeatureType.FOREST:
-                    defaultColor = MapStyles.Forest.color;
-                    zIndex = MapStyles.Forest.zIndex;
-                    break;
-                case FeatureType.ROAD:
-                    defaultColor = MapStyles.Road.color;
-                    zIndex = MapStyles.Road.zIndex;
-                    break;
-                case FeatureType.AREA:
-                    defaultColor = MapStyles.Area.color;
-                    zIndex = MapStyles.Area.zIndex;
-                    alpha = 0.3;
-                    break;
-                default:
-                    defaultColor = MapStyles.Earth.color;
-                    zIndex = MapStyles.Earth.zIndex;
-                    break;
-            }
-
-            const defaultStyle = new Style({
-                stroke: new Stroke({
-                    color: props.drawing ? DRAWING_COLOR : defaultColor,
-                    width: props.drawing ? 3 : 1,
-                }),
-                fill: new Fill({
-                    color: colorWithAlpha(defaultColor, alpha),
-                }),
-                zIndex,
-            });
-            if (!forceStyleFunc) {
-                return defaultStyle;
-            }
-            return forceStyleFunc(feature, resolution, defaultStyle);
-        };
-    }, [props.defaultFeatureType, props.drawing, mapKind]);
+                const defaultStyle = new Style({
+                    stroke: new Stroke({
+                        color: props.drawing ? DRAWING_COLOR : defaultColor,
+                        width: props.drawing ? 3 : 1,
+                    }),
+                    fill: new Fill({
+                        color: colorWithAlpha(defaultColor, alpha),
+                    }),
+                    zIndex,
+                });
+                if (!forceStyleFunc) {
+                    return defaultStyle;
+                }
+                return forceStyleFunc(feature, resolution, defaultStyle);
+            };
+        }, [props.defaultFeatureType, props.drawing])
+    )
 
     return {
         getStyleFunction,

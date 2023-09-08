@@ -3,6 +3,8 @@ import { MapKind, Extent, DataId } from '279map-common';
 import mysql, { PoolConnection } from 'mysql2/promise';
 import { ContentsTable, ItemsTable } from '../../279map-backend-common/src/types/schema';
 import { CurrentMap } from '../../279map-backend-common/src';
+import * as turf from '@turf/turf';
+import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 
 export function getExtentWkt(ext: Extent): string {
     const [lon1, lat1, lon2, lat2] = ext;
@@ -150,25 +152,58 @@ export async function getAncestorItemId(con: PoolConnection | undefined, content
 }
 
 /**
- * 2つのエクステントの関係を判断する
- * @param ext1 
- * @param ext2 
- * @return ext2がext1に包含されている場合、1。ext1がext2に包含されている場合、2。包含関係にない場合、0。
+ * 指定のアイテムのwktを返す
+ * @param itemId 
+ * @returns 
  */
-export function checkContaining(ext1: Extent, ext2: Extent) {
-    const isContain1in2 = (ext1: Extent, ext2: Extent) => {
-        if (ext1[0] < ext2[0]) return false;
-        if (ext1[2] > ext2[2]) return false;
-        if (ext1[1] < ext2[1]) return false;
-        if (ext1[3] > ext2[3]) return false;
-        return true;
+export async function getItemWkt(itemId: DataId): Promise<string|undefined> {
+    const con = await ConnectionPool.getConnection();
+
+    try {
+        const sql = `
+        SELECT ST_AsText(ST_Envelope(location)) as location
+        from items i 
+        where data_source_id = ? and item_page_id = ?
+        `;
+        const [rows] = await con.execute(sql, [itemId.dataSourceId, itemId.id]);
+        if ((rows as []).length === 0) {
+            return;
+        }
+        const location = (rows as {location: string}[])[0].location;
+        return location;
+    
+    } finally {
+        await con.rollback();
+        con.release();
     }
 
-    if (isContain1in2(ext1, ext2)) {
-        return 2;
+}
+
+export async function getItemsWkt(itemIdList: DataId[]): Promise<string|undefined> {
+    let unionFeature: turf.Feature<turf.Polygon|turf.MultiPolygon> | undefined;
+    
+    for (const id of itemIdList) {
+        const wkt = await getItemWkt(id);
+        if (!wkt) continue;
+        const geoJson = wktToGeoJSON(wkt);
+        const polygon = function() {
+            switch(geoJson.type) {
+                case 'Polygon':
+                    return turf.polygon(geoJson.coordinates);
+                case 'MultiPolygon':
+                    return turf.multiPolygon(geoJson.coordinates);
+                case 'Point':
+                    const point = turf.point(geoJson.coordinates);
+                    return turf.circle(point, .05);
+            }
+        }();
+        if (!polygon) continue;
+        if (!unionFeature) {
+            unionFeature = polygon;
+        } else  {
+            unionFeature = turf.union(unionFeature, polygon) ?? unionFeature;
+        }
     }
-    if (isContain1in2(ext2, ext1)) {
-        return 1;
-    }
-    return 0;
+    if (unionFeature)
+        return geojsonToWKT(unionFeature.geometry)
 }

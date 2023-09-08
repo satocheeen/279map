@@ -1,37 +1,33 @@
-import React, { Suspense, useImperativeHandle, useState, useMemo, useRef, useEffect } from 'react';
-import MapWrapper from './MapWrapper';
+import React, { Suspense, useImperativeHandle, useState, useMemo, useRef, useEffect, useId } from 'react';
 import styles from './TsunaguMap.module.scss';
 import './TsunaguMap.scss';
 import ConfirmDialog from '../common/confirm/ConfirmDialog';
-import ContentsModal from '../contents/ContentsModal';
 import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
 import { AddNewContentParam, EditContentParam, LinkUnpointContentParam, TsunaguMapHandler, TsunaguMapProps } from '../../types/types';
 import DefaultComponents from '../default/DefaultComponents';
 import UserListModal from '../admin/UserListModal';
-import { RecoilRoot } from 'recoil';
 import ValueConnectorWithOwner from './ValueConnectorWithOwner';
 import MapConnector from './MapConnector';
 import ProcessOverlay from './ProcessOverlay';
+import { Provider, createStore } from 'jotai';
+import MapController from './MapController';
+import MapChart from './MapChart';
+import PopupContainer from '../popup/PopupContainer';
+import LandNameOverlay from '../map/LandNameOverlay';
+import DrawController from '../map/DrawController';
+import ClusterMenuContainer from '../cluster-menu/ClusterMenuContainer';
+import { instanceIdAtom, mapIdAtom, serverInfoAtom } from '../../store/session';
 
 type SomeRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
-type OwnerContextType = SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'> & {
-    mapInstanceId: string;
-};
+type OwnerContextType = Omit<SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'>, 'mapServer' | 'mapId'>;
 
 export const OwnerContext = React.createContext<OwnerContextType>({
-    mapInstanceId: '',
-    mapId: '',
-    mapServer: {
-        host: '',
-        ssl: false,
-    },
     iconDefine: [],
     onAddNewContent: () => {},
     onEditContent: () => {},
     onLinkUnpointedContent: () => {},
 });
 
-let componentCnt = 0;
 function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHandler>) {
     // 必須パラメータチェック（呼び出し元がTypeScriptではなくJavaScriptだと漏れている可能性があるので）
     if (!props.mapId) {
@@ -43,7 +39,41 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
         throw new Error('mapServer not found in TsunaguMap props');
     }
 
-    const mapInstanceId = useRef('map-' + (++componentCnt));
+    const initializeFlagRef = useRef(false);
+    const myStoreRef = useRef(createStore());
+
+    useEffect(() => {
+        const myStore = myStoreRef.current;
+        const id = myStore.get(instanceIdAtom);
+        console.log('TsunaguMap mounted', id);
+
+        initializeFlagRef.current = true;
+        return () => {
+            // 再レンダリングされたらIDカウントアップ
+            myStore.set(instanceIdAtom);
+            console.log('TsunaguMap unmounted', id);
+        }
+    }, []);
+
+    // レンダリング前に初期値設定する
+    if (!initializeFlagRef.current) {
+        myStoreRef.current.set(instanceIdAtom);
+        myStoreRef.current.set(mapIdAtom, props.mapId);
+        myStoreRef.current.set(serverInfoAtom, props.mapServer);
+    }
+
+    useEffect(() => {
+        if (myStoreRef.current.get(mapIdAtom) !== props.mapId) {
+            myStoreRef.current.set(mapIdAtom, props.mapId);
+        }    
+    }, [props.mapId])
+
+    useEffect(() => {
+        if (myStoreRef.current.get(serverInfoAtom) !== props.mapServer) {
+            myStoreRef.current.set(serverInfoAtom, props.mapServer);
+        }    
+    }, [props.mapServer])
+
     const [ showTooltipId, setShowTooltipId ] = useState<{[name: string]: string}>({});
     const tooltipContextValue = {
         showIdMap: showTooltipId,
@@ -61,51 +91,54 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
 
     const ownerContextValue = useMemo((): OwnerContextType => {
         return Object.assign({}, props, {
-            mapInstanceId: mapInstanceId.current,
             onAddNewContent: props.onAddNewContent ?? function(param: AddNewContentParam){setDefaultNewContentParam(param)},
             onEditContent: props.onEditContent ?? function(param: EditContentParam){setDefaultEditContentParam(param)},
             onLinkUnpointedContent: props.onLinkUnpointedContent ?? function(param: LinkUnpointContentParam){setDefaultLinkUnpointedContentParam(param)},
         })
-    }, [props, mapInstanceId]);
+    }, [props]);
 
-    const mapRef = useRef<TsunaguMapHandler>(null);
-    const [mapInitializedFlag, setMapInitializedFlag] = useState(false);
-    useImperativeHandle(ref, () => mapRef.current ?? {
-        switchMapKind() {},
-        focusItem() {},
-        drawStructure() {},
-        moveStructure() {},
-        changeStructure() {},
-        removeStructure() {},
-        drawTopography() {},
-        drawRoad() {},
-        editTopography() {},
-        removeTopography() {},
-        editTopographyInfo() {},
-        loadContentsAPI() { throw ''},
-        showDetailDialog() {},
-        registContentAPI() { throw ''},
-        updateContentAPI() { throw ''},
-        linkContentToItemAPI() { throw ''},
-        getSnsPreviewAPI() { throw '' },
-        getUnpointDataAPI() { throw ''},
-        getThumbnail() { throw ''},
-        changeVisibleLayer() {},
-        showUserList() {},
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [mapInitializedFlag])
+    const controlRef = useRef<TsunaguMapHandler>(null);
+    useImperativeHandle(ref, () => {
+        return controlRef.current ?? {
+            switchMapKind() {throw 'default function'},
+            focusItem() {throw 'default function'},
+            drawStructure() {throw 'default function'},
+            moveStructure() {throw 'default function'},
+            changeStructure() {throw 'default function'},
+            removeStructure() {throw 'default function'},
+            drawTopography() {throw 'default function'},
+            drawRoad() {throw 'default function'},
+            editTopography() {throw 'default function'},
+            removeTopography() {throw 'default function'},
+            editTopographyInfo() {throw 'default function'},
+            loadContentsAPI() { throw 'default function'},
+            showDetailDialog() {throw 'default function'},
+            registContentAPI() { throw 'default function'},
+            updateContentAPI() { throw 'default function'},
+            linkContentToItemAPI() { throw 'default function'},
+            getSnsPreviewAPI() { throw 'default function' },
+            getUnpointDataAPI() { throw 'default function'},
+            getThumbnail() { throw 'default function'},
+            changeVisibleLayer() { throw 'default function' },
+            showUserList() { throw 'default function' },
+        }
+    })
 
     return (
         <div className={styles.TsunaguMap}>
             <OwnerContext.Provider value={ownerContextValue}>
-                <RecoilRoot>
-                    <MapConnector>
-                        <ValueConnectorWithOwner />
+                <Provider store={myStoreRef.current}>
+                    <MapConnector server={props.mapServer}>
+                        <ValueConnectorWithOwner ref={controlRef} />
                         <TooltipContext.Provider value={tooltipContextValue}>
-                            <MapWrapper ref={mapRef} onInitialized={()=>setMapInitializedFlag(true)} />
+                            <MapController />
+                            <MapChart />
+                            <PopupContainer />
+                            <LandNameOverlay />
+                            <DrawController />
+                            <ClusterMenuContainer />
                             <Suspense>
                                 <ConfirmDialog />
-                                <ContentsModal />
                                 <UserListModal />
 
                                 {defaultLinkUnpointedContentParam &&
@@ -119,9 +152,9 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
                                 }
                             </Suspense>
                         </TooltipContext.Provider>
-                        <ProcessOverlay />
                     </MapConnector>
-                </RecoilRoot>
+                    <ProcessOverlay />
+                </Provider>
             </OwnerContext.Provider>
         </div>
     );

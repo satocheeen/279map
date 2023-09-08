@@ -1,60 +1,11 @@
 import { useCallback } from "react";
-import { atom, selector, useRecoilState, useSetRecoilState } from "recoil";
+import { processMessagesAtom } from "./atoms";
+import { useAtom } from "jotai";
+import { ProcessMessageType } from "./types";
 
-export type ProcessMessageType = {
-    overlay: boolean;   // trueの場合、オーバーレイ表示。falseの場合、ユーザ操作を阻害しない位置に表示
-    spinner: boolean;   // trueの場合、スピナー表示
-    message?: string;
-}
-type ProcessMessageWithID = ProcessMessageType & {
-    id: number;
-}
-export const processMessageCounterState = atom<number>({
-    key: 'processMessageCounterAtom',
-    default: 0,
-});
-
-export const processMessagesState = atom<ProcessMessageWithID[]>({
-    key: 'processMessagesAtom',
-    default:[],
-});
-
-/**
- * オーバーレイ表示するかどうか
- */
-export const isShowOverlayState = selector<boolean>({
-    key: 'isShowOverlaySelector',
-    get: ({ get }) => {
-        const processMessages = get(processMessagesState);
-        return processMessages.some(pm => pm.overlay);
-    }
-})
-
-/**
- * スピナー表示するかどうか
- */
-export const isShowSpinnerState = selector<boolean>({
-    key: 'isShowSpinnerSelector',
-    get: ({ get }) => {
-        const processMessages = get(processMessagesState);
-        return processMessages.some(pm => pm.spinner);
-    }
-})
-
-/**
- * 表示するメッセージ。メッセージが存在しない場合は、undefined。
- */
-export const processMessageState = selector<ProcessMessageWithID|undefined>({
-    key: 'processMessageSelector',
-    get: ({ get }) => {
-        const processMessages = get(processMessagesState);
-        return processMessages.find(pm => pm.message);
-    }
-})
-
+let processCnt = 0
 export function useProcessMessage() {
-    const [currentProcessCnt, setProcessCnt] = useRecoilState(processMessageCounterState);
-    const setProcessMessages = useSetRecoilState(processMessagesState);
+    const [processMessages, setProcessMessages] = useAtom(processMessagesAtom);
     
     /**
      * 指定の処理中メッセージを画面に表示する
@@ -62,7 +13,7 @@ export function useProcessMessage() {
      */
     const showProcessMessage = useCallback((param: ProcessMessageType): number => {
         // キー発行
-        const id = currentProcessCnt + 1;
+        const id = ++processCnt;
 
         const withID = Object.assign({}, param, {
             id,
@@ -71,9 +22,8 @@ export function useProcessMessage() {
         setProcessMessages((current) => {
             return current.concat(withID);
         });
-        setProcessCnt(id);
         return id;
-    }, [setProcessMessages, currentProcessCnt, setProcessCnt]);
+    }, [setProcessMessages]);
 
     /**
      * 表示中のメッセージを消す

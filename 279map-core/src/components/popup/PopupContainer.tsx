@@ -9,11 +9,12 @@ import PopupContainerCalculator, { PopupGroupWithPosition } from './PopupContain
 import { useMap } from '../map/useMap';
 import { useWatch } from '../../util/useWatch';
 import { useMapOptions } from '../../util/useMapOptions';
-import { itemMapState } from '../../store/item';
-import { useRecoilValue } from 'recoil';
-import { mapViewState } from '../../store/operation';
-import { visibleDataSourceIdsState } from '../../store/datasource';
-import { filteredItemIdListState } from '../../store/filter';
+import { allItemsAtom } from '../../store/item';
+import { mapViewAtom } from '../../store/operation';
+import { filteredItemIdListAtom } from '../../store/filter';
+import { ItemDefine } from '279map-common';
+import { useAtom } from 'jotai';
+import { visibleDataSourceIdsAtom } from '../../store/datasource';
 
 function createKeyFromPopupInfo(param: PopupGroupWithPosition): string {
     if (!param) {
@@ -25,36 +26,35 @@ export default function PopupContainer() {
     const elementRefMap = useRef<{ [key: string]: HTMLDivElement }>({});
     const overlayRefMap = useRef<{ [key: string]: Overlay }>({});
 
-    const itemMap = useRecoilValue(itemMapState);
-    const { extent, zoom } = useRecoilValue(mapViewState);
+    const [{ extent, zoom }] = useAtom(mapViewAtom);
 
     const { popupMode } = useMapOptions();
     
-    const { getMap } = useMap();
+    const { map } = useMap();
 
-    const visibleDataSourceIds = useRecoilValue(visibleDataSourceIdsState);
+    const [itemsMap] = useAtom(allItemsAtom)
+    const [ visibleDataSourceIds ] = useAtom(visibleDataSourceIdsAtom);
 
-    const filteredItemIdList = useRecoilValue(filteredItemIdListState);
+    const [filteredItemIdList] = useAtom(filteredItemIdListAtom);
 
     // コンテンツを持つアイテムID一覧
     const hasContentsItemList = useMemo(() => {
         if (popupMode === 'hidden') {
             return [];
         }
-        const list = Object.values(itemMap).filter(item => {
-            if (item.contents.length === 0) return false;
-
-            // 非表示のものは無視する
-            return visibleDataSourceIds.includes(item.id.dataSourceId);
-
-        })
+        // 表示中のアイテム
+        const list = visibleDataSourceIds.reduce((acc, cur) => {
+            const items = itemsMap[cur] ?? {};
+            return acc.concat(Object.values(items));
+        }, [] as ItemDefine[])
         .filter(item => {
+            if (item.contents.length === 0) return false;
             // フィルタが掛かっている場合は条件外のものは除外する
             if (!filteredItemIdList) return true;
             return filteredItemIdList.some(filteredItemId => isEqualId(filteredItemId, item.id));
         });
         return list;
-    }, [itemMap, popupMode, visibleDataSourceIds, filteredItemIdList]);
+    }, [itemsMap, popupMode, visibleDataSourceIds, filteredItemIdList]);
 
     // 表示するポップアップ情報群
     const [popupGroups, setPopupGroups] = useState<PopupGroupWithPosition[]>([]);
@@ -64,21 +64,19 @@ export default function PopupContainer() {
      * useMemoではなくuseCallbackで実装している。
      */
     const updatePopupGroups = useCallback(async() => {
-        const map = getMap();
         if (!map) return;
         const calculator = new PopupContainerCalculator(map, extent);
         calculator.setHasContentsItemIdList(hasContentsItemList);
         const popupGroups = await calculator.calculatePopupGroup();
         setPopupGroups(popupGroups);
 
-    }, [getMap, hasContentsItemList, extent]);
+    }, [map, hasContentsItemList, extent]);
 
     /**
      * 初期化処理。
      * 地図へのFeature追加検知して、表示するポップアップ情報を更新する。
      */
     useEffect(() => {
-        const map = getMap();
         if (!map) return;
         // 画像ロード完了していないと、imagePositionの取得に失敗するので、ここでイベント検知して再描画させる
         const loadendFunc = () => {
@@ -103,7 +101,7 @@ export default function PopupContainer() {
             });
         }
 
-    }, [getMap, updatePopupGroups]);
+    }, [map, updatePopupGroups]);
 
     /**
      * 表示対象コンテンツや表示エクステントが変わった契機でポップアップ情報更新
@@ -153,7 +151,7 @@ export default function PopupContainer() {
                 stopEvent: false,
                 element: elementRefMap.current[key],
             });
-            getMap()?.addOverlay(overlay);
+            map?.addOverlay(overlay);
             overlay.setPosition([position.longitude, position.latitude]);
             overlayRefMap.current[key] = overlay;
         });
@@ -182,11 +180,11 @@ export default function PopupContainer() {
             return !exist;
         });
         removeChildren.forEach(key => {
-            getMap()?.removeOverlay(overlayRefMap.current[key]);
+            map?.removeOverlay(overlayRefMap.current[key]);
             delete overlayRefMap.current[key];
         });
 
-    }, [getMap, popupGroups, zoom]);
+    }, [map, popupGroups, zoom]);
 
     return (
         <>

@@ -5,13 +5,13 @@ import React, { useRef, useEffect, useState, useCallback, useContext } from 'rea
 import ClusterMenu from './ClusterMenu';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import { usePrevious } from '../../util/usePrevious';
-import { getMapKey, isEqualId } from '../../util/dataUtility';
+import { isEqualId } from '../../util/dataUtility';
 import { useMap } from '../map/useMap';
 import { addListener, removeListener } from '../../util/Commander';
-import { itemMapState } from '../../store/item';
-import { useRecoilValue } from 'recoil';
-import { mapModeState, mapViewState, selectedItemIdsState } from '../../store/operation';
-import { filteredItemIdListState } from '../../store/filter';
+import { mapModeAtom, mapViewAtom, selectedItemIdsAtom } from '../../store/operation';
+import { filteredItemIdListAtom } from '../../store/filter';
+import { useItem } from '../../store/item/useItem';
+import { useAtom } from 'jotai';
 
 /**
  * 地図上のアイテムがクリックされた際に、
@@ -31,18 +31,12 @@ type ClusterMenuTarget = {
 }
 
 export default function ClusterMenuController(props: Props) {
-    const { getMap } = useMap();
+    const { map } = useMap();
     const [clusterMenuInfo, setClusterMenuInfo] = useState<ClusterMenuTarget|null>(null);
     const { onClick } = useContext(OwnerContext);
-    const mapMode = useRecoilValue(mapModeState);
+    const [mapMode] = useAtom(mapModeAtom);
 
-    const itemMap = useRecoilValue(itemMapState);
-    const itemMapRef = useRef(itemMap);
-    useEffect(() => {
-        itemMapRef.current = itemMap;
-    }, [itemMap]);
-
-    const filteredItemIdList = useRecoilValue(filteredItemIdListState);
+    const [filteredItemIdList] = useAtom(filteredItemIdListAtom);
     const filteredItemIdListRef = useRef(filteredItemIdList);   // for using in map event funtion
     useEffect(() => {
         filteredItemIdListRef.current = filteredItemIdList;
@@ -53,7 +47,7 @@ export default function ClusterMenuController(props: Props) {
     }, [mapMode]);
 
     // close cluster menu when zoom level is changed
-    const mapView = useRecoilValue(mapViewState);
+    const [mapView] = useAtom(mapViewAtom);
     const prevMapView = usePrevious(mapView);
     useEffect(() => {
         if (mapView.zoom === prevMapView?.zoom) {
@@ -62,28 +56,28 @@ export default function ClusterMenuController(props: Props) {
         setClusterMenuInfo(null);
     }, [mapView, prevMapView]);
 
-    const selectedItemIds = useRecoilValue(selectedItemIdsState);
+    const [selectedItemIds] = useAtom(selectedItemIdsAtom);
     useEffect(() => {
         if (selectedItemIds.length > 0) {
             setClusterMenuInfo(null);
         }
     }, [selectedItemIds]);
 
+    const { getItem } = useItem();
     /**
      * get the selectable features.
      * クリック位置付近に存在する選択可能な地物を返す
      * @params evt {MapBrowserEvent} 地図クリック時のイベント
      */
-    const getSelectableFeatures = useCallback((evt: MapBrowserEvent<any>) => {
-        const map = getMap();
+    const getSelectableFeatures = useCallback(async(evt: MapBrowserEvent<any>) => {
         if (!map) return [];
         // クリック位置付近にあるアイテムIDを取得
         let pointIds = map.getNearlyFeatures(evt.pixel);
 
         if (props.targets) {
             // 対象種別指定されている場合は、対象種別のものに絞る
-            pointIds = pointIds.filter(point => {
-                const item = itemMapRef.current[getMapKey(point.id)];
+            const filterResults = await Promise.all(pointIds.map(async(point) => {
+                const item = getItem(point.id);
                 if (!item) {
                     return false;
                 }
@@ -91,8 +85,9 @@ export default function ClusterMenuController(props: Props) {
                 if (!featureType) {
                     return false;
                 }
-                return props.targets?.includes(featureType);
-            });
+                return props.targets?.includes(featureType) ?? false;
+            }));
+            pointIds = pointIds.filter((_, i) => filterResults[i]);
         }
 
         // フィルタ時はフィルタ対象外のものに絞る
@@ -105,16 +100,15 @@ export default function ClusterMenuController(props: Props) {
         }
 
         return pointIds;
-    }, [getMap, props.targets]);
+    }, [map, props.targets, getItem]);
 
     // イベントコールバック用意
     useEffect(() => {
-        const map = getMap();
         if (!map) return;
-        const clickFunc =  (evt: MapBrowserEvent<any>) => {
+        const clickFunc =  async(evt: MapBrowserEvent<any>) => {
             setClusterMenuInfo(null);
 
-            const pointIds = getSelectableFeatures(evt);
+            const pointIds = await getSelectableFeatures(evt);
 
             if (pointIds.length === 0) {
                 props.onSelect(undefined);
@@ -141,8 +135,8 @@ export default function ClusterMenuController(props: Props) {
         map.on('click', clickFunc);
 
         // クリック可能な地図上アイテムhover時にポインター表示
-        const pointerMoveFunc = (evt: MapBrowserEvent<any>) => {
-            const points = getSelectableFeatures(evt);
+        const pointerMoveFunc = async(evt: MapBrowserEvent<any>) => {
+            const points = await getSelectableFeatures(evt);
 
             // const isHover = hitIds.some(id => isTarget(id));
             if (points.length > 0) {
@@ -164,7 +158,7 @@ export default function ClusterMenuController(props: Props) {
             removeListener(listenerH);
         }
 
-    }, [props, getSelectableFeatures, onClick, getMap]);
+    }, [props, getSelectableFeatures, onClick, map]);
 
     /**
      * 重畳選択メニュー選択時のコールバック

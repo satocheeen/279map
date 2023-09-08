@@ -1,15 +1,15 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Button, Modal } from '../common';
 import { DataId, MapKind } from '279map-common';
-import { itemMapState } from '../../store/item';
-import { useRecoilValue } from 'recoil';
-import { getMapKey } from '../../util/dataUtility';
 import FormGroup from '../common/form/FormGroup';
 import Input from '../common/form/Input';
-import { useMap } from '../map/useMap';
 import { UpdateItemAPI } from 'tsunagumap-api';
-import useConfirm, { ConfirmBtnPattern } from '../common/confirm/useConfirm';
-import { currentMapKindState } from '../../store/session';
+import useConfirm from '../common/confirm/useConfirm';
+import { useApi } from '../../api/useApi';
+import { ConfirmBtnPattern } from '../common/confirm/types';
+import { useItem } from '../../store/item/useItem';
+import { useAtom } from 'jotai';
+import { currentMapKindAtom } from '../../store/session';
 
 type Props = {
     target: DataId;
@@ -17,18 +17,19 @@ type Props = {
 }
 
 export default function EditItemNameModal(props: Props) {
-    const itemMap = useRecoilValue(itemMapState);
+    const { getItem } = useItem();
+    // const itemMap = useRecoilValue(itemMapState);
     const [title, setTitle] = useState<string>(
-        itemMap[getMapKey(props.target)]?.name ?? ''
+        getItem(props.target)?.name ?? ''
     )
 
-    const { getApi } = useMap();
+    const { callApi } = useApi();
     const [registing, setRegisting] = useState(false);
     const { confirm } = useConfirm();
     const onOk = useCallback(async() => {
         setRegisting(true);
         try {
-            await getApi().callApi(UpdateItemAPI, {
+            await callApi(UpdateItemAPI, {
                 id: props.target,
                 name: title,
             });
@@ -44,9 +45,9 @@ export default function EditItemNameModal(props: Props) {
             setRegisting(false);
 
         }
-    }, [getApi, props, title, confirm])
+    }, [callApi, props, title, confirm])
 
-    const mapKind = useRecoilValue(currentMapKindState);
+    const [ mapKind ] = useAtom(currentMapKindAtom);
     const label = useMemo(() => {
         if (mapKind === MapKind.Real) {
             return '地名'

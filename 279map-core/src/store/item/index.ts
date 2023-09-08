@@ -1,13 +1,17 @@
 import { ItemDefine } from '279map-common';
-import { atom } from 'recoil';
+import { atom } from 'jotai';
 
-export const itemMapState = atom<{[id: string]: ItemDefine}>({
-    key: 'itemMapAtom',
-    default: {}
-})
+export type LoadedItemKey = {
+    datasourceId: string;
+    zoom?: number;
+}
 
-// アイテムの初回ロード完了しているかどうかのフラグ
-export const initialItemLoadedState = atom<boolean>({
-    key: 'initialItemLoadedAtom',
-    default: false,
-})
+export type LoadedAreaInfo = {
+    geometry: GeoJSON.Geometry;
+}
+type LoadedItemMap = {[datasourceId: string]: LoadedAreaInfo};
+export const loadedItemMapAtom = atom<LoadedItemMap>({});
+
+export type ItemsMap = {[itemId: string]: ItemDefine};
+type ItemsByDatasourceMap = {[dsId: string]: ItemsMap};
+export const allItemsAtom = atom({} as ItemsByDatasourceMap);

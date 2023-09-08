@@ -11,6 +11,7 @@ import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import { FeatureType, GeoProperties } from '279map-common';
 import { useMap } from '../../useMap';
 import { RegistItemAPI } from 'tsunagumap-api';
+import { useApi } from '../../../../api/useApi';
 
 enum Stage {
     DRAWING,        // 描画
@@ -26,7 +27,7 @@ type Props = {
  * 道描画コントローラ
  */
 export default function DrawRoadController(props: Props) {
-    const { getMap } = useMap();
+    const { map } = useMap();
     const [stage, setStage] = useState(Stage.DRAWING);
 
     const draw = useRef<Draw|undefined>();
@@ -42,7 +43,6 @@ export default function DrawRoadController(props: Props) {
      * 初期化
      */
     useEffect(() => {
-        const map = getMap();
         if (!map) return;
         const drawingLayer = map.createDrawingLayer(styleHook.getStyleFunction());
         drawingSource.current = drawingLayer.getSource();
@@ -72,7 +72,7 @@ export default function DrawRoadController(props: Props) {
         }
     }, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [getMap]);
+    [map]);
 
     // 描画中にキャンセルボタンが押された場合
     const onCanceled = useCallback(() => {
@@ -81,7 +81,7 @@ export default function DrawRoadController(props: Props) {
     }, [props]);
     
 
-    const { getApi } = useMap();
+    const { callApi } = useApi();
     const registFeatureFunc = useCallback(async() => {
         if (!drawingFeature.current) {
             console.warn('描画図形なし（想定外）');
@@ -103,7 +103,7 @@ export default function DrawRoadController(props: Props) {
             message: '登録中...'
         });
         console.log('geoJson', geoJson);
-        await getApi().callApi(RegistItemAPI, {
+        await callApi(RegistItemAPI, {
             dataSourceId: props.dataSourceId,
             geometry: geoJson.geometry,
             geoProperties: geoJson.properties as GeoProperties,
@@ -111,7 +111,7 @@ export default function DrawRoadController(props: Props) {
         spinnerHook.hideProcessMessage(h);
 
         props.close();
-    }, [props, spinnerHook, getApi]);
+    }, [props, spinnerHook, callApi]);
 
     const onWidthSelected = useCallback(async(feature: Feature) => {
         drawingFeature.current = feature;
