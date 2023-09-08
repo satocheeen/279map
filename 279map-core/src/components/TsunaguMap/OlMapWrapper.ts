@@ -13,7 +13,7 @@ import VectorLayer from "ol/layer/Vector";
 import Style, { StyleFunction } from "ol/style/Style";
 import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
-import { DataId, FeatureType, ItemDefine, MapKind, DataSourceGroup } from '279map-common';
+import { DataId, FeatureType, ItemDefine, MapKind, DataSourceGroup, APIDefine } from '279map-common';
 import BaseEvent from 'ol/events/Event';
 import * as MapUtility from '../../util/MapUtility';
 import { FeatureProperties } from '../../types/types';
@@ -33,6 +33,7 @@ type Device = 'pc' | 'sp';
 const pcControls = olControl.defaults({attribution: true});
 const spControls = olControl.defaults({attribution: true, zoom: false});
 
+type CallApiType = <API extends APIDefine<any, any>>(api: API, param: API['param']) => Promise<API['result']>
 /**
  * OpenLayersの地図を内包したクラス。
  * 当該システムで必要な機能を実装している。
@@ -44,13 +45,15 @@ export class OlMapWrapper {
     _mapKind?: MapKind;
     _currentZoom: number;   // Zoomレベル変更検知用に保持
     _device: Device = 'pc';
+    _callApi: CallApiType;
 
     // 描画用レイヤ
     _drawingLayers: VectorLayer<VectorSource>[] = [];
 
-    constructor(id: string, target: HTMLDivElement, device: Device) {
+    constructor(id: string, target: HTMLDivElement, device: Device, mycallApi: CallApiType) {
         this._id = id;
         this._vectorLayerMap = new VectorLayerMap();
+        this._callApi = mycallApi;
         console.log('create OlMapWrapper', this._id);
 
         const map = new OlMap({
@@ -238,11 +241,10 @@ export class OlMapWrapper {
     async _createFeatureGeometryFromItemDefine(def: ItemDefine): Promise<Feature<Geometry> | undefined> {
         let feature: Feature<Geometry> | undefined;
         if (def.geoProperties?.featureType === FeatureType.AREA && ('geocoderId' in def.geoProperties && def.geoProperties.geocoderId)) {
-            // TODO: APIまわりの見直しが終わるまでコメントアウト
-            // // Geocoderの図形の場合は、Geocoder図形呼び出し
-            // const result = await getAPICallerInstance(this._id).callApi(GetGeocoderFeatureAPI, def.geoProperties.geocoderId);
+            // Geocoderの図形の場合は、Geocoder図形呼び出し
+            const result = await this._callApi(GetGeocoderFeatureAPI, def.geoProperties.geocoderId);
 
-            // feature = new GeoJSON().readFeatures(result.geoJson)[0];
+            feature = new GeoJSON().readFeatures(result.geoJson)[0];
 
         } else {
             feature = MapUtility.createFeatureByGeoJson(def.geoJson, def.geoProperties);

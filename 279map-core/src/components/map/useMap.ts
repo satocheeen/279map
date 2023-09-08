@@ -41,6 +41,7 @@ export const mapInstanceIdAtom = atom('');
 export function useMap() {
     const { isPC } = useMyMedia();
     const [_, dispatch] = useAtom(mapInstanceCntReducerAtom);
+    const { callApi } = useApi();
 
     /**
      * 地図インスタンスを生成する
@@ -53,12 +54,12 @@ export function useMap() {
             dispatch();
             const mapInstanceId = get(instanceIdAtom) + '-' + get(mapInstanceCntReducerAtom);
             set(mapInstanceIdAtom, mapInstanceId);
-            const map = new OlMapWrapper(mapInstanceId, target, isPC ? 'pc' : 'sp');
+            const map = new OlMapWrapper(mapInstanceId, target, isPC ? 'pc' : 'sp', callApi);
             console.log('create map', mapInstanceId);
 
             instansMap.set(mapInstanceId, map);
             return mapInstanceId;
-        }, [dispatch, isPC])
+        }, [dispatch, isPC, callApi])
     );
 
     const destroyMapInstance = useAtomCallback(
@@ -77,7 +78,6 @@ export function useMap() {
         return instansMap.get(mapInstanceId);
     }, [mapInstanceId]);
 
-    const { callApi } = useApi();
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
     const getLoadedAreaMapKey = useAtomCallback(
