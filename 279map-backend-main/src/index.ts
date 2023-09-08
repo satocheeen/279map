@@ -991,14 +991,16 @@ app.post(`/api/${GetUnpointDataAPI.uri}`,
         try {
             const param = req.body as GetUnpointDataParam;
 
-            // 現在の地図上に紐づけ可能なデータソースか確認
-            const checkOk = await checkLinkableDatasource(req.currentMap, param.dataSourceId);
-            if (!checkOk) {
-                res.send({
-                    contents: [],
-                })
-                return;
-            }
+            // 指定のアイテムに対して紐づけ可能なデータソースか確認
+            // -> 紐づけ対象のアイテム情報をもらうインタフェースになっていないので、現状はコメントアウト
+            // const checkOk = await checkLinkableDatasource(req.currentMap, param.dataSourceId);
+            // if (!checkOk) {
+            //     apiLogger.warn('check NG');
+            //     res.send({
+            //         contents: [],
+            //     })
+            //     return;
+            // }
 
             // call ODBA
             const result = await callOdbaApi(OdbaGetUnpointDataAPI, {

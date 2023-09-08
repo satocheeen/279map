@@ -7,7 +7,6 @@ import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
 import { Auth, DataId, DataSourceLinkableContent, MapKind } from '279map-common';
 import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam } from 'tsunagumap-api';
-import { useMap } from '../map/useMap';
 import { Button } from '../common';
 import { compareAuth } from '../../util/CommonUtility';
 import { authLvAtom, currentMapKindAtom } from '../../store/session';
@@ -15,6 +14,8 @@ import { useItem } from '../../store/item/useItem';
 import { dataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
 import { useApi } from '../../api/useApi';
+import useConfirm from '../common/confirm/useConfirm';
+import { ConfirmBtnPattern } from '../common/confirm/types';
 
 type Props = {
     target: {
@@ -160,6 +161,8 @@ export default function AddContentMenu(props: Props) {
         }
     }, [isShowSubMenu]);
 
+    const { confirm } = useConfirm();
+
     const onAddContent = useCallback((val: 'new' | 'unpoint') => {
         setShowSubMenu(false);
         if (val === 'new') {
@@ -192,7 +195,17 @@ export default function AddContentMenu(props: Props) {
                     return result;
                 },
                 linkContentToItemAPI: async(param: LinkContentToItemParam) => {
-                    await callApi(LinkContentToItemAPI, param);
+                    try {
+                        await callApi(LinkContentToItemAPI, param);
+
+                    } catch(e) {
+                        console.warn(e);
+                        confirm({
+                            message: 'コンテンツ登録に失敗しました。再度やり直して問題解決しない場合は管理者へ連絡してください。',
+                            btnPattern: ConfirmBtnPattern.OkOnly,
+                            title: 'エラー',
+                        })
+                    }
                 },
             });
         }
