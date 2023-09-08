@@ -3,6 +3,8 @@ import { MapKind, Extent, DataId } from '279map-common';
 import mysql, { PoolConnection } from 'mysql2/promise';
 import { ContentsTable, ItemsTable } from '../../279map-backend-common/src/types/schema';
 import { CurrentMap } from '../../279map-backend-common/src';
+import * as turf from '@turf/turf';
+import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 
 export function getExtentWkt(ext: Extent): string {
     const [lon1, lat1, lon2, lat2] = ext;
@@ -150,11 +152,11 @@ export async function getAncestorItemId(con: PoolConnection | undefined, content
 }
 
 /**
- * 指定のアイテムのextentを返す
+ * 指定のアイテムのwktを返す
  * @param itemId 
  * @returns 
  */
-export async function getItemExtent(itemId: DataId): Promise<Extent|undefined> {
+export async function getItemWkt(itemId: DataId): Promise<string|undefined> {
     const con = await ConnectionPool.getConnection();
 
     try {
@@ -168,20 +170,7 @@ export async function getItemExtent(itemId: DataId): Promise<Extent|undefined> {
             return;
         }
         const location = (rows as {location: string}[])[0].location;
-        if (location.startsWith('POINT')) {
-            const match = location.match(/(?<=POINT\()\d+\.\d+\s\d+\.\d+(?=\))/);
-            if (!match) return;
-            const p = match[0].split(' ').map(str => parseFloat(str));
-            return [p[0], p[1], p[0], p[1]];
-        } else {
-            const match = location.match(/(?<=POLYGON\(\().*(?=\)\))/);
-            if (!match) return;
-            const p = match[0].split(',').map(str => {
-                const xy = str.split(' ').map(s => parseFloat(s));
-                return [xy[0], xy[1]]
-            });
-            return [p[0][0], p[0][1], p[3][0], p[3][1]];
-        }
+        return location;
     
     } finally {
         await con.rollback();
@@ -190,20 +179,31 @@ export async function getItemExtent(itemId: DataId): Promise<Extent|undefined> {
 
 }
 
-export async function getItemsExtent(itemIdList: DataId[]): Promise<Extent|undefined> {
-    let result: Extent | undefined;
+export async function getItemsWkt(itemIdList: DataId[]): Promise<string|undefined> {
+    let unionFeature: turf.Feature<turf.Polygon|turf.MultiPolygon> | undefined;
+    
     for (const id of itemIdList) {
-        const extent = await getItemExtent(id);
-        if (!result) {
-            result = extent;
-        } else if(extent) {
-            result = [
-                Math.min(result[0], extent[0]),
-                Math.min(result[1], extent[1]),
-                Math.max(result[2], extent[2]),
-                Math.max(result[3], extent[3]),
-            ]
+        const wkt = await getItemWkt(id);
+        if (!wkt) continue;
+        const geoJson = wktToGeoJSON(wkt);
+        const polygon = function() {
+            switch(geoJson.type) {
+                case 'Polygon':
+                    return turf.polygon(geoJson.coordinates);
+                case 'MultiPolygon':
+                    return turf.multiPolygon(geoJson.coordinates);
+                case 'Point':
+                    const point = turf.point(geoJson.coordinates);
+                    return turf.circle(point, .05);
+            }
+        }();
+        if (!polygon) continue;
+        if (!unionFeature) {
+            unionFeature = polygon;
+        } else  {
+            unionFeature = turf.union(unionFeature, polygon) ?? unionFeature;
         }
     }
-    return result;
+    if (unionFeature)
+        return geojsonToWKT(unionFeature.geometry)
 }

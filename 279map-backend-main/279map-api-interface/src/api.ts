@@ -394,7 +394,7 @@ export type PublishMapMessage = {
     subtype?: undefined;
     targets: {
         datasourceId: string;   // 更新対象データソースID
-        extent: Extent; // 更新された範囲
+        wkt: string; // 更新された範囲
     }[];
 } | {
     // 地図上のアイテムが削除された場合

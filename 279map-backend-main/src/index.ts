@@ -10,7 +10,7 @@ import { getContents } from './getContents';
 import { getEvents } from './getEvents';
 import proxy from 'express-http-proxy';
 import http from 'http';
-import { convertBase64ToBinary, getItemExtent, getItemsExtent } from './util/utility';
+import { convertBase64ToBinary, getItemWkt, getItemsWkt } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
 import { getSnsPreview } from './api/getSnsPreview';
@@ -35,7 +35,6 @@ import { CurrentMap, sleep } from '../279map-backend-common/src';
 import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaRegistContentAPI, OdbaRegistItemAPI, OdbaRemoveContentAPI, OdbaRemoveItemAPI, OdbaUpdateContentAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
 import MqttBroadcaster from './session/MqttBroadcaster';
 import SessionManager from './session/SessionManager';
-import { Extent } from '279map-common';
 
 declare global {
     namespace Express {
@@ -780,8 +779,8 @@ app.post(`/api/${RegistItemAPI.uri}`,
             });
     
             // 更新通知
-            const extent = await getItemExtent(id);
-            if (!extent) {
+            const wkt = await getItemWkt(id);
+            if (!wkt) {
                 logger.warn('not found extent', id);
             } else {
                 broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
@@ -789,7 +788,7 @@ app.post(`/api/${RegistItemAPI.uri}`,
                     targets: [
                         {
                             datasourceId: id.dataSourceId,
-                            extent,
+                            wkt,
                         }
                     ]
                 });
@@ -825,8 +824,8 @@ app.post(`/api/${UpdateItemAPI.uri}`,
             }, param));
     
             // 更新通知
-            const extent = await getItemExtent(param.id);
-            if (!extent) {
+            const wkt = await getItemWkt(param.id);
+            if (!wkt) {
                 logger.warn('not found extent', param.id);
             } else {
                 broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
@@ -834,7 +833,7 @@ app.post(`/api/${UpdateItemAPI.uri}`,
                     targets: [
                         {
                             datasourceId: param.id.dataSourceId,
-                            extent,
+                            wkt,
                         }
                     ]
                 });
@@ -1321,15 +1320,15 @@ internalApp.post('/api/broadcast', async(req: Request, res: Response) => {
         }
         return acc;
     }, {} as {[datasourceId: string]: DataId[]});
-    const targets = [] as {datasourceId: string; extent: Extent}[];
+    const targets = [] as {datasourceId: string; wkt: string}[];
     for (const entry of Object.entries(itemIdListByDataSource)) {
         const datasourceId = entry[0];
         const itemIdList = entry[1];
-        const extent = await getItemsExtent(itemIdList);
-        if (extent) {
+        const wkt = await getItemsWkt(itemIdList);
+        if (wkt) {
             targets.push({
                 datasourceId,
-                extent,
+                wkt,
             })
         }
     }
@@ -1387,4 +1386,3 @@ initializeDb()
     })
     checkSessionProcess();
 });
-
