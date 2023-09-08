@@ -294,9 +294,9 @@ export function useMap() {
                 return;
             }
             const geoJson = wktToGeoJSON(wkt);
-            const polygon = 'geometry' in geoJson ? geoJsonToTurfPolygon(geoJson.geometry) : undefined;
+            const polygon = geoJsonToTurfPolygon(geoJson);
             if (!polygon) {
-                console.warn('wkt is not polygon', wkt);
+                console.warn('wkt is not polygon', wkt, geoJson);
                 return;
             }
             const intersectPolygon = turf.intersect(loadedPolygon, polygon);

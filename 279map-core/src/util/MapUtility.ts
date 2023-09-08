@@ -287,7 +287,7 @@ export function checkContaining(ext1: Extent, ext2: Extent) {
     return 0;
 }
 
-export function geoJsonToTurfPolygon(geoJson: geojson.Geometry) {
+export function geoJsonToTurfPolygon(geoJson: geojson.Geometry | geojson.GeoJSON) {
     switch(geoJson.type) {
         case 'Polygon':
             return turf.polygon(geoJson.coordinates);
