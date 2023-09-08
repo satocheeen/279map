@@ -905,10 +905,22 @@ app.post(`/api/${RegistContentAPI.uri}`,
             // TODO: OdbaRegistContentAPIの戻り値をcontentIdにして、それを元にgetContentsしてitemIdを取得するように変更する
             // 更新通知
             if ('itemId' in param.parent) {
-                broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                    type: 'childcontents-update',
-                    subtype: param.parent.itemId,
-                });
+                // 更新通知
+                const id = param.parent.itemId;
+                const wkt = await getItemWkt(id);
+                if (!wkt) {
+                    logger.warn('not found extent', id);
+                } else {
+                    broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
+                        type: 'mapitem-update',
+                        targets: [
+                            {
+                                datasourceId: id.dataSourceId,
+                                wkt,
+                            }
+                        ]
+                    });
+                }
             }
        
             res.send('complete');
