@@ -29,17 +29,14 @@ export async function getItemsSub(currentMap: CurrentMap, param: GetItemsParam):
     const con = await ConnectionPool.getConnection();
     
     try {
-        const dataSourceIds = param.dataSourceIds;
-        const pointContents = dataSourceIds.length === 0 ? [] : await selectItems(con, dataSourceIds, param.wkt, currentMap);
+        const pointContents = await selectItems(con, param.dataSourceId, param.wkt, currentMap);
 
         if (currentMap.mapKind === MapKind.Virtual) {
             return pointContents;
         }
 
-        // 既に送信済みのExtentかチェック。
-        const targetDataSourceIds = param.dataSourceIds;
         // 軌跡コンテンツ
-        const trackContents = targetDataSourceIds.length === 0 ? [] : await selectTrackInArea(con, param, currentMap.mapId);
+        const trackContents = await selectTrackInArea(con, param, currentMap.mapId);
         const contents = pointContents.concat(...trackContents);
 
         // console.log('isSended', dataSourceIds.length === 0, targetDataSourceIds.length === 0);
@@ -58,7 +55,7 @@ export async function getItemsSub(currentMap: CurrentMap, param: GetItemsParam):
     
 }
 
-async function selectItems(con: PoolConnection, dataSourceIds:string[], wkt: string, currentMap: CurrentMap): Promise<ItemDefine[]> {
+async function selectItems(con: PoolConnection, dataSourceId:string, wkt: string, currentMap: CurrentMap): Promise<ItemDefine[]> {
     try {
         // 位置コンテンツ
         const sql = `
@@ -66,19 +63,12 @@ async function selectItems(con: PoolConnection, dataSourceIds:string[], wkt: str
         from items i
         inner join data_source ds on ds.data_source_id = i.data_source_id 
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
-        where map_page_id = ? and i.map_kind = ?
+        where map_page_id = ? and i.map_kind = ? and i.data_source_id = ?
         and ST_Intersects(location, ST_GeomFromText(?,4326));
         `;
-        // const extentPolygon = (extent[0] === extent[2] && extent[1] === extent[3]) ?
-        //     `POINT(${extent[0]} ${extent[1]})`
-        //     : `POLYGON((${extent[0]} ${extent[1]}, ${extent[2]} ${extent[1]}, ${extent[2]} ${extent[3]}, ${extent[0]} ${extent[3]}, ${extent[0]} ${extent[1]}))`
-        const [rows] = await con.execute(sql, [currentMap.mapId, currentMap.mapKind, wkt]);
+        const [rows] = await con.execute(sql, [currentMap.mapId, currentMap.mapKind, dataSourceId, wkt]);
         const pointContents = [] as ItemDefine[];
         for(const row of rows as (ItemsTable & {geojson: any})[]) {
-            // 指定されているデータソースのもののみに絞る
-            if (!dataSourceIds.includes(row.data_source_id)) {
-                continue;
-            }
             const contents: ItemContentInfo[] = [];
             let lastEditedTime = row.last_edited_time;
 
@@ -137,18 +127,11 @@ async function selectTrackInArea(con: PoolConnection, param: GetItemsParam, mapP
                     inner join tracks t on t.track_page_id = tf.track_page_id 
                     inner join data_source ds on ds.data_source_id = t.data_source_id 
                     inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
-                    WHERE map_page_id= ? AND MBRIntersects(geojson, GeomFromText(?,4326)) AND min_zoom <= ? AND ? < max_zoom`;
-        const [rows] = await con.execute(sql, [mapPageId, wkt, param.zoom, param.zoom]);
+                    WHERE map_page_id= ? AND MBRIntersects(geojson, GeomFromText(?,4326)) AND min_zoom <= ? AND ? < max_zoom AND t.data_source_id = ?`;
+        const [rows] = await con.execute(sql, [mapPageId, wkt, param.zoom, param.zoom, param.dataSourceId]);
         
         const list = [] as ItemDefine[];
         for (const row of (rows as (TrackGeoJsonTable & TracksTable)[])) {
-            // データソースが指定されている場合は、指定されているデータソースのもののみに絞る
-            if (param.dataSourceIds) {
-                if (!param.dataSourceIds.includes(row.data_source_id)) {
-                    continue;
-                }
-            }
-
             list.push({
                 id: {
                     id: '' + row.track_file_id + row.sub_id,

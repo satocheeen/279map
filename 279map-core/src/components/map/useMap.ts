@@ -145,7 +145,7 @@ export function useMap() {
                 const apiResult = await callApi(GetItemsAPI, {
                     wkt,
                     zoom,
-                    dataSourceIds: [target.datasourceId],
+                    dataSourceId: target.datasourceId,
                 });
                 const items = apiResult.items;
 
@@ -274,7 +274,7 @@ export function useMap() {
             const apiResult = await callApi(GetItemsAPI, {
                 wkt: updateArea,
                 zoom,
-                dataSourceIds: [datasourceId],
+                dataSourceId: datasourceId,
             });
             const items = apiResult.items;
 

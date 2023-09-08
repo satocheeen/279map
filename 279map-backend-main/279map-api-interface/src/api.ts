@@ -142,10 +142,9 @@ export const GetItemsAPI = {
     resultType: 'json',
 } as APIDefine<GetItemsParam, GetItemsResult>;
 export type GetItemsParam = {
-    // extent: Extent;
     wkt: string;
     zoom: number;
-    dataSourceIds: string[];   // 指定のデータソースのアイテムのみ返す
+    dataSourceId: string;
 }
 export type GetItemsResult = {
     items: ItemDefine[],
