@@ -15,10 +15,9 @@ import { sleep } from '../../util/CommonUtility';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { useApi } from '../../api/useApi';
 import { initialLoadingAtom } from '../TsunaguMap/MapController';
-import { convertTurfPolygon } from '../../util/MapUtility';
+import { convertTurfPolygon, geoJsonToTurfPolygon } from '../../util/MapUtility';
 import * as turf from '@turf/turf';
-// @ts-ignore
-import { stringify as wktStringify } from 'wkt';
+import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 
 /**
  * 地図インスタンス管理マップ。
@@ -142,7 +141,7 @@ export function useMap() {
             });
 
             for (const target of loadTargets) {
-                const wkt = wktStringify(target.polygon) as string;
+                const wkt = geojsonToWKT(target.polygon);
                 const apiResult = await callApi(GetItemsAPI, {
                     wkt,
                     zoom,
@@ -249,7 +248,7 @@ export function useMap() {
      * 指定範囲のアイテムを更新する
      */
     const updateAreaItems = useAtomCallback(
-        useCallback(async(get, set, extent: Extent, dataSourceId: string) => {
+        useCallback(async(get, set, wkt: string, datasourceId: string) => {
             if (!map) {
                 console.warn('map is undefined', mapInstanceId);
                 return;
@@ -258,21 +257,37 @@ export function useMap() {
             if (!zoom) {
                 return;
             }
-            // TODO:
-            // const loadedItemKeys = get(loadedItemKeysAtom);
-            const isLoaded = false;
-            // const isLoaded = loadedItemKeys.some(key => {
-            //     if (key.datasourceId !== dataSourceId) return false;
-            //     return checkContaining(key.extent, extent) !== 0;
-            // })
-            // 未ロード範囲ならば何もしない
-            if (!isLoaded) return;
+            // 取得済み範囲と交差する領域についてupdate
+            const loadedItemMap = get(loadedItemMapAtom);
+            const key: LoadedItemKey = {
+                datasourceId,
+            }
+            const loadedItem = loadedItemMap[JSON.stringify(key)];
+            if (!loadedItem) {
+                return;
+            }
+            const loadedPolygon = geoJsonToTurfPolygon(loadedItem.polygon);
+            if (!loadedPolygon) {
+                console.warn('loaded polygon can not analyze', loadedItem.polygon);
+                return;
+            }
+            const geoJson = wktToGeoJSON(wkt);
+            const polygon = geoJsonToTurfPolygon(geoJson);
+            if (!polygon) {
+                console.warn('wkt is not polygon', wkt);
+                return;
+            }
+            const intersectPolygon = turf.intersect(loadedPolygon, polygon);
+            if (!intersectPolygon) {
+                // 未ロードエリアの場合、何もしない
+                return;
+            }
+            const updateArea = geojsonToWKT(intersectPolygon.geometry);
 
             const apiResult = await callApi(GetItemsAPI, {
-                // TODO
-                wkt: '',
+                wkt: updateArea,
                 zoom,
-                dataSourceIds: [dataSourceId],
+                dataSourceIds: [datasourceId],
             });
             const items = apiResult.items;
 
@@ -282,7 +297,7 @@ export function useMap() {
             });
             set(allItemsAtom, (currentItemMap) => {
                 const newItemsMap = Object.assign({}, currentItemMap, {
-                    [dataSourceId]: itemMap,
+                    [datasourceId]: itemMap,
                 });
                 return newItemsMap;
             })

@@ -63,7 +63,7 @@ function useMapInitializer() {
             if (payload.type === 'mapitem-update') {
                 // 表示中エリアの場合は最新ロードする
                 payload.targets.forEach(target => {
-                    updateAreaItems(target.extent, target.datasourceId);
+                    updateAreaItems(target.wkt, target.datasourceId);
                 })
             }
         });

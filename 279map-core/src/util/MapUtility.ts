@@ -292,3 +292,14 @@ export function convertTurfPolygon(extent: Extent) {
     const bbox = turf.bbox(line);
     return turf.bboxPolygon(bbox);
 }
+
+export function geoJsonToTurfPolygon(geoJson: geojson.GeoJSON) {
+    switch(geoJson.type) {
+        case 'Polygon':
+            return turf.polygon(geoJson.coordinates);
+        case 'MultiPolygon':
+            return turf.multiPolygon(geoJson.coordinates);
+        case 'Point':
+            return turf.circle(geoJson.coordinates, .05);
+    }
+}
