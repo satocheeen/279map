@@ -1,15 +1,15 @@
 import { Overlay } from 'ol';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import {buffer, getSize} from 'ol/extent';
-import { usePrevious } from '../../util/usePrevious';
 import styles from './LandNameOverlay.module.scss';
-import { FeatureType } from '279map-common';
+import { FeatureType, ItemDefine } from '279map-common';
 import { getMapKey } from '../../util/dataUtility';
 import { useMap } from './useMap';
-import { mapViewAtom } from '../../store/operation';
+import { mapModeAtom, mapViewAtom } from '../../store/operation';
 import { allItemsAtom } from '../../store/item';
 import { useAtom } from 'jotai';
 import { dataSourcesAtom } from '../../store/datasource';
+import { MapMode } from '../../types/types';
 
 // 島名を常時表示するズームLv.境界値（この値よりも小さい場合に、常時表示）
 const LandNameShowZoomLv = 8.17
@@ -29,20 +29,25 @@ export default function LandNameOverlay() {
         return allItems[virtualItemDatasource.dataSourceId] ?? [];
     }, [allItems, virtualItemDatasource]);
 
-    const [landNameRefMap] = useState({} as { [id: string]: HTMLDivElement });
-    const [landNameOverlayMap] = useState({} as  { [id: string]: Overlay });
+    const landNameDivMapRef = useRef({} as { [id: string]: HTMLDivElement });
+    const landNameOverlayMapRef = useRef({} as  { [id: string]: Overlay });
 
     const [mapView] = useAtom(mapViewAtom);
+    const [ mapMode ] = useAtom(mapModeAtom);
 
     // 名前を持つ島
     const namedEarth = useMemo(() => {
+        if (mapMode !== MapMode.Normal) {
+            // 描画中は表示しない
+            return [];
+        }
         return Object.values(items).filter(item => {
             if (item.name.length === 0) {
                 return false;
             }
             return item.geoProperties?.featureType === FeatureType.EARTH;
         });
-    }, [items]);
+    }, [items, mapMode]);
 
     // 表示範囲の島
     const currentAreaNamedEarth = useMemo(() => {
@@ -64,17 +69,18 @@ export default function LandNameOverlay() {
         });
     }, [namedEarth, mapView.extent, map]);
 
-    const prevCurrentAreaNamedEarth = usePrevious(currentAreaNamedEarth);
+    // 現在オーバーレイ表示中のアイテム一覧
+    const currentOverlayItemRef = useRef<ItemDefine[]>([]);
 
     // 島名の付与された島に変更があった場合
     useEffect(() => {
         // オーバレイを配置する
         currentAreaNamedEarth.forEach(item => {
-            const exist = prevCurrentAreaNamedEarth?.some(prev => prev.id === item.id);
+            const exist = currentOverlayItemRef.current.some(prev => prev.id === item.id);
             if (exist) return;
 
             // 追加
-            const element = landNameRefMap[getMapKey(item.id)];
+            const element = landNameDivMapRef.current[getMapKey(item.id)];
             if (element === undefined || element === null) {
                 return;
             }
@@ -98,19 +104,19 @@ export default function LandNameOverlay() {
                 coord[1] + (coord[3] - coord[1]) / 2
             ]);
             map?.addOverlay(overlay);            
-            landNameOverlayMap[getMapKey(item.id)] = overlay;
+            landNameOverlayMapRef.current[getMapKey(item.id)] = overlay;
         });
 
-        prevCurrentAreaNamedEarth?.forEach(item => {
+        currentOverlayItemRef.current.forEach(item => {
             const exist = currentAreaNamedEarth.some(cur => cur.id === item.id);
             if (exist) return;
 
             // 削除
-            const overlay = landNameOverlayMap[getMapKey(item.id)];
+            const overlay = landNameOverlayMapRef.current[getMapKey(item.id)];
             map?.removeOverlay(overlay);
         });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentAreaNamedEarth, prevCurrentAreaNamedEarth, map]);
+        currentOverlayItemRef.current = currentAreaNamedEarth.concat();
+    }, [currentAreaNamedEarth, map]);
 
     const fadeClass = useMemo(() => {
         if (!mapView.zoom) return null;
@@ -124,7 +130,7 @@ export default function LandNameOverlay() {
                 currentAreaNamedEarth.map((item) => {
                     return (
                         <div key={getMapKey(item.id)}>
-                            <div className={`${styles.LandnameOverlay} ${fadeClass}`} ref={ref => landNameRefMap[getMapKey(item.id)] = ref as HTMLDivElement}>
+                            <div className={`${styles.LandnameOverlay} ${fadeClass}`} ref={ref => landNameDivMapRef.current[getMapKey(item.id)] = ref as HTMLDivElement}>
                                 {item.name}
                             </div>
                         </div>
