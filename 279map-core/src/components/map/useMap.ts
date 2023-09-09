@@ -1,10 +1,10 @@
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo } from 'react';
 import { OlMapWrapper } from '../TsunaguMap/OlMapWrapper';
 import { atom, useAtom } from 'jotai';
 import { useAtomCallback, atomWithReducer } from 'jotai/utils';
-import { defaultExtentAtom, instanceIdAtom } from '../../store/session';
+import { currentMapKindAtom, defaultExtentAtom, instanceIdAtom, mapIdAtom } from '../../store/session';
 import { GetItemsAPI } from 'tsunagumap-api';
-import { ItemsMap, LoadedAreaInfo, LoadedItemKey, allItemsAtom, loadedItemMapAtom } from '../../store/item';
+import { LoadedAreaInfo, LoadedItemKey, allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { DataId, Extent } from '279map-common';
 import { dataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import useMyMedia from '../../util/useMyMedia';
@@ -124,145 +124,154 @@ export function useMap() {
             }).map(item => item.id.id);
         }, [])
     )
-   /**
+    /**
      * 指定のズームLv., extentに該当するアイテムをロードする
      */
-   const loadItems = useAtomCallback(
-    useCallback(async(get, set, param: { extent: Extent; zoom: number }) => {
-        const overlay = get(initialLoadingAtom);
-        const h = showProcessMessage({
-            overlay, // 初回ロード時はoverlay表示
-            spinner: true,
-        });
-        set(initialLoadingAtom, false);
+    const loadItems = useAtomCallback(
+        useCallback(async(get, set, param: { extent: Extent; zoom: number }) => {
 
-        try {
-            // 未ロードのデータのみロードする
-            // -- zoomは小数点以下は切り捨てる
-            const zoom = Math.floor(param.zoom);
-            const loadedItemMap = get(loadedItemMapAtom);
-            const visibleDataSourceIds = get(visibleDataSourceIdsAtom);
-
-            const extentPolygon = bboxPolygon(param.extent as [number,number,number,number]);
-
-            // ロード対象
-            const loadTargets = visibleDataSourceIds.map((datasourceId): {datasourceId: string; geometry: GeoJSON.Geometry} => {
+            try {
+                // 未ロードのデータのみロードする
+                // -- zoomは小数点以下は切り捨てる
+                const zoom = Math.floor(param.zoom);
                 const loadedItemMap = get(loadedItemMapAtom);
-                const key = getLoadedAreaMapKey(datasourceId, zoom);
-                const loadedItemInfo = loadedItemMap[JSON.stringify(key)];
-                const loadedPolygon = loadedItemInfo ? geoJsonToTurfPolygon(loadedItemInfo.geometry) : undefined;
-                let polygon: LoadedAreaInfo['geometry'] | undefined;
-                if (loadedPolygon) {
-                    // @ts-ignore 第1引数がなぜかTypeScript Errorになるので
-                    const p = mask(loadedPolygon, extentPolygon)
-                    polygon = {
-                        type: 'Polygon',
-                        coordinates: p.geometry.coordinates,
+                const visibleDataSourceIds = get(visibleDataSourceIdsAtom);
+
+                const extentPolygon = bboxPolygon(param.extent as [number,number,number,number]);
+
+                // ロード対象
+                const loadTargets = visibleDataSourceIds.map((datasourceId): {datasourceId: string; geometry: GeoJSON.Geometry} => {
+                    const loadedItemMap = get(loadedItemMapAtom);
+                    const key = getLoadedAreaMapKey(datasourceId, zoom);
+                    const loadedItemInfo = loadedItemMap[JSON.stringify(key)];
+                    const loadedPolygon = loadedItemInfo ? geoJsonToTurfPolygon(loadedItemInfo.geometry) : undefined;
+                    let polygon: LoadedAreaInfo['geometry'] | undefined;
+                    if (loadedPolygon) {
+                        // @ts-ignore 第1引数がなぜかTypeScript Errorになるので
+                        const p = mask(loadedPolygon, extentPolygon)
+                        polygon = {
+                            type: 'Polygon',
+                            coordinates: p.geometry.coordinates,
+                        }
                     }
-                }
-                if (!polygon) {
-                    polygon = {
-                        type: 'Polygon',
-                        coordinates: extentPolygon.geometry.coordinates
+                    if (!polygon) {
+                        polygon = {
+                            type: 'Polygon',
+                            coordinates: extentPolygon.geometry.coordinates
+                        }
                     }
-                }
-                return {
-                    datasourceId,
-                    geometry: polygon,
-                }
-            });
-
-            for (const target of loadTargets) {
-                const wkt = geojsonToWKT(target.geometry);
-                const excludeItemIds = getExcludeItemIds(target.datasourceId, param.extent);
-                const apiResult = await callApi(GetItemsAPI, {
-                    wkt,
-                    zoom,
-                    dataSourceId: target.datasourceId,
-                    excludeItemIds,
+                    return {
+                        datasourceId,
+                        geometry: polygon,
+                    }
                 });
-                const items = apiResult.items;
 
-                if (items.length === 0) continue;
-
-                const itemMap: ItemsMap = get(allItemsAtom)[target.datasourceId] ?? {};
-                items.forEach(item => {
-                    itemMap[item.id.id] = item;
-                });
+                const beforeMapId = get(mapIdAtom);
+                const beforeMapKind = get(currentMapKindAtom);
+                const apiResults = await Promise.all(loadTargets.map((target) => {
+                    const wkt = geojsonToWKT(target.geometry);
+                    const excludeItemIds = getExcludeItemIds(target.datasourceId, param.extent);
+                    return callApi(GetItemsAPI, {
+                        wkt,
+                        zoom,
+                        dataSourceId: target.datasourceId,
+                        excludeItemIds,
+                    });
+                }));
+                
+                // TODO: 地図が切り替えられていたら何もしない
+                const afterMapId = get(mapIdAtom);
+                const afterMapKind = get(currentMapKindAtom);
+                if (beforeMapId !== afterMapId || beforeMapKind !== afterMapKind) {
+                    console.log('cancel load items because map change', beforeMapId, beforeMapKind);
+                    return;
+                }
                 set(allItemsAtom, (currentItemMap) => {
                     const newItemsMap = structuredClone(currentItemMap);
-                    newItemsMap[target.datasourceId] = itemMap;
+                    apiResults.forEach(apiResult => {
+                        const items = apiResult.items;
+                        items.forEach(item => {
+                            newItemsMap[item.id.dataSourceId] ??= {};
+                            newItemsMap[item.id.dataSourceId][item.id.id] = item;
+                        })
+                    })
                     return newItemsMap;
                 })
+
+                // ロード済みの範囲と併せたものを保管
+                const newLoadedItemMap = Object.assign({}, loadedItemMap);
+                loadTargets.forEach(info => {
+                    const key = getLoadedAreaMapKey(info.datasourceId, zoom);
+                    const keyStr = JSON.stringify(key);
+                    const currentData = loadedItemMap[keyStr];
+                    let polygon: LoadedAreaInfo['geometry'];
+                    if (currentData) {
+                        const loadedPolygon = geoJsonToTurfPolygon(currentData.geometry);
+                        const newLoadedPolygon = geoJsonToTurfPolygon(info.geometry);
+                        if (!newLoadedPolygon) return;
+                        const newPolygon = loadedPolygon ?
+                            union(
+                                loadedPolygon,
+                                newLoadedPolygon,
+                            )
+                            : newLoadedPolygon;
+                        if (!newPolygon) return;
+                        polygon = newPolygon.geometry;
+
+                    } else {
+                        polygon = info.geometry;
+                    }
+                    newLoadedItemMap[keyStr] = {
+                        geometry: polygon,
+                    }
+                })
+                set(loadedItemMapAtom, newLoadedItemMap);
+
+            } catch (e) {
+                console.warn('loadItems error', e);
+                throw e;
+
             }
-            // ロード済みの範囲と併せたものを保管
-            const newLoadedItemMap = Object.assign({}, loadedItemMap);
-            loadTargets.forEach(info => {
-                const key = getLoadedAreaMapKey(info.datasourceId, zoom);
-                const keyStr = JSON.stringify(key);
-                const currentData = loadedItemMap[keyStr];
-                let polygon: LoadedAreaInfo['geometry'];
-                if (currentData) {
-                    const loadedPolygon = geoJsonToTurfPolygon(currentData.geometry);
-                    const newLoadedPolygon = geoJsonToTurfPolygon(info.geometry);
-                    if (!newLoadedPolygon) return;
-                    const newPolygon = loadedPolygon ?
-                        union(
-                            loadedPolygon,
-                            newLoadedPolygon,
-                        )
-                        : newLoadedPolygon;
-                    if (!newPolygon) return;
-                    polygon = newPolygon.geometry;
 
-                } else {
-                    polygon = info.geometry;
-                }
-                newLoadedItemMap[keyStr] = {
-                    geometry: polygon,
-                }
-            })
-            set(loadedItemMapAtom, newLoadedItemMap);
-
-        } catch (e) {
-            console.warn('loadItems error', e);
-            throw e;
-        } finally {
-            hideProcessMessage(h);
-
-        }
-
-    }, [callApi, showProcessMessage, hideProcessMessage, getLoadedAreaMapKey, getExcludeItemIds])
-)
+        }, [callApi, getLoadedAreaMapKey, getExcludeItemIds])
+    )
 
     /**
      * 現在の地図表示範囲内に存在するコンテンツをロードする
      */
-    const loadingCurrentAreaContents = useRef(false);
-    const loadCurrentAreaContents = useCallback(async() => {
-        console.log('loadCurrentAreaContents', mapInstanceId);
+    const loadCurrentAreaContents = useAtomCallback(
+        useCallback(async(get, set) => {
+            console.log('loadCurrentAreaContents', mapInstanceId);
 
-        if (!map) {
-            console.warn('map is undefined', mapInstanceId);
-            return;
-        }
-        if (loadingCurrentAreaContents.current) {
-            // 二重起動禁止
-            console.log('二重起動禁止');
-            return;
-        }
-        const zoom = map.getZoom();
-        if (!zoom) {
-            return;
-        }
-        loadingCurrentAreaContents.current = true;
-        const ext = map.getExtent();
+            if (!map) {
+                console.warn('map is undefined', mapInstanceId);
+                return;
+            }
 
-        await loadItems({zoom, extent: ext});
+            const zoom = map.getZoom();
+            if (!zoom) {
+                return;
+            }
+            const ext = map.getExtent();
 
-        loadingCurrentAreaContents.current = false;
+            const overlay = get(initialLoadingAtom);
+            const h = showProcessMessage({
+                overlay, // 初回ロード時はoverlay表示
+                spinner: true,
+            });
+            set(initialLoadingAtom, false);
 
-    }, [loadItems, map, mapInstanceId]);
+            try {
+                await loadItems({zoom, extent: ext});
+
+            } finally {
+                console.log('debug hideProcess');
+                hideProcessMessage(h);
+
+            }
+
+        }, [loadItems, map, mapInstanceId, showProcessMessage, hideProcessMessage])
+    )
 
     /**
      * 指定範囲のアイテムを更新する

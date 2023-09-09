@@ -143,22 +143,18 @@ function useItemUpdater() {
             if (!before) return true;   // 追加Item
             return before.lastEditedTime !== item.lastEditedTime;   // 更新Item
         })
-        map.addFeatures(updateItems)
-        .then(() => {
-            // 削除
-            // 削除アイテム＝prevGeoJsonItemに存在して、geoJsonItemsに存在しないもの
-            const currentIds = geoJsonItems.map(item => item.id);
-            const deleteItems = prevGeoJsonItemsRef.current.filter(pre => {
-                return !currentIds.some(current => isEqualId(current, pre.id));
-            });
-            deleteItems?.forEach(item => {
-                map.removeFeature(item);
-            });
-
-        })
-        .finally(() => {
-            prevGeoJsonItemsRef.current = geoJsonItems.concat();
+        map.addFeatures(updateItems);
+        // 削除
+        // 削除アイテム＝prevGeoJsonItemに存在して、geoJsonItemsに存在しないもの
+        const currentIds = geoJsonItems.map(item => item.id);
+        const deleteItems = prevGeoJsonItemsRef.current.filter(pre => {
+            return !currentIds.some(current => isEqualId(current, pre.id));
         });
+        deleteItems.forEach(item => {
+            map.removeFeature(item);
+        });
+
+        prevGeoJsonItemsRef.current = geoJsonItems.concat();
 
     }, [geoJsonItems, map, hideProcessMessage, showProcessMessage, initializedMapKind, currentMapKind]);
 

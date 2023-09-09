@@ -238,13 +238,14 @@ export class OlMapWrapper {
         }
     }
 
-    async _createFeatureGeometryFromItemDefine(def: ItemDefine): Promise<Feature<Geometry> | undefined> {
+    _createFeatureGeometryFromItemDefine(def: ItemDefine): Feature<Geometry> | undefined {
         let feature: Feature<Geometry> | undefined;
         if (def.geoProperties?.featureType === FeatureType.AREA && ('geocoderId' in def.geoProperties && def.geoProperties.geocoderId)) {
-            // Geocoderの図形の場合は、Geocoder図形呼び出し
-            const result = await this._callApi(GetGeocoderFeatureAPI, def.geoProperties.geocoderId);
+            // TODO:
+            // // Geocoderの図形の場合は、Geocoder図形呼び出し
+            // const result = await this._callApi(GetGeocoderFeatureAPI, def.geoProperties.geocoderId);
 
-            feature = new GeoJSON().readFeatures(result.geoJson)[0];
+            // feature = new GeoJSON().readFeatures(result.geoJson)[0];
 
         } else {
             feature = MapUtility.createFeatureByGeoJson(def.geoJson, def.geoProperties);
@@ -264,7 +265,7 @@ export class OlMapWrapper {
         return feature;
     }
 
-    async addFeatures(defs: ItemDefine[]) {
+    addFeatures(defs: ItemDefine[]) {
         if (!this._mapKind) {
             console.warn('mapKind not found.');
             return;
@@ -278,7 +279,7 @@ export class OlMapWrapper {
                 console.warn('追加対象レイヤ見つからず', def);
                 continue;
             }
-            const feature = await this._createFeatureGeometryFromItemDefine(def);
+            const feature = this._createFeatureGeometryFromItemDefine(def);
             if (!feature) {
                 continue;
             }
