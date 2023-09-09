@@ -43,7 +43,6 @@ export default function MapController() {
 /**
  * 地図種別の変更検知して、
  * - 地図に対してsubscribe, unsubscribeする
- * - 地図再作成する
  */
 function useMapInitializer() {
     // 地図種別が変更されたら、地図に対してsubscribe, unsubscribeする
@@ -86,6 +85,8 @@ function useMapInitializer() {
 export const initialLoadingAtom = atom(false);
 /**
  * アイテムの変更検知して、地図に反映するフック
+ * - 地図種別が切り替わったら、アイテム情報をリセットして地図再作成する
+ * - アイテムの変更を検知したら、地図に反映する
  */
 function useItemUpdater() {
     const { map, fitToDefaultExtent } = useMap();
@@ -98,6 +99,7 @@ function useItemUpdater() {
     const [ initializedMapKind, setInitializedMapKind ] = useState<MapKind|undefined>();
     const [ , setLoadedItemMap] = useAtom(loadedItemMapAtom);
     const [ , setInitialLoading ] = useAtom(initialLoadingAtom);
+    const [ , setSelectedItemIds ] = useAtom(selectedItemIdsAtom);
     const [ currentMapDefine ] = useAtom(currentMapDefineAtom);
 
     /**
@@ -115,11 +117,12 @@ function useItemUpdater() {
 
         fitToDefaultExtent(false);
         setInitializedMapKind(currentMapKind);
+        setSelectedItemIds([]);
         prevGeoJsonItemsRef.current = [];
         setLoadedItemMap({});
         setInitialLoading(true);
 
-    }, [map, currentMapDefine, currentMapKind, initializedMapKind, itemDataSources, fitToDefaultExtent, setLoadedItemMap, setInitialLoading]);
+    }, [map, setSelectedItemIds, currentMapDefine, currentMapKind, initializedMapKind, itemDataSources, fitToDefaultExtent, setLoadedItemMap, setInitialLoading]);
 
     /**
      * アイテムFeatureを地図に反映する

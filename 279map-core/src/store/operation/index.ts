@@ -13,7 +13,18 @@ type Target = {
 }
 export const dialogTargetAtom = atom<Target|undefined>(undefined);
 
-export const mapModeAtom = atom<MapMode>(MapMode.Normal);
+export const mapModeAtom = atom(
+    MapMode.Normal,
+    (get, set, update: MapMode) => {
+        const current = get(mapModeAtom);
+        if (current === update) {
+            return;
+        }
+        set(mapModeAtom, update);
+        // 地図モード変更時は、選択状態解除する
+        set(selectedItemIdsAtom, []);
+    }
+);
 
 type ViewInfo = {
     extent: Extent;
