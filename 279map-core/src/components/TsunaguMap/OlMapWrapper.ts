@@ -239,22 +239,23 @@ export class OlMapWrapper {
     }
 
     _createFeatureGeometryFromItemDefine(def: ItemDefine): Feature<Geometry> | undefined {
-        let feature: Feature<Geometry> | undefined;
-        if (def.geoProperties?.featureType === FeatureType.AREA && ('geocoderId' in def.geoProperties && def.geoProperties.geocoderId)) {
-            // TODO:
-            // // Geocoderの図形の場合は、Geocoder図形呼び出し
-            // const result = await this._callApi(GetGeocoderFeatureAPI, def.geoProperties.geocoderId);
-
-            // feature = new GeoJSON().readFeatures(result.geoJson)[0];
-
-        } else {
-            feature = MapUtility.createFeatureByGeoJson(def.geoJson, def.geoProperties);
-        }
-        if (!feature) {
-            console.warn('contents could not be loaded.', def.id, JSON.stringify(def));
-            return;
-        }
+        const feature = MapUtility.createFeatureByGeoJson(def.geoJson, def.geoProperties);
         feature.setId(getMapKey(def.id));
+
+        if (def.geoProperties?.featureType === FeatureType.AREA && ('geocoderId' in def.geoProperties && def.geoProperties.geocoderId)) {
+            // Geocoderの図形の場合は、Geocoder図形呼び出して後から差し替える
+
+            // 仮設定ジオメトリ（矩形）は非表示
+            feature.setStyle(new Style());
+
+            this._callApi(GetGeocoderFeatureAPI, def.geoProperties.geocoderId)
+            .then((result => {
+                // 呼び出し完了後に差し替え
+                const newFeature = new GeoJSON().readFeatures(result.geoJson)[0];
+                feature.setGeometry(newFeature.getGeometry());
+                feature.setStyle();
+            }))
+        }
 
         const properties = Object.assign({}, def.geoProperties ? def.geoProperties : {}, {
             name: def.name,

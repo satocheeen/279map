@@ -265,7 +265,6 @@ export function useMap() {
                 await loadItems({zoom, extent: ext});
 
             } finally {
-                console.log('debug hideProcess');
                 hideProcessMessage(h);
 
             }
