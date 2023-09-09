@@ -7,7 +7,7 @@ import { atom, useAtom } from 'jotai';
 import { useItem } from '../../store/item/useItem';
 import { itemDataSourcesAtom } from '../../store/datasource';
 import { mapInstanceIdAtom, useMap } from '../map/useMap';
-import { dialogTargetAtom, selectedItemIdsAtom } from '../../store/operation';
+import { dialogTargetAtom, selectedItemIdAtom } from '../../store/operation';
 import { OwnerContext } from './TsunaguMap';
 import { usePrevious } from '../../util/usePrevious';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
@@ -99,7 +99,7 @@ function useItemUpdater() {
     const [ initializedMapKind, setInitializedMapKind ] = useState<MapKind|undefined>();
     const [ , setLoadedItemMap] = useAtom(loadedItemMapAtom);
     const [ , setInitialLoading ] = useAtom(initialLoadingAtom);
-    const [ , setSelectedItemIds ] = useAtom(selectedItemIdsAtom);
+    const [ , setSelectedItemIds ] = useAtom(selectedItemIdAtom);
     const [ currentMapDefine ] = useAtom(currentMapDefineAtom);
 
     /**
@@ -117,7 +117,7 @@ function useItemUpdater() {
 
         fitToDefaultExtent(false);
         setInitializedMapKind(currentMapKind);
-        setSelectedItemIds([]);
+        setSelectedItemIds(null);
         prevGeoJsonItemsRef.current = [];
         setLoadedItemMap({});
         setInitialLoading(true);
@@ -216,19 +216,19 @@ function useLayerVisibleChanger() {
  * アイテム選択を検知して、詳細ダイアログ表示
  */
 function ItemSelectListener() {
-    const [ selectedItemIds ] = useAtom(selectedItemIdsAtom);
-    const prevSelectedItemIds = usePrevious(selectedItemIds);
+    const [ selectedItemId ] = useAtom(selectedItemIdAtom);
+    const prevSelectedItemIds = usePrevious(selectedItemId);
     const { disabledContentDialog } = useContext(OwnerContext);
     const [ dialogTarget, setDialogTarget ] = useAtom(dialogTargetAtom);
 
     if (disabledContentDialog) {
         return null;
     }
-    if (!dialogTarget && JSON.stringify(selectedItemIds) !== JSON.stringify(prevSelectedItemIds) && selectedItemIds.length === 1) {
+    if (!dialogTarget && selectedItemId && JSON.stringify(selectedItemId) !== JSON.stringify(prevSelectedItemIds)) {
         // １アイテムを選択した場合にダイアログ表示する
         setDialogTarget({
             type: 'item',
-            id: selectedItemIds[0]
+            id: selectedItemId,
         });
     }
 

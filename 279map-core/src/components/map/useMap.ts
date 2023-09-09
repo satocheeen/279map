@@ -8,7 +8,7 @@ import { LoadedAreaInfo, LoadedItemKey, allItemsAtom, loadedItemMapAtom } from '
 import { DataId, Extent } from '279map-common';
 import { dataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import useMyMedia from '../../util/useMyMedia';
-import { selectedItemIdsAtom } from '../../store/operation';
+import { selectedItemIdAtom } from '../../store/operation';
 import Feature from "ol/Feature";
 import { Geometry } from 'ol/geom';
 import { sleep } from '../../util/CommonUtility';
@@ -385,7 +385,7 @@ export function useMap() {
                 zoom: param.zoom,
             });
     
-            set(selectedItemIdsAtom, [param.itemId]);
+            set(selectedItemIdAtom, param.itemId);
         }, [map])
     )
  

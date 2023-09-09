@@ -4,7 +4,7 @@ import { OwnerContext } from './TsunaguMap';
 import { categoriesLoadableAtom } from '../../store/category';
 import { eventsLoadableAtom } from '../../store/event';
 import { defaultIconDefineAtom } from '../../store/icon';
-import { dialogTargetAtom, mapModeAtom, selectedItemIdsAtom } from '../../store/operation';
+import { dialogTargetAtom, mapModeAtom, selectedItemIdAtom } from '../../store/operation';
 import { authLvAtom, connectStatusLoadableAtom, mapDefineLoadableAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
@@ -411,16 +411,17 @@ function MapModeChangeListener() {
  */
 function SelectChangeLister() {
     const { onSelect}  = useContext(OwnerContext);
-    const [selectedItemIds] = useAtom(selectedItemIdsAtom);
-    const latestItemIdsRef = useRef<DataId[]>();
+    const [selectedItemId] = useAtom(selectedItemIdAtom);
+    const latestItemIdsRef = useRef<DataId|null>(null);
 
     // マウント後でないとイベント発火できないので、useEffect内で処理
     useEffect(() => {
-        if (JSON.stringify(selectedItemIds) !== JSON.stringify(latestItemIdsRef.current)) {
+        if (!selectedItemId) return;
+        if (JSON.stringify(selectedItemId) !== JSON.stringify(latestItemIdsRef.current)) {
             if (onSelect) {
-                onSelect(selectedItemIds);
+                onSelect(selectedItemId);
             }
-            latestItemIdsRef.current = selectedItemIds;
+            latestItemIdsRef.current = selectedItemId;
         }
     });
 

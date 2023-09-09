@@ -10,7 +10,7 @@ import { Geometry } from "ol/geom";
 import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
 import { useMap } from "./useMap";
 import { useMapOptions } from "../../util/useMapOptions";
-import { selectedItemIdsAtom } from "../../store/operation";
+import { selectedItemIdAtom } from "../../store/operation";
 import useIcon from "../../store/icon/useIcon";
 import { filteredItemIdListAtom } from "../../store/filter";
 import { dataSourcesAtom } from "../../store/datasource";
@@ -33,7 +33,7 @@ export default function usePointStyle() {
     const { filter } = useContext(OwnerContext);
     const { getIconDefine } = useIcon();
     const { map } = useMap();
-    const [selectedItemIds] = useAtom(selectedItemIdsAtom);
+    const [ selectedItemId ] = useAtom(selectedItemIdAtom);
 
     const getZindex = useCallback((feature: Feature<Geometry>): number => {
         if (!map) return 0;
@@ -124,10 +124,10 @@ export default function usePointStyle() {
         }
 
         // 優先1. 選択状態のもの
-        if (selectedItemIds.length > 0) {
+        if (selectedItemId) {
             const selected = features.find(f => {
                 const id = convertDataIdFromFeatureId(f.getId() as string);
-                return selectedItemIds.some(sii => isEqualId(sii, id));
+                return isEqualId(selectedItemId, id);
             });
             if (selected) {
                 return {
@@ -162,7 +162,7 @@ export default function usePointStyle() {
             showFeaturesLength: features.length,
         };
 
-    }, [filteredItemIdList, selectedItemIds]);
+    }, [filteredItemIdList, selectedItemId]);
 
     const [ dataSources ] = useAtom(dataSourcesAtom);
     const _createPointStyle = useCallback((feature: Feature<Geometry>, resolution: number, forceColor?: string): Style => {

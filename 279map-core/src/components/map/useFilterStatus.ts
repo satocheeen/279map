@@ -2,7 +2,7 @@ import { FeatureLike } from 'ol/Feature';
 import { useCallback } from 'react';
 import { useFilter } from '../../store/filter/useFilter';
 import { convertDataIdFromFeatureId, isEqualId } from '../../util/dataUtility';
-import { selectedItemIdsAtom } from '../../store/operation';
+import { selectedItemIdAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
 
 const FORCE_COLOR = '#8888ff';
@@ -12,7 +12,7 @@ const FORCE_COLOR = '#8888ff';
  */
 export default function useFilterStatus() {
     const { getFilterStatusOfTheItem } = useFilter();
-    const [selectedItemIds] = useAtom(selectedItemIdsAtom);
+    const [selectedItemId] = useAtom(selectedItemIdAtom);
 
     /**
      * 指定の地物のフィルタ状態を返す
@@ -28,10 +28,8 @@ export default function useFilterStatus() {
      */
     const getForceColor = useCallback((feature: FeatureLike): string | undefined => {
         // 選択されているものは強調表示
-        if (selectedItemIds.some(itemId => {
-            const id = convertDataIdFromFeatureId(feature.getId() as string);
-            return isEqualId(id, itemId);
-        })) {
+        const id = convertDataIdFromFeatureId(feature.getId() as string);
+        if (selectedItemId && isEqualId(selectedItemId, id)) {
             return FORCE_COLOR;
         }
 
@@ -51,7 +49,7 @@ export default function useFilterStatus() {
         //     return FORCE_COLOR;
         // }
 
-    }, [getFilterStatus, selectedItemIds]);
+    }, [getFilterStatus, selectedItemId]);
 
     return {
         getFilterStatus,

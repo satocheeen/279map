@@ -8,7 +8,7 @@ import { BsThreeDots } from 'react-icons/bs';
 import { useMapOptions } from "../../util/useMapOptions";
 import { useMap } from "../map/useMap";
 import { doCommand } from "../../util/Commander";
-import { mapModeAtom, selectedItemIdsAtom } from "../../store/operation";
+import { mapModeAtom, selectedItemIdAtom } from "../../store/operation";
 import { filteredContentIdListAtom, filteredItemIdListAtom } from "../../store/filter";
 import { useItem } from "../../store/item/useItem";
 import { useAtom } from "jotai";
@@ -126,10 +126,10 @@ export default function PointsPopup(props: Props) {
         }, 0);
     }, [props.itemIds, getDescendantContentsIdList]);
 
-    const [selectedItemIds, setSelectedItemIds] = useAtom(selectedItemIdsAtom);
+    const [, setSelectedItemId] = useAtom(selectedItemIdAtom);
     const onClick = useCallback((evt: React.MouseEvent) => {
         if (props.itemIds.length === 1) {
-            setSelectedItemIds([props.itemIds[0]]);
+            setSelectedItemId(props.itemIds[0]);
             return;
         }
         // 対象が２つ以上ある場合は、重畳選択メニューを表示
@@ -144,7 +144,7 @@ export default function PointsPopup(props: Props) {
                 }
             });
         }
-    }, [setSelectedItemIds, props.itemIds, map]);
+    }, [setSelectedItemId, props.itemIds, map]);
 
     const [mapMode] = useAtom(mapModeAtom);
 
