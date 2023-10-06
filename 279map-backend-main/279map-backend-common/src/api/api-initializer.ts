@@ -41,6 +41,11 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
                     currentMap: param.param.currentMap, 
                     contentId,
                 });
+                await odba.updateContentLinkCache({
+                    currentMap: param.param.currentMap, 
+                    parent: param.param.parent,
+                    contentId,
+                })
             },
         },
         {
