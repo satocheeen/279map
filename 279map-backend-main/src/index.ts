@@ -652,9 +652,8 @@ app.post(`/api/${GetItemsAPI.uri}`,
     checkApiAuthLv(Auth.View), 
     checkCurrentMap,
     async(req, res, next) => {
+        const param = req.body as GetItemsParam;
         try {
-            const param = req.body as GetItemsParam;
-            const session = sessionManager.get(req.connect?.sessionKey as string) as SessionInfo;
             const result = await getItems({
                 param,
                 currentMap: req.currentMap,
@@ -666,8 +665,8 @@ app.post(`/api/${GetItemsAPI.uri}`,
 
             next();
 
-        } catch(e) {    
-            apiLogger.warn(e);
+        } catch(e) {
+            apiLogger.warn('get-items API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
@@ -683,8 +682,8 @@ app.post(`/api/${GetContentsAPI.uri}`,
     checkApiAuthLv(Auth.View), 
     checkCurrentMap,
     async(req, res, next) => {
+        const param = req.body as GetContentsParam;
         try {
-            const param = req.body as GetContentsParam;
             const result = await getContents({
                 param,
                 currentMap: req.currentMap,
@@ -696,7 +695,7 @@ app.post(`/api/${GetContentsAPI.uri}`,
 
             next();
         } catch(e) {    
-            apiLogger.warn(e);
+            apiLogger.warn('get-contents API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
@@ -712,8 +711,8 @@ app.post(`/api/${GetCategoryAPI.uri}`,
     checkApiAuthLv(Auth.View), 
     checkCurrentMap,
     async(req, res, next) => {
+        const param = req.body as GetCategoryParam;
         try {
-            const param = req.body as GetCategoryParam;
             const result = await getCategory(param, req.currentMap);
 
             apiLogger.debug('result', result);
@@ -722,7 +721,7 @@ app.post(`/api/${GetCategoryAPI.uri}`,
 
             next();
         } catch(e) {    
-            apiLogger.warn(e);
+            apiLogger.warn('get-category API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
@@ -738,8 +737,8 @@ app.post(`/api/${GetEventsAPI.uri}`,
     checkApiAuthLv(Auth.View), 
     checkCurrentMap,
     async(req, res, next) => {
+        const param = req.body as GetEventParam;
         try {
-            const param = req.body as GetEventParam;
             const result = await getEvents(param, req.currentMap);
 
             apiLogger.debug('result', result);
@@ -748,7 +747,7 @@ app.post(`/api/${GetEventsAPI.uri}`,
 
             next();
         } catch(e) {    
-            apiLogger.warn(e);
+            apiLogger.warn('get-events API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
@@ -765,8 +764,8 @@ app.post(`/api/${RegistItemAPI.uri}`,
     checkApiAuthLv(Auth.Edit), 
     checkCurrentMap,
     async(req, res, next) => {
+        const param = req.body as RegistItemParam;
         try {
-            const param = req.body as RegistItemParam;
         
             // call ODBA
             const id = await callOdbaApi(OdbaRegistItemAPI, {
@@ -797,7 +796,7 @@ app.post(`/api/${RegistItemAPI.uri}`,
     
             next();
         } catch(e) {    
-            apiLogger.warn(e);
+            apiLogger.warn('regist-item API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
@@ -814,9 +813,8 @@ app.post(`/api/${UpdateItemAPI.uri}`,
     checkApiAuthLv(Auth.Edit), 
     checkCurrentMap,
     async(req, res, next) => {
+        const param = req.body as UpdateItemParam;
         try {
-            const param = req.body as UpdateItemParam;
-
             // call ODBA
             await callOdbaApi(OdbaUpdateItemAPI, Object.assign({
                 currentMap: req.currentMap,
@@ -842,7 +840,7 @@ app.post(`/api/${UpdateItemAPI.uri}`,
     
             next();
         } catch(e) {    
-            apiLogger.warn(e);
+            apiLogger.warn('update-item API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
@@ -859,9 +857,8 @@ app.post(`/api/${RemoveItemAPI.uri}`,
     checkApiAuthLv(Auth.Edit), 
     checkCurrentMap,
     async(req, res, next) => {
+        const param = req.body as RemoveItemParam;
         try {
-            const param = req.body as RemoveItemParam;
-
             // call ODBA
             await callOdbaApi(OdbaRemoveItemAPI, Object.assign({
                 currentMap: req.currentMap,
@@ -877,7 +874,7 @@ app.post(`/api/${RemoveItemAPI.uri}`,
     
             next();
         } catch(e) {    
-            apiLogger.warn(e);
+            apiLogger.warn('remove-item API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
@@ -894,9 +891,8 @@ app.post(`/api/${RegistContentAPI.uri}`,
     checkApiAuthLv(Auth.Edit), 
     checkCurrentMap,
     async(req, res, next) => {
+        const param = req.body as RegistContentParam;
         try {
-            const param = req.body as RegistContentParam;
-
             // call ODBA
             await callOdbaApi(OdbaRegistContentAPI, Object.assign({
                 currentMap: req.currentMap,
@@ -927,7 +923,7 @@ app.post(`/api/${RegistContentAPI.uri}`,
     
             next();
         } catch(e) {    
-            apiLogger.warn(e);
+            apiLogger.warn('regist-content API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
@@ -944,9 +940,8 @@ app.post(`/api/${UpdateContentAPI.uri}`,
     checkApiAuthLv(Auth.Edit), 
     checkCurrentMap,
     async(req, res, next) => {
+        const param = req.body as UpdateContentParam;
         try {
-            const param = req.body as UpdateContentParam;
-    
             // call ODBA
             await callOdbaApi(OdbaUpdateContentAPI, Object.assign({
                 currentMap: req.currentMap,
@@ -971,7 +966,7 @@ app.post(`/api/${UpdateContentAPI.uri}`,
     
             next();
         } catch(e) {
-            apiLogger.warn(e);
+            apiLogger.warn('update-content API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
@@ -988,9 +983,8 @@ app.post(`/api/${GetUnpointDataAPI.uri}`,
     checkApiAuthLv(Auth.Edit), 
     checkCurrentMap,
     async(req, res, next) => {
+        const param = req.body as GetUnpointDataParam;
         try {
-            const param = req.body as GetUnpointDataParam;
-
             // 指定のアイテムに対して紐づけ可能なデータソースか確認
             // -> 紐づけ対象のアイテム情報をもらうインタフェースになっていないので、現状はコメントアウト
             // const checkOk = await checkLinkableDatasource(req.currentMap, param.dataSourceId);
@@ -1013,7 +1007,7 @@ app.post(`/api/${GetUnpointDataAPI.uri}`,
     
             next();
         } catch(e) {
-            apiLogger.warn(e);
+            apiLogger.warn('get-unpointdata API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
@@ -1030,9 +1024,8 @@ app.post(`/api/${LinkContentToItemAPI.uri}`,
     checkApiAuthLv(Auth.Edit), 
     checkCurrentMap,
     async(req, res, next) => {
+        const param = req.body as LinkContentToItemParam;
         try {
-            const param = req.body as LinkContentToItemParam;
-
             // call ODBA
             await callOdbaApi(OdbaLinkContentToItemAPI, Object.assign({
                 currentMap: req.currentMap,
@@ -1062,7 +1055,7 @@ app.post(`/api/${LinkContentToItemAPI.uri}`,
             next();
     
         } catch(e) {
-            apiLogger.warn(e);
+            apiLogger.warn('link-content2item API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
@@ -1079,9 +1072,8 @@ app.post(`/api/${RemoveContentAPI.uri}`,
     checkApiAuthLv(Auth.Edit), 
     checkCurrentMap,
     async(req, res, next) => {
+        const param = req.body as RemoveContentParam;
         try {
-            const param = req.body as RemoveContentParam;
-
             // call ODBA
             await callOdbaApi(OdbaRemoveContentAPI, Object.assign({
                 currentMap: req.currentMap,
@@ -1108,7 +1100,7 @@ app.post(`/api/${RemoveContentAPI.uri}`,
     
             next();
         } catch(e) {
-            apiLogger.warn(e);
+            apiLogger.warn('remove-content API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
@@ -1125,16 +1117,15 @@ app.post(`/api/${GetSnsPreviewAPI.uri}`,
     checkApiAuthLv(Auth.Edit), 
     checkCurrentMap,
     async(req, res, next) => {
+        const param = req.body as GetSnsPreviewParam;
         try {
-            const param = req.body as GetSnsPreviewParam;
-
             const result = await getSnsPreview(param);
     
             res.send(result);
     
             next();
         } catch(e) {
-            apiLogger.warn(e);
+            apiLogger.warn('get-sns-preview API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
@@ -1151,14 +1142,14 @@ app.post(`/api/${SearchAPI.uri}`,
     checkApiAuthLv(Auth.View), 
     checkCurrentMap,
     async(req, res, next) => {
+        const param = req.body as SearchParam;
         try {
-            const param = req.body as SearchParam;
             const result = await search(req.currentMap, param);
             res.send(result);
 
             next();
         } catch(e) {
-            apiLogger.warn(e);
+            apiLogger.warn('search API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
@@ -1175,8 +1166,8 @@ app.get(`/api/${GetThumbAPI.uri}`,
     checkApiAuthLv(Auth.View), 
     checkCurrentMap,
     async(req, res) => {
+        const id = req.query.id as string;
         try {
-            const id = req.query.id as string;
             const result = await getThumbnail(id);
     
             const bin = convertBase64ToBinary(result);
@@ -1187,7 +1178,7 @@ app.get(`/api/${GetThumbAPI.uri}`,
             res.end(bin.binary);
 
         } catch(e) {
-            apiLogger.warn(e);
+            apiLogger.warn('get-thumb error', id, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
@@ -1204,15 +1195,14 @@ app.post(`/api/${GetImageUrlAPI.uri}`,
     checkApiAuthLv(Auth.View), 
     checkCurrentMap,
     async(req, res) => {
+        const param = req.body as { id: DataId };
         try {
-            const param = req.body as { id: DataId };
-
             // call odba
             const result = await callOdbaApi(OdbaGetImageUrlAPI, param);
             res.send(result);
 
         } catch(e) {
-            apiLogger.warn(e);
+            apiLogger.warn('get-imageurl API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
@@ -1228,13 +1218,13 @@ app.post(`/api/${GeocoderAPI.uri}`,
     checkApiAuthLv(Auth.View), 
     checkCurrentMap,
     async(req, res) => {
+        const param = req.body as GeocoderParam;
         try {
-            const param = req.body as GeocoderParam;
             const result = await geocoder(param);
             res.send(result);
     
         } catch(e) {
-            apiLogger.warn(e);
+            apiLogger.warn('geocoder API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
@@ -1250,13 +1240,13 @@ app.get(`/api/${GetGeocoderFeatureAPI.uri}`,
     checkApiAuthLv(Auth.View), 
     checkCurrentMap,
     async(req, res) => {
+        const param = req.query as GetGeocoderFeatureParam;
         try {
-            const param = req.query as GetGeocoderFeatureParam;
             const result = await getGeocoderFeature(param);
             res.send(result);
 
         } catch(e) {
-            apiLogger.warn(e);
+            apiLogger.warn('get-geocoder-feature API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
@@ -1277,7 +1267,7 @@ app.post(`/api/${GetUserListAPI.uri}`,
             } as GetUserListResult);
 
         } catch(e) {
-            apiLogger.warn(e);
+            apiLogger.warn('get-userlist API error', e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
@@ -1293,8 +1283,8 @@ app.post(`/api/${ChangeAuthLevelAPI.uri}`,
     checkApiAuthLv(Auth.Admin), 
     checkCurrentMap,
     async(req, res) => {
+        const param = req.body as ChangeAuthLevelParam;
         try {
-            const param = req.body as ChangeAuthLevelParam;
             const mapId = req.currentMap.mapId;
             await authManagementClient.updateUserAuth({
                 mapId,
@@ -1310,7 +1300,7 @@ app.post(`/api/${ChangeAuthLevelAPI.uri}`,
             });
 
         } catch(e) {
-            apiLogger.warn(e);
+            apiLogger.warn('change-auth-level API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
