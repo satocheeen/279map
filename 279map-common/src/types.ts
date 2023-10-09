@@ -202,7 +202,7 @@ export type Grib2Define = {
             lat: number;
             lon: number;
             value: number;
-        }
+        }[];
     }[];
 }
 export type ContentsDefine = {
