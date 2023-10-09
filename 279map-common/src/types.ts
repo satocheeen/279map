@@ -70,6 +70,7 @@ type ItemContentDefineOfDatasource = {
     kind: DataSourceKindType.Track | DataSourceKindType.Grib2;
     editable: false;
     deletable: false;
+    linkableContents: [];
 };
 
 export type ItemContentDefine = {[kind in DataSourceKindType]?: ItemContentDefineOfDatasource};
