@@ -8,9 +8,10 @@ import { DataId } from "279map-common";
 import { getMapKey } from "../../util/dataUtility";
 
 export enum LayerType {
-    Point = 'Point',    // Pointa用レイヤ。（Cluster設定されている）
+    Point = 'Point',    // Point用レイヤ。（Cluster設定されている）
     Topography = 'Topography',  // 地形、AREA用レイヤ。
     Track = 'Track',         // Track（軌跡）用レイヤ
+    Grid = 'Grid',          // グリッド用レイヤ
 }
 
 export type LayerDefine = {
@@ -19,7 +20,7 @@ export type LayerDefine = {
     editable: boolean;
 } & (
     {
-        layerType: LayerType.Point | LayerType.Topography;
+        layerType: LayerType.Point | LayerType.Topography | LayerType.Grid;
     } | {
         layerType: LayerType.Track;
         zoomLv: {

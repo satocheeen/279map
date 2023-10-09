@@ -76,7 +76,7 @@ export default function useTopographyStyle(props: Props) {
                         alpha = 0.3;
                         break;
                     default:
-                        defaultColor = MapStyles.Earth.color;
+                        defaultColor = MapStyles.Area.color;
                         zIndex = MapStyles.Earth.zIndex;
                         break;
                 }

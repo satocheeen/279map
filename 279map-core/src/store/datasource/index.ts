@@ -62,7 +62,7 @@ export const itemDataSourcesAtom = atom((get) => {
     return dataSourceGroups.map(group => {
         const newDataSources = group.dataSources.filter(ds => {
             if (mapKind === MapKind.Real) {
-                return ds.itemContents.RealItem || ds.itemContents.Track;
+                return ds.itemContents.RealItem || ds.itemContents.Track || ds.itemContents.Grib2;
             } else {
                 return ds.itemContents.VirtualItem;
             }
@@ -73,15 +73,21 @@ export const itemDataSourcesAtom = atom((get) => {
     })
 })
 
-export const visibleDataSourceIdsAtom = atom((get) => {
+export const visibleDataSourcesAtom = atom((get) => {
     const dataSourceGroups = get(dataSourceGroupsAtom);
-    const idList = [] as string[];
+    const list = [] as DataSourceInfo[];
     dataSourceGroups.forEach(group => {
         if (!group.visible) return;
         group.dataSources.forEach(ds => {
             if (!ds.visible) return;
-            idList.push(ds.dataSourceId);
+            list.push(ds);
         })
     });
-    return idList;
+    return list;
+
+})
+
+export const visibleDataSourceIdsAtom = atom((get) => {
+    const visibleDatasources = get(visibleDataSourcesAtom);
+    return visibleDatasources.map(ds => ds.dataSourceId);
 })

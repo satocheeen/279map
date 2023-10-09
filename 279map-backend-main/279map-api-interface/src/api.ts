@@ -160,7 +160,7 @@ export const GetGrib2API = {
     resultType: 'json',
 } as APIDefine<GetGrib2Param, GetGrib2Result>;
 export type GetGrib2Param = {
-    extent: Extent;
+    wkt: string;
     dataSourceId: string;
 }
 export type GetGrib2Result = Grib2Define;

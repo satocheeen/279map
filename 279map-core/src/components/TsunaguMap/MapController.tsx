@@ -1,6 +1,6 @@
 import { ItemDefine, MapKind } from '279map-common';
 import React, { useRef, useMemo, useContext, useEffect, lazy, Suspense, useState } from 'react';
-import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
+import { Grib2Map, allGrib2MapAtom, allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useSubscribe } from '../../api/useSubscribe';
 import { currentMapDefineAtom, currentMapKindAtom } from '../../store/session';
 import { atom, useAtom } from 'jotai';
@@ -161,6 +161,24 @@ function useItemUpdater() {
 
     }, [geoJsonItems, map, hideProcessMessage, showProcessMessage, initializedMapKind, currentMapKind]);
 
+    const [ grib2Map ] = useAtom(allGrib2MapAtom);
+    const prevGrib2MapRef = useRef<Grib2Map>({});
+
+    useEffect(() => {
+        if (!map || !initializedMapKind) return;
+        if (initializedMapKind !== currentMapKind) return;
+
+        if (JSON.stringify(prevGrib2MapRef.current) === JSON.stringify(grib2Map)) {
+            return;
+        }
+
+        Object.entries(grib2Map).forEach(([datasourceId, grib2Define]) => {
+            map.addGrids(datasourceId, grib2Define[0])
+        })
+
+        prevGrib2MapRef.current = structuredClone(grib2Map);
+        
+    }, [grib2Map, map, initializedMapKind, currentMapKind]);
 }
 
 /**

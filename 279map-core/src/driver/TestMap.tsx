@@ -71,7 +71,7 @@ export default function TestMap() {
         return dataSourceGroups.map((group): DataSourceGroup => {
             const dataSources = group.dataSources.filter(ds => {
                 if (mapKind === MapKind.Real) {
-                    return ds.itemContents.RealItem || ds.itemContents.Track;
+                    return ds.itemContents.RealItem || ds.itemContents.Track || ds.itemContents.Grib2;
 
                 } else {
                     return ds.itemContents.VirtualItem;

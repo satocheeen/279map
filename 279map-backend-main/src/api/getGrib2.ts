@@ -3,33 +3,21 @@ import { CurrentMap } from "../../279map-backend-common/src";
 
 export async function getGrib2({ param, currentMap }: {param:GetGrib2Param; currentMap: CurrentMap}): Promise<GetGrib2Result> {
     return {
-        gridDefine: {
-            lat: {
-                from: 36.004645,
-                to: 36.996272,
-                by: 0.008333,
-            },
-            lon: {
-                from: 140.003250,
-                to: 140.993750,
-                by: 0.012500,
-            }
+        datetime: '2021-08-13 14:00:00',
+        gridBy: {
+            lat: 0.008333,
+            lon: 0.012500,
         },
-        gridsByTime: [
+        grids: [
             {
-                datetime: '2021-08-13 14:00:00',
-                grids: [
-                    {
-                        lat: 140.006,
-                        lon: 36.0046,
-                        value: 30,
-                    },
-                    {
-                        lat: 140.019,
-                        lon: 36.0046,
-                        value: 30,
-                    }
-                ]
+                lat: 36.0046,
+                lon: 140.006,
+                value: 30,
+            },
+            {
+                lat: 36.0046,
+                lon: 140.019,
+                value: 30,
             }
         ]
     }

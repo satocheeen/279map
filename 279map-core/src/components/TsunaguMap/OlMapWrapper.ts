@@ -1,7 +1,7 @@
 import { Feature, MapBrowserEvent, Map as OlMap, Overlay, View } from 'ol';
 import * as olControl from 'ol/control';
 import { Extent } from 'ol/extent';
-import { Geometry } from 'ol/geom';
+import { Geometry, Polygon } from 'ol/geom';
 import { Interaction, defaults } from 'ol/interaction'
 import { LayerInfo, LayerType, LayerDefine, VectorLayerMap } from './VectorLayerMap';
 import GeoJSON from 'ol/format/GeoJSON';
@@ -13,7 +13,7 @@ import VectorLayer from "ol/layer/Vector";
 import Style, { StyleFunction } from "ol/style/Style";
 import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
-import { DataId, FeatureType, ItemDefine, MapKind, DataSourceGroup, APIDefine } from '279map-common';
+import { DataId, FeatureType, ItemDefine, MapKind, DataSourceGroup, APIDefine, Grib2Define } from '279map-common';
 import BaseEvent from 'ol/events/Event';
 import * as MapUtility from '../../util/MapUtility';
 import { FeatureProperties } from '../../types/types';
@@ -155,7 +155,7 @@ export class OlMapWrapper {
                             const layerDefine: LayerDefine = {
                                 dataSourceId: ds.dataSourceId,
                                 group: group.name ?? '',
-                                editable: ds.itemContents.Track?.editable ?? false,
+                                editable: false,
                                 layerType: LayerType.Track,
                                 zoomLv: {
                                     min: zoomLv[0],
@@ -164,6 +164,15 @@ export class OlMapWrapper {
                             };
                             this.addLayer(layerDefine, ds.visible);
                         })
+
+                    } else if (ds.itemContents.Grib2) {
+                        const layerDefine: LayerDefine = {
+                            dataSourceId: ds.dataSourceId,
+                            group: group.name ?? '',
+                            editable: false,
+                            layerType: LayerType.Grid,
+                        }
+                        this.addLayer(layerDefine, ds.visible);
     
                     } else if (ds.itemContents.RealItem) {
                         [LayerType.Point, LayerType.Topography].forEach(layerType => {
@@ -323,6 +332,46 @@ export class OlMapWrapper {
             return;
         }
         source.removeFeature(feature);
+    }
+
+    addGrids(dataSourceId: string, gridDefine: Grib2Define) {
+        if (!this._mapKind) {
+            console.warn('mapKind not found.');
+            return;
+        }
+        const layerInfos = this._vectorLayerMap.getLayerInfoOfTheDataSource(dataSourceId);
+        const gridLayerInfo = layerInfos.find(l => l.layerType === LayerType.Grid);
+        if (!gridLayerInfo) {
+            console.warn('grid layer not found');
+            return;
+        }
+        const source = gridLayerInfo.layer.getSource();
+        if (!source) {
+            console.warn('grid layer source not found');
+            return;
+        }
+        const latBy = gridDefine.gridBy.lat;
+        const lonBy = gridDefine.gridBy.lon;
+        const features = [] as Feature[];
+        gridDefine.grids.forEach((grid, index) => {
+            const x1 = grid.lon;
+            const x2 = grid.lon + lonBy;
+            const y1 = grid.lat;
+            const y2 = grid.lat + latBy;
+            const feature = new Feature({
+                geometry: new Polygon(
+                    [
+                        [[x1, y1], [x1, y2], [x2, y2], [x2, y1], [x1, y1]]
+                    ]
+                )
+            });
+            feature.setId(getMapKey({
+                dataSourceId,
+                id: 'grid-' + index,
+            }))
+            features.push(feature);
+        })
+        source.addFeatures(features);
     }
 
     _fitting = false;

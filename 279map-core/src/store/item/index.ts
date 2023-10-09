@@ -1,4 +1,4 @@
-import { ItemDefine } from '279map-common';
+import { Grib2Define, ItemDefine } from '279map-common';
 import { atom } from 'jotai';
 
 export type LoadedItemKey = {
@@ -15,3 +15,6 @@ export const loadedItemMapAtom = atom<LoadedItemMap>({});
 export type ItemsMap = {[itemId: string]: ItemDefine};
 type ItemsByDatasourceMap = {[dsId: string]: ItemsMap};
 export const allItemsAtom = atom({} as ItemsByDatasourceMap);
+
+export type Grib2Map = {[datasourceId: string]: Grib2Define[]};
+export const allGrib2MapAtom = atom<Grib2Map>({});

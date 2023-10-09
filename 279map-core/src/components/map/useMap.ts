@@ -3,10 +3,10 @@ import { OlMapWrapper } from '../TsunaguMap/OlMapWrapper';
 import { atom, useAtom } from 'jotai';
 import { useAtomCallback, atomWithReducer } from 'jotai/utils';
 import { currentMapKindAtom, defaultExtentAtom, instanceIdAtom, mapIdAtom } from '../../store/session';
-import { GetItemsAPI } from 'tsunagumap-api';
-import { LoadedAreaInfo, LoadedItemKey, allItemsAtom, loadedItemMapAtom } from '../../store/item';
+import { GetGrib2API, GetItemsAPI } from 'tsunagumap-api';
+import { LoadedAreaInfo, LoadedItemKey, allGrib2MapAtom, allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { DataId, Extent } from '279map-common';
-import { dataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
+import { dataSourcesAtom, visibleDataSourcesAtom } from '../../store/datasource';
 import useMyMedia from '../../util/useMyMedia';
 import { selectedItemIdAtom } from '../../store/operation';
 import Feature from "ol/Feature";
@@ -135,40 +135,62 @@ export function useMap() {
                 // -- zoomは小数点以下は切り捨てる
                 const zoom = Math.floor(param.zoom);
                 const loadedItemMap = get(loadedItemMapAtom);
-                const visibleDataSourceIds = get(visibleDataSourceIdsAtom);
+                const visibleDataSources = get(visibleDataSourcesAtom);
 
                 const extentPolygon = bboxPolygon(param.extent as [number,number,number,number]);
 
                 // ロード対象
-                const loadTargets = visibleDataSourceIds.map((datasourceId): {datasourceId: string; geometry: GeoJSON.Geometry} => {
-                    const loadedItemMap = get(loadedItemMapAtom);
-                    const key = getLoadedAreaMapKey(datasourceId, zoom);
-                    const loadedItemInfo = loadedItemMap[JSON.stringify(key)];
-                    const loadedPolygon = loadedItemInfo ? geoJsonToTurfPolygon(loadedItemInfo.geometry) : undefined;
-                    let polygon: LoadedAreaInfo['geometry'] | undefined;
-                    if (loadedPolygon) {
-                        // @ts-ignore 第1引数がなぜかTypeScript Errorになるので
-                        const p = mask(loadedPolygon, extentPolygon)
-                        polygon = {
-                            type: 'Polygon',
-                            coordinates: p.geometry.coordinates,
+                type LoadTargetForItem = {
+                    type: 'item';
+                    datasourceId: string;
+                    geometry: GeoJSON.Geometry
+                } 
+                type LoadTargetForGrib2 = {
+                    type: 'grib2';
+                    datasourceId: string;
+                    extent: Extent;
+                }
+                const loadTargetsForItem = [] as LoadTargetForItem[];
+                const loadTargetsForGrib2 = [] as LoadTargetForGrib2[];
+                visibleDataSources.forEach((datasource) => {
+                    if (datasource.itemContents.Grib2) {
+                        // TODO: ロード済みエリア除去
+                        loadTargetsForGrib2.push({
+                            type: 'grib2',
+                            datasourceId: datasource.dataSourceId,
+                            extent: param.extent,
+                        })
+                    } else {
+                        const loadedItemMap = get(loadedItemMapAtom);
+                        const key = getLoadedAreaMapKey(datasource.dataSourceId, zoom);
+                        const loadedItemInfo = loadedItemMap[JSON.stringify(key)];
+                        const loadedPolygon = loadedItemInfo ? geoJsonToTurfPolygon(loadedItemInfo.geometry) : undefined;
+                        let polygon: LoadedAreaInfo['geometry'] | undefined;
+                        if (loadedPolygon) {
+                            // @ts-ignore 第1引数がなぜかTypeScript Errorになるので
+                            const p = mask(loadedPolygon, extentPolygon)
+                            polygon = {
+                                type: 'Polygon',
+                                coordinates: p.geometry.coordinates,
+                            }
                         }
-                    }
-                    if (!polygon) {
-                        polygon = {
-                            type: 'Polygon',
-                            coordinates: extentPolygon.geometry.coordinates
+                        if (!polygon) {
+                            polygon = {
+                                type: 'Polygon',
+                                coordinates: extentPolygon.geometry.coordinates
+                            }
                         }
-                    }
-                    return {
-                        datasourceId,
-                        geometry: polygon,
+                        loadTargetsForItem.push({
+                            type: 'item',
+                            datasourceId: datasource.dataSourceId,
+                            geometry: polygon,
+                        })
                     }
                 });
 
                 const beforeMapId = get(mapIdAtom);
                 const beforeMapKind = get(currentMapKindAtom);
-                const apiResults = await Promise.all(loadTargets.map((target) => {
+                const apiResults = await Promise.all(loadTargetsForItem.map((target) => {
                     const wkt = geojsonToWKT(target.geometry);
                     const excludeItemIds = getExcludeItemIds(target.datasourceId, param.extent);
                     return callApi(GetItemsAPI, {
@@ -178,6 +200,18 @@ export function useMap() {
                         excludeItemIds,
                     });
                 }));
+                const grib2ApiResults = await Promise.all(loadTargetsForGrib2.map((target) => {
+                    const wkt = ''; // TODO:
+                    return callApi(GetGrib2API, {
+                        dataSourceId: target.datasourceId,
+                        wkt,
+                    }).then(result => {
+                        return {
+                            target,
+                            result,
+                        }
+                    })
+                }))
                 
                 // TODO: 地図が切り替えられていたら何もしない
                 const afterMapId = get(mapIdAtom);
@@ -196,11 +230,22 @@ export function useMap() {
                         })
                     })
                     return newItemsMap;
+                });
+                set(allGrib2MapAtom, (currentGrib2Map) => {
+                    const newMap = structuredClone(currentGrib2Map);
+                    grib2ApiResults.forEach(apiResult => {
+                        if (!newMap[apiResult.target.datasourceId]) {
+                            newMap[apiResult.target.datasourceId] = [];
+                        }
+                        // TODO: 必要に応じてマージ
+                        newMap[apiResult.target.datasourceId].push(apiResult.result);
+                    })
+                    return newMap;
                 })
 
                 // ロード済みの範囲と併せたものを保管
                 const newLoadedItemMap = Object.assign({}, loadedItemMap);
-                loadTargets.forEach(info => {
+                loadTargetsForItem.forEach(info => {
                     const key = getLoadedAreaMapKey(info.datasourceId, zoom);
                     const keyStr = JSON.stringify(key);
                     const currentData = loadedItemMap[keyStr];
