@@ -187,25 +187,15 @@ export type ItemDefine = {
     contents: ItemContentInfo[];
 }
 export type Grib2Define = {
-    gridDefine: {
-        lat: {
-            from: number;
-            to: number;
-            by: number;
-        };
-        lon: {
-            from: number;
-            to: number;
-            by: number;
-        };
+    datetime: string;
+    gridBy: {
+        lat: number;
+        lon: number;
     }
-    gridsByTime: {
-        datetime: string;
-        grids: {
-            lat: number;
-            lon: number;
-            value: number;
-        }[];
+    grids: {
+        lat: number;
+        lon: number;
+        value: number;
     }[];
 }
 export type ContentsDefine = {
