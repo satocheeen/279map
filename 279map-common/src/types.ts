@@ -62,12 +62,14 @@ type ItemContentDefineOfDatasource = {
     linkableContents: DataSourceLinkableContent[];  // 紐づけ可能なコンテンツの定義
     defaultIcon?: IconKey;
 } | {
-    kind: DataSourceKindType.Content | DataSourceKindType.Track | DataSourceKindType.VirtualItem;
+    kind: DataSourceKindType.Content | DataSourceKindType.VirtualItem;
     editable: boolean;
     deletable: boolean;
     linkableContents: DataSourceLinkableContent[];  // 紐づけ可能なコンテンツの定義
 } | {
-    kind: DataSourceKindType.Grib2;
+    kind: DataSourceKindType.Track | DataSourceKindType.Grib2;
+    editable: false;
+    deletable: false;
 };
 
 export type ItemContentDefine = {[kind in DataSourceKindType]?: ItemContentDefineOfDatasource};
