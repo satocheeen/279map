@@ -40,7 +40,8 @@ export enum DataSourceKindType {
     RealItem = 'RealItem',                  // 位置情報(実地図)データソース
     VirtualItem = 'VirtualItem',            // 位置情報(仮想地図)データソース
     Content = 'Content',            // コンテンツデータソース
-    Track = 'Track'                 // 軌跡情報が登録されたデータソース
+    Track = 'Track',                 // 軌跡情報が登録されたデータソース
+    Grib2 = 'Grib2',                // GRIB2情報が登録されたデータソース
 }
 /**
  * データソースのコンテンツ紐づけ定義。
@@ -55,15 +56,19 @@ export type DataSourceLinkableContent = {
  * データソースに含まれるitemやcontentの情報。
  */
 type ItemContentDefineOfDatasource = {
+    kind: DataSourceKindType.RealItem,
     editable: boolean;
     deletable: boolean;
     linkableContents: DataSourceLinkableContent[];  // 紐づけ可能なコンテンツの定義
-} & ({
-    kind: DataSourceKindType.RealItem,
     defaultIcon?: IconKey;
 } | {
     kind: DataSourceKindType.Content | DataSourceKindType.Track | DataSourceKindType.VirtualItem;
-});
+    editable: boolean;
+    deletable: boolean;
+    linkableContents: DataSourceLinkableContent[];  // 紐づけ可能なコンテンツの定義
+} | {
+    kind: DataSourceKindType.Grib2;
+};
 
 export type ItemContentDefine = {[kind in DataSourceKindType]?: ItemContentDefineOfDatasource};
 
@@ -177,6 +182,28 @@ export type ItemDefine = {
     geoProperties: GeoProperties;
     lastEditedTime: string;
     contents: ItemContentInfo[];
+}
+export type Grib2Define = {
+    gridDefine: {
+        lat: {
+            from: number;
+            to: number;
+            by: number;
+        };
+        lon: {
+            from: number;
+            to: number;
+            by: number;
+        };
+    }
+    gridsByTime: {
+        datetime: string;
+        grids: {
+            lat: number;
+            lon: number;
+            value: number;
+        }
+    }[];
 }
 export type ContentsDefine = {
     id: DataId;
