@@ -1,4 +1,4 @@
-import { Auth, CategoryDefine, ContentsDefine, DataId, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, ServerConfig, UnpointContent, User } from "279map-common";
+import { Auth, CategoryDefine, ContentsDefine, DataId, EventDefine, Extent, GeocoderId, GeoProperties, Grib2Define, IconDefine, ItemDefine, MapKind, ServerConfig, UnpointContent, User } from "279map-common";
 import { GeoJsonObject, Position } from "geojson";
 import { APIDefine, ContentAttr, SnsPreviewPost, MapDefine } from '279map-common';
 import { FilterDefine, DataSourceGroup } from "279map-common";
@@ -145,12 +145,25 @@ export type GetItemsParam = {
     wkt: string;
     zoom: number;
     dataSourceId: string;
-    excludeItemIds?: string[];  // 指定されている場合、このidｎアイテムは結果から除く
+    excludeItemIds?: string[];  // 指定されている場合、このidのアイテムは結果から除く
 }
 export type GetItemsResult = {
     items: ItemDefine[],
 };
 
+/**
+ * get grib2
+ */
+export const GetGrib2API = {
+    uri: 'getgrib2',
+    method: 'post',
+    resultType: 'json',
+} as APIDefine<GetGrib2Param, GetGrib2Result>;
+export type GetGrib2Param = {
+    extent: Extent;
+    dataSourceId: string;
+}
+export type GetGrib2Result = Grib2Define;
 /**
  * get contents
  */

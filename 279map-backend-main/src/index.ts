@@ -22,7 +22,7 @@ import { getMapInfoById } from './getMapDefine';
 import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, GetEventParam, GetCategoryParam, RequestAPI, RequestParam, GetUserListAPI, GetUserListResult, ChangeAuthLevelAPI, ChangeAuthLevelParam } from '../279map-api-interface/src/api';
+import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, GetEventParam, GetCategoryParam, RequestAPI, RequestParam, GetUserListAPI, GetUserListResult, ChangeAuthLevelAPI, ChangeAuthLevelParam, GetGrib2API, GetGrib2Param } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 import { search } from './api/search';
@@ -35,6 +35,7 @@ import { CurrentMap, sleep } from '../279map-backend-common/src';
 import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaRegistContentAPI, OdbaRegistItemAPI, OdbaRemoveContentAPI, OdbaRemoveItemAPI, OdbaUpdateContentAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
 import MqttBroadcaster from './session/MqttBroadcaster';
 import SessionManager from './session/SessionManager';
+import { getGrib2 } from './api/getGrib2';
 
 declare global {
     namespace Express {
@@ -667,6 +668,35 @@ app.post(`/api/${GetItemsAPI.uri}`,
 
         } catch(e) {
             apiLogger.warn('get-items API error', param, e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
+        }
+    }
+);
+
+/**
+ * get grib2
+ * GRIB2データ取得
+ */
+app.post(`/api/${GetGrib2API.uri}`,
+    checkApiAuthLv(Auth.View), 
+    checkCurrentMap,
+    async(req, res, next) => {
+        const param = req.body as GetGrib2Param;
+        try {
+            const result = await getGrib2({
+                param,
+                currentMap: req.currentMap,
+            });
+
+            res.send(result);
+
+            next();
+
+        } catch(e) {
+            apiLogger.warn('get-grib2 API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
