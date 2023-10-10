@@ -18,6 +18,7 @@ import useTrackStyle from '../map/useTrackStyle';
 import { filteredItemIdListAtom } from '../../store/filter';
 import VectorSource from 'ol/source/Vector';
 import useMyMedia from '../../util/useMyMedia';
+import useGridStyle from '../map/useGridStyle';
 
 const ContentsModal = lazy(() => import('../contents/ContentsModal'));
 
@@ -214,6 +215,14 @@ function useMapStyleUpdater() {
 
     }, [map, trackStyleFunction])
 
+    // -- グリッドレイヤ
+    const { gridStyleFunction } = useGridStyle();
+    useEffect(() => {
+        if (!map) return;
+
+        map.setGridLayerStyle(gridStyleFunction);
+
+    }, [map, gridStyleFunction])
 }
 
 /**

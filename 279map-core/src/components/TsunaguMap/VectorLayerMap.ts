@@ -42,6 +42,7 @@ export class VectorLayerMap {
     _pointLayerStyle?: StyleFunction;
     _topographyLayerStyle?: StyleFunction;
     _trackLayerStyle?: StyleFunction;
+    _gridLayerStyle?: StyleFunction;
 
     constructor() {
         this._layerMap = new Map<string, LayerInfo>();
@@ -95,6 +96,15 @@ export class VectorLayerMap {
             });
             if (this._trackLayerStyle) {
                 layer.setStyle(this._trackLayerStyle);
+            }
+
+        } else if (layerDefine.layerType === LayerType.Grid) {
+            layer = new VectorLayer({
+                source,
+            });
+    
+            if (this._gridLayerStyle) {
+                layer.setStyle(this._gridLayerStyle);
             }
 
         } else {
@@ -297,6 +307,14 @@ export class VectorLayerMap {
             layerInfo.layer.setStyle(style);
         });
         this._trackLayerStyle = style;
+    }
+    
+    setGridLayerStyle(style: StyleFunction) {
+        this.getLayersOfTheType(LayerType.Grid).forEach(layerInfo => {
+            layerInfo.layer.setStyle(style);
+        });
+        this._gridLayerStyle = style;
+
     }
     
     clear() {

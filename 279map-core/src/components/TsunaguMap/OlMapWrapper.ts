@@ -545,8 +545,20 @@ export class OlMapWrapper {
         this._vectorLayerMap.setTopographyLayerStyle(style);
     }
 
+    /**
+     * 軌跡レイヤのスタイルを設定する
+     * @param style 
+     */
     setTrackLayerStyle(style: StyleFunction) {
         this._vectorLayerMap.setTrackLayerStyle(style);
+    }
+
+    /**
+     * グリッドレイヤのスタイルを設定する
+     * @param style 
+     */
+    setGridLayerStyle(style: StyleFunction) {
+        this._vectorLayerMap.setGridLayerStyle(style);
     }
 
     on(event: 'click' | 'moveend' | 'pointermove', listener: (evt: MapBrowserEvent<any>) => void): void {
