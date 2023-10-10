@@ -190,9 +190,9 @@ export default function TestMap() {
                 </div>
                 <div className={styles.Col}>
                     <div className={styles.PropName}>データソース</div>
-                    {featureDataSourceGroups.map(group => {
+                    {featureDataSourceGroups.map((group, index) => {
                         return (
-                            <div key={group.name ?? 'none'}>
+                            <div key={group.name ?? `none-${index}`}>
                                 {group.name &&
                                     <label>
                                         <input type="checkbox" checked={group.visible} onChange={(evt) => changeVisibleLayerGroup(group.name ?? '', evt.target.checked)} />

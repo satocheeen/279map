@@ -16,7 +16,7 @@ import Stroke from "ol/style/Stroke";
 import { DataId, FeatureType, ItemDefine, MapKind, DataSourceGroup, APIDefine, Grib2Define } from '279map-common';
 import BaseEvent from 'ol/events/Event';
 import * as MapUtility from '../../util/MapUtility';
-import { FeatureProperties } from '../../types/types';
+import { FeatureProperties, GridProperties } from '../../types/types';
 import { Pixel } from 'ol/pixel';
 import { convertDataIdFromFeatureId, getMapKey } from '../../util/dataUtility';
 import { GetGeocoderFeatureAPI } from 'tsunagumap-api';
@@ -368,7 +368,10 @@ export class OlMapWrapper {
             feature.setId(getMapKey({
                 dataSourceId,
                 id: 'grid-' + index,
-            }))
+            }));
+            feature.setProperties({
+                value: grid.value,
+            } as GridProperties)
             features.push(feature);
         })
         source.addFeatures(features);

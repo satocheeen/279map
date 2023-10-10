@@ -187,6 +187,10 @@ export type FeatureProperties = {
     lastEditedTime: string;
 } & GeoProperties;
 
+export type GridProperties = {
+    value: number;
+}
+
 /**
  * アイコン定義
  */

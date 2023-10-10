@@ -10,13 +10,28 @@ export async function getGrib2({ param, currentMap }: {param:GetGrib2Param; curr
         },
         grids: [
             {
-                lat: 36.0046,
                 lon: 140.006,
+                lat: 36.0046,
                 value: 30,
             },
             {
-                lat: 36.0046,
                 lon: 140.019,
+                lat: 36.0046,
+                value: 30,
+            },
+            {
+                lon: 140.031,
+                lat: 36.0046,
+                value: 40,
+            },
+            {
+                lon: 140.044,
+                lat: 36.0046,
+                value: 35,
+            },
+            {
+                lon: 140.056,
+                lat: 36.0046,
                 value: 30,
             }
         ]
