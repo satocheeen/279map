@@ -148,38 +148,38 @@ export function useMap() {
                 type LoadTargetForGrib2 = {
                     type: 'grib2';
                     datasourceId: string;
-                    extent: Extent;
+                    geometry: GeoJSON.Geometry
                 }
                 const loadTargetsForItem = [] as LoadTargetForItem[];
                 const loadTargetsForGrib2 = [] as LoadTargetForGrib2[];
                 visibleDataSources.forEach((datasource) => {
+                    const loadedItemMap = get(loadedItemMapAtom);
+                    const key = getLoadedAreaMapKey(datasource.dataSourceId, zoom);
+                    const loadedItemInfo = loadedItemMap[JSON.stringify(key)];
+                    const loadedPolygon = loadedItemInfo ? geoJsonToTurfPolygon(loadedItemInfo.geometry) : undefined;
+                    let polygon: LoadedAreaInfo['geometry'] | undefined;
+                    if (loadedPolygon) {
+                        // @ts-ignore 第1引数がなぜかTypeScript Errorになるので
+                        const p = mask(loadedPolygon, extentPolygon)
+                        polygon = {
+                            type: 'Polygon',
+                            coordinates: p.geometry.coordinates,
+                        }
+                    }
+                    if (!polygon) {
+                        polygon = {
+                            type: 'Polygon',
+                            coordinates: extentPolygon.geometry.coordinates
+                        }
+                    }
+
                     if (datasource.itemContents.Grib2) {
-                        // TODO: ロード済みエリア除去
                         loadTargetsForGrib2.push({
                             type: 'grib2',
                             datasourceId: datasource.dataSourceId,
-                            extent: param.extent,
+                            geometry: polygon,
                         })
                     } else {
-                        const loadedItemMap = get(loadedItemMapAtom);
-                        const key = getLoadedAreaMapKey(datasource.dataSourceId, zoom);
-                        const loadedItemInfo = loadedItemMap[JSON.stringify(key)];
-                        const loadedPolygon = loadedItemInfo ? geoJsonToTurfPolygon(loadedItemInfo.geometry) : undefined;
-                        let polygon: LoadedAreaInfo['geometry'] | undefined;
-                        if (loadedPolygon) {
-                            // @ts-ignore 第1引数がなぜかTypeScript Errorになるので
-                            const p = mask(loadedPolygon, extentPolygon)
-                            polygon = {
-                                type: 'Polygon',
-                                coordinates: p.geometry.coordinates,
-                            }
-                        }
-                        if (!polygon) {
-                            polygon = {
-                                type: 'Polygon',
-                                coordinates: extentPolygon.geometry.coordinates
-                            }
-                        }
                         loadTargetsForItem.push({
                             type: 'item',
                             datasourceId: datasource.dataSourceId,
@@ -201,7 +201,7 @@ export function useMap() {
                     });
                 }));
                 const grib2ApiResults = await Promise.all(loadTargetsForGrib2.map((target) => {
-                    const wkt = ''; // TODO:
+                    const wkt = geojsonToWKT(target.geometry);
                     return callApi(GetGrib2API, {
                         dataSourceId: target.datasourceId,
                         wkt,
