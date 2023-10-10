@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { Fill, Style } from 'ol/style';
 import { colorWithAlpha } from "../../util/CommonUtility";
 import { useAtomCallback } from "jotai/utils";
-import { gribRangeMapAtom } from "../../store/item";
+import { gridRangeMapAtom } from "../../store/item";
 import { convertDataIdFromFeatureId } from "../../util/dataUtility";
 import { GridProperties } from "../../entry";
 
@@ -13,7 +13,7 @@ export default function useGridStyle() {
             // データソースの最大値、最低値を取得
             const idStr = feature.getId() as string;
             const id = convertDataIdFromFeatureId(idStr);
-            const gridRangeMap = get(gribRangeMapAtom);
+            const gridRangeMap = get(gridRangeMapAtom);
             const range = gridRangeMap[id.dataSourceId] ?? {min: 0, max: 0};
 
             const properties = feature.getProperties() as GridProperties;

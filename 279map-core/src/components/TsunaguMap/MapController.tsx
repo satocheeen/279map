@@ -1,6 +1,6 @@
 import { ItemDefine, MapKind } from '279map-common';
 import React, { useRef, useMemo, useContext, useEffect, lazy, Suspense, useState } from 'react';
-import { Grib2Map, allGrib2MapAtom, allItemsAtom, loadedItemMapAtom } from '../../store/item';
+import { GridMap, allGridMapAtom, allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useSubscribe } from '../../api/useSubscribe';
 import { currentMapDefineAtom, currentMapKindAtom } from '../../store/session';
 import { atom, useAtom } from 'jotai';
@@ -162,8 +162,8 @@ function useItemUpdater() {
 
     }, [geoJsonItems, map, hideProcessMessage, showProcessMessage, initializedMapKind, currentMapKind]);
 
-    const [ grib2Map ] = useAtom(allGrib2MapAtom);
-    const prevGrib2MapRef = useRef<Grib2Map>({});
+    const [ grib2Map ] = useAtom(allGridMapAtom);
+    const prevGrib2MapRef = useRef<GridMap>({});
 
     useEffect(() => {
         if (!map || !initializedMapKind) return;

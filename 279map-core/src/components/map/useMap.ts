@@ -4,7 +4,7 @@ import { atom, useAtom } from 'jotai';
 import { useAtomCallback, atomWithReducer } from 'jotai/utils';
 import { currentMapKindAtom, defaultExtentAtom, instanceIdAtom, mapIdAtom } from '../../store/session';
 import { GetGrib2API, GetItemsAPI } from 'tsunagumap-api';
-import { LoadedAreaInfo, LoadedItemKey, allGrib2MapAtom, allItemsAtom, loadedItemMapAtom } from '../../store/item';
+import { LoadedAreaInfo, LoadedItemKey, allGridMapAtom, allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { DataId, Extent } from '279map-common';
 import { dataSourcesAtom, visibleDataSourcesAtom } from '../../store/datasource';
 import useMyMedia from '../../util/useMyMedia';
@@ -231,7 +231,7 @@ export function useMap() {
                     })
                     return newItemsMap;
                 });
-                set(allGrib2MapAtom, (currentGrib2Map) => {
+                set(allGridMapAtom, (currentGrib2Map) => {
                     const newMap = structuredClone(currentGrib2Map);
                     grib2ApiResults.forEach(apiResult => {
                         if (!newMap[apiResult.target.datasourceId]) {

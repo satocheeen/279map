@@ -16,14 +16,14 @@ export type ItemsMap = {[itemId: string]: ItemDefine};
 type ItemsByDatasourceMap = {[dsId: string]: ItemsMap};
 export const allItemsAtom = atom({} as ItemsByDatasourceMap);
 
-export type Grib2Map = {[datasourceId: string]: Grib2Define[]};
-export const allGrib2MapAtom = atom<Grib2Map>({});
+export type GridMap = {[datasourceId: string]: Grib2Define[]};
+export const allGridMapAtom = atom<GridMap>({});
 type Range = {
     min: number;
     max: number;
 }
-export const gribRangeMapAtom = atom((get) => {
-    const allGrib2Map = get(allGrib2MapAtom);
+export const gridRangeMapAtom = atom((get) => {
+    const allGrib2Map = get(allGridMapAtom);
     const map = {} as {[datasourceId: string]: Range};
     Object.entries(allGrib2Map).forEach(([datasourceId, define]) => {
         // TODO: 時間考慮
