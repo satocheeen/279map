@@ -665,8 +665,7 @@ app.post(`/api/${GetItemsAPI.uri}`,
             });
 
             // 仮登録中の情報を付与して返す
-            const tempItems = session.getTemporaryItems(req.currentMap);
-            Array.prototype.push.apply(result.items, tempItems);
+            session.mergeTemporaryItems(result.items, req.currentMap);
 
             // apiLogger.debug('result', result);
 
@@ -780,7 +779,7 @@ app.post(`/api/${RegistItemAPI.uri}`,
             if (!session) {
                 throw new Error('session undefined');
             }
-            const tempID = session.addTemporaryItem(req.currentMap, param);
+            const tempID = session.addTemporaryRegistItem(req.currentMap, param);
         
             const wkt = geojsonToWKT(param.geometry);
             // call ODBA
@@ -848,30 +847,56 @@ app.post(`/api/${UpdateItemAPI.uri}`,
     async(req, res, next) => {
         const param = req.body as UpdateItemParam;
         try {
+            // メモリに仮登録
+            const session = sessionManager.get(req.connect?.sessionKey as string);
+            if (!session) {
+                throw new Error('session undefined');
+            }
+            const tempID = session.addTemporaryUpdateItem(req.currentMap, param);
+
+            const wkt = await async function() {
+                if (param.geometry) {
+                    return geojsonToWKT(param.geometry);
+                }
+                const myWkt = await getItemWkt(param.id);
+                if (!myWkt) {
+                    throw new Error('undefined wkt');
+                }
+                return myWkt;
+            }();
             // call ODBA
             callOdbaApi(OdbaUpdateItemAPI, Object.assign({
                 currentMap: req.currentMap,
             }, param))
             .then(async() => {
+                // メモリから除去
+                session.removeTemporaryItem(tempID);
+
                 // 更新通知
-                const wkt = await getItemWkt(param.id);
-                if (!wkt) {
-                    logger.warn('not found extent', param.id);
-                } else {
-                    broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                        type: 'mapitem-update',
-                        targets: [
-                            {
-                                datasourceId: param.id.dataSourceId,
-                                wkt,
-                            }
-                        ]
-                    });
-                }
+                broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
+                    type: 'mapitem-update',
+                    targets: [
+                        {
+                            datasourceId: param.id.dataSourceId,
+                            wkt,
+                        }
+                    ]
+                });
             })
             
             res.send('complete');
     
+            // 仮アイテム描画させるための通知
+            broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
+                type: 'mapitem-update',
+                targets: [
+                    {
+                        datasourceId: param.id.dataSourceId,
+                        wkt,
+                    }
+                ]
+            });
+
             next();
         } catch(e) {    
             apiLogger.warn('update-item API error', param, e);

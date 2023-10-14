@@ -1,7 +1,7 @@
 import { MapKind, DataId } from '279map-common';
 import dayjs from 'dayjs';
 import { CurrentMap, ItemDefine } from '../../279map-backend-common/src';
-import { RegistItemParam } from '../../279map-api-interface/dist';
+import { RegistItemParam, UpdateItemParam } from '../../279map-api-interface/dist';
 import { createHash } from '../util/utility';
 import { GeoProperties } from '279map-common';
 
@@ -23,15 +23,21 @@ type ConstructorParam = {
     itemsMap?: ItemInfoMap;
 }
 type TemporaryItem = {
-    type: 'regist';
     currentMap: CurrentMap;
+} & ({
+    type: 'regist';
     dataSourceId: string;
     name: string;
     geometry: GeoJSON.Geometry;
     geoProperties: GeoProperties;
 } | {
     type: 'update';
-}
+    id: DataId,
+    name?: string;
+    geometry?: GeoJSON.Geometry;
+    geoProperties?: GeoProperties;
+});
+
 export default class SessionInfo {
     #sid: string;    // セッションID
     #limit: string; // 有効期限
@@ -101,7 +107,7 @@ export default class SessionInfo {
      * @param registItemParam 
      * @return id。メモリから除去する際(removeTemporaryItem)に、このidを指定。
      */
-    addTemporaryItem(currentMap: CurrentMap, registItemParam: RegistItemParam) {
+    addTemporaryRegistItem(currentMap: CurrentMap, registItemParam: RegistItemParam) {
         const processId = createHash();
         this.#temporaryItemMap.set(processId, {
             type: 'regist',
@@ -116,6 +122,26 @@ export default class SessionInfo {
     }
 
     /**
+     * 更新処理中のアイテムを仮更新する
+     * @param currentMap 
+     * @param updateItemParam 
+     * @returns 
+     */
+    addTemporaryUpdateItem(currentMap: CurrentMap, updateItemParam: UpdateItemParam) {
+        const processId = createHash();
+        this.#temporaryItemMap.set(processId, {
+            type: 'update',
+            currentMap,
+            id: updateItemParam.id,
+            geometry: updateItemParam.geometry,
+            geoProperties:updateItemParam.geoProperties,
+            name: updateItemParam.name,
+        })
+
+        return processId;
+    }
+
+    /**
      * 仮登録したアイテムを削除する
      * @param id addTemporaryItemで返却したid
      */
@@ -123,14 +149,18 @@ export default class SessionInfo {
         this.#temporaryItemMap.delete(id);
     }
 
-    getTemporaryItems(currentMap: CurrentMap): ItemDefine[] {
-        const list = [] as ItemDefine[];
+    /**
+     * 仮登録中の情報をitemsに反映する
+     * @param items
+     * @param currentMap 
+     */
+    mergeTemporaryItems(items: ItemDefine[], currentMap: CurrentMap) {
         for(const [key, item] of this.#temporaryItemMap.entries()) {
+            if (item.currentMap.mapId !== currentMap.mapId || item.currentMap.mapKind !== currentMap.mapKind) {
+                continue;
+            }
             if (item.type === 'regist') {
-                if (item.currentMap.mapId !== currentMap.mapId || item.currentMap.mapKind !== currentMap.mapKind) {
-                    continue;
-                }
-                list.push({
+                items.push({
                     id: {
                         id: key,
                         dataSourceId: item.dataSourceId,
@@ -141,9 +171,15 @@ export default class SessionInfo {
                     lastEditedTime: '',
                     contents: [],
                 })
+            } else {
+                const target = items.find(i => i.id.id === item.id.id && i.id.dataSourceId === item.id.dataSourceId);
+                if (!target) continue;
+                if (item.geometry) target.geoJson = item.geometry;
+                if (item.geoProperties) target.geoProperties = item.geoProperties;
+                if (item.name) target.name = item.name;
+                target.lastEditedTime = '';
             }
         }
-        return list;
     }
 
     toSerialize(): SerializableSessionInfo {
