@@ -26,7 +26,6 @@ import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFea
 import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 import { search } from './api/search';
-import { checkLinkableDatasource } from './api/getUnpointData';
 import { Auth0Management } from './auth/Auth0Management';
 import { OriginalAuthManagement } from './auth/OriginalAuthManagement';
 import { NoneAuthManagement } from './auth/NoneAuthManagement';
@@ -35,6 +34,7 @@ import { CurrentMap, sleep } from '../279map-backend-common/src';
 import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaRegistContentAPI, OdbaRegistItemAPI, OdbaRemoveContentAPI, OdbaRemoveItemAPI, OdbaUpdateContentAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
 import MqttBroadcaster from './session/MqttBroadcaster';
 import SessionManager from './session/SessionManager';
+import { geojsonToWKT } from '@terraformer/wkt';
 
 declare global {
     namespace Express {
@@ -654,10 +654,19 @@ app.post(`/api/${GetItemsAPI.uri}`,
     async(req, res, next) => {
         const param = req.body as GetItemsParam;
         try {
+            const session = sessionManager.get(req.connect?.sessionKey as string);
+            if (!session) {
+                throw new Error('session undefined');
+            }
+            
             const result = await getItems({
                 param,
                 currentMap: req.currentMap,
             });
+
+            // 仮登録中の情報を付与して返す
+            const tempItems = session.getTemporaryItems(req.currentMap);
+            Array.prototype.push.apply(result.items, tempItems);
 
             // apiLogger.debug('result', result);
 
@@ -766,7 +775,14 @@ app.post(`/api/${RegistItemAPI.uri}`,
     async(req, res, next) => {
         const param = req.body as RegistItemParam;
         try {
+            // メモリに仮登録
+            const session = sessionManager.get(req.connect?.sessionKey as string);
+            if (!session) {
+                throw new Error('session undefined');
+            }
+            const tempID = session.addTemporaryItem(req.currentMap, param);
         
+            const wkt = geojsonToWKT(param.geometry);
             // call ODBA
             callOdbaApi(OdbaRegistItemAPI, {
                 currentMap: req.currentMap,
@@ -775,22 +791,39 @@ app.post(`/api/${RegistItemAPI.uri}`,
                 geometry: param.geometry,
                 geoProperties: param.geoProperties,
             }).then(async(id) => {
+                // メモリから除去
+                session.removeTemporaryItem(tempID);
+
                 // 更新通知
-                const wkt = await getItemWkt(id);
-                if (!wkt) {
-                    logger.warn('not found extent', id);
-                } else {
-                    broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                        type: 'mapitem-update',
-                        targets: [
-                            {
-                                datasourceId: id.dataSourceId,
-                                wkt,
-                            }
-                        ]
-                    });
-                }
+                broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
+                    type: 'mapitem-update',
+                    targets: [
+                        {
+                            datasourceId: id.dataSourceId,
+                            wkt,
+                        }
+                    ]
+                });
+                // 仮アイテム削除通知
+                broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
+                    type: 'mapitem-delete',
+                    itemPageIdList: [{
+                        id: tempID,
+                        dataSourceId: param.dataSourceId,
+                    }],
+                });
             })
+
+            // 仮アイテム描画させるための通知
+            broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
+                type: 'mapitem-update',
+                targets: [
+                    {
+                        datasourceId: param.dataSourceId,
+                        wkt,
+                    }
+                ]
+            });
             
             res.send('ok');
     
