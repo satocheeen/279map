@@ -768,31 +768,31 @@ app.post(`/api/${RegistItemAPI.uri}`,
         try {
         
             // call ODBA
-            const id = await callOdbaApi(OdbaRegistItemAPI, {
+            callOdbaApi(OdbaRegistItemAPI, {
                 currentMap: req.currentMap,
                 dataSourceId: param.dataSourceId,
                 name: param.name,
                 geometry: param.geometry,
                 geoProperties: param.geoProperties,
-            });
-    
-            // 更新通知
-            const wkt = await getItemWkt(id);
-            if (!wkt) {
-                logger.warn('not found extent', id);
-            } else {
-                broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                    type: 'mapitem-update',
-                    targets: [
-                        {
-                            datasourceId: id.dataSourceId,
-                            wkt,
-                        }
-                    ]
-                });
-            }
+            }).then(async(id) => {
+                // 更新通知
+                const wkt = await getItemWkt(id);
+                if (!wkt) {
+                    logger.warn('not found extent', id);
+                } else {
+                    broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
+                        type: 'mapitem-update',
+                        targets: [
+                            {
+                                datasourceId: id.dataSourceId,
+                                wkt,
+                            }
+                        ]
+                    });
+                }
+            })
             
-            res.send(id);
+            res.send('ok');
     
             next();
         } catch(e) {    
@@ -816,25 +816,26 @@ app.post(`/api/${UpdateItemAPI.uri}`,
         const param = req.body as UpdateItemParam;
         try {
             // call ODBA
-            await callOdbaApi(OdbaUpdateItemAPI, Object.assign({
+            callOdbaApi(OdbaUpdateItemAPI, Object.assign({
                 currentMap: req.currentMap,
-            }, param));
-    
-            // 更新通知
-            const wkt = await getItemWkt(param.id);
-            if (!wkt) {
-                logger.warn('not found extent', param.id);
-            } else {
-                broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                    type: 'mapitem-update',
-                    targets: [
-                        {
-                            datasourceId: param.id.dataSourceId,
-                            wkt,
-                        }
-                    ]
-                });
-            }
+            }, param))
+            .then(async() => {
+                // 更新通知
+                const wkt = await getItemWkt(param.id);
+                if (!wkt) {
+                    logger.warn('not found extent', param.id);
+                } else {
+                    broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
+                        type: 'mapitem-update',
+                        targets: [
+                            {
+                                datasourceId: param.id.dataSourceId,
+                                wkt,
+                            }
+                        ]
+                    });
+                }
+            })
             
             res.send('complete');
     
