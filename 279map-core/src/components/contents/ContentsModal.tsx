@@ -30,12 +30,18 @@ export default function ContentsModal(props: Props) {
     const [itemId, setItemId] = useState<DataId | undefined>();
 
     const [ contentsList, setContentsList ] = useState<ContentsDefine[]>([]);
+    const [ isTemporaryItem, setIsTemporaryItem ] = useState(false);
     const { callApi } = useApi();
     const { getSubscriber } = useSubscribe();
 
     const { getItem } = useItem();
     const loadContentsInItem = useCallback(async(itemId: DataId) => {
         const item = getItem(itemId);
+        setIsTemporaryItem(item.isTemporary ?? false);
+        if (item.isTemporary) {
+            setContentsList([]);
+            return;
+        }
         if (!item || item.contents.length === 0) {
             setContentsList([]);
             return;
@@ -120,12 +126,13 @@ export default function ContentsModal(props: Props) {
     const [ datasources ] = useAtom(dataSourcesAtom);
     const isShowItemNameEditBtn = useMemo(() => {
         if (props.type !== 'item') return false;
+        if (isTemporaryItem) return false;
         const targetDs = datasources.find(ds => ds.dataSourceId === props.id.dataSourceId);
         if (!targetDs) return false;
         const info = mapKind === MapKind.Real ? targetDs.itemContents.RealItem : targetDs.itemContents.VirtualItem;
         if (!info) return false;
         return info.editable && compareAuth(authLv, Auth.Edit) >= 0
-    }, [props, authLv, datasources, mapKind])
+    }, [props, authLv, datasources, mapKind, isTemporaryItem])
 
     const itemNameEditTipLabel = useMemo(() => {
         if (mapKind === MapKind.Real) {
@@ -153,6 +160,13 @@ export default function ContentsModal(props: Props) {
     const body = useMemo(() => {
         if (!props) return null;
 
+        if (isTemporaryItem) {
+            return (
+                <div className={styles.NoContentParagraph}>
+                    <p>アイテムの登録処理中です。<br/>しばらくお待ちください。</p>
+                </div>
+            )
+        }
         if (contents.length === 0) {
             return (
                 <div className={styles.NoContentParagraph}>
@@ -170,7 +184,7 @@ export default function ContentsModal(props: Props) {
             )
         })
 
-    }, [contents, props]);
+    }, [contents, props, isTemporaryItem]);
 
     return (
         <>

@@ -811,6 +811,8 @@ app.post(`/api/${RegistItemAPI.uri}`,
                         dataSourceId: param.dataSourceId,
                     }],
                 });
+            }).catch(e => {
+                apiLogger.warn('callOdba-registItem error', e);
             })
 
             // 仮アイテム描画させるための通知
@@ -882,8 +884,10 @@ app.post(`/api/${UpdateItemAPI.uri}`,
                         }
                     ]
                 });
+            }).catch(e => {
+                apiLogger.warn('callOdba-updateItem error', e);
             })
-            
+        
             res.send('complete');
     
             // 仮アイテム描画させるための通知
