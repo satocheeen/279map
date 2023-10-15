@@ -5,6 +5,7 @@ import { ContentsTable, ItemsTable } from '../../279map-backend-common/src/types
 import { CurrentMap } from '../../279map-backend-common/src';
 import { circle, multiPolygon, point, polygon, union } from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
+import crypto from 'crypto';
 
 export function getExtentWkt(ext: Extent): string {
     const [lon1, lat1, lon2, lat2] = ext;
@@ -206,4 +207,17 @@ export async function getItemsWkt(itemIdList: DataId[]): Promise<string|undefine
     }
     if (unionFeature)
         return geojsonToWKT(unionFeature.geometry)
+}
+
+export function createHash(): string {
+    // 生成するハッシュの長さ（バイト数）
+    const hashLength = 32;
+
+    // ランダムなバイト列を生成する
+    const randomBytes = crypto.randomBytes(hashLength);
+
+    // バイト列をハッシュ化する
+    const hash = crypto.createHash('sha256').update(randomBytes).digest('hex');
+
+    return hash;
 }

@@ -87,7 +87,7 @@ export async function getUserAuthInfoInTheMap(mapPageInfo: MapPageInfoTable, req
                 default:
                     return {
                         userId,
-                        authLv: mapUserInfo.auth_lv,
+                        authLv: mapUserInfo.auth_lv as Auth.Admin | Auth.Edit | Auth.View,
                         userName: mapUserInfo.name,
                     };
                 }

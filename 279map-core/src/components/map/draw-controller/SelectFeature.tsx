@@ -17,6 +17,10 @@ import { containFeatureInLayer } from '../../../util/MapUtility';
 import { useMap } from '../useMap';
 import { currentMapKindAtom } from '../../../store/session';
 import { useAtom } from 'jotai';
+import { convertDataIdFromFeatureId } from '../../../util/dataUtility';
+import { useAtomCallback } from 'jotai/utils';
+import { allItemsAtom } from '../../../store/item';
+import { useItem } from '../../../store/item/useItem';
 
 type Props = {
     targetType: LayerType;
@@ -150,6 +154,7 @@ export default function SelectFeature(props: Props) {
      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [map]);
 
+    const [ errorMessage, setErrorMessage ] = useState<string|undefined>();
     const message= useMemo(() => {
         let name: string;
         if (props.targetType === LayerType.Point) {
@@ -165,16 +170,28 @@ export default function SelectFeature(props: Props) {
                 name = '地形';
             }
         }
-        return props.message ? props.message : `対象の${name}を選択して、OKボタンを押下してください。`;
-    }, [props.message, props.targetType, mapKind]);
+        const message = props.message ? props.message : `対象の${name}を選択して、OKボタンを押下してください。`;
+        return message + (errorMessage ? '\n' + errorMessage : '');
+    }, [props.message, props.targetType, mapKind, errorMessage]);
+
+    const { getItem } = useItem();
 
     const onOkClicked = useCallback(async() => {
+        setErrorMessage(undefined);
         if (!selectedFeature) {
             console.warn('選択アイテムなし');
             return;
         }
+        const idStr = selectedFeature.getId() as string;
+        const id = convertDataIdFromFeatureId(idStr);
+        const item = getItem(id);
+        if (item.isTemporary) {
+            setErrorMessage('現在登録処理中のアイテムのため編集できません。少し待ってから選択してください。');
+            return;
+        }
+
         props.onOk(selectedFeature);
-    }, [props, selectedFeature]);
+    }, [props, selectedFeature, getItem]);
 
     const onCancel = useCallback(() => {
         props.onCancel();

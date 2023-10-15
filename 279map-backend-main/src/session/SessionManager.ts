@@ -2,7 +2,7 @@ import SessionInfo, { SerializableSessionInfo } from "./SessionInfo";
 import jsonfile from 'jsonfile';
 import { getLogger } from "log4js";
 import { CurrentMap } from "../../279map-backend-common/src";
-import crypto from 'crypto';
+import { createHash } from "../util/utility";
 
 type SessionMapTypeForStorage = {[sid: string]: SerializableSessionInfo};
 type SessionMapType = {[sid: string]:  SessionInfo};
@@ -91,15 +91,3 @@ export default class SessionManager {
 
 }
 
-function createHash(): string {
-    // 生成するハッシュの長さ（バイト数）
-    const hashLength = 32;
-
-    // ランダムなバイト列を生成する
-    const randomBytes = crypto.randomBytes(hashLength);
-
-    // バイト列をハッシュ化する
-    const hash = crypto.createHash('sha256').update(randomBytes).digest('hex');
-
-    return hash;
-}
