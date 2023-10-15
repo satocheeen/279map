@@ -177,6 +177,7 @@ export type ItemDefine = {
     geoProperties: GeoProperties;
     lastEditedTime: string;
     contents: ItemContentInfo[];
+    isTemporary?: boolean;  // trueの場合、仮登録状態
 }
 export type ContentsDefine = {
     id: DataId;
