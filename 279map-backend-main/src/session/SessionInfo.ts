@@ -170,6 +170,7 @@ export default class SessionInfo {
                     geoProperties: item.geoProperties,
                     lastEditedTime: '',
                     contents: [],
+                    isTemporary: true,
                 })
             } else {
                 const target = items.find(i => i.id.id === item.id.id && i.id.dataSourceId === item.id.dataSourceId);
@@ -178,6 +179,7 @@ export default class SessionInfo {
                 if (item.geoProperties) target.geoProperties = item.geoProperties;
                 if (item.name) target.name = item.name;
                 target.lastEditedTime = '';
+                target.isTemporary = true;
             }
         }
     }
