@@ -6,7 +6,7 @@ import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
 import { Auth, DataId, DataSourceLinkableContent, MapKind } from '279map-common';
-import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam } from 'tsunagumap-api';
+import { GetContentsAPI, GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, UpdateItemAPI } from 'tsunagumap-api';
 import { Button } from '../common';
 import { compareAuth } from '../../util/CommonUtility';
 import { authLvAtom, currentMapKindAtom } from '../../store/session';
@@ -15,7 +15,7 @@ import { dataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
 import { useApi } from '../../api/useApi';
 import useConfirm from '../common/confirm/useConfirm';
-import { ConfirmBtnPattern } from '../common/confirm/types';
+import { ConfirmBtnPattern, ConfirmResult } from '../common/confirm/types';
 
 type Props = {
     target: {
@@ -167,6 +167,46 @@ export default function AddContentMenu(props: Props) {
 
     const { confirm } = useConfirm();
 
+    type FuncParam = {
+        type: 'id';
+        contentId: DataId;
+    } | {
+        type: 'title';
+        contentTitle: string;
+    }
+    const registItemNameByContentsName = useCallback(async(param: FuncParam) => {
+        if (item?.name.length !== 0) return;
+
+        const yesno = await confirm({
+            message: '建物の名前にコンテンツ名を設定しますか？',
+            btnPattern: ConfirmBtnPattern.YesNo,
+            title: '確認',
+        });
+        if (yesno !== ConfirmResult.Yes) return;
+
+        let name: string;
+        if (param.type === 'id') {
+            const contents = await callApi(GetContentsAPI, [
+                {
+                    contentId: param.contentId,
+                }
+            ]);
+            if (contents.contents.length === 0) {
+                console.warn('コンテンツなし');
+                return;
+            }
+            name = contents.contents[0].title;
+        } else {
+            name = param.contentTitle;
+        }
+
+        await callApi(UpdateItemAPI, {
+            id: item.id,
+            name,
+        });
+
+    }, [item, callApi, confirm]);
+
     const onAddContent = useCallback((val: 'new' | 'unpoint') => {
         setShowSubMenu(false);
         if (val === 'new') {
@@ -176,6 +216,11 @@ export default function AddContentMenu(props: Props) {
                 registContentAPI: async(param: RegistContentParam) => {
                     try {
                         await callApi(RegistContentAPI, param);
+                        // 必要に応じてアイテム名設定
+                        registItemNameByContentsName({
+                            type: 'title',
+                            contentTitle: param.title,
+                        });
                     } catch(e) {
                         throw new Error('registContentAPI failed.' + e);
                     }
@@ -202,6 +247,12 @@ export default function AddContentMenu(props: Props) {
                     try {
                         await callApi(LinkContentToItemAPI, param);
 
+                        // 必要に応じてアイテム名設定
+                        registItemNameByContentsName({
+                            type: 'id',
+                            contentId: param.childContentId
+                        });
+
                     } catch(e) {
                         console.warn(e);
                         confirm({
@@ -218,7 +269,7 @@ export default function AddContentMenu(props: Props) {
             props.onClick();
         }
 
-    }, [callApi, props, creatableContentDataSources, linkableContentDataSources, onAddNewContent, onLinkUnpointedContent]);
+    }, [callApi, props, confirm, registItemNameByContentsName, creatableContentDataSources, linkableContentDataSources, onAddNewContent, onLinkUnpointedContent]);
 
     const caption = useMemo(() => {
         if ('itemId' in props.target) {
@@ -259,7 +310,6 @@ export default function AddContentMenu(props: Props) {
         setShowSubMenu((state) => !state);
     }, []);
 
-    console.log('subMenuItems', subMenuItems);
     if (subMenuItems.length === 0) {
         return null;
     } else if (subMenuItems.length === 1) {
