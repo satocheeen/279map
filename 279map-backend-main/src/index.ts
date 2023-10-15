@@ -790,9 +790,6 @@ app.post(`/api/${RegistItemAPI.uri}`,
                 geometry: param.geometry,
                 geoProperties: param.geoProperties,
             }).then(async(id) => {
-                // メモリから除去
-                session.removeTemporaryItem(tempID);
-
                 // 更新通知
                 broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                     type: 'mapitem-update',
@@ -803,6 +800,12 @@ app.post(`/api/${RegistItemAPI.uri}`,
                         }
                     ]
                 });
+            }).catch(e => {
+                apiLogger.warn('callOdba-registItem error', e);
+                // TODO: フロントエンドにエラーメッセージ表示
+
+                // メモリから除去
+                session.removeTemporaryItem(tempID);
                 // 仮アイテム削除通知
                 broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                     type: 'mapitem-delete',
@@ -811,8 +814,18 @@ app.post(`/api/${RegistItemAPI.uri}`,
                         dataSourceId: param.dataSourceId,
                     }],
                 });
-            }).catch(e => {
-                apiLogger.warn('callOdba-registItem error', e);
+            }).finally(() => {
+                // メモリから除去
+                session.removeTemporaryItem(tempID);
+
+                // 仮アイテム削除通知
+                broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
+                    type: 'mapitem-delete',
+                    itemPageIdList: [{
+                        id: tempID,
+                        dataSourceId: param.dataSourceId,
+                    }],
+                });
             })
 
             // 仮アイテム描画させるための通知
@@ -870,7 +883,10 @@ app.post(`/api/${UpdateItemAPI.uri}`,
             callOdbaApi(OdbaUpdateItemAPI, Object.assign({
                 currentMap: req.currentMap,
             }, param))
-            .then(async() => {
+            .catch(e => {
+                apiLogger.warn('callOdba-updateItem error', e);
+                // TODO: フロントエンドにエラーメッセージ表示
+            }).finally(() => {
                 // メモリから除去
                 session.removeTemporaryItem(tempID);
 
@@ -884,8 +900,6 @@ app.post(`/api/${UpdateItemAPI.uri}`,
                         }
                     ]
                 });
-            }).catch(e => {
-                apiLogger.warn('callOdba-updateItem error', e);
             })
         
             res.send('complete');
