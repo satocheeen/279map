@@ -108,6 +108,10 @@ export default function AddContentMenu(props: Props) {
 
     }, [item, props.target, dataSources, mapKind]);
 
+    useEffect(() => {
+        console.log('addableContentDefines', addableContentDefines);
+    }, [addableContentDefines]);
+
     const creatableContentDataSources = useMemo((): LinkUnpointContentParam['dataSources'] => {
         return dataSources
                 // 追加対象データソースに絞る
@@ -134,7 +138,7 @@ export default function AddContentMenu(props: Props) {
                 // 追加対象データソースに絞る
                 .filter(ds => {
                     const target = addableContentDefines.find(def => def.contentDatasourceId === ds.dataSourceId);
-                    return target?.max === 'multi';
+                    return target;
                 })
                 .map(ds => {
                     return {
@@ -229,15 +233,18 @@ export default function AddContentMenu(props: Props) {
             name: string;
             callback: () => void;
         }[];
+        console.log('editableAuthLv', editableAuthLv);
         if (addableContentDefines.length === 0 || !editableAuthLv) {
             return items;
         }
+        console.log('creatableContentDataSources', creatableContentDataSources);
         if (creatableContentDataSources.length > 0) {
             items.push({
                 name: '新規コンテンツ',
                 callback: () => onAddContent('new'),
             });
         }
+        console.log('linkableContentDataSources', linkableContentDataSources);
         if (linkableContentDataSources.length > 0) {
             items.push({
                 name: '既存コンテンツ',
@@ -252,6 +259,7 @@ export default function AddContentMenu(props: Props) {
         setShowSubMenu((state) => !state);
     }, []);
 
+    console.log('subMenuItems', subMenuItems);
     if (subMenuItems.length === 0) {
         return null;
     } else if (subMenuItems.length === 1) {
