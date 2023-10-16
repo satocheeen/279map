@@ -49,7 +49,7 @@ function useMapInitializer() {
     const [ currentMapKind ] = useAtom(currentMapKindAtom);
     const { getSubscriber } = useSubscribe();
     const { removeItems } = useItem();
-    const { updateAreaItems } = useMap();
+    const { updateItems } = useMap();
     const [ mapInstanceId ] = useAtom(mapInstanceIdAtom);
 
     useEffect(() => {
@@ -58,12 +58,18 @@ function useMapInitializer() {
         const subscriber = getSubscriber();
         if (!subscriber) return;
 
+        // const h0 = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapitem-insert', undefined, (payload) => {
+        //     if (payload.type === 'mapitem-insert') {
+        //         // 表示中エリアの場合は最新ロードする
+        //         payload.targets.forEach(target => {
+        //             updateAreaItems(target.wkt, target.datasourceId);
+        //         })
+        //     }
+        // });
         const h1 = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapitem-update', undefined, (payload) => {
             if (payload.type === 'mapitem-update') {
                 // 表示中エリアの場合は最新ロードする
-                payload.targets.forEach(target => {
-                    updateAreaItems(target.wkt, target.datasourceId);
-                })
+                updateItems(payload.targets);
             }
         });
         const h2 = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapitem-delete', undefined, (payload) => {
@@ -78,7 +84,7 @@ function useMapInitializer() {
             if (h2)
                 subscriber.unsubscribe(h2);
         }
-    }, [currentMapKind, removeItems, getSubscriber, updateAreaItems, mapInstanceId]);
+    }, [currentMapKind, removeItems, getSubscriber, updateItems, mapInstanceId]);
 
 }
 

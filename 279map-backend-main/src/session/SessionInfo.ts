@@ -1,9 +1,8 @@
-import { MapKind, DataId } from '279map-common';
+import { MapKind, DataId, ItemDefine } from '279map-common';
 import dayjs from 'dayjs';
-import { CurrentMap, ItemDefine } from '../../279map-backend-common/src';
+import { CurrentMap } from '../../279map-backend-common/src';
 import { RegistItemParam, UpdateItemParam } from '../../279map-api-interface/dist';
 import { createHash } from '../util/utility';
-import { GeoProperties } from '279map-common';
 
 type ItemInfoMap = {[dataSourceId: string]: ItemInfo[]};
 type ItemInfo = {
@@ -22,11 +21,8 @@ type ConstructorParam = {
     limit?: string;
     itemsMap?: ItemInfoMap;
 }
-type TemporaryItem = {
+type TemporaryItem = Omit<ItemDefine, 'id'|'lastEditedTime'> & {
     currentMap: CurrentMap;
-    name: string;
-    geometry: GeoJSON.Geometry;
-    geoProperties: GeoProperties;
 } & ({
     type: 'regist';
     dataSourceId: string;
@@ -110,9 +106,10 @@ export default class SessionInfo {
             type: 'regist',
             currentMap,
             dataSourceId: registItemParam.dataSourceId,
-            geometry: registItemParam.geometry,
+            geoJson: registItemParam.geometry,
             geoProperties:registItemParam.geoProperties,
             name: registItemParam.name ?? '',
+            contents: [],
         })
 
         return processId;
@@ -130,9 +127,10 @@ export default class SessionInfo {
             type: 'update',
             currentMap,
             id: updateItemParam.id,
-            geometry: updateItemParam.geometry ?? currentItem.geoJson,
+            geoJson: updateItemParam.geometry ?? currentItem.geoJson,
             geoProperties:updateItemParam.geoProperties ?? currentItem.geoProperties,
             name: updateItemParam.name ?? currentItem.name,
+            contents: currentItem.contents,
         })
 
         return processId;
@@ -147,11 +145,11 @@ export default class SessionInfo {
     }
 
     /**
-     * 仮登録中の情報をitemsに反映する
+     * 仮登録中の情報をitemsに追加する
      * @param items
      * @param currentMap 
      */
-    mergeTemporaryItems(items: ItemDefine[], currentMap: CurrentMap) {
+    addTemporaryItems(items: ItemDefine[], currentMap: CurrentMap) {
         for(const [key, item] of this.#temporaryItemMap.entries()) {
             if (item.currentMap.mapId !== currentMap.mapId || item.currentMap.mapKind !== currentMap.mapKind) {
                 continue;
@@ -163,22 +161,44 @@ export default class SessionInfo {
                         dataSourceId: item.dataSourceId,
                     },
                     name: item.name,
-                    geoJson: item.geometry,
+                    geoJson: item.geoJson,
                     geoProperties: item.geoProperties,
                     lastEditedTime: '',
-                    contents: [],
+                    contents: item.contents,
                     isTemporary: true,
                 })
             } else {
                 items.push({
                     id: item.id,
                     name: item.name,
-                    geoJson: item.geometry,
+                    geoJson: item.geoJson,
                     geoProperties: item.geoProperties,
                     lastEditedTime: '',
-                    contents: [],
+                    contents: item.contents,
                     isTemporary: true,
                 })
+            }
+        }
+    }
+
+    mergeTemporaryItems(items: ItemDefine[], currentMap: CurrentMap) {
+        for(const [key, item] of this.#temporaryItemMap.entries()) {
+            if (item.currentMap.mapId !== currentMap.mapId || item.currentMap.mapKind !== currentMap.mapKind) {
+                continue;
+            }
+            if (item.type === 'regist') {
+                continue;
+            }
+            const index = items.findIndex(i => i.id.id === item.id.id && i.id.dataSourceId === item.id.dataSourceId);
+            if (index === -1) continue;
+            items[index] = {
+                id: item.id,
+                name: item.name,
+                contents: item.contents,
+                geoJson: item.geoJson,
+                geoProperties: item.geoProperties,
+                lastEditedTime: '',
+                isTemporary: true,
             }
         }
     }

@@ -3,7 +3,7 @@ import { OlMapWrapper } from '../TsunaguMap/OlMapWrapper';
 import { atom, useAtom } from 'jotai';
 import { useAtomCallback, atomWithReducer } from 'jotai/utils';
 import { currentMapKindAtom, defaultExtentAtom, instanceIdAtom, mapIdAtom } from '../../store/session';
-import { GetItemsAPI } from 'tsunagumap-api';
+import { GetItemsAPI, GetItemsByIdAPI } from 'tsunagumap-api';
 import { LoadedAreaInfo, LoadedItemKey, allItemsAtom, latestEditedTimeOfDatasourceAtom, loadedItemMapAtom } from '../../store/item';
 import { DataId, Extent } from '279map-common';
 import { dataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
@@ -18,6 +18,7 @@ import { initialLoadingAtom } from '../TsunaguMap/MapController';
 import { geoJsonToTurfPolygon } from '../../util/MapUtility';
 import { bboxPolygon, intersect, union, booleanContains } from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
+import { useItem } from '../../store/item/useItem';
 
 /**
  * 地図インスタンス管理マップ。
@@ -272,63 +273,48 @@ export function useMap() {
         }, [loadItems, map, mapInstanceId, showProcessMessage, hideProcessMessage])
     )
 
-    /**
-     * 指定範囲のアイテムを更新する
-     */
-    const updateAreaItems = useAtomCallback(
-        useCallback(async(get, set, wkt: string, datasourceId: string) => {
-            if (!map) {
-                console.warn('map is undefined', mapInstanceId);
-                return;
-            }
-            const zoom = map.getZoom();
-            if (!zoom) {
-                return;
-            }
-            // 取得済み範囲と交差する領域についてupdate
-            const loadedItemMap = get(loadedItemMapAtom);
-            const key: LoadedItemKey = {
-                datasourceId,
-            }
-            const loadedItem = loadedItemMap[JSON.stringify(key)];
-            if (!loadedItem) {
-                return;
-            }
-            const loadedPolygon = geoJsonToTurfPolygon(loadedItem.geometry);
-            if (!loadedPolygon) {
-                console.warn('loaded polygon can not analyze', loadedItem.geometry);
-                return;
-            }
-            const geoJson = wktToGeoJSON(wkt);
-            const polygon = geoJsonToTurfPolygon(geoJson);
-            if (!polygon) {
-                console.warn('wkt is not polygon', wkt, geoJson);
-                return;
-            }
-            const intersectPolygon = intersect(loadedPolygon, polygon);
-            if (!intersectPolygon) {
-                // 未ロードエリアの場合、何もしない
-                return;
-            }
-            const updateArea = geojsonToWKT(intersectPolygon.geometry);
-            const latestEditedTime = get(latestEditedTimeOfDatasourceAtom)[datasourceId];
+    const { getItem} = useItem();
 
-            const apiResult = await callApi(GetItemsAPI, {
-                wkt: updateArea,
-                zoom,
-                dataSourceId: datasourceId,
-                latestEditedTime,
+    /**
+     * 必要に応じて、指定のアイテムを更新する
+     */
+    const updateItems = useAtomCallback(
+        useCallback(async(get, set, targets: {id: DataId; wkt: string}[]) => {
+            const loadedItemMap = get(loadedItemMapAtom);
+            // 取得する必要のあるものに絞る
+            const updateTargets = targets.filter(target => {
+                // 取得済みアイテムの場合、取得
+                if (getItem(target.id)) return true;
+
+                // 取得済み範囲の場合、取得
+                const loadedAreaInfo = loadedItemMap[target.id.dataSourceId];
+                if (!loadedAreaInfo) return false;
+                const loadedPolygon = geoJsonToTurfPolygon(loadedAreaInfo.geometry);
+                if (!loadedPolygon) return false;
+
+                const geoJson = wktToGeoJSON(target.wkt);
+                const polygon = geoJsonToTurfPolygon(geoJson);
+                if (!polygon) return false;
+    
+                return booleanContains(loadedPolygon, polygon);
+            }).map((target): DataId => {
+                return target.id;
+            });
+
+            const apiResult = await callApi(GetItemsByIdAPI, {
+                targets: updateTargets,
             });
             const items = apiResult.items;
 
             set(allItemsAtom, (currentItemMap) => {
                 const newItemsMap = structuredClone(currentItemMap);
                 items.forEach(item => {
-                    newItemsMap[datasourceId][item.id.id] = item;
+                    newItemsMap[item.id.dataSourceId][item.id.id] = item;
                 });
                 return newItemsMap;
             })
-        }, [callApi, map, mapInstanceId])
+
+        }, [getItem])
     )
 
     /**
@@ -398,6 +384,6 @@ export function useMap() {
         loadCurrentAreaContents,
         fitToDefaultExtent,
         focusItem,
-        updateAreaItems,
+        updateItems,
     }
 }

@@ -152,6 +152,16 @@ export type GetItemsResult = {
     items: ItemDefine[],
 };
 
+export const GetItemsByIdAPI = {
+    uri: 'getitems-by-id',
+    method: 'post',
+    resultType: 'json',
+} as APIDefine<GetItemsByIdParam, GetItemsResult>;
+
+export type GetItemsByIdParam = {
+    targets: DataId[];
+}
+
 /**
  * get contents
  */
@@ -392,12 +402,20 @@ export type PublishUserMessage = {
  * Publishメッセージ（地図に対するもの）
  */
 export type PublishMapMessage = {
-    // 地図に更新が行われた場合
+    // 地図にアイテム追加された場合
+    type: 'mapitem-insert';
+    subtype?: undefined;
+    targets: {
+        id: DataId;
+        wkt: string; // 追加された範囲
+    }[];
+} | {
+    // 地図上のアイテムが更新された場合
     type: 'mapitem-update';
     subtype?: undefined;
     targets: {
-        datasourceId: string;   // 更新対象データソースID
-        wkt: string; // 更新された範囲
+        id: DataId;
+        wkt: string;    // 更新後範囲
     }[];
 } | {
     // 地図上のアイテムが削除された場合

@@ -272,12 +272,3 @@ export function geoJsonToTurfFeatureCollection(geoJsons: (geojson.Geometry | geo
     })
     return list;
 }
-
-export function makeEnvelopeFromWkt(wkt1: string, wkt2: string) {
-    const geoJson1 = wktToGeoJSON(wkt1);
-    const geoJson2 = wktToGeoJSON(wkt2);
-    // 変更前後を包含する領域を算出
-    const collection = geoJsonToTurfFeatureCollection([geoJson1, geoJson2]);
-    const env = envelope(collection);
-    return geojsonToWKT(env.geometry);
-}
