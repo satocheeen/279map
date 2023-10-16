@@ -287,19 +287,31 @@ export function useMap() {
                 if (getItem(target.id)) return true;
 
                 // 取得済み範囲の場合、取得
-                const loadedAreaInfo = loadedItemMap[target.id.dataSourceId];
-                if (!loadedAreaInfo) return false;
+                const key = getLoadedAreaMapKey(target.id.dataSourceId, 0);
+                const loadedAreaInfo = loadedItemMap[JSON.stringify(key)];
+                if (!loadedAreaInfo) {
+                    console.log('loadedAreaInfo undefined', loadedItemMap);
+                    return false;
+                }
                 const loadedPolygon = geoJsonToTurfPolygon(loadedAreaInfo.geometry);
-                if (!loadedPolygon) return false;
+                if (!loadedPolygon) {
+                    console.log('loadedPolygon undefined');
+                    return false;
+                }
 
                 const geoJson = wktToGeoJSON(target.wkt);
                 const polygon = geoJsonToTurfPolygon(geoJson);
-                if (!polygon) return false;
+                if (!polygon) {
+                    console.log('polygon undefined');
+                    return false;
+                }
     
                 return booleanContains(loadedPolygon, polygon);
             }).map((target): DataId => {
                 return target.id;
             });
+
+            if (updateTargets.length === 0) return;
 
             const apiResult = await callApi(GetItemsByIdAPI, {
                 targets: updateTargets,
@@ -314,7 +326,7 @@ export function useMap() {
                 return newItemsMap;
             })
 
-        }, [getItem])
+        }, [getItem, callApi, getLoadedAreaMapKey])
     )
 
     /**

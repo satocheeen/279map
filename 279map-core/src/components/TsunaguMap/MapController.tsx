@@ -58,14 +58,12 @@ function useMapInitializer() {
         const subscriber = getSubscriber();
         if (!subscriber) return;
 
-        // const h0 = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapitem-insert', undefined, (payload) => {
-        //     if (payload.type === 'mapitem-insert') {
-        //         // 表示中エリアの場合は最新ロードする
-        //         payload.targets.forEach(target => {
-        //             updateAreaItems(target.wkt, target.datasourceId);
-        //         })
-        //     }
-        // });
+        const h0 = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapitem-insert', undefined, (payload) => {
+            if (payload.type === 'mapitem-insert') {
+                // 表示中エリアの場合は最新ロードする
+                updateItems(payload.targets);
+            }
+        });
         const h1 = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapitem-update', undefined, (payload) => {
             if (payload.type === 'mapitem-update') {
                 // 表示中エリアの場合は最新ロードする
@@ -79,6 +77,8 @@ function useMapInitializer() {
         })
 
         return () => {
+            if (h0)
+                subscriber.unsubscribe(h0);
             if (h1) 
                 subscriber.unsubscribe(h1);
             if (h2)

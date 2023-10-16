@@ -701,7 +701,7 @@ app.post(`/api/${GetItemsByIdAPI.uri}`,
             const result = await getItemsById(param);
 
             // 仮登録中の情報を付与して返す
-            session.mergeTemporaryItems(result.items, req.currentMap);
+            session.mergeTemporaryItems(result.items, req.currentMap, param.targets);
 
             res.send(result);
 
@@ -906,6 +906,9 @@ app.post(`/api/${UpdateItemAPI.uri}`,
             // メモリに仮登録
             const targets = await Promise.all(param.targets.map(async(target) => {
                 const currentItem = await getItem(target.id);
+                if (!currentItem) {
+                    throw new Error('item not found: ' + target.id);
+                }
                 const tempID = session.addTemporaryUpdateItem(req.currentMap, currentItem, target);
 
                 const beforeWkt = await getItemWkt(target.id);
@@ -916,7 +919,7 @@ app.post(`/api/${UpdateItemAPI.uri}`,
                 return {
                     target,
                     tempID,
-                    wkt: afterWkt ?? beforeWkt, // changingAreaWkt,
+                    wkt: afterWkt ?? beforeWkt,
                 }
             }));
 

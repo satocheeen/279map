@@ -11,14 +11,15 @@ export async function getItemsById(param: GetItemsByIdParam): Promise<GetItemsRe
     const list = [] as ItemDefine[];
     for (const target of param.targets) {
         const item = await getItem(target);
-        list.push(item);
+        if (item)
+            list.push(item);
     }
     return {
         items: list,
     }
 }
 
-export async function getItem(id: DataId): Promise<ItemDefine> {
+export async function getItem(id: DataId): Promise<ItemDefine|undefined> {
     const con = await ConnectionPool.getConnection();
     try {
 
@@ -30,6 +31,7 @@ export async function getItem(id: DataId): Promise<ItemDefine> {
         `;
         const params = [id.id, id.dataSourceId];
         const [rows] = await con.execute(sql, params);
+        if ((rows as []).length === 0) return;
         const row = (rows as (ItemsTable & {geojson: any})[])[0]; 
 
         const contents: ItemContentInfo[] = [];

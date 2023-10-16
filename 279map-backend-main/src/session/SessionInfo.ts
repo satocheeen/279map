@@ -181,12 +181,34 @@ export default class SessionInfo {
         }
     }
 
-    mergeTemporaryItems(items: ItemDefine[], currentMap: CurrentMap) {
+    /**
+     * itemsに存在するもののうち、temporaryデータが存在するものは上書きする。
+     * また、targetsに存在する新規追加対象のものは追加する。
+     * @param items 
+     * @param currentMap 
+     * @param targets 
+     */
+    mergeTemporaryItems(items: ItemDefine[], currentMap: CurrentMap, targets: DataId[]) {
         for(const [key, item] of this.#temporaryItemMap.entries()) {
             if (item.currentMap.mapId !== currentMap.mapId || item.currentMap.mapKind !== currentMap.mapKind) {
                 continue;
             }
             if (item.type === 'regist') {
+                const hit = targets.some(t => t.dataSourceId === item.dataSourceId && t.id === key);
+                if (hit) {
+                    items.push({
+                        id: {
+                            id: key,
+                            dataSourceId: item.dataSourceId,
+                        },
+                        name: item.name,
+                        geoJson: item.geoJson,
+                        geoProperties: item.geoProperties,
+                        lastEditedTime: '',
+                        contents: item.contents,
+                        isTemporary: true,
+                    })
+                }
                 continue;
             }
             const index = items.findIndex(i => i.id.id === item.id.id && i.id.dataSourceId === item.id.dataSourceId);
