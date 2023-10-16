@@ -48,14 +48,18 @@ export default function ChangeStructureIconController(props: Props) {
         // update DB
         const id = convertDataIdFromFeatureId(selectedFeature.current.getId() as string);
         await callApi(UpdateItemAPI, {
-            id,
-            geoProperties: {
-                featureType: FeatureType.STRUCTURE,
-                icon: {
-                    type: iconDefine.type,
-                    id: iconDefine.id,
-                },
-            },
+            targets: [
+                {
+                    id,
+                    geoProperties: {
+                        featureType: FeatureType.STRUCTURE,
+                        icon: {
+                            type: iconDefine.type,
+                            id: iconDefine.id,
+                        },
+                    },
+                }
+            ]
         });
 
         spinnerHook.hideProcessMessage(h);

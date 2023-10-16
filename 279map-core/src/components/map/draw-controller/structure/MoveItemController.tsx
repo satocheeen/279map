@@ -16,7 +16,7 @@ import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { useMap } from '../../useMap';
-import { UpdateItemAPI } from 'tsunagumap-api';
+import { UpdateItemAPI, UpdateItemParam } from 'tsunagumap-api';
 import { useApi } from '../../../../api/useApi';
 
 type Props = {
@@ -57,19 +57,23 @@ export default function MoveItemController(props: Props) {
             spinner: true,
             message: '更新中...'
         });
+        const targets = [] as UpdateItemParam['targets'];
         for (const mf of movedFeatureCollection.getArray()) {
             const mfGeoJson = createGeoJson(mf);
             const features = mf.get('features') as Feature<Geometry>[];
             for (const feature of features) {
                 // DB更新
                 const id = convertDataIdFromFeatureId(feature.getId() as string);
-                await callApi(UpdateItemAPI, {
+                targets.push({
                     id,
                     geometry: mfGeoJson.geometry,
-                });
+                })
             }
         }
-        spinnerHook.hideProcessMessage(h);
+        await callApi(UpdateItemAPI, {
+            targets
+        });
+spinnerHook.hideProcessMessage(h);
         props.close();
     }
 

@@ -10,11 +10,10 @@ import { getContents } from './getContents';
 import { getEvents } from './getEvents';
 import proxy from 'express-http-proxy';
 import http from 'http';
-import { convertBase64ToBinary, getItemWkt, getItemsWkt } from './util/utility';
+import { convertBase64ToBinary, geoJsonToTurfPolygon, getItemWkt, getItemsWkt } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
 import { getSnsPreview } from './api/getSnsPreview';
-import SessionInfo from './session/SessionInfo';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import cors from 'cors';
 import { exit } from 'process';
@@ -34,7 +33,8 @@ import { CurrentMap, sleep } from '../279map-backend-common/src';
 import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaRegistContentAPI, OdbaRegistItemAPI, OdbaRemoveContentAPI, OdbaRemoveItemAPI, OdbaUpdateContentAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
 import MqttBroadcaster from './session/MqttBroadcaster';
 import SessionManager from './session/SessionManager';
-import { geojsonToWKT } from '@terraformer/wkt';
+import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
+import { union } from '@turf/turf';
 
 declare global {
     namespace Express {
@@ -862,59 +862,87 @@ app.post(`/api/${UpdateItemAPI.uri}`,
     async(req, res, next) => {
         const param = req.body as UpdateItemParam;
         try {
-            // メモリに仮登録
             const session = sessionManager.get(req.connect?.sessionKey as string);
             if (!session) {
                 throw new Error('session undefined');
             }
-            const tempID = session.addTemporaryUpdateItem(req.currentMap, param);
+            const wktByDatasourceMap = new Map<string, string>();   // key = datasrouceId, value = wkt
+            // メモリに仮登録
+            const targets = await Promise.all(param.targets.map(async(target) => {
+                const tempID = session.addTemporaryUpdateItem(req.currentMap, target);
 
-            const wkt = await async function() {
-                if (param.geometry) {
-                    return geojsonToWKT(param.geometry);
+                const wkt = await async function() {
+                    if (target.geometry) {
+                        return geojsonToWKT(target.geometry);
+                    }
+                    const myWkt = await getItemWkt(target.id);
+                    if (!myWkt) {
+                        throw new Error('undefined wkt');
+                    }
+                    return myWkt;
+                }();
+                if (wktByDatasourceMap.has(target.id.dataSourceId)) {
+                    const currentWkt = wktByDatasourceMap.get(target.id.dataSourceId) as string;
+                    const currentGeoJson = wktToGeoJSON(currentWkt);
+                    const currentPolygon = geoJsonToTurfPolygon(currentGeoJson);
+                    const newGeoJson = geoJsonToTurfPolygon(wktToGeoJSON(wkt));
+                    if (currentPolygon && newGeoJson) {
+                        const newWkt = union(currentPolygon, newGeoJson);
+                        if (newWkt) {
+                            const newWkt2 = geojsonToWKT(newWkt.geometry);
+                            wktByDatasourceMap.set(target.id.dataSourceId, newWkt2);
+                        }
+                    }
+                } else {
+                    wktByDatasourceMap.set(target.id.dataSourceId, wkt);
                 }
-                const myWkt = await getItemWkt(param.id);
-                if (!myWkt) {
-                    throw new Error('undefined wkt');
+                return {
+                    target,
+                    tempID,
+                    wkt,
                 }
-                return myWkt;
-            }();
-            // call ODBA
-            callOdbaApi(OdbaUpdateItemAPI, Object.assign({
-                currentMap: req.currentMap,
-            }, param))
-            .catch(e => {
-                apiLogger.warn('callOdba-updateItem error', e);
-                // TODO: フロントエンドにエラーメッセージ表示
-            }).finally(() => {
-                // メモリから除去
-                session.removeTemporaryItem(tempID);
+            }));
 
-                // 更新通知
+            // 仮アイテム描画させるための通知
+            for(const [datasourceId, wkt] of wktByDatasourceMap.entries()) {
                 broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                     type: 'mapitem-update',
                     targets: [
                         {
-                            datasourceId: param.id.dataSourceId,
+                            datasourceId,
                             wkt,
                         }
                     ]
                 });
-            })
-        
+            }
             res.send('complete');
-    
-            // 仮アイテム描画させるための通知
-            broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                type: 'mapitem-update',
-                targets: [
-                    {
-                        datasourceId: param.id.dataSourceId,
-                        wkt,
-                    }
-                ]
-            });
+            console.log('debug', wktByDatasourceMap);
+            for (const target of targets) {
+                // call ODBA
+                callOdbaApi(OdbaUpdateItemAPI, Object.assign({
+                    currentMap: req.currentMap,
+                }, target.target))
+                .catch(e => {
+                    apiLogger.warn('callOdba-updateItem error', e);
+                    // TODO: フロントエンドにエラーメッセージ表示
+                }).finally(() => {
+                    // メモリから除去
+                    session.removeTemporaryItem(target.tempID);
 
+                    // 更新通知
+                    broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
+                        type: 'mapitem-update',
+                        targets: [
+                            {
+                                datasourceId: target.target.id.dataSourceId,
+                                wkt: target.wkt,
+                            }
+                        ]
+                    });
+                })
+            }
+        
+    
             next();
         } catch(e) {    
             apiLogger.warn('update-item API error', param, e);

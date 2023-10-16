@@ -196,11 +196,13 @@ export const UpdateItemAPI = {
 } as APIDefine<UpdateItemParam, void>;
 
 export type UpdateItemParam = {
-    id: DataId;
-    name?: string;  // only topography.  the structures' name is decided by content's name.
-    geometry?: GeoJSON.Geometry;
-    geoProperties?: GeoProperties;
-}
+    targets: {
+        id: DataId;
+        name?: string;  // only topography.  the structures' name is decided by content's name.
+        geometry?: GeoJSON.Geometry;
+        geoProperties?: GeoProperties;
+    }[];
+};
 
 /**
  * remove item

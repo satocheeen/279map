@@ -130,9 +130,13 @@ enum Stage {
         const geoJson = geoProperties.featureType === FeatureType.ROAD ? geoProperties.lineJson : createGeoJson(feature);
         const id = convertDataIdFromFeatureId(selectedFeature.current?.getId() as string);
         await callApi(UpdateItemAPI, {
-            id,
-            geometry: geoJson.geometry,
-            geoProperties: extractGeoProperty(geoJson.properties),
+            targets: [
+                {
+                    id,
+                    geometry: geoJson.geometry,
+                    geoProperties: extractGeoProperty(geoJson.properties),
+                }
+            ]
         });
 
         spinnerHook.hideProcessMessage(h);

@@ -201,8 +201,12 @@ export default function AddContentMenu(props: Props) {
         }
 
         await callApi(UpdateItemAPI, {
-            id: item.id,
-            name,
+            targets: [
+                {
+                    id: item.id,
+                    name,
+                }
+            ]
         });
 
     }, [item, callApi, confirm]);

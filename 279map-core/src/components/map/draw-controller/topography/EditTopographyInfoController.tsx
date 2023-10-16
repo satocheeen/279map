@@ -52,8 +52,12 @@ export default function EditTopographyInfoController(props: Props) {
         const id = convertDataIdFromFeatureId(selectedFeatureId.current as string);
         // update DB
         await callApi(UpdateItemAPI, {
-            id,
-            name,
+            targets: [
+                {
+                    id,
+                    name,
+                }
+            ]
         });
 
         hideProcessMessage(h);

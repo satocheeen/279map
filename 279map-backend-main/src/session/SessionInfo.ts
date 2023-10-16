@@ -127,7 +127,7 @@ export default class SessionInfo {
      * @param updateItemParam 
      * @returns 
      */
-    addTemporaryUpdateItem(currentMap: CurrentMap, updateItemParam: UpdateItemParam) {
+    addTemporaryUpdateItem(currentMap: CurrentMap, updateItemParam: UpdateItemParam['targets'][0]) {
         const processId = createHash();
         this.#temporaryItemMap.set(processId, {
             type: 'update',
