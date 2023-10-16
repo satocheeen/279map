@@ -51,6 +51,10 @@ export default function MoveItemController(props: Props) {
     const spinnerHook = useProcessMessage();
     const { callApi } = useApi();
 
+    useEffect(() => {
+        movedFeatureCollection.clear();
+    }, [])
+
     const onFinishClicked = async() => {
         const h = spinnerHook.showProcessMessage({
             overlay: true,
@@ -73,7 +77,7 @@ export default function MoveItemController(props: Props) {
         await callApi(UpdateItemAPI, {
             targets
         });
-spinnerHook.hideProcessMessage(h);
+        spinnerHook.hideProcessMessage(h);
         props.close();
     }
 
