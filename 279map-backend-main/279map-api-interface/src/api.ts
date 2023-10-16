@@ -145,7 +145,8 @@ export type GetItemsParam = {
     wkt: string;
     zoom: number;
     dataSourceId: string;
-    excludeItemIds?: string[];  // 指定されている場合、このidｎアイテムは結果から除く
+    latestEditedTime?: string;  // 指定されている場合、この更新日時以降に更新されたアイテムのみ返す
+    excludeItemIds?: string[];  // 指定されている場合、このidのアイテムは結果から除く TODO: deprecated
 }
 export type GetItemsResult = {
     items: ItemDefine[],

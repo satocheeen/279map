@@ -90,7 +90,7 @@ export const initialLoadingAtom = atom(false);
  */
 function useItemUpdater() {
     const { map, fitToDefaultExtent } = useMap();
-    const [ itemMap ] = useAtom(allItemsAtom);
+    const [ itemMap, setItemMap ] = useAtom(allItemsAtom);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
     const [ itemDataSources ] = useAtom(itemDataSourcesAtom);
@@ -109,6 +109,8 @@ function useItemUpdater() {
         if (!map || !currentMapKind) return;
         if (initializedMapKind ===  currentMapKind) return;
 
+        setItemMap({});
+
         // 現在のレイヤ、データソースを削除
         map.clearAllLayers();
         
@@ -122,7 +124,7 @@ function useItemUpdater() {
         setLoadedItemMap({});
         setInitialLoading(true);
 
-    }, [map, setSelectedItemIds, currentMapDefine, currentMapKind, initializedMapKind, itemDataSources, fitToDefaultExtent, setLoadedItemMap, setInitialLoading]);
+    }, [map, setItemMap, setSelectedItemIds, currentMapDefine, currentMapKind, initializedMapKind, itemDataSources, fitToDefaultExtent, setLoadedItemMap, setInitialLoading]);
 
     /**
      * アイテムFeatureを地図に反映する

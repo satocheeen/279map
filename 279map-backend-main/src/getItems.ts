@@ -35,7 +35,7 @@ export async function getItemsSub(currentMap: CurrentMap, param: GetItemsParam):
     const con = await ConnectionPool.getConnection();
     
     try {
-        const pointContents = await selectItems(con, param.dataSourceId, param.wkt, currentMap);
+        const pointContents = await selectItems(con, param, currentMap);
 
         if (currentMap.mapKind === MapKind.Virtual) {
             return pointContents;
@@ -60,18 +60,23 @@ export async function getItemsSub(currentMap: CurrentMap, param: GetItemsParam):
     
 }
 
-async function selectItems(con: PoolConnection, dataSourceId:string, wkt: string, currentMap: CurrentMap): Promise<ItemDefine[]> {
+async function selectItems(con: PoolConnection, param: GetItemsParam, currentMap: CurrentMap): Promise<ItemDefine[]> {
     try {
         // 位置コンテンツ
-        const sql = `
+        let sql = `
         select i.*, ST_AsGeoJSON(i.location) as geojson
         from items i
         inner join data_source ds on ds.data_source_id = i.data_source_id 
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
         where map_page_id = ? and i.map_kind = ? and i.data_source_id = ?
-        and ST_Intersects(location, ST_GeomFromText(?,4326));
+        and ST_Intersects(location, ST_GeomFromText(?,4326))
         `;
-        const [rows] = await con.execute(sql, [currentMap.mapId, currentMap.mapKind, dataSourceId, wkt]);
+        const params = [currentMap.mapId, currentMap.mapKind, param.dataSourceId, param.wkt];
+        if (param.latestEditedTime) {
+            sql += ' and i.last_edited_time > ?';
+            params.push(param.latestEditedTime);
+        }
+        const [rows] = await con.execute(sql, params);
         const pointContents = [] as ItemDefine[];
         for(const row of rows as (ItemsTable & {geojson: any})[]) {
             const contents: ItemContentInfo[] = [];

@@ -4,7 +4,7 @@ import { atom, useAtom } from 'jotai';
 import { useAtomCallback, atomWithReducer } from 'jotai/utils';
 import { currentMapKindAtom, defaultExtentAtom, instanceIdAtom, mapIdAtom } from '../../store/session';
 import { GetItemsAPI } from 'tsunagumap-api';
-import { LoadedAreaInfo, LoadedItemKey, allItemsAtom, loadedItemMapAtom } from '../../store/item';
+import { LoadedAreaInfo, LoadedItemKey, allItemsAtom, latestEditedTimeOfDatasourceAtom, loadedItemMapAtom } from '../../store/item';
 import { DataId, Extent } from '279map-common';
 import { dataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import useMyMedia from '../../util/useMyMedia';
@@ -170,10 +170,13 @@ export function useMap() {
                 const beforeMapKind = get(currentMapKindAtom);
                 const apiResults = await Promise.all(loadTargets.map((target) => {
                     const wkt = geojsonToWKT(target.geometry);
+                    const latestEditedTime = get(latestEditedTimeOfDatasourceAtom)[target.datasourceId];
+
                     const excludeItemIds = getExcludeItemIds(target.datasourceId, param.extent);
                     return callApi(GetItemsAPI, {
                         wkt,
                         zoom,
+                        latestEditedTime,
                         dataSourceId: target.datasourceId,
                         excludeItemIds,
                     });
