@@ -16,7 +16,7 @@ import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { useApi } from '../../api/useApi';
 import { initialLoadingAtom } from '../TsunaguMap/MapController';
 import { geoJsonToTurfPolygon } from '../../util/MapUtility';
-import { bboxPolygon, intersect, union, mask } from '@turf/turf';
+import { bboxPolygon, intersect, union, booleanContains } from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 
 /**
@@ -140,30 +140,27 @@ export function useMap() {
                 const extentPolygon = bboxPolygon(param.extent as [number,number,number,number]);
 
                 // ロード対象
-                const loadTargets = visibleDataSourceIds.map((datasourceId): {datasourceId: string; geometry: GeoJSON.Geometry} => {
+                const loadTargets = [] as {datasourceId: string; geometry: GeoJSON.Geometry}[];
+                visibleDataSourceIds.forEach((datasourceId) => {
                     const loadedItemMap = get(loadedItemMapAtom);
                     const key = getLoadedAreaMapKey(datasourceId, zoom);
                     const loadedItemInfo = loadedItemMap[JSON.stringify(key)];
                     const loadedPolygon = loadedItemInfo ? geoJsonToTurfPolygon(loadedItemInfo.geometry) : undefined;
                     let polygon: LoadedAreaInfo['geometry'] | undefined;
                     if (loadedPolygon) {
-                        // @ts-ignore 第1引数がなぜかTypeScript Errorになるので
-                        const p = mask(loadedPolygon, extentPolygon)
-                        polygon = {
-                            type: 'Polygon',
-                            coordinates: p.geometry.coordinates,
+                        if (booleanContains(loadedPolygon, extentPolygon)) {
+                            // ロード済み領域の場合はロードしない
+                            return;
                         }
                     }
-                    if (!polygon) {
-                        polygon = {
-                            type: 'Polygon',
-                            coordinates: extentPolygon.geometry.coordinates
-                        }
+                    polygon = {
+                        type: 'Polygon',
+                        coordinates: extentPolygon.geometry.coordinates
                     }
-                    return {
+                    loadTargets.push({
                         datasourceId,
                         geometry: polygon,
-                    }
+                    });
                 });
 
                 const beforeMapId = get(mapIdAtom);
