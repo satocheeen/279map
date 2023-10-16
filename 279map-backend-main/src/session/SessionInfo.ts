@@ -24,18 +24,15 @@ type ConstructorParam = {
 }
 type TemporaryItem = {
     currentMap: CurrentMap;
-} & ({
-    type: 'regist';
-    dataSourceId: string;
     name: string;
     geometry: GeoJSON.Geometry;
     geoProperties: GeoProperties;
+} & ({
+    type: 'regist';
+    dataSourceId: string;
 } | {
     type: 'update';
     id: DataId,
-    name?: string;
-    geometry?: GeoJSON.Geometry;
-    geoProperties?: GeoProperties;
 });
 
 export default class SessionInfo {
@@ -127,15 +124,15 @@ export default class SessionInfo {
      * @param updateItemParam 
      * @returns 
      */
-    addTemporaryUpdateItem(currentMap: CurrentMap, updateItemParam: UpdateItemParam['targets'][0]) {
+    addTemporaryUpdateItem(currentMap: CurrentMap, currentItem: ItemDefine, updateItemParam: UpdateItemParam['targets'][0]) {
         const processId = createHash();
         this.#temporaryItemMap.set(processId, {
             type: 'update',
             currentMap,
             id: updateItemParam.id,
-            geometry: updateItemParam.geometry,
-            geoProperties:updateItemParam.geoProperties,
-            name: updateItemParam.name,
+            geometry: updateItemParam.geometry ?? currentItem.geoJson,
+            geoProperties:updateItemParam.geoProperties ?? currentItem.geoProperties,
+            name: updateItemParam.name ?? currentItem.name,
         })
 
         return processId;
@@ -173,13 +170,15 @@ export default class SessionInfo {
                     isTemporary: true,
                 })
             } else {
-                const target = items.find(i => i.id.id === item.id.id && i.id.dataSourceId === item.id.dataSourceId);
-                if (!target) continue;
-                if (item.geometry) target.geoJson = item.geometry;
-                if (item.geoProperties) target.geoProperties = item.geoProperties;
-                if (item.name) target.name = item.name;
-                target.lastEditedTime = '';
-                target.isTemporary = true;
+                items.push({
+                    id: item.id,
+                    name: item.name,
+                    geoJson: item.geometry,
+                    geoProperties: item.geoProperties,
+                    lastEditedTime: '',
+                    contents: [],
+                    isTemporary: true,
+                })
             }
         }
     }

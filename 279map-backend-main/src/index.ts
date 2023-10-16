@@ -2,7 +2,7 @@ import express, { NextFunction, Request, Response } from 'express';
 import mysql from 'mysql2/promise';
 import { getMapInfo } from './getMapInfo';
 import { Auth, MapKind, AuthMethod, ServerConfig, DataId, MapPageOptions, MapDefine } from '279map-common';
-import { getItems } from './getItems';
+import { getItem, getItems } from './getItems';
 import { configure, getLogger } from "log4js";
 import { DbSetting, LogSetting } from './config';
 import { getThumbnail } from './getThumbnsil';
@@ -10,7 +10,7 @@ import { getContents } from './getContents';
 import { getEvents } from './getEvents';
 import proxy from 'express-http-proxy';
 import http from 'http';
-import { convertBase64ToBinary, geoJsonToTurfPolygon, getItemWkt, getItemsWkt } from './util/utility';
+import { convertBase64ToBinary, geoJsonToTurfFeatureCollection, geoJsonToTurfPolygon, getItemWkt, getItemsWkt, makeEnvelopeFromWkt } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
 import { getSnsPreview } from './api/getSnsPreview';
@@ -34,7 +34,7 @@ import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetUnpointDataAPI, OdbaLink
 import MqttBroadcaster from './session/MqttBroadcaster';
 import SessionManager from './session/SessionManager';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
-import { union } from '@turf/turf';
+import { envelope, featureCollection, union } from '@turf/turf';
 
 declare global {
     namespace Express {
@@ -866,40 +866,33 @@ app.post(`/api/${UpdateItemAPI.uri}`,
             if (!session) {
                 throw new Error('session undefined');
             }
+            // データソースごとの変更範囲
             const wktByDatasourceMap = new Map<string, string>();   // key = datasrouceId, value = wkt
             // メモリに仮登録
             const targets = await Promise.all(param.targets.map(async(target) => {
-                const tempID = session.addTemporaryUpdateItem(req.currentMap, target);
+                const currentItem = await getItem(target.id);
+                const tempID = session.addTemporaryUpdateItem(req.currentMap, currentItem, target);
 
-                const wkt = await async function() {
-                    if (target.geometry) {
-                        return geojsonToWKT(target.geometry);
-                    }
-                    const myWkt = await getItemWkt(target.id);
-                    if (!myWkt) {
-                        throw new Error('undefined wkt');
-                    }
-                    return myWkt;
-                }();
+                const beforeWkt = await getItemWkt(target.id);
+                if (!beforeWkt) {
+                    throw new Error('wkt not found');
+                }
+                const afterWkt = target.geometry ? geojsonToWKT(target.geometry) : undefined;
+                // 変更前後を包含する領域を算出
+                const changingAreaWkt = afterWkt ? makeEnvelopeFromWkt(beforeWkt, afterWkt) : beforeWkt;
+
                 if (wktByDatasourceMap.has(target.id.dataSourceId)) {
                     const currentWkt = wktByDatasourceMap.get(target.id.dataSourceId) as string;
-                    const currentGeoJson = wktToGeoJSON(currentWkt);
-                    const currentPolygon = geoJsonToTurfPolygon(currentGeoJson);
-                    const newGeoJson = geoJsonToTurfPolygon(wktToGeoJSON(wkt));
-                    if (currentPolygon && newGeoJson) {
-                        const newWkt = union(currentPolygon, newGeoJson);
-                        if (newWkt) {
-                            const newWkt2 = geojsonToWKT(newWkt.geometry);
-                            wktByDatasourceMap.set(target.id.dataSourceId, newWkt2);
-                        }
-                    }
+
+                    const newAreaWkt = makeEnvelopeFromWkt(currentWkt, changingAreaWkt);
+                    wktByDatasourceMap.set(target.id.dataSourceId, newAreaWkt);
                 } else {
-                    wktByDatasourceMap.set(target.id.dataSourceId, wkt);
+                    wktByDatasourceMap.set(target.id.dataSourceId, changingAreaWkt);
                 }
                 return {
                     target,
                     tempID,
-                    wkt,
+                    wkt: changingAreaWkt,
                 }
             }));
 

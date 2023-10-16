@@ -3,7 +3,7 @@ import { MapKind, Extent, DataId } from '279map-common';
 import mysql, { PoolConnection } from 'mysql2/promise';
 import { ContentsTable, ItemsTable } from '../../279map-backend-common/src/types/schema';
 import { CurrentMap } from '../../279map-backend-common/src';
-import { buffer, circle, lineString, multiLineString, multiPolygon, point, polygon, union } from '@turf/turf';
+import { buffer, circle, envelope, featureCollection, lineString, multiLineString, multiPolygon, point, polygon, union } from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 import crypto from 'crypto';
 import * as geojson from 'geojson';
@@ -242,4 +242,42 @@ export function geoJsonToTurfPolygon(geoJson: geojson.Geometry | geojson.GeoJSON
         console.warn('geoJsonToTurfPolygon faile', geoJson, e);
         return;
     }
+}
+
+export function geoJsonToTurfFeatureCollection(geoJsons: (geojson.Geometry | geojson.GeoJSON)[]) {
+    const list = featureCollection([]);
+    geoJsons.forEach(geoJson => {            
+        try {
+            switch(geoJson.type) {
+                case 'Polygon':
+                    list.features.push(polygon(geoJson.coordinates));
+                    break;
+                case 'MultiPolygon':
+                    list.features.push(multiPolygon(geoJson.coordinates));
+                    break;
+                case 'Point':
+                    list.features.push(circle(geoJson.coordinates, .05));
+                    break;
+                case 'LineString':
+                    list.features.push(buffer(lineString(geoJson.coordinates), 0.05));
+                    break;
+                case 'MultiLineString':
+                    list.features.push(buffer(multiLineString(geoJson.coordinates), 0.05));
+            }
+        
+        } catch(e) {
+            console.warn('geoJsonToTurfFeatureCollection faile', geoJson, e);
+            return;
+        }
+    })
+    return list;
+}
+
+export function makeEnvelopeFromWkt(wkt1: string, wkt2: string) {
+    const geoJson1 = wktToGeoJSON(wkt1);
+    const geoJson2 = wktToGeoJSON(wkt2);
+    // 変更前後を包含する領域を算出
+    const collection = geoJsonToTurfFeatureCollection([geoJson1, geoJson2]);
+    const env = envelope(collection);
+    return geojsonToWKT(env.geometry);
 }

@@ -311,11 +311,13 @@ export function useMap() {
                 return;
             }
             const updateArea = geojsonToWKT(intersectPolygon.geometry);
+            const latestEditedTime = get(latestEditedTimeOfDatasourceAtom)[datasourceId];
 
             const apiResult = await callApi(GetItemsAPI, {
                 wkt: updateArea,
                 zoom,
                 dataSourceId: datasourceId,
+                latestEditedTime,
             });
             const items = apiResult.items;
 
