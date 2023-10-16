@@ -187,17 +187,22 @@ export function useMap() {
                     console.log('cancel load items because map change', beforeMapId, beforeMapKind);
                     return;
                 }
-                set(allItemsAtom, (currentItemMap) => {
-                    const newItemsMap = structuredClone(currentItemMap);
-                    apiResults.forEach(apiResult => {
-                        const items = apiResult.items;
-                        items.forEach(item => {
-                            newItemsMap[item.id.dataSourceId] ??= {};
-                            newItemsMap[item.id.dataSourceId][item.id.id] = item;
+                const hasItem = apiResults.some(ar => {
+                    return ar.items.length > 0;
+                });
+                if (hasItem) {
+                    set(allItemsAtom, (currentItemMap) => {
+                        const newItemsMap = structuredClone(currentItemMap);
+                        apiResults.forEach(apiResult => {
+                            const items = apiResult.items;
+                            items.forEach(item => {
+                                newItemsMap[item.id.dataSourceId] ??= {};
+                                newItemsMap[item.id.dataSourceId][item.id.id] = item;
+                            })
                         })
+                        return newItemsMap;
                     })
-                    return newItemsMap;
-                })
+                }
 
                 // ロード済みの範囲と併せたものを保管
                 const newLoadedItemMap = Object.assign({}, loadedItemMap);
