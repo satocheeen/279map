@@ -45,6 +45,10 @@
         right: 30px;
         left: unset;
     }
+    :global(.ol-drag-box) {
+        background-color: rgba(255,255,255,0.4);
+        border-color: rgba(100,150,0,1);
+    }
     // Map Cregit
     :global(.ol-attribution) {
         position: absolute;

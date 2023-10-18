@@ -28,6 +28,7 @@ type Props = {
 }
 
 const dragBox = new DragBox({
+    className: 'ol-drag-box',   // MapChart.module.scss内でスタイル設定
     condition: platformModifierKeyOnly,
   });
 const movedFeatureCollection = new Collection<Feature<Geometry>>();
