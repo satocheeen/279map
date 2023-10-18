@@ -36,7 +36,12 @@ export default function MoveItemController(props: Props) {
     const { map } = useMap();
     const pointStyleHook = usePointStyle();
     const targetLayers = useRef<VectorLayer<VectorSource>[]>(
-        (map?.getLayersOfTheType(LayerType.Point) ?? []).filter(l => l.editable).map(l => l.layer)
+        function() {
+            const pointLayer = map?.getLayersOfTheType(LayerType.Point) ?? [];
+            const topographyLayer = map?.getLayersOfTheType(LayerType.Topography) ?? [];
+            const layers = [...pointLayer, ...topographyLayer];
+            return layers.filter(l => l.editable).map(l => l.layer)
+        }()
     );
 
     const select = useMemo(() => {
@@ -64,7 +69,7 @@ export default function MoveItemController(props: Props) {
         const targets = [] as UpdateItemParam['targets'];
         for (const mf of movedFeatureCollection.getArray()) {
             const mfGeoJson = createGeoJson(mf);
-            const features = mf.get('features') as Feature<Geometry>[];
+            const features = (mf.get('features') as Feature<Geometry>[] | undefined) ?? [mf];
             for (const feature of features) {
                 // DB更新
                 const id = convertDataIdFromFeatureId(feature.getId() as string);
@@ -83,14 +88,14 @@ export default function MoveItemController(props: Props) {
 
     const onCancelClicked = () => {
         // 元に戻す
-        movedFeatureCollection.forEach((clusteredFeature) => {
-            const features = clusteredFeature.get('features') as Feature<Geometry>[];
+        movedFeatureCollection.forEach((feature) => {
+            const features = (feature.get('features') as Feature<Geometry>[] | undefined) ?? [feature];
             const id = features[0].getId();
             if (id === undefined) {
                 return;
             }
             const geometory = prevGeometory[id];
-            clusteredFeature.setGeometry(geometory);
+            feature.setGeometry(geometory);
         })
         props.close();
     }
@@ -122,10 +127,10 @@ export default function MoveItemController(props: Props) {
     useEffect(() => {
         // 移動前の状態を記憶
         targetLayers.current.forEach(layer => {
-            layer.getSource()?.getFeatures().forEach((clusteredFeature) => {
-                const features = clusteredFeature.get('features') as Feature<Geometry>[];
+            layer.getSource()?.getFeatures().forEach((feature) => {
+                const features = (feature.get('features') as Feature<Geometry>[] | undefined) ?? [feature];
                 const id = features[0].getId();
-                const geometry = clusteredFeature.getGeometry();
+                const geometry = feature.getGeometry();
                 if (id === undefined || !geometry) {
                     return;
                 }
