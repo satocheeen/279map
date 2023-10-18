@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Collection, Feature, MapBrowserEvent } from 'ol';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
@@ -18,6 +18,10 @@ import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { useMap } from '../../useMap';
 import { UpdateItemAPI, UpdateItemParam } from 'tsunagumap-api';
 import { useApi } from '../../../../api/useApi';
+import { FeatureLike } from 'ol/Feature';
+import { Style } from 'ol/style';
+import useTopographyStyle from '../../useTopographyStyle';
+import { topographySelectStyleFunction } from '../utility';
 
 type Props = {
     close: () => void;  // 編集完了時のコールバック
@@ -35,6 +39,7 @@ export default function MoveItemController(props: Props) {
     const [okable, setOkable] = useState(false);
     const { map } = useMap();
     const pointStyleHook = usePointStyle();
+    const topographyStyleHook = useTopographyStyle({});
     const targetLayers = useRef<VectorLayer<VectorSource>[]>(
         function() {
             const pointLayer = map?.getLayersOfTheType(LayerType.Point) ?? [];
@@ -44,12 +49,21 @@ export default function MoveItemController(props: Props) {
         }()
     );
 
+    const selectStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style => {
+        if (feature.get('features')) {
+            return pointStyleHook.selectedStyleFunction(feature, resolution);
+        } else {
+            const func = topographyStyleHook.getStyleFunction(topographySelectStyleFunction);
+            return func(feature, resolution);
+        }
+    }, [pointStyleHook, topographyStyleHook]);
+
     const select = useMemo(() => {
         return new Select({
             layers: targetLayers.current,
-            style: pointStyleHook.selectedStyleFunction,
+            style: selectStyleFunction,
         });
-    }, [pointStyleHook]);
+    }, [selectStyleFunction]);
 
     const [prevGeometory] = useState({} as {[id: string]: Geometry});
     const [multipleMode, setMultipleMode] = useState(false);    // 複数選択モードの場合、true
