@@ -3,9 +3,10 @@ import { MapKind, Extent, DataId } from '279map-common';
 import mysql, { PoolConnection } from 'mysql2/promise';
 import { ContentsTable, ItemsTable } from '../../279map-backend-common/src/types/schema';
 import { CurrentMap } from '../../279map-backend-common/src';
-import { circle, multiPolygon, point, polygon, union } from '@turf/turf';
+import { buffer, circle, envelope, featureCollection, lineString, multiLineString, multiPolygon, point, polygon, union } from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 import crypto from 'crypto';
+import * as geojson from 'geojson';
 
 export function getExtentWkt(ext: Extent): string {
     const [lon1, lat1, lon2, lat2] = ext;
@@ -220,4 +221,54 @@ export function createHash(): string {
     const hash = crypto.createHash('sha256').update(randomBytes).digest('hex');
 
     return hash;
+}
+
+export function geoJsonToTurfPolygon(geoJson: geojson.Geometry | geojson.GeoJSON) {
+    try {
+        switch(geoJson.type) {
+            case 'Polygon':
+                return polygon(geoJson.coordinates);
+            case 'MultiPolygon':
+                return multiPolygon(geoJson.coordinates);
+            case 'Point':
+                return circle(geoJson.coordinates, .05);
+            case 'LineString':
+                return buffer(lineString(geoJson.coordinates), 0.05);
+            case 'MultiLineString':
+                return buffer(multiLineString(geoJson.coordinates), 0.05);
+        }
+    
+    } catch(e) {
+        console.warn('geoJsonToTurfPolygon faile', geoJson, e);
+        return;
+    }
+}
+
+export function geoJsonToTurfFeatureCollection(geoJsons: (geojson.Geometry | geojson.GeoJSON)[]) {
+    const list = featureCollection([]);
+    geoJsons.forEach(geoJson => {            
+        try {
+            switch(geoJson.type) {
+                case 'Polygon':
+                    list.features.push(polygon(geoJson.coordinates));
+                    break;
+                case 'MultiPolygon':
+                    list.features.push(multiPolygon(geoJson.coordinates));
+                    break;
+                case 'Point':
+                    list.features.push(circle(geoJson.coordinates, .05));
+                    break;
+                case 'LineString':
+                    list.features.push(buffer(lineString(geoJson.coordinates), 0.05));
+                    break;
+                case 'MultiLineString':
+                    list.features.push(buffer(multiLineString(geoJson.coordinates), 0.05));
+            }
+        
+        } catch(e) {
+            console.warn('geoJsonToTurfFeatureCollection faile', geoJson, e);
+            return;
+        }
+    })
+    return list;
 }

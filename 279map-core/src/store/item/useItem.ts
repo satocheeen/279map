@@ -35,11 +35,13 @@ export function useItem() {
         }, [])
     );
 
-    const [allItems] = useAtom(allItemsAtom);
-    const getItem = useCallback((id: DataId) => {
-        const itemMap = allItems[id.dataSourceId] ?? {};
-        return itemMap[id.id];
-    }, [allItems]);
+    const getItem = useAtomCallback(
+        useCallback((get, set, id: DataId) => {
+            const allItems = get(allItemsAtom);
+            const itemMap = allItems[id.dataSourceId] ?? {};
+            return itemMap[id.id];
+        }, [])
+    )
 
     /**
      * @params itemId {string} the item ID getting descendants' contents

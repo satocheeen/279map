@@ -145,11 +145,22 @@ export type GetItemsParam = {
     wkt: string;
     zoom: number;
     dataSourceId: string;
-    excludeItemIds?: string[];  // 指定されている場合、このidｎアイテムは結果から除く
+    latestEditedTime?: string;  // 指定されている場合、この更新日時以降に更新されたアイテムのみ返す
+    excludeItemIds?: string[];  // 指定されている場合、このidのアイテムは結果から除く TODO: deprecated
 }
 export type GetItemsResult = {
     items: ItemDefine[],
 };
+
+export const GetItemsByIdAPI = {
+    uri: 'getitems-by-id',
+    method: 'post',
+    resultType: 'json',
+} as APIDefine<GetItemsByIdParam, GetItemsResult>;
+
+export type GetItemsByIdParam = {
+    targets: DataId[];
+}
 
 /**
  * get contents
@@ -196,11 +207,13 @@ export const UpdateItemAPI = {
 } as APIDefine<UpdateItemParam, void>;
 
 export type UpdateItemParam = {
-    id: DataId;
-    name?: string;  // only topography.  the structures' name is decided by content's name.
-    geometry?: GeoJSON.Geometry;
-    geoProperties?: GeoProperties;
-}
+    targets: {
+        id: DataId;
+        name?: string;  // only topography.  the structures' name is decided by content's name.
+        geometry?: GeoJSON.Geometry;
+        geoProperties?: GeoProperties;
+    }[];
+};
 
 /**
  * remove item
@@ -389,12 +402,20 @@ export type PublishUserMessage = {
  * Publishメッセージ（地図に対するもの）
  */
 export type PublishMapMessage = {
-    // 地図に更新が行われた場合
+    // 地図にアイテム追加された場合
+    type: 'mapitem-insert';
+    subtype?: undefined;
+    targets: {
+        id: DataId;
+        wkt: string; // 追加された範囲
+    }[];
+} | {
+    // 地図上のアイテムが更新された場合
     type: 'mapitem-update';
     subtype?: undefined;
     targets: {
-        datasourceId: string;   // 更新対象データソースID
-        wkt: string; // 更新された範囲
+        id: DataId;
+        wkt: string;    // 更新後範囲
     }[];
 } | {
     // 地図上のアイテムが削除された場合

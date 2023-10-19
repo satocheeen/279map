@@ -10,11 +10,10 @@ import { getContents } from './getContents';
 import { getEvents } from './getEvents';
 import proxy from 'express-http-proxy';
 import http from 'http';
-import { convertBase64ToBinary, getItemWkt, getItemsWkt } from './util/utility';
+import { convertBase64ToBinary, getItemWkt } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
 import { getSnsPreview } from './api/getSnsPreview';
-import SessionInfo from './session/SessionInfo';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import cors from 'cors';
 import { exit } from 'process';
@@ -22,7 +21,7 @@ import { getMapInfoById } from './getMapDefine';
 import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, GetEventParam, GetCategoryParam, RequestAPI, RequestParam, GetUserListAPI, GetUserListResult, ChangeAuthLevelAPI, ChangeAuthLevelParam } from '../279map-api-interface/src/api';
+import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, GetEventParam, GetCategoryParam, RequestAPI, RequestParam, GetUserListAPI, GetUserListResult, ChangeAuthLevelAPI, ChangeAuthLevelParam, GetItemsByIdAPI, GetItemsByIdParam } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 import { search } from './api/search';
@@ -35,6 +34,7 @@ import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetUnpointDataAPI, OdbaLink
 import MqttBroadcaster from './session/MqttBroadcaster';
 import SessionManager from './session/SessionManager';
 import { geojsonToWKT } from '@terraformer/wkt';
+import { getItem, getItemsById } from './api/getItem';
 
 declare global {
     namespace Express {
@@ -665,7 +665,7 @@ app.post(`/api/${GetItemsAPI.uri}`,
             });
 
             // 仮登録中の情報を付与して返す
-            session.mergeTemporaryItems(result.items, req.currentMap);
+            session.addTemporaryItems(result.items, req.currentMap);
 
             // apiLogger.debug('result', result);
 
@@ -675,6 +675,40 @@ app.post(`/api/${GetItemsAPI.uri}`,
 
         } catch(e) {
             apiLogger.warn('get-items API error', param, e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
+        }
+    }
+);
+
+/**
+ * get items by id
+ * 地図アイテム取得(ID指定)
+ */
+app.post(`/api/${GetItemsByIdAPI.uri}`,
+    checkApiAuthLv(Auth.View), 
+    checkCurrentMap,
+    async(req, res, next) => {
+        const param = req.body as GetItemsByIdParam;
+        try {
+            const session = sessionManager.get(req.connect?.sessionKey as string);
+            if (!session) {
+                throw new Error('session undefined');
+            }
+            
+            const result = await getItemsById(param);
+
+            // 仮登録中の情報を付与して返す
+            session.mergeTemporaryItems(result.items, req.currentMap, param.targets);
+
+            res.send(result);
+
+            next();
+
+        } catch(e) {
+            apiLogger.warn('get-items-by-id API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
@@ -792,10 +826,10 @@ app.post(`/api/${RegistItemAPI.uri}`,
             }).then(async(id) => {
                 // 更新通知
                 broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                    type: 'mapitem-update',
+                    type: 'mapitem-insert',
                     targets: [
                         {
-                            datasourceId: id.dataSourceId,
+                            id,
                             wkt,
                         }
                     ]
@@ -830,10 +864,13 @@ app.post(`/api/${RegistItemAPI.uri}`,
 
             // 仮アイテム描画させるための通知
             broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                type: 'mapitem-update',
+                type: 'mapitem-insert',
                 targets: [
                     {
-                        datasourceId: param.dataSourceId,
+                        id: {
+                            id: tempID,
+                            dataSourceId: param.dataSourceId,
+                        },
                         wkt,
                     }
                 ]
@@ -862,59 +899,67 @@ app.post(`/api/${UpdateItemAPI.uri}`,
     async(req, res, next) => {
         const param = req.body as UpdateItemParam;
         try {
-            // メモリに仮登録
             const session = sessionManager.get(req.connect?.sessionKey as string);
             if (!session) {
                 throw new Error('session undefined');
             }
-            const tempID = session.addTemporaryUpdateItem(req.currentMap, param);
-
-            const wkt = await async function() {
-                if (param.geometry) {
-                    return geojsonToWKT(param.geometry);
+            // メモリに仮登録
+            const targets = await Promise.all(param.targets.map(async(target) => {
+                const currentItem = await getItem(target.id);
+                if (!currentItem) {
+                    throw new Error('item not found: ' + target.id);
                 }
-                const myWkt = await getItemWkt(param.id);
-                if (!myWkt) {
-                    throw new Error('undefined wkt');
-                }
-                return myWkt;
-            }();
-            // call ODBA
-            callOdbaApi(OdbaUpdateItemAPI, Object.assign({
-                currentMap: req.currentMap,
-            }, param))
-            .catch(e => {
-                apiLogger.warn('callOdba-updateItem error', e);
-                // TODO: フロントエンドにエラーメッセージ表示
-            }).finally(() => {
-                // メモリから除去
-                session.removeTemporaryItem(tempID);
+                const tempID = session.addTemporaryUpdateItem(req.currentMap, currentItem, target);
 
-                // 更新通知
-                broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                    type: 'mapitem-update',
-                    targets: [
-                        {
-                            datasourceId: param.id.dataSourceId,
-                            wkt,
-                        }
-                    ]
-                });
-            })
-        
-            res.send('complete');
-    
+                const beforeWkt = await getItemWkt(target.id);
+                if (!beforeWkt) {
+                    throw new Error('wkt not found');
+                }
+                const afterWkt = target.geometry ? geojsonToWKT(target.geometry) : undefined;
+                return {
+                    target,
+                    tempID,
+                    wkt: afterWkt ?? beforeWkt,
+                }
+            }));
+
             // 仮アイテム描画させるための通知
             broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                 type: 'mapitem-update',
-                targets: [
-                    {
-                        datasourceId: param.id.dataSourceId,
-                        wkt,
+                targets: targets.map(t => {
+                    return {
+                        id: t.target.id,
+                        wkt: t.wkt,
                     }
-                ]
+                })
             });
+            res.send('complete');
+            for (const target of targets) {
+                // call ODBA
+                callOdbaApi(OdbaUpdateItemAPI, Object.assign({
+                    currentMap: req.currentMap,
+                }, target.target))
+                .catch(e => {
+                    apiLogger.warn('callOdba-updateItem error', e);
+                    // TODO: フロントエンドにエラーメッセージ表示
+                }).finally(() => {
+                    // メモリから除去
+                    session.removeTemporaryItem(target.tempID);
 
+                    // 更新通知
+                    broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
+                        type: 'mapitem-update',
+                        targets: [
+                            {
+                                id: target.target.id,
+                                wkt: target.wkt,
+                            }
+                        ]
+                    });
+                })
+            }
+        
+    
             next();
         } catch(e) {    
             apiLogger.warn('update-item API error', param, e);
@@ -988,7 +1033,7 @@ app.post(`/api/${RegistContentAPI.uri}`,
                         type: 'mapitem-update',
                         targets: [
                             {
-                                datasourceId: id.dataSourceId,
+                                id,
                                 wkt,
                             }
                         ]
@@ -1119,7 +1164,7 @@ app.post(`/api/${LinkContentToItemAPI.uri}`,
                         type: 'mapitem-update',
                         targets: [
                             {
-                                datasourceId: id.dataSourceId,
+                                id,
                                 wkt,
                             }
                         ]
@@ -1166,7 +1211,7 @@ app.post(`/api/${RemoveContentAPI.uri}`,
                     type: 'mapitem-update',
                     targets: [
                         {
-                            datasourceId: id.dataSourceId,
+                            id,
                             wkt,
                         }
                     ]
@@ -1422,16 +1467,17 @@ internalApp.post('/api/broadcast', async(req: Request, res: Response) => {
         }
         return acc;
     }, {} as {[datasourceId: string]: DataId[]});
-    const targets = [] as {datasourceId: string; wkt: string}[];
+    const targets = [] as {id: DataId; wkt: string}[];
     for (const entry of Object.entries(itemIdListByDataSource)) {
-        const datasourceId = entry[0];
         const itemIdList = entry[1];
-        const wkt = await getItemsWkt(itemIdList);
-        if (wkt) {
-            targets.push({
-                datasourceId,
-                wkt,
-            })
+        for (const itemId of itemIdList) {
+            const wkt = await getItemWkt(itemId);
+            if (wkt) {
+                targets.push({
+                    id: itemId,
+                    wkt,
+                })
+            }
         }
     }
     switch(param.operation) {

@@ -49,7 +49,7 @@ function useMapInitializer() {
     const [ currentMapKind ] = useAtom(currentMapKindAtom);
     const { getSubscriber } = useSubscribe();
     const { removeItems } = useItem();
-    const { updateAreaItems } = useMap();
+    const { updateItems } = useMap();
     const [ mapInstanceId ] = useAtom(mapInstanceIdAtom);
 
     useEffect(() => {
@@ -58,12 +58,16 @@ function useMapInitializer() {
         const subscriber = getSubscriber();
         if (!subscriber) return;
 
+        const h0 = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapitem-insert', undefined, (payload) => {
+            if (payload.type === 'mapitem-insert') {
+                // 表示中エリアの場合は最新ロードする
+                updateItems(payload.targets);
+            }
+        });
         const h1 = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapitem-update', undefined, (payload) => {
             if (payload.type === 'mapitem-update') {
                 // 表示中エリアの場合は最新ロードする
-                payload.targets.forEach(target => {
-                    updateAreaItems(target.wkt, target.datasourceId);
-                })
+                updateItems(payload.targets);
             }
         });
         const h2 = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapitem-delete', undefined, (payload) => {
@@ -73,12 +77,14 @@ function useMapInitializer() {
         })
 
         return () => {
+            if (h0)
+                subscriber.unsubscribe(h0);
             if (h1) 
                 subscriber.unsubscribe(h1);
             if (h2)
                 subscriber.unsubscribe(h2);
         }
-    }, [currentMapKind, removeItems, getSubscriber, updateAreaItems, mapInstanceId]);
+    }, [currentMapKind, removeItems, getSubscriber, updateItems, mapInstanceId]);
 
 }
 
@@ -90,7 +96,7 @@ export const initialLoadingAtom = atom(false);
  */
 function useItemUpdater() {
     const { map, fitToDefaultExtent } = useMap();
-    const [ itemMap ] = useAtom(allItemsAtom);
+    const [ itemMap, setItemMap ] = useAtom(allItemsAtom);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
     const [ itemDataSources ] = useAtom(itemDataSourcesAtom);
@@ -109,6 +115,8 @@ function useItemUpdater() {
         if (!map || !currentMapKind) return;
         if (initializedMapKind ===  currentMapKind) return;
 
+        setItemMap({});
+
         // 現在のレイヤ、データソースを削除
         map.clearAllLayers();
         
@@ -122,7 +130,7 @@ function useItemUpdater() {
         setLoadedItemMap({});
         setInitialLoading(true);
 
-    }, [map, setSelectedItemIds, currentMapDefine, currentMapKind, initializedMapKind, itemDataSources, fitToDefaultExtent, setLoadedItemMap, setInitialLoading]);
+    }, [map, setItemMap, setSelectedItemIds, currentMapDefine, currentMapKind, initializedMapKind, itemDataSources, fitToDefaultExtent, setLoadedItemMap, setInitialLoading]);
 
     /**
      * アイテムFeatureを地図に反映する

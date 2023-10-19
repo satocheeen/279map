@@ -9,18 +9,15 @@ import { click } from 'ol/events/condition';
 import { FeatureLike } from 'ol/Feature';
 import useTopographyStyle from '../useTopographyStyle';
 import usePointStyle from '../usePointStyle';
-import { FeatureType, MapKind } from '279map-common';
-import { colorWithAlpha } from '../../../util/CommonUtility';
-import { MapStyles } from '../../../util/constant-defines';
+import { MapKind } from '279map-common';
 import { LayerInfo, LayerType } from '../../TsunaguMap/VectorLayerMap';
 import { containFeatureInLayer } from '../../../util/MapUtility';
 import { useMap } from '../useMap';
 import { currentMapKindAtom } from '../../../store/session';
 import { useAtom } from 'jotai';
 import { convertDataIdFromFeatureId } from '../../../util/dataUtility';
-import { useAtomCallback } from 'jotai/utils';
-import { allItemsAtom } from '../../../store/item';
 import { useItem } from '../../../store/item/useItem';
+import { topographySelectStyleFunction } from './utility';
 
 type Props = {
     targetType: LayerType;
@@ -54,49 +51,7 @@ export default function SelectFeature(props: Props) {
         if (!map) return;
         const styleFunction = function(){
             if (props.targetType === LayerType.Topography) {
-                const selectedStyleFunc = (feature: FeatureLike) => {
-                    const featureType = feature.getProperties()['featureType'];
-                    let strokeColor;
-                    let fillColor = '';
-                    let alpha: number;
-                    let zIndex: number;
-                    switch(featureType) {
-                        case FeatureType.FOREST:
-                            strokeColor = MapStyles.Forest.selectedColor.stroke;
-                            fillColor = MapStyles.Forest.selectedColor.fill;
-                            alpha = MapStyles.Forest.selectedColor.alpha;
-                            zIndex = MapStyles.Forest.zIndex;
-                            break;
-                        case FeatureType.AREA:
-                            strokeColor = MapStyles.Area.selectedColor.stroke;
-                            fillColor = MapStyles.Area.selectedColor.fill;
-                            alpha = MapStyles.Area.selectedColor.alpha;
-                            zIndex = MapStyles.Area.zIndex;
-                            break;
-                        case FeatureType.ROAD:
-                            strokeColor = MapStyles.Road.selectedColor.stroke;
-                            fillColor = MapStyles.Road.selectedColor.fill;
-                            alpha = MapStyles.Road.selectedColor.alpha;
-                            zIndex = MapStyles.Road.zIndex;
-                            break;
-                        default:
-                            strokeColor = MapStyles.Earth.selectedColor.stroke;
-                            fillColor = MapStyles.Earth.selectedColor.fill;
-                            alpha = MapStyles.Earth.selectedColor.alpha;
-                            zIndex = MapStyles.Earth.zIndex;
-                        }
-                    return new Style({
-                        stroke: new Stroke({
-                            color: strokeColor,
-                            width: 3,
-                        }),
-                        fill: new Fill({
-                            color: colorWithAlpha(fillColor, alpha),
-                        }),
-                        zIndex,
-                    });
-                }
-                return  topographyStyleHook.getStyleFunction(selectedStyleFunc);
+                return  topographyStyleHook.getStyleFunction(topographySelectStyleFunction);
             } else {
                 return selectedStyleFunction;
             }

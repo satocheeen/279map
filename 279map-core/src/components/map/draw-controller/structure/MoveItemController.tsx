@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Collection, Feature, MapBrowserEvent } from 'ol';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
@@ -7,7 +7,7 @@ import {platformModifierKeyOnly} from 'ol/events/condition';
 import Geometry from 'ol/geom/Geometry';
 import PromptMessageBox from '../PromptMessageBox';
 import styles from './MoveItemController.module.scss';
-import { containFeatureInLayer, createGeoJson } from '../../../../util/MapUtility';
+import { containFeatureInLayer, createGeoJson, getOriginalLine } from '../../../../util/MapUtility';
 import { TranslateEvent } from 'ol/interaction/Translate';
 import "react-toggle/style.css";
 import Toggle from 'react-toggle';
@@ -16,14 +16,21 @@ import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { useMap } from '../../useMap';
-import { UpdateItemAPI } from 'tsunagumap-api';
+import { UpdateItemAPI, UpdateItemParam } from 'tsunagumap-api';
 import { useApi } from '../../../../api/useApi';
+import { FeatureLike } from 'ol/Feature';
+import { Style } from 'ol/style';
+import useTopographyStyle from '../../useTopographyStyle';
+import { topographySelectStyleFunction } from '../utility';
+import { FeatureType, GeoProperties } from '279map-common';
+import { LineString, Polygon } from 'ol/geom';
 
 type Props = {
     close: () => void;  // 編集完了時のコールバック
 }
 
 const dragBox = new DragBox({
+    className: 'ol-drag-box',   // MapChart.module.scss内でスタイル設定
     condition: platformModifierKeyOnly,
   });
 const movedFeatureCollection = new Collection<Feature<Geometry>>();
@@ -35,21 +42,52 @@ export default function MoveItemController(props: Props) {
     const [okable, setOkable] = useState(false);
     const { map } = useMap();
     const pointStyleHook = usePointStyle();
+    const topographyStyleHook = useTopographyStyle({});
     const targetLayers = useRef<VectorLayer<VectorSource>[]>(
-        (map?.getLayersOfTheType(LayerType.Point) ?? []).filter(l => l.editable).map(l => l.layer)
+        function() {
+            const pointLayer = map?.getLayersOfTheType(LayerType.Point) ?? [];
+            const topographyLayer = map?.getLayersOfTheType(LayerType.Topography) ?? [];
+            const layers = [...pointLayer, ...topographyLayer];
+            return layers.filter(l => l.editable).map(l => l.layer)
+        }()
     );
+
+    const selectStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style => {
+        if (feature.get('features')) {
+            return pointStyleHook.selectedStyleFunction(feature, resolution);
+        } else {
+            const func = topographyStyleHook.getStyleFunction(topographySelectStyleFunction);
+            return func(feature, resolution);
+        }
+    }, [pointStyleHook, topographyStyleHook]);
 
     const select = useMemo(() => {
         return new Select({
             layers: targetLayers.current,
-            style: pointStyleHook.selectedStyleFunction,
+            style: selectStyleFunction,
         });
-    }, [pointStyleHook]);
+    }, [selectStyleFunction]);
 
-    const [prevGeometory] = useState({} as {[id: string]: Geometry});
+    const prevGeometoryRef = useRef<{[id: string]: Geometry}>({});
     const [multipleMode, setMultipleMode] = useState(false);    // 複数選択モードの場合、true
     const spinnerHook = useProcessMessage();
     const { callApi } = useApi();
+
+    useEffect(() => {
+        movedFeatureCollection.clear();
+        // 移動前の状態を記憶
+        targetLayers.current.forEach(layer => {
+            layer.getSource()?.getFeatures().forEach((feature) => {
+                const features = (feature.get('features') as Feature<Geometry>[] | undefined) ?? [feature];
+                const id = features[0].getId();
+                const geometry = feature.getGeometry();
+                if (id === undefined || !geometry) {
+                    return;
+                }
+                prevGeometoryRef.current[id] = geometry.clone();
+            });
+        })
+    }, [])
 
     const onFinishClicked = async() => {
         const h = spinnerHook.showProcessMessage({
@@ -57,32 +95,53 @@ export default function MoveItemController(props: Props) {
             spinner: true,
             message: '更新中...'
         });
+        const targets = [] as UpdateItemParam['targets'];
         for (const mf of movedFeatureCollection.getArray()) {
             const mfGeoJson = createGeoJson(mf);
-            const features = mf.get('features') as Feature<Geometry>[];
+            const features = (mf.get('features') as Feature<Geometry>[] | undefined) ?? [mf];
             for (const feature of features) {
+                let geometry: GeoJSON.Geometry;
+                if ((feature.getProperties() as GeoProperties).featureType === FeatureType.ROAD) {
+                    // 道の場合は、元のラインを射影変換する
+                    const lineFeature = getOriginalLine(feature as Feature<Geometry>);
+                    const id = feature.getId() as string;
+                    const myPrev = prevGeometoryRef.current[id];
+                    const prevP = (myPrev as Polygon).getCoordinates()[0][0];
+                    const currentP = (feature.getGeometry() as Polygon).getCoordinates()[0][0];
+                    const dx = currentP[0] - prevP[0];
+                    const dy = currentP[1] - prevP[1];
+                    (lineFeature.getGeometry() as LineString).translate(dx, dy);
+                    const geoJson = createGeoJson(lineFeature);
+                    geometry = geoJson.geometry;
+                } else {
+                    geometry = mfGeoJson.geometry;
+                }
+
                 // DB更新
                 const id = convertDataIdFromFeatureId(feature.getId() as string);
-                await callApi(UpdateItemAPI, {
+                targets.push({
                     id,
-                    geometry: mfGeoJson.geometry,
-                });
+                    geometry,
+                })
             }
         }
+        await callApi(UpdateItemAPI, {
+            targets
+        });
         spinnerHook.hideProcessMessage(h);
         props.close();
     }
 
     const onCancelClicked = () => {
         // 元に戻す
-        movedFeatureCollection.forEach((clusteredFeature) => {
-            const features = clusteredFeature.get('features') as Feature<Geometry>[];
+        movedFeatureCollection.forEach((feature) => {
+            const features = (feature.get('features') as Feature<Geometry>[] | undefined) ?? [feature];
             const id = features[0].getId();
             if (id === undefined) {
                 return;
             }
-            const geometory = prevGeometory[id];
-            clusteredFeature.setGeometry(geometory);
+            const geometory = prevGeometoryRef.current[id];
+            feature.setGeometry(geometory);
         })
         props.close();
     }
@@ -110,22 +169,6 @@ export default function MoveItemController(props: Props) {
         }
 
     }, [map]);
-
-    useEffect(() => {
-        // 移動前の状態を記憶
-        targetLayers.current.forEach(layer => {
-            layer.getSource()?.getFeatures().forEach((clusteredFeature) => {
-                const features = clusteredFeature.get('features') as Feature<Geometry>[];
-                const id = features[0].getId();
-                const geometry = clusteredFeature.getGeometry();
-                if (id === undefined || !geometry) {
-                    return;
-                }
-                prevGeometory[id] = geometry.clone();
-            });
-        })
-
-    }, [prevGeometory]);
 
     // ボックス選択の初期化
     useEffect(() => {

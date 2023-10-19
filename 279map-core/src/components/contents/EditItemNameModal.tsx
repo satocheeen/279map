@@ -30,8 +30,12 @@ export default function EditItemNameModal(props: Props) {
         setRegisting(true);
         try {
             await callApi(UpdateItemAPI, {
-                id: props.target,
-                name: title,
+                targets: [
+                    {
+                        id: props.target,
+                        name: title,
+                    }
+                ]
             });
     
             props.onClose();

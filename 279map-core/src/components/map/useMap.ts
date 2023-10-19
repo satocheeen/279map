@@ -3,8 +3,8 @@ import { OlMapWrapper } from '../TsunaguMap/OlMapWrapper';
 import { atom, useAtom } from 'jotai';
 import { useAtomCallback, atomWithReducer } from 'jotai/utils';
 import { currentMapKindAtom, defaultExtentAtom, instanceIdAtom, mapIdAtom } from '../../store/session';
-import { GetItemsAPI } from 'tsunagumap-api';
-import { LoadedAreaInfo, LoadedItemKey, allItemsAtom, loadedItemMapAtom } from '../../store/item';
+import { GetItemsAPI, GetItemsByIdAPI } from 'tsunagumap-api';
+import { LoadedAreaInfo, LoadedItemKey, allItemsAtom, latestEditedTimeOfDatasourceAtom, loadedItemMapAtom } from '../../store/item';
 import { DataId, Extent } from '279map-common';
 import { dataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import useMyMedia from '../../util/useMyMedia';
@@ -16,8 +16,9 @@ import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { useApi } from '../../api/useApi';
 import { initialLoadingAtom } from '../TsunaguMap/MapController';
 import { geoJsonToTurfPolygon } from '../../util/MapUtility';
-import { bboxPolygon, intersect, union, mask } from '@turf/turf';
+import { bboxPolygon, intersect, union, booleanContains } from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
+import { useItem } from '../../store/item/useItem';
 
 /**
  * 地図インスタンス管理マップ。
@@ -140,40 +141,40 @@ export function useMap() {
                 const extentPolygon = bboxPolygon(param.extent as [number,number,number,number]);
 
                 // ロード対象
-                const loadTargets = visibleDataSourceIds.map((datasourceId): {datasourceId: string; geometry: GeoJSON.Geometry} => {
+                const loadTargets = [] as {datasourceId: string; geometry: GeoJSON.Geometry}[];
+                visibleDataSourceIds.forEach((datasourceId) => {
                     const loadedItemMap = get(loadedItemMapAtom);
                     const key = getLoadedAreaMapKey(datasourceId, zoom);
                     const loadedItemInfo = loadedItemMap[JSON.stringify(key)];
                     const loadedPolygon = loadedItemInfo ? geoJsonToTurfPolygon(loadedItemInfo.geometry) : undefined;
                     let polygon: LoadedAreaInfo['geometry'] | undefined;
                     if (loadedPolygon) {
-                        // @ts-ignore 第1引数がなぜかTypeScript Errorになるので
-                        const p = mask(loadedPolygon, extentPolygon)
-                        polygon = {
-                            type: 'Polygon',
-                            coordinates: p.geometry.coordinates,
+                        if (booleanContains(loadedPolygon, extentPolygon)) {
+                            // ロード済み領域の場合はロードしない
+                            return;
                         }
                     }
-                    if (!polygon) {
-                        polygon = {
-                            type: 'Polygon',
-                            coordinates: extentPolygon.geometry.coordinates
-                        }
+                    polygon = {
+                        type: 'Polygon',
+                        coordinates: extentPolygon.geometry.coordinates
                     }
-                    return {
+                    loadTargets.push({
                         datasourceId,
                         geometry: polygon,
-                    }
+                    });
                 });
 
                 const beforeMapId = get(mapIdAtom);
                 const beforeMapKind = get(currentMapKindAtom);
                 const apiResults = await Promise.all(loadTargets.map((target) => {
                     const wkt = geojsonToWKT(target.geometry);
+                    const latestEditedTime = get(latestEditedTimeOfDatasourceAtom)[target.datasourceId];
+
                     const excludeItemIds = getExcludeItemIds(target.datasourceId, param.extent);
                     return callApi(GetItemsAPI, {
                         wkt,
                         zoom,
+                        latestEditedTime,
                         dataSourceId: target.datasourceId,
                         excludeItemIds,
                     });
@@ -186,17 +187,22 @@ export function useMap() {
                     console.log('cancel load items because map change', beforeMapId, beforeMapKind);
                     return;
                 }
-                set(allItemsAtom, (currentItemMap) => {
-                    const newItemsMap = structuredClone(currentItemMap);
-                    apiResults.forEach(apiResult => {
-                        const items = apiResult.items;
-                        items.forEach(item => {
-                            newItemsMap[item.id.dataSourceId] ??= {};
-                            newItemsMap[item.id.dataSourceId][item.id.id] = item;
+                const hasItem = apiResults.some(ar => {
+                    return ar.items.length > 0;
+                });
+                if (hasItem) {
+                    set(allItemsAtom, (currentItemMap) => {
+                        const newItemsMap = structuredClone(currentItemMap);
+                        apiResults.forEach(apiResult => {
+                            const items = apiResult.items;
+                            items.forEach(item => {
+                                newItemsMap[item.id.dataSourceId] ??= {};
+                                newItemsMap[item.id.dataSourceId][item.id.id] = item;
+                            })
                         })
+                        return newItemsMap;
                     })
-                    return newItemsMap;
-                })
+                }
 
                 // ロード済みの範囲と併せたものを保管
                 const newLoadedItemMap = Object.assign({}, loadedItemMap);
@@ -272,61 +278,60 @@ export function useMap() {
         }, [loadItems, map, mapInstanceId, showProcessMessage, hideProcessMessage])
     )
 
-    /**
-     * 指定範囲のアイテムを更新する
-     */
-    const updateAreaItems = useAtomCallback(
-        useCallback(async(get, set, wkt: string, datasourceId: string) => {
-            if (!map) {
-                console.warn('map is undefined', mapInstanceId);
-                return;
-            }
-            const zoom = map.getZoom();
-            if (!zoom) {
-                return;
-            }
-            // 取得済み範囲と交差する領域についてupdate
-            const loadedItemMap = get(loadedItemMapAtom);
-            const key: LoadedItemKey = {
-                datasourceId,
-            }
-            const loadedItem = loadedItemMap[JSON.stringify(key)];
-            if (!loadedItem) {
-                return;
-            }
-            const loadedPolygon = geoJsonToTurfPolygon(loadedItem.geometry);
-            if (!loadedPolygon) {
-                console.warn('loaded polygon can not analyze', loadedItem.geometry);
-                return;
-            }
-            const geoJson = wktToGeoJSON(wkt);
-            const polygon = geoJsonToTurfPolygon(geoJson);
-            if (!polygon) {
-                console.warn('wkt is not polygon', wkt, geoJson);
-                return;
-            }
-            const intersectPolygon = intersect(loadedPolygon, polygon);
-            if (!intersectPolygon) {
-                // 未ロードエリアの場合、何もしない
-                return;
-            }
-            const updateArea = geojsonToWKT(intersectPolygon.geometry);
+    const { getItem} = useItem();
 
-            const apiResult = await callApi(GetItemsAPI, {
-                wkt: updateArea,
-                zoom,
-                dataSourceId: datasourceId,
+    /**
+     * 必要に応じて、指定のアイテムを更新する
+     */
+    const updateItems = useAtomCallback(
+        useCallback(async(get, set, targets: {id: DataId; wkt: string}[]) => {
+            const loadedItemMap = get(loadedItemMapAtom);
+            // 取得する必要のあるものに絞る
+            const updateTargets = targets.filter(target => {
+                // 取得済みアイテムの場合、取得
+                if (getItem(target.id)) return true;
+
+                // 取得済み範囲の場合、取得
+                const key = getLoadedAreaMapKey(target.id.dataSourceId, 0);
+                const loadedAreaInfo = loadedItemMap[JSON.stringify(key)];
+                if (!loadedAreaInfo) {
+                    console.log('loadedAreaInfo undefined', loadedItemMap);
+                    return false;
+                }
+                const loadedPolygon = geoJsonToTurfPolygon(loadedAreaInfo.geometry);
+                if (!loadedPolygon) {
+                    console.log('loadedPolygon undefined');
+                    return false;
+                }
+
+                const geoJson = wktToGeoJSON(target.wkt);
+                const polygon = geoJsonToTurfPolygon(geoJson);
+                if (!polygon) {
+                    console.log('polygon undefined');
+                    return false;
+                }
+    
+                return booleanContains(loadedPolygon, polygon);
+            }).map((target): DataId => {
+                return target.id;
+            });
+
+            if (updateTargets.length === 0) return;
+
+            const apiResult = await callApi(GetItemsByIdAPI, {
+                targets: updateTargets,
             });
             const items = apiResult.items;
 
             set(allItemsAtom, (currentItemMap) => {
                 const newItemsMap = structuredClone(currentItemMap);
                 items.forEach(item => {
-                    newItemsMap[datasourceId][item.id.id] = item;
+                    newItemsMap[item.id.dataSourceId][item.id.id] = item;
                 });
                 return newItemsMap;
             })
-        }, [callApi, map, mapInstanceId])
+
+        }, [getItem, callApi, getLoadedAreaMapKey])
     )
 
     /**
@@ -396,6 +401,6 @@ export function useMap() {
         loadCurrentAreaContents,
         fitToDefaultExtent,
         focusItem,
-        updateAreaItems,
+        updateItems,
     }
 }
