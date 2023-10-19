@@ -2,4 +2,4 @@ db/
 log/
 photo/
 .env*
-!.env.sample
+!.env.**.sample
