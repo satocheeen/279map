@@ -165,7 +165,7 @@ export default class SessionInfo {
                     geoProperties: item.geoProperties,
                     lastEditedTime: '',
                     contents: item.contents,
-                    isTemporary: true,
+                    temporary: 'registing',
                 })
             } else {
                 items.push({
@@ -175,7 +175,7 @@ export default class SessionInfo {
                     geoProperties: item.geoProperties,
                     lastEditedTime: '',
                     contents: item.contents,
-                    isTemporary: true,
+                    temporary: 'updating',
                 })
             }
         }
@@ -206,7 +206,7 @@ export default class SessionInfo {
                         geoProperties: item.geoProperties,
                         lastEditedTime: '',
                         contents: item.contents,
-                        isTemporary: true,
+                        temporary: 'registing',
                     })
                 }
                 continue;
@@ -220,7 +220,7 @@ export default class SessionInfo {
                 geoJson: item.geoJson,
                 geoProperties: item.geoProperties,
                 lastEditedTime: '',
-                isTemporary: true,
+                temporary: 'updating',
             }
         }
     }

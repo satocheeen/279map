@@ -7,7 +7,7 @@ import { DataId, DataSourceKindType } from '279map-common';
 import { getMapKey } from '../../util/dataUtility';
 import { useMap } from '../map/useMap';
 import { BsImage } from 'react-icons/bs';
-import { useItem } from '../../store/item/useItems';
+import { useItem } from '../../store/item/useItem';
 import { dataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
 
@@ -92,10 +92,7 @@ type MenuItemProp = {
     onClose?: () => void;
 }
 function MenuItem(props: MenuItemProp) {
-    const { getItem } = useItem();
-    const item = useMemo(() => {
-        return getItem(props.id);
-    }, [props.id, getItem]);
+    const { item } = useItem({ id: props.id });
 
     const { getIconDefine } = useIcon();
 

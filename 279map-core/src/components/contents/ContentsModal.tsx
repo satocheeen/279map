@@ -6,7 +6,6 @@ import AddContentMenu from '../popup/AddContentMenu';
 import styles from './ContentsModal.module.scss';
 import { getMapKey } from '../../util/dataUtility';
 import { useSubscribe } from '../../api/useSubscribe';
-import { useItem } from '../../store/item/useItems';
 import { useAtom } from 'jotai';
 import { authLvAtom, currentMapKindAtom } from '../../store/session';
 import { useApi } from '../../api/useApi';
@@ -16,6 +15,7 @@ import EditItemNameModal from './EditItemNameModal';
 import PopupMenuIcon from '../popup/PopupMenuIcon';
 import { MdEdit } from 'react-icons/md';
 import { dataSourcesAtom } from '../../store/datasource';
+import { allItemsAtom } from '../../store/item';
 
 export type Props = ({
     type: 'item' | 'content';
@@ -30,15 +30,24 @@ export default function ContentsModal(props: Props) {
     const [itemId, setItemId] = useState<DataId | undefined>();
 
     const [ contentsList, setContentsList ] = useState<ContentsDefine[]>([]);
-    const [ isTemporaryItem, setIsTemporaryItem ] = useState(false);
     const { callApi } = useApi();
     const { getSubscriber } = useSubscribe();
 
-    const { getItem } = useItem();
-    const loadContentsInItem = useCallback(async(itemId: DataId) => {
-        const item = getItem(itemId);
-        setIsTemporaryItem(item.isTemporary ?? false);
-        if (item.isTemporary) {
+    const [ allItems ] = useAtom(allItemsAtom);
+    const item = useMemo(() => {
+        if (!itemId) return;
+        const itemMap = allItems[itemId.dataSourceId] ?? {};
+        return itemMap[itemId.id];
+
+    }, [ allItems, itemId ]);
+
+    const isTemporaryItem = useMemo(() => {
+        return item?.temporary === 'registing';
+    }, [item]);
+
+    const loadContentsInItem = useCallback(async() => {
+        if (!item) return;
+        if (isTemporaryItem) {
             setContentsList([]);
             return;
         }
@@ -50,13 +59,13 @@ export default function ContentsModal(props: Props) {
         setLoaded(false);
         const result = await callApi(GetContentsAPI, [
             {
-                itemId,
+                itemId: item.id,
             }
         ]);
         setContentsList(result.contents);
         setLoaded(true);
 
-    }, [callApi, getItem]);
+    }, [callApi, item, isTemporaryItem]);
 
     // 表示対象が指定されたらコンテンツロード
     const [ mapKind ] = useAtom(currentMapKindAtom);
@@ -68,11 +77,11 @@ export default function ContentsModal(props: Props) {
             setShow(true);
     
             // 最新コンテンツ取得
-            loadContentsInItem(props.id)
+            loadContentsInItem()
             .finally(() => {
                 setLoaded(true);
             });
-            h = subscriber?.subscribeMap({mapKind}, 'childcontents-update', props.id, () => loadContentsInItem(props.id));
+            h = subscriber?.subscribeMap({mapKind}, 'childcontents-update', props.id, () => loadContentsInItem());
 
             setItemId(props.id);
 
@@ -117,10 +126,8 @@ export default function ContentsModal(props: Props) {
     }, [contentsList])
 
     const title = useMemo(() => {
-        if (!itemId) return '';
-        const item = getItem(itemId);
-        return item?.name;
-    }, [itemId, getItem]);
+        return item?.name ?? '';
+    }, [item]);
 
     const [ authLv ] = useAtom(authLvAtom);
     const [ datasources ] = useAtom(dataSourcesAtom);

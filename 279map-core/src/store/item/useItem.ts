@@ -1,0 +1,28 @@
+import { useMemo } from 'react';
+import { DataId } from "279map-common";
+import { useAtom } from "jotai";
+import { allItemsAtom } from ".";
+
+type Props = {
+    id: DataId;
+}
+
+/**
+ * 指定のidに対応するアイテム情報を返すフック。
+ * アイテム情報変更に対してリアクティブに挙動する。
+ * @param props 
+ * @returns 
+ */
+export function useItem(props: Props) {
+    const [ allItems ] = useAtom(allItemsAtom);
+
+    const item = useMemo(() => {
+        const itemMap = allItems[props.id.dataSourceId] ?? {};
+        return itemMap[props.id.id];
+
+    }, [ allItems ])
+
+    return {
+        item,
+    }
+}
