@@ -12,11 +12,11 @@ export async function callOdbaApi<API extends APIDefine<any,any>>(api: API, para
                     'Content-Type': 'application/json',
                 },
                 params: param,
-                timeout: 10000,
+                timeout: 60000,
             });
         } else {
             res = await axios.post(url, param, {
-                timeout: 10000,
+                timeout: 60000,
             });
         }
         if (res.status !== 200) {
