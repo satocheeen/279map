@@ -8,7 +8,7 @@ import { usePrevious } from '../../util/usePrevious';
 import { isEqualId } from '../../util/dataUtility';
 import { useMap } from '../map/useMap';
 import { addListener, removeListener } from '../../util/Commander';
-import { mapModeAtom, mapViewAtom, selectedItemIdAtom } from '../../store/operation';
+import { mapModeAtom, mapViewAtom, showingDetailItemIdAtom } from '../../store/operation';
 import { filteredItemIdListAtom } from '../../store/filter';
 import { useItems } from '../../store/item/useItems';
 import { useAtom } from 'jotai';
@@ -56,7 +56,7 @@ export default function ClusterMenuController(props: Props) {
         setClusterMenuInfo(null);
     }, [mapView, prevMapView]);
 
-    const [selectedItemId] = useAtom(selectedItemIdAtom);
+    const [selectedItemId] = useAtom(showingDetailItemIdAtom);
     useEffect(() => {
         if (selectedItemId) {
             setClusterMenuInfo(null);

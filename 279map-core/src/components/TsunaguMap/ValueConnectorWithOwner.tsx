@@ -4,7 +4,7 @@ import { OwnerContext } from './TsunaguMap';
 import { categoriesLoadableAtom } from '../../store/category';
 import { eventsLoadableAtom } from '../../store/event';
 import { defaultIconDefineAtom } from '../../store/icon';
-import { dialogTargetAtom, mapModeAtom, selectedItemIdAtom } from '../../store/operation';
+import { dialogTargetAtom, mapModeAtom, showingDetailItemIdAtom } from '../../store/operation';
 import { authLvAtom, connectStatusLoadableAtom, mapDefineLoadableAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
@@ -411,7 +411,7 @@ function MapModeChangeListener() {
  */
 function SelectChangeLister() {
     const { onSelect}  = useContext(OwnerContext);
-    const [selectedItemId] = useAtom(selectedItemIdAtom);
+    const [selectedItemId] = useAtom(showingDetailItemIdAtom);
     const latestItemIdsRef = useRef<DataId|null>(null);
 
     // マウント後でないとイベント発火できないので、useEffect内で処理

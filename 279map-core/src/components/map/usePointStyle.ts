@@ -10,7 +10,7 @@ import { Geometry } from "ol/geom";
 import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
 import { useMap } from "./useMap";
 import { useMapOptions } from "../../util/useMapOptions";
-import { selectedItemIdAtom } from "../../store/operation";
+import { showingDetailItemIdAtom } from "../../store/operation";
 import useIcon from "../../store/icon/useIcon";
 import { filteredItemIdListAtom } from "../../store/filter";
 import { dataSourcesAtom } from "../../store/datasource";
@@ -34,7 +34,7 @@ export default function usePointStyle() {
     const { filter } = useContext(OwnerContext);
     const { getIconDefine } = useIcon();
     const { map } = useMap();
-    const [ selectedItemId ] = useAtom(selectedItemIdAtom);
+    const [ selectedItemId ] = useAtom(showingDetailItemIdAtom);
 
     const getZindex = useCallback((feature: Feature<Geometry>): number => {
         if (!map) return 0;

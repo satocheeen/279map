@@ -8,7 +8,7 @@ import { BsThreeDots } from 'react-icons/bs';
 import { useMapOptions } from "../../util/useMapOptions";
 import { useMap } from "../map/useMap";
 import { doCommand } from "../../util/Commander";
-import { mapModeAtom, selectedItemIdAtom } from "../../store/operation";
+import { mapModeAtom, showingDetailItemIdAtom } from "../../store/operation";
 import { filteredContentIdListAtom, filteredItemIdListAtom } from "../../store/filter";
 import { useItems } from "../../store/item/useItems";
 import { useAtom } from "jotai";
@@ -126,7 +126,7 @@ export default function PointsPopup(props: Props) {
         }, 0);
     }, [props.itemIds, getDescendantContentsIdList]);
 
-    const [, setSelectedItemId] = useAtom(selectedItemIdAtom);
+    const [, setSelectedItemId] = useAtom(showingDetailItemIdAtom);
     const onClick = useCallback((evt: React.MouseEvent) => {
         if (props.itemIds.length === 1) {
             setSelectedItemId(props.itemIds[0]);

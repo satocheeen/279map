@@ -3,8 +3,8 @@ import { atom } from "jotai";
 import { MapMode } from "../../types/types";
 import { Extent } from "ol/extent";
 
-// 選択中アイテムID
-export const selectedItemIdAtom = atom<DataId|null>(null);
+// 詳細表示中アイテムID
+export const showingDetailItemIdAtom = atom<DataId|null>(null);
 
 // 詳細ダイアログ表示対象
 type Target = {
@@ -22,7 +22,7 @@ export const mapModeAtom = atom(
         }
         set(mapModeAtom, update);
         // 地図モード変更時は、選択状態解除する
-        set(selectedItemIdAtom, null);
+        set(showingDetailItemIdAtom, null);
     }
 );
 

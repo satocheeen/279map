@@ -7,7 +7,7 @@ import { atom, useAtom } from 'jotai';
 import { useItems } from '../../store/item/useItems';
 import { itemDataSourcesAtom } from '../../store/datasource';
 import { mapInstanceIdAtom, useMap } from '../map/useMap';
-import { dialogTargetAtom, selectedItemIdAtom } from '../../store/operation';
+import { dialogTargetAtom, showingDetailItemIdAtom } from '../../store/operation';
 import { OwnerContext } from './TsunaguMap';
 import { usePrevious } from '../../util/usePrevious';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
@@ -105,7 +105,7 @@ function useItemUpdater() {
     const [ initializedMapKind, setInitializedMapKind ] = useState<MapKind|undefined>();
     const [ , setLoadedItemMap] = useAtom(loadedItemMapAtom);
     const [ , setInitialLoading ] = useAtom(initialLoadingAtom);
-    const [ , setSelectedItemIds ] = useAtom(selectedItemIdAtom);
+    const [ , setSelectedItemIds ] = useAtom(showingDetailItemIdAtom);
     const [ currentMapDefine ] = useAtom(currentMapDefineAtom);
 
     /**
@@ -224,7 +224,7 @@ function useLayerVisibleChanger() {
  * アイテム選択を検知して、詳細ダイアログ表示
  */
 function ItemSelectListener() {
-    const [ selectedItemId ] = useAtom(selectedItemIdAtom);
+    const [ selectedItemId ] = useAtom(showingDetailItemIdAtom);
     const prevSelectedItemIds = usePrevious(selectedItemId);
     const { disabledContentDialog } = useContext(OwnerContext);
     const [ dialogTarget, setDialogTarget ] = useAtom(dialogTargetAtom);
