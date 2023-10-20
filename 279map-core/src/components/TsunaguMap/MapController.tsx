@@ -152,7 +152,7 @@ function useItemUpdater() {
         const updateItems = geoJsonItems.filter(item => {
             const before = prevGeoJsonItemsRef.current.find(pre => isEqualId(pre.id, item.id));
             if (!before) return true;   // 追加Item
-            return before.lastEditedTime !== item.lastEditedTime;   // 更新Item
+            return JSON.stringify(before) !== JSON.stringify(item);   // 更新Item
         })
         map.addFeatures(updateItems);
         // 削除

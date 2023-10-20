@@ -291,10 +291,12 @@ export class OlMapWrapper {
 
             const existFeature = source.getFeatureById(getMapKey(def.id));
             if (existFeature) {
-                if (existFeature.getProperties()['lastEditedTime'] !== def.lastEditedTime) {
-                    existFeature.setGeometry(geom);
-                    existFeature.setProperties(feature.getProperties());
-                }
+                existFeature.setGeometry(geom);
+                const properties = Object.assign({}, feature.getProperties(), def.geoProperties ? def.geoProperties : {}, {
+                    name: def.name,
+                    lastEditedTime: def.lastEditedTime,
+                }) as FeatureProperties;
+                existFeature.setProperties(properties);
                 continue;
             }
     

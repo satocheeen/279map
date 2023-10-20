@@ -4,13 +4,12 @@ import { isEqualId } from "../../util/dataUtility";
 import { DataId, ItemContentInfo } from "279map-common";
 import { filteredContentIdListAtom } from "../filter";
 import { useAtomCallback } from 'jotai/utils';
-import { useAtom } from "jotai";
 
 /**
  * アイテム関連フック
  * @returns 
  */
-export function useItem() {
+export function useItems() {
 
     const removeItems = useAtomCallback(
         useCallback(async(get, set, target: DataId[]) => {
