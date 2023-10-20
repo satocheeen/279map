@@ -42,8 +42,12 @@ export default function ContentsModal(props: Props) {
     }, [ allItems, itemId ]);
 
     const isTemporaryItem = useMemo(() => {
+        if (props.type === 'content') return false;
+        // アイテムが存在しない場合=一時アイテムが削除された場合
+        if (!item) return true;
+
         return item?.temporary === 'registing';
-    }, [item]);
+    }, [item, props.type]);
 
     const loadContentsInItem = useCallback(async() => {
         if (!item) return;
