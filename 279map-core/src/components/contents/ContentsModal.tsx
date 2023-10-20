@@ -6,7 +6,7 @@ import AddContentMenu from '../popup/AddContentMenu';
 import styles from './ContentsModal.module.scss';
 import { getMapKey } from '../../util/dataUtility';
 import { useSubscribe } from '../../api/useSubscribe';
-import { useItem } from '../../store/item/useItem';
+import { useItem } from '../../store/item/useItems';
 import { useAtom } from 'jotai';
 import { authLvAtom, currentMapKindAtom } from '../../store/session';
 import { useApi } from '../../api/useApi';

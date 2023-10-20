@@ -7,7 +7,7 @@ import { UpdateItemAPI } from 'tsunagumap-api';
 import useConfirm from '../common/confirm/useConfirm';
 import { useApi } from '../../api/useApi';
 import { ConfirmBtnPattern } from '../common/confirm/types';
-import { useItem } from '../../store/item/useItem';
+import { useItem } from '../../store/item/useItems';
 import { useAtom } from 'jotai';
 import { currentMapKindAtom } from '../../store/session';
 

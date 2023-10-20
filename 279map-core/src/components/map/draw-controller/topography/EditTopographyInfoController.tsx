@@ -8,7 +8,7 @@ import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useMap } from '../../useMap';
 import { UpdateItemAPI } from 'tsunagumap-api';
-import { useItem } from '../../../../store/item/useItem';
+import { useItem } from '../../../../store/item/useItems';
 import { useApi } from '../../../../api/useApi';
 
 type Props = {

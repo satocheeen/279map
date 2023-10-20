@@ -10,7 +10,7 @@ import { useMap } from '../map/useMap';
 import { addListener, removeListener } from '../../util/Commander';
 import { mapModeAtom, mapViewAtom, selectedItemIdAtom } from '../../store/operation';
 import { filteredItemIdListAtom } from '../../store/filter';
-import { useItem } from '../../store/item/useItem';
+import { useItem } from '../../store/item/useItems';
 import { useAtom } from 'jotai';
 
 /**

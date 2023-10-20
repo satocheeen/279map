@@ -10,7 +10,7 @@ import { GetContentsAPI, GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemA
 import { Button } from '../common';
 import { compareAuth } from '../../util/CommonUtility';
 import { authLvAtom, currentMapKindAtom } from '../../store/session';
-import { useItem } from '../../store/item/useItem';
+import { useItem } from '../../store/item/useItems';
 import { dataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
 import { useApi } from '../../api/useApi';

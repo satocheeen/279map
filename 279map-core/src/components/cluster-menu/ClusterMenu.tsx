@@ -7,7 +7,7 @@ import { DataId, DataSourceKindType } from '279map-common';
 import { getMapKey } from '../../util/dataUtility';
 import { useMap } from '../map/useMap';
 import { BsImage } from 'react-icons/bs';
-import { useItem } from '../../store/item/useItem';
+import { useItem } from '../../store/item/useItems';
 import { dataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
 

@@ -10,7 +10,7 @@ import { useMap } from "../map/useMap";
 import { doCommand } from "../../util/Commander";
 import { mapModeAtom, selectedItemIdAtom } from "../../store/operation";
 import { filteredContentIdListAtom, filteredItemIdListAtom } from "../../store/filter";
-import { useItem } from "../../store/item/useItem";
+import { useItem } from "../../store/item/useItems";
 import { useAtom } from "jotai";
 
 type Props = {

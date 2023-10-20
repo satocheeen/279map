@@ -4,7 +4,7 @@ import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useSubscribe } from '../../api/useSubscribe';
 import { currentMapDefineAtom, currentMapKindAtom } from '../../store/session';
 import { atom, useAtom } from 'jotai';
-import { useItem } from '../../store/item/useItem';
+import { useItem } from '../../store/item/useItems';
 import { itemDataSourcesAtom } from '../../store/datasource';
 import { mapInstanceIdAtom, useMap } from '../map/useMap';
 import { dialogTargetAtom, selectedItemIdAtom } from '../../store/operation';

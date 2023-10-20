@@ -18,7 +18,7 @@ import { initialLoadingAtom } from '../TsunaguMap/MapController';
 import { geoJsonToTurfPolygon } from '../../util/MapUtility';
 import { bboxPolygon, intersect, union, booleanContains } from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
-import { useItem } from '../../store/item/useItem';
+import { useItem } from '../../store/item/useItems';
 
 /**
  * 地図インスタンス管理マップ。
