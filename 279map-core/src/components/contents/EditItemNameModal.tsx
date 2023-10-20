@@ -7,7 +7,7 @@ import { UpdateItemAPI } from 'tsunagumap-api';
 import useConfirm from '../common/confirm/useConfirm';
 import { useApi } from '../../api/useApi';
 import { ConfirmBtnPattern } from '../common/confirm/types';
-import { useItem } from '../../store/item/useItems';
+import { useItems } from '../../store/item/useItems';
 import { useAtom } from 'jotai';
 import { currentMapKindAtom } from '../../store/session';
 
@@ -17,7 +17,7 @@ type Props = {
 }
 
 export default function EditItemNameModal(props: Props) {
-    const { getItem } = useItem();
+    const { getItem } = useItems();
     // const itemMap = useRecoilValue(itemMapState);
     const [title, setTitle] = useState<string>(
         getItem(props.target)?.name ?? ''

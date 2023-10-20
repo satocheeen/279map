@@ -16,7 +16,7 @@ import { useMap } from '../useMap';
 import { currentMapKindAtom } from '../../../store/session';
 import { useAtom } from 'jotai';
 import { convertDataIdFromFeatureId } from '../../../util/dataUtility';
-import { useItem } from '../../../store/item/useItems';
+import { useItems } from '../../../store/item/useItems';
 import { topographySelectStyleFunction } from './utility';
 
 type Props = {
@@ -129,7 +129,7 @@ export default function SelectFeature(props: Props) {
         return message + (errorMessage ? '\n' + errorMessage : '');
     }, [props.message, props.targetType, mapKind, errorMessage]);
 
-    const { getItem } = useItem();
+    const { getItem } = useItems();
 
     const onOkClicked = useCallback(async() => {
         setErrorMessage(undefined);

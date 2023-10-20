@@ -18,7 +18,7 @@ import { initialLoadingAtom } from '../TsunaguMap/MapController';
 import { geoJsonToTurfPolygon } from '../../util/MapUtility';
 import { bboxPolygon, intersect, union, booleanContains } from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
-import { useItem } from '../../store/item/useItems';
+import { useItems } from '../../store/item/useItems';
 
 /**
  * 地図インスタンス管理マップ。
@@ -278,7 +278,7 @@ export function useMap() {
         }, [loadItems, map, mapInstanceId, showProcessMessage, hideProcessMessage])
     )
 
-    const { getItem} = useItem();
+    const { getItem} = useItems();
 
     /**
      * 必要に応じて、指定のアイテムを更新する

@@ -10,7 +10,7 @@ import { useMap } from "../map/useMap";
 import { doCommand } from "../../util/Commander";
 import { mapModeAtom, selectedItemIdAtom } from "../../store/operation";
 import { filteredContentIdListAtom, filteredItemIdListAtom } from "../../store/filter";
-import { useItem } from "../../store/item/useItems";
+import { useItems } from "../../store/item/useItems";
 import { useAtom } from "jotai";
 
 type Props = {
@@ -39,9 +39,9 @@ export default function PointsPopup(props: Props) {
     const { map } = useMap();
     const [ filteredItemIdList ] = useAtom(filteredItemIdListAtom);
     const [ filteredContentIdList ] = useAtom(filteredContentIdListAtom);
-    const { getDescendantContentsIdList } = useItem();
+    const { getDescendantContentsIdList } = useItems();
     const [ targetItems, setTargetItems ] = useState<ItemDefine[]>([]);
-    const { getItem } = useItem();
+    const { getItem } = useItems();
 
     const getTarget = useCallback(async(itemIds: DataId[]): Promise<ItemDefine[]> => {
         const items = await Promise.all(itemIds.map(itemId => {

@@ -10,7 +10,7 @@ import { useMap } from '../map/useMap';
 import { addListener, removeListener } from '../../util/Commander';
 import { mapModeAtom, mapViewAtom, selectedItemIdAtom } from '../../store/operation';
 import { filteredItemIdListAtom } from '../../store/filter';
-import { useItem } from '../../store/item/useItems';
+import { useItems } from '../../store/item/useItems';
 import { useAtom } from 'jotai';
 
 /**
@@ -63,7 +63,7 @@ export default function ClusterMenuController(props: Props) {
         }
     }, [selectedItemId]);
 
-    const { getItem } = useItem();
+    const { getItem } = useItems();
     /**
      * get the selectable features.
      * クリック位置付近に存在する選択可能な地物を返す

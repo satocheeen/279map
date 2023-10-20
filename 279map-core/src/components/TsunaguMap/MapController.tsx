@@ -4,7 +4,7 @@ import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useSubscribe } from '../../api/useSubscribe';
 import { currentMapDefineAtom, currentMapKindAtom } from '../../store/session';
 import { atom, useAtom } from 'jotai';
-import { useItem } from '../../store/item/useItems';
+import { useItems } from '../../store/item/useItems';
 import { itemDataSourcesAtom } from '../../store/datasource';
 import { mapInstanceIdAtom, useMap } from '../map/useMap';
 import { dialogTargetAtom, selectedItemIdAtom } from '../../store/operation';
@@ -48,7 +48,7 @@ function useMapInitializer() {
     // 地図種別が変更されたら、地図に対してsubscribe, unsubscribeする
     const [ currentMapKind ] = useAtom(currentMapKindAtom);
     const { getSubscriber } = useSubscribe();
-    const { removeItems } = useItem();
+    const { removeItems } = useItems();
     const { updateItems } = useMap();
     const [ mapInstanceId ] = useAtom(mapInstanceIdAtom);
 

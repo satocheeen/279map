@@ -6,9 +6,8 @@ import PromptMessageBox from '../PromptMessageBox';
 import SelectFeature from '../SelectFeature';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
-import { useMap } from '../../useMap';
 import { UpdateItemAPI } from 'tsunagumap-api';
-import { useItem } from '../../../../store/item/useItems';
+import { useItems } from '../../../../store/item/useItems';
 import { useApi } from '../../../../api/useApi';
 
 type Props = {
@@ -23,7 +22,7 @@ export default function EditTopographyInfoController(props: Props) {
     const selectedFeatureId = useRef<string>();
     const [name, setName] = useState('');
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
-    const { getItem } = useItem();
+    const { getItem } = useItems();
 
     const onSelectFeature = useCallback(async(feature: FeatureLike) => {
         const id = feature.getId() as string;

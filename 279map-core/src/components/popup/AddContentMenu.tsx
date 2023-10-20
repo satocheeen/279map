@@ -10,7 +10,7 @@ import { GetContentsAPI, GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemA
 import { Button } from '../common';
 import { compareAuth } from '../../util/CommonUtility';
 import { authLvAtom, currentMapKindAtom } from '../../store/session';
-import { useItem } from '../../store/item/useItems';
+import { useItems } from '../../store/item/useItems';
 import { dataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
 import { useApi } from '../../api/useApi';
@@ -37,7 +37,7 @@ export default function AddContentMenu(props: Props) {
     const [ mapKind ] = useAtom(currentMapKindAtom);
     const [ dataSources ] = useAtom(dataSourcesAtom);
     const [ authLv ] = useAtom(authLvAtom);
-    const { getItem } = useItem();
+    const { getItem } = useItems();
     const item = useMemo(() => {
         if ('itemId' in props.target) {
             return getItem(props.target.itemId);
