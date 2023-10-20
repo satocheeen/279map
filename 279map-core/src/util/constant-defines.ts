@@ -34,5 +34,8 @@ export const MapStyles = {
             alpha: 0.3,
         },
         zIndex: 1,
+    },
+    Item: {
+        maxLabelLength: 10,     // 地図上に表示するラベル最大長
     }
 }

@@ -15,6 +15,7 @@ import useIcon from "../../store/icon/useIcon";
 import { filteredItemIdListAtom } from "../../store/filter";
 import { dataSourcesAtom } from "../../store/datasource";
 import { useAtom } from 'jotai';
+import { MapStyles } from "../../util/constant-defines";
 
 // 建物ラベルを表示するresolution境界値（これ以下の値の時に表示）
 const StructureLabelResolution = 0.003;
@@ -253,9 +254,9 @@ export default function usePointStyle() {
  */
 function createItemNameLabel(feature: FeatureLike): Text {
     // ラベル設定
-    let name = feature.getProperties().name;
-    if (name === undefined) {
-        name = '';
+    let name = (feature.getProperties().name ?? '') as string;
+    if (name.length > MapStyles.Item.maxLabelLength) {
+        name = name.substring(0, MapStyles.Item.maxLabelLength) + '…';
     }
 
     const text = new Text({
