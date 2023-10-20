@@ -108,8 +108,14 @@ export class OlMapWrapper {
         // change Cluster Distance Setting
         const resolution = this._map.getView().getResolution();
         if (!resolution) return;
-        const structureScale = MapUtility.getStructureScale(resolution);
-        this._vectorLayerMap.setClusterDistance(80 * structureScale, 20 * structureScale);
+        const isMax = this._map.getView().getZoom() === this._map.getView().getMaxZoom();
+        if (isMax) {
+            // 最大Zoom時は、まとめない
+            this._vectorLayerMap.setClusterDistance(0, 0);
+        } else {
+            const structureScale = MapUtility.getStructureScale(resolution);
+            this._vectorLayerMap.setClusterDistance(80 * structureScale, 20 * structureScale);
+        }
     }
 
     /**
