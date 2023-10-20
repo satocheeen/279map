@@ -125,7 +125,6 @@ function useItemUpdater() {
 
         fitToDefaultExtent(false);
         setInitializedMapKind(currentMapKind);
-        setSelectedItemIds(null);
         prevGeoJsonItemsRef.current = [];
         setLoadedItemMap({});
         setInitialLoading(true);
@@ -224,20 +223,11 @@ function useLayerVisibleChanger() {
  * アイテム選択を検知して、詳細ダイアログ表示
  */
 function ItemSelectListener() {
-    const [ selectedItemId ] = useAtom(showingDetailItemIdAtom);
-    const prevSelectedItemIds = usePrevious(selectedItemId);
     const { disabledContentDialog } = useContext(OwnerContext);
     const [ dialogTarget, setDialogTarget ] = useAtom(dialogTargetAtom);
 
     if (disabledContentDialog) {
         return null;
-    }
-    if (!dialogTarget && selectedItemId && JSON.stringify(selectedItemId) !== JSON.stringify(prevSelectedItemIds)) {
-        // １アイテムを選択した場合にダイアログ表示する
-        setDialogTarget({
-            type: 'item',
-            id: selectedItemId,
-        });
     }
 
     if (!dialogTarget) {

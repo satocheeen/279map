@@ -390,7 +390,6 @@ export function useMap() {
                 zoom: param.zoom,
             });
     
-            set(showingDetailItemIdAtom, param.itemId);
         }, [map])
     )
  

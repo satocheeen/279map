@@ -8,10 +8,11 @@ import { BsThreeDots } from 'react-icons/bs';
 import { useMapOptions } from "../../util/useMapOptions";
 import { useMap } from "../map/useMap";
 import { doCommand } from "../../util/Commander";
-import { mapModeAtom, showingDetailItemIdAtom } from "../../store/operation";
+import { dialogTargetAtom, mapModeAtom } from "../../store/operation";
 import { filteredContentIdListAtom, filteredItemIdListAtom } from "../../store/filter";
 import { useItems } from "../../store/item/useItems";
 import { useAtom } from "jotai";
+import { useAtomCallback } from 'jotai/utils';
 
 type Props = {
     // このポップアップにて情報表示する対象アイテム
@@ -126,25 +127,29 @@ export default function PointsPopup(props: Props) {
         }, 0);
     }, [props.itemIds, getDescendantContentsIdList]);
 
-    const [, setSelectedItemId] = useAtom(showingDetailItemIdAtom);
-    const onClick = useCallback((evt: React.MouseEvent) => {
-        if (props.itemIds.length === 1) {
-            setSelectedItemId(props.itemIds[0]);
-            return;
-        }
-        // 対象が２つ以上ある場合は、重畳選択メニューを表示
-        const rect = map?.container.getBoundingClientRect();
-        const coordinate = map?.getCoordinateFromPixel([evt.clientX - (rect?.x ?? 0), evt.clientY - (rect?.y ?? 0)]);
-        if (coordinate) {
-            doCommand({
-                command: 'ShowClusterMenu',
-                param: {
-                    position: coordinate,
-                    targets: props.itemIds,
-                }
-            });
-        }
-    }, [setSelectedItemId, props.itemIds, map]);
+    const onClick = useAtomCallback(
+        useCallback((get, set, evt: React.MouseEvent) => {
+            if (props.itemIds.length === 1) {
+                set(dialogTargetAtom, {
+                        type: 'item',
+                        id: props.itemIds[0],
+                    });
+                return;
+            }
+            // 対象が２つ以上ある場合は、重畳選択メニューを表示
+            const rect = map?.container.getBoundingClientRect();
+            const coordinate = map?.getCoordinateFromPixel([evt.clientX - (rect?.x ?? 0), evt.clientY - (rect?.y ?? 0)]);
+            if (coordinate) {
+                doCommand({
+                    command: 'ShowClusterMenu',
+                    param: {
+                        position: coordinate,
+                        targets: props.itemIds,
+                    }
+                });
+            }
+        }, [props.itemIds, map])
+    );
 
     const [mapMode] = useAtom(mapModeAtom);
 

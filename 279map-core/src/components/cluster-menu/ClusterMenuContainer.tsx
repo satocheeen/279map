@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { mapModeAtom, showingDetailItemIdAtom } from '../../store/operation';
+import { dialogTargetAtom, mapModeAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
 import { MapMode } from '../../types/types';
 import { DataId, FeatureType } from '279map-common';
@@ -14,9 +14,12 @@ export default function ClusterMenuContainer() {
     const onSelectItem = useAtomCallback(
         useCallback((get, set, feature: DataId | undefined) => {
             if (!feature) {
-                set(showingDetailItemIdAtom, null);
+                set(dialogTargetAtom, undefined);
             } else {
-                set(showingDetailItemIdAtom, feature);
+                set(dialogTargetAtom, {
+                    type: 'item',
+                    id: feature
+                });
             }
         }, [])
     );
