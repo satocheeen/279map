@@ -1030,13 +1030,8 @@ app.post(`/api/${RegistContentAPI.uri}`,
                     logger.warn('not found extent', id);
                 } else {
                     broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                        type: 'mapitem-update',
-                        targets: [
-                            {
-                                id,
-                                wkt,
-                            }
-                        ]
+                        type: 'childcontents-update',
+                        subtype: id,
                     });
                 }
             }
@@ -1161,13 +1156,8 @@ app.post(`/api/${LinkContentToItemAPI.uri}`,
                     logger.warn('not found extent', id);
                 } else {
                     broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                        type: 'mapitem-update',
-                        targets: [
-                            {
-                                id,
-                                wkt,
-                            }
-                        ]
+                        type: 'childcontents-update',
+                        subtype: id,
                     });
                 }
             }
@@ -1208,13 +1198,8 @@ app.post(`/api/${RemoveContentAPI.uri}`,
                 logger.warn('not found extent', id);
             } else {
                 broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                    type: 'mapitem-update',
-                    targets: [
-                        {
-                            id,
-                            wkt,
-                        }
-                    ]
+                    type: 'childcontents-update',
+                    subtype: id,
                 });
             }
 
