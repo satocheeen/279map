@@ -9,7 +9,7 @@ export const MapStyles = {
         zIndex: 1,
     },
     Forest: {
-        color: '#B6EB7A',
+        color: '#91CDA4',
         selectedColor: {
             stroke: '#509B50',
             fill: '#969B8A',
