@@ -94,16 +94,12 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
 
                 itemId = target.itemId;
                 const sql = `
-                select * from contents c 
+                select c.*, ds.* from contents c 
                 inner join data_source ds on ds.data_source_id = c.data_source_id
-                where exists (
-                    select icl.* from item_content_link icl 
-                    inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id 
-                    where i.item_page_id = ? and i.data_source_id = ? and i.map_kind = ?
-                    and icl.content_page_id = c.content_page_id and icl.content_datasource_id  = c.data_source_id 
-                )
+                inner join item_content_link icl on c.content_page_id = icl.content_page_id and c.data_source_id = icl.content_datasource_id 
+                where icl.item_page_id = ? and icl.item_datasource_id  = ?
                 `;
-                const [rows] = await con.execute(sql, [target.itemId.id, target.itemId.dataSourceId, mapKind]);
+                const [rows] = await con.execute(sql, [target.itemId.id, target.itemId.dataSourceId]);
                 myRows = rows as ContentsDatasourceRecord[];
 
             } else {
