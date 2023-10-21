@@ -1,9 +1,18 @@
 .ItemHeader {
     width: 100%;
+    display: flex;
 
-    text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
+
+    .Title {
+        text-overflow: ellipsis;
+        white-space: nowrap;        
+        overflow: hidden;
+    }
+    .SubMenu {
+
+    }
 }
 .NoContentParagraph {
     text-align: center;

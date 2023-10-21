@@ -205,15 +205,19 @@ export default function ContentsModal(props: Props) {
                 >
                 <Modal.Header>
                     <div className={styles.ItemHeader}>
-                        {title}
-                        {(props.type === 'item' && contents.length > 0) &&
-                        <AddContentMenu target={{itemId: props.id}} />
-                        }
-                        {isShowItemNameEditBtn &&
-                            <PopupMenuIcon tooltip={itemNameEditTipLabel} onClick={onEditItemName}>
-                                <MdEdit />
-                            </PopupMenuIcon>
-                        }
+                        <div className={styles.Title}>
+                            {title}
+                        </div>
+                        <div className={styles.SubMenu}>
+                            {(props.type === 'item' && contents.length > 0) &&
+                                <AddContentMenu target={{itemId: props.id}} />
+                            }
+                            {isShowItemNameEditBtn &&
+                                <PopupMenuIcon tooltip={itemNameEditTipLabel} onClick={onEditItemName}>
+                                    <MdEdit />
+                                </PopupMenuIcon>
+                            }
+                        </div>
                     </div>
                 </Modal.Header>
                 <Modal.Body>
