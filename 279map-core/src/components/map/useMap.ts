@@ -326,6 +326,9 @@ export function useMap() {
             set(allItemsAtom, (currentItemMap) => {
                 const newItemsMap = structuredClone(currentItemMap);
                 items.forEach(item => {
+                    if (!newItemsMap[item.id.dataSourceId]) {
+                        newItemsMap[item.id.dataSourceId] = {};
+                    }
                     newItemsMap[item.id.dataSourceId][item.id.id] = item;
                 });
                 return newItemsMap;
