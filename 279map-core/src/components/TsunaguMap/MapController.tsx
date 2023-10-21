@@ -107,6 +107,7 @@ function useItemUpdater() {
     const [ , setInitialLoading ] = useAtom(initialLoadingAtom);
     const [ , setSelectedItemIds ] = useAtom(showingDetailItemIdAtom);
     const [ currentMapDefine ] = useAtom(currentMapDefineAtom);
+    const [ , setDialogTarget ] = useAtom(dialogTargetAtom);
 
     /**
      * 地図が切り替わったら、レイヤ再配置
@@ -123,6 +124,7 @@ function useItemUpdater() {
         // 初期レイヤ生成
         map.initialize(currentMapKind, itemDataSources, currentMapDefine?.extent);
 
+        setDialogTarget(undefined);
         fitToDefaultExtent(false);
         setInitializedMapKind(currentMapKind);
         prevGeoJsonItemsRef.current = [];

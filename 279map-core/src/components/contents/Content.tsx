@@ -25,6 +25,8 @@ import { categoriesAtom } from "../../store/category";
 import { ConfirmBtnPattern, ConfirmResult } from "../common/confirm/types";
 import { useMapController } from "../../store/useMapController";
 import { useApi } from "../../api/useApi";
+import { useAtomCallback } from "jotai/utils";
+import { dialogTargetAtom } from "../../store/operation";
 
 type Props = {
     itemId: DataId;
@@ -141,20 +143,26 @@ export default function Content(props: Props) {
     }, [mapKind]);
 
     const { changeMapKind } = useMapController();
-    const onGoToAnotherMap = useCallback(async() => {
-        if (!props.content.anotherMapItemId) {
-            console.warn('別地図にアイテムなし');
-            return;
-        }
-        const anotherMap = mapKind === MapKind.Real ? MapKind.Virtual : MapKind.Real;
-
-        await changeMapKind(anotherMap);
-        focusItem(
-            {
-                itemId: props.content.anotherMapItemId,
+    const onGoToAnotherMap = useAtomCallback(
+        useCallback(async(get, set) => {
+            if (!props.content.anotherMapItemId) {
+                console.warn('別地図にアイテムなし');
+                return;
             }
-        );
-    }, [mapKind, props.content.anotherMapItemId, changeMapKind, focusItem]);
+            const anotherMap = mapKind === MapKind.Real ? MapKind.Virtual : MapKind.Real;
+
+            await changeMapKind(anotherMap);
+            focusItem(
+                {
+                    itemId: props.content.anotherMapItemId,
+                }
+            );
+            set(dialogTargetAtom, {
+                type: 'item',
+                id: props.content.anotherMapItemId,
+            })
+        }, [mapKind, props.content.anotherMapItemId, changeMapKind, focusItem])
+    );
 
     /**
      * イメージロード
