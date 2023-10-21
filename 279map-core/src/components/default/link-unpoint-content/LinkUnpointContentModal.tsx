@@ -98,9 +98,13 @@ export default function LinkUnpointContentModal(props: Props) {
                             <>
                                 <ul>
                                     {unpointContents.map((uc) => {
+                                        let imageUrl = uc.thumb;
+                                        if (imageUrl && imageUrl.includes(';base64/')) {
+                                            imageUrl = 'data:' + imageUrl;
+                                        }
                                         return (
                                             <li key={getMapKey(uc.id)}>
-                                                <Card title={uc.title} imageUrl={uc.thumb ? 'data:' + uc.thumb : undefined} 
+                                                <Card title={uc.title} imageUrl={imageUrl} 
                                                     overview={uc.overview} onClick={()=>onSelect(uc.id)} />
                                             </li>
                                         ) 

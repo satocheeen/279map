@@ -131,7 +131,7 @@ function useItemUpdater() {
         setLoadedItemMap({});
         setInitialLoading(true);
 
-    }, [map, setItemMap, setSelectedItemIds, currentMapDefine, currentMapKind, initializedMapKind, itemDataSources, fitToDefaultExtent, setLoadedItemMap, setInitialLoading]);
+    }, [map, setDialogTarget, setItemMap, setSelectedItemIds, currentMapDefine, currentMapKind, initializedMapKind, itemDataSources, fitToDefaultExtent, setLoadedItemMap, setInitialLoading]);
 
     /**
      * アイテムFeatureを地図に反映する
