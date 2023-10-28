@@ -12,7 +12,7 @@ import MapController from './MapController';
 import MapChart from './MapChart';
 import PopupContainer from '../popup/PopupContainer';
 import LandNameOverlay from '../map/LandNameOverlay';
-import DrawController from '../map/DrawController';
+import DrawController, { DrawControllerHandler } from '../map/DrawController';
 import ClusterMenuContainer from '../cluster-menu/ClusterMenuContainer';
 import { instanceIdAtom, mapIdAtom, serverInfoAtom } from '../../store/session';
 import ContentsSettingController from '../admin/contents-setting/ContentsSettingController';
@@ -100,10 +100,12 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
     }, [props]);
 
     const controlRef = useRef<TsunaguMapHandler>(null);
+    const drawControllerRef = useRef<DrawControllerHandler>(null);
     const contentsSettingControlerRef = useRef<Pick<TsunaguMapHandler, 'showContentsSetting'>>(null);
     const userListControlerRef = useRef<Pick<TsunaguMapHandler, 'showUserList'>>(null);
     useImperativeHandle(ref, () => {
         return Object.assign({}, 
+            drawControllerRef.current,
             controlRef.current,
             contentsSettingControlerRef.current,
             userListControlerRef.current);
@@ -115,15 +117,16 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
                 <Provider store={myStoreRef.current}>
                     <MapConnector server={props.mapServer}>
                         <ValueConnectorWithOwner ref={controlRef} />
-                        <ContentsSettingController ref={contentsSettingControlerRef} />
-                        <UserListController ref={userListControlerRef} />
                         <TooltipContext.Provider value={tooltipContextValue}>
                             <MapController />
                             <MapChart />
                             <PopupContainer />
                             <LandNameOverlay />
-                            <DrawController />
                             <ClusterMenuContainer />
+
+                            <DrawController ref={drawControllerRef} />
+                            <ContentsSettingController ref={contentsSettingControlerRef} />
+                            <UserListController ref={userListControlerRef} />
 
                             <Suspense>
                                 <ConfirmDialog />

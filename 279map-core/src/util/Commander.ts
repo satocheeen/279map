@@ -16,26 +16,8 @@ type TCommandDefine<COMMAND extends string, PARAM> = {
     }
 }
 type CommandDefine = 
-    // 建設or地点登録 引数: 対象のDataSourceId
-    TCommandDefine<'DrawStructure', string>
-    // 移築
-    | TCommandDefine<'MoveStructure', undefined>
-    // 改築
-    | TCommandDefine<'ChangeStructure', undefined>
     // 名称変更
     | TCommandDefine<'RenameStructure', undefined>
-    // 解体（建物）
-    | TCommandDefine<'RemoveStructure', undefined>
-    // 島作成、緑地化、エリア登録
-    | TCommandDefine<'DrawTopography', { dataSourceId: string; featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA }>
-    // 道作成 引数: 対象のDataSourceId
-    | TCommandDefine<'DrawRoad', string>
-    // 変更
-    | TCommandDefine<'EditTopography', undefined>
-    // 土木情報編集
-    | TCommandDefine<'EditTopographyInfo', undefined>
-    // 解体
-    | TCommandDefine<'RemoveTopography', undefined>
     // アイテム情報表示 引数: itemId. 
     | TCommandDefine<'ShowItemInfo', DataId>
     // 重畳選択メニュー表示

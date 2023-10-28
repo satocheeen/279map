@@ -27,7 +27,8 @@ import { useApi } from '../../api/useApi';
  * - Jotaiの各値の変更検知して呼び出し元に返す
  * - ref経由での操作を実行
  */
-function ValueConnectorWithOwner(props: {}, ref: React.ForwardedRef<Omit<TsunaguMapHandler,'showContentsSetting'|'showUserList'>>) {
+type MyHandler = Pick<TsunaguMapHandler, 'switchMapKind' | 'focusItem' | 'loadContentsAPI'>
+function ValueConnectorWithOwner(props: {}, ref: React.ForwardedRef<MyHandler>) {
     const { changeMapKind } = useMapController();
     const { focusItem } = useMap();
     const { callApi } = useApi();
@@ -48,63 +49,6 @@ function ValueConnectorWithOwner(props: {}, ref: React.ForwardedRef<Omit<Tsunagu
                 itemId,
                 zoom: opts?.zoom,
             })
-        },
-        drawStructure(dataSourceId: string) {
-            doCommand({
-                command: 'DrawStructure',
-                param: dataSourceId,
-            });
-        },
-        moveStructure() {
-            doCommand({
-                command: 'MoveStructure',
-                param: undefined,
-            });
-        },
-        changeStructure() {
-            doCommand({
-                command: 'ChangeStructure',
-                param: undefined,
-            });
-        },
-        removeStructure() {
-            doCommand({
-                command: 'RemoveStructure',
-                param: undefined,
-            });
-        },
-        drawTopography(dataSourceId: string, featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA) {
-            doCommand({
-                command: 'DrawTopography',
-                param: {
-                    dataSourceId, 
-                    featureType,
-                }
-            });
-        },
-        drawRoad(dataSourceId: string) {
-            doCommand({
-                command: 'DrawRoad',
-                param: dataSourceId,
-            });
-        },
-        editTopography() {
-            doCommand({
-                command:'EditTopography',
-                param: undefined,
-            });
-        },
-        removeTopography() {
-            doCommand({
-                command:'RemoveTopography',
-                param: undefined,
-            });
-        },
-        editTopographyInfo() {
-            doCommand({
-                command:'EditTopographyInfo',
-                param: undefined,
-            });
         },
         async loadContentsAPI(param: GetContentsParam): Promise<ContentsDefine[]> {
             try {
