@@ -21,13 +21,13 @@ import useDataSource from '../../store/datasource/useDataSource';
 import { useApi } from '../../api/useApi';
 
 /**
- * OwnerContextとJotaiを繋ぐコンポーネントもどき
- * - OwnerContextで設定された値のうち、必要なものをJotaiに設定する
+ * 呼び出し元とイベント連携するためのコンポーネントもどき。
+ * 地図コンポーネントの再レンダリングを最小に抑えるため、地図コンポーネントとは兄弟関係に配置している。
  * - Jotaiの各値の変更検知して呼び出し元に返す
  * - ref経由での操作を実行
  */
 type MyHandler = Pick<TsunaguMapHandler, 'switchMapKind' | 'focusItem' | 'loadContentsAPI'>
-function ValueConnectorWithOwner(props: {}, ref: React.ForwardedRef<MyHandler>) {
+function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<MyHandler>) {
     const { changeMapKind } = useMapController();
     const { focusItem } = useMap();
     const { callApi } = useApi();
@@ -116,40 +116,19 @@ function ValueConnectorWithOwner(props: {}, ref: React.ForwardedRef<MyHandler>) 
                                                         
     }));
 
-    return (
-        <>
-            <Suspense>
-                <FilterListner />
-            </Suspense>
-            <ConnectListener />
-            <MapLoadListener />
-            <DataSourceChangeListener />
-            <CategoryLoadListener />
-            <EventLoadListener />
-            <MapModeChangeListener />
-            <SelectChangeLister />
-            <JotaiSetter/>
-        </>
-    )
-}
-
-/**
- * OwnerContextで設定された値のうち、必要なものをJotaiに設定する
- */
-function JotaiSetter() {
-    const { iconDefine } = useContext(OwnerContext);
-    const [ _, setDefaultIconDefine ] = useAtom(defaultIconDefineAtom);
-
-    useEffect(() => {
-        if (iconDefine)
-            setDefaultIconDefine(iconDefine);
-
-    }, [iconDefine, setDefaultIconDefine]);
+    useFilterListner();
+    useConnectListener();
+    useMapLoadListener();
+    useDataSourceChangeListener();
+    useCategoryLoadListener();
+    useEventLoadListener();
+    useMapModeChangeListener();
+    useSelectChangeLister();
 
     return null;
 }
 
-function FilterListner() {
+function useFilterListner() {
     const { filter } = useContext(OwnerContext);
 
     // 検索
@@ -178,15 +157,12 @@ function FilterListner() {
         });
 
     }, [filter])
-
-    
-    return null;
 }
 
 /**
  * connect時に呼び出し元にイベント発火する
  */
-function ConnectListener() {
+function useConnectListener() {
     const { onConnect } = useContext(OwnerContext);
     const [ connectLoadable ] = useAtom(connectStatusLoadableAtom);
     const connectedRef = useRef(false);
@@ -203,13 +179,12 @@ function ConnectListener() {
         }
     });
 
-    return null;
 }
 
 /**
  * 地図ロード時に呼び出し元にイベント発火する
  */
-function MapLoadListener() {
+function useMapLoadListener() {
     const { onMapLoad } = useContext(OwnerContext);
     const [ mapDefineLoadable ] = useAtom(mapDefineLoadableAtom);
     const latestMapKindRef = useRef<MapKind>();
@@ -233,15 +208,13 @@ function MapLoadListener() {
             resetItems();
         }
     });
-
-    return null;    
 }
 
 /**
  * Datasource定義、表示状態が変化した場合に呼び出し元にイベント発火する
  * @returns 
  */
-function DataSourceChangeListener() {
+function useDataSourceChangeListener() {
     const ownerContext = useContext(OwnerContext);
     const [ itemDataSources ] = useAtom(itemDataSourcesAtom);
     const latestDataSourceGroupsRef = useRef<DataSourceGroup[]>();
@@ -258,14 +231,12 @@ function DataSourceChangeListener() {
             }
         }
      })
-
-    return null;
 }
 
 /**
  * カテゴリロード時に呼び出し元にイベント発火する
  */
-function CategoryLoadListener() {
+function useCategoryLoadListener() {
     const { onCategoriesLoaded}  = useContext(OwnerContext);
     const [ categoriesLoadable ] = useAtom(categoriesLoadableAtom);
     const latestCategories = useRef<CategoryDefine[]>();
@@ -281,14 +252,12 @@ function CategoryLoadListener() {
             latestCategories.current = categoriesLoadable.data;
         }
     });
-
-    return null;
 }
 
 /**
  * イベントロード時に呼び出し元にイベント発火する
  */
-function EventLoadListener() {
+function useEventLoadListener() {
     const { onEventsLoaded }  = useContext(OwnerContext);
     const latestEvents = useRef<EventDefine[]>();
     const [ eventLoadable ] = useAtom(eventsLoadableAtom);
@@ -306,14 +275,13 @@ function EventLoadListener() {
         }
     });
 
-    return null;
 }
 
 /**
  * 地図モードが変化した場合に呼び出し元にイベント発火する
  * @returns 
  */
-function MapModeChangeListener() {
+function useMapModeChangeListener() {
     const { onModeChanged}  = useContext(OwnerContext);
     const [mapMode] = useAtom(mapModeAtom);
     const latestMapModeRef = useRef<MapMode>();
@@ -328,14 +296,13 @@ function MapModeChangeListener() {
         }
     })
 
-    return null;
 }
 
 /**
  * 選択アイテムが変化した場合に呼び出し元にイベント発火する
  * @returns 
  */
-function SelectChangeLister() {
+function useSelectChangeLister() {
     const { onSelect}  = useContext(OwnerContext);
     const [selectedItemId] = useAtom(showingDetailItemIdAtom);
     const latestItemIdsRef = useRef<DataId|null>(null);
@@ -351,6 +318,5 @@ function SelectChangeLister() {
         }
     });
 
-    return null;
 }
-export default React.forwardRef(ValueConnectorWithOwner);
+export default React.forwardRef(EventConnectorWithOwner);

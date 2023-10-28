@@ -4,7 +4,7 @@ import './TsunaguMap.scss';
 import ConfirmDialog from '../common/confirm/ConfirmDialog';
 import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
 import { AddNewContentParam, EditContentParam, LinkUnpointContentParam, TsunaguMapHandler, TsunaguMapProps } from '../../types/types';
-import ValueConnectorWithOwner from './ValueConnectorWithOwner';
+import EventConnectorWithOwner from './EventConnectorWithOwner';
 import MapConnector from './MapConnector';
 import ProcessOverlay from './ProcessOverlay';
 import { Provider, createStore } from 'jotai';
@@ -17,6 +17,7 @@ import ClusterMenuContainer from '../cluster-menu/ClusterMenuContainer';
 import { instanceIdAtom, mapIdAtom, serverInfoAtom } from '../../store/session';
 import ContentsSettingController from '../admin/contents-setting/ContentsSettingController';
 import UserListController from '../admin/user-list/UserListController';
+import { defaultIconDefineAtom } from '../../store/icon';
 
 const DefaultComponents = lazy(() => import('../default/DefaultComponents'));
 
@@ -24,7 +25,6 @@ type SomeRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 type OwnerContextType = Omit<SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'>, 'mapServer' | 'mapId'>;
 
 export const OwnerContext = React.createContext<OwnerContextType>({
-    iconDefine: [],
     onAddNewContent: () => {},
     onEditContent: () => {},
     onLinkUnpointedContent: () => {},
@@ -62,6 +62,9 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
         myStoreRef.current.set(instanceIdAtom);
         myStoreRef.current.set(mapIdAtom, props.mapId);
         myStoreRef.current.set(serverInfoAtom, props.mapServer);
+        if (props.iconDefine) {
+            myStoreRef.current.set(defaultIconDefineAtom, props.iconDefine);
+        }
     }
 
     useEffect(() => {
@@ -116,7 +119,7 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
             <OwnerContext.Provider value={ownerContextValue}>
                 <Provider store={myStoreRef.current}>
                     <MapConnector server={props.mapServer}>
-                        <ValueConnectorWithOwner ref={controlRef} />
+                        <EventConnectorWithOwner ref={controlRef} />
                         <TooltipContext.Provider value={tooltipContextValue}>
                             <MapController />
                             <MapChart />
@@ -124,13 +127,14 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
                             <LandNameOverlay />
                             <ClusterMenuContainer />
 
+                            {/* 外部からの操作指示を受けて特定の動作をするコントローラー群 */}
                             <DrawController ref={drawControllerRef} />
                             <ContentsSettingController ref={contentsSettingControlerRef} />
                             <UserListController ref={userListControlerRef} />
 
-                            <Suspense>
-                                <ConfirmDialog />
+                            <ConfirmDialog />
 
+                            <Suspense>
                                 {defaultLinkUnpointedContentParam &&
                                     <DefaultComponents linkUnpointedContentParam={defaultLinkUnpointedContentParam} onClose={()=>{setDefaultLinkUnpointedContentParam(undefined)}} />
                                 }

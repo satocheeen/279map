@@ -99,8 +99,8 @@ export default function TestMap() {
     }, []);
 
     // callbacks
-    const onSelect = useCallback((ids: DataId[]) => {
-        console.log('onSelect', ids, cnt);
+    const onSelect = useCallback((id: DataId) => {
+        console.log('onSelect', id, cnt);
         setCnt(cnt + 1);
     }, [cnt]);
 
