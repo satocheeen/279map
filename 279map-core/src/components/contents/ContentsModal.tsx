@@ -16,6 +16,7 @@ import PopupMenuIcon from '../popup/PopupMenuIcon';
 import { MdEdit } from 'react-icons/md';
 import { dataSourcesAtom } from '../../store/datasource';
 import { allItemsAtom } from '../../store/item';
+import { useMap } from '../map/useMap';
 
 export type Props = ({
     type: 'item' | 'content';
@@ -73,6 +74,7 @@ export default function ContentsModal(props: Props) {
 
     // 表示対象が指定されたらコンテンツロード
     const [ mapKind ] = useAtom(currentMapKindAtom);
+    const { updateItems } = useMap();
     useEffect(() => {
         const subscriber = getSubscriber();
         let h: number | undefined;
@@ -85,7 +87,15 @@ export default function ContentsModal(props: Props) {
             .finally(() => {
                 setLoaded(true);
             });
-            h = subscriber?.subscribeMap({mapKind}, 'childcontents-update', props.id, () => loadContentsInItem());
+            h = subscriber?.subscribeMap({mapKind}, 'childcontents-update', props.id, async() => {
+                // アイテム情報再取得
+                await updateItems([{
+                    id: props.id
+                }]);
+
+                // コンテンツロード
+                loadContentsInItem()
+            });
 
             setItemId(props.id);
 
@@ -120,7 +130,7 @@ export default function ContentsModal(props: Props) {
             }
         }
 
-    }, [props.id, props.type, mapKind, callApi, getSubscriber, loadContentsInItem]);
+    }, [props.id, props.type, mapKind, callApi, getSubscriber, loadContentsInItem, updateItems]);
 
     const contents = useMemo((): ContentsDefine[] => {
         return contentsList.sort((a, b) => {

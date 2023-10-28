@@ -284,7 +284,7 @@ export function useMap() {
      * 必要に応じて、指定のアイテムを更新する
      */
     const updateItems = useAtomCallback(
-        useCallback(async(get, set, targets: {id: DataId; wkt: string}[]) => {
+        useCallback(async(get, set, targets: {id: DataId; wkt?: string}[]) => {
             const loadedItemMap = get(loadedItemMapAtom);
             // 取得する必要のあるものに絞る
             const updateTargets = targets.filter(target => {
@@ -304,6 +304,8 @@ export function useMap() {
                     return false;
                 }
 
+                if (!target.wkt) return true;
+                
                 const geoJson = wktToGeoJSON(target.wkt);
                 const polygon = geoJsonToTurfPolygon(geoJson);
                 if (!polygon) {
