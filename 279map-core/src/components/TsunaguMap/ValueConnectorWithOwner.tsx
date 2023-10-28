@@ -20,6 +20,7 @@ import { useMapController } from '../../store/useMapController';
 import { doCommand } from '../../util/Commander';
 import useDataSource from '../../store/datasource/useDataSource';
 import { useApi } from '../../api/useApi';
+import useContentsSetting from '../admin/contents-setting/useContentsSetting';
 
 /**
  * OwnerContextとJotaiを繋ぐコンポーネントもどき
@@ -46,6 +47,8 @@ function ValueConnectorWithOwner(props: {}, ref: React.ForwardedRef<TsunaguMapHa
             });
         }, [])
     );
+
+    const { showContentsSetting } = useContentsSetting();
 
     const showDetailDialog = useAtomCallback(
         useCallback((get, set, param: {type: 'item' | 'content'; id: DataId}) => {
@@ -122,6 +125,9 @@ function ValueConnectorWithOwner(props: {}, ref: React.ForwardedRef<TsunaguMapHa
         },
         showUserList() {
             showUserList();
+        },
+        showContentsSetting() {
+            showContentsSetting();
         },
         async loadContentsAPI(param: GetContentsParam): Promise<ContentsDefine[]> {
             try {

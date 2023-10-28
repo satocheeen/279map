@@ -1,10 +1,9 @@
-import React, { Suspense, useImperativeHandle, useState, useMemo, useRef, useEffect, useId } from 'react';
+import React, { Suspense, useImperativeHandle, useState, useMemo, useRef, useEffect, lazy } from 'react';
 import styles from './TsunaguMap.module.scss';
 import './TsunaguMap.scss';
 import ConfirmDialog from '../common/confirm/ConfirmDialog';
 import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
 import { AddNewContentParam, EditContentParam, LinkUnpointContentParam, TsunaguMapHandler, TsunaguMapProps } from '../../types/types';
-import DefaultComponents from '../default/DefaultComponents';
 import UserListModal from '../admin/UserListModal';
 import ValueConnectorWithOwner from './ValueConnectorWithOwner';
 import MapConnector from './MapConnector';
@@ -17,6 +16,9 @@ import LandNameOverlay from '../map/LandNameOverlay';
 import DrawController from '../map/DrawController';
 import ClusterMenuContainer from '../cluster-menu/ClusterMenuContainer';
 import { instanceIdAtom, mapIdAtom, serverInfoAtom } from '../../store/session';
+import ContentsSettingModal from '../admin/contents-setting/ContentsSettingModal';
+
+const DefaultComponents = lazy(() => import('../default/DefaultComponents'));
 
 type SomeRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 type OwnerContextType = Omit<SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'>, 'mapServer' | 'mapId'>;
@@ -121,6 +123,7 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
             getThumbnail() { throw 'default function'},
             changeVisibleLayer() { throw 'default function' },
             showUserList() { throw 'default function' },
+            showContentsSetting() { throw 'default function'},
         }
     })
 
@@ -137,6 +140,8 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
                             <LandNameOverlay />
                             <DrawController />
                             <ClusterMenuContainer />
+
+                            <ContentsSettingModal />
                             <Suspense>
                                 <ConfirmDialog />
                                 <UserListModal />

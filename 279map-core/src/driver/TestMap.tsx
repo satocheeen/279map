@@ -266,6 +266,7 @@ export default function TestMap() {
                 }
                 <div className={styles.Col}>
                     <button onClick={() => mapRef.current?.showUserList()}>ユーザ一覧</button>
+                    <button onClick={() => mapRef.current?.showContentsSetting()}>コンテンツ設定</button>
                     <button onClick={callGetSnsPreview}>GetSNS</button>
                     <button onClick={getThumbnail}>GetThumbnail</button>
                 </div>

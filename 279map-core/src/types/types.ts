@@ -160,6 +160,11 @@ export interface TsunaguMapHandler {
      * ユーザ一覧表示（管理者用コマンド）
      */
     showUserList(): void;
+
+    /**
+     * コンテンツ管理画面表示（管理者用コマンド）
+     */
+    showContentsSetting(): void;
 }
 
 export type ServerInfo = {
