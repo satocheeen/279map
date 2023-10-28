@@ -1,30 +1,21 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { useMounted } from '../../util/useMounted';
-import { addListener, removeListener } from '../../util/Commander';
-import { Button, Modal } from '../common';
-import styles from './UserListModal.module.scss';
+import { Button, Modal } from '../../common';
+import styles from './DefaultUserListModal.module.scss';
 import { ChangeAuthLevelAPI, GetUserListAPI } from 'tsunagumap-api';
-import { useWatch } from '../../util/useWatch';
+import { useWatch } from '../../../util/useWatch';
 import { Auth, User} from '279map-common';
-import Select from '../common/form/Select';
-import { useSubscribe } from '../../api/useSubscribe';
-import { useApi } from '../../api/useApi';
+import Select from '../../common/form/Select';
+import { useSubscribe } from '../../../api/useSubscribe';
+import { useApi } from '../../../api/useApi';
 
-export default function UserListModal() {
-    const [ show, setShow ] = useState(false);
+type Props = {
+    onClose: () => void;
+}
+export default function DefaultUserListModal(props: Props) {
+    const [ show, setShow ] = useState(true);
     const [ loading, setLoading ] = useState(false);
     const { callApi } = useApi();
     const [ users, setUsers ] = useState<User[]>([]);
-
-    useMounted(() => {
-        const h = addListener('ShowUserList', async() => {
-            setShow(true);
-        });
-        
-        return () => {
-            removeListener(h);
-        }
-    });
 
     const loadUsers = useCallback(() => {
         setLoading(true);
@@ -59,8 +50,8 @@ export default function UserListModal() {
     }, [])
 
     const onClosed = useCallback(() => {
-
-    }, []);
+        props.onClose();
+    }, [props]);
 
     return (
         <Modal show={show} spinner={loading}

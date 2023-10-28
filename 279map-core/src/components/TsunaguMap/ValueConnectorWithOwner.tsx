@@ -1,16 +1,16 @@
-import React, { Suspense, useRef, useContext, useEffect, useCallback, useImperativeHandle } from 'react';
+import React, { Suspense, useRef, useContext, useEffect, useCallback, useImperativeHandle, useState } from 'react';
 import { useWatch } from '../../util/useWatch';
 import { OwnerContext } from './TsunaguMap';
 import { categoriesLoadableAtom } from '../../store/category';
 import { eventsLoadableAtom } from '../../store/event';
 import { defaultIconDefineAtom } from '../../store/icon';
 import { dialogTargetAtom, mapModeAtom, showingDetailItemIdAtom } from '../../store/operation';
-import { authLvAtom, connectStatusLoadableAtom, mapDefineLoadableAtom } from '../../store/session';
+import { connectStatusLoadableAtom, mapDefineLoadableAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { GetContentsAPI, GetContentsParam, GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, SearchAPI, UpdateContentAPI, UpdateContentParam } from 'tsunagumap-api';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { Auth, CategoryDefine, ContentsDefine, DataId, DataSourceGroup, EventDefine, FeatureType, MapKind, UnpointContent } from '279map-common';
+import { CategoryDefine, ContentsDefine, DataId, DataSourceGroup, EventDefine, FeatureType, MapKind, UnpointContent } from '279map-common';
 import { MapMode, TsunaguMapHandler } from '../../types/types';
 import { useAtom } from 'jotai';
 import { itemDataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
@@ -20,7 +20,6 @@ import { useMapController } from '../../store/useMapController';
 import { doCommand } from '../../util/Commander';
 import useDataSource from '../../store/datasource/useDataSource';
 import { useApi } from '../../api/useApi';
-import useContentsSetting from '../admin/contents-setting/useContentsSetting';
 
 /**
  * OwnerContextとJotaiを繋ぐコンポーネントもどき
@@ -28,27 +27,11 @@ import useContentsSetting from '../admin/contents-setting/useContentsSetting';
  * - Jotaiの各値の変更検知して呼び出し元に返す
  * - ref経由での操作を実行
  */
-function ValueConnectorWithOwner(props: {}, ref: React.ForwardedRef<TsunaguMapHandler>) {
+function ValueConnectorWithOwner(props: {}, ref: React.ForwardedRef<Omit<TsunaguMapHandler,'showContentsSetting'|'showUserList'>>) {
     const { changeMapKind } = useMapController();
     const { focusItem } = useMap();
     const { callApi } = useApi();
     const { updateDatasourceVisible } = useDataSource();
-
-    const showUserList = useAtomCallback(
-        useCallback((get) => {
-            const authLv = get(authLvAtom);
-            if (authLv !== Auth.Admin) {
-                console.warn('no authorization', authLv);
-                return;
-            }
-            doCommand({
-                command: 'ShowUserList',
-                param: undefined,
-            });
-        }, [])
-    );
-
-    const { showContentsSetting } = useContentsSetting();
 
     const showDetailDialog = useAtomCallback(
         useCallback((get, set, param: {type: 'item' | 'content'; id: DataId}) => {
@@ -122,12 +105,6 @@ function ValueConnectorWithOwner(props: {}, ref: React.ForwardedRef<TsunaguMapHa
                 command:'EditTopographyInfo',
                 param: undefined,
             });
-        },
-        showUserList() {
-            showUserList();
-        },
-        showContentsSetting() {
-            showContentsSetting();
         },
         async loadContentsAPI(param: GetContentsParam): Promise<ContentsDefine[]> {
             try {

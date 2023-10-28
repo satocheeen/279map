@@ -4,7 +4,6 @@ import './TsunaguMap.scss';
 import ConfirmDialog from '../common/confirm/ConfirmDialog';
 import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
 import { AddNewContentParam, EditContentParam, LinkUnpointContentParam, TsunaguMapHandler, TsunaguMapProps } from '../../types/types';
-import UserListModal from '../admin/UserListModal';
 import ValueConnectorWithOwner from './ValueConnectorWithOwner';
 import MapConnector from './MapConnector';
 import ProcessOverlay from './ProcessOverlay';
@@ -16,7 +15,8 @@ import LandNameOverlay from '../map/LandNameOverlay';
 import DrawController from '../map/DrawController';
 import ClusterMenuContainer from '../cluster-menu/ClusterMenuContainer';
 import { instanceIdAtom, mapIdAtom, serverInfoAtom } from '../../store/session';
-import ContentsSettingModal from '../admin/contents-setting/ContentsSettingModal';
+import ContentsSettingController from '../admin/contents-setting/ContentsSettingController';
+import UserListController from '../admin/user-list/UserListController';
 
 const DefaultComponents = lazy(() => import('../default/DefaultComponents'));
 
@@ -100,31 +100,13 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
     }, [props]);
 
     const controlRef = useRef<TsunaguMapHandler>(null);
+    const contentsSettingControlerRef = useRef<Pick<TsunaguMapHandler, 'showContentsSetting'>>(null);
+    const userListControlerRef = useRef<Pick<TsunaguMapHandler, 'showUserList'>>(null);
     useImperativeHandle(ref, () => {
-        return controlRef.current ?? {
-            switchMapKind() {throw 'default function'},
-            focusItem() {throw 'default function'},
-            drawStructure() {throw 'default function'},
-            moveStructure() {throw 'default function'},
-            changeStructure() {throw 'default function'},
-            removeStructure() {throw 'default function'},
-            drawTopography() {throw 'default function'},
-            drawRoad() {throw 'default function'},
-            editTopography() {throw 'default function'},
-            removeTopography() {throw 'default function'},
-            editTopographyInfo() {throw 'default function'},
-            loadContentsAPI() { throw 'default function'},
-            showDetailDialog() {throw 'default function'},
-            registContentAPI() { throw 'default function'},
-            updateContentAPI() { throw 'default function'},
-            linkContentToItemAPI() { throw 'default function'},
-            getSnsPreviewAPI() { throw 'default function' },
-            getUnpointDataAPI() { throw 'default function'},
-            getThumbnail() { throw 'default function'},
-            changeVisibleLayer() { throw 'default function' },
-            showUserList() { throw 'default function' },
-            showContentsSetting() { throw 'default function'},
-        }
+        return Object.assign({}, 
+            controlRef.current,
+            contentsSettingControlerRef.current,
+            userListControlerRef.current);
     })
 
     return (
@@ -133,6 +115,8 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
                 <Provider store={myStoreRef.current}>
                     <MapConnector server={props.mapServer}>
                         <ValueConnectorWithOwner ref={controlRef} />
+                        <ContentsSettingController ref={contentsSettingControlerRef} />
+                        <UserListController ref={userListControlerRef} />
                         <TooltipContext.Provider value={tooltipContextValue}>
                             <MapController />
                             <MapChart />
@@ -141,10 +125,8 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
                             <DrawController />
                             <ClusterMenuContainer />
 
-                            <ContentsSettingModal />
                             <Suspense>
                                 <ConfirmDialog />
-                                <UserListModal />
 
                                 {defaultLinkUnpointedContentParam &&
                                     <DefaultComponents linkUnpointedContentParam={defaultLinkUnpointedContentParam} onClose={()=>{setDefaultLinkUnpointedContentParam(undefined)}} />

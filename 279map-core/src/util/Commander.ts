@@ -40,8 +40,6 @@ type CommandDefine =
     | TCommandDefine<'ShowItemInfo', DataId>
     // 重畳選択メニュー表示
     | TCommandDefine<'ShowClusterMenu', {position: Coordinate; targets: DataId[]}>
-    // ユーザ一覧表示（管理者）
-    | TCommandDefine<'ShowUserList', undefined>
     ;
 type TSubscription = CommandDefine['subscription'];
 type TCallback = TSubscription[1];
