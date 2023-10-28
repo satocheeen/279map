@@ -128,7 +128,10 @@ export class OlMapWrapper {
             // 都道府県レイヤ
             const features = new GeoJSON().readFeatures(prefJson);
             const prefSource = new VectorSource({ features });
-            extent ??= prefSource.getExtent();
+            if (!extent || extent.every(v => v===0)) {
+                // extent未指定の場合は、日本地図の範囲を設定
+                extent = prefSource.getExtent();
+            }
 
             const layers = [
                 new TileLayer({
@@ -207,6 +210,7 @@ export class OlMapWrapper {
             });
         }
 
+        console.log('extent', extent);
         this._map.getView().setMaxZoom(mapKind === MapKind.Virtual ? 10 : 18);
         this.fit(extent);
     }
