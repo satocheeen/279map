@@ -1,13 +1,12 @@
 import { DataId, FeatureType } from '279map-common';
 import { MapBrowserEvent } from 'ol';
 import { Coordinate } from 'ol/coordinate';
-import React, { useRef, useEffect, useState, useCallback, useContext } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useContext, useImperativeHandle } from 'react';
 import ClusterMenu from './ClusterMenu';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import { usePrevious } from '../../util/usePrevious';
 import { isEqualId } from '../../util/dataUtility';
 import { useMap } from '../map/useMap';
-import { addListener, removeListener } from '../../util/Commander';
 import { mapModeAtom, mapViewAtom, showingDetailItemIdAtom } from '../../store/operation';
 import { filteredItemIdListAtom } from '../../store/filter';
 import { useItems } from '../../store/item/useItems';
@@ -29,8 +28,10 @@ type ClusterMenuTarget = {
     position: Coordinate;
     targets: DataId[];
 }
-
-export default function ClusterMenuController(props: Props) {
+export type ClusterMenuControllerHandler = {
+    showClusterMenu: (param: {position: Coordinate; targets: DataId[]}) => void;
+}
+function ClusterMenuController(props: Props, ref: React.ForwardedRef<ClusterMenuControllerHandler>) {
     const { map } = useMap();
     const [clusterMenuInfo, setClusterMenuInfo] = useState<ClusterMenuTarget|null>(null);
     const { onClick } = useContext(OwnerContext);
@@ -38,6 +39,14 @@ export default function ClusterMenuController(props: Props) {
 
     const [filteredItemIdList] = useAtom(filteredItemIdListAtom);
     const filteredItemIdListRef = useRef(filteredItemIdList);   // for using in map event funtion
+
+    useImperativeHandle(ref, () => ({
+        showClusterMenu(param) {
+            // 外部コンポーネントから重畳選択メニュー表示命令された場合
+            setClusterMenuInfo(param);
+        },
+    }))
+
     useEffect(() => {
         filteredItemIdListRef.current = filteredItemIdList;
     }, [filteredItemIdList]);
@@ -147,15 +156,9 @@ export default function ClusterMenuController(props: Props) {
         }
         map.on('pointermove', pointerMoveFunc);
 
-        // 外部コンポーネントから重畳選択メニュー表示命令された場合
-        const listenerH = addListener('ShowClusterMenu', async(param: {position: Coordinate; targets: DataId[]}) => {
-            setClusterMenuInfo(param);
-        })
-
         return () => {
             map.un('click', clickFunc);
             map.un('pointermove', pointerMoveFunc);
-            removeListener(listenerH);
         }
 
     }, [props, getSelectableFeatures, onClick, map]);
@@ -189,5 +192,6 @@ export default function ClusterMenuController(props: Props) {
             itemIds={clusterMenuInfo.targets}
             onSelect={onClusterMenuSelected}
             onClose={onClusterMenuClosed} />
-);
+    );
 }
+export default React.forwardRef(ClusterMenuController);

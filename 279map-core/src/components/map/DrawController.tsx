@@ -1,5 +1,4 @@
-import React, { lazy, Suspense, useCallback, useEffect, useImperativeHandle, useState } from 'react';
-import { addListener, removeListener } from '../../util/Commander';
+import React, { lazy, Suspense, useCallback, useImperativeHandle, useState } from 'react';
 import { MapMode, TsunaguMapHandler } from '../../types/types';
 import EditTopographyInfoController from './draw-controller/topography/EditTopographyInfoController';
 import { FeatureType } from '279map-common';
@@ -7,7 +6,6 @@ import { LayerType } from '../TsunaguMap/VectorLayerMap';
 import LoadingOverlay from '../common/spinner/LoadingOverlay';
 import { mapModeAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
-import { useAtomCallback } from 'jotai/utils';
 
 const DrawStructureController = lazy(() => import('./draw-controller/structure/DrawStructureController'));
 const MoveItemController = lazy(() => import('./draw-controller/structure/MoveItemController'));

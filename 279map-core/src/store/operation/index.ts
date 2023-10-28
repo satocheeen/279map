@@ -2,6 +2,7 @@ import { DataId } from "279map-common";
 import { atom } from "jotai";
 import { MapMode } from "../../types/types";
 import { Extent } from "ol/extent";
+import { Coordinate } from "ol/coordinate";
 
 // 詳細ダイアログ表示対象
 type Target = {
@@ -46,3 +47,12 @@ export const mapViewAtom = atom<ViewInfo>({
     extent: [0,0,0,0],
     zoom: 0,
 })
+
+/**
+ * 重畳選択メニュー強制表示対象
+ */
+type DoShowClusterMenuParam = {
+    position: Coordinate;
+    targets: DataId[];
+}
+export const doShowClusterMenuAtom = atom<DoShowClusterMenuParam|undefined>(undefined);

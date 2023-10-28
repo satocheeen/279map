@@ -7,8 +7,7 @@ import MyThumbnail from "../common/image/MyThumbnail";
 import { BsThreeDots } from 'react-icons/bs';
 import { useMapOptions } from "../../util/useMapOptions";
 import { useMap } from "../map/useMap";
-import { doCommand } from "../../util/Commander";
-import { dialogTargetAtom, mapModeAtom } from "../../store/operation";
+import { dialogTargetAtom, doShowClusterMenuAtom, mapModeAtom } from "../../store/operation";
 import { filteredContentIdListAtom, filteredItemIdListAtom } from "../../store/filter";
 import { useItems } from "../../store/item/useItems";
 import { useAtom } from "jotai";
@@ -140,13 +139,10 @@ export default function PointsPopup(props: Props) {
             const rect = map?.container.getBoundingClientRect();
             const coordinate = map?.getCoordinateFromPixel([evt.clientX - (rect?.x ?? 0), evt.clientY - (rect?.y ?? 0)]);
             if (coordinate) {
-                doCommand({
-                    command: 'ShowClusterMenu',
-                    param: {
-                        position: coordinate,
-                        targets: props.itemIds,
-                    }
-                });
+                set(doShowClusterMenuAtom, {
+                    position: coordinate,
+                    targets: props.itemIds,
+                })
             }
         }, [props.itemIds, map])
     );

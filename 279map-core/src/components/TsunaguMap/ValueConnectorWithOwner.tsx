@@ -17,7 +17,6 @@ import { itemDataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datas
 import { useAtomCallback } from 'jotai/utils';
 import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
-import { doCommand } from '../../util/Commander';
 import useDataSource from '../../store/datasource/useDataSource';
 import { useApi } from '../../api/useApi';
 
