@@ -17,6 +17,12 @@ export default function Modal(props: Props) {
     const myRef = useRef<HTMLDialogElement|null>(null);
     const closing = useRef(false);  // when closing dialog, seted tre.
 
+    // EventListener内で最新のprops.show情報を取得するために用意
+    const showRef = useRef(props.show);
+    useEffect(() => {
+        showRef.current = props.show;
+    }, [props.show]);
+
     useEffect(() => {
         if (props.show) {
             if (closing.current) {
@@ -24,9 +30,18 @@ export default function Modal(props: Props) {
             }
             if (myRef.current?.open) return;
             myRef.current?.showModal();
+            myRef.current?.addEventListener('close',() => {
+                if (showRef.current) {
+                    // ESCキーなどで強制クローズされた場合
+                    if (props.onCloseBtnClicked) {
+                        props.onCloseBtnClicked();
+                    }
+                    return false;
+                }
+            })
 
         } else {
-            if (!myRef.current?.open) return;
+            // if (!myRef.current?.open) return;
             closing.current = true;
             // wait for animation
             setTimeout(() => {
