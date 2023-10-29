@@ -5,7 +5,6 @@ import { dataSourcesAtom } from '../../../store/datasource';
 import { Button } from '../../common';
 
 type Props = {
-    onAddContentsBtnClicked: () => void;
 }
 
 type ContentRecord = {
@@ -65,8 +64,6 @@ export default function CurrentContentsListPage(props: Props) {
                     })}
                 </tbody>
             </table>
-            <Button variant='secondary' onClick={props.onAddContentsBtnClicked}>追加</Button>
-
         </>
     );
 }

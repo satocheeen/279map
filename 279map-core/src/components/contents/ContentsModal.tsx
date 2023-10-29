@@ -17,6 +17,7 @@ import { MdEdit } from 'react-icons/md';
 import { dataSourcesAtom } from '../../store/datasource';
 import { allItemsAtom } from '../../store/item';
 import { useMap } from '../map/useMap';
+import { modalSpinnerAtom } from '../common/modal/Modal';
 
 export type Props = ({
     type: 'item' | 'content';
@@ -27,7 +28,7 @@ export type Props = ({
 
 export default function ContentsModal(props: Props) {
     const [show, setShow] = useState(false);
-    const [loaded, setLoaded] = useState(false);
+    const [modalSpinner, setModalSpinner] = useAtom(modalSpinnerAtom);
     const [itemId, setItemId] = useState<DataId | undefined>();
 
     const [ contentsList, setContentsList ] = useState<ContentsDefine[]>([]);
@@ -61,16 +62,16 @@ export default function ContentsModal(props: Props) {
             return;
         }
 
-        setLoaded(false);
+        setModalSpinner(true);
         const result = await callApi(GetContentsAPI, [
             {
                 itemId: item.id,
             }
         ]);
         setContentsList(result.contents);
-        setLoaded(true);
+        setModalSpinner(false);
 
-    }, [callApi, item, isTemporaryItem]);
+    }, [callApi, item, isTemporaryItem, setModalSpinner]);
 
     // 表示対象が指定されたらコンテンツロード
     const [ mapKind ] = useAtom(currentMapKindAtom);
@@ -79,13 +80,13 @@ export default function ContentsModal(props: Props) {
         const subscriber = getSubscriber();
         let h: number | undefined;
         if (props.type === 'item') {
-            setLoaded(false);
+            setModalSpinner(true);
             setShow(true);
     
             // 最新コンテンツ取得
             loadContentsInItem()
             .finally(() => {
-                setLoaded(true);
+                setModalSpinner(false);
             });
             h = subscriber?.subscribeMap({mapKind}, 'childcontents-update', props.id, async() => {
                 // アイテム情報再取得
@@ -100,7 +101,7 @@ export default function ContentsModal(props: Props) {
             setItemId(props.id);
 
         } else {
-            setLoaded(false);
+            setModalSpinner(true);
             setShow(true);
     
             // 最新コンテンツ取得
@@ -119,7 +120,7 @@ export default function ContentsModal(props: Props) {
                 }
     
             }).finally(() => {
-                setLoaded(true);
+                setModalSpinner(false);
             });
         }
 
@@ -130,7 +131,7 @@ export default function ContentsModal(props: Props) {
             }
         }
 
-    }, [props.id, props.type, mapKind, callApi, getSubscriber, loadContentsInItem, updateItems]);
+    }, [props.id, props.type, mapKind, callApi, getSubscriber, loadContentsInItem, updateItems, setModalSpinner]);
 
     const contents = useMemo((): ContentsDefine[] => {
         return contentsList.sort((a, b) => {
@@ -209,7 +210,7 @@ export default function ContentsModal(props: Props) {
 
     return (
         <>
-            <Modal show={show} spinner={!loaded}
+            <Modal show={show}
                 onCloseBtnClicked={onCloseBtnClicked}
                 onClosed={onClosed}
                 >

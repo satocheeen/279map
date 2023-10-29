@@ -10,12 +10,10 @@ type Props = {
 
 export default function DefaultContentsSettingModal(props: Props) {
     const [show, setShow] = useState(true);
-    const [page, setPAge] = useState<'current'|'add'>('current'); 
-    const [showSpinner, setShowSpinner] = useState(false);
+    const [page, setPage] = useState<'current'|'add'>('current'); 
 
     return (
         <Modal show={show}
-            spinner={showSpinner}
             onCloseBtnClicked={() => setShow(false)}
             onClosed={props.onClose}
             >
@@ -24,12 +22,17 @@ export default function DefaultContentsSettingModal(props: Props) {
             </Modal.Header>
             <Modal.Body>
                 {page === 'current' ?
-                    <CurrentContentsListPage onAddContentsBtnClicked={()=>setPAge('add')} />
+                    <CurrentContentsListPage />
                     : 
-                    <AddableContentsListPage onLoadingStateChange={(val) => setShowSpinner(val)}/>
+                    <AddableContentsListPage />
                 }
             </Modal.Body>
             <Modal.Footer>
+                {page === 'current' ?
+                    <Button variant='secondary' onClick={()=>setPage('add')}>新規追加</Button>
+                    :
+                    <></>
+                }
             </Modal.Footer>
         </Modal>
     );

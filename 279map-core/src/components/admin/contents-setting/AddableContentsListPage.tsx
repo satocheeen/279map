@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useApi } from '../../../api/useApi';
 import { GetLinkableContentsAPI } from 'tsunagumap-api';
 import styles from './DefaultContentsSettingModal.module.scss';
+import { useAtom } from 'jotai';
+import { modalSpinnerAtom } from '../../common/modal/Modal';
 
 type Props = {
-    onLoadingStateChange: (val: boolean) => void;
 }
 
 type Item = {
@@ -14,18 +15,18 @@ type Item = {
 export default function AddableContentsListPage(props: Props) {
     const { callApi } = useApi();
     const [list, setList] = useState<Item[]>([]);
+    const [modalSpinner, setModalSpinner] = useAtom(modalSpinnerAtom);
 
     useEffect(() => {
-        props.onLoadingStateChange(true);
+        setModalSpinner(true);
         callApi(GetLinkableContentsAPI, undefined)
         .then((result) => {
             setList(result.contents);
         })
         .finally(() => {
-            console.log('hide');
-            props.onLoadingStateChange(false);
+            setModalSpinner(false);
         })
-    }, [callApi, props])
+    }, [callApi, setModalSpinner])
 
     return (
         <table className={styles.Table}>

@@ -10,6 +10,8 @@ import { ConfirmBtnPattern } from '../common/confirm/types';
 import { useItems } from '../../store/item/useItems';
 import { useAtom } from 'jotai';
 import { currentMapKindAtom } from '../../store/session';
+import { modalSpinnerAtom } from '../common/modal/Modal';
+import { useAtomCallback } from 'jotai/utils';
 
 type Props = {
     target: DataId;
@@ -24,32 +26,34 @@ export default function EditItemNameModal(props: Props) {
     )
 
     const { callApi } = useApi();
-    const [registing, setRegisting] = useState(false);
+    // const [registing, setRegisting] = useAtom(modalSpinnerAtom);
     const { confirm } = useConfirm();
-    const onOk = useCallback(async() => {
-        setRegisting(true);
-        try {
-            await callApi(UpdateItemAPI, {
-                targets: [
-                    {
-                        id: props.target,
-                        name: title,
-                    }
-                ]
-            });
-    
-            props.onClose();
+    const onOk = useAtomCallback(
+        useCallback(async(get, set) => {
+            set(modalSpinnerAtom, true);
+            try {
+                await callApi(UpdateItemAPI, {
+                    targets: [
+                        {
+                            id: props.target,
+                            name: title,
+                        }
+                    ]
+                });
+        
+                props.onClose();
 
-        } catch(e) {
-            confirm({
-                message: '登録処理に失敗しました。再度実行しても問題が解決しない場合は、管理者へご連絡ください。',
-                btnPattern: ConfirmBtnPattern.OkOnly,
-            })
-        } finally {
-            setRegisting(false);
+            } catch(e) {
+                confirm({
+                    message: '登録処理に失敗しました。再度実行しても問題が解決しない場合は、管理者へご連絡ください。',
+                    btnPattern: ConfirmBtnPattern.OkOnly,
+                })
+            } finally {
+                set(modalSpinnerAtom, false);
 
-        }
-    }, [callApi, props, title, confirm])
+            }
+        }, [callApi, props, title, confirm])
+    );
 
     const [ mapKind ] = useAtom(currentMapKindAtom);
     const label = useMemo(() => {
@@ -61,7 +65,7 @@ export default function EditItemNameModal(props: Props) {
     }, [mapKind])
 
     return (
-        <Modal show onCloseBtnClicked={props.onClose} spinner={registing}>
+        <Modal show onCloseBtnClicked={props.onClose}>
             <Modal.Header>
                 <span>{label}編集</span>
             </Modal.Header>

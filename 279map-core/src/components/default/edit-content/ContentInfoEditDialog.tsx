@@ -7,6 +7,9 @@ import { Button, Modal } from '../../common';
 import useConfirm from '../../common/confirm/useConfirm';
 import Select from '../../common/form/Select';
 import { ConfirmBtnPattern } from '../../common/confirm/types';
+import { useAtom } from 'jotai';
+import { modalSpinnerAtom } from '../../common/modal/Modal';
+import { useAtomCallback } from 'jotai/utils';
 
 type Props = {
     onClose?: () => void;
@@ -39,55 +42,57 @@ export default function ContentInfoEditDialog(props: Props) {
     // イベントリスナーの中で使用するため、refに格納
     const itemMapRef = useRef<typeof itemMap>();
     itemMapRef.current = itemMap;
-    const [ spinner, setSpinner ] = useState<false|string>(false);
+    // const [ spinner, setSpinner ] = useAtom(modalSpinnerAtom);
     const { confirm } = useConfirm();
     const [ contentDataSourceId, setContentDataSourceId ] = useState<string|undefined>(
         props.type === 'new' ? props.param.dataSources[0]?.dataSourceId : props.param.contentId.dataSourceId
     );
 
-    const onOk = useCallback(async() => {
-        if (!contentDataSourceId) {
-            console.warn('想定外. データソースID未指定');
-            return;
-        }
-        setSpinner('登録中...');
+    const onOk = useAtomCallback(
+        useCallback(async(get, set) => {
+            if (!contentDataSourceId) {
+                console.warn('想定外. データソースID未指定');
+                return;
+            }
+            set(modalSpinnerAtom, '登録中...');
 
-        try {
-            if (props.type === 'new') {
-                // 新規登録
-                const apiParam = Object.assign({
-                    parent: props.param.parent,
-                    contentDataSourceId,
-                }, attrValue);
-                await props.param.registContentAPI(apiParam);
+            try {
+                if (props.type === 'new') {
+                    // 新規登録
+                    const apiParam = Object.assign({
+                        parent: props.param.parent,
+                        contentDataSourceId,
+                    }, attrValue);
+                    await props.param.registContentAPI(apiParam);
 
-            } else {
-                // 更新
-                const apiParam = Object.assign({
-                    id: props.param.contentId,
-                }, attrValue);
-                if (apiParam.type === 'normal' && apiParam.imageUrl) {
-                    // TODO:
-                    apiParam.imageUrl = (apiParam.imageUrl === '/api/getthumb?id=' + props.param.contentId) ? undefined : apiParam.imageUrl;
+                } else {
+                    // 更新
+                    const apiParam = Object.assign({
+                        id: props.param.contentId,
+                    }, attrValue);
+                    if (apiParam.type === 'normal' && apiParam.imageUrl) {
+                        // TODO:
+                        apiParam.imageUrl = (apiParam.imageUrl === '/api/getthumb?id=' + props.param.contentId) ? undefined : apiParam.imageUrl;
+                    }
+                    await props.param.updateContentAPI(apiParam);
                 }
-                await props.param.updateContentAPI(apiParam);
+
+                if (props.onClose) {
+                    props.onClose();
+                }
+
+            } catch(e) {
+                console.warn(e);
+                confirm({
+                    message: '登録に失敗しました。再度実行して、うまくいかない場合は管理者へご連絡ください。',
+                    btnPattern: ConfirmBtnPattern.OkOnly,
+                });
+            } finally {
+                set(modalSpinnerAtom, false);
             }
 
-            if (props.onClose) {
-                props.onClose();
-            }
-
-        } catch(e) {
-            console.warn(e);
-            confirm({
-                message: '登録に失敗しました。再度実行して、うまくいかない場合は管理者へご連絡ください。',
-                btnPattern: ConfirmBtnPattern.OkOnly,
-            });
-        } finally {
-            setSpinner(false);
-        }
-
-    }, [props, attrValue, confirm, contentDataSourceId]);
+        }, [props, attrValue, confirm, contentDataSourceId])
+    );
 
     const onCancel = useCallback(() => {
         if (props.onClose) {
@@ -121,7 +126,7 @@ export default function ContentInfoEditDialog(props: Props) {
     }, [props.type, props.param]);
 
     return (
-        <Modal show={true} spinner={spinner}>
+        <Modal show={true}>
             <Modal.Header>
                 {title}
             </Modal.Header>

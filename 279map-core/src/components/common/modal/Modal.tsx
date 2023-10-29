@@ -2,20 +2,24 @@ import React, { useEffect, useRef, useMemo } from 'react';
 import styles from './Modal.module.scss';
 import { MdClose } from 'react-icons/md';
 import Overlay from '../spinner/Overlay';
+import { atom, useAtom } from 'jotai';
 
 type Props = {
     show: boolean;
     children: [HeaderItem, BodyItem, FooterItem];
     className?: string;
-    spinner?: string | boolean; // trueまたは文字列の場合、Spinner表示。文字列の場合は、Spinner+メッセージ表示。
-    // closebtn?: boolean; // trueの場合、ヘッダに閉じるボタンを表示
     onCloseBtnClicked?: () => void;   // callback when click close btn
     onClosed?: () => void;  // callback when closing dialog finish.
 }
+// モーダル内でのスピナー表示指示
+// -> モーダルコンポーネント配下のコンポーネントのどこからでもスピナー表示できるようにatomで管理している
+export const modalSpinnerAtom = atom<string|boolean|undefined>(undefined);
 
 export default function Modal(props: Props) {
     const myRef = useRef<HTMLDialogElement|null>(null);
     const closing = useRef(false);  // when closing dialog, seted tre.
+
+    const [spinner] = useAtom(modalSpinnerAtom);
 
     // EventListener内で最新のprops.show情報を取得するために用意
     const showRef = useRef(props.show);
@@ -67,17 +71,17 @@ export default function Modal(props: Props) {
     }, [props.children]);
 
     const showSpinner = useMemo(() => {
-        if (!props.spinner) return false;
+        if (!spinner) return false;
         return true;
-    }, [props.spinner]);
+    }, [spinner]);
 
     const spinnerMessage = useMemo(() => {
-        if (typeof props.spinner === 'string') {
-            return props.spinner;
+        if (typeof spinner === 'string') {
+            return spinner;
         } else {
             return '処理中...';
         }
-    }, [props.spinner]);
+    }, [spinner]);
 
     return (
         <dialog ref={myRef} className={`${styles.Dialog} ${props.show ? styles.Show : styles.Close}`}>

@@ -7,29 +7,32 @@ import { Auth, User} from '279map-common';
 import Select from '../../common/form/Select';
 import { useSubscribe } from '../../../api/useSubscribe';
 import { useApi } from '../../../api/useApi';
+import { modalSpinnerAtom } from '../../common/modal/Modal';
+import { useAtomCallback } from 'jotai/utils';
 
 type Props = {
     onClose: () => void;
 }
 export default function DefaultUserListModal(props: Props) {
     const [ show, setShow ] = useState(true);
-    const [ loading, setLoading ] = useState(false);
     const { callApi } = useApi();
     const [ users, setUsers ] = useState<User[]>([]);
 
-    const loadUsers = useCallback(() => {
-        setLoading(true);
-        callApi(GetUserListAPI, undefined)
-        .then(result => {
-            setUsers(result.users);
-        })
-        .catch((e) => {
-            console.warn(e);
-        })
-        .finally(() => {
-            setLoading(false);
-        })
-    }, [callApi]);
+    const loadUsers = useAtomCallback(
+        useCallback((get, set) => {
+            set(modalSpinnerAtom, true);
+            callApi(GetUserListAPI, undefined)
+            .then(result => {
+                setUsers(result.users);
+            })
+            .catch((e) => {
+                console.warn(e);
+            })
+            .finally(() => {
+                set(modalSpinnerAtom, false);
+            })
+        }, [callApi])
+    )
     
     const { getSubscriber } = useSubscribe();
     useWatch(() => {
@@ -54,7 +57,7 @@ export default function DefaultUserListModal(props: Props) {
     }, [props]);
 
     return (
-        <Modal show={show} spinner={loading}
+        <Modal show={show}
             onCloseBtnClicked={onCloseBtnClicked}
             onClosed={onClosed}
             >
@@ -62,7 +65,7 @@ export default function DefaultUserListModal(props: Props) {
                 ユーザ一覧
             </Modal.Header>
             <Modal.Body>
-                <UserList users={users} setLoading={setLoading} />
+                <UserList users={users} />
             </Modal.Body>
             <Modal.Footer>
 
@@ -73,7 +76,6 @@ export default function DefaultUserListModal(props: Props) {
 
 type UserListProp = {
     users: User[];
-    setLoading: (val: boolean) => void;
 }
 function UserList(props: UserListProp) {
     return (
@@ -87,7 +89,7 @@ function UserList(props: UserListProp) {
             </thead>
             <tbody>
                 {props.users.map(user => {
-                    return <UserRecord key={user.id} user={user} setLoading={props.setLoading} />
+                    return <UserRecord key={user.id} user={user} />
                 })}
             </tbody>
         </table>
@@ -102,7 +104,6 @@ const authSelectItems = [
 
 type UserRecordProp = {
     user: User;
-    setLoading: (val: boolean) => void;
 }
 function UserRecord(props: UserRecordProp) {
     const [ requestAuth, setRequestAuth ] = useState<Auth|undefined>();
@@ -124,16 +125,18 @@ function UserRecord(props: UserRecordProp) {
         }
     }, [props.user]);
 
-    const onUpdateAuth = useCallback(async() => {
-        if (!requestAuth) return;
-        props.setLoading(true);
-        await callApi(ChangeAuthLevelAPI, {
-            userId: props.user.id,
-            authLv: requestAuth,
-        })
-        props.setLoading(false);
-        setStage('normal');
-    }, [callApi, requestAuth, props]);
+    const onUpdateAuth = useAtomCallback(
+        useCallback(async(get, set) => {
+            if (!requestAuth) return;
+            set(modalSpinnerAtom, true);
+            await callApi(ChangeAuthLevelAPI, {
+                userId: props.user.id,
+                authLv: requestAuth,
+            })
+            set(modalSpinnerAtom, false);
+            setStage('normal');
+        }, [callApi, requestAuth, props])
+    )
 
     console.log('requestAuth', requestAuth);
     const action = useMemo(() => {
