@@ -4,7 +4,7 @@ import './TsunaguMap.scss';
 import ConfirmDialog from '../common/confirm/ConfirmDialog';
 import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
 import { AddNewContentParam, EditContentParam, LinkUnpointContentParam, TsunaguMapHandler, TsunaguMapProps } from '../../types/types';
-import EventConnectorWithOwner from './EventConnectorWithOwner';
+import EventConnectorWithOwner, { EventControllerHandler } from './EventConnectorWithOwner';
 import MapConnector from './MapConnector';
 import ProcessOverlay from './ProcessOverlay';
 import { Provider, createStore } from 'jotai';
@@ -102,14 +102,14 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
         })
     }, [props]);
 
-    const controlRef = useRef<TsunaguMapHandler>(null);
+    const eventControlerRef = useRef<EventControllerHandler>(null);
     const drawControllerRef = useRef<DrawControllerHandler>(null);
     const contentsSettingControlerRef = useRef<Pick<TsunaguMapHandler, 'showContentsSetting'>>(null);
     const userListControlerRef = useRef<Pick<TsunaguMapHandler, 'showUserList'>>(null);
     useImperativeHandle(ref, () => {
         return Object.assign({}, 
             drawControllerRef.current,
-            controlRef.current,
+            eventControlerRef.current,
             contentsSettingControlerRef.current,
             userListControlerRef.current);
     })
@@ -119,7 +119,7 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
             <OwnerContext.Provider value={ownerContextValue}>
                 <Provider store={myStoreRef.current}>
                     <MapConnector server={props.mapServer}>
-                        <EventConnectorWithOwner ref={controlRef} />
+                        <EventConnectorWithOwner ref={eventControlerRef} />
                         <TooltipContext.Provider value={tooltipContextValue}>
                             <MapController />
                             <MapChart />

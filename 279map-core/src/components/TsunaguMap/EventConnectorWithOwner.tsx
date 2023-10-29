@@ -1,9 +1,8 @@
-import React, { Suspense, useRef, useContext, useEffect, useCallback, useImperativeHandle, useState } from 'react';
+import React, { useRef, useContext, useEffect, useCallback, useImperativeHandle } from 'react';
 import { useWatch } from '../../util/useWatch';
 import { OwnerContext } from './TsunaguMap';
 import { categoriesLoadableAtom } from '../../store/category';
 import { eventsLoadableAtom } from '../../store/event';
-import { defaultIconDefineAtom } from '../../store/icon';
 import { dialogTargetAtom, mapModeAtom, showingDetailItemIdAtom } from '../../store/operation';
 import { connectStatusLoadableAtom, mapDefineLoadableAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
@@ -26,8 +25,14 @@ import { useApi } from '../../api/useApi';
  * - Jotaiの各値の変更検知して呼び出し元に返す
  * - ref経由での操作を実行
  */
-type MyHandler = Pick<TsunaguMapHandler, 'switchMapKind' | 'focusItem' | 'loadContentsAPI'>
-function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<MyHandler>) {
+export type EventControllerHandler = Pick<TsunaguMapHandler, 
+    'switchMapKind' | 'focusItem' | 'loadContentsAPI'
+    | 'showDetailDialog' | 'registContentAPI'
+    | 'updateContentAPI' | 'linkContentToItemAPI'
+    | 'getSnsPreviewAPI' | 'getUnpointDataAPI'
+    | 'getThumbnail' | 'changeVisibleLayer'>
+
+function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControllerHandler>) {
     const { changeMapKind } = useMapController();
     const { focusItem } = useMap();
     const { callApi } = useApi();
