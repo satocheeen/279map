@@ -1,6 +1,6 @@
 {
   "name": "279map-backend-common",
-  "version": "0.20.2",
+  "version": "0.20.3",
   "description": "279map backend common modules",
   "scripts": {
     "rollup": "rollup -c"
