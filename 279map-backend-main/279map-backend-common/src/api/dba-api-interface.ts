@@ -148,6 +148,18 @@ export const OdbaGetImageUrlAPI = {
     resultType: 'string',
 } as APIDefine<{id: DataId}, string|undefined>;
 
+export const OdbaGetLinkableContentsAPI = {
+    uri: 'get-linkable-contents',
+    method: 'post',
+    resultType: 'json',
+} as APIDefine<CommonParam, OdbaGetLinkableContentsResult>;
+export type OdbaGetLinkableContentsResult = {
+    contents: {
+        datasourceId: string;
+        name: string;
+    }[];
+}
+
 /**
  * for Android
  */
