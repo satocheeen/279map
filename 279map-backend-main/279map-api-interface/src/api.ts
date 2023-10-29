@@ -390,6 +390,17 @@ export type GetUserListResult = {
     users: User[];
 }
 
+export const GetLinkableContentsAPI = {
+    uri: 'get-linkable-contents',
+    method: 'post',
+    resultType: 'json',
+} as APIDefine<void, GetLinkableContentsResult>;
+export type GetLinkableContentsResult = {
+    contents: {
+        datasourceId: string;
+        name: string;
+    }[];
+}
 /**
  * Publishメッセージ（ユーザに対するもの）
  */
