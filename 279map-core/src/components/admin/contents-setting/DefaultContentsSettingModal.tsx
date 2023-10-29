@@ -31,7 +31,9 @@ export default function DefaultContentsSettingModal(props: Props) {
                 {page === 'current' ?
                     <Button variant='secondary' onClick={()=>setPage('add')}>新規追加</Button>
                     :
-                    <></>
+                    <>
+                        <Button variant='secondary' onClick={()=>setPage('current')}>戻る</Button>
+                    </>
                 }
             </Modal.Footer>
         </Modal>

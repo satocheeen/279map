@@ -43,7 +43,7 @@ export default function CurrentContentsListPage(props: Props) {
     }, [dataSources]);
 
     return (
-        <>
+        <div className={styles.TableContainer}>
             <table className={styles.Table}>
                 <thead>
                     <tr>
@@ -64,6 +64,6 @@ export default function CurrentContentsListPage(props: Props) {
                     })}
                 </tbody>
             </table>
-        </>
+        </div>
     );
 }

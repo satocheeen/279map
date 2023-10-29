@@ -1,6 +1,16 @@
+.TableContainer {
+    overflow-y: auto;
+    max-height: calc(100vh - 300px);
+}
 .Table {
     border-collapse:separate;
     border-spacing: 10px;
+
+    th {
+        position: sticky;
+        top: 0;
+        background-color: #fff;
+    }
 
     td {
         text-align: center;
