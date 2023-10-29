@@ -30,16 +30,13 @@ export default function Modal(props: Props) {
             }
             if (myRef.current?.open) return;
             myRef.current?.showModal();
-            myRef.current?.addEventListener('close',() => {
-                if (showRef.current) {
-                    // ESCキーなどで強制クローズされた場合
-                    if (props.onCloseBtnClicked) {
-                        props.onCloseBtnClicked();
-                    }
-                    return false;
+            myRef.current?.addEventListener('cancel',(evt) => {
+                // ESCキーなどで強制クローズされた場合
+                if (props.onCloseBtnClicked) {
+                    props.onCloseBtnClicked();
                 }
+                evt.preventDefault();
             })
-
         } else {
             // if (!myRef.current?.open) return;
             closing.current = true;
