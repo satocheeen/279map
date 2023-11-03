@@ -42,14 +42,26 @@ export default function CurrentContentsListPage(props: Props) {
         })
     }, [dataSources]);
 
+    const realMapLayers = useMemo(() => {
+        return dataSources
+            .filter(ds => ds.itemContents.RealItem);
+    }, [dataSources]);
+
     return (
         <div className={styles.TableContainer}>
             <table className={styles.Table}>
                 <thead>
                     <tr>
-                        <th>コンテンツ名</th>
-                        <th>村マップ</th>
-                        <th>世界地図</th>
+                        <th rowSpan={2}>コンテンツ名</th>
+                        <th rowSpan={2}>村マップ</th>
+                        <th colSpan={realMapLayers.length}>世界地図</th>
+                    </tr>
+                    <tr>
+                        {realMapLayers.map(l => {
+                            return (
+                                <th key={l.dataSourceId}>{l.name}</th>
+                            )
+                        })}
                     </tr>
                 </thead>
                 <tbody>
@@ -58,7 +70,14 @@ export default function CurrentContentsListPage(props: Props) {
                             <tr key={ds.id}>
                                 <td>{ds.name}</td>
                                 <td>{ds.virtual ? '✔' : ''}</td>
-                                <td>{ds.real.map(r => r.name).join(',')}</td>
+                                {realMapLayers.map(l => {
+                                    return (
+                                        <td key={l.dataSourceId}>
+                                            {ds.real.some(r => r.id === l.dataSourceId) ? '✔' : ''}
+                                        </td>
+                                    )
+                                })}
+
                             </tr>
                         )
                     })}
