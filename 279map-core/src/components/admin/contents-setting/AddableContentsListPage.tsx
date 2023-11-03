@@ -25,7 +25,6 @@ export default function AddableContentsListPage(props: Props) {
 
     useWatch(list, (oldVal, newVal) => {
         if (!props.onChange) return;
-        if (list.length === 0) return;
         // チェックされたものに絞る
         const targets = newVal.filter(item => {
             if (item.virtual) return true;
