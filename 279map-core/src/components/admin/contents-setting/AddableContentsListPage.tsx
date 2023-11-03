@@ -23,16 +23,18 @@ export default function AddableContentsListPage(props: Props) {
     const [list, setList] = useState<AddableContentItem[]>([]);
     const [, setModalSpinner] = useAtom(modalSpinnerAtom);
 
-    useWatch(list, (oldVal, newVal) => {
-        if (!props.onChange) return;
-        // チェックされたものに絞る
-        const targets = newVal.filter(item => {
-            if (item.virtual) return true;
-            return Object.values(item.real).some(v => v);
-        })
+    useWatch(list, 
+        useCallback((oldVal, newVal) => {
+            if (!props.onChange) return;
+            // チェックされたものに絞る
+            const targets = newVal.filter(item => {
+                if (item.virtual) return true;
+                return Object.values(item.real).some(v => v);
+            })
 
-        props.onChange(targets);
-    })
+            props.onChange(targets);
+        }, [props])
+    )
 
     useEffect(() => {
         setModalSpinner(true);
