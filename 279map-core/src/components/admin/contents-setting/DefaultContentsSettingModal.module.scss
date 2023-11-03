@@ -1,5 +1,5 @@
 .TableContainer {
-    overflow-y: auto;
+    overflow: auto;
     max-height: calc(100vh - 300px);
 }
 .Table {
@@ -9,6 +9,7 @@
     th {
         position: sticky;
         top: 0;
+        text-wrap: nowrap;
         background-color: #fff;
     }
 
