@@ -5,11 +5,14 @@ import styles from './DefaultContentsSettingModal.module.scss';
 import { useAtom } from 'jotai';
 import { modalSpinnerAtom } from '../../common/modal/Modal';
 import { dataSourcesAtom } from '../../../store/datasource';
+import { useWatch } from '../../../util/useWatch2';
 
 type Props = {
+    // 追加対象として✔されたコンテンツ一覧
+    onChange?: (items: AddableContentItem[]) => void;
 }
 
-type Item = {
+export type AddableContentItem = {
     datasourceId: string;
     name: string;
     virtual?: boolean;
@@ -17,8 +20,20 @@ type Item = {
 }
 export default function AddableContentsListPage(props: Props) {
     const { callApi } = useApi();
-    const [list, setList] = useState<Item[]>([]);
+    const [list, setList] = useState<AddableContentItem[]>([]);
     const [, setModalSpinner] = useAtom(modalSpinnerAtom);
+
+    useWatch(list, (oldVal, newVal) => {
+        if (!props.onChange) return;
+        if (list.length === 0) return;
+        // チェックされたものに絞る
+        const targets = newVal.filter(item => {
+            if (item.virtual) return true;
+            return Object.values(item.real).some(v => v);
+        })
+
+        props.onChange(targets);
+    })
 
     useEffect(() => {
         setModalSpinner(true);
@@ -39,7 +54,7 @@ export default function AddableContentsListPage(props: Props) {
             const newList = structuredClone(cur);
             newList[index].virtual = val;
             return newList;
-        })
+        });
     }, [])
 
     const onRealCheck = useCallback((index: number, itemDatasourceId: string, val: boolean) => {
@@ -49,6 +64,7 @@ export default function AddableContentsListPage(props: Props) {
             return newList;
         })
     }, []);
+    
 
     const [dataSources] = useAtom(dataSourcesAtom);
     const realMapLayers = useMemo(() => {

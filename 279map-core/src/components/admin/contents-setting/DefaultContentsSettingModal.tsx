@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Button, Modal } from '../../common';
-import styles from './DefaultContentsSettingModal.module.scss';
 import CurrentContentsListPage from './CurrentContentsListPage';
-import AddableContentsListPage from './AddableContentsListPage';
+import AddableContentsListPage, { AddableContentItem } from './AddableContentsListPage';
 
 type Props = {
     onClose: () => void;
@@ -11,6 +10,27 @@ type Props = {
 export default function DefaultContentsSettingModal(props: Props) {
     const [show, setShow] = useState(true);
     const [page, setPage] = useState<'current'|'add'>('current'); 
+
+    const [addTargetList, setAddTargetList] = useState<AddableContentItem[]>([]);
+    const handleChangeAddTargetChange = useCallback((items: AddableContentItem[]) => {
+        setAddTargetList(items);
+    }, [])
+
+    const footer = useMemo(() => {
+        switch(page) {
+            case 'current':
+                return (
+                    <Button variant='secondary' onClick={()=>setPage('add')}>新規追加</Button>
+                )
+            case 'add':
+                return (
+                    <>
+                        <Button variant='secondary' onClick={()=>setPage('current')}>戻る</Button>
+                        <Button variant='secondary' disabled={addTargetList.length===0}>追加</Button>
+                    </>
+                )
+        }
+    }, [page, addTargetList])
 
     return (
         <Modal show={show}
@@ -24,17 +44,11 @@ export default function DefaultContentsSettingModal(props: Props) {
                 {page === 'current' ?
                     <CurrentContentsListPage />
                     : 
-                    <AddableContentsListPage />
+                    <AddableContentsListPage onChange={handleChangeAddTargetChange} />
                 }
             </Modal.Body>
             <Modal.Footer>
-                {page === 'current' ?
-                    <Button variant='secondary' onClick={()=>setPage('add')}>新規追加</Button>
-                    :
-                    <>
-                        <Button variant='secondary' onClick={()=>setPage('current')}>戻る</Button>
-                    </>
-                }
+                {footer}
             </Modal.Footer>
         </Modal>
     );
