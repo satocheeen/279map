@@ -37,8 +37,8 @@ export enum MapKind {
  * データソース種別
  */
 export enum DataSourceKindType {
-    RealItem = 'RealItem',                  // 位置情報(実地図)データソース
-    VirtualItem = 'VirtualItem',            // 位置情報(仮想地図)データソース
+    Item = 'Item',                  // 位置情報（村マップ、世界地図 両用）データソース
+    RealPointContent = 'RealPointContent',        // 位置情報（世界地図のみ）+コンテンツ データソース
     Content = 'Content',            // コンテンツデータソース
     Track = 'Track'                 // 軌跡情報が登録されたデータソース
 }
@@ -49,23 +49,28 @@ export enum DataSourceKindType {
 export type DataSourceLinkableContent = {
     contentDatasourceId: string;
     max: 'single' | 'multi';   // single->1コンテンツの紐づけが可能。multi->複数コンテンツの紐づけが可能。
-    unlinkable: boolean;        // falseの場合、コンテンツの紐づけ解除不可能。（元データソースの形式によってはアイテムとの分離が不可能なコンテンツもあるので）
 };
 /**
- * データソースに含まれるitemやcontentの情報。
+ * データソースの種別定義
  */
-type ItemContentDefineOfDatasource = {
+export type DatasourceConfig = {
     editable: boolean;
     deletable: boolean;
-    linkableContents: DataSourceLinkableContent[];  // 紐づけ可能なコンテンツの定義
 } & ({
-    kind: DataSourceKindType.RealItem,
-    defaultIcon?: IconKey;
+    kind: DataSourceKindType.Item;
+    layerGroup?: string;
 } | {
-    kind: DataSourceKindType.Content | DataSourceKindType.Track | DataSourceKindType.VirtualItem;
+    kind: DataSourceKindType.RealPointContent;
+    defaultIcon?: IconKey;
+    layerGroup?: string;
+    linkableContents: boolean;
+} | {
+    kind: DataSourceKindType.Track;
+    layerGroup?: string;
+} | {
+    kind: DataSourceKindType.Content;
+    linkableContents: DataSourceLinkableContent[];  // 紐づけ可能な子コンテンツの定義
 });
-
-export type ItemContentDefine = {[kind in DataSourceKindType]?: ItemContentDefineOfDatasource};
 
 export interface MapPageOptions {
     popupMode?: 'hidden' | 'minimum' | 'maximum';
@@ -107,7 +112,7 @@ export type DataSourceGroup = {
 export type DataSourceInfo = {
     dataSourceId: string;
     name: string;
-    itemContents: ItemContentDefine;
+    itemContents: DatasourceConfig;
     visible: boolean;
 }
 
