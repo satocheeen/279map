@@ -48,17 +48,13 @@ export default function DrawStructureController(props: Props) {
     const drawingLayer = useRef<VectorLayer<VectorSource>>();
     const drawingSource = useRef<VectorSource|null>(null);
 
-    const onSelectedStructure = useCallback((iconDefine: SystemIconDefine) => {
-        drawingIcon.current = iconDefine;
-        setStage(Stage.DRAWING);
-    }, []);
-
     const drawReset = useCallback(() => {
         if (draw.current === null || !map) {
             return;
         }
         draw.current.abortDrawing();
         drawingFeature.current = undefined;
+        drawingSource.current?.clear();
         map.removeInteraction(draw.current);
         draw.current = null;
     }, [map]);
@@ -72,20 +68,31 @@ export default function DrawStructureController(props: Props) {
 
         return () => {
             // UnMount時
-            drawReset();
+            if (draw.current) {
+                map.removeInteraction(draw.current);
+            }
             if (drawingLayer.current) {
                 map.removeDrawingLayer(drawingLayer.current);
             }
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [map]);
+
+    const onDrawEnd = useCallback((feature: Feature) => {
+        if (!map) return;
+        if (draw.current !== null) {
+            map.removeInteraction(draw.current);
+        }
+
+        drawingFeature.current = feature;
+        setStage(Stage.CONFIRM);
+
+    }, [map]);
 
     /**
      * Drawing開始時の処理
      */
-    useEffect(() => {
-        if (!map) return;
-        if (stage !== Stage.DRAWING || drawingIcon.current === null || !map) {
+    const startDrawing = useCallback(() => {
+        if (drawingIcon.current === null || !map) {
             return;
         }
         drawReset();
@@ -103,9 +110,13 @@ export default function DrawStructureController(props: Props) {
         draw.current.on('drawend', (event: DrawEvent) => {
             onDrawEnd(event.feature);
         });
+        setStage(Stage.DRAWING);
+    }, [map, drawReset, onDrawEnd, pointStyleHook])
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [stage, map]);
+    const onSelectedStructure = useCallback((iconDefine: SystemIconDefine) => {
+        drawingIcon.current = iconDefine;
+        startDrawing();
+    }, [startDrawing]);
 
     const { callApi } = useApi();
 
@@ -139,18 +150,6 @@ export default function DrawStructureController(props: Props) {
 
     }, [callApi, props, spinner]);
 
-    const onDrawEnd = useCallback((feature: Feature) => {
-        if (!map) return;
-        if (draw.current !== null) {
-            map.removeInteraction(draw.current);
-        }
-        console.log('drawing feature', feature);
-
-        drawingFeature.current = feature;
-        setStage(Stage.CONFIRM);
-
-    }, [map]);
-
     const onSelectAddress= useCallback((address: GeoJsonObject) => {
         if (!map) return;
         if (!drawingSource.current || !map) {
@@ -172,13 +171,13 @@ export default function DrawStructureController(props: Props) {
 
     const onConfirmCancel = useCallback(() => {
         // DRAWモードに戻る
-        setStage(Stage.DRAWING);
+        startDrawing();
 
         // アドレス入力欄はクリア
         if (searchAddressRef.current) {
             searchAddressRef.current.clear();
         }
-    }, []);
+    }, [startDrawing]);
 
     const drawingMessage = useMemo(() => {
         if (mapKind === MapKind.Real) {
