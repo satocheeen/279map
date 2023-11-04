@@ -110,15 +110,19 @@ function SearchAddress(props: Props, ref: React.ForwardedRef<SearchAddressHandle
 
     const onSelectCandidate = useCallback((item: GeocoderItem) => {
         if (props.onAddress) {
-            const geoJson = {
-                type: 'Feature',
-                geometry: item.geoJson,
-                properties: {
-                    featureType: FeatureType.AREA,
-                    geocoderId: item.idInfo,
-                } as GeoProperties,
-            } as GeoJsonObject;
-            props.onAddress(geoJson);
+            if (item.geoJson.type === 'Point') {
+                props.onAddress(item.geoJson);
+            } else {
+                const geoJson = {
+                    type: 'Feature',
+                    geometry: item.geoJson,
+                    properties: {
+                        featureType: FeatureType.AREA,
+                        geocoderId: item.idInfo,
+                    } as GeoProperties,
+                } as GeoJsonObject;
+                props.onAddress(geoJson);
+            }
         }
         setSearchMode(false);
         setAddress(item.name);
