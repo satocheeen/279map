@@ -1,4 +1,4 @@
-import { ItemContentDefine, MapKind } from "279map-common";
+import { DatasourceConfig, MapKind, DataSourceKindType } from "279map-common";
 import { ConnectionPool } from "..";
 import { CurrentMap } from "../../279map-backend-common/src";
 import { DataSourceTable } from "../../279map-backend-common/src/types/schema";
@@ -35,21 +35,15 @@ async function getLinkableDataSources(currentMap: CurrentMap, dataSourceId: stri
 
         // 指定のデータソースを紐づけ可能にしているデータソースに絞る
         return (rows as DataSourceTable[]).filter(row => {
-            if ((row.item_contents as ItemContentDefine).Content?.linkableContents.some(lc => lc.contentDatasourceId === dataSourceId)) {
+            const config = (row.item_contents as DatasourceConfig);
+            if (config.kind === DataSourceKindType.Item) {
                 return true;
-            }
-            if (currentMap.mapKind === MapKind.Real) {
-                if ((row.item_contents as ItemContentDefine).RealItem?.linkableContents.some(lc => lc.contentDatasourceId === dataSourceId)) {
-                    return true;
-                }
-                if ((row.item_contents as ItemContentDefine).Track?.linkableContents.some(lc => lc.contentDatasourceId === dataSourceId)) {
-                    return true;
-                }
-                return false;
+            } else if (config.kind === DataSourceKindType.RealPointContent) {
+                return config.linkableContents;
+            } else if (config.kind === DataSourceKindType.Content) {
+                return config.linkableContents.some(lc => lc.contentDatasourceId === dataSourceId);
             } else {
-                if ((row.item_contents as ItemContentDefine).VirtualItem?.linkableContents.some(lc => lc.contentDatasourceId === dataSourceId)) {
-                    return true;
-                }
+                return false;
             }
         })
 

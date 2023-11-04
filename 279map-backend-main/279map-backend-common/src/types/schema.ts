@@ -1,4 +1,4 @@
-import { MapKind, MapPageOptions, ItemContentDefine } from '279map-common';
+import { MapKind, MapPageOptions, DatasourceConfig } from '279map-common';
 import { SnsOptions } from '../sns';
 
 export enum PublicRange {
@@ -23,8 +23,8 @@ export type DataSourceTable = {
     group?: string;
 
     // 1データソースに含まれるitemやcontentの情報。realでItemContent、virtualでContentになるケースなどを想定して、複数持たせられるようにしている。
-    // 登録時はstring, 取得時はItemContentDefine
-    item_contents: string | ItemContentDefine;
+    // 登録時はstring, 取得時はDatasourceConfig
+    item_contents: string | DatasourceConfig;
 
     connection: string | DataSourceConnection;  // 登録時はstring、取得時はDataSourceConnection
     last_edited_time: string;

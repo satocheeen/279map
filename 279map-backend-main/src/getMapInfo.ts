@@ -1,5 +1,5 @@
 import { ConnectionPool } from '.';
-import { ItemContentDefine, DataSourceGroup, DataSourceInfo, MapKind, MapPageOptions } from '279map-common';
+import { DatasourceConfig, DataSourceGroup, DataSourceInfo, MapKind, MapPageOptions } from '279map-common';
 import { GetMapInfoParam, GetMapInfoResult } from '../279map-api-interface/src';
 import mysql from 'mysql2/promise';
 import { DataSourceTable, MapPageInfoTable } from '../279map-backend-common/src/types/schema';
@@ -168,7 +168,7 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
 
         const dataSourceGroupMap = new Map<string, DataSourceInfo[]>();
         (rows as DataSourceTable[]).forEach((row) => {
-            const itemContents = row.item_contents as ItemContentDefine;
+            const itemContents = row.item_contents as DatasourceConfig;
             const group = row.group ?? '';
             if(!dataSourceGroupMap.has(group)) {
                 dataSourceGroupMap.set(group, []);
