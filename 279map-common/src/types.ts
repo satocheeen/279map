@@ -72,6 +72,18 @@ export type DatasourceConfig = {
     linkableContents: DataSourceLinkableContent[];  // 紐づけ可能な子コンテンツの定義
 });
 
+export type DataSourceInfo = DatasourceConfig & {
+    dataSourceId: string;
+    name: string;
+    visible: boolean;
+}
+
+export type DataSourceGroup = {
+    name?: string;
+    visible: boolean;
+    dataSources: DataSourceInfo[];
+}
+
 export interface MapPageOptions {
     popupMode?: 'hidden' | 'minimum' | 'maximum';
     itemLabel?: 'show' | 'hidden';
@@ -104,17 +116,6 @@ export type MapDefine = {
         userName: string;
     }
 )
-export type DataSourceGroup = {
-    name?: string;
-    visible: boolean;
-    dataSources: DataSourceInfo[];
-}
-export type DataSourceInfo = {
-    dataSourceId: string;
-    name: string;
-    itemContents: DatasourceConfig;
-    visible: boolean;
-}
 
 /**
  * 地物種別
