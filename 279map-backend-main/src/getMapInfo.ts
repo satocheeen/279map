@@ -181,12 +181,11 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
                 }
             });
             const infos = dataSourceGroupMap.get(group) as DataSourceInfo[];
-            infos.push({
+            infos.push(Object.assign({
                 dataSourceId: row.data_source_id,
                 name: row.name,
-                itemContents,
                 visible,
-            });
+            }, itemContents));
 
         });
 

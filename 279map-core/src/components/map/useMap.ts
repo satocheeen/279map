@@ -87,7 +87,7 @@ export function useMap() {
             const dsInfo = datasources.find(ds => ds.dataSourceId === datasourceId);
             const key: LoadedItemKey = {
                 datasourceId,
-                zoom: dsInfo?.itemContents.kind === DataSourceKindType.Track ? zoom : undefined,
+                zoom: dsInfo?.kind === DataSourceKindType.Track ? zoom : undefined,
             }
             return key;
         }, [])        
@@ -100,7 +100,7 @@ export function useMap() {
         useCallback((get, set, datasourceId: string, extent: Extent) => {
             const datasources = get(dataSourcesAtom);
             const dsInfo = datasources.find(ds => ds.dataSourceId === datasourceId);
-            if (dsInfo?.itemContents.kind !== DataSourceKindType.Track) {
+            if (dsInfo?.kind !== DataSourceKindType.Track) {
                 // Track以外は関係なし
                 return undefined;
             }

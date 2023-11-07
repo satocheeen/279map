@@ -61,7 +61,7 @@ export const itemDataSourcesAtom = atom((get) => {
     // コンテンツのみのデータソースは除外する
     return dataSourceGroups.map(group => {
         const newDataSources = group.dataSources.filter(ds => {
-            return ds.itemContents.kind !== DataSourceKindType.Content;
+            return ds.kind !== DataSourceKindType.Content;
         });
         return Object.assign({}, group, {
             dataSources: newDataSources,

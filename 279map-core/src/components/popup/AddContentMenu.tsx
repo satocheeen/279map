@@ -75,7 +75,7 @@ export default function AddContentMenu(props: Props) {
 
         // 追加可能なコンテンツ定義を取得
         if ('itemId' in props.target) {
-            return dataSources.filter(ds => ds.itemContents.kind === DataSourceKindType.Content).map(ds => {
+            return dataSources.filter(ds => ds.kind === DataSourceKindType.Content).map(ds => {
                 return {
                     contentDatasourceId: ds.dataSourceId,
                     max: 'multi',
@@ -84,11 +84,11 @@ export default function AddContentMenu(props: Props) {
         }
         const targetId = props.target.contentId;
         const targetDs = dataSources.find(ds => ds.dataSourceId === targetId.dataSourceId);
-        if (targetDs?.itemContents.kind !== DataSourceKindType.Content) {
+        if (targetDs?.kind !== DataSourceKindType.Content) {
             console.warn('想定外');
             return [];
         }
-        const linkableContents = targetDs.itemContents.linkableContents;
+        const linkableContents = targetDs.linkableContents;
 
         if (linkableContents.length === 0) {
             return [];
@@ -123,7 +123,7 @@ export default function AddContentMenu(props: Props) {
                         if (!addable) return false;
                         // コンテンツデータソースが編集可能でなければ、新規追加は不可能
                         const target = dataSources.find(source => source.dataSourceId === def.contentDatasourceId);
-                        if (!target?.itemContents.editable) return false;
+                        if (!target?.editable) return false;
 
                         return true;
                     });

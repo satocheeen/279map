@@ -228,7 +228,7 @@ export default function Content(props: Props) {
             console.warn('itemDataSource not found');
             return false;
         }
-        if (itemDataSource.dataSourceId === props.content.id.dataSourceId && itemDataSource.itemContents.kind === DataSourceKindType.RealPointContent) {
+        if (itemDataSource.dataSourceId === props.content.id.dataSourceId && itemDataSource.kind === DataSourceKindType.RealPointContent) {
             // アイテムと同一行で管理されているコンテンツはリンク解除不可能
             true;
         } else {

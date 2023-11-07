@@ -70,7 +70,7 @@ export default function TestMap() {
     const featureDataSourceGroups = useMemo(() => {
         return dataSourceGroups.map((group): DataSourceGroup => {
             const dataSources = group.dataSources.filter(ds => {
-                return ds.itemContents.kind !== DataSourceKindType.Content;
+                return ds.kind !== DataSourceKindType.Content;
             });
             return Object.assign({}, group, {
                 dataSources,

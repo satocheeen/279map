@@ -19,7 +19,7 @@ export default function LandNameOverlay() {
     const { map } = useMap();
     const [ dataSources ] = useAtom(dataSourcesAtom);
     const virtualItemDatasource = useMemo(() => {
-        return dataSources.find(ds => ds.itemContents.kind===DataSourceKindType.Item);
+        return dataSources.find(ds => ds.kind===DataSourceKindType.Item);
     }, [dataSources]);
 
     const [ allItems ] = useAtom(allItemsAtom);

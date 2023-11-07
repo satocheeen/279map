@@ -104,7 +104,7 @@ function MenuItem(props: MenuItemProp) {
         if (!('icon' in item.geoProperties)) {
             // icon未指定の場合はレイヤデフォルトアイコンを設定
             const datasource = dataSources.find(ds => ds.dataSourceId === item.id.dataSourceId);
-            const icon = datasource?.itemContents.kind === DataSourceKindType.RealPointContent ? datasource.itemContents.defaultIcon : undefined;
+            const icon = datasource?.kind === DataSourceKindType.RealPointContent ? datasource.defaultIcon : undefined;
             return getIconDefine(icon);
         }
         return getIconDefine(item.geoProperties.icon);
