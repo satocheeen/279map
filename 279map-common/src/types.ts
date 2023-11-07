@@ -43,14 +43,6 @@ export enum DataSourceKindType {
     Track = 'Track'                 // 軌跡情報が登録されたデータソース
 }
 /**
- * データソースのコンテンツ紐づけ定義。
- * （アイテムやコンテンツの配下に紐づけるコンテンツに関する定義）
- */
-export type DataSourceLinkableContent = {
-    contentDatasourceId: string;
-    max: 'single' | 'multi';   // single->1コンテンツの紐づけが可能。multi->複数コンテンツの紐づけが可能。
-};
-/**
  * データソースの種別定義
  */
 export type DatasourceConfig = {
@@ -69,7 +61,7 @@ export type DatasourceConfig = {
     layerGroup?: string;
 } | {
     kind: DataSourceKindType.Content;
-    linkableContents: DataSourceLinkableContent[];  // 紐づけ可能な子コンテンツの定義
+    linkableChildContents: boolean; // 子コンテンツの追加が可能かどうか
 });
 
 export type DataSourceInfo = DatasourceConfig & {
