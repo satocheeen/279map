@@ -8,7 +8,7 @@ import { getMapKey } from '../../util/dataUtility';
 import { useMap } from '../map/useMap';
 import { BsImage } from 'react-icons/bs';
 import { useItem } from '../../store/item/useItem';
-import { dataSourcesAtom } from '../../store/datasource';
+import { itemDataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
 
 const ARROW_HEIGHT = 20;
@@ -96,7 +96,7 @@ function MenuItem(props: MenuItemProp) {
 
     const { getIconDefine } = useIcon();
 
-    const [ dataSources ] = useAtom(dataSourcesAtom);
+    const [ dataSources ] = useAtom(itemDataSourcesAtom);
     const iconDefine = useMemo(() => {
         if (!item?.geoProperties) {
             return getIconDefine();

@@ -5,13 +5,13 @@ import Tooltip from '../common/tooltip/Tooltip';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
-import { Auth, DataId, DataSourceKindType, DataSourceLinkableContent, MapKind } from '279map-common';
+import { Auth, DataId, DataSourceKindType, DataSourceLinkableContent } from '279map-common';
 import { GetContentsAPI, GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, UpdateItemAPI } from 'tsunagumap-api';
 import { Button } from '../common';
 import { compareAuth } from '../../util/CommonUtility';
-import { authLvAtom, currentMapKindAtom } from '../../store/session';
+import { authLvAtom } from '../../store/session';
 import { useItems } from '../../store/item/useItems';
-import { dataSourcesAtom } from '../../store/datasource';
+import { contentDataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
 import { useApi } from '../../api/useApi';
 import useConfirm from '../common/confirm/useConfirm';
@@ -34,8 +34,7 @@ export default function AddContentMenu(props: Props) {
     const { onAddNewContent, onLinkUnpointedContent } = useContext(OwnerContext);
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
     const { callApi } = useApi();
-    const [ mapKind ] = useAtom(currentMapKindAtom);
-    const [ dataSources ] = useAtom(dataSourcesAtom);
+    const [ dataSources ] = useAtom(contentDataSourcesAtom);
     const [ authLv ] = useAtom(authLvAtom);
     const { getItem } = useItems();
     const item = useMemo(() => {
@@ -55,19 +54,6 @@ export default function AddContentMenu(props: Props) {
      * 追加可能なコンテンツ定義を返す
      */
     const addableContentDefines = useMemo((): DataSourceLinkableContent[] => {
-        // 対象のデータソース情報取得
-        let dataSourceId: string;
-        if ('itemId' in props.target) {
-            dataSourceId = props.target.itemId.dataSourceId;
-        } else {
-            dataSourceId = props.target.contentId.dataSourceId;
-        }
-        const dataSource = dataSources.find(ds => ds.dataSourceId === dataSourceId);
-        if (!dataSource) {
-            console.warn('想定外 target dataSource not find.', dataSourceId);
-            return [];
-        }
-
         if ('contentId' in props.target && props.target.isSnsContent) {
             // SNS自動連携コンテンツは子コンテンツ追加不可
             return [];

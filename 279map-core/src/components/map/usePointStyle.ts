@@ -13,7 +13,7 @@ import { useMapOptions } from "../../util/useMapOptions";
 import { showingDetailItemIdAtom } from "../../store/operation";
 import useIcon from "../../store/icon/useIcon";
 import { filteredItemIdListAtom } from "../../store/filter";
-import { dataSourcesAtom } from "../../store/datasource";
+import { itemDataSourcesAtom } from "../../store/datasource";
 import { useAtom } from 'jotai';
 import { MapStyles } from "../../util/constant-defines";
 
@@ -165,7 +165,7 @@ export default function usePointStyle() {
 
     }, [filteredItemIdList, selectedItemId]);
 
-    const [ dataSources ] = useAtom(dataSourcesAtom);
+    const [ dataSources ] = useAtom(itemDataSourcesAtom);
     const _createPointStyle = useCallback((feature: Feature<Geometry>, resolution: number, forceColor?: string): Style => {
         const { mainFeature, showFeaturesLength } = _analysisFeatures(feature);
 

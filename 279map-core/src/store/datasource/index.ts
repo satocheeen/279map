@@ -19,14 +19,14 @@ export const dataSourceVisibleState = atom<DatasourceVisibleInfo>({
 })
 
 /**
- * データソースグループ（表示情報付き）
+ * アイテムデータソースグループ（表示情報付き）
  */
-const dataSourceGroupsAtom = atom((get) => {
+export const itemDataSourceGroupsAtom = atom((get) => {
     const mapDefine = get(currentMapDefineAtom);
     if (!mapDefine) return [];
     const dataSourceVisibleInfo = get(dataSourceVisibleState);
 
-    return mapDefine.dataSourceGroups.map(group => {
+    return mapDefine.itemDataSourceGroups.map(group => {
         const groupVisible = dataSourceVisibleInfo.group[group.name ?? ''] ?? group.visible;
         const newValue = Object.assign({}, group);
         newValue.visible = groupVisible;
@@ -43,34 +43,24 @@ const dataSourceGroupsAtom = atom((get) => {
 /**
  * データソースグループをデータソースにばらしたもの
  */
-export const dataSourcesAtom = atom((get) => {
-    const dataSourceGroups = get(dataSourceGroupsAtom);
+export const itemDataSourcesAtom = atom((get) => {
+    const dataSourceGroups = get(itemDataSourceGroupsAtom);
     return dataSourceGroups.reduce((acc, cur) => {
         return acc.concat(cur.dataSources);
     }, [] as DataSourceInfo[]);
 })
 
 /**
- * アイテムのデータソース
+ * コンテンツのデータソース一覧
  */
-export const itemDataSourcesAtom = atom((get) => {
-    const mapKind = get(currentMapKindAtom);
-    if (!mapKind) return [];
-    const dataSourceGroups = get(dataSourceGroupsAtom);
-
-    // コンテンツのみのデータソースは除外する
-    return dataSourceGroups.map(group => {
-        const newDataSources = group.dataSources.filter(ds => {
-            return ds.kind !== DataSourceKindType.Content;
-        });
-        return Object.assign({}, group, {
-            dataSources: newDataSources,
-        });
-    })
+export const contentDataSourcesAtom = atom((get) => {
+    const mapDefine = get(currentMapDefineAtom);
+    if (!mapDefine) return [];
+    return mapDefine.contentDataSources;
 })
 
 export const visibleDataSourceIdsAtom = atom((get) => {
-    const dataSourceGroups = get(dataSourceGroupsAtom);
+    const dataSourceGroups = get(itemDataSourceGroupsAtom);
     const idList = [] as string[];
     dataSourceGroups.forEach(group => {
         if (!group.visible) return;

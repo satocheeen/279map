@@ -19,7 +19,7 @@ import { GetContentsAPI, GetImageUrlAPI, GetSnsPreviewAPI, RemoveContentAPI, Upd
 import { useMap } from "../map/useMap";
 import { authLvAtom, currentMapKindAtom } from "../../store/session";
 import { filteredContentIdListAtom } from "../../store/filter";
-import { dataSourcesAtom } from "../../store/datasource";
+import { itemDataSourcesAtom } from "../../store/datasource";
 import { useAtom } from 'jotai';
 import { categoriesAtom } from "../../store/category";
 import { ConfirmBtnPattern, ConfirmResult } from "../common/confirm/types";
@@ -221,9 +221,9 @@ export default function Content(props: Props) {
         })
     }, [props.content, onEditContent, callApi]);
 
-    const [ dataSources ] = useAtom(dataSourcesAtom);
+    const [ itemDataSources ] = useAtom(itemDataSourcesAtom);
     const unlinkable = useMemo(() => {
-        const itemDataSource = dataSources.find(ds => ds.dataSourceId === props.itemId.dataSourceId);
+        const itemDataSource = itemDataSources.find(ds => ds.dataSourceId === props.itemId.dataSourceId);
         if (!itemDataSource) {
             console.warn('itemDataSource not found');
             return false;
@@ -234,7 +234,7 @@ export default function Content(props: Props) {
         } else {
             return false;
         }
-    }, [dataSources, props.content, props.itemId]);
+    }, [itemDataSources, props.content, props.itemId]);
 
     const onDelete = useCallback(async() => {
         const result = await confirm({
