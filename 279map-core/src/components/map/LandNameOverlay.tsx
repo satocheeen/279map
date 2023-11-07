@@ -1,7 +1,7 @@
 import { Overlay } from 'ol';
 import React, { useEffect, useMemo, useRef } from 'react';
 import styles from './LandNameOverlay.module.scss';
-import { FeatureType, ItemDefine } from '279map-common';
+import { DataSourceKindType, FeatureType, ItemDefine } from '279map-common';
 import { getMapKey, isEqualId } from '../../util/dataUtility';
 import { useMap } from './useMap';
 import { mapModeAtom, mapViewAtom } from '../../store/operation';
@@ -19,7 +19,7 @@ export default function LandNameOverlay() {
     const { map } = useMap();
     const [ dataSources ] = useAtom(dataSourcesAtom);
     const virtualItemDatasource = useMemo(() => {
-        return dataSources.find(ds => ds.itemContents.VirtualItem);
+        return dataSources.find(ds => ds.itemContents.kind===DataSourceKindType.Item);
     }, [dataSources]);
 
     const [ allItems ] = useAtom(allItemsAtom);

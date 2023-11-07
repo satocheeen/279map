@@ -174,7 +174,7 @@ export default function usePointStyle() {
         if (!icon) {
             // icon未指定の場合はレイヤデフォルトアイコンを設定
             const datasource = dataSources.find(ds => ds.dataSourceId === itemId.dataSourceId);
-            icon = datasource?.itemContents.RealItem?.kind === DataSourceKindType.RealItem ? datasource.itemContents.RealItem.defaultIcon : undefined;
+            icon = datasource?.itemContents.kind === DataSourceKindType.RealPointContent ? datasource.itemContents.defaultIcon : undefined;
         }
         const iconDefine = getIconDefine(icon);
 

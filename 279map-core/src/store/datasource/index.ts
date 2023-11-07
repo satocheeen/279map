@@ -1,5 +1,5 @@
 import { atom } from 'jotai';
-import { DataSourceInfo, MapKind } from '279map-common';
+import { DataSourceInfo, DataSourceKindType, MapKind } from '279map-common';
 import { currentMapDefineAtom, currentMapKindAtom } from '../session';
 
 /**
@@ -61,11 +61,7 @@ export const itemDataSourcesAtom = atom((get) => {
     // コンテンツのみのデータソースは除外する
     return dataSourceGroups.map(group => {
         const newDataSources = group.dataSources.filter(ds => {
-            if (mapKind === MapKind.Real) {
-                return ds.itemContents.RealItem || ds.itemContents.Track;
-            } else {
-                return ds.itemContents.VirtualItem;
-            }
+            return ds.itemContents.kind !== DataSourceKindType.Content;
         });
         return Object.assign({}, group, {
             dataSources: newDataSources,

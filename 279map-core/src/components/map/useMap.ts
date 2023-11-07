@@ -5,7 +5,7 @@ import { useAtomCallback, atomWithReducer } from 'jotai/utils';
 import { currentMapKindAtom, defaultExtentAtom, instanceIdAtom, mapIdAtom } from '../../store/session';
 import { GetItemsAPI, GetItemsByIdAPI } from 'tsunagumap-api';
 import { LoadedAreaInfo, LoadedItemKey, allItemsAtom, latestEditedTimeOfDatasourceAtom, loadedItemMapAtom } from '../../store/item';
-import { DataId, Extent } from '279map-common';
+import { DataId, DataSourceKindType, Extent } from '279map-common';
 import { dataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import useMyMedia from '../../util/useMyMedia';
 import { showingDetailItemIdAtom } from '../../store/operation';
@@ -87,7 +87,7 @@ export function useMap() {
             const dsInfo = datasources.find(ds => ds.dataSourceId === datasourceId);
             const key: LoadedItemKey = {
                 datasourceId,
-                zoom: dsInfo?.itemContents.Track ? zoom : undefined,
+                zoom: dsInfo?.itemContents.kind === DataSourceKindType.Track ? zoom : undefined,
             }
             return key;
         }, [])        
@@ -100,7 +100,7 @@ export function useMap() {
         useCallback((get, set, datasourceId: string, extent: Extent) => {
             const datasources = get(dataSourcesAtom);
             const dsInfo = datasources.find(ds => ds.dataSourceId === datasourceId);
-            if (!dsInfo?.itemContents.Track) {
+            if (dsInfo?.itemContents.kind !== DataSourceKindType.Track) {
                 // Track以外は関係なし
                 return undefined;
             }

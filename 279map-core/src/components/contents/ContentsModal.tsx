@@ -150,10 +150,8 @@ export default function ContentsModal(props: Props) {
         if (isTemporaryItem) return false;
         const targetDs = datasources.find(ds => ds.dataSourceId === props.id.dataSourceId);
         if (!targetDs) return false;
-        const info = mapKind === MapKind.Real ? targetDs.itemContents.RealItem : targetDs.itemContents.VirtualItem;
-        if (!info) return false;
-        return info.editable && compareAuth(authLv, Auth.Edit) >= 0
-    }, [props, authLv, datasources, mapKind, isTemporaryItem])
+        return targetDs.itemContents.editable && compareAuth(authLv, Auth.Edit) >= 0
+    }, [props, authLv, datasources, isTemporaryItem])
 
     const itemNameEditTipLabel = useMemo(() => {
         if (mapKind === MapKind.Real) {

@@ -5,7 +5,7 @@ import Tooltip from '../common/tooltip/Tooltip';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
-import { Auth, DataId, DataSourceLinkableContent, MapKind } from '279map-common';
+import { Auth, DataId, DataSourceKindType, DataSourceLinkableContent, MapKind } from '279map-common';
 import { GetContentsAPI, GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, UpdateItemAPI } from 'tsunagumap-api';
 import { Button } from '../common';
 import { compareAuth } from '../../util/CommonUtility';
@@ -74,19 +74,21 @@ export default function AddContentMenu(props: Props) {
         }
 
         // 追加可能なコンテンツ定義を取得
-        const linkableContents: DataSourceLinkableContent[] = [];
         if ('itemId' in props.target) {
-            if (mapKind === MapKind.Real && dataSource.itemContents.RealItem) {
-                Array.prototype.push.apply(linkableContents, dataSource.itemContents.RealItem.linkableContents);
-            }
-            if (mapKind === MapKind.Virtual && dataSource.itemContents.VirtualItem) {
-                Array.prototype.push.apply(linkableContents, dataSource.itemContents.VirtualItem.linkableContents);
-            }
-        } else {
-            if (dataSource.itemContents.Content) {
-                Array.prototype.push.apply(linkableContents, dataSource.itemContents.Content.linkableContents);
-            }
+            return dataSources.filter(ds => ds.itemContents.kind === DataSourceKindType.Content).map(ds => {
+                return {
+                    contentDatasourceId: ds.dataSourceId,
+                    max: 'multi',
+                }
+            });
         }
+        const targetId = props.target.contentId;
+        const targetDs = dataSources.find(ds => ds.dataSourceId === targetId.dataSourceId);
+        if (targetDs?.itemContents.kind !== DataSourceKindType.Content) {
+            console.warn('想定外');
+            return [];
+        }
+        const linkableContents = targetDs.itemContents.linkableContents;
 
         if (linkableContents.length === 0) {
             return [];
@@ -106,7 +108,7 @@ export default function AddContentMenu(props: Props) {
             }
         });
 
-    }, [item, props.target, dataSources, mapKind]);
+    }, [item, props.target, dataSources]);
 
     useEffect(() => {
         console.log('addableContentDefines', addableContentDefines);
@@ -121,7 +123,7 @@ export default function AddContentMenu(props: Props) {
                         if (!addable) return false;
                         // コンテンツデータソースが編集可能でなければ、新規追加は不可能
                         const target = dataSources.find(source => source.dataSourceId === def.contentDatasourceId);
-                        if (!target?.itemContents.Content?.editable) return false;
+                        if (!target?.itemContents.editable) return false;
 
                         return true;
                     });

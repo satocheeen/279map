@@ -10,7 +10,7 @@ import useConfirm from "../common/confirm/useConfirm";
 import reactStringReplace from "react-string-replace";
 import PopupMenuIcon from "../popup/PopupMenuIcon";
 import AddContentMenu from "../popup/AddContentMenu";
-import { Auth, ContentAttr, ContentsDefine, DataId, MapKind } from "279map-common";
+import { Auth, ContentAttr, ContentsDefine, DataId, DataSourceKindType, MapKind } from "279map-common";
 import Spinner from "../common/spinner/Spinner";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
@@ -228,12 +228,13 @@ export default function Content(props: Props) {
             console.warn('itemDataSource not found');
             return false;
         }
-        // アイテムとコンテンツの関係定義情報取得
-        const targetDs = (mapKind === MapKind.Real) ? itemDataSource.itemContents.RealItem : itemDataSource.itemContents.VirtualItem;
-        const targetContentDs = targetDs?.linkableContents.find(lc => lc.contentDatasourceId === props.content.id.dataSourceId);
-
-        return targetContentDs?.unlinkable ?? false;
-    }, [dataSources, props.content, props.itemId, mapKind]);
+        if (itemDataSource.dataSourceId === props.content.id.dataSourceId && itemDataSource.itemContents.kind === DataSourceKindType.RealPointContent) {
+            // アイテムと同一行で管理されているコンテンツはリンク解除不可能
+            true;
+        } else {
+            return false;
+        }
+    }, [dataSources, props.content, props.itemId]);
 
     const onDelete = useCallback(async() => {
         const result = await confirm({

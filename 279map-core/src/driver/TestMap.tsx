@@ -1,4 +1,4 @@
-import { Auth, CategoryDefine, DataId, DataSourceGroup, FeatureType, MapKind } from '279map-common';
+import { Auth, CategoryDefine, DataId, DataSourceGroup, DataSourceKindType, FeatureType, MapKind } from '279map-common';
 import React, { useState, useCallback, useMemo, useRef, useContext } from 'react';
 import { ServerInfo, TsunaguMapHandler, onDatasourceChangedParam } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
@@ -70,19 +70,13 @@ export default function TestMap() {
     const featureDataSourceGroups = useMemo(() => {
         return dataSourceGroups.map((group): DataSourceGroup => {
             const dataSources = group.dataSources.filter(ds => {
-                if (mapKind === MapKind.Real) {
-                    return ds.itemContents.RealItem || ds.itemContents.Track;
-
-                } else {
-                    return ds.itemContents.VirtualItem;
-
-                }
+                return ds.itemContents.kind !== DataSourceKindType.Content;
             });
             return Object.assign({}, group, {
                 dataSources,
             });
         });
-    }, [dataSourceGroups, mapKind]);
+    }, [dataSourceGroups]);
 
     const onMapLoad = useCallback((param: OnMapLoadParam) => {
         console.log('onMapLoad', param);
@@ -99,8 +93,8 @@ export default function TestMap() {
     }, []);
 
     // callbacks
-    const onSelect = useCallback((ids: DataId[]) => {
-        console.log('onSelect', ids, cnt);
+    const onSelect = useCallback((id: DataId) => {
+        console.log('onSelect', id, cnt);
         setCnt(cnt + 1);
     }, [cnt]);
 
