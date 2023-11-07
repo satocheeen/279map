@@ -26,7 +26,7 @@ export type DataSourceTable = {
     config: string | DatasourceConfig;
 
     // ODBAで使用するための接続関連情報
-    odba_info: string | DataSourceConnection;  // 登録時はstring、取得時はDataSourceConnection
+    odba_connection: string | DataSourceConnection;  // 登録時はstring、取得時はDataSourceConnection
 
     last_edited_time: string;
 }
