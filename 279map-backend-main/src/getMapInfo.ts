@@ -172,7 +172,7 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
 
         const dataSourceGroupMap = new Map<string, DataSourceInfo[]>();
         (rows as DataSourceTable[]).forEach((row) => {
-            const config = row.item_contents as DatasourceConfig;
+            const config = row.config as DatasourceConfig;
             if (config.kind === DataSourceKindType.Content) {
                 return;
             }
@@ -180,13 +180,13 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
                 // 村マップの場合は、RealPointContentやTrackは返さない
                 return;
             }
-            const group = row.group ?? '';
+            const group = config.layerGroup ?? '';
             if(!dataSourceGroupMap.has(group)) {
                 dataSourceGroupMap.set(group, []);
             }
             const visible = !visibleDataSources ? true : visibleDataSources.some(vds => {
                 if ('group' in vds) {
-                    return vds.group === row.group;
+                    return vds.group === config.layerGroup;
                 } else {
                     return vds.dataSourceId === row.data_source_id;
                 }
@@ -240,12 +240,12 @@ async function getContentDataSources(mapId: string): Promise<DataSourceInfo[]> {
     try {
         const sql = `select ds.* from data_source ds
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
-        where map_page_id =? and JSON_EXTRACT(ds.item_contents, '$.kind') = 'Content'
+        where map_page_id =? and ds.kind = 'Content'
         order by order_num`;
 
         const [rows] = await con.execute(sql, [mapId]);
         return (rows as schema.DataSourceTable[]).map((rec): DataSourceInfo => {{
-            const config = rec.item_contents as DatasourceConfig;
+            const config = rec.config as DatasourceConfig;
             return Object.assign({
                 dataSourceId: rec.data_source_id,
                 name: rec.name,

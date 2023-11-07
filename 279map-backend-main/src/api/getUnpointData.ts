@@ -35,13 +35,13 @@ async function getLinkableDataSources(currentMap: CurrentMap, dataSourceId: stri
 
         // 指定のデータソースを紐づけ可能にしているデータソースに絞る
         return (rows as DataSourceTable[]).filter(row => {
-            const config = (row.item_contents as DatasourceConfig);
+            const config = (row.config as DatasourceConfig);
             if (config.kind === DataSourceKindType.Item) {
                 return true;
             } else if (config.kind === DataSourceKindType.RealPointContent) {
                 return config.linkableContents;
             } else if (config.kind === DataSourceKindType.Content) {
-                return config.linkableContents.some(lc => lc.contentDatasourceId === dataSourceId);
+                return config.linkableChildContents;
             } else {
                 return false;
             }

@@ -35,7 +35,7 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                 // SNSコンテンツは編集不可
                 if (isSnsContent) return false;
         
-                return (row.item_contents as DatasourceConfig).editable ?? false;
+                return (row.config as DatasourceConfig).editable ?? false;
             }();
 
             const isDeletable = function() {
@@ -46,7 +46,7 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                 if (isSnsContent) return false;
 
                 // readonlyは削除不可
-                return (row.item_contents as DatasourceConfig).deletable ?? false;
+                return (row.config as DatasourceConfig).deletable ?? false;
         
             }();
 
