@@ -1,7 +1,7 @@
 import { ConnectionPool } from '.';
 import { getAncestorItemId } from "./util/utility";
 import { GetContentsParam, GetContentsResult } from '../279map-api-interface/src';
-import { DataId, MapKind, ContentsDefine, Auth, ItemContentDefine } from '279map-common';
+import { DataId, MapKind, ContentsDefine, Auth, DatasourceConfig } from '279map-common';
 import { PoolConnection } from 'mysql2/promise';
 import { ContentsInfo, ContentsTable, DataSourceTable, ItemContentLink, ItemsTable } from '../279map-backend-common/src/types/schema';
 import { CurrentMap } from '../279map-backend-common/src';
@@ -35,7 +35,7 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                 // SNSコンテンツは編集不可
                 if (isSnsContent) return false;
         
-                return (row.item_contents as ItemContentDefine).Content?.editable ?? false;
+                return (row.config as DatasourceConfig).editable ?? false;
             }();
 
             const isDeletable = function() {
@@ -46,7 +46,7 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                 if (isSnsContent) return false;
 
                 // readonlyは削除不可
-                return (row.item_contents as ItemContentDefine).Content?.deletable ?? false;
+                return (row.config as DatasourceConfig).deletable ?? false;
         
             }();
 

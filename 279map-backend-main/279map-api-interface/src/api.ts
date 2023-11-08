@@ -1,4 +1,4 @@
-import { Auth, CategoryDefine, ContentsDefine, DataId, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, ServerConfig, UnpointContent, User } from "279map-common";
+import { Auth, CategoryDefine, ContentsDefine, DataId, DataSourceInfo, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, ServerConfig, UnpointContent, User } from "279map-common";
 import { GeoJsonObject, Position } from "geojson";
 import { APIDefine, ContentAttr, SnsPreviewPost, MapDefine } from '279map-common';
 import { FilterDefine, DataSourceGroup } from "279map-common";
@@ -77,7 +77,8 @@ export type GetMapInfoParam = {
 export type GetMapInfoResult = {
     mapKind: MapKind;
     extent: Extent;
-    dataSourceGroups: DataSourceGroup[];
+    itemDataSourceGroups: DataSourceGroup[];
+    contentDataSources: DataSourceInfo[];
 };
 
 /**

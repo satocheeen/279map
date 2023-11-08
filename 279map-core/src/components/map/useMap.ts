@@ -5,10 +5,9 @@ import { useAtomCallback, atomWithReducer } from 'jotai/utils';
 import { currentMapKindAtom, defaultExtentAtom, instanceIdAtom, mapIdAtom } from '../../store/session';
 import { GetItemsAPI, GetItemsByIdAPI } from 'tsunagumap-api';
 import { LoadedAreaInfo, LoadedItemKey, allItemsAtom, latestEditedTimeOfDatasourceAtom, loadedItemMapAtom } from '../../store/item';
-import { DataId, Extent } from '279map-common';
-import { dataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
+import { DataId, DataSourceKindType, Extent } from '279map-common';
+import { itemDataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import useMyMedia from '../../util/useMyMedia';
-import { showingDetailItemIdAtom } from '../../store/operation';
 import Feature from "ol/Feature";
 import { Geometry } from 'ol/geom';
 import { sleep } from '../../util/CommonUtility';
@@ -82,12 +81,12 @@ export function useMap() {
 
     const getLoadedAreaMapKey = useAtomCallback(
         useCallback((get, set, datasourceId: string, zoom: number): LoadedItemKey => {
-            const datasources = get(dataSourcesAtom);
+            const datasources = get(itemDataSourcesAtom);
             // データソースがGPXの場合は、ZoomLv.もkeyとして扱う
             const dsInfo = datasources.find(ds => ds.dataSourceId === datasourceId);
             const key: LoadedItemKey = {
                 datasourceId,
-                zoom: dsInfo?.itemContents.Track ? zoom : undefined,
+                zoom: dsInfo?.kind === DataSourceKindType.Track ? zoom : undefined,
             }
             return key;
         }, [])        
@@ -98,9 +97,9 @@ export function useMap() {
      */
     const getExcludeItemIds = useAtomCallback(
         useCallback((get, set, datasourceId: string, extent: Extent) => {
-            const datasources = get(dataSourcesAtom);
+            const datasources = get(itemDataSourcesAtom);
             const dsInfo = datasources.find(ds => ds.dataSourceId === datasourceId);
-            if (!dsInfo?.itemContents.Track) {
+            if (dsInfo?.kind !== DataSourceKindType.Track) {
                 // Track以外は関係なし
                 return undefined;
             }

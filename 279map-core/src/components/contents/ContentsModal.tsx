@@ -14,7 +14,7 @@ import { compareAuth } from '../../util/CommonUtility';
 import EditItemNameModal from './EditItemNameModal';
 import PopupMenuIcon from '../popup/PopupMenuIcon';
 import { MdEdit } from 'react-icons/md';
-import { dataSourcesAtom } from '../../store/datasource';
+import { itemDataSourcesAtom } from '../../store/datasource';
 import { allItemsAtom } from '../../store/item';
 import { useMap } from '../map/useMap';
 
@@ -144,16 +144,14 @@ export default function ContentsModal(props: Props) {
     }, [item]);
 
     const [ authLv ] = useAtom(authLvAtom);
-    const [ datasources ] = useAtom(dataSourcesAtom);
+    const [ itemDatasources ] = useAtom(itemDataSourcesAtom);
     const isShowItemNameEditBtn = useMemo(() => {
         if (props.type !== 'item') return false;
         if (isTemporaryItem) return false;
-        const targetDs = datasources.find(ds => ds.dataSourceId === props.id.dataSourceId);
+        const targetDs = itemDatasources.find(ds => ds.dataSourceId === props.id.dataSourceId);
         if (!targetDs) return false;
-        const info = mapKind === MapKind.Real ? targetDs.itemContents.RealItem : targetDs.itemContents.VirtualItem;
-        if (!info) return false;
-        return info.editable && compareAuth(authLv, Auth.Edit) >= 0
-    }, [props, authLv, datasources, mapKind, isTemporaryItem])
+        return targetDs.editable && compareAuth(authLv, Auth.Edit) >= 0
+    }, [props, authLv, itemDatasources, isTemporaryItem])
 
     const itemNameEditTipLabel = useMemo(() => {
         if (mapKind === MapKind.Real) {

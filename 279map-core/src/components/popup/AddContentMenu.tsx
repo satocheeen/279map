@@ -5,13 +5,13 @@ import Tooltip from '../common/tooltip/Tooltip';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
-import { Auth, DataId, DataSourceLinkableContent, MapKind } from '279map-common';
+import { Auth, DataId, DataSourceKindType } from '279map-common';
 import { GetContentsAPI, GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, UpdateItemAPI } from 'tsunagumap-api';
 import { Button } from '../common';
 import { compareAuth } from '../../util/CommonUtility';
-import { authLvAtom, currentMapKindAtom } from '../../store/session';
+import { authLvAtom } from '../../store/session';
 import { useItems } from '../../store/item/useItems';
-import { dataSourcesAtom } from '../../store/datasource';
+import { contentDataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
 import { useApi } from '../../api/useApi';
 import useConfirm from '../common/confirm/useConfirm';
@@ -34,8 +34,7 @@ export default function AddContentMenu(props: Props) {
     const { onAddNewContent, onLinkUnpointedContent } = useContext(OwnerContext);
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
     const { callApi } = useApi();
-    const [ mapKind ] = useAtom(currentMapKindAtom);
-    const [ dataSources ] = useAtom(dataSourcesAtom);
+    const [ dataSources ] = useAtom(contentDataSourcesAtom);
     const [ authLv ] = useAtom(authLvAtom);
     const { getItem } = useItems();
     const item = useMemo(() => {
@@ -54,74 +53,42 @@ export default function AddContentMenu(props: Props) {
     /**
      * 追加可能なコンテンツ定義を返す
      */
-    const addableContentDefines = useMemo((): DataSourceLinkableContent[] => {
-        // 対象のデータソース情報取得
-        let dataSourceId: string;
-        if ('itemId' in props.target) {
-            dataSourceId = props.target.itemId.dataSourceId;
-        } else {
-            dataSourceId = props.target.contentId.dataSourceId;
-        }
-        const dataSource = dataSources.find(ds => ds.dataSourceId === dataSourceId);
-        if (!dataSource) {
-            console.warn('想定外 target dataSource not find.', dataSourceId);
-            return [];
-        }
-
+    const addableContentDatasources = useMemo((): string[] => {
         if ('contentId' in props.target && props.target.isSnsContent) {
             // SNS自動連携コンテンツは子コンテンツ追加不可
             return [];
         }
 
         // 追加可能なコンテンツ定義を取得
-        const linkableContents: DataSourceLinkableContent[] = [];
         if ('itemId' in props.target) {
-            if (mapKind === MapKind.Real && dataSource.itemContents.RealItem) {
-                Array.prototype.push.apply(linkableContents, dataSource.itemContents.RealItem.linkableContents);
-            }
-            if (mapKind === MapKind.Virtual && dataSource.itemContents.VirtualItem) {
-                Array.prototype.push.apply(linkableContents, dataSource.itemContents.VirtualItem.linkableContents);
-            }
-        } else {
-            if (dataSource.itemContents.Content) {
-                Array.prototype.push.apply(linkableContents, dataSource.itemContents.Content.linkableContents);
-            }
+            return dataSources.filter(ds => ds.kind === DataSourceKindType.Content).map(ds => {
+                return ds.dataSourceId;
+            });
         }
-
-        if (linkableContents.length === 0) {
+        const targetId = props.target.contentId;
+        const targetDs = dataSources.find(ds => ds.dataSourceId === targetId.dataSourceId);
+        if (targetDs?.kind !== DataSourceKindType.Content) {
+            console.warn('想定外');
             return [];
         }
-        // 追加余地のあるコンテンツ定義に絞る
-        return linkableContents.filter(def => {
-            if (def.max === 'multi') return true;
-    
-            // linkableContent.Singleの場合は、
-            // 同一データソースの既存コンテンツが存在しない場合のみOK
-            if ('itemId' in props.target) {
-                const exist = item?.contents.some(content => content.id.dataSourceId === def.contentDatasourceId);
-                return !exist;
-            } else {
-                const exist = props.target.children.some(child => child.dataSourceId === def.contentDatasourceId);
-                return !exist;
-            }
-        });
+        if (!targetDs.linkableChildContents) {
+            return [];
+        } else {
+            return [targetDs.dataSourceId];
+        }
 
-    }, [item, props.target, dataSources, mapKind]);
-
-    useEffect(() => {
-        console.log('addableContentDefines', addableContentDefines);
-    }, [addableContentDefines]);
+    }, [props.target, dataSources]);
 
     const creatableContentDataSources = useMemo((): LinkUnpointContentParam['dataSources'] => {
         return dataSources
                 // 追加対象データソースに絞る
                 .filter(ds => {
-                    return addableContentDefines.some(def => {
-                        const addable = def.contentDatasourceId === ds.dataSourceId && def.max === 'multi';
+                    return addableContentDatasources.some(addableDs => {
+                        const addable = addableDs === ds.dataSourceId;
                         if (!addable) return false;
                         // コンテンツデータソースが編集可能でなければ、新規追加は不可能
-                        const target = dataSources.find(source => source.dataSourceId === def.contentDatasourceId);
-                        if (!target?.itemContents.Content?.editable) return false;
+                        const target = dataSources.find(source => source.dataSourceId === addableDs);
+                        if (!target?.editable) return false;
 
                         return true;
                     });
@@ -132,12 +99,12 @@ export default function AddContentMenu(props: Props) {
                         name: ds.name,
                     }
                 });
-    }, [dataSources, addableContentDefines]);
+    }, [dataSources, addableContentDatasources]);
     const linkableContentDataSources = useMemo((): LinkUnpointContentParam['dataSources'] => {
         return dataSources
                 // 追加対象データソースに絞る
                 .filter(ds => {
-                    const target = addableContentDefines.find(def => def.contentDatasourceId === ds.dataSourceId);
+                    const target = addableContentDatasources.find(addableDs => addableDs === ds.dataSourceId);
                     return target;
                 })
                 .map(ds => {
@@ -146,7 +113,7 @@ export default function AddContentMenu(props: Props) {
                         name: ds.name,
                     }
                 });
-    }, [dataSources, addableContentDefines]);
+    }, [dataSources, addableContentDatasources]);
 
     /**
      * ツールチップメニュー表示時にエリア外クリックすると、ツールチップメニューを非表示にする
@@ -289,7 +256,7 @@ export default function AddContentMenu(props: Props) {
             callback: () => void;
         }[];
         console.log('editableAuthLv', editableAuthLv);
-        if (addableContentDefines.length === 0 || !editableAuthLv) {
+        if (addableContentDatasources.length === 0 || !editableAuthLv) {
             return items;
         }
         console.log('creatableContentDataSources', creatableContentDataSources);
@@ -307,7 +274,7 @@ export default function AddContentMenu(props: Props) {
             });
         }
         return items;
-    }, [editableAuthLv, onAddContent, creatableContentDataSources, linkableContentDataSources, addableContentDefines]);
+    }, [editableAuthLv, onAddContent, creatableContentDataSources, linkableContentDataSources, addableContentDatasources]);
 
     const onClick = useCallback((evt?: React.MouseEvent) => {
         if (evt) evt.stopPropagation();

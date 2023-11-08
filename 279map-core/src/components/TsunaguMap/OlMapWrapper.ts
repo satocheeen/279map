@@ -13,7 +13,7 @@ import VectorLayer from "ol/layer/Vector";
 import Style, { StyleFunction } from "ol/style/Style";
 import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
-import { DataId, FeatureType, ItemDefine, MapKind, DataSourceGroup, APIDefine } from '279map-common';
+import { DataId, FeatureType, ItemDefine, MapKind, DataSourceGroup, APIDefine, DataSourceKindType } from '279map-common';
 import BaseEvent from 'ol/events/Event';
 import * as MapUtility from '../../util/MapUtility';
 import { FeatureProperties } from '../../types/types';
@@ -159,12 +159,12 @@ export class OlMapWrapper {
 
             dataSourceGroups.forEach(group => {
                 group.dataSources.forEach(ds => {
-                    if (ds.itemContents.Track) {
+                    if (ds.kind === DataSourceKindType.Track) {
                         [[1, 8], [8, 13], [13, 21]].forEach(zoomLv => {
                             const layerDefine: LayerDefine = {
                                 dataSourceId: ds.dataSourceId,
                                 group: group.name ?? '',
-                                editable: ds.itemContents.Track?.editable ?? false,
+                                editable: ds.editable ?? false,
                                 layerType: LayerType.Track,
                                 zoomLv: {
                                     min: zoomLv[0],
@@ -174,12 +174,12 @@ export class OlMapWrapper {
                             this.addLayer(layerDefine, ds.visible);
                         })
     
-                    } else if (ds.itemContents.RealItem) {
+                    } else if (ds.kind === DataSourceKindType.Item || ds.kind === DataSourceKindType.RealPointContent) {
                         [LayerType.Point, LayerType.Topography].forEach(layerType => {
                             const layerDefine: LayerDefine = {
                                 dataSourceId: ds.dataSourceId,
                                 group: group.name ?? '',
-                                editable: ds.itemContents.RealItem?.editable ?? false,
+                                editable: ds.editable ?? false,
                                 layerType: layerType as LayerType.Point| LayerType.Topography,
                             };
                             this.addLayer(layerDefine, ds.visible);
@@ -194,14 +194,14 @@ export class OlMapWrapper {
             extent ??= [0, 0, 2, 2];
             dataSourceGroups.forEach(group => {
                 group.dataSources.forEach(ds => {
-                    if (!ds.itemContents.VirtualItem) {
+                    if (ds.kind !== DataSourceKindType.Item) {
                         return;
                     }
                     [LayerType.Point, LayerType.Topography].forEach(layerType => {
                         const layerDefine: LayerDefine = {
                             dataSourceId: ds.dataSourceId,
                             group: group.name ?? '',
-                            editable: ds.itemContents.VirtualItem?.editable ?? false,
+                            editable: ds.editable ?? false,
                             layerType: layerType as LayerType.Point| LayerType.Topography,
                         };
                         this.addLayer(layerDefine, ds.visible);

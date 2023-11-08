@@ -1,8 +1,10 @@
 import { ConnectionPool } from '.';
-import { ItemContentDefine, DataSourceGroup, DataSourceInfo, MapKind, MapPageOptions } from '279map-common';
+import { DatasourceConfig, DataSourceGroup, DataSourceInfo, MapKind, MapPageOptions } from '279map-common';
 import { GetMapInfoParam, GetMapInfoResult } from '../279map-api-interface/src';
 import mysql from 'mysql2/promise';
 import { DataSourceTable, MapPageInfoTable } from '../279map-backend-common/src/types/schema';
+import { DataSourceKindType } from '279map-common';
+import { schema } from '../279map-backend-common/src';
 
 /**
  * 指定の地図データページ配下のコンテンツ情報を返す
@@ -22,12 +24,14 @@ export async function getMapInfo({ param, mapId }: { param: GetMapInfoParam; map
     const extent = await getExtent(mapPageInfo.map_page_id, targetMapKind);
 
     // DataSourceを取得
-    const dataSourceGroups = await getDataSources(mapPageInfo.map_page_id, targetMapKind);
+    const itemDataSourceGroups = await getItemDataSourceGroups(mapPageInfo.map_page_id, targetMapKind);
+    const contentDataSources = await getContentDataSources(mapPageInfo.map_page_id);
 
     return {
         mapKind: targetMapKind,
         extent,
-        dataSourceGroups,
+        itemDataSourceGroups,
+        contentDataSources,
     }
 
 }
@@ -139,11 +143,11 @@ async function getExtent(mapPageId: string, mapKind: MapKind): Promise<[number,n
 }
 
 /**
- * 指定の地図で使用されているデータソース一覧を返す
+ * 指定の地図で使用されているアイテムのデータソース一覧を返す
  * @param mapId 
  * @param mapKind 
  */
-async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSourceGroup[]> {
+async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise<DataSourceGroup[]> {
     const con = await ConnectionPool.getConnection();
 
     try {
@@ -168,25 +172,31 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
 
         const dataSourceGroupMap = new Map<string, DataSourceInfo[]>();
         (rows as DataSourceTable[]).forEach((row) => {
-            const itemContents = row.item_contents as ItemContentDefine;
-            const group = row.group ?? '';
+            const config = row.config as DatasourceConfig;
+            if (config.kind === DataSourceKindType.Content) {
+                return;
+            }
+            if (mapKind === MapKind.Virtual && config.kind !== DataSourceKindType.Item) {
+                // 村マップの場合は、RealPointContentやTrackは返さない
+                return;
+            }
+            const group = config.layerGroup ?? '';
             if(!dataSourceGroupMap.has(group)) {
                 dataSourceGroupMap.set(group, []);
             }
             const visible = !visibleDataSources ? true : visibleDataSources.some(vds => {
                 if ('group' in vds) {
-                    return vds.group === row.group;
+                    return vds.group === config.layerGroup;
                 } else {
                     return vds.dataSourceId === row.data_source_id;
                 }
             });
             const infos = dataSourceGroupMap.get(group) as DataSourceInfo[];
-            infos.push({
+            infos.push(Object.assign({
                 dataSourceId: row.data_source_id,
                 name: row.name,
-                itemContents,
                 visible,
-            });
+            }, config));
 
         });
 
@@ -214,6 +224,37 @@ async function getDataSources(mapId: string, mapKind: MapKind): Promise<DataSour
 
     } finally {
         await con.commit();
+        con.release();
+    }
+
+}
+
+/**
+ * 指定の地図で使用されているコンテンツのデータソース一覧を返す
+ * @param mapId 
+ * @param mapKind 
+ */
+async function getContentDataSources(mapId: string): Promise<DataSourceInfo[]> {
+    const con = await ConnectionPool.getConnection();
+
+    try {
+        const sql = `select ds.* from data_source ds
+        inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
+        where map_page_id =? and ds.kind = 'Content'
+        order by order_num`;
+
+        const [rows] = await con.execute(sql, [mapId]);
+        return (rows as schema.DataSourceTable[]).map((rec): DataSourceInfo => {{
+            const config = rec.config as DatasourceConfig;
+            return Object.assign({
+                dataSourceId: rec.data_source_id,
+                name: rec.name,
+                visible: true,
+            }, config);
+        }})
+
+    } finally {
+        await con.rollback();
         con.release();
     }
 

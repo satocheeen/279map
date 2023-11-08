@@ -5,7 +5,7 @@ import { useSubscribe } from '../../api/useSubscribe';
 import { currentMapDefineAtom, currentMapKindAtom } from '../../store/session';
 import { atom, useAtom } from 'jotai';
 import { useItems } from '../../store/item/useItems';
-import { itemDataSourcesAtom } from '../../store/datasource';
+import { itemDataSourceGroupsAtom, itemDataSourcesAtom } from '../../store/datasource';
 import { mapInstanceIdAtom, useMap } from '../map/useMap';
 import { dialogTargetAtom, showingDetailItemIdAtom } from '../../store/operation';
 import { OwnerContext } from './TsunaguMap';
@@ -99,7 +99,7 @@ function useItemUpdater() {
     const [ itemMap, setItemMap ] = useAtom(allItemsAtom);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
-    const [ itemDataSources ] = useAtom(itemDataSourcesAtom);
+    const [ itemDataSourceGroups ] = useAtom(itemDataSourceGroupsAtom);
     const [ currentMapKind ] = useAtom(currentMapKindAtom);
     // 地図初期化済みの地図種別
     const [ initializedMapKind, setInitializedMapKind ] = useState<MapKind|undefined>();
@@ -122,7 +122,7 @@ function useItemUpdater() {
         map.clearAllLayers();
         
         // 初期レイヤ生成
-        map.initialize(currentMapKind, itemDataSources, currentMapDefine?.extent);
+        map.initialize(currentMapKind, itemDataSourceGroups, currentMapDefine?.extent);
 
         setDialogTarget(undefined);
         fitToDefaultExtent(false);
@@ -131,7 +131,7 @@ function useItemUpdater() {
         setLoadedItemMap({});
         setInitialLoading(true);
 
-    }, [map, setDialogTarget, setItemMap, setSelectedItemIds, currentMapDefine, currentMapKind, initializedMapKind, itemDataSources, fitToDefaultExtent, setLoadedItemMap, setInitialLoading]);
+    }, [map, setDialogTarget, setItemMap, setSelectedItemIds, currentMapDefine, currentMapKind, initializedMapKind, itemDataSourceGroups, fitToDefaultExtent, setLoadedItemMap, setInitialLoading]);
 
     /**
      * アイテムFeatureを地図に反映する
@@ -211,7 +211,7 @@ function useMapStyleUpdater() {
  * データソース情報の変更検知して、レイヤの表示・非表示切り替え
  */
 function useLayerVisibleChanger() {
-    const [ itemDataSources ] = useAtom(itemDataSourcesAtom);
+    const [ itemDataSources ] = useAtom(itemDataSourceGroupsAtom);
     const { map } = useMap();
 
     useEffect(() => {
