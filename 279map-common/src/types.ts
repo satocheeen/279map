@@ -87,6 +87,8 @@ export interface MapPageOptions {
     })[];
     guestUserAuthLevel: Auth;    // ゲストユーザの操作権限
     newUserAuthLevel: Auth; // 新規登録ユーザに設定する権限
+    usePanels?: string[];   // 使用パネル
+    options?: string[]; // その他オプション文字列
 }
 /**
  * 地図定義情報
