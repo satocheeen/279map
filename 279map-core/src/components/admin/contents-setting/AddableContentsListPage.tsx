@@ -8,12 +8,14 @@ import { useWatch } from '../../../util/useWatch2';
 
 type Props = {
     // 追加対象として✔されたコンテンツ一覧
-    onChange?: (items: AddableContentItem[]) => void;
+    onChange?: (items: ContentDatasourceItem[]) => void;
 }
 
-export type AddableContentItem = {
+export type ContentDatasourceItem = {
     datasourceId: string;
     name: string;
+}
+type AddableContentItem = ContentDatasourceItem & {
     checked?: boolean;
 }
 export default function AddableContentsListPage(props: Props) {
