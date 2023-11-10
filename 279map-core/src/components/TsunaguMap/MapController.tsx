@@ -2,7 +2,7 @@ import { ItemDefine, MapKind } from '279map-common';
 import React, { useRef, useMemo, useContext, useEffect, lazy, Suspense, useState } from 'react';
 import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useSubscribe } from '../../api/useSubscribe';
-import { currentMapDefineAtom, currentMapKindAtom } from '../../store/session';
+import { currentMapDefineAtom, currentMapKindAtom, mapDefineReducerAtom } from '../../store/session';
 import { atom, useAtom } from 'jotai';
 import { useItems } from '../../store/item/useItems';
 import { itemDataSourceGroupsAtom, itemDataSourcesAtom } from '../../store/datasource';
@@ -45,13 +45,31 @@ export default function MapController() {
  * - 地図に対してsubscribe, unsubscribeする
  */
 function useMapInitializer() {
-    // 地図種別が変更されたら、地図に対してsubscribe, unsubscribeする
     const [ currentMapKind ] = useAtom(currentMapKindAtom);
     const { getSubscriber } = useSubscribe();
     const { removeItems } = useItems();
     const { updateItems } = useMap();
     const [ mapInstanceId ] = useAtom(mapInstanceIdAtom);
 
+    // 地図の接続完了したら、地図情報に対するsubscribe開始する
+    const [, dispatchMapDefine] = useAtom(mapDefineReducerAtom);
+    useEffect(() => {
+        const subscriber = getSubscriber();
+        if (!subscriber) return;
+
+        const h = subscriber.subscribeMap({}, 'mapinfo-update', undefined, (payload) => {
+            dispatchMapDefine();
+        });
+
+        return () => {
+            if (h) {
+                subscriber.unsubscribe(h);
+            }
+        }
+
+    }, [getSubscriber, dispatchMapDefine]);
+
+    // 地図種別が変更されたら、地図に対してsubscribe, unsubscribeする
     useEffect(() => {
         if (!currentMapKind) return;
 

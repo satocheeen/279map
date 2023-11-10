@@ -1457,6 +1457,10 @@ app.post(`/api/${LinkContentDatasourceToMapAPI.uri}`,
             });
             res.send('complete');
 
+            broadCaster.publish(req.currentMap.mapId, undefined, {
+                type: 'mapinfo-update',
+            })
+
         } catch(e) {
             apiLogger.warn('get-linkable-contents API error', e);
             res.status(500).send({

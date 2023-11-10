@@ -42,7 +42,11 @@ export const connectStatusLoadableAtom = loadable(connectStatusAtom);
 
 // ユーザに表示指定された地図種別
 export const specifiedMapKindAtom = atom<MapKind|undefined>(undefined);
+
+export const mapDefineReducerAtom = atomWithReducer(0, (prev) => prev+1);
 const mapDefineAtom = atom<Promise<GetMapInfoResult>>(async(get) => {
+    get(mapDefineReducerAtom);
+
     const connectStatus = await get(connectStatusAtom);
     const specifiedMapKind = get(specifiedMapKindAtom);
     const mapKind = specifiedMapKind ?? connectStatus.mapDefine.defaultMapKind;

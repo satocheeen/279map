@@ -33,6 +33,9 @@ export default function DefaultContentsSettingModal(props: Props) {
                 })
             })
             set(modalSpinnerAtom, false);
+
+            // コンテンツ一覧ページに戻る
+            setPage('current');
         }, [addTargetList, callApi])
     )
 
