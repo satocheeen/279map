@@ -1,13 +1,13 @@
 import { Overlay } from 'ol';
 import React, { useEffect, useMemo, useRef } from 'react';
 import styles from './LandNameOverlay.module.scss';
-import { FeatureType, ItemDefine } from '279map-common';
+import { DataSourceKindType, FeatureType, ItemDefine } from '279map-common';
 import { getMapKey, isEqualId } from '../../util/dataUtility';
 import { useMap } from './useMap';
 import { mapModeAtom, mapViewAtom } from '../../store/operation';
 import { allItemsAtom } from '../../store/item';
 import { useAtom } from 'jotai';
-import { dataSourcesAtom } from '../../store/datasource';
+import { itemDataSourcesAtom } from '../../store/datasource';
 import { MapMode } from '../../types/types';
 import { geoJsonToTurfPolygon } from '../../util/MapUtility';
 import { bboxPolygon, booleanContains, centerOfMass } from '@turf/turf';
@@ -17,9 +17,9 @@ const LandNameShowZoomLv = 8.17
 
 export default function LandNameOverlay() {
     const { map } = useMap();
-    const [ dataSources ] = useAtom(dataSourcesAtom);
+    const [ dataSources ] = useAtom(itemDataSourcesAtom);
     const virtualItemDatasource = useMemo(() => {
-        return dataSources.find(ds => ds.itemContents.VirtualItem);
+        return dataSources.find(ds => ds.kind===DataSourceKindType.Item);
     }, [dataSources]);
 
     const [ allItems ] = useAtom(allItemsAtom);

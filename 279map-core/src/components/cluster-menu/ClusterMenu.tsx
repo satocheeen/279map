@@ -8,7 +8,7 @@ import { getMapKey } from '../../util/dataUtility';
 import { useMap } from '../map/useMap';
 import { BsImage } from 'react-icons/bs';
 import { useItem } from '../../store/item/useItem';
-import { dataSourcesAtom } from '../../store/datasource';
+import { itemDataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
 
 const ARROW_HEIGHT = 20;
@@ -96,7 +96,7 @@ function MenuItem(props: MenuItemProp) {
 
     const { getIconDefine } = useIcon();
 
-    const [ dataSources ] = useAtom(dataSourcesAtom);
+    const [ dataSources ] = useAtom(itemDataSourcesAtom);
     const iconDefine = useMemo(() => {
         if (!item?.geoProperties) {
             return getIconDefine();
@@ -104,7 +104,7 @@ function MenuItem(props: MenuItemProp) {
         if (!('icon' in item.geoProperties)) {
             // icon未指定の場合はレイヤデフォルトアイコンを設定
             const datasource = dataSources.find(ds => ds.dataSourceId === item.id.dataSourceId);
-            const icon = datasource?.itemContents.RealItem?.kind === DataSourceKindType.RealItem ? datasource.itemContents.RealItem.defaultIcon : undefined;
+            const icon = datasource?.kind === DataSourceKindType.RealPointContent ? datasource.defaultIcon : undefined;
             return getIconDefine(icon);
         }
         return getIconDefine(item.geoProperties.icon);

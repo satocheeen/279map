@@ -12,7 +12,7 @@ import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { CategoryDefine, ContentsDefine, DataId, DataSourceGroup, EventDefine, FeatureType, MapKind, UnpointContent } from '279map-common';
 import { MapMode, TsunaguMapHandler } from '../../types/types';
 import { useAtom } from 'jotai';
-import { itemDataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
+import { itemDataSourceGroupsAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import { useAtomCallback } from 'jotai/utils';
 import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
@@ -221,7 +221,7 @@ function useMapLoadListener() {
  */
 function useDataSourceChangeListener() {
     const ownerContext = useContext(OwnerContext);
-    const [ itemDataSources ] = useAtom(itemDataSourcesAtom);
+    const [ itemDataSources ] = useAtom(itemDataSourceGroupsAtom);
     const latestDataSourceGroupsRef = useRef<DataSourceGroup[]>();
 
      // マウント後でないとイベント発火できないので、useEffect内で処理

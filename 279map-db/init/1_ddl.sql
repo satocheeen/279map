@@ -17,9 +17,9 @@ CREATE TABLE `map_page_info` (
 CREATE TABLE `data_source` (
   `data_source_id` varchar(100) NOT NULL,
   `name` varchar(100) NOT NULL,
-  `group` varchar(100) DEFAULT NULL,
-  `item_contents` json NOT NULL,
-  `connection` json NOT NULL,
+  `kind` enum('Item','RealPointContent','Content','Track') NOT NULL,
+  `config` json NOT NULL,
+  `odba_connection` json NOT NULL,
   `last_edited_time` varchar(100) NOT NULL,
   PRIMARY KEY (`data_source_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;

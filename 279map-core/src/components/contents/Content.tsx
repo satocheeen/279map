@@ -10,7 +10,7 @@ import useConfirm from "../common/confirm/useConfirm";
 import reactStringReplace from "react-string-replace";
 import PopupMenuIcon from "../popup/PopupMenuIcon";
 import AddContentMenu from "../popup/AddContentMenu";
-import { Auth, ContentAttr, ContentsDefine, DataId, MapKind } from "279map-common";
+import { Auth, ContentAttr, ContentsDefine, DataId, DataSourceKindType, MapKind } from "279map-common";
 import Spinner from "../common/spinner/Spinner";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
@@ -19,7 +19,7 @@ import { GetContentsAPI, GetImageUrlAPI, GetSnsPreviewAPI, RemoveContentAPI, Upd
 import { useMap } from "../map/useMap";
 import { authLvAtom, currentMapKindAtom } from "../../store/session";
 import { filteredContentIdListAtom } from "../../store/filter";
-import { dataSourcesAtom } from "../../store/datasource";
+import { itemDataSourcesAtom } from "../../store/datasource";
 import { useAtom } from 'jotai';
 import { categoriesAtom } from "../../store/category";
 import { ConfirmBtnPattern, ConfirmResult } from "../common/confirm/types";
@@ -221,19 +221,20 @@ export default function Content(props: Props) {
         })
     }, [props.content, onEditContent, callApi]);
 
-    const [ dataSources ] = useAtom(dataSourcesAtom);
+    const [ itemDataSources ] = useAtom(itemDataSourcesAtom);
     const unlinkable = useMemo(() => {
-        const itemDataSource = dataSources.find(ds => ds.dataSourceId === props.itemId.dataSourceId);
+        const itemDataSource = itemDataSources.find(ds => ds.dataSourceId === props.itemId.dataSourceId);
         if (!itemDataSource) {
             console.warn('itemDataSource not found');
             return false;
         }
-        // アイテムとコンテンツの関係定義情報取得
-        const targetDs = (mapKind === MapKind.Real) ? itemDataSource.itemContents.RealItem : itemDataSource.itemContents.VirtualItem;
-        const targetContentDs = targetDs?.linkableContents.find(lc => lc.contentDatasourceId === props.content.id.dataSourceId);
-
-        return targetContentDs?.unlinkable ?? false;
-    }, [dataSources, props.content, props.itemId, mapKind]);
+        if (itemDataSource.dataSourceId === props.content.id.dataSourceId && itemDataSource.kind === DataSourceKindType.RealPointContent) {
+            // アイテムと同一行で管理されているコンテンツはリンク解除不可能
+            true;
+        } else {
+            return false;
+        }
+    }, [itemDataSources, props.content, props.itemId]);
 
     const onDelete = useCallback(async() => {
         const result = await confirm({
