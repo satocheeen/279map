@@ -62,6 +62,7 @@ export type DatasourceConfig = {
 } | {
     kind: DataSourceKindType.Content;
     linkableChildContents: boolean; // 子コンテンツの追加が可能かどうか
+    disableUnlinkMap?: boolean;     // trueの場合、当該コンテンツデータソースを地図から外すこと不可
 });
 
 export type DataSourceInfo = DatasourceConfig & {
