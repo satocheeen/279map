@@ -1,3 +1,5 @@
+SET CHARSET UTF8;
+
 -- 279map_db.map_page_info definition
 
 CREATE TABLE `map_page_info` (
