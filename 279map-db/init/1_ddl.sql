@@ -1,3 +1,5 @@
+SET CHARSET UTF8;
+
 -- 279map_db.map_page_info definition
 
 CREATE TABLE `map_page_info` (
@@ -7,6 +9,7 @@ CREATE TABLE `map_page_info` (
   `default_map` enum('Real','Virtual') NOT NULL,
   `public_range` enum('Public','Private') NOT NULL,
   `options` json DEFAULT NULL,
+  `odba_connection` json NOT NULL COMMENT '原本DB関連の任意情報',
   `last_edited_time` varchar(100) NOT NULL,
   PRIMARY KEY (`map_page_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
@@ -19,7 +22,7 @@ CREATE TABLE `data_source` (
   `name` varchar(100) NOT NULL,
   `kind` enum('Item','RealPointContent','Content','Track') NOT NULL,
   `config` json NOT NULL,
-  `odba_connection` json NOT NULL,
+  `odba_connection` json NOT NULL COMMENT '原本DB関連の任意情報',
   `last_edited_time` varchar(100) NOT NULL,
   PRIMARY KEY (`data_source_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;

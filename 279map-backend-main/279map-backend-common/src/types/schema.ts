@@ -12,10 +12,14 @@ export type MapPageInfoTable = {
     default_map: MapKind;
     public_range: PublicRange;
     options?: string | MapPageOptions;   // 登録時はstring、取得時はMapPageOptions
+
+    // ODBAで使用するための接続関連情報
+    odba_connection: string | OdbaConnection;  // 登録時はstring、取得時はDataSourceConnection
     last_edited_time: string;
 }
-export interface DataSourceConnection {
-    type: string;
+export interface OdbaConnection {
+    type: string;   // ODBA識別名称
+    // 他に必要な項目は、ODBA内で個別に設定する
 }
 export type DataSourceTable = {
     data_source_id: string;
@@ -26,7 +30,7 @@ export type DataSourceTable = {
     config: string | DatasourceConfig;
 
     // ODBAで使用するための接続関連情報
-    odba_connection: string | DataSourceConnection;  // 登録時はstring、取得時はDataSourceConnection
+    odba_connection: string | OdbaConnection;  // 登録時はstring、取得時はDataSourceConnection
 
     last_edited_time: string;
 }
