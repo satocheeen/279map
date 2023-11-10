@@ -160,6 +160,19 @@ export type OdbaGetLinkableContentsResult = {
     }[];
 }
 
+export const OdbaLinkContentDatasourceToMapAPI = {
+    uri: 'link-contentdatasource-map',
+    method: 'post',
+    resultType: 'json',
+} as APIDefine<OdbaLinkContentDatasourceToMapParam, void>;
+export type OdbaLinkContentDatasourceToMapParam = CommonParam & {
+    contents: {
+        datasourceId: string;
+        name: string;
+    }[];
+}
+
+
 /**
  * for Android
  */
