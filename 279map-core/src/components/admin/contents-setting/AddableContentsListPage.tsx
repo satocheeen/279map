@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useApi } from '../../../api/useApi';
 import { GetLinkableContentsAPI } from 'tsunagumap-api';
-import styles from './DefaultContentsSettingModal.module.scss';
 import { useAtom } from 'jotai';
 import { modalSpinnerAtom } from '../../common/modal/Modal';
 import { useWatch } from '../../../util/useWatch2';
+import ListGroup from '../../common/list/ListGroup';
+import styles from './AddableContentsListPage.module.scss';
 
 type Props = {
     // 追加対象として✔されたコンテンツ一覧
@@ -54,28 +55,29 @@ export default function AddableContentsListPage(props: Props) {
         });
     }, [])
 
+    const handleItemClicked = useCallback((index: number) => {
+        const newVal = !list[index].checked;
+        handleChecked(index, newVal);
+    }, [list, handleChecked]);
+
     return (
         <div className={styles.TableContainer}>
-            <table className={styles.Table}>
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>コンテンツ名</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {list.map((ds, index) => {
-                        return (
-                            <tr key={ds.datasourceId}>
-                                <td>
+            <ListGroup>
+                {list.map((ds, index) => {
+                    return (
+                        <ListGroup.Item key={ds.datasourceId} onClick={() => handleItemClicked(index)}>
+                            <div className={styles.Item}>
+                                <span>
                                     <input type='checkbox' checked={ds.checked ?? false} onChange={(evt) => handleChecked(index, evt.target.checked)} />
-                                </td>
-                                <td>{ds.name}</td>
-                            </tr>
-                        )
-                    })}
-                </tbody>
-            </table>
+                                </span>
+                                <span>
+                                    {ds.name}
+                                </span>
+                            </div>
+                        </ListGroup.Item>
+                    )
+                })}
+            </ListGroup>
         </div>
     );
 }

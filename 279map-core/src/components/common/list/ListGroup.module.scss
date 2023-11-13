@@ -1,16 +1,22 @@
 .Group {
     background-color: var(--white);
     color: var(--black);
+    border: 1px solid var(--dark-012);
+    border-radius: 5px;
 }
 .Item {
     display: flex;
-    border: 1px solid var(--dark-012);
-    border-radius: 5px;
+    border-bottom: 1px solid var(--dark-012);
     box-sizing: border-box;
     padding: 5px;
     cursor: pointer;
 
+    &:last-child {
+        border-bottom: none;
+    }
+
     &:hover {
-        filter: brightness(2.5);
+        opacity:0.5;
+        transition:0.3s;
     }
 }

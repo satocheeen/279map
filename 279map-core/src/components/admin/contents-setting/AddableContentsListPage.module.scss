@@ -1,0 +1,9 @@
+.Item {
+    display: flex;
+    // justify-content: space-between;
+    width: calc(100% - 10px);
+
+    *:first-child {
+        margin-right: 5px;
+    }
+}

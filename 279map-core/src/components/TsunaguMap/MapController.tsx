@@ -67,7 +67,7 @@ function useMapInitializer() {
             }
         }
 
-    }, [getSubscriber, dispatchMapDefine]);
+    }, [getSubscriber, dispatchMapDefine, currentMapKind]);
 
     // 地図種別が変更されたら、地図に対してsubscribe, unsubscribeする
     useEffect(() => {

@@ -16,7 +16,7 @@ export default function ListGroup(props: Props) {
 
 type ItemProps = {
     onClick?: () => void;
-    children: string | JSX.Element | JSX.Element[];
+    children: string | JSX.Element | (string | JSX.Element)[];
 }
 function ListItem(props: ItemProps) {
     const onClick = useCallback(() => {
