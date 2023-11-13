@@ -172,6 +172,17 @@ export type OdbaLinkContentDatasourceToMapParam = CommonParam & {
     }[];
 }
 
+export const OdbaUnlinkContentDatasourceFromMapAPI = {
+    uri: 'unlink-contentdatasource-map',
+    method: 'post',
+    resultType: 'json',
+} as APIDefine<OdbaUnlinkContentDatasourceFromMapParam, void>;
+export type OdbaUnlinkContentDatasourceFromMapParam = CommonParam & {
+    contents: {
+        datasourceId: string;
+    }[];
+}
+
 
 /**
  * for Android
