@@ -1,7 +1,7 @@
 import { APIDefine, DataId } from "279map-common";
 import { Request, Response, Express } from 'express';
 import { Logger } from "log4js";
-import { OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetLinkableContentsResult, OdbaGetUnpointDataAPI, OdbaLinkContentDatasourceToMapAPI, OdbaLinkContentDatasourceToMapParam, OdbaLinkContentToItemAPI, OdbaLinkContentToItemParam, OdbaRegistContentAPI, OdbaRegistContentParam, OdbaRegistItemAPI, OdbaRegistItemParam, OdbaRemoveContentAPI, OdbaRemoveContentParam, OdbaRemoveItemAPI, OdbaRemoveItemParam, OdbaUpdateContentAPI, OdbaUpdateContentParam, OdbaUpdateItemAPI, OdbaUpdateItemParam } from "./dba-api-interface";
+import { OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetLinkableContentsResult, OdbaGetUnpointDataAPI, OdbaLinkContentDatasourceToMapAPI, OdbaLinkContentDatasourceToMapParam, OdbaLinkContentToItemAPI, OdbaLinkContentToItemParam, OdbaRegistContentAPI, OdbaRegistContentParam, OdbaRegistItemAPI, OdbaRegistItemParam, OdbaRemoveContentAPI, OdbaRemoveContentParam, OdbaRemoveItemAPI, OdbaRemoveItemParam, OdbaUnlinkContentDatasourceFromMapAPI, OdbaUnlinkContentDatasourceFromMapParam, OdbaUpdateContentAPI, OdbaUpdateContentParam, OdbaUpdateItemAPI, OdbaUpdateItemParam } from "./dba-api-interface";
 import OdbaInterface from "./OdbaInterface";
 import { CurrentMap } from "../types";
 
@@ -164,6 +164,12 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
                 return await odba.linkContentDatasourceToMap(param.param);
             },
         },
+        {
+            define: OdbaUnlinkContentDatasourceFromMapAPI,
+            func: async(param: OdbaAPIFuncParam<OdbaUnlinkContentDatasourceFromMapParam>): Promise<void> => {
+                return await odba.unlinkContentDatasourceFromMap(param.param);
+            },
+        }
     ];
     registAPIs(app, apiList, logger);
 }
