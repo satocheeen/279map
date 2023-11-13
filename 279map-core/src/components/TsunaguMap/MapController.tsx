@@ -2,7 +2,7 @@ import { ItemDefine, MapKind } from '279map-common';
 import React, { useRef, useMemo, useContext, useEffect, lazy, Suspense, useState } from 'react';
 import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useSubscribe } from '../../api/useSubscribe';
-import { currentMapDefineAtom, currentMapKindAtom, mapDefineReducerAtom } from '../../store/session';
+import { currentMapDefineAtom, currentMapKindAtom, mapDefineLoadableAtom, mapDefineReducerAtom } from '../../store/session';
 import { atom, useAtom } from 'jotai';
 import { useItems } from '../../store/item/useItems';
 import { itemDataSourceGroupsAtom, itemDataSourcesAtom } from '../../store/datasource';
@@ -18,6 +18,7 @@ import useTrackStyle from '../map/useTrackStyle';
 import { filteredItemIdListAtom } from '../../store/filter';
 import VectorSource from 'ol/source/Vector';
 import useMyMedia from '../../util/useMyMedia';
+import { useWatch } from '../../util/useWatch2';
 
 const ContentsModal = lazy(() => import('../contents/ContentsModal'));
 
@@ -123,14 +124,15 @@ function useItemUpdater() {
     const [ initializedMapKind, setInitializedMapKind ] = useState<MapKind|undefined>();
     const [ , setLoadedItemMap] = useAtom(loadedItemMapAtom);
     const [ , setInitialLoading ] = useAtom(initialLoadingAtom);
-    const [ , setSelectedItemIds ] = useAtom(showingDetailItemIdAtom);
     const [ currentMapDefine ] = useAtom(currentMapDefineAtom);
     const [ , setDialogTarget ] = useAtom(dialogTargetAtom);
+
+    const [ mapDefineLoadable ] = useAtom(mapDefineLoadableAtom);
 
     /**
      * 地図が切り替わったら、レイヤ再配置
      */
-    useEffect(() => {
+    useWatch(mapDefineLoadable, () => {
         if (!map || !currentMapKind) return;
         if (initializedMapKind ===  currentMapKind) return;
 
@@ -148,8 +150,7 @@ function useItemUpdater() {
         prevGeoJsonItemsRef.current = [];
         setLoadedItemMap({});
         setInitialLoading(true);
-
-    }, [map, setDialogTarget, setItemMap, setSelectedItemIds, currentMapDefine, currentMapKind, initializedMapKind, itemDataSourceGroups, fitToDefaultExtent, setLoadedItemMap, setInitialLoading]);
+    })
 
     /**
      * アイテムFeatureを地図に反映する
