@@ -21,7 +21,7 @@ import { getMapInfoById } from './getMapDefine';
 import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, GetEventParam, GetCategoryParam, RequestAPI, RequestParam, GetUserListAPI, GetUserListResult, ChangeAuthLevelAPI, ChangeAuthLevelParam, GetItemsByIdAPI, GetItemsByIdParam, GetLinkableContentsAPI, LinkContentDatasourceToMapAPI, LinkContentDatasourceToMapParam } from '../279map-api-interface/src/api';
+import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, GetEventParam, GetCategoryParam, RequestAPI, RequestParam, GetUserListAPI, GetUserListResult, ChangeAuthLevelAPI, ChangeAuthLevelParam, GetItemsByIdAPI, GetItemsByIdParam, GetLinkableContentsAPI, LinkContentDatasourceToMapAPI, LinkContentDatasourceToMapParam, UnlinkContentDatasourceFromMapAPI, UnLinkContentDatasourceFromMapParam } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 import { search } from './api/search';
@@ -30,7 +30,7 @@ import { OriginalAuthManagement } from './auth/OriginalAuthManagement';
 import { NoneAuthManagement } from './auth/NoneAuthManagement';
 import { MapPageInfoTable } from '../279map-backend-common/src/types/schema';
 import { CurrentMap, sleep } from '../279map-backend-common/src';
-import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUnpointDataAPI, OdbaLinkContentDatasourceToMapAPI, OdbaLinkContentToItemAPI, OdbaRegistContentAPI, OdbaRegistItemAPI, OdbaRemoveContentAPI, OdbaRemoveItemAPI, OdbaUpdateContentAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
+import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUnpointDataAPI, OdbaLinkContentDatasourceToMapAPI, OdbaLinkContentToItemAPI, OdbaRegistContentAPI, OdbaRegistItemAPI, OdbaRemoveContentAPI, OdbaRemoveItemAPI, OdbaUnlinkContentDatasourceFromMapAPI, OdbaUpdateContentAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
 import MqttBroadcaster from './session/MqttBroadcaster';
 import SessionManager from './session/SessionManager';
 import { geojsonToWKT } from '@terraformer/wkt';
@@ -1462,7 +1462,7 @@ app.post(`/api/${LinkContentDatasourceToMapAPI.uri}`,
             })
 
         } catch(e) {
-            apiLogger.warn('get-linkable-contents API error', e);
+            apiLogger.warn('link-contents-to-map API error', e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
@@ -1470,6 +1470,38 @@ app.post(`/api/${LinkContentDatasourceToMapAPI.uri}`,
         }
     }
 );
+
+/**
+ * コンテンツデータソースを地図から削除
+ */
+app.post(`/api/${UnlinkContentDatasourceFromMapAPI.uri}`,
+    checkApiAuthLv(Auth.Admin), 
+    checkCurrentMap,
+    async(req, res) => {
+        const param = req.body as UnLinkContentDatasourceFromMapParam;
+
+        try {
+            // call odba
+            await callOdbaApi(OdbaUnlinkContentDatasourceFromMapAPI, {
+                currentMap: req.currentMap,
+                contents: param.contents,
+            });
+            res.send('complete');
+
+            broadCaster.publish(req.currentMap.mapId, undefined, {
+                type: 'mapinfo-update',
+            })
+
+        } catch(e) {
+            apiLogger.warn('unlink-contents-from-map API error', e);
+            res.status(500).send({
+                type: ErrorType.IllegalError,
+                detail : e + '',
+            } as ApiError);
+        }
+    }
+);
+
 
 app.all('/api/*', (req) => {
     apiLogger.info('[end]', req.url, req.connect?.sessionKey);

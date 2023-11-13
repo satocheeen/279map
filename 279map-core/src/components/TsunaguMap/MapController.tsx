@@ -57,7 +57,7 @@ function useMapInitializer() {
         const subscriber = getSubscriber();
         if (!subscriber) return;
 
-        const h = subscriber.subscribeMap({}, 'mapinfo-update', undefined, (payload) => {
+        const h = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapinfo-update', undefined, (payload) => {
             dispatchMapDefine();
         });
 
