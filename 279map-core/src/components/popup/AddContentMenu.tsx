@@ -37,6 +37,7 @@ export default function AddContentMenu(props: Props) {
     const [ dataSources ] = useAtom(contentDataSourcesAtom);
     const [ authLv ] = useAtom(authLvAtom);
     const { getItem } = useItems();
+
     const item = useMemo(() => {
         if ('itemId' in props.target) {
             return getItem(props.target.itemId);
@@ -61,9 +62,10 @@ export default function AddContentMenu(props: Props) {
 
         // 追加可能なコンテンツ定義を取得
         if ('itemId' in props.target) {
-            return dataSources.filter(ds => ds.kind === DataSourceKindType.Content).map(ds => {
-                return ds.dataSourceId;
-            });
+            return dataSources
+                .map(ds => {
+                    return ds.dataSourceId;
+                });
         }
         const targetId = props.target.contentId;
         const targetDs = dataSources.find(ds => ds.dataSourceId === targetId.dataSourceId);

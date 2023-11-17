@@ -25,7 +25,7 @@ export async function getMapInfo({ param, mapId }: { param: GetMapInfoParam; map
 
     // DataSourceを取得
     const itemDataSourceGroups = await getItemDataSourceGroups(mapPageInfo.map_page_id, targetMapKind);
-    const contentDataSources = await getContentDataSources(mapPageInfo.map_page_id);
+    const contentDataSources = await getContentDataSources(mapPageInfo.map_page_id, targetMapKind);
 
     return {
         mapKind: targetMapKind,
@@ -234,13 +234,15 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
  * @param mapId 
  * @param mapKind 
  */
-async function getContentDataSources(mapId: string): Promise<DataSourceInfo[]> {
+async function getContentDataSources(mapId: string, mapKind: MapKind): Promise<DataSourceInfo[]> {
     const con = await ConnectionPool.getConnection();
 
     try {
+        // 村マップの場合は、PointContentも対象
+        const whereExt = (mapKind === MapKind.Virtual ? `ds.kind in ('Content', 'RealPointContent')` : `ds.kind = 'Content'`);
         const sql = `select ds.* from data_source ds
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
-        where map_page_id =? and ds.kind = 'Content'
+        where map_page_id =? and ${whereExt}
         order by order_num`;
 
         const [rows] = await con.execute(sql, [mapId]);

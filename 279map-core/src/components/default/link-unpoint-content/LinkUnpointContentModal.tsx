@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Button, Modal } from '../../common';
 import { LinkUnpointContentParam } from '../../../types/types';
 import { DataId, UnpointContent } from '279map-common';
@@ -7,6 +7,7 @@ import Card from '../../common/card/Card';
 import Spinner from '../../common/spinner/Spinner';
 import { getMapKey } from '../../../util/dataUtility';
 import Select from '../../common/form/Select';
+import { useWatch } from '../../../util/useWatch2';
 
 type Props = {
     param: LinkUnpointContentParam;
@@ -34,12 +35,8 @@ export default function LinkUnpointContentModal(props: Props) {
         })
     }, [props.param.dataSources]);
 
-    const onDataSourceChanged = useCallback((dataSourceId: string | undefined) => {
-        setUnpointContents([]);
-        setTargetContentDataSourceId(dataSourceId);
-    }, []);
-
     const readMore = useCallback(() => {
+        console.log('readMore', targetContentDataSourceId);
         if (!targetContentDataSourceId) return;
 
         setLoading(true);
@@ -58,10 +55,12 @@ export default function LinkUnpointContentModal(props: Props) {
         })
     }, [props.param, nextToken, targetContentDataSourceId]);
 
-    useEffect(() => {
+    // 選択対象コンテンツデータソースが変わった場合
+    useWatch(targetContentDataSourceId, () => {
+        setUnpointContents([]);
+        setNextToken(undefined);
         readMore();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [targetContentDataSourceId]);
+    })
 
     const onSelect = useCallback(async(id: DataId) => {
         setLoading(true);
@@ -89,7 +88,7 @@ export default function LinkUnpointContentModal(props: Props) {
             <Modal.Body>
                 <div className={styles.Container}>
                     <div className={styles.ConditionArea}>
-                        <Select items={dataSourceItems} value={targetContentDataSourceId} onSelect={onDataSourceChanged} />
+                        <Select items={dataSourceItems} value={targetContentDataSourceId} onSelect={(val) => setTargetContentDataSourceId(val)} />
                     </div>
                     <div className={styles.CardArea}>
                         {errorMessage ?
