@@ -1,5 +1,5 @@
 import { ConnectionPool } from '.';
-import { DatasourceConfig, DataSourceGroup, DataSourceInfo, MapKind, MapPageOptions } from '279map-common';
+import { Auth, DatasourceConfig, DataSourceGroup, DataSourceInfo, MapKind, MapPageOptions } from '279map-common';
 import { GetMapInfoParam, GetMapInfoResult } from '../279map-api-interface/src';
 import mysql from 'mysql2/promise';
 import { DataSourceTable, MapPageInfoTable } from '../279map-backend-common/src/types/schema';
@@ -10,7 +10,7 @@ import { schema } from '../279map-backend-common/src';
  * 指定の地図データページ配下のコンテンツ情報を返す
  * @param mapId Notion地図データページID
  */
-export async function getMapInfo({ param, mapId }: { param: GetMapInfoParam; mapId: string }): Promise<GetMapInfoResult> {
+export async function getMapInfo({ param, mapId, authLv }: { param: GetMapInfoParam; mapId: string, authLv: Auth }): Promise<GetMapInfoResult> {
     const mapKind = param.mapKind;
     
     const mapPageInfo = await getMapPageInfo(mapId);
@@ -25,7 +25,7 @@ export async function getMapInfo({ param, mapId }: { param: GetMapInfoParam; map
 
     // DataSourceを取得
     const itemDataSourceGroups = await getItemDataSourceGroups(mapPageInfo.map_page_id, targetMapKind);
-    const contentDataSources = await getContentDataSources(mapPageInfo.map_page_id);
+    const contentDataSources = await getContentDataSources(mapPageInfo.map_page_id, targetMapKind, authLv);
 
     return {
         mapKind: targetMapKind,
@@ -234,18 +234,30 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
  * @param mapId 
  * @param mapKind 
  */
-async function getContentDataSources(mapId: string): Promise<DataSourceInfo[]> {
+async function getContentDataSources(mapId: string, mapKind: MapKind, authLv: Auth): Promise<DataSourceInfo[]> {
     const con = await ConnectionPool.getConnection();
 
     try {
+        // 村マップの場合は、PointContentも対象
+        const whereExt = (mapKind === MapKind.Virtual ? `ds.kind in ('Content', 'RealPointContent')` : `ds.kind = 'Content'`);
         const sql = `select ds.* from data_source ds
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
-        where map_page_id =? and ds.kind = 'Content'
+        where map_page_id =? and ${whereExt}
         order by order_num`;
 
         const [rows] = await con.execute(sql, [mapId]);
         return (rows as schema.DataSourceTable[]).map((rec): DataSourceInfo => {{
             const config = rec.config as DatasourceConfig;
+            if (authLv === Auth.None || authLv === Auth.View) {
+                config.deletable = false;
+                config.editable = false;
+                if (config.kind === DataSourceKindType.RealPointContent) {
+                    config.linkableContents = false;
+                }
+                if (config.kind === DataSourceKindType.Content) {
+                    config.linkableChildContents = false;
+                }
+            }
             return Object.assign({
                 dataSourceId: rec.data_source_id,
                 name: rec.name,

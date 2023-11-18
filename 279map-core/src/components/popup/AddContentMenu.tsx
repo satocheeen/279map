@@ -37,6 +37,7 @@ export default function AddContentMenu(props: Props) {
     const [ dataSources ] = useAtom(contentDataSourcesAtom);
     const [ authLv ] = useAtom(authLvAtom);
     const { getItem } = useItems();
+
     const item = useMemo(() => {
         if ('itemId' in props.target) {
             return getItem(props.target.itemId);
@@ -61,20 +62,28 @@ export default function AddContentMenu(props: Props) {
 
         // 追加可能なコンテンツ定義を取得
         if ('itemId' in props.target) {
-            return dataSources.filter(ds => ds.kind === DataSourceKindType.Content).map(ds => {
-                return ds.dataSourceId;
-            });
+            return dataSources
+                .filter(ds => ds.editable)
+                .map(ds => {
+                    return ds.dataSourceId;
+                });
         }
         const targetId = props.target.contentId;
         const targetDs = dataSources.find(ds => ds.dataSourceId === targetId.dataSourceId);
-        if (targetDs?.kind !== DataSourceKindType.Content) {
-            console.warn('想定外');
-            return [];
-        }
-        if (!targetDs.linkableChildContents) {
-            return [];
+        if (targetDs?.kind === DataSourceKindType.Content) {
+            if (!targetDs.linkableChildContents) {
+                return [];
+            } else {
+                return [targetDs.dataSourceId];
+            }
+        } else if (targetDs?.kind === DataSourceKindType.RealPointContent) {
+            if (!targetDs.linkableContents) {
+                return [];
+            } else {
+                return [targetDs.dataSourceId];
+            }
         } else {
-            return [targetDs.dataSourceId];
+            return [];
         }
 
     }, [props.target, dataSources]);
@@ -256,9 +265,6 @@ export default function AddContentMenu(props: Props) {
             callback: () => void;
         }[];
         console.log('editableAuthLv', editableAuthLv);
-        if (addableContentDatasources.length === 0 || !editableAuthLv) {
-            return items;
-        }
         console.log('creatableContentDataSources', creatableContentDataSources);
         if (creatableContentDataSources.length > 0) {
             items.push({
@@ -274,7 +280,7 @@ export default function AddContentMenu(props: Props) {
             });
         }
         return items;
-    }, [editableAuthLv, onAddContent, creatableContentDataSources, linkableContentDataSources, addableContentDatasources]);
+    }, [editableAuthLv, onAddContent, creatableContentDataSources, linkableContentDataSources]);
 
     const onClick = useCallback((evt?: React.MouseEvent) => {
         if (evt) evt.stopPropagation();

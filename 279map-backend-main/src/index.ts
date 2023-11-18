@@ -47,6 +47,7 @@ declare global {
                 // userName?: string;
             },
             currentMap: CurrentMap;
+            authLv: Auth;
         }
     }
 }
@@ -550,6 +551,7 @@ const checkApiAuthLv = (needAuthLv: Auth) => {
                     return req.connect.userAuthInfo.authLv;
             }
         }();
+        req.authLv = userAuthLv;
         if (!userAuthLv || !allowAuthList.includes(userAuthLv)) {
             res.status(403).send({
                 type: ErrorType.OperationForbidden,
@@ -574,7 +576,8 @@ app.post(`/api/${GetMapInfoAPI.uri}`,
 
             const result = await getMapInfo({
                 mapId: session.currentMap.mapId,
-                param
+                param,
+                authLv: req.authLv,
             });
 
             // TODO
@@ -729,6 +732,7 @@ app.post(`/api/${GetContentsAPI.uri}`,
             const result = await getContents({
                 param,
                 currentMap: req.currentMap,
+                authLv: req.authLv,
             });
 
             apiLogger.debug('result', result);
@@ -1072,6 +1076,7 @@ app.post(`/api/${UpdateContentAPI.uri}`,
                     }
                 ],
                 currentMap: req.currentMap,
+                authLv: req.authLv,
             })).contents[0];
 
             broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
