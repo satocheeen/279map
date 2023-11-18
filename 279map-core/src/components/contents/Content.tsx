@@ -19,7 +19,6 @@ import { GetContentsAPI, GetImageUrlAPI, GetSnsPreviewAPI, RemoveContentAPI, Upd
 import { useMap } from "../map/useMap";
 import { authLvAtom, currentMapKindAtom } from "../../store/session";
 import { filteredContentIdListAtom } from "../../store/filter";
-import { itemDataSourcesAtom } from "../../store/datasource";
 import { useAtom } from 'jotai';
 import { categoriesAtom } from "../../store/category";
 import { ConfirmBtnPattern, ConfirmResult } from "../common/confirm/types";
@@ -221,21 +220,6 @@ export default function Content(props: Props) {
         })
     }, [props.content, onEditContent, callApi]);
 
-    const [ itemDataSources ] = useAtom(itemDataSourcesAtom);
-    const unlinkable = useMemo(() => {
-        const itemDataSource = itemDataSources.find(ds => ds.dataSourceId === props.itemId.dataSourceId);
-        if (!itemDataSource) {
-            console.warn('itemDataSource not found');
-            return false;
-        }
-        if (itemDataSource.dataSourceId === props.content.id.dataSourceId && itemDataSource.kind === DataSourceKindType.RealPointContent) {
-            // アイテムと同一行で管理されているコンテンツはリンク解除不可能
-            true;
-        } else {
-            return false;
-        }
-    }, [itemDataSources, props.content, props.itemId]);
-
     const onDelete = useCallback(async() => {
         const result = await confirm({
             message: '削除してよろしいですか。'
@@ -244,9 +228,9 @@ export default function Content(props: Props) {
             return;
         }
         let deleteOnlyLink = true;
-        if (props.content.isDeletable && unlinkable) {
+        if (props.content.isDeletable) {
             const result2 = await confirm({
-                message: '元データも削除しますか。\nはい→元データごと削除する\nいいえ→地図上からのみ削除する',
+                message: '完全に削除しますか。\nはい→完全に削除する\nいいえ→地図上からのみ削除する（後から割り当て可能）',
                 btnPattern: ConfirmBtnPattern.YesNo,
             });
             if (result2 === ConfirmResult.Cancel) {
@@ -276,7 +260,7 @@ export default function Content(props: Props) {
 
         }
 
-    }, [callApi, props.itemId, props.parentContentId, confirm, props.content, unlinkable]);
+    }, [callApi, props.itemId, props.parentContentId, confirm, props.content]);
 
     const overview = useMemo(() => {
         if (!props.content.overview) {
@@ -310,8 +294,8 @@ export default function Content(props: Props) {
     }, [authLv, props.content]);
 
     const deletable = useMemo(() => {
-        return (props.content.isDeletable || unlinkable) && CommonUtility.compareAuth(authLv, Auth.Edit) >= 0
-    }, [authLv, props.content, unlinkable]);
+        return CommonUtility.compareAuth(authLv, Auth.Edit) >= 0
+    }, [authLv]);
 
     const header = useMemo(() => {
         return (
