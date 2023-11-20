@@ -680,9 +680,15 @@ const noGraphQLSchema = new GraphQLSchema({
     query: queryType,
 })
 
-const fileSchema = loadSchemaSync(join(__dirname, './graphql/common.graphql'), {
-    loaders: [new GraphQLFileLoader()],
-  });
+const fileSchema = loadSchemaSync(
+    [
+        join(__dirname, './graphql/types.graphql'),
+        join(__dirname, './graphql/query.graphql')
+    ],
+    {
+        loaders: [new GraphQLFileLoader()],
+    }
+);
 
 
 // The root provides a resolver function for each API endpoint

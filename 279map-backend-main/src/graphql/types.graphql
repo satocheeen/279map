@@ -12,8 +12,3 @@ type CategoryDefine {
     color: String!
     dataSourceIds: [String!]!
 }
-type Query {
-    hello: String
-    getItems(wkt: String!, zoom: Float!, dataSourceId: String!, latestEditedTime: String, excludeItemIds: [String!]): [ItemDefine]
-    getCategory(dataSourceIds: [String!]): [CategoryDefine!]!
-}
