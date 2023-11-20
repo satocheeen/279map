@@ -18,12 +18,7 @@ import { instanceIdAtom, mapIdAtom, serverInfoAtom } from '../../store/session';
 import ContentsSettingController from '../admin/contents-setting/ContentsSettingController';
 import UserListController from '../admin/user-list/UserListController';
 import { defaultIconDefineAtom } from '../../store/icon';
-import { ApolloClient, InMemoryCache, ApolloProvider, gql } from '@apollo/client';
-
-const client = new ApolloClient({
-    uri: 'http://localhost/',
-    cache: new InMemoryCache(),
-  });
+import MyGraphQLProvider from './MyGraphQLProvider';
 
 const DefaultComponents = lazy(() => import('../default/DefaultComponents'));
 
@@ -125,35 +120,35 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
             <OwnerContext.Provider value={ownerContextValue}>
                 <Provider store={myStoreRef.current}>
                     <MapConnector server={props.mapServer}>
-                    <ApolloProvider client={client}>
-                        <EventConnectorWithOwner ref={eventControlerRef} />
-                        <TooltipContext.Provider value={tooltipContextValue}>
-                            <MapController />
-                            <MapChart />
-                            <PopupContainer />
-                            <LandNameOverlay />
-                            <ClusterMenuContainer />
+                        <MyGraphQLProvider>
+                            <EventConnectorWithOwner ref={eventControlerRef} />
+                            <TooltipContext.Provider value={tooltipContextValue}>
+                                <MapController />
+                                <MapChart />
+                                <PopupContainer />
+                                <LandNameOverlay />
+                                <ClusterMenuContainer />
 
-                            {/* 外部からの操作指示を受けて特定の動作をするコントローラー群 */}
-                            <DrawController ref={drawControllerRef} />
-                            <ContentsSettingController ref={contentsSettingControlerRef} />
-                            <UserListController ref={userListControlerRef} />
+                                {/* 外部からの操作指示を受けて特定の動作をするコントローラー群 */}
+                                <DrawController ref={drawControllerRef} />
+                                <ContentsSettingController ref={contentsSettingControlerRef} />
+                                <UserListController ref={userListControlerRef} />
 
-                            <ConfirmDialog />
+                                <ConfirmDialog />
 
-                            <Suspense>
-                                {defaultLinkUnpointedContentParam &&
-                                    <DefaultComponents linkUnpointedContentParam={defaultLinkUnpointedContentParam} onClose={()=>{setDefaultLinkUnpointedContentParam(undefined)}} />
-                                }
-                                {defaultNewContentParam &&
-                                    <DefaultComponents newContentParam={defaultNewContentParam} onClose={()=>{setDefaultNewContentParam(undefined)}} />
-                                }
-                                {defaultEditContentParam &&
-                                    <DefaultComponents editContentParam={defaultEditContentParam} onClose={()=>{setDefaultEditContentParam(undefined)}} />
-                                }
-                            </Suspense>
-                        </TooltipContext.Provider>
-                    </ApolloProvider>
+                                <Suspense>
+                                    {defaultLinkUnpointedContentParam &&
+                                        <DefaultComponents linkUnpointedContentParam={defaultLinkUnpointedContentParam} onClose={()=>{setDefaultLinkUnpointedContentParam(undefined)}} />
+                                    }
+                                    {defaultNewContentParam &&
+                                        <DefaultComponents newContentParam={defaultNewContentParam} onClose={()=>{setDefaultNewContentParam(undefined)}} />
+                                    }
+                                    {defaultEditContentParam &&
+                                        <DefaultComponents editContentParam={defaultEditContentParam} onClose={()=>{setDefaultEditContentParam(undefined)}} />
+                                    }
+                                </Suspense>
+                            </TooltipContext.Provider>
+                        </MyGraphQLProvider>
                     </MapConnector>
                     <ProcessOverlay />
                 </Provider>
