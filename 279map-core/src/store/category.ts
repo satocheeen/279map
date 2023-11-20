@@ -13,6 +13,9 @@ export const categoriesAtom = atom(async(get): Promise<CategoryDefine[]> => {
 
         // 表示中のデータソースに紐づくカテゴリを取得
         const targetDataSourceIds = get(visibleDataSourceIdsAtom);
+        if (targetDataSourceIds.length === 0) {
+            return [];
+        }
         const apiResult = await callApi(serverInfo, sid, GetCategoryAPI, {
             dataSourceIds: targetDataSourceIds,
         });
