@@ -18,10 +18,10 @@ import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import cors from 'cors';
 import { exit } from 'process';
 import { getMapInfoById } from './getMapDefine';
-import { ConfigAPI, ConnectResult, GeocoderParam, GetCategoryAPI, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
+import { ConfigAPI, ConnectResult, GeocoderParam, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateContentAPI, UpdateContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, GetEventParam, GetCategoryParam, RequestAPI, RequestParam, GetUserListAPI, GetUserListResult, ChangeAuthLevelAPI, ChangeAuthLevelParam, GetItemsByIdAPI, GetItemsByIdParam, GetLinkableContentsAPI, LinkContentDatasourceToMapAPI, LinkContentDatasourceToMapParam, UnlinkContentDatasourceFromMapAPI, UnLinkContentDatasourceFromMapParam } from '../279map-api-interface/src/api';
+import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, GetEventParam, RequestAPI, RequestParam, GetUserListAPI, GetUserListResult, ChangeAuthLevelAPI, ChangeAuthLevelParam, GetItemsByIdAPI, GetItemsByIdParam, GetLinkableContentsAPI, LinkContentDatasourceToMapAPI, LinkContentDatasourceToMapParam, UnlinkContentDatasourceFromMapAPI, UnLinkContentDatasourceFromMapParam } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 import { search } from './api/search';
@@ -36,12 +36,12 @@ import SessionManager from './session/SessionManager';
 import { geojsonToWKT } from '@terraformer/wkt';
 import { getItem, getItemsById } from './api/getItem';
 import { graphqlHTTP } from 'express-graphql';
-import { GraphQLObjectType, GraphQLSchema, GraphQLString, buildSchema } from 'graphql';
+import { GraphQLObjectType, GraphQLSchema, GraphQLString } from 'graphql';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { ItemDefine } from '279map-common';
-import { GetCategoryResult } from '../279map-api-interface/dist';
+import { GetCategoryParam, GetCategoryResult } from './graphql/types';
 
 declare global {
     namespace Express {
@@ -711,6 +711,9 @@ const root = {
             }
         ];
     },
+    /**
+     * カテゴリ取得
+     */
     getCategory: async(param: GetCategoryParam, req: express.Request): Promise<GetCategoryResult> => {
         try {
             const result = await getCategory(param, req.currentMap);
@@ -852,31 +855,6 @@ app.post(`/api/${GetContentsAPI.uri}`,
     }
 );
 
-/**
- * カテゴリ取得
- */
-app.post(`/api/${GetCategoryAPI.uri}`,
-    checkApiAuthLv(Auth.View), 
-    checkCurrentMap,
-    async(req, res, next) => {
-        const param = req.body as GetCategoryParam;
-        try {
-            const result = await getCategory(param, req.currentMap);
-
-            apiLogger.debug('result', result);
-
-            res.send(result);
-
-            next();
-        } catch(e) {    
-            apiLogger.warn('get-category API error', param, e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail : e + '',
-            } as ApiError);
-        }
-    }
-);
 
 /**
  * イベント取得

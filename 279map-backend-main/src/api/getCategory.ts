@@ -1,9 +1,10 @@
 import randomColor from "randomcolor";
 import { ConnectionPool } from "..";
 import { CurrentMap } from "../../279map-backend-common/src";
-import { GetCategoryParam, GetCategoryResult } from "../../279map-api-interface/src";
 import { getLogger } from "log4js";
-import { CategoryDefine } from '279map-common';
+import { GetCategoryParam, GetCategoryResult } from "../graphql/types";
+
+type CategoryDefine = GetCategoryResult[0];
 
 const apiLogger = getLogger('api');
 
