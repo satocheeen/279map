@@ -91,7 +91,7 @@ async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, cat
         where icl.content_page_id = c.content_page_id and icl.content_datasource_id  = c.data_source_id
         and mdl.map_page_id = ? and i.map_kind = ?
         and JSON_CONTAINS(c.category, ?) > 0
-        ${dataSourceIds ? 'and c.data_source_id in (?)' : ''}
+        ${dataSourceIds ? 'and i.data_source_id in (?)' : ''}
     )
     `;
     const categoryParam = `["${category}"]`;
@@ -132,7 +132,7 @@ async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: s
         where icl.content_page_id = c.content_page_id and icl.content_datasource_id  = c.data_source_id
         and mdl.map_page_id = ? and i.map_kind = ?
         and DATE_FORMAT(date,'%Y-%m-%d') = ?
-        ${dataSourceIds ? 'and c.data_source_id in (?)' : ''}
+        ${dataSourceIds ? 'and i.data_source_id in (?)' : ''}
     )
     `;
 
@@ -175,7 +175,7 @@ async function searchByKeyword(con: PoolConnection, currentMap: CurrentMap, keyw
         where icl.content_page_id = c.content_page_id and icl.content_datasource_id  = c.data_source_id
             and mdl.map_page_id = ? and i.map_kind = ?
         and (JSON_SEARCH(c.contents, 'one', ?) is not null or c.title like ?)
-        ${dataSourceIds ? 'and c.data_source_id in (?)' : ''}
+        ${dataSourceIds ? 'and i.data_source_id in (?)' : ''}
     )
     `;
 

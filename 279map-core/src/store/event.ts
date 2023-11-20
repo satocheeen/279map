@@ -13,6 +13,9 @@ export const eventsAtom = atom(async(get): Promise<EventDefine[]> => {
 
         // 表示中のデータソースに紐づくイベントを取得
         const targetDataSourceIds = get(visibleDataSourceIdsAtom);
+        if (targetDataSourceIds.length === 0) {
+            return [];
+        }
         const apiResult = await callApi(serverInfo, sid, GetEventsAPI, {
             dataSourceIds: targetDataSourceIds,
         });
