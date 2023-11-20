@@ -3,5 +3,7 @@ query getCategory(
 ){
     getCategory(dataSourceIds: $dataSourceIds) {
         name
+        color
+        dataSourceIds
     }    
 }

@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useCallback, useRef } from 'react';
-import { CategoryDefine, FilterDefine } from '../entry';
+import { FilterDefine } from '../entry';
 import styles from './FilterCondition.module.scss';
 import { useWatch } from '../util/useWatch';
+import { CategoryDefine } from '../graphql/generated/graphql';
 
 type Props = {
     categories: CategoryDefine[];

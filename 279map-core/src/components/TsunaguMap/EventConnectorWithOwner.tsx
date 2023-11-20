@@ -1,7 +1,7 @@
 import React, { useRef, useContext, useEffect, useCallback, useImperativeHandle } from 'react';
-import { useWatch } from '../../util/useWatch';
+import { useWatch } from '../../util/useWatch2';
 import { OwnerContext } from './TsunaguMap';
-import { categoriesLoadableAtom } from '../../store/category';
+import { categoriesAtom, categoriesLoadableAtom } from '../../store/category';
 import { eventsLoadableAtom } from '../../store/event';
 import { dialogTargetAtom, mapModeAtom, showingDetailItemIdAtom } from '../../store/operation';
 import { connectStatusLoadableAtom, mapDefineLoadableAtom } from '../../store/session';
@@ -9,7 +9,7 @@ import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { GetContentsAPI, GetContentsParam, GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, SearchAPI, UpdateContentAPI, UpdateContentParam } from 'tsunagumap-api';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { CategoryDefine, ContentsDefine, DataId, DataSourceGroup, EventDefine, FeatureType, MapKind, UnpointContent } from '279map-common';
+import { ContentsDefine, DataId, DataSourceGroup, EventDefine, MapKind, UnpointContent } from '279map-common';
 import { MapMode, TsunaguMapHandler } from '../../types/types';
 import { useAtom } from 'jotai';
 import { itemDataSourceGroupsAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
@@ -18,6 +18,7 @@ import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
 import { useApi } from '../../api/useApi';
+import { CategoryDefine } from '../../graphql/generated/graphql';
 
 /**
  * 呼び出し元とイベント連携するためのコンポーネントもどき。
@@ -141,7 +142,7 @@ function useFilterListner() {
     const { callApi } = useApi();
     const [ visibleDataSourceIds ] = useAtom(visibleDataSourceIdsAtom);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
-    useWatch(() => {
+    useWatch(filter, () => {
         const conditions = filter?.conditions;
         if (!conditions) {
             setFilteredItem(null);
@@ -161,7 +162,7 @@ function useFilterListner() {
             hideProcessMessage(h);
         });
 
-    }, [filter])
+    })
 }
 
 /**
@@ -244,8 +245,15 @@ function useDataSourceChangeListener() {
 function useCategoryLoadListener() {
     const { onCategoriesLoaded}  = useContext(OwnerContext);
     const [ categoriesLoadable ] = useAtom(categoriesLoadableAtom);
+    const [ categories ] = useAtom(categoriesAtom);
     const latestCategories = useRef<CategoryDefine[]>();
 
+    useWatch(categories, () => {
+        if (onCategoriesLoaded) {
+            onCategoriesLoaded(categories);
+        }
+        latestCategories.current = categories;
+    })
      // マウント後でないとイベント発火できないので、useEffect内で処理
      useEffect(() => {
         if (categoriesLoadable.state !== 'hasData') return;

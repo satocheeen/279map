@@ -1,8 +1,9 @@
 import { ContentAttr, ContentsDefine, DataId, DataSourceGroup, FeatureType, GeoProperties, IconDefine, MapDefine, UnpointContent } from "279map-common";
 import { CSSProperties } from "react";
-import { CategoryDefine, EventDefine, MapKind } from '279map-common';
+import { EventDefine, MapKind } from '279map-common';
 import { ApiError, ErrorType, GetMapInfoResult, LinkContentToItemParam, RegistContentParam, GetSnsPreviewResult, UpdateContentParam, GetUnpointDataResult, GetContentsParam } from "tsunagumap-api";
 import { FilterDefine } from "279map-common";
+import { CategoryDefine } from "../graphql/generated/graphql";
 
 export type OnMapLoadParam = {
     mapKind: MapKind;

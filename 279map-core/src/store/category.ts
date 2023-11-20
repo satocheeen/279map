@@ -1,11 +1,10 @@
-import { CategoryDefine } from '279map-common';
 import { atom } from 'jotai';
 import { loadable } from "jotai/utils";
 import { visibleDataSourceIdsAtom } from './datasource';
 import { atomWithQuery } from 'jotai-urql';
 import { GetCategoryDocument } from '../graphql/generated/graphql';
 
-export const categoriesQueryAtom = atomWithQuery({
+const categoriesQueryAtom = atomWithQuery({
     query: GetCategoryDocument,
     getVariables: (get) => {
         const targetDataSourceIds = get(visibleDataSourceIdsAtom);
@@ -13,12 +12,15 @@ export const categoriesQueryAtom = atomWithQuery({
             dataSourceIds: targetDataSourceIds,
         }
     },
+    getPause(get) {
+        // 表示対象データがない場合は実行しない
+        const targetDataSourceIds = get(visibleDataSourceIdsAtom);
+        return targetDataSourceIds.length === 0;
+    }
 })
 export const categoriesAtom = atom(async(get) => {
     const categoriesQuery = await get(categoriesQueryAtom);
-    console.log('debug', categoriesQuery);
-    // @ts-ignore
-    return (categoriesQuery.data?.getCategory ?? []) as CategoryDefine[];
+    return categoriesQuery.data?.getCategory ?? [];
 })
 
 export const categoriesLoadableAtom = loadable(categoriesAtom);
