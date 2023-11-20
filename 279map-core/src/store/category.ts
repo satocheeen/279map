@@ -3,20 +3,10 @@ import { atom } from 'jotai';
 import { loadable } from "jotai/utils";
 import { visibleDataSourceIdsAtom } from './datasource';
 import { atomWithQuery } from 'jotai-urql';
-
-const GET_CATEGORY_QUERY = `
-query get_category(
-    $dataSourceIds: [String!]
-){
-    getCategory(dataSourceIds: $dataSourceIds) {
-        name
-    }    
-}
-`;
-// const GET_CATEGORY = gql`GET_CATEGORY_QUERY`;
+import { GetCategoryDocument } from '../graphql/generated/graphql';
 
 export const categoriesQueryAtom = atomWithQuery({
-    query: GET_CATEGORY_QUERY,
+    query: GetCategoryDocument,
     getVariables: (get) => {
         const targetDataSourceIds = get(visibleDataSourceIdsAtom);
         return {

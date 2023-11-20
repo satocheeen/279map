@@ -1,0 +1,7 @@
+query getCategory(
+    $dataSourceIds: [String!]
+){
+    getCategory(dataSourceIds: $dataSourceIds) {
+        name
+    }    
+}

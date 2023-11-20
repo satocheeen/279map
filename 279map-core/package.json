@@ -10,10 +10,13 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "rollup": "rollup -c --context window"
+    "rollup": "rollup -c --context window",
+    "codegen": "graphql-codegen --config codegen.ts"
   },
   "devDependencies": {
     "@auth0/auth0-react": "^2.2.0",
+    "@graphql-codegen/cli": "5.0.0",
+    "@graphql-codegen/client-preset": "4.1.0",
     "@rollup/plugin-commonjs": "^21.0.1",
     "@rollup/plugin-image": "^3.0.1",
     "@rollup/plugin-json": "^5.0.1",

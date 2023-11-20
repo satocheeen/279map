@@ -743,8 +743,9 @@ app.use(
     })
 )
 
+// スキーマ生成用
 app.use(
-    "/graphql-test",
+    "/graphql-schema",
     graphqlHTTP({
         schema: fileSchema,
         rootValue: root,
