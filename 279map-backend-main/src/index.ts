@@ -35,6 +35,13 @@ import MqttBroadcaster from './session/MqttBroadcaster';
 import SessionManager from './session/SessionManager';
 import { geojsonToWKT } from '@terraformer/wkt';
 import { getItem, getItemsById } from './api/getItem';
+import { graphqlHTTP } from 'express-graphql';
+import { GraphQLObjectType, GraphQLSchema, GraphQLString, buildSchema } from 'graphql';
+import { loadSchemaSync } from '@graphql-tools/load';
+import { join } from 'path';
+import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
+import { ItemDefine } from '279map-common';
+import { GetCategoryResult } from '../279map-api-interface/dist';
 
 declare global {
     namespace Express {
@@ -401,33 +408,33 @@ app.post(`/api/${RequestAPI.uri}`,
 /**
  * セッション情報を取得してrequestに格納
  */
-app.all('/api/*', 
-    async(req: Request, res: Response, next: NextFunction) => {
-        const sessionKey = req.headers.sessionid;
-        if (!sessionKey || typeof sessionKey !== 'string') {
-            res.status(400).send({
-                type: ErrorType.IllegalError,
-                detail: 'no sessionid in headers',
-            } as ApiError);
-            return;
-        }
-        apiLogger.info('[start]', req.url, sessionKey);
-
-        const session = sessionManager.get(sessionKey);
-        if (!session) {
-            res.status(400).send({
-                type: ErrorType.SessionTimeout,
-                detail: 'the session not found.' + sessionKey,
-            } as ApiError);
-            return;
-        }
-        req.connect = { 
-            sessionKey,
-            mapId: session.currentMap.mapId
-        };
-        next();
+const sessionCheck = async(req: Request, res: Response, next: NextFunction) => {
+    const sessionKey = req.headers.sessionid;
+    if (!sessionKey || typeof sessionKey !== 'string') {
+        res.status(400).send({
+            type: ErrorType.IllegalError,
+            detail: 'no sessionid in headers',
+        } as ApiError);
+        return;
     }
-);
+    apiLogger.info('[start]', req.url, sessionKey);
+
+    const session = sessionManager.get(sessionKey);
+    if (!session) {
+        res.status(400).send({
+            type: ErrorType.SessionTimeout,
+            detail: 'the session not found.' + sessionKey,
+        } as ApiError);
+        return;
+    }
+    req.connect = { 
+        sessionKey,
+        mapId: session.currentMap.mapId
+    };
+    next();
+}
+
+app.all('/api/*', sessionCheck);
 
 /**
  * 切断
@@ -445,52 +452,54 @@ app.get('/api/disconnect', async(req, res) => {
  * set connect.mapPageInfo, auth in this process.
  * 認証チェック。チェックの課程で、connect.mapPageInfo, authに値設定。
  */
-app.all('/api/*', 
-    async(req: Request, res: Response, next: NextFunction) => {
-        if (!req.connect) {
-            // 手前で弾かれているはずなので、ここには来ないはず
-            apiLogger.error('connect not found.');
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail: 'Illegal state error.  connect not found.',
-            } as ApiError);
-            return;
-        }
-        apiLogger.info('authorization', req.connect);
+const checkAuthorization = async(req: Request, res: Response, next: NextFunction) => {
+    if (!req.connect) {
+        // 手前で弾かれているはずなので、ここには来ないはず
+        apiLogger.error('connect not found.');
+        res.status(500).send({
+            type: ErrorType.IllegalError,
+            detail: 'Illegal state error.  connect not found.',
+        } as ApiError);
+        return;
+    }
+    apiLogger.info('authorization', req.connect);
 
-        const mapId = req.connect.mapId;
+    const mapId = req.connect.mapId;
 
-        // 地図情報取得
-        const mapPageInfo = await getMapPageInfo(mapId);
-        if (!mapPageInfo) {
-            res.status(400).send({
-                type: ErrorType.UndefinedMap,
-                detail: 'map not found.',
-            } as ApiError);
-            return;
-        }
-        req.connect.mapPageInfo = mapPageInfo;
+    // 地図情報取得
+    const mapPageInfo = await getMapPageInfo(mapId);
+    if (!mapPageInfo) {
+        res.status(400).send({
+            type: ErrorType.UndefinedMap,
+            detail: 'map not found.',
+        } as ApiError);
+        return;
+    }
+    req.connect.mapPageInfo = mapPageInfo;
 
-        // checkJWTを実行する必要があるかどうかチェック
-        if (!req.headers.authorization) {
-            // 未ログインの場合は、ゲストユーザ権限があるか確認
-            const userAuthInfo = await getUserAuthInfoInTheMap(mapPageInfo, req);
-            if (!userAuthInfo) {
-                apiLogger.debug('not auth');
-                next({
-                    name: 'Unauthenticated',
-                    message: 'this map is private, please login.',
-                });
-            } else {
-                apiLogger.debug('skip checkJwt');
-                next('route');
-            }
-        
+    // checkJWTを実行する必要があるかどうかチェック
+    if (!req.headers.authorization) {
+        // 未ログインの場合は、ゲストユーザ権限があるか確認
+        const userAuthInfo = await getUserAuthInfoInTheMap(mapPageInfo, req);
+        if (!userAuthInfo) {
+            apiLogger.debug('not auth');
+            next({
+                name: 'Unauthenticated',
+                message: 'this map is private, please login.',
+            });
         } else {
-            // 認証情報ある場合は、後続の認証チェック処理
-            next();
+            apiLogger.debug('skip checkJwt');
+            next('route');
         }
-    },
+    
+    } else {
+        // 認証情報ある場合は、後続の認証チェック処理
+        next();
+    }
+}
+
+app.all('/api/*', 
+    checkAuthorization,
     authManagementClient.checkJwt,
     authenticateErrorProcess,
 );
@@ -499,31 +508,31 @@ app.all('/api/*',
  * check the user's auth Level.
  * set req.connect.authLv
  */
-app.all('/api/*', 
-    async(req: Request, res: Response, next: NextFunction) => {
-        const mapId = req.connect?.mapId;
-        const mapDefine = req.connect?.mapPageInfo;
-        if (!req.connect || !mapId || !mapDefine) {
-            // 手前で弾かれているはずなので、ここには来ないはず
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail: 'Illegal state error.',
-            } as ApiError);
-            return;
-        }
-
-        const userAuth = await getUserAuthInfoInTheMap(mapDefine, req);
-        if (!userAuth) {
-            // ログインが必要な地図の場合
-            res.status(403).send({
-                type: ErrorType.Unauthorized,
-            } as ApiError);
-            return;
-        }
-        req.connect.userAuthInfo = userAuth;
-        next();
+const checkUserAuthLv = async(req: Request, res: Response, next: NextFunction) => {
+    const mapId = req.connect?.mapId;
+    const mapDefine = req.connect?.mapPageInfo;
+    if (!req.connect || !mapId || !mapDefine) {
+        // 手前で弾かれているはずなので、ここには来ないはず
+        res.status(500).send({
+            type: ErrorType.IllegalError,
+            detail: 'Illegal state error.',
+        } as ApiError);
+        return;
     }
-);
+
+    const userAuth = await getUserAuthInfoInTheMap(mapDefine, req);
+    if (!userAuth) {
+        // ログインが必要な地図の場合
+        res.status(403).send({
+            type: ErrorType.Unauthorized,
+        } as ApiError);
+        return;
+    }
+    req.connect.userAuthInfo = userAuth;
+    next();
+}
+
+app.all('/api/*', checkUserAuthLv);
 
 const checkApiAuthLv = (needAuthLv: Auth) => {
     return async(req: Request, res: Response, next: NextFunction) => {
@@ -647,10 +656,102 @@ app.post(`/api/${GetOriginalIconDefineAPI.uri}`,
     }
 );
 
+
+// TODO:
 /**
  * get items
  * 地図アイテム取得
  */
+const queryType = new GraphQLObjectType({
+    name: 'Query',
+    fields: {
+        hello: {
+            type: GraphQLString,
+            args: {
+                id: { type: GraphQLString },
+            },
+            resolve: (_, { id }) => {
+                return 'Hello Wordl!' + id;
+            }
+        },
+    }
+})
+const noGraphQLSchema = new GraphQLSchema({
+    query: queryType,
+})
+
+const fileSchema = loadSchemaSync(join(__dirname, './graphql/common.graphql'), {
+    loaders: [new GraphQLFileLoader()],
+  });
+
+
+// The root provides a resolver function for each API endpoint
+const root = {
+    hello: () => {
+        return "Hello world!"
+    },
+    getItems: async(param: GetItemsParam, req: express.Request): Promise<ItemDefine[]> => {
+        // console.log('context', context);
+        const session = sessionManager.get(req.connect?.sessionKey as string);
+        console.log('session', session?.sid);
+
+        console.log('getItems', param);
+        await sleep(1);
+        return [
+            {
+                id: {
+                    id: 'aa',
+                    dataSourceId: 'bb',
+                },
+                contents: [],
+                // @ts-ignore
+                geoJson: {},
+                name: 'ccc',
+                lastEditedTime: 'aaa'
+            }
+        ];
+    },
+    getCategory: async(param: GetCategoryParam, req: express.Request): Promise<GetCategoryResult> => {
+        try {
+            const result = await getCategory(param, req.currentMap);
+
+            apiLogger.debug('result', result);
+
+            return result;
+
+        } catch(e) {    
+            apiLogger.warn('get-category API error', param, e);
+            throw e;
+        }
+
+    }
+}
+
+app.use(
+    "/graphql",
+    sessionCheck,
+    checkAuthorization,
+    authManagementClient.checkJwt,
+    authenticateErrorProcess,
+    checkUserAuthLv,
+    checkApiAuthLv(Auth.View), 
+    checkCurrentMap,
+    graphqlHTTP({
+        schema: fileSchema,
+        rootValue: root,
+        graphiql: true,
+    })
+)
+
+app.use(
+    "/graphql-test",
+    graphqlHTTP({
+        schema: fileSchema,
+        rootValue: root,
+        graphiql: true,
+    })
+)
+
 app.post(`/api/${GetItemsAPI.uri}`,
     checkApiAuthLv(Auth.View), 
     checkCurrentMap,

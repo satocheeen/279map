@@ -1,0 +1,19 @@
+type DataId {
+    id: String!
+    dataSourceId: String!
+}
+type ItemDefine {
+    id: DataId!
+    name: String!
+    lastEditedTime: String!
+}
+type CategoryDefine {
+    name: String!
+    color: String!
+    dataSourceIds: [String!]!
+}
+type Query {
+    hello: String
+    getItems(wkt: String!, zoom: Float!, dataSourceId: String!, latestEditedTime: String, excludeItemIds: [String!]): [ItemDefine]
+    getCategory(dataSourceIds: [String!]): [CategoryDefine]
+}
