@@ -9,12 +9,12 @@ import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
 import { createHttpLink } from 'apollo-link-http';
 
 const GET_CATEGORY = gql`
-    query GetCategory {
-        getCategory {
+    query get_category(
+        $dataSourceIds: [String!]
+    ){
+        getCategory(dataSourceIds: $dataSourceIds) {
             name
-            color
-            dataSourceIds
-        }
+        }    
     }
 `;
 
@@ -43,7 +43,10 @@ export const categoriesAtom = atom(async(get): Promise<CategoryDefine[]> => {
           });
         
         const apiResult = await client.query({
-            query: GET_CATEGORY
+            query: GET_CATEGORY,
+            variables: {
+                dataSourceIds: targetDataSourceIds,
+            }
         })
         console.log('GET_CATEGOYRY', apiResult);
 
