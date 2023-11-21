@@ -41,6 +41,7 @@ import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { ItemDefine } from '279map-common';
 import { QueryGetCategoryArgs } from './graphql/generated/types';
+import { ResolverReturnType } from './graphql/type_utility';
 
 declare global {
     namespace Express {
@@ -700,7 +701,7 @@ const root = {
     /**
      * カテゴリ取得
      */
-    getCategory: async(param: QueryGetCategoryArgs, req: express.Request) => {
+    getCategory: async(param: QueryGetCategoryArgs, req: express.Request): ResolverReturnType<'getCategory'> => {
         try {
             const result = await getCategory(param, req.currentMap);
 
