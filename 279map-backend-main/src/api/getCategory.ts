@@ -1,10 +1,8 @@
 import randomColor from "randomcolor";
 import { ConnectionPool } from "..";
-import { CurrentMap } from "../../279map-backend-common/src";
+import { CategoryDefine, CurrentMap } from "../../279map-backend-common/src";
 import { getLogger } from "log4js";
-import { GetCategoryParam, GetCategoryResult } from "../graphql/types";
-
-type CategoryDefine = GetCategoryResult[0];
+import { QueryGetCategoryArgs } from "../graphql/generated/types";
 
 const apiLogger = getLogger('api');
 
@@ -13,7 +11,7 @@ const apiLogger = getLogger('api');
  * @param currentMap 
  * @returns categories
  */
-export async function getCategory(param: GetCategoryParam, currentMap: CurrentMap): Promise<GetCategoryResult> {
+export async function getCategory(param: QueryGetCategoryArgs, currentMap: CurrentMap): Promise<CategoryDefine[]> {
     if (!currentMap) {
         throw 'mapPageId or mapKind not defined.';
     }
@@ -22,7 +20,7 @@ export async function getCategory(param: GetCategoryParam, currentMap: CurrentMa
 
     try {
         // コンテンツで使用されているカテゴリを取得
-        const records = await getAllCategories(currentMap, param.dataSourceIds);
+        const records = await getAllCategories(currentMap, param.dataSourceIds ?? undefined);
         const categoryMap = new Map<string, CategoryDefine>();
         records.forEach((row) => {
             const categories = (JSON.parse(row.category) ?? []) as string[];

@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon -L",
     "build": "cross-env NODE_ENV=prod webpack",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "codegen": "graphql-codegen --config codegen.ts"
   },
   "author": "Satocheeen",
   "license": "MPL-2.0",
@@ -60,6 +61,9 @@
     "websocket-stream": "^5.5.2"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "5.0.0",
+    "@graphql-codegen/typescript": "4.0.1",
+    "@graphql-codegen/typescript-resolvers": "4.0.1",
     "@types/auth0": "^3.3.3",
     "@types/node": "^16.18.4",
     "@types/ol": "^6.5.3",

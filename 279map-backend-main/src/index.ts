@@ -36,12 +36,11 @@ import SessionManager from './session/SessionManager';
 import { geojsonToWKT } from '@terraformer/wkt';
 import { getItem, getItemsById } from './api/getItem';
 import { graphqlHTTP } from 'express-graphql';
-import { GraphQLObjectType, GraphQLSchema, GraphQLString } from 'graphql';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { ItemDefine } from '279map-common';
-import { GetCategoryParam, GetCategoryResult } from './graphql/types';
+import { QueryGetCategoryArgs } from './graphql/generated/types';
 
 declare global {
     namespace Express {
@@ -662,24 +661,6 @@ app.post(`/api/${GetOriginalIconDefineAPI.uri}`,
  * get items
  * 地図アイテム取得
  */
-const queryType = new GraphQLObjectType({
-    name: 'Query',
-    fields: {
-        hello: {
-            type: GraphQLString,
-            args: {
-                id: { type: GraphQLString },
-            },
-            resolve: (_, { id }) => {
-                return 'Hello Wordl!' + id;
-            }
-        },
-    }
-})
-const noGraphQLSchema = new GraphQLSchema({
-    query: queryType,
-})
-
 const fileSchema = loadSchemaSync(
     [
         join(__dirname, './graphql/types.graphql'),
@@ -689,7 +670,6 @@ const fileSchema = loadSchemaSync(
         loaders: [new GraphQLFileLoader()],
     }
 );
-
 
 // The root provides a resolver function for each API endpoint
 const root = {
@@ -720,7 +700,7 @@ const root = {
     /**
      * カテゴリ取得
      */
-    getCategory: async(param: GetCategoryParam, req: express.Request): Promise<GetCategoryResult> => {
+    getCategory: async(param: QueryGetCategoryArgs, req: express.Request) => {
         try {
             const result = await getCategory(param, req.currentMap);
 
