@@ -733,16 +733,6 @@ app.use(
     })
 )
 
-// スキーマ生成用
-app.use(
-    "/graphql-schema",
-    graphqlHTTP({
-        schema: fileSchema,
-        rootValue: root,
-        graphiql: true,
-    })
-)
-
 app.post(`/api/${GetItemsAPI.uri}`,
     checkApiAuthLv(Auth.View), 
     checkCurrentMap,
