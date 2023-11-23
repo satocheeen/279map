@@ -7,7 +7,7 @@ import { dialogTargetAtom, mapModeAtom, showingDetailItemIdAtom } from '../../st
 import { connectStatusLoadableAtom, mapDefineLoadableAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
-import { GetContentsAPI, GetContentsParam, GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, SearchAPI, UpdateContentAPI, UpdateContentParam } from 'tsunagumap-api';
+import { GetContentsAPI, GetContentsParam, GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, SearchAPI } from 'tsunagumap-api';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { ContentsDefine, DataId, DataSourceGroup, EventDefine, MapKind, UnpointContent } from '279map-common';
 import { MapMode, TsunaguMapHandler } from '../../types/types';

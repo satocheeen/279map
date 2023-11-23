@@ -15,7 +15,7 @@ import Spinner from "../common/spinner/Spinner";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
 import { getMapKey, isEqualId } from "../../util/dataUtility";
-import { GetContentsAPI, GetImageUrlAPI, GetSnsPreviewAPI, RemoveContentAPI, UpdateContentAPI, UpdateContentParam } from 'tsunagumap-api';
+import { GetContentsAPI, GetImageUrlAPI, GetSnsPreviewAPI, RemoveContentAPI } from 'tsunagumap-api';
 import { useMap } from "../map/useMap";
 import { authLvAtom, currentMapKindAtom } from "../../store/session";
 import { filteredContentIdListAtom } from "../../store/filter";

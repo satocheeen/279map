@@ -235,19 +235,6 @@ export type RegistContentParam = {
 } & ContentAttr;
 
 /**
- * update content
- */
-export const UpdateContentAPI = {
-    uri: 'updatecontent',
-    method: 'post',
-    resultType: 'none',
-} as APIDefine<UpdateContentParam, void>;
-
-export type UpdateContentParam = {
-    id: DataId;
-} & Partial<ContentAttr>;
-
-/**
  * remove content
  */
 export const RemoveContentAPI = {
