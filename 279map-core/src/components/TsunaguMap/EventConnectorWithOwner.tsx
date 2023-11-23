@@ -9,7 +9,7 @@ import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { GetContentsAPI, GetContentsParam, GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, SearchAPI } from 'tsunagumap-api';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { ContentsDefine, DataId, DataSourceGroup, EventDefine, MapKind, UnpointContent } from '279map-common';
+import { ContentsDefine, DataId, DataSourceGroup, MapKind, UnpointContent } from '279map-common';
 import { MapMode, TsunaguMapHandler } from '../../types/types';
 import { useAtom } from 'jotai';
 import { itemDataSourceGroupsAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
@@ -18,7 +18,7 @@ import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
 import { useApi } from '../../api/useApi';
-import { CategoryDefine, MutationUpdateContentArgs } from '../../graphql/generated/graphql';
+import { CategoryDefine, EventDefine, MutationUpdateContentArgs } from '../../graphql/generated/graphql';
 import { updateContentAtom } from '../../store/content';
 
 /**

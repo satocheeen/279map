@@ -1,32 +1,21 @@
-import { EventDefine } from "279map-common";
-import { GetEventsAPI } from 'tsunagumap-api';
 import { atom } from 'jotai';
 import { loadable } from "jotai/utils";
 import { visibleDataSourceIdsAtom } from "./datasource";
-import { connectStatusAtom, serverInfoAtom } from "./session";
-import { callApi } from "../api/api";
+import { atomWithQuery } from "jotai-urql";
+import { GetEventDocument } from "../graphql/generated/graphql";
 
-export const eventsAtom = atom(async(get): Promise<EventDefine[]> => {
-    try {
-        const serverInfo = get(serverInfoAtom);
-        const sid = (await get(connectStatusAtom)).sid;
-
-        // 表示中のデータソースに紐づくイベントを取得
+const getEventQueryAtom = atomWithQuery({
+    query: GetEventDocument,
+    getVariables: (get) => {
         const targetDataSourceIds = get(visibleDataSourceIdsAtom);
-        if (targetDataSourceIds.length === 0) {
-            return [];
-        }
-        const apiResult = await callApi(serverInfo, sid, GetEventsAPI, {
+        return {
             dataSourceIds: targetDataSourceIds,
-        });
-
-        return apiResult;
-
-    } catch (e) {
-        console.warn('loadEvents error', e);
-        return [];
+        }
     }
-
+})
+const eventsAtom = atom(async(get) => {
+    const getEventQuery = await get(getEventQueryAtom);
+    return getEventQuery.data?.getEvent ?? [];
 })
 
 export const eventsLoadableAtom = loadable(eventsAtom);

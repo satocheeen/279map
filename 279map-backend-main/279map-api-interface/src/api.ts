@@ -109,19 +109,6 @@ export type GetUnpointDataResult = {
 };
 
 /**
- * get events
- */
-export const GetEventsAPI = {
-    uri: 'getevents',
-    method: 'post',
-    resultType: 'json',
-} as APIDefine<GetEventParam, GetEventsResult>;
-export type GetEventParam = {
-    dataSourceIds?: string[];   // 指定されている場合、指定のデータソースのイベントのみ返す
-}
-export type GetEventsResult = EventDefine[];
-
-/**
  * get items
  */
 export const GetItemsAPI = {

@@ -7,3 +7,12 @@ query getCategory(
         dataSourceIds
     }    
 }
+
+query getEvent(
+    $dataSourceIds: [String!]
+){
+    getEvent(dataSourceIds: $dataSourceIds) {
+        dataSourceId
+        dates
+    }    
+}
