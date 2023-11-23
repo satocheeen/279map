@@ -1,4 +1,4 @@
-import { MutationResolvers, QueryResolvers } from "./generated/types";
+import { MutationResolvers, QueryResolvers } from "./__generated__/types";
 
 type Members<T> = {
   [K in keyof T]: K;

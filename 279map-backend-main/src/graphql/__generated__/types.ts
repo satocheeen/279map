@@ -37,6 +37,11 @@ export type DataIdInput = {
   id: Scalars['String']['input'];
 };
 
+export type EventDefine = {
+  dataSourceId?: Maybe<Scalars['String']['output']>;
+  dates: Array<Scalars['String']['output']>;
+};
+
 export type ItemDefine = {
   id: DataId;
   lastEditedTime: Scalars['String']['output'];
@@ -61,12 +66,18 @@ export type MutationUpdateContentArgs = {
 
 export type Query = {
   getCategory: Array<CategoryDefine>;
+  getEvent: Array<EventDefine>;
   getItems?: Maybe<Array<Maybe<ItemDefine>>>;
   hello?: Maybe<Scalars['String']['output']>;
 };
 
 
 export type QueryGetCategoryArgs = {
+  dataSourceIds?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+
+export type QueryGetEventArgs = {
   dataSourceIds?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
@@ -155,6 +166,7 @@ export type ResolversTypes = {
   ContentType: ContentType;
   DataId: ResolverTypeWrapper<DataId>;
   DataIdInput: DataIdInput;
+  EventDefine: ResolverTypeWrapper<EventDefine>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   ItemDefine: ResolverTypeWrapper<ItemDefine>;
   Mutation: ResolverTypeWrapper<{}>;
@@ -168,6 +180,7 @@ export type ResolversParentTypes = {
   CategoryDefine: CategoryDefine;
   DataId: DataId;
   DataIdInput: DataIdInput;
+  EventDefine: EventDefine;
   Float: Scalars['Float']['output'];
   ItemDefine: ItemDefine;
   Mutation: {};
@@ -188,6 +201,12 @@ export type DataIdResolvers<ContextType = any, ParentType extends ResolversParen
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type EventDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventDefine'] = ResolversParentTypes['EventDefine']> = {
+  dataSourceId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  dates?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type ItemDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemDefine'] = ResolversParentTypes['ItemDefine']> = {
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   lastEditedTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -201,6 +220,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   getCategory?: Resolver<Array<ResolversTypes['CategoryDefine']>, ParentType, ContextType, Partial<QueryGetCategoryArgs>>;
+  getEvent?: Resolver<Array<ResolversTypes['EventDefine']>, ParentType, ContextType, Partial<QueryGetEventArgs>>;
   getItems?: Resolver<Maybe<Array<Maybe<ResolversTypes['ItemDefine']>>>, ParentType, ContextType, RequireFields<QueryGetItemsArgs, 'dataSourceId' | 'wkt' | 'zoom'>>;
   hello?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
@@ -208,6 +228,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
 export type Resolvers<ContextType = any> = {
   CategoryDefine?: CategoryDefineResolvers<ContextType>;
   DataId?: DataIdResolvers<ContextType>;
+  EventDefine?: EventDefineResolvers<ContextType>;
   ItemDefine?: ItemDefineResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;

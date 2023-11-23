@@ -3,15 +3,17 @@ import { EventDefine } from "279map-common";
 import { GetEventParam, GetEventsResult } from "../279map-api-interface/src";
 import { getLogger } from "log4js";
 import { CurrentMap } from "../279map-backend-common/src";
+import { QueryGetEventArgs } from "./graphql/__generated__/types";
+import { QueryResolverReturnType } from "./graphql/type_utility";
 
 const logger = getLogger('api');
-export async function getEvents(param: GetEventParam, currentMap: CurrentMap): Promise<GetEventsResult> {
+export async function getEvents(param: QueryGetEventArgs, currentMap: CurrentMap): QueryResolverReturnType<'getEvent'> {
     if (!currentMap) {
         throw 'no currentmap';
     }
     try {
         // get contents which has date in the map
-        const records = await getAllDates(currentMap, param.dataSourceIds);
+        const records = await getAllDates(currentMap, param.dataSourceIds ?? undefined);
         const dataSourceMap = new Map<string, DateResult[]>();
         records.forEach(rec => {
             if (!dataSourceMap.has(rec.data_source_id)) {
@@ -19,19 +21,11 @@ export async function getEvents(param: GetEventParam, currentMap: CurrentMap): P
             }
             dataSourceMap.get(rec.data_source_id)?.push(rec);
         });
-        return Array.from(dataSourceMap.entries()).map((entry): EventDefine => {
+        return Array.from(dataSourceMap.entries()).map((entry) => {
             const val = entry[1];
             return {
                 dataSourceId: entry[0],
-                contentDate: val.map(v => {
-                    return {
-                        date: v.date,
-                        contentId: {
-                            dataSourceId: v.content_datasource_id,
-                            id: v.content_page_id,
-                        }
-                    }
-                })
+                dates: val.map(v => v.date),
             }
         })
 

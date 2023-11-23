@@ -39,6 +39,12 @@ export type DataIdInput = {
   id: Scalars['String']['input'];
 };
 
+export type EventDefine = {
+  __typename?: 'EventDefine';
+  dataSourceId?: Maybe<Scalars['String']['output']>;
+  dates: Array<Scalars['String']['output']>;
+};
+
 export type ItemDefine = {
   __typename?: 'ItemDefine';
   id: DataId;
@@ -66,12 +72,18 @@ export type MutationUpdateContentArgs = {
 export type Query = {
   __typename?: 'Query';
   getCategory: Array<CategoryDefine>;
+  getEvent: Array<EventDefine>;
   getItems?: Maybe<Array<Maybe<ItemDefine>>>;
   hello?: Maybe<Scalars['String']['output']>;
 };
 
 
 export type QueryGetCategoryArgs = {
+  dataSourceIds?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+
+export type QueryGetEventArgs = {
   dataSourceIds?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 

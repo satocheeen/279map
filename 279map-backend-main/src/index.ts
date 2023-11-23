@@ -40,7 +40,7 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { ItemDefine } from '279map-common';
-import { MutationUpdateContentArgs, QueryGetCategoryArgs } from './graphql/generated/types';
+import { MutationUpdateContentArgs, QueryGetCategoryArgs, QueryGetEventArgs } from './graphql/__generated__/types';
 import { MutationResolverReturnType, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 
@@ -701,11 +701,6 @@ app.post(`/api/${GetOriginalIconDefineAPI.uri}`,
 );
 
 
-// TODO:
-/**
- * get items
- * 地図アイテム取得
- */
 const fileSchema = loadSchemaSync(
     [
         join(__dirname, './graphql/query.gql'),
@@ -717,10 +712,15 @@ const fileSchema = loadSchemaSync(
 );
 
 // The root provides a resolver function for each API endpoint
-const root = {
+const rootResolver = {
     hello: () => {
         return "Hello world!"
     },
+    /**
+     * TODO: 要修正
+     * get items
+     * 地図アイテム取得
+     */
     getItems: async(param: GetItemsParam, req: express.Request): Promise<ItemDefine[]> => {
         // console.log('context', context);
         const session = sessionManager.get(req.connect?.sessionKey as string);
@@ -748,16 +748,26 @@ const root = {
     getCategory: async(param: QueryGetCategoryArgs, req: express.Request): QueryResolverReturnType<'getCategory'> => {
         try {
             const result = await getCategory(param, req.currentMap);
-
-            apiLogger.debug('result', result);
-
             return result;
 
         } catch(e) {    
-            apiLogger.warn('get-category API error', param, e);
+            apiLogger.warn('getCategory error', param, e);
             throw e;
         }
 
+    },
+    /**
+     * イベント取得
+     */
+    getEvent: async(param: QueryGetEventArgs, req: express.Request): QueryResolverReturnType<'getEvent'> => {
+        try {
+            const result = await getEvents(param, req.currentMap);
+            return result;
+
+        } catch(e) {    
+            apiLogger.warn('getEvent error', param, e);
+            throw e;
+        }
     },
     /**
      * コンテンツ更新
@@ -814,7 +824,7 @@ app.use(
     checkCurrentMap,
     graphqlHTTP({
         schema: fileSchema,
-        rootValue: root,
+        rootValue: rootResolver,
         graphiql: true,
     })
 )

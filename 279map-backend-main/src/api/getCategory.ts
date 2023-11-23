@@ -2,7 +2,7 @@ import randomColor from "randomcolor";
 import { ConnectionPool } from "..";
 import { CategoryDefine, CurrentMap } from "../../279map-backend-common/src";
 import { getLogger } from "log4js";
-import { QueryGetCategoryArgs } from "../graphql/generated/types";
+import { QueryGetCategoryArgs } from "../graphql/__generated__/types";
 import { QueryResolverReturnType } from "../graphql/type_utility";
 
 const apiLogger = getLogger('api');
