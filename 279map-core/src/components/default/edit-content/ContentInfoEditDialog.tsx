@@ -7,9 +7,9 @@ import { Button, Modal } from '../../common';
 import useConfirm from '../../common/confirm/useConfirm';
 import Select from '../../common/form/Select';
 import { ConfirmBtnPattern } from '../../common/confirm/types';
-import { useAtom } from 'jotai';
 import { modalSpinnerAtom } from '../../common/modal/Modal';
 import { useAtomCallback } from 'jotai/utils';
+import { MutationUpdateContentArgs } from '../../../graphql/generated/graphql';
 
 type Props = {
     onClose?: () => void;
@@ -69,7 +69,7 @@ export default function ContentInfoEditDialog(props: Props) {
                     // 更新
                     const apiParam = Object.assign({
                         id: props.param.contentId,
-                    }, attrValue);
+                    }, attrValue) as MutationUpdateContentArgs;
                     if (apiParam.type === 'normal' && apiParam.imageUrl) {
                         // TODO:
                         apiParam.imageUrl = (apiParam.imageUrl === '/api/getthumb?id=' + props.param.contentId) ? undefined : apiParam.imageUrl;

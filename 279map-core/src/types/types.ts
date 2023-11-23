@@ -3,7 +3,7 @@ import { CSSProperties } from "react";
 import { EventDefine, MapKind } from '279map-common';
 import { ApiError, ErrorType, GetMapInfoResult, LinkContentToItemParam, RegistContentParam, GetSnsPreviewResult, UpdateContentParam, GetUnpointDataResult, GetContentsParam } from "tsunagumap-api";
 import { FilterDefine } from "279map-common";
-import { CategoryDefine } from "../graphql/generated/graphql";
+import { CategoryDefine, MutationUpdateContentArgs } from "../graphql/generated/graphql";
 
 export type OnMapLoadParam = {
     mapKind: MapKind;
@@ -142,7 +142,7 @@ export interface TsunaguMapHandler {
 
     registContentAPI(param: RegistContentParam): Promise<void>;
 
-    updateContentAPI(param: UpdateContentParam): Promise<void>;
+    updateContentAPI(param: MutationUpdateContentArgs): Promise<void>;
 
     linkContentToItemAPI(param: LinkContentToItemParam): Promise<void>;
 
@@ -237,7 +237,7 @@ export type EditContentParam = {
     contentId: DataId;
     currentAttr: ContentAttr;
     getSnsPreviewAPI: (url: string) => Promise<GetSnsPreviewResult>;
-    updateContentAPI: (param: UpdateContentParam) => Promise<void>;
+    updateContentAPI: (param: MutationUpdateContentArgs) => Promise<void>;
 }
 /**
  * 地図上で新規コンテンツ追加→未配置コンテンツが選択された場合に、コールバック関数に渡される情報

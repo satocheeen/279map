@@ -18,7 +18,8 @@ import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
 import { useApi } from '../../api/useApi';
-import { CategoryDefine } from '../../graphql/generated/graphql';
+import { CategoryDefine, MutationUpdateContentArgs } from '../../graphql/generated/graphql';
+import { updateContentAtom } from '../../store/content';
 
 /**
  * 呼び出し元とイベント連携するためのコンポーネントもどき。
@@ -38,6 +39,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
     const { focusItem } = useMap();
     const { callApi } = useApi();
     const { updateDatasourceVisible } = useDataSource();
+    const [, updateContent] = useAtom(updateContentAtom);
 
     const showDetailDialog = useAtomCallback(
         useCallback((get, set, param: {type: 'item' | 'content'; id: DataId}) => {
@@ -77,8 +79,8 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 throw new Error('registContentAPI failed.' + e);
             }
         },
-        async updateContentAPI(param: UpdateContentParam) {
-            await callApi(UpdateContentAPI, param);
+        async updateContentAPI(param: MutationUpdateContentArgs) {
+            await updateContent(param);
         },
         async linkContentToItemAPI(param: LinkContentToItemParam) {
             await callApi(LinkContentToItemAPI, param);

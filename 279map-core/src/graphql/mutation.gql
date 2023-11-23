@@ -1,0 +1,21 @@
+mutation updateContent(
+    $id: DataIdInput!
+    $title: String
+    $overview: String
+    $categories: [String!]
+    $type: ContentType!
+    $date: String
+    $imageUrl: String
+    $url: String
+){
+    updateContent(
+        id: $id
+        title: $title
+        overview: $overview
+        categories: $categories
+        type: $type
+        date: $date
+        imageUrl: $imageUrl
+        url: $url
+    )
+}

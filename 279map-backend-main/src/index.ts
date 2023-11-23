@@ -664,7 +664,6 @@ app.post(`/api/${GetOriginalIconDefineAPI.uri}`,
  */
 const fileSchema = loadSchemaSync(
     [
-        join(__dirname, './graphql/types.gql'),
         join(__dirname, './graphql/query.gql'),
         join(__dirname, './graphql/mutation.gql'),
     ],

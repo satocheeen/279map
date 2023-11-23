@@ -32,6 +32,11 @@ export type DataId = {
   id: Scalars['String']['output'];
 };
 
+export type DataIdInput = {
+  dataSourceId: Scalars['String']['input'];
+  id: Scalars['String']['input'];
+};
+
 export type ItemDefine = {
   id: DataId;
   lastEditedTime: Scalars['String']['output'];
@@ -46,7 +51,7 @@ export type Mutation = {
 export type MutationUpdateContentArgs = {
   categories?: InputMaybe<Array<Scalars['String']['input']>>;
   date?: InputMaybe<Scalars['String']['input']>;
-  id: DataId;
+  id: DataIdInput;
   imageUrl?: InputMaybe<Scalars['String']['input']>;
   overview?: InputMaybe<Scalars['String']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
@@ -149,6 +154,7 @@ export type ResolversTypes = {
   CategoryDefine: ResolverTypeWrapper<CategoryDefine>;
   ContentType: ContentType;
   DataId: ResolverTypeWrapper<DataId>;
+  DataIdInput: DataIdInput;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   ItemDefine: ResolverTypeWrapper<ItemDefine>;
   Mutation: ResolverTypeWrapper<{}>;
@@ -161,6 +167,7 @@ export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
   CategoryDefine: CategoryDefine;
   DataId: DataId;
+  DataIdInput: DataIdInput;
   Float: Scalars['Float']['output'];
   ItemDefine: ItemDefine;
   Mutation: {};

@@ -26,6 +26,8 @@ import { useMapController } from "../../store/useMapController";
 import { useApi } from "../../api/useApi";
 import { useAtomCallback } from "jotai/utils";
 import { dialogTargetAtom } from "../../store/operation";
+import { MutationUpdateContentArgs } from "../../graphql/generated/graphql";
+import { updateContentAtom } from "../../store/content";
 
 type Props = {
     itemId: DataId;
@@ -45,6 +47,7 @@ export default function Content(props: Props) {
     const { onEditContent }  = useContext(OwnerContext);
     const { focusItem } = useMap();
     const { callApi } = useApi();
+    const [, updateContent] = useAtom(updateContentAtom);
 
     /**
      * 表示対象コンテンツかどうか。
@@ -213,12 +216,12 @@ export default function Content(props: Props) {
                 });
                 return res;
             },
-            updateContentAPI: async(param: UpdateContentParam) => {
-                await callApi(UpdateContentAPI, param);
+            updateContentAPI: async(param: MutationUpdateContentArgs) => {
+                await updateContent(param);
         
             },
         })
-    }, [props.content, onEditContent, callApi]);
+    }, [props.content, onEditContent, callApi, updateContent]);
 
     const onDelete = useCallback(async() => {
         const result = await confirm({
