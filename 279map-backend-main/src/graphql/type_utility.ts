@@ -9,9 +9,11 @@ type GetReturnType<Type> = Type extends (...args: never[]) => infer Return
   : never;
 
 type AllQueryResolvers = Required<QueryResolvers>;
-type QResolvers = Members<AllQueryResolvers>;
+export type QResolvers = Members<AllQueryResolvers>;
 export type QueryResolverReturnType<R extends QResolvers> = Promise<GetReturnType<AllQueryResolvers[R]>>;
 
 type AllMutationResolvers = Required<MutationResolvers>;
-type MResolvers = Members<AllMutationResolvers>;
+export type MResolvers = Members<AllMutationResolvers>;
 export type MutationResolverReturnType<R extends MResolvers> = Promise<GetReturnType<AllMutationResolvers[R]>>;
+
+export type Resolvers = QResolvers | MResolvers;

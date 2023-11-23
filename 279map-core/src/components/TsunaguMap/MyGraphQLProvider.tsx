@@ -1,9 +1,9 @@
 import { useAtom } from 'jotai';
-import React, { ReactElement, useMemo } from 'react';
+import React, { ReactElement } from 'react';
 import { connectStatusAtom, serverInfoAtom } from '../../store/session';
-import { createClient, cacheExchange, fetchExchange,Provider as UrqlProvider } from "urql";
-import { useHydrateAtoms } from 'jotai/utils';
+import { createClient, cacheExchange, fetchExchange } from "urql";
 import { clientAtom } from 'jotai-urql'
+import { useWatch } from '../../util/useWatch2';
 
 type Props = {
     children: ReactElement[];
@@ -11,12 +11,13 @@ type Props = {
 export default function MyGraphQLProvider(props: Props) {
     const [serverInfo] = useAtom(serverInfoAtom);
     const [connectStatus] = useAtom(connectStatusAtom);
+    const [, setClient] = useAtom(clientAtom);
 
-    const client = useMemo(() => {
+    useWatch([serverInfo, connectStatus], () => {
         const protocol = serverInfo.ssl ? 'https' : 'http';
         const url = `${protocol}://${serverInfo.host}/graphql`;
-    
-        return createClient({
+
+        const urqlClient = createClient({
             url,
             exchanges: [cacheExchange, fetchExchange],
             fetchOptions: () => {
@@ -28,13 +29,13 @@ export default function MyGraphQLProvider(props: Props) {
                 }
             }
         })
-    }, [serverInfo, connectStatus]); 
 
-    useHydrateAtoms([[clientAtom, client]])
+        setClient(urqlClient);
+    }, { immediate: true })
 
     return (
-        <UrqlProvider value={client}>
+        <>
             {props.children}
-        </UrqlProvider>
+        </>
     );
 }

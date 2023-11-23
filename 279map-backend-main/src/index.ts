@@ -41,7 +41,8 @@ import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { ItemDefine } from '279map-common';
 import { MutationUpdateContentArgs, QueryGetCategoryArgs } from './graphql/generated/types';
-import { MutationResolverReturnType, QueryResolverReturnType } from './graphql/type_utility';
+import { MutationResolverReturnType, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
+import { authDefine } from './graphql/auth_define';
 
 declare global {
     namespace Express {
@@ -482,7 +483,7 @@ const checkAuthorization = async(req: Request, res: Response, next: NextFunction
         // 未ログインの場合は、ゲストユーザ権限があるか確認
         const userAuthInfo = await getUserAuthInfoInTheMap(mapPageInfo, req);
         if (!userAuthInfo) {
-            apiLogger.debug('not auth');
+        apiLogger.debug('not auth');
             next({
                 name: 'Unauthenticated',
                 message: 'this map is private, please login.',
@@ -534,6 +535,49 @@ const checkUserAuthLv = async(req: Request, res: Response, next: NextFunction) =
 
 app.all('/api/*', checkUserAuthLv);
 
+const checkGraphQlAuthLv = async(req: Request, res: Response, next: NextFunction) => {
+    const operationName = req.body.operationName as Resolvers | undefined;
+    if (!operationName || !(operationName in authDefine)) {
+        res.status(404).send({
+            type: ErrorType.IllegalError,
+            detail: 'illegal operationName: ' + operationName,
+        } as ApiError);
+        return;
+    }
+    const needAuthLv = authDefine[operationName];
+    let allowAuthList: Auth[];
+    switch(needAuthLv) {
+        case Auth.View:
+            allowAuthList = [Auth.View, Auth.Edit, Auth.Admin];
+            break;
+        case Auth.Edit:
+            allowAuthList = [Auth.Edit, Auth.Admin];
+            break;
+        default:
+            allowAuthList = [Auth.Admin];
+    }
+    const userAuthLv = function() {
+        if (!req.connect?.userAuthInfo) {
+            return Auth.None;
+        }
+        switch(req.connect.userAuthInfo.authLv) {
+            case undefined:
+            case Auth.None:
+            case Auth.Request:
+                return req.connect.userAuthInfo.guestAuthLv;
+            default:
+                return req.connect.userAuthInfo.authLv;
+        }
+    }();
+    req.authLv = userAuthLv;
+    if (!userAuthLv || !allowAuthList.includes(userAuthLv)) {
+        res.status(403).send({
+            type: ErrorType.OperationForbidden,
+        } as ApiError);
+        return;
+    }
+    next();
+}
 const checkApiAuthLv = (needAuthLv: Auth) => {
     return async(req: Request, res: Response, next: NextFunction) => {
         let allowAuthList: Auth[];
@@ -766,7 +810,7 @@ app.use(
     authManagementClient.checkJwt,
     authenticateErrorProcess,
     checkUserAuthLv,
-    checkApiAuthLv(Auth.View), 
+    checkGraphQlAuthLv,
     checkCurrentMap,
     graphqlHTTP({
         schema: fileSchema,
