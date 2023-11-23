@@ -68,7 +68,6 @@ export type Query = {
   getCategory: Array<CategoryDefine>;
   getEvent: Array<EventDefine>;
   getItems?: Maybe<Array<Maybe<ItemDefine>>>;
-  hello?: Maybe<Scalars['String']['output']>;
 };
 
 
@@ -222,7 +221,6 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getCategory?: Resolver<Array<ResolversTypes['CategoryDefine']>, ParentType, ContextType, Partial<QueryGetCategoryArgs>>;
   getEvent?: Resolver<Array<ResolversTypes['EventDefine']>, ParentType, ContextType, Partial<QueryGetEventArgs>>;
   getItems?: Resolver<Maybe<Array<Maybe<ResolversTypes['ItemDefine']>>>, ParentType, ContextType, RequireFields<QueryGetItemsArgs, 'dataSourceId' | 'wkt' | 'zoom'>>;
-  hello?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
 export type Resolvers<ContextType = any> = {

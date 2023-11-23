@@ -712,10 +712,8 @@ const fileSchema = loadSchemaSync(
 );
 
 // The root provides a resolver function for each API endpoint
-const rootResolver = {
-    hello: () => {
-        return "Hello world!"
-    },
+type ResolverFunc = (param: any, req: express.Request) => QueryResolverReturnType<any> | MutationResolverReturnType<any>;
+const rootResolver: Record<Resolvers, ResolverFunc> = {
     /**
      * TODO: 要修正
      * get items
