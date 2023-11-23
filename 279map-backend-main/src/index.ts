@@ -18,10 +18,10 @@ import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import cors from 'cors';
 import { exit } from 'process';
 import { getMapInfoById } from './getMapDefine';
-import { ConfigAPI, ConnectResult, GeocoderParam, GetContentsAPI, GetContentsParam, GetEventsAPI, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
+import { ConfigAPI, ConnectResult, GeocoderParam, GetContentsAPI, GetContentsParam, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, GetEventParam, RequestAPI, RequestParam, GetUserListAPI, GetUserListResult, ChangeAuthLevelAPI, ChangeAuthLevelParam, GetItemsByIdAPI, GetItemsByIdParam, GetLinkableContentsAPI, LinkContentDatasourceToMapAPI, LinkContentDatasourceToMapParam, UnlinkContentDatasourceFromMapAPI, UnLinkContentDatasourceFromMapParam } from '../279map-api-interface/src/api';
+import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, RequestAPI, RequestParam, GetUserListAPI, GetUserListResult, ChangeAuthLevelAPI, ChangeAuthLevelParam, GetItemsByIdAPI, GetItemsByIdParam, GetLinkableContentsAPI, LinkContentDatasourceToMapAPI, LinkContentDatasourceToMapParam, UnlinkContentDatasourceFromMapAPI, UnLinkContentDatasourceFromMapParam } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 import { search } from './api/search';
@@ -920,33 +920,6 @@ app.post(`/api/${GetContentsAPI.uri}`,
             next();
         } catch(e) {    
             apiLogger.warn('get-contents API error', param, e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail : e + '',
-            } as ApiError);
-        }
-    }
-);
-
-
-/**
- * イベント取得
- */
-app.post(`/api/${GetEventsAPI.uri}`,
-    checkApiAuthLv(Auth.View), 
-    checkCurrentMap,
-    async(req, res, next) => {
-        const param = req.body as GetEventParam;
-        try {
-            const result = await getEvents(param, req.currentMap);
-
-            apiLogger.debug('result', result);
-
-            res.send(result);
-
-            next();
-        } catch(e) {    
-            apiLogger.warn('get-events API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',

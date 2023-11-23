@@ -11,6 +11,11 @@ const getEventQueryAtom = atomWithQuery({
         return {
             dataSourceIds: targetDataSourceIds,
         }
+    },
+    getPause(get) {
+        // 表示対象データがない場合は実行しない
+        const targetDataSourceIds = get(visibleDataSourceIdsAtom);
+        return targetDataSourceIds.length === 0;
     }
 })
 const eventsAtom = atom(async(get) => {
