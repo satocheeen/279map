@@ -12,3 +12,7 @@ type CategoryDefine {
     color: String!
     dataSourceIds: [String!]!
 }
+enum ContentType {
+    normal
+    sns
+}

@@ -3,7 +3,7 @@ import { ConnectionPool } from "..";
 import { CategoryDefine, CurrentMap } from "../../279map-backend-common/src";
 import { getLogger } from "log4js";
 import { QueryGetCategoryArgs } from "../graphql/generated/types";
-import { ResolverReturnType } from "../graphql/type_utility";
+import { QueryResolverReturnType } from "../graphql/type_utility";
 
 const apiLogger = getLogger('api');
 
@@ -12,7 +12,7 @@ const apiLogger = getLogger('api');
  * @param currentMap 
  * @returns categories
  */
-export async function getCategory(param: QueryGetCategoryArgs, currentMap: CurrentMap): ResolverReturnType<'getCategory'> {
+export async function getCategory(param: QueryGetCategoryArgs, currentMap: CurrentMap): QueryResolverReturnType<'getCategory'> {
     if (!currentMap) {
         throw 'mapPageId or mapKind not defined.';
     }

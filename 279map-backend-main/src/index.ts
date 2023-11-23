@@ -40,8 +40,8 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { ItemDefine } from '279map-common';
-import { QueryGetCategoryArgs } from './graphql/generated/types';
-import { ResolverReturnType } from './graphql/type_utility';
+import { MutationUpdateContentArgs, QueryGetCategoryArgs } from './graphql/generated/types';
+import { MutationResolverReturnType, QueryResolverReturnType } from './graphql/type_utility';
 
 declare global {
     namespace Express {
@@ -664,8 +664,9 @@ app.post(`/api/${GetOriginalIconDefineAPI.uri}`,
  */
 const fileSchema = loadSchemaSync(
     [
-        join(__dirname, './graphql/types.graphql'),
-        join(__dirname, './graphql/query.graphql')
+        join(__dirname, './graphql/types.gql'),
+        join(__dirname, './graphql/query.gql'),
+        join(__dirname, './graphql/mutation.gql'),
     ],
     {
         loaders: [new GraphQLFileLoader()],
@@ -701,7 +702,7 @@ const root = {
     /**
      * カテゴリ取得
      */
-    getCategory: async(param: QueryGetCategoryArgs, req: express.Request): ResolverReturnType<'getCategory'> => {
+    getCategory: async(param: QueryGetCategoryArgs, req: express.Request): QueryResolverReturnType<'getCategory'> => {
         try {
             const result = await getCategory(param, req.currentMap);
 
@@ -711,6 +712,48 @@ const root = {
 
         } catch(e) {    
             apiLogger.warn('get-category API error', param, e);
+            throw e;
+        }
+
+    },
+    /**
+     * コンテンツ更新
+     */
+    updateContent: async(param: MutationUpdateContentArgs, req: express.Request): MutationResolverReturnType<'updateContent'> => {
+        try {
+            // call ODBA
+            await callOdbaApi(OdbaUpdateContentAPI, {
+                currentMap: req.currentMap,
+                id: param.id,
+                categories: param.categories as string[] | undefined,
+                date: param.date as string | undefined,
+                imageUrl: param.imageUrl as string | undefined,
+                overview: param.overview as string | undefined,
+                title: param.title as string | undefined,
+                type: param.type,
+                url: param.url as string | undefined,
+            });
+    
+            // 更新通知
+            const target = (await getContents({
+                param: [
+                    {
+                        contentId: param.id,
+                    }
+                ],
+                currentMap: req.currentMap,
+                authLv: req.authLv,
+            })).contents[0];
+
+            broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
+                type: 'childcontents-update',
+                subtype: target.itemId,
+            });
+        
+            return true;
+
+        } catch(e) {
+            apiLogger.warn('update-content API error', param, e);
             throw e;
         }
 

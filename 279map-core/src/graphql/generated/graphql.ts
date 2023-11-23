@@ -23,6 +23,11 @@ export type CategoryDefine = {
   name: Scalars['String']['output'];
 };
 
+export enum ContentType {
+  Normal = 'normal',
+  Sns = 'sns'
+}
+
 export type DataId = {
   __typename?: 'DataId';
   dataSourceId: Scalars['String']['output'];
@@ -34,6 +39,23 @@ export type ItemDefine = {
   id: DataId;
   lastEditedTime: Scalars['String']['output'];
   name: Scalars['String']['output'];
+};
+
+export type Mutation = {
+  __typename?: 'Mutation';
+  updateContent?: Maybe<Scalars['Boolean']['output']>;
+};
+
+
+export type MutationUpdateContentArgs = {
+  categories?: InputMaybe<Array<Scalars['String']['input']>>;
+  date?: InputMaybe<Scalars['String']['input']>;
+  id: DataId;
+  imageUrl?: InputMaybe<Scalars['String']['input']>;
+  overview?: InputMaybe<Scalars['String']['input']>;
+  title?: InputMaybe<Scalars['String']['input']>;
+  type: ContentType;
+  url?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type Query = {

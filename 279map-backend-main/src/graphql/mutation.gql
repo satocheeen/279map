@@ -1,0 +1,12 @@
+type Mutation {
+    updateContent(
+        id: DataId!
+        title: String
+        overview: String
+        categories: [String!]
+        type: ContentType!
+        date: String
+        imageUrl: String
+        url: String
+    ): Boolean
+}

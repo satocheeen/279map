@@ -22,6 +22,11 @@ export type CategoryDefine = {
   name: Scalars['String']['output'];
 };
 
+export enum ContentType {
+  Normal = 'normal',
+  Sns = 'sns'
+}
+
 export type DataId = {
   dataSourceId: Scalars['String']['output'];
   id: Scalars['String']['output'];
@@ -31,6 +36,22 @@ export type ItemDefine = {
   id: DataId;
   lastEditedTime: Scalars['String']['output'];
   name: Scalars['String']['output'];
+};
+
+export type Mutation = {
+  updateContent?: Maybe<Scalars['Boolean']['output']>;
+};
+
+
+export type MutationUpdateContentArgs = {
+  categories?: InputMaybe<Array<Scalars['String']['input']>>;
+  date?: InputMaybe<Scalars['String']['input']>;
+  id: DataId;
+  imageUrl?: InputMaybe<Scalars['String']['input']>;
+  overview?: InputMaybe<Scalars['String']['input']>;
+  title?: InputMaybe<Scalars['String']['input']>;
+  type: ContentType;
+  url?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type Query = {
@@ -126,9 +147,11 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 export type ResolversTypes = {
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   CategoryDefine: ResolverTypeWrapper<CategoryDefine>;
+  ContentType: ContentType;
   DataId: ResolverTypeWrapper<DataId>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   ItemDefine: ResolverTypeWrapper<ItemDefine>;
+  Mutation: ResolverTypeWrapper<{}>;
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
 };
@@ -140,6 +163,7 @@ export type ResolversParentTypes = {
   DataId: DataId;
   Float: Scalars['Float']['output'];
   ItemDefine: ItemDefine;
+  Mutation: {};
   Query: {};
   String: Scalars['String']['output'];
 };
@@ -164,6 +188,10 @@ export type ItemDefineResolvers<ContextType = any, ParentType extends ResolversP
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
+  updateContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateContentArgs, 'id' | 'type'>>;
+};
+
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   getCategory?: Resolver<Array<ResolversTypes['CategoryDefine']>, ParentType, ContextType, Partial<QueryGetCategoryArgs>>;
   getItems?: Resolver<Maybe<Array<Maybe<ResolversTypes['ItemDefine']>>>, ParentType, ContextType, RequireFields<QueryGetItemsArgs, 'dataSourceId' | 'wkt' | 'zoom'>>;
@@ -174,6 +202,7 @@ export type Resolvers<ContextType = any> = {
   CategoryDefine?: CategoryDefineResolvers<ContextType>;
   DataId?: DataIdResolvers<ContextType>;
   ItemDefine?: ItemDefineResolvers<ContextType>;
+  Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
 };
 
