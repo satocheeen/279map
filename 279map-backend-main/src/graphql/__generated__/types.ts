@@ -27,6 +27,25 @@ export enum ContentType {
   Sns = 'sns'
 }
 
+export type ContentsDefine = {
+  anotherMapItemId?: Maybe<DataId>;
+  category?: Maybe<Array<Scalars['String']['output']>>;
+  children?: Maybe<Array<ContentsDefine>>;
+  date?: Maybe<Scalars['String']['output']>;
+  id: DataId;
+  image: Scalars['Boolean']['output'];
+  isDeletable?: Maybe<Scalars['Boolean']['output']>;
+  isEditable?: Maybe<Scalars['Boolean']['output']>;
+  isSnsContent?: Maybe<Scalars['Boolean']['output']>;
+  itemId: DataId;
+  overview?: Maybe<Scalars['String']['output']>;
+  parentId?: Maybe<DataId>;
+  title: Scalars['String']['output'];
+  url?: Maybe<Scalars['String']['output']>;
+  usingAnotherMap: Scalars['Boolean']['output'];
+  videoUrl?: Maybe<Scalars['String']['output']>;
+};
+
 export type DataId = {
   dataSourceId: Scalars['String']['output'];
   id: Scalars['String']['output'];
@@ -66,6 +85,8 @@ export type MutationUpdateContentArgs = {
 
 export type Query = {
   getCategory: Array<CategoryDefine>;
+  getContent?: Maybe<ContentsDefine>;
+  getContentsInItem: Array<ContentsDefine>;
   getEvent: Array<EventDefine>;
   getItems?: Maybe<Array<Maybe<ItemDefine>>>;
 };
@@ -73,6 +94,16 @@ export type Query = {
 
 export type QueryGetCategoryArgs = {
   dataSourceIds?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+
+export type QueryGetContentArgs = {
+  id: DataId;
+};
+
+
+export type QueryGetContentsInItemArgs = {
+  itemId: DataId;
 };
 
 
@@ -163,6 +194,7 @@ export type ResolversTypes = {
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   CategoryDefine: ResolverTypeWrapper<CategoryDefine>;
   ContentType: ContentType;
+  ContentsDefine: ResolverTypeWrapper<ContentsDefine>;
   DataId: ResolverTypeWrapper<DataId>;
   DataIdInput: DataIdInput;
   EventDefine: ResolverTypeWrapper<EventDefine>;
@@ -177,6 +209,7 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
   CategoryDefine: CategoryDefine;
+  ContentsDefine: ContentsDefine;
   DataId: DataId;
   DataIdInput: DataIdInput;
   EventDefine: EventDefine;
@@ -191,6 +224,26 @@ export type CategoryDefineResolvers<ContextType = any, ParentType extends Resolv
   color?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   dataSourceIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type ContentsDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['ContentsDefine'] = ResolversParentTypes['ContentsDefine']> = {
+  anotherMapItemId?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType>;
+  category?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
+  children?: Resolver<Maybe<Array<ResolversTypes['ContentsDefine']>>, ParentType, ContextType>;
+  date?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
+  image?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  isDeletable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  isEditable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  isSnsContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  itemId?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
+  overview?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  parentId?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType>;
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  usingAnotherMap?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  videoUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -219,12 +272,15 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   getCategory?: Resolver<Array<ResolversTypes['CategoryDefine']>, ParentType, ContextType, Partial<QueryGetCategoryArgs>>;
+  getContent?: Resolver<Maybe<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentArgs, 'id'>>;
+  getContentsInItem?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentsInItemArgs, 'itemId'>>;
   getEvent?: Resolver<Array<ResolversTypes['EventDefine']>, ParentType, ContextType, Partial<QueryGetEventArgs>>;
   getItems?: Resolver<Maybe<Array<Maybe<ResolversTypes['ItemDefine']>>>, ParentType, ContextType, RequireFields<QueryGetItemsArgs, 'dataSourceId' | 'wkt' | 'zoom'>>;
 };
 
 export type Resolvers<ContextType = any> = {
   CategoryDefine?: CategoryDefineResolvers<ContextType>;
+  ContentsDefine?: ContentsDefineResolvers<ContextType>;
   DataId?: DataIdResolvers<ContextType>;
   EventDefine?: EventDefineResolvers<ContextType>;
   ItemDefine?: ItemDefineResolvers<ContextType>;

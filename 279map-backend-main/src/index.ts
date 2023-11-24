@@ -40,7 +40,7 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { ItemDefine } from '279map-common';
-import { MutationUpdateContentArgs, QueryGetCategoryArgs, QueryGetEventArgs } from './graphql/__generated__/types';
+import { MutationUpdateContentArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsInItemArgs, QueryGetEventArgs } from './graphql/__generated__/types';
 import { MutationResolverReturnType, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 
@@ -768,6 +768,46 @@ const rootResolver: Record<Resolvers, ResolverFunc> = {
         }
     },
     /**
+     * コンテンツ取得（コンテンツID指定）
+     */
+    getContent: async(param: QueryGetContentArgs, req: express.Request): QueryResolverReturnType<'getContent'> => {
+        try {
+            const result = await getContents({
+                param: [{
+                    contentId: param.id,
+                }],
+                currentMap: req.currentMap,
+                authLv: req.authLv,
+            });
+
+            return result[0];
+
+        } catch(e) {    
+            apiLogger.warn('getContent error', param, e);
+            throw e;
+        }
+    },
+    /**
+     * 指定のアイテムに属するコンテンツ取得
+     */
+    getContentsInItem: async(param: QueryGetContentsInItemArgs, req: express.Request): QueryResolverReturnType<'getContentsInItem'> => {
+        try {
+            const result = await getContents({
+                param: [{
+                    itemId: param.itemId,
+                }],
+                currentMap: req.currentMap,
+                authLv: req.authLv,
+            });
+
+            return result;
+
+        } catch(e) {    
+            apiLogger.warn('getContentsInItem error', param, e);
+            throw e;
+        }
+    },
+    /**
      * コンテンツ更新
      */
     updateContent: async(param: MutationUpdateContentArgs, req: express.Request): MutationResolverReturnType<'updateContent'> => {
@@ -794,7 +834,7 @@ const rootResolver: Record<Resolvers, ResolverFunc> = {
                 ],
                 currentMap: req.currentMap,
                 authLv: req.authLv,
-            })).contents[0];
+            }))[0];
 
             broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
                 type: 'childcontents-update',

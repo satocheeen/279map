@@ -1,13 +1,19 @@
 import { ConnectionPool } from '.';
 import { getAncestorItemId } from "./util/utility";
-import { GetContentsParam, GetContentsResult } from '../279map-api-interface/src';
-import { DataId, MapKind, ContentsDefine, Auth, DatasourceConfig } from '279map-common';
+import { DataId, MapKind, Auth, DatasourceConfig } from '279map-common';
 import { PoolConnection } from 'mysql2/promise';
-import { ContentsInfo, ContentsTable, DataSourceTable, ItemContentLink, ItemsTable } from '../279map-backend-common/src/types/schema';
+import { ContentsInfo, ContentsTable, DataSourceTable, ItemContentLink } from '../279map-backend-common/src/types/schema';
 import { CurrentMap } from '../279map-backend-common/src';
+import { ContentsDefine } from './graphql/__generated__/types';
+
+type GetContentsParam = ({
+    itemId: DataId;
+} | {
+    contentId: DataId;
+})[];
 
 type ContentsDatasourceRecord = ContentsTable & DataSourceTable;
-export async function getContents({ param, currentMap, authLv }: {param: GetContentsParam; currentMap: CurrentMap, authLv: Auth}): Promise<GetContentsResult> {
+export async function getContents({param, currentMap, authLv}: {param: GetContentsParam, currentMap: CurrentMap, authLv: Auth}): Promise<ContentsDefine[]> {
     if (!currentMap) {
         throw 'mapKind not defined.';
     }
@@ -61,7 +67,7 @@ export async function getContents({ param, currentMap, authLv }: {param: GetCont
                 title: row.title ?? '',
                 date: row.date as string,
                 category: row.category ? row.category as string[] : [],
-                image: row.thumbnail ? true : undefined,
+                image: row.thumbnail ? true : false,
                 videoUrl: contents?.videoUrl,
                 overview: contents?.content,
                 url: contents?.url,
@@ -135,9 +141,7 @@ export async function getContents({ param, currentMap, authLv }: {param: GetCont
             }
         }
 
-        return {
-            contents: allContents,
-        }
+        return allContents;
 
     } catch(e) {
         throw 'select contents error' + e;

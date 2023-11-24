@@ -4,9 +4,10 @@ import { Resolvers } from "./type_utility";
 type AuthLvDefine = Record<Resolvers, Auth>
 
 export const authDefine: AuthLvDefine = {
-    hello: Auth.None,
     getCategory: Auth.View,
     getEvent: Auth.View,
     getItems: Auth.View,
+    getContent: Auth.View,
+    getContentsInItem: Auth.View,
     updateContent: Auth.Edit,
 }

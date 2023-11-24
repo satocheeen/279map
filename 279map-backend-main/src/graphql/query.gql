@@ -20,8 +20,28 @@ enum ContentType {
     normal
     sns
 }
+type ContentsDefine {
+    id: DataId!
+    itemId: DataId!
+    date: String
+    url: String
+    title: String!
+    overview: String
+    category: [String!]
+    image: Boolean!
+    videoUrl: String
+    parentId: DataId
+    children: [ContentsDefine!]
+    usingAnotherMap: Boolean!
+    anotherMapItemId: DataId
+    isSnsContent: Boolean
+    isEditable: Boolean
+    isDeletable: Boolean
+}
 type Query {
     getItems(wkt: String!, zoom: Float!, dataSourceId: String!, latestEditedTime: String, excludeItemIds: [String!]): [ItemDefine]
     getCategory(dataSourceIds: [String!]): [CategoryDefine!]!
     getEvent(dataSourceIds: [String!]): [EventDefine!]!
+    getContent(id: DataId!): ContentsDefine
+    getContentsInItem(itemId: DataId!): [ContentsDefine!]!
 }
