@@ -1,7 +1,5 @@
-type DataId {
-    id: String!
-    dataSourceId: String!
-}
+scalar DataId
+
 type ItemDefine {
     id: DataId!
     name: String!

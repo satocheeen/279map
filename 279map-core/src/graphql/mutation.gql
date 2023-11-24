@@ -1,5 +1,5 @@
 mutation updateContent(
-    $id: DataIdInput!
+    $id: DataId!
     $title: String
     $overview: String
     $categories: [String!]

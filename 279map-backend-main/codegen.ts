@@ -6,9 +6,19 @@ const config: CodegenConfig = {
   schema: "src/graphql/*.gql",
   generates: {
     "src/graphql/__generated__/types.ts": {
-      plugins: ["typescript", "typescript-resolvers"],
+      plugins: [
+        "typescript", "typescript-resolvers", 
+        {
+          add: {
+            content: "import { DataId } from '279map-common'"
+          }
+        },
+      ],
       config: {
         skipTypename: true,
+        scalars: {
+          DataId: 'DataId',
+        },
       }
     }
   }

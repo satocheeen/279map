@@ -43,7 +43,9 @@ import { ItemDefine } from '279map-common';
 import { MutationUpdateContentArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsInItemArgs, QueryGetEventArgs } from './graphql/__generated__/types';
 import { MutationResolverReturnType, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
-
+import { DataIdScalarType } from './graphql/custom_scalar';
+import { makeExecutableSchema } from '@graphql-tools/schema'
+ 
 declare global {
     namespace Express {
         interface Request {
@@ -848,23 +850,31 @@ const rootResolver: Record<Resolvers, ResolverFunc> = {
             throw e;
         }
 
-    }
+    },
 }
+
+const customScalars = {
+    DataId: DataIdScalarType,
+}
+const schema = makeExecutableSchema({
+    typeDefs: fileSchema,
+    resolvers: customScalars,
+})
 
 app.use(
     "/graphql",
-    sessionCheck,
-    checkAuthorization,
-    authManagementClient.checkJwt,
-    authenticateErrorProcess,
-    checkUserAuthLv,
-    checkGraphQlAuthLv,
-    checkCurrentMap,
+    // sessionCheck,
+    // checkAuthorization,
+    // authManagementClient.checkJwt,
+    // authenticateErrorProcess,
+    // checkUserAuthLv,
+    // checkGraphQlAuthLv,
+    // checkCurrentMap,
     graphqlHTTP({
-        schema: fileSchema,
+        schema,
         rootValue: rootResolver,
         graphiql: true,
-    })
+    }),
 )
 
 app.post(`/api/${GetItemsAPI.uri}`,
@@ -953,7 +963,9 @@ app.post(`/api/${GetContentsAPI.uri}`,
 
             apiLogger.debug('result', result);
 
-            res.send(result);
+            res.send({
+                contents: result
+            });
 
             next();
         } catch(e) {    

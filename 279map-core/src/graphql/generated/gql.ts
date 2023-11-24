@@ -13,7 +13,7 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Therefore it is highly recommended to use the babel or swc plugin for production.
  */
 const documents = {
-    "mutation updateContent($id: DataIdInput!, $title: String, $overview: String, $categories: [String!], $type: ContentType!, $date: String, $imageUrl: String, $url: String) {\n  updateContent(\n    id: $id\n    title: $title\n    overview: $overview\n    categories: $categories\n    type: $type\n    date: $date\n    imageUrl: $imageUrl\n    url: $url\n  )\n}": types.UpdateContentDocument,
+    "mutation updateContent($id: DataId!, $title: String, $overview: String, $categories: [String!], $type: ContentType!, $date: String, $imageUrl: String, $url: String) {\n  updateContent(\n    id: $id\n    title: $title\n    overview: $overview\n    categories: $categories\n    type: $type\n    date: $date\n    imageUrl: $imageUrl\n    url: $url\n  )\n}": types.UpdateContentDocument,
     "query getCategory($dataSourceIds: [String!]) {\n  getCategory(dataSourceIds: $dataSourceIds) {\n    name\n    color\n    dataSourceIds\n  }\n}\n\nquery getEvent($dataSourceIds: [String!]) {\n  getEvent(dataSourceIds: $dataSourceIds) {\n    dataSourceId\n    dates\n  }\n}": types.GetCategoryDocument,
 };
 
@@ -34,7 +34,7 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "mutation updateContent($id: DataIdInput!, $title: String, $overview: String, $categories: [String!], $type: ContentType!, $date: String, $imageUrl: String, $url: String) {\n  updateContent(\n    id: $id\n    title: $title\n    overview: $overview\n    categories: $categories\n    type: $type\n    date: $date\n    imageUrl: $imageUrl\n    url: $url\n  )\n}"): (typeof documents)["mutation updateContent($id: DataIdInput!, $title: String, $overview: String, $categories: [String!], $type: ContentType!, $date: String, $imageUrl: String, $url: String) {\n  updateContent(\n    id: $id\n    title: $title\n    overview: $overview\n    categories: $categories\n    type: $type\n    date: $date\n    imageUrl: $imageUrl\n    url: $url\n  )\n}"];
+export function graphql(source: "mutation updateContent($id: DataId!, $title: String, $overview: String, $categories: [String!], $type: ContentType!, $date: String, $imageUrl: String, $url: String) {\n  updateContent(\n    id: $id\n    title: $title\n    overview: $overview\n    categories: $categories\n    type: $type\n    date: $date\n    imageUrl: $imageUrl\n    url: $url\n  )\n}"): (typeof documents)["mutation updateContent($id: DataId!, $title: String, $overview: String, $categories: [String!], $type: ContentType!, $date: String, $imageUrl: String, $url: String) {\n  updateContent(\n    id: $id\n    title: $title\n    overview: $overview\n    categories: $categories\n    type: $type\n    date: $date\n    imageUrl: $imageUrl\n    url: $url\n  )\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

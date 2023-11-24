@@ -1,4 +1,5 @@
-import { GraphQLResolveInfo } from 'graphql';
+import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
+import { DataId } from '279map-common'
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -14,6 +15,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  DataId: { input: DataId; output: DataId; }
 };
 
 export type CategoryDefine = {
@@ -28,32 +30,22 @@ export enum ContentType {
 }
 
 export type ContentsDefine = {
-  anotherMapItemId?: Maybe<DataId>;
+  anotherMapItemId?: Maybe<Scalars['DataId']['output']>;
   category?: Maybe<Array<Scalars['String']['output']>>;
   children?: Maybe<Array<ContentsDefine>>;
   date?: Maybe<Scalars['String']['output']>;
-  id: DataId;
+  id: Scalars['DataId']['output'];
   image: Scalars['Boolean']['output'];
   isDeletable?: Maybe<Scalars['Boolean']['output']>;
   isEditable?: Maybe<Scalars['Boolean']['output']>;
   isSnsContent?: Maybe<Scalars['Boolean']['output']>;
-  itemId: DataId;
+  itemId: Scalars['DataId']['output'];
   overview?: Maybe<Scalars['String']['output']>;
-  parentId?: Maybe<DataId>;
+  parentId?: Maybe<Scalars['DataId']['output']>;
   title: Scalars['String']['output'];
   url?: Maybe<Scalars['String']['output']>;
   usingAnotherMap: Scalars['Boolean']['output'];
   videoUrl?: Maybe<Scalars['String']['output']>;
-};
-
-export type DataId = {
-  dataSourceId: Scalars['String']['output'];
-  id: Scalars['String']['output'];
-};
-
-export type DataIdInput = {
-  dataSourceId: Scalars['String']['input'];
-  id: Scalars['String']['input'];
 };
 
 export type EventDefine = {
@@ -62,7 +54,7 @@ export type EventDefine = {
 };
 
 export type ItemDefine = {
-  id: DataId;
+  id: Scalars['DataId']['output'];
   lastEditedTime: Scalars['String']['output'];
   name: Scalars['String']['output'];
 };
@@ -75,7 +67,7 @@ export type Mutation = {
 export type MutationUpdateContentArgs = {
   categories?: InputMaybe<Array<Scalars['String']['input']>>;
   date?: InputMaybe<Scalars['String']['input']>;
-  id: DataIdInput;
+  id: Scalars['DataId']['input'];
   imageUrl?: InputMaybe<Scalars['String']['input']>;
   overview?: InputMaybe<Scalars['String']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
@@ -98,12 +90,12 @@ export type QueryGetCategoryArgs = {
 
 
 export type QueryGetContentArgs = {
-  id: DataId;
+  id: Scalars['DataId']['input'];
 };
 
 
 export type QueryGetContentsInItemArgs = {
-  itemId: DataId;
+  itemId: Scalars['DataId']['input'];
 };
 
 
@@ -195,8 +187,7 @@ export type ResolversTypes = {
   CategoryDefine: ResolverTypeWrapper<CategoryDefine>;
   ContentType: ContentType;
   ContentsDefine: ResolverTypeWrapper<ContentsDefine>;
-  DataId: ResolverTypeWrapper<DataId>;
-  DataIdInput: DataIdInput;
+  DataId: ResolverTypeWrapper<Scalars['DataId']['output']>;
   EventDefine: ResolverTypeWrapper<EventDefine>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   ItemDefine: ResolverTypeWrapper<ItemDefine>;
@@ -210,8 +201,7 @@ export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
   CategoryDefine: CategoryDefine;
   ContentsDefine: ContentsDefine;
-  DataId: DataId;
-  DataIdInput: DataIdInput;
+  DataId: Scalars['DataId']['output'];
   EventDefine: EventDefine;
   Float: Scalars['Float']['output'];
   ItemDefine: ItemDefine;
@@ -247,11 +237,9 @@ export type ContentsDefineResolvers<ContextType = any, ParentType extends Resolv
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type DataIdResolvers<ContextType = any, ParentType extends ResolversParentTypes['DataId'] = ResolversParentTypes['DataId']> = {
-  dataSourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
+export interface DataIdScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DataId'], any> {
+  name: 'DataId';
+}
 
 export type EventDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventDefine'] = ResolversParentTypes['EventDefine']> = {
   dataSourceId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -281,7 +269,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
 export type Resolvers<ContextType = any> = {
   CategoryDefine?: CategoryDefineResolvers<ContextType>;
   ContentsDefine?: ContentsDefineResolvers<ContextType>;
-  DataId?: DataIdResolvers<ContextType>;
+  DataId?: GraphQLScalarType;
   EventDefine?: EventDefineResolvers<ContextType>;
   ItemDefine?: ItemDefineResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;

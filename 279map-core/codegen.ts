@@ -9,7 +9,18 @@ const config: CodegenConfig = {
   generates: {
     "src/graphql/generated/": {
       preset: "client",
-      plugins: []
+      plugins: [
+        {
+          add: {
+            content: "import { DataId } from '279map-common'"
+          }
+        },
+      ],
+      config: {
+        scalars: {
+          DataId: 'DataId',
+        },
+      }
     },
   },
   verbose: true,
