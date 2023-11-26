@@ -63,6 +63,8 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             try {
                 const getContents = await gqlClient.query(GetContentsDocument, {
                     ids: contentIds,
+                }, {
+                    requestPolicy: 'network-only'
                 });
                 return getContents.data?.getContents ?? [];
 
@@ -101,6 +103,8 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             const result = await gqlClient.query(GetUnpointContentsDocument, {
                 dataSourceId,
                 nextToken,
+            }, {
+                requestPolicy: 'network-only',
             });
             if (!result.data) {
                 throw new Error('getUnpoinData error', result.error);

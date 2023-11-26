@@ -222,6 +222,8 @@ export default function AddContentMenu(props: Props) {
                     const result = await gqlClient.query(GetUnpointContentsDocument, {
                         dataSourceId,
                         nextToken,
+                    }, {
+                        requestPolicy: 'network-only',
                     })
                     if (!result.data) {
                         throw new Error('getUnpoinData error', result.error);
