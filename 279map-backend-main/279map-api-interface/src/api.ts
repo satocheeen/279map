@@ -307,15 +307,6 @@ export type GetGeoCoderFeatureResult = {
     geoJson: GeoJsonObject;
 };
 
-export const GetUserListAPI = {
-    uri: 'getuserlist',
-    method: 'post',
-    resultType: 'json',
-} as APIDefine<void, GetUserListResult>;
-export type GetUserListResult = {
-    users: User[];
-}
-
 /**
  * リンク可能コンテンツデータソース一覧取得
  */

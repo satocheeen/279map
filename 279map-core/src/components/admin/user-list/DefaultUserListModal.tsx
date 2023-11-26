@@ -1,37 +1,34 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Button, Modal } from '../../common';
 import styles from './DefaultUserListModal.module.scss';
-import { ChangeAuthLevelAPI, GetUserListAPI } from 'tsunagumap-api';
+import { ChangeAuthLevelAPI } from 'tsunagumap-api';
 import { useWatch } from '../../../util/useWatch';
-import { Auth, User} from '279map-common';
+import { Auth } from '279map-common';
 import Select from '../../common/form/Select';
 import { useSubscribe } from '../../../api/useSubscribe';
 import { useApi } from '../../../api/useApi';
 import { modalSpinnerAtom } from '../../common/modal/Modal';
 import { useAtomCallback } from 'jotai/utils';
+import { useAtom } from 'jotai';
+import { clientAtom } from 'jotai-urql';
+import { GetUserListDocument, User } from '../../../graphql/generated/graphql';
 
 type Props = {
     onClose: () => void;
 }
 export default function DefaultUserListModal(props: Props) {
     const [ show, setShow ] = useState(true);
-    const { callApi } = useApi();
     const [ users, setUsers ] = useState<User[]>([]);
+    const [ gqlClient ] = useAtom(clientAtom);
 
     const loadUsers = useAtomCallback(
-        useCallback((get, set) => {
+        useCallback(async (get, set) => {
             set(modalSpinnerAtom, true);
-            callApi(GetUserListAPI, undefined)
-            .then(result => {
-                setUsers(result.users);
-            })
-            .catch((e) => {
-                console.warn(e);
-            })
-            .finally(() => {
-                set(modalSpinnerAtom, false);
-            })
-        }, [callApi])
+            const result = await gqlClient.query(GetUserListDocument, {});
+            const users = result.data?.getUserList ?? [];
+            setUsers(users);
+            set(modalSpinnerAtom, false);
+        }, [gqlClient])
     )
     
     const { getSubscriber } = useSubscribe();

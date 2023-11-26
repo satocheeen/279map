@@ -12,4 +12,6 @@ export const authDefine: AuthLvDefine = {
     getContentsInItem: Auth.View,
     getUnpointContents: Auth.Edit,
     updateContent: Auth.Edit,
+
+    getUserList: Auth.Admin,
 }

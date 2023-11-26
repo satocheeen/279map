@@ -18,6 +18,14 @@ export type Scalars = {
   DataId: { input: DataId; output: DataId; }
 };
 
+export enum Auth {
+  Admin = 'Admin',
+  Edit = 'Edit',
+  None = 'None',
+  Request = 'Request',
+  View = 'View'
+}
+
 export type CategoryDefine = {
   color: Scalars['String']['output'];
   dataSourceIds: Array<Scalars['String']['output']>;
@@ -88,6 +96,7 @@ export type Query = {
   getEvent: Array<EventDefine>;
   getItems?: Maybe<Array<Maybe<ItemDefine>>>;
   getUnpointContents: GetUnpointContentsResult;
+  getUserList: Array<User>;
 };
 
 
@@ -135,6 +144,12 @@ export type UnpointContent = {
   overview?: Maybe<Scalars['String']['output']>;
   thumb?: Maybe<Scalars['String']['output']>;
   title: Scalars['String']['output'];
+};
+
+export type User = {
+  authLv: Auth;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
 };
 
 
@@ -208,6 +223,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
+  Auth: Auth;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   CategoryDefine: ResolverTypeWrapper<CategoryDefine>;
   ContentType: ContentType;
@@ -216,11 +232,13 @@ export type ResolversTypes = {
   EventDefine: ResolverTypeWrapper<EventDefine>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   GetUnpointContentsResult: ResolverTypeWrapper<GetUnpointContentsResult>;
+  ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   ItemDefine: ResolverTypeWrapper<ItemDefine>;
   Mutation: ResolverTypeWrapper<{}>;
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   UnpointContent: ResolverTypeWrapper<UnpointContent>;
+  User: ResolverTypeWrapper<User>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -232,11 +250,13 @@ export type ResolversParentTypes = {
   EventDefine: EventDefine;
   Float: Scalars['Float']['output'];
   GetUnpointContentsResult: GetUnpointContentsResult;
+  ID: Scalars['ID']['output'];
   ItemDefine: ItemDefine;
   Mutation: {};
   Query: {};
   String: Scalars['String']['output'];
   UnpointContent: UnpointContent;
+  User: User;
 };
 
 export type CategoryDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['CategoryDefine'] = ResolversParentTypes['CategoryDefine']> = {
@@ -301,6 +321,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getEvent?: Resolver<Array<ResolversTypes['EventDefine']>, ParentType, ContextType, Partial<QueryGetEventArgs>>;
   getItems?: Resolver<Maybe<Array<Maybe<ResolversTypes['ItemDefine']>>>, ParentType, ContextType, RequireFields<QueryGetItemsArgs, 'dataSourceId' | 'wkt' | 'zoom'>>;
   getUnpointContents?: Resolver<ResolversTypes['GetUnpointContentsResult'], ParentType, ContextType, RequireFields<QueryGetUnpointContentsArgs, 'dataSourceId'>>;
+  getUserList?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
 };
 
 export type UnpointContentResolvers<ContextType = any, ParentType extends ResolversParentTypes['UnpointContent'] = ResolversParentTypes['UnpointContent']> = {
@@ -308,6 +329,13 @@ export type UnpointContentResolvers<ContextType = any, ParentType extends Resolv
   overview?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   thumb?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type UserResolvers<ContextType = any, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
+  authLv?: Resolver<ResolversTypes['Auth'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -321,5 +349,6 @@ export type Resolvers<ContextType = any> = {
   Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   UnpointContent?: UnpointContentResolvers<ContextType>;
+  User?: UserResolvers<ContextType>;
 };
 

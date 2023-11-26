@@ -76,3 +76,11 @@ query getUnpointContents(
         nextToken
     }
 }
+
+query getUserList {
+    getUserList {
+        id
+        name
+        authLv
+    }
+}

@@ -18,6 +18,13 @@ enum ContentType {
     normal
     sns
 }
+enum Auth {
+    None
+    Request
+    View
+    Edit
+    Admin
+}
 type ContentsDefine {
     id: DataId!
     itemId: DataId!
@@ -46,6 +53,12 @@ type GetUnpointContentsResult {
     contents: [UnpointContent!]!
     nextToken: String
 }
+type User {
+    id: ID!
+    name: String!
+    authLv: Auth!
+}
+
 type Query {
     getItems(wkt: String!, zoom: Float!, dataSourceId: String!, latestEditedTime: String, excludeItemIds: [String!]): [ItemDefine]
     getCategory(dataSourceIds: [String!]): [CategoryDefine!]!
@@ -54,4 +67,6 @@ type Query {
     getContents(ids: [DataId!]!): [ContentsDefine!]!
     getContentsInItem(itemId: DataId!): [ContentsDefine!]!
     getUnpointContents(dataSourceId: String!, nextToken: String): GetUnpointContentsResult!
+
+    getUserList: [User!]!
 }

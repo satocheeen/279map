@@ -21,7 +21,7 @@ import { getMapInfoById } from './getMapDefine';
 import { ConfigAPI, ConnectResult, GeocoderParam, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, RequestAPI, RequestParam, GetUserListAPI, GetUserListResult, ChangeAuthLevelAPI, ChangeAuthLevelParam, GetItemsByIdAPI, GetItemsByIdParam, GetLinkableContentsAPI, LinkContentDatasourceToMapAPI, LinkContentDatasourceToMapParam, UnlinkContentDatasourceFromMapAPI, UnLinkContentDatasourceFromMapParam } from '../279map-api-interface/src/api';
+import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, RequestAPI, RequestParam, ChangeAuthLevelAPI, ChangeAuthLevelParam, GetItemsByIdAPI, GetItemsByIdParam, GetLinkableContentsAPI, LinkContentDatasourceToMapAPI, LinkContentDatasourceToMapParam, UnlinkContentDatasourceFromMapAPI, UnLinkContentDatasourceFromMapParam } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 import { search } from './api/search';
@@ -904,7 +904,17 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     apiLogger.warn('get-unpointdata API error', param, e);
                     throw e;
                 }
+            },
+            getUserList: async(parent: any, _, ctx): QueryResolverReturnType<'getUserList'> => {
+                try {
+                    const mapId = ctx.currentMap.mapId;
+                    const users = await authManagementClient.getUserList(mapId);
+                    return users;
         
+                } catch(e) {
+                    apiLogger.warn('get-userlist API error', e);
+                    throw e;
+                }
             }
         } as QueryResolver,
         Mutation: {
@@ -1548,27 +1558,6 @@ app.get(`/api/${GetGeocoderFeatureAPI.uri}`,
 
         } catch(e) {
             apiLogger.warn('get-geocoder-feature API error', param, e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail : e + '',
-            } as ApiError);
-        }
-    }
-);
-
-app.post(`/api/${GetUserListAPI.uri}`,
-    checkApiAuthLv(Auth.Admin), 
-    checkCurrentMap,
-    async(req, res) => {
-        try {
-            const mapId = req.currentMap.mapId;
-            const users = await authManagementClient.getUserList(mapId);
-            res.send({
-                users,
-            } as GetUserListResult);
-
-        } catch(e) {
-            apiLogger.warn('get-userlist API error', e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
