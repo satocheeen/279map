@@ -138,25 +138,6 @@ export type GetItemsByIdParam = {
 }
 
 /**
- * get contents
- */
-export const GetContentsAPI = {
-    uri: 'getcontents',
-    method: 'post',
-    resultType: 'json',
-} as APIDefine<GetContentsParam, GetContentsResult>;
-
-export type GetContentsParam = ({
-    itemId: DataId;
-} | {
-    contentId: DataId;
-})[];
-
-export type GetContentsResult = {
-    contents: ContentsDefine[],
-};
-
-/**
  * regist item
  */
 export const RegistItemAPI = {
