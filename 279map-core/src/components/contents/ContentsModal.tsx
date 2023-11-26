@@ -78,6 +78,7 @@ export default function ContentsModal(props: Props) {
     const [ mapKind ] = useAtom(currentMapKindAtom);
     const { updateItems } = useMap();
     useEffect(() => {
+        if (!mapKind) return;
         const subscriber = getSubscriber();
         let h: number | undefined;
         if (props.type === 'item') {

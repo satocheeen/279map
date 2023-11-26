@@ -56,7 +56,7 @@ function useMapInitializer() {
     const [, dispatchMapDefine] = useAtom(mapDefineReducerAtom);
     useEffect(() => {
         const subscriber = getSubscriber();
-        if (!subscriber) return;
+        if (!subscriber || !currentMapKind) return;
 
         const h = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapinfo-update', undefined, (payload) => {
             dispatchMapDefine();

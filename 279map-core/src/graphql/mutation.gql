@@ -19,3 +19,13 @@ mutation updateContent(
         url: $url
     )
 }
+
+mutation changeAuthLevel(
+    $userId: ID!
+    $authLv: Auth!
+) {
+    changeAuthLevel(
+        userId: $userId
+        authLv: $authLv
+    )
+}

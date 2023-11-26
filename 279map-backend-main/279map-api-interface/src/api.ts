@@ -51,19 +51,6 @@ export type RequestParam = {
 }
 
 /**
- * ユーザ権限変更API
- */
-export const ChangeAuthLevelAPI = {
-    uri: 'change-auth-level',
-    method: 'post',
-    resultType: 'none',
-} as APIDefine<ChangeAuthLevelParam, void>;
-export type ChangeAuthLevelParam = {
-    userId: string;
-    authLv: Auth;
-}
-
-/**
  * get map info
  */
 export const GetMapInfoAPI = {

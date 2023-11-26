@@ -11,7 +11,10 @@ export const authDefine: AuthLvDefine = {
     getContents: Auth.View,
     getContentsInItem: Auth.View,
     getUnpointContents: Auth.Edit,
+
     updateContent: Auth.Edit,
 
+    // 管理者機能
     getUserList: Auth.Admin,
+    changeAuthLevel: Auth.Admin,
 }

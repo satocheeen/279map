@@ -9,4 +9,9 @@ type Mutation {
         imageUrl: String
         url: String
     ): Boolean
+
+    changeAuthLevel(
+        userId: ID!
+        authLv: Auth!
+    ): Boolean
 }

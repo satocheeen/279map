@@ -69,7 +69,7 @@ export class MyMqttClient {
      * @param callback 
      * @returns 購読id。unsubscribe時に渡す。
      */
-    subscribeMap(target: {mapKind?: MapKind}, msg: PublishMapMessage['type'], subType: PublishMapMessage['subtype'], callback: Callback) {
+    subscribeMap(target: {mapKind: MapKind}, msg: PublishMapMessage['type'], subType: PublishMapMessage['subtype'], callback: Callback) {
         if (!this._mapId) {
             console.warn('not fount mapId');
             return;
@@ -138,7 +138,7 @@ export class MyMqttClient {
     }
 }
 
-function makeTopic(mapId: string, mapKind: MapKind | undefined, msg: PublishMapMessage['type'], param: PublishMapMessage['subtype']) {
+function makeTopic(mapId: string, mapKind: MapKind, msg: PublishMapMessage['type'], param: PublishMapMessage['subtype']) {
     const paramStr = function() {
         if (param === undefined) return undefined;
         if (typeof param === 'object') {

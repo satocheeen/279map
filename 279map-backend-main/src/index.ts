@@ -21,7 +21,7 @@ import { getMapInfoById } from './getMapDefine';
 import { ConfigAPI, ConnectResult, GeocoderParam, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, RequestAPI, RequestParam, ChangeAuthLevelAPI, ChangeAuthLevelParam, GetItemsByIdAPI, GetItemsByIdParam, GetLinkableContentsAPI, LinkContentDatasourceToMapAPI, LinkContentDatasourceToMapParam, UnlinkContentDatasourceFromMapAPI, UnLinkContentDatasourceFromMapParam } from '../279map-api-interface/src/api';
+import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, RequestAPI, RequestParam, GetItemsByIdAPI, GetItemsByIdParam, GetLinkableContentsAPI, LinkContentDatasourceToMapAPI, LinkContentDatasourceToMapParam, UnlinkContentDatasourceFromMapAPI, UnLinkContentDatasourceFromMapParam } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 import { search } from './api/search';
@@ -39,7 +39,7 @@ import { graphqlHTTP } from 'express-graphql';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { MutationUpdateContentArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetUnpointContentsArgs } from './graphql/__generated__/types';
+import { MutationChangeAuthLevelArgs, MutationUpdateContentArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetUnpointContentsArgs } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType } from './graphql/custom_scalar';
@@ -958,8 +958,32 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     apiLogger.warn('update-content API error', param, e);
                     throw e;
                 }
-
             },
+            /**
+             * ユーザ権限変更
+             */
+            changeAuthLevel: async(parent: any, param: MutationChangeAuthLevelArgs, ctx): MutationResolverReturnType<'changeAuthLevel'> => {
+                try {
+                    const mapId = ctx.currentMap.mapId;
+                    await authManagementClient.updateUserAuth({
+                        mapId,
+                        userId: param.userId,
+                        authLv: param.authLv,
+                    });
+                    broadCaster.publish(mapId, undefined, {
+                        type: 'userlist-update',
+                    })
+                    broadCaster.publishUserMessage(param.userId, {
+                        type: 'update-userauth',
+                    });
+        
+                    return true;
+
+                } catch(e) {
+                    apiLogger.warn('change-auth-level API error', param, e);
+                    throw e;
+                }
+            }
         } as MutationResolver,
         DataId: DataIdScalarType,
     }
@@ -1558,39 +1582,6 @@ app.get(`/api/${GetGeocoderFeatureAPI.uri}`,
 
         } catch(e) {
             apiLogger.warn('get-geocoder-feature API error', param, e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail : e + '',
-            } as ApiError);
-        }
-    }
-);
-
-/**
- * ユーザ権限変更
- */
-app.post(`/api/${ChangeAuthLevelAPI.uri}`,
-    checkApiAuthLv(Auth.Admin), 
-    checkCurrentMap,
-    async(req, res) => {
-        const param = req.body as ChangeAuthLevelParam;
-        try {
-            const mapId = req.currentMap.mapId;
-            await authManagementClient.updateUserAuth({
-                mapId,
-                userId: param.userId,
-                authLv: param.authLv,
-            });
-            res.send('ok');
-            broadCaster.publish(mapId, undefined, {
-                type: 'userlist-update',
-            })
-            broadCaster.publishUserMessage(param.userId, {
-                type: 'update-userauth',
-            });
-
-        } catch(e) {
-            apiLogger.warn('change-auth-level API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',

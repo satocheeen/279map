@@ -1,49 +1,52 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Button, Modal } from '../../common';
 import styles from './DefaultUserListModal.module.scss';
-import { ChangeAuthLevelAPI } from 'tsunagumap-api';
-import { useWatch } from '../../../util/useWatch';
+import { useWatch } from '../../../util/useWatch2';
 import { Auth } from '279map-common';
 import Select from '../../common/form/Select';
 import { useSubscribe } from '../../../api/useSubscribe';
-import { useApi } from '../../../api/useApi';
 import { modalSpinnerAtom } from '../../common/modal/Modal';
 import { useAtomCallback } from 'jotai/utils';
 import { useAtom } from 'jotai';
-import { clientAtom } from 'jotai-urql';
-import { GetUserListDocument, User } from '../../../graphql/generated/graphql';
+import { atomWithQuery, clientAtom } from 'jotai-urql';
+import { ChangeAuthLevelDocument, GetUserListDocument, User } from '../../../graphql/generated/graphql';
+import { currentMapKindAtom } from '../../../store/session';
 
 type Props = {
     onClose: () => void;
 }
+
+const getUserListQueryAtom = atomWithQuery({
+    query: GetUserListDocument,
+})
 export default function DefaultUserListModal(props: Props) {
     const [ show, setShow ] = useState(true);
-    const [ users, setUsers ] = useState<User[]>([]);
-    const [ gqlClient ] = useAtom(clientAtom);
-
-    const loadUsers = useAtomCallback(
-        useCallback(async (get, set) => {
-            set(modalSpinnerAtom, true);
-            const result = await gqlClient.query(GetUserListDocument, {});
-            const users = result.data?.getUserList ?? [];
-            setUsers(users);
-            set(modalSpinnerAtom, false);
-        }, [gqlClient])
-    )
+    const [ currentMapKind ] = useAtom(currentMapKindAtom);
+    const [ getUserList, refetchUserList ] = useAtom(getUserListQueryAtom);
     
-    const { getSubscriber } = useSubscribe();
-    useWatch(() => {
-        if (!show) return;
+    const users = useMemo(() => {
+        return getUserList.data?.getUserList ?? []
+    }, [getUserList]);
 
-        loadUsers();
+    const { getSubscriber } = useSubscribe();
+    useWatch(show, () => {
+        console.log('currentMapKind', currentMapKind);
+        if (!show || !currentMapKind) return;
+
+        refetchUserList();
         const subscriber = getSubscriber();
-        const h = subscriber?.subscribeMap({}, 'userlist-update', undefined, loadUsers);
+        const h = subscriber?.subscribeMap({mapKind: currentMapKind}, 'userlist-update', undefined, () => {
+            console.log('refetch');
+            refetchUserList({
+                requestPolicy: 'network-only',
+            });
+        });
 
         return () => {
             if (h)
                 subscriber?.unsubscribe(h);
         }
-    }, [show])
+    }, { immediate: true })
 
     const onCloseBtnClicked = useCallback(() => {
         setShow(false);
@@ -104,7 +107,6 @@ type UserRecordProp = {
 }
 function UserRecord(props: UserRecordProp) {
     const [ requestAuth, setRequestAuth ] = useState<Auth|undefined>();
-    const { callApi } = useApi();
     const [ stage, setStage ] = useState<'normal' | 'selectAuth'>('normal');
 
     const authName = useMemo(() => {
@@ -122,17 +124,18 @@ function UserRecord(props: UserRecordProp) {
         }
     }, [props.user]);
 
+    const [ gqlClient ] = useAtom(clientAtom);
     const onUpdateAuth = useAtomCallback(
         useCallback(async(get, set) => {
             if (!requestAuth) return;
             set(modalSpinnerAtom, true);
-            await callApi(ChangeAuthLevelAPI, {
+            await gqlClient.mutation(ChangeAuthLevelDocument, {
                 userId: props.user.id,
                 authLv: requestAuth,
             })
             set(modalSpinnerAtom, false);
             setStage('normal');
-        }, [callApi, requestAuth, props])
+        }, [gqlClient, requestAuth, props])
     )
 
     console.log('requestAuth', requestAuth);
