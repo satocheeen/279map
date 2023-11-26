@@ -14,6 +14,8 @@ export const authDefine: AuthLvDefine = {
 
     removeItem: Auth.Edit,
     updateContent: Auth.Edit,
+    unlinkContent: Auth.Edit,
+    removeContent: Auth.Edit,
 
     // 管理者機能
     getUserList: Auth.Admin,

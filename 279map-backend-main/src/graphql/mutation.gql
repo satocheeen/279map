@@ -1,9 +1,17 @@
+enum ParentOfContent {
+    Item
+    Content
+}
+input ParentInput {
+    type: ParentOfContent!
+    id: DataId!
+}
 type Mutation {
-    removeItem(
+    removeItem (
         id: DataId!
     ): Boolean
 
-    updateContent(
+    updateContent (
         id: DataId!
         title: String
         overview: String
@@ -14,7 +22,16 @@ type Mutation {
         url: String
     ): Boolean
 
-    changeAuthLevel(
+    unlinkContent (
+        id: DataId!
+        parent: ParentInput!
+    ): Boolean
+
+    removeContent (
+        id: DataId!
+    ): Boolean
+
+    changeAuthLevel (
         userId: ID!
         authLv: Auth!
     ): Boolean

@@ -28,6 +28,24 @@ mutation updateContent(
     )
 }
 
+mutation unlinkContent (
+    $id: DataId!
+    $parent: ParentInput!
+) {
+    unlinkContent (
+        id: $id
+        parent: $parent
+    )
+}
+
+mutation removeContent (
+    $id: DataId!
+) {
+    removeContent (
+        id: $id
+    )
+}
+
 mutation changeAuthLevel(
     $userId: ID!
     $authLv: Auth!

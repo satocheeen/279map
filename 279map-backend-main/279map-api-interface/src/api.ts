@@ -160,22 +160,6 @@ export type RegistContentParam = {
 } & ContentAttr;
 
 /**
- * remove content
- */
-export const RemoveContentAPI = {
-    uri: 'removecontent',
-    method: 'post',
-    resultType: 'none',
-} as APIDefine<RemoveContentParam, void>;
-
-export type RemoveContentParam = {
-    id: DataId;
-    itemId: DataId;
-    parentContentId?: DataId;
-    mode: 'unlink' | 'alldelete';   // コンテンツデータ自体は残す場合、unlink。コンテンツデータごと削除する場合、alldelete。
-}
-
-/**
  * link conent to item
  */
 export const LinkContentToItemAPI = {

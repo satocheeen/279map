@@ -18,7 +18,7 @@ import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import cors from 'cors';
 import { exit } from 'process';
 import { getMapInfoById } from './getMapDefine';
-import { ConfigAPI, ConnectResult, GeocoderParam, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
+import { ConfigAPI, ConnectResult, GeocoderParam, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
 import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, RequestAPI, RequestParam, GetItemsByIdAPI, GetItemsByIdParam, GetLinkableContentsAPI, LinkContentDatasourceToMapAPI, LinkContentDatasourceToMapParam, UnlinkContentDatasourceFromMapAPI, UnLinkContentDatasourceFromMapParam } from '../279map-api-interface/src/api';
@@ -39,12 +39,13 @@ import { graphqlHTTP } from 'express-graphql';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { MutationChangeAuthLevelArgs, MutationRemoveItemArgs, MutationUpdateContentArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetUnpointContentsArgs } from './graphql/__generated__/types';
+import { MutationChangeAuthLevelArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationUnlinkContentArgs, MutationUpdateContentArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetUnpointContentsArgs } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType } from './graphql/custom_scalar';
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { CustomError } from './graphql/CustomError';
+import { getLinkedItemIdList } from './api/apiUtility';
 
 declare global {
     namespace Express {
@@ -755,9 +756,10 @@ const fileSchema = loadSchemaSync(
 // The root provides a resolver function for each API endpoint
 type QueryResolverFunc = (parent: any, param: any, ctx: GraphQlContextType) => QueryResolverReturnType<any>;
 type QueryResolver = Record<QResolvers, QueryResolverFunc>
-type MutationResolverFunc = (parent: any, param: any, ctx: GraphQlContextType) => MutationResolverReturnType<any>;
-type MutationResolver = Record<MResolvers, MutationResolverFunc>;
+type MutationResolverFunc<T extends MResolvers> = (parent: any, param: any, ctx: GraphQlContextType) => MutationResolverReturnType<T>;
+type MutationResolver = Record<MResolvers, MutationResolverFunc<MResolvers>>;
 
+// TODO:
 const schema = makeExecutableSchema<GraphQlContextType>({
     typeDefs: fileSchema,
     resolvers: {
@@ -979,6 +981,84 @@ const schema = makeExecutableSchema<GraphQlContextType>({
 
                 } catch(e) {
                     apiLogger.warn('update-content API error', param, e);
+                    throw e;
+                }
+            },
+            /**
+             * コンテンツ削除
+             */
+            unlinkContent: async(parent: any, param: MutationUnlinkContentArgs, ctx): MutationResolverReturnType<'unlinkContent'> => {
+                try {
+                    // TODO: 親がコンテンツの場合の考慮（ODBA側のインタフェース対応後）
+                    // call ODBA
+                    await callOdbaApi(OdbaRemoveContentAPI, {
+                        currentMap: ctx.currentMap,
+                        id: param.id,
+                        itemId: param.parent.id,
+                        mode: 'unlink',
+                    });
+            
+                    // 更新通知
+                    if (param.parent.type === ParentOfContent.Item) {
+                        const id = param.parent.id;
+                        const wkt = await getItemWkt(id);
+                        if (!wkt) {
+                            logger.warn('not found extent', id);
+                        } else {
+                            broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
+                                type: 'childcontents-update',
+                                subtype: {
+                                    id: id.id,
+                                    dataSourceId: id.dataSourceId,
+                                },
+                            });
+                        }
+                    }
+
+                    return true;
+
+                } catch(e) {
+                    apiLogger.warn('remove-content API error', param, e);
+                    throw e;
+                }
+            },
+            removeContent: async(parent: any, param: MutationRemoveContentArgs, ctx): MutationResolverReturnType<'removeContent'> => {
+                try {
+                    // 属するitem一覧を取得
+                    const items = await getLinkedItemIdList(param.id);
+
+                    // TODO: ODBA側のインタフェース対応
+                    // call ODBA
+                    await callOdbaApi(OdbaRemoveContentAPI, {
+                        currentMap: ctx.currentMap,
+                        id: param.id,
+                        itemId: {
+                            dataSourceId: '',
+                            id: '',
+                        },
+                        mode: 'alldelete',
+                    });
+            
+                    // 更新通知(完了は待たずに復帰する)
+                    Promise.all(items.map(async(item) => {
+                        const wkt = await getItemWkt(item.itemId);
+                        if (!wkt) {
+                            logger.warn('not found extent', item.itemId);
+                        } else {
+                            broadCaster.publish(item.mapId, item.mapKind, {
+                                type: 'childcontents-update',
+                                subtype: {
+                                    id: item.itemId.id,
+                                    dataSourceId: item.itemId.dataSourceId
+                                }
+                            });
+                        }
+                    }));
+
+                    return true;
+
+                } catch(e) {
+                    apiLogger.warn('remove-content API error', param, e);
                     throw e;
                 }
             },
@@ -1385,46 +1465,6 @@ app.post(`/api/${LinkContentToItemAPI.uri}`,
     
         } catch(e) {
             apiLogger.warn('link-content2item API error', param, e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail : e + '',
-            } as ApiError);
-        }
-    }
-);
-
-/**
- * remote the content
- * コンテンツ削除
- */
-app.post(`/api/${RemoveContentAPI.uri}`,
-    checkApiAuthLv(Auth.Edit), 
-    checkCurrentMap,
-    async(req, res, next) => {
-        const param = req.body as RemoveContentParam;
-        try {
-            // call ODBA
-            await callOdbaApi(OdbaRemoveContentAPI, Object.assign({
-                currentMap: req.currentMap,
-            }, param));
-    
-            // 更新通知
-            const id = param.itemId;
-            const wkt = await getItemWkt(id);
-            if (!wkt) {
-                logger.warn('not found extent', id);
-            } else {
-                broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                    type: 'childcontents-update',
-                    subtype: id,
-                });
-            }
-
-            res.send('complete');
-    
-            next();
-        } catch(e) {
-            apiLogger.warn('remove-content API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',

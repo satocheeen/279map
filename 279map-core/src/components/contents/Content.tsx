@@ -15,7 +15,7 @@ import Spinner from "../common/spinner/Spinner";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
 import { getMapKey, isEqualId } from "../../util/dataUtility";
-import { GetImageUrlAPI, GetSnsPreviewAPI, RemoveContentAPI } from 'tsunagumap-api';
+import { GetImageUrlAPI, GetSnsPreviewAPI } from 'tsunagumap-api';
 import { useMap } from "../map/useMap";
 import { authLvAtom, currentMapKindAtom } from "../../store/session";
 import { filteredContentIdListAtom } from "../../store/filter";
@@ -28,7 +28,7 @@ import { useAtomCallback } from "jotai/utils";
 import { dialogTargetAtom } from "../../store/operation";
 import { updateContentAtom } from "../../store/content";
 import { clientAtom } from "jotai-urql";
-import { ContentsDefine, GetContentDocument, MutationUpdateContentArgs } from "../../graphql/generated/graphql";
+import { ContentsDefine, GetContentDocument, MutationUpdateContentArgs, ParentOfContent, RemoveContentDocument, UnlinkContentDocument } from "../../graphql/generated/graphql";
 
 type Props = {
     itemId: DataId;
@@ -249,12 +249,22 @@ export default function Content(props: Props) {
         setShowSpinner(true);
 
         try {
-            await callApi(RemoveContentAPI, {
-                id: props.content.id,
-                itemId: props.itemId,
-                parentContentId: props.parentContentId,
-                mode: deleteOnlyLink ? 'unlink' : 'alldelete',
-            });
+            if (deleteOnlyLink) {
+                await gqlClient.mutation(UnlinkContentDocument, {
+                    id: props.content.id,
+                    parent: props.parentContentId ? {
+                        type: ParentOfContent.Content,
+                        id: props.parentContentId,
+                    } : {
+                        type: ParentOfContent.Item,
+                        id: props.itemId,
+                    }
+                })
+            } else {
+                await gqlClient.mutation(RemoveContentDocument, {
+                    id: props.content.id,
+                })
+            }
     
         } catch(e) {
             confirm({
@@ -267,7 +277,7 @@ export default function Content(props: Props) {
 
         }
 
-    }, [callApi, props.itemId, props.parentContentId, confirm, props.content]);
+    }, [gqlClient, props.itemId, props.parentContentId, confirm, props.content]);
 
     const overview = useMemo(() => {
         if (!props.content.overview) {

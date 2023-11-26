@@ -74,7 +74,9 @@ export type ItemDefine = {
 
 export type Mutation = {
   changeAuthLevel?: Maybe<Scalars['Boolean']['output']>;
+  removeContent?: Maybe<Scalars['Boolean']['output']>;
   removeItem?: Maybe<Scalars['Boolean']['output']>;
+  unlinkContent?: Maybe<Scalars['Boolean']['output']>;
   updateContent?: Maybe<Scalars['Boolean']['output']>;
 };
 
@@ -85,8 +87,19 @@ export type MutationChangeAuthLevelArgs = {
 };
 
 
+export type MutationRemoveContentArgs = {
+  id: Scalars['DataId']['input'];
+};
+
+
 export type MutationRemoveItemArgs = {
   id: Scalars['DataId']['input'];
+};
+
+
+export type MutationUnlinkContentArgs = {
+  id: Scalars['DataId']['input'];
+  parent: ParentInput;
 };
 
 
@@ -100,6 +113,16 @@ export type MutationUpdateContentArgs = {
   type: ContentType;
   url?: InputMaybe<Scalars['String']['input']>;
 };
+
+export type ParentInput = {
+  id: Scalars['DataId']['input'];
+  type: ParentOfContent;
+};
+
+export enum ParentOfContent {
+  Content = 'Content',
+  Item = 'Item'
+}
 
 export type Query = {
   getCategory: Array<CategoryDefine>;
@@ -248,6 +271,8 @@ export type ResolversTypes = {
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   ItemDefine: ResolverTypeWrapper<ItemDefine>;
   Mutation: ResolverTypeWrapper<{}>;
+  ParentInput: ParentInput;
+  ParentOfContent: ParentOfContent;
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   UnpointContent: ResolverTypeWrapper<UnpointContent>;
@@ -266,6 +291,7 @@ export type ResolversParentTypes = {
   ID: Scalars['ID']['output'];
   ItemDefine: ItemDefine;
   Mutation: {};
+  ParentInput: ParentInput;
   Query: {};
   String: Scalars['String']['output'];
   UnpointContent: UnpointContent;
@@ -324,7 +350,9 @@ export type ItemDefineResolvers<ContextType = any, ParentType extends ResolversP
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   changeAuthLevel?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationChangeAuthLevelArgs, 'authLv' | 'userId'>>;
+  removeContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveContentArgs, 'id'>>;
   removeItem?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveItemArgs, 'id'>>;
+  unlinkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkContentArgs, 'id' | 'parent'>>;
   updateContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateContentArgs, 'id' | 'type'>>;
 };
 
