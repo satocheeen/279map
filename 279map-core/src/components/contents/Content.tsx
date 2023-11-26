@@ -15,7 +15,7 @@ import Spinner from "../common/spinner/Spinner";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
 import { getMapKey, isEqualId } from "../../util/dataUtility";
-import { GetContentsAPI, GetImageUrlAPI, GetSnsPreviewAPI, RemoveContentAPI } from 'tsunagumap-api';
+import { GetImageUrlAPI, GetSnsPreviewAPI, RemoveContentAPI } from 'tsunagumap-api';
 import { useMap } from "../map/useMap";
 import { authLvAtom, currentMapKindAtom } from "../../store/session";
 import { filteredContentIdListAtom } from "../../store/filter";
@@ -26,8 +26,9 @@ import { useMapController } from "../../store/useMapController";
 import { useApi } from "../../api/useApi";
 import { useAtomCallback } from "jotai/utils";
 import { dialogTargetAtom } from "../../store/operation";
-import { MutationUpdateContentArgs } from "../../graphql/generated/graphql";
 import { updateContentAtom } from "../../store/content";
+import { clientAtom } from "jotai-urql";
+import { ContentFragment, GetContentDocument, MutationUpdateContentArgs } from "../../graphql/generated/graphql";
 
 type Props = {
     itemId: DataId;
@@ -184,15 +185,17 @@ export default function Content(props: Props) {
         }
     }, [props.content.id, callApi]);
 
+    const [ gqlClient ] = useAtom(clientAtom);
+    
     const onEdit = useCallback(async() => {
-        // 編集対象コンテンツをロード
-        const contents = (await callApi(GetContentsAPI, [{
-            contentId: props.content.id,
-        }])).contents;
-        if (!contents || contents?.length === 0) {
+        // // 編集対象コンテンツをロード
+        const getContent = await gqlClient.query(GetContentDocument, {
+            id: props.content.id,
+        });
+        const content = getContent.data?.getContent as ContentFragment;
+        if (!content) {
             return;
         }
-        const content = contents[0];
         const currentAttr: ContentAttr = content.url ? {
             title: content.title,
             overview: content.overview ?? '',
@@ -221,7 +224,7 @@ export default function Content(props: Props) {
         
             },
         })
-    }, [props.content, onEditContent, callApi, updateContent]);
+    }, [props.content, onEditContent, callApi, updateContent, gqlClient]);
 
     const onDelete = useCallback(async() => {
         const result = await confirm({

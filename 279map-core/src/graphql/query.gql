@@ -16,3 +16,29 @@ query getEvent(
         dates
     }    
 }
+
+query getContent(
+    $id: DataId!
+) {
+    getContent(id: $id) {
+        ...content
+    }
+}
+
+fragment content on ContentsDefine {
+    id
+    itemId
+    date
+    url
+    title
+    overview
+    category
+    image
+    videoUrl
+    parentId
+    usingAnotherMap
+    anotherMapItemId
+    isSnsContent
+    isEditable
+    isDeletable
+}
