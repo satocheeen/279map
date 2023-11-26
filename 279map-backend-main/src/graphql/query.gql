@@ -41,5 +41,6 @@ type Query {
     getCategory(dataSourceIds: [String!]): [CategoryDefine!]!
     getEvent(dataSourceIds: [String!]): [EventDefine!]!
     getContent(id: DataId!): ContentsDefine
+    getContents(ids: [DataId!]!): [ContentsDefine!]!
     getContentsInItem(itemId: DataId!): [ContentsDefine!]!
 }

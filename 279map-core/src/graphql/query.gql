@@ -25,6 +25,14 @@ query getContent(
     }
 }
 
+query getContents(
+    $ids: [DataId!]!
+) {
+    getContents(ids: $ids) {
+        ...content
+    }
+}
+
 fragment content on ContentsDefine {
     id
     itemId

@@ -78,6 +78,7 @@ export type MutationUpdateContentArgs = {
 export type Query = {
   getCategory: Array<CategoryDefine>;
   getContent?: Maybe<ContentsDefine>;
+  getContents: Array<ContentsDefine>;
   getContentsInItem: Array<ContentsDefine>;
   getEvent: Array<EventDefine>;
   getItems?: Maybe<Array<Maybe<ItemDefine>>>;
@@ -91,6 +92,11 @@ export type QueryGetCategoryArgs = {
 
 export type QueryGetContentArgs = {
   id: Scalars['DataId']['input'];
+};
+
+
+export type QueryGetContentsArgs = {
+  ids: Array<Scalars['DataId']['input']>;
 };
 
 
@@ -261,6 +267,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   getCategory?: Resolver<Array<ResolversTypes['CategoryDefine']>, ParentType, ContextType, Partial<QueryGetCategoryArgs>>;
   getContent?: Resolver<Maybe<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentArgs, 'id'>>;
+  getContents?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentsArgs, 'ids'>>;
   getContentsInItem?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentsInItemArgs, 'itemId'>>;
   getEvent?: Resolver<Array<ResolversTypes['EventDefine']>, ParentType, ContextType, Partial<QueryGetEventArgs>>;
   getItems?: Resolver<Maybe<Array<Maybe<ResolversTypes['ItemDefine']>>>, ParentType, ContextType, RequireFields<QueryGetItemsArgs, 'dataSourceId' | 'wkt' | 'zoom'>>;

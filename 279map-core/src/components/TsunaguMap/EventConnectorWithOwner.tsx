@@ -7,9 +7,9 @@ import { dialogTargetAtom, mapModeAtom, showingDetailItemIdAtom } from '../../st
 import { connectStatusLoadableAtom, mapDefineLoadableAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
-import { GetContentsAPI, GetContentsParam, GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, SearchAPI } from 'tsunagumap-api';
+import { GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, SearchAPI } from 'tsunagumap-api';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { ContentsDefine, DataId, DataSourceGroup, MapKind, UnpointContent } from '279map-common';
+import { DataId, DataSourceGroup, MapKind, UnpointContent } from '279map-common';
 import { MapMode, TsunaguMapHandler } from '../../types/types';
 import { useAtom } from 'jotai';
 import { itemDataSourceGroupsAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
@@ -18,8 +18,9 @@ import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
 import { useApi } from '../../api/useApi';
-import { CategoryDefine, EventDefine, MutationUpdateContentArgs } from '../../graphql/generated/graphql';
+import { CategoryDefine, EventDefine, ContentsDefine, GetContentsDocument, MutationUpdateContentArgs } from '../../graphql/generated/graphql';
 import { updateContentAtom } from '../../store/content';
+import { clientAtom } from 'jotai-urql';
 
 /**
  * 呼び出し元とイベント連携するためのコンポーネントもどき。
@@ -40,6 +41,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
     const { callApi } = useApi();
     const { updateDatasourceVisible } = useDataSource();
     const [, updateContent] = useAtom(updateContentAtom);
+    const [ gqlClient ] = useAtom(clientAtom);
 
     const showDetailDialog = useAtomCallback(
         useCallback((get, set, param: {type: 'item' | 'content'; id: DataId}) => {
@@ -57,10 +59,12 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 zoom: opts?.zoom,
             })
         },
-        async loadContentsAPI(param: GetContentsParam): Promise<ContentsDefine[]> {
+        async loadContentsAPI(contentIds: DataId[]): Promise<ContentsDefine[]> {
             try {
-                const res = await callApi(GetContentsAPI, param);
-                return res.contents;
+                const getContents = await gqlClient.query(GetContentsDocument, {
+                    ids: contentIds,
+                });
+                return getContents.data?.getContents ?? [];
 
             } catch(err) {
                 throw new Error('registContentAPI failed.' + err);

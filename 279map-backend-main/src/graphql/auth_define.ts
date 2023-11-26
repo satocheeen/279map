@@ -8,6 +8,7 @@ export const authDefine: AuthLvDefine = {
     getEvent: Auth.View,
     getItems: Auth.View,
     getContent: Auth.View,
+    getContents: Auth.View,
     getContentsInItem: Auth.View,
     updateContent: Auth.Edit,
 }

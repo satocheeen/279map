@@ -40,7 +40,7 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { ItemDefine } from '279map-common';
-import { MutationUpdateContentArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsInItemArgs, QueryGetEventArgs } from './graphql/__generated__/types';
+import { MutationUpdateContentArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs } from './graphql/__generated__/types';
 import { MutationResolverReturnType, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType } from './graphql/custom_scalar';
@@ -831,6 +831,26 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     apiLogger.warn('getContent error', param, e);
                     throw e;
                 }
+            },
+            getContents: async(parent: any, param: QueryGetContentsArgs, ctx): QueryResolverReturnType<'getContents'> => {
+                try {
+                    const result = await getContents({
+                        param: param.ids.map(id => {
+                            return {
+                                contentId: id,
+                            }
+                        }),
+                        currentMap: ctx.currentMap,
+                        authLv: ctx.authLv,
+                    });
+
+                    return result;
+
+                } catch(e) {    
+                    apiLogger.warn('getContent error', param, e);
+                    throw e;
+                }
+
             },
             /**
              * 指定のアイテムに属するコンテンツ取得
