@@ -6,7 +6,7 @@ import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
 import { Auth, DataId, DataSourceKindType } from '279map-common';
-import { GetContentsAPI, GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, UpdateItemAPI } from 'tsunagumap-api';
+import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, UpdateItemAPI } from 'tsunagumap-api';
 import { Button } from '../common';
 import { compareAuth } from '../../util/CommonUtility';
 import { authLvAtom } from '../../store/session';
@@ -16,6 +16,8 @@ import { useAtom } from 'jotai';
 import { useApi } from '../../api/useApi';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern, ConfirmResult } from '../common/confirm/types';
+import { clientAtom } from 'jotai-urql';
+import { GetContentDocument } from '../../graphql/generated/graphql';
 
 type Props = {
     target: {
@@ -142,6 +144,7 @@ export default function AddContentMenu(props: Props) {
     }, [isShowSubMenu]);
 
     const { confirm } = useConfirm();
+    const [ gqlClient ] = useAtom(clientAtom);
 
     type FuncParam = {
         type: 'id';
@@ -162,16 +165,15 @@ export default function AddContentMenu(props: Props) {
 
         let name: string;
         if (param.type === 'id') {
-            const contents = await callApi(GetContentsAPI, [
-                {
-                    contentId: param.contentId,
-                }
-            ]);
-            if (contents.contents.length === 0) {
+            const getContent = await gqlClient.query(GetContentDocument, {
+                id: param.contentId,
+            });
+            const content = getContent.data?.getContent;
+            if (!content) {
                 console.warn('コンテンツなし');
                 return;
             }
-            name = contents.contents[0].title;
+            name = content.title;
         } else {
             name = param.contentTitle;
         }
@@ -185,7 +187,7 @@ export default function AddContentMenu(props: Props) {
             ]
         });
 
-    }, [item, callApi, confirm]);
+    }, [item, callApi, confirm, gqlClient]);
 
     const onAddContent = useCallback((val: 'new' | 'unpoint') => {
         setShowSubMenu(false);

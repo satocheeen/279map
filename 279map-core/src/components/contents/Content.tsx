@@ -28,7 +28,7 @@ import { useAtomCallback } from "jotai/utils";
 import { dialogTargetAtom } from "../../store/operation";
 import { updateContentAtom } from "../../store/content";
 import { clientAtom } from "jotai-urql";
-import { ContentFragment, GetContentDocument, MutationUpdateContentArgs } from "../../graphql/generated/graphql";
+import { GetContentDocument, MutationUpdateContentArgs } from "../../graphql/generated/graphql";
 
 type Props = {
     itemId: DataId;
@@ -192,7 +192,7 @@ export default function Content(props: Props) {
         const getContent = await gqlClient.query(GetContentDocument, {
             id: props.content.id,
         });
-        const content = getContent.data?.getContent as ContentFragment;
+        const content = getContent.data?.getContent;
         if (!content) {
             return;
         }
