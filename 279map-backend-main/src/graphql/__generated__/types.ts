@@ -74,6 +74,7 @@ export type ItemDefine = {
 
 export type Mutation = {
   changeAuthLevel?: Maybe<Scalars['Boolean']['output']>;
+  removeItem?: Maybe<Scalars['Boolean']['output']>;
   updateContent?: Maybe<Scalars['Boolean']['output']>;
 };
 
@@ -81,6 +82,11 @@ export type Mutation = {
 export type MutationChangeAuthLevelArgs = {
   authLv: Auth;
   userId: Scalars['ID']['input'];
+};
+
+
+export type MutationRemoveItemArgs = {
+  id: Scalars['DataId']['input'];
 };
 
 
@@ -318,6 +324,7 @@ export type ItemDefineResolvers<ContextType = any, ParentType extends ResolversP
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   changeAuthLevel?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationChangeAuthLevelArgs, 'authLv' | 'userId'>>;
+  removeItem?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveItemArgs, 'id'>>;
   updateContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateContentArgs, 'id' | 'type'>>;
 };
 

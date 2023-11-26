@@ -5,10 +5,10 @@ import SelectFeature from '../SelectFeature';
 import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
-import { useMap } from '../../useMap';
-import { RemoveItemAPI } from 'tsunagumap-api';
 import { ConfirmResult } from '../../../common/confirm/types';
-import { useApi } from '../../../../api/useApi';
+import { useAtom } from 'jotai';
+import { clientAtom } from 'jotai-urql';
+import { RemoveItemDocument } from '../../../../graphql/generated/graphql';
 
 type Props = {
     target: LayerType;
@@ -23,7 +23,7 @@ type Props = {
 export default function RemoveFeatureController(props: Props) {
     const confirmHook = useConfirm();
     const spinnerHook = useProcessMessage();
-    const { callApi } = useApi();
+    const [ gqlClient ] = useAtom(clientAtom);
 
     const onRemoveOkClicked = useCallback(async(feature: FeatureLike) => {
         // 確認メッセージ
@@ -42,14 +42,14 @@ export default function RemoveFeatureController(props: Props) {
 
         const dataId = convertDataIdFromFeatureId(feature.getId() as string);
         // DB更新
-        await callApi(RemoveItemAPI, {
+        await gqlClient.mutation(RemoveItemDocument, {
             id: dataId,
         });
 
         spinnerHook.hideProcessMessage(h);
 
         props.close();
-    }, [props, confirmHook, callApi, spinnerHook]);
+    }, [props, confirmHook, gqlClient, spinnerHook]);
 
     const onCancel = useCallback(() => {
         props.close();

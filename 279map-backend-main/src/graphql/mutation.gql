@@ -1,4 +1,8 @@
 type Mutation {
+    removeItem(
+        id: DataId!
+    ): Boolean
+
     updateContent(
         id: DataId!
         title: String

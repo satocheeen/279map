@@ -18,7 +18,7 @@ import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import cors from 'cors';
 import { exit } from 'process';
 import { getMapInfoById } from './getMapDefine';
-import { ConfigAPI, ConnectResult, GeocoderParam, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
+import { ConfigAPI, ConnectResult, GeocoderParam, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
 import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, RequestAPI, RequestParam, GetItemsByIdAPI, GetItemsByIdParam, GetLinkableContentsAPI, LinkContentDatasourceToMapAPI, LinkContentDatasourceToMapParam, UnlinkContentDatasourceFromMapAPI, UnLinkContentDatasourceFromMapParam } from '../279map-api-interface/src/api';
@@ -39,7 +39,7 @@ import { graphqlHTTP } from 'express-graphql';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { MutationChangeAuthLevelArgs, MutationUpdateContentArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetUnpointContentsArgs } from './graphql/__generated__/types';
+import { MutationChangeAuthLevelArgs, MutationRemoveItemArgs, MutationUpdateContentArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetUnpointContentsArgs } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType } from './graphql/custom_scalar';
@@ -919,6 +919,29 @@ const schema = makeExecutableSchema<GraphQlContextType>({
         } as QueryResolver,
         Mutation: {
             /**
+             * 位置アイテム削除
+             */
+            removeItem: async(parent: any, param: MutationRemoveItemArgs, ctx): MutationResolverReturnType<'removeItem'> => {
+                try {
+                    // call ODBA
+                    await callOdbaApi(OdbaRemoveItemAPI, Object.assign({
+                        currentMap: ctx.currentMap,
+                    }, param));
+            
+                    // 更新通知
+                    broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
+                        type: 'mapitem-delete',
+                        itemPageIdList: [param.id],
+                    });
+                    
+                    return true;
+
+                } catch(e) {    
+                    apiLogger.warn('remove-item API error', param, e);
+                    throw e;
+                }
+            },
+            /**
              * コンテンツ更新
              */
             updateContent: async(parent: any, param: MutationUpdateContentArgs, ctx): MutationResolverReturnType<'updateContent'> => {
@@ -1275,40 +1298,6 @@ app.post(`/api/${UpdateItemAPI.uri}`,
             next();
         } catch(e) {    
             apiLogger.warn('update-item API error', param, e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail : e + '',
-            } as ApiError);
-        }
-    }
-);
-
-/**
- * update item
- * 位置アイテム削除
- */
-app.post(`/api/${RemoveItemAPI.uri}`,
-    checkApiAuthLv(Auth.Edit), 
-    checkCurrentMap,
-    async(req, res, next) => {
-        const param = req.body as RemoveItemParam;
-        try {
-            // call ODBA
-            await callOdbaApi(OdbaRemoveItemAPI, Object.assign({
-                currentMap: req.currentMap,
-            }, param));
-    
-            // 更新通知
-            broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                type: 'mapitem-delete',
-                itemPageIdList: [param.id],
-            });
-            
-            res.send('complete');
-    
-            next();
-        } catch(e) {    
-            apiLogger.warn('remove-item API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',

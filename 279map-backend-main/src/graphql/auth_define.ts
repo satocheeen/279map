@@ -12,6 +12,7 @@ export const authDefine: AuthLvDefine = {
     getContentsInItem: Auth.View,
     getUnpointContents: Auth.Edit,
 
+    removeItem: Auth.Edit,
     updateContent: Auth.Edit,
 
     // 管理者機能

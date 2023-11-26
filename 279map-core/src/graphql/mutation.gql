@@ -1,3 +1,11 @@
+mutation removeItem (
+    $id: DataId!
+) {
+    removeItem(
+        id: $id
+    )
+}
+
 mutation updateContent(
     $id: DataId!
     $title: String

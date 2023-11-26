@@ -142,19 +142,6 @@ export type UpdateItemParam = {
 };
 
 /**
- * remove item
- */
-export const RemoveItemAPI = {
-    uri: 'removeitem',
-    method: 'post',
-    resultType: 'none',
-} as APIDefine<RemoveItemParam, void>;
-
-export type RemoveItemParam = {
-    id: DataId; // 削除対象アイテムのID
-}
-
-/**
  * regist content
  */
 export const RegistContentAPI = {

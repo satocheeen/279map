@@ -33,7 +33,9 @@ export default function DefaultUserListModal(props: Props) {
         console.log('currentMapKind', currentMapKind);
         if (!show || !currentMapKind) return;
 
-        refetchUserList();
+        refetchUserList({
+            requestPolicy: 'network-only',
+        });
         const subscriber = getSubscriber();
         const h = subscriber?.subscribeMap({mapKind: currentMapKind}, 'userlist-update', undefined, () => {
             console.log('refetch');
