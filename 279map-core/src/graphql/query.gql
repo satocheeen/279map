@@ -61,3 +61,18 @@ fragment content on ContentsDefine {
     isEditable
     isDeletable
 }
+
+query getUnpointContents(
+    $dataSourceId: String!
+    $nextToken: String
+) {
+    getUnpointContents(dataSourceId: $dataSourceId, nextToken: $nextToken) {
+        contents {
+            id
+            title
+            thumb
+            overview
+        }
+        nextToken
+    }
+}

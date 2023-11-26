@@ -53,6 +53,11 @@ export type EventDefine = {
   dates: Array<Scalars['String']['output']>;
 };
 
+export type GetUnpointContentsResult = {
+  contents: Array<UnpointContent>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
+
 export type ItemDefine = {
   id: Scalars['DataId']['output'];
   lastEditedTime: Scalars['String']['output'];
@@ -82,6 +87,7 @@ export type Query = {
   getContentsInItem: Array<ContentsDefine>;
   getEvent: Array<EventDefine>;
   getItems?: Maybe<Array<Maybe<ItemDefine>>>;
+  getUnpointContents: GetUnpointContentsResult;
 };
 
 
@@ -116,6 +122,19 @@ export type QueryGetItemsArgs = {
   latestEditedTime?: InputMaybe<Scalars['String']['input']>;
   wkt: Scalars['String']['input'];
   zoom: Scalars['Float']['input'];
+};
+
+
+export type QueryGetUnpointContentsArgs = {
+  dataSourceId: Scalars['String']['input'];
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UnpointContent = {
+  id: Scalars['DataId']['output'];
+  overview?: Maybe<Scalars['String']['output']>;
+  thumb?: Maybe<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
 };
 
 
@@ -196,10 +215,12 @@ export type ResolversTypes = {
   DataId: ResolverTypeWrapper<Scalars['DataId']['output']>;
   EventDefine: ResolverTypeWrapper<EventDefine>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
+  GetUnpointContentsResult: ResolverTypeWrapper<GetUnpointContentsResult>;
   ItemDefine: ResolverTypeWrapper<ItemDefine>;
   Mutation: ResolverTypeWrapper<{}>;
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
+  UnpointContent: ResolverTypeWrapper<UnpointContent>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -210,10 +231,12 @@ export type ResolversParentTypes = {
   DataId: Scalars['DataId']['output'];
   EventDefine: EventDefine;
   Float: Scalars['Float']['output'];
+  GetUnpointContentsResult: GetUnpointContentsResult;
   ItemDefine: ItemDefine;
   Mutation: {};
   Query: {};
   String: Scalars['String']['output'];
+  UnpointContent: UnpointContent;
 };
 
 export type CategoryDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['CategoryDefine'] = ResolversParentTypes['CategoryDefine']> = {
@@ -253,6 +276,12 @@ export type EventDefineResolvers<ContextType = any, ParentType extends Resolvers
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type GetUnpointContentsResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['GetUnpointContentsResult'] = ResolversParentTypes['GetUnpointContentsResult']> = {
+  contents?: Resolver<Array<ResolversTypes['UnpointContent']>, ParentType, ContextType>;
+  nextToken?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type ItemDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemDefine'] = ResolversParentTypes['ItemDefine']> = {
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   lastEditedTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -271,6 +300,15 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getContentsInItem?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentsInItemArgs, 'itemId'>>;
   getEvent?: Resolver<Array<ResolversTypes['EventDefine']>, ParentType, ContextType, Partial<QueryGetEventArgs>>;
   getItems?: Resolver<Maybe<Array<Maybe<ResolversTypes['ItemDefine']>>>, ParentType, ContextType, RequireFields<QueryGetItemsArgs, 'dataSourceId' | 'wkt' | 'zoom'>>;
+  getUnpointContents?: Resolver<ResolversTypes['GetUnpointContentsResult'], ParentType, ContextType, RequireFields<QueryGetUnpointContentsArgs, 'dataSourceId'>>;
+};
+
+export type UnpointContentResolvers<ContextType = any, ParentType extends ResolversParentTypes['UnpointContent'] = ResolversParentTypes['UnpointContent']> = {
+  id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
+  overview?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  thumb?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type Resolvers<ContextType = any> = {
@@ -278,8 +316,10 @@ export type Resolvers<ContextType = any> = {
   ContentsDefine?: ContentsDefineResolvers<ContextType>;
   DataId?: GraphQLScalarType;
   EventDefine?: EventDefineResolvers<ContextType>;
+  GetUnpointContentsResult?: GetUnpointContentsResultResolvers<ContextType>;
   ItemDefine?: ItemDefineResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  UnpointContent?: UnpointContentResolvers<ContextType>;
 };
 

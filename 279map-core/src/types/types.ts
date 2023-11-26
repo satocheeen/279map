@@ -3,7 +3,7 @@ import { CSSProperties } from "react";
 import { MapKind } from '279map-common';
 import { ApiError, ErrorType, GetMapInfoResult, LinkContentToItemParam, RegistContentParam, GetSnsPreviewResult, GetUnpointDataResult } from "tsunagumap-api";
 import { FilterDefine } from "279map-common";
-import { CategoryDefine, ContentsDefine, EventDefine, MutationUpdateContentArgs } from "../graphql/generated/graphql";
+import { CategoryDefine, ContentsDefine, EventDefine, GetUnpointContentsResult, MutationUpdateContentArgs } from "../graphql/generated/graphql";
 
 export type OnMapLoadParam = {
     mapKind: MapKind;
@@ -148,7 +148,7 @@ export interface TsunaguMapHandler {
 
     getSnsPreviewAPI(url: string): Promise<GetSnsPreviewResult>;
 
-    getUnpointDataAPI(dataSourceId: string, nextToken?: string): Promise<GetUnpointDataResult>;
+    getUnpointDataAPI(dataSourceId: string, nextToken?: string): Promise<GetUnpointContentsResult>;
 
     /**
      * 指定のコンテンツのサムネイル画像（Blob）を取得する
@@ -255,7 +255,7 @@ export type LinkUnpointContentParam = {
         name: string;
     }[];
     // 未配置コンテンツ情報取得API
-    getUnpointDataAPI: (dataSourceId: string, nextToken?: string) => Promise<GetUnpointDataResult>;
+    getUnpointDataAPI: (dataSourceId: string, nextToken?: string) => Promise<GetUnpointContentsResult>;
     // コンテンツ紐づけAPI
     linkContentToItemAPI: (param: LinkContentToItemParam) => Promise<void>;
 }

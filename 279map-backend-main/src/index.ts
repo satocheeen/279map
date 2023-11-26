@@ -39,14 +39,13 @@ import { graphqlHTTP } from 'express-graphql';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { ItemDefine } from '279map-common';
-import { MutationUpdateContentArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs } from './graphql/__generated__/types';
-import { MutationResolverReturnType, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
+import { MutationUpdateContentArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetUnpointContentsArgs } from './graphql/__generated__/types';
+import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType } from './graphql/custom_scalar';
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { CustomError } from './graphql/CustomError';
- 
+
 declare global {
     namespace Express {
         interface Request {
@@ -754,7 +753,10 @@ const fileSchema = loadSchemaSync(
 );
 
 // The root provides a resolver function for each API endpoint
-type ResolverFunc = (param: any, req: express.Request) => QueryResolverReturnType<any> | MutationResolverReturnType<any>;
+type QueryResolverFunc = (parent: any, param: any, ctx: GraphQlContextType) => QueryResolverReturnType<any>;
+type QueryResolver = Record<QResolvers, QueryResolverFunc>
+type MutationResolverFunc = (parent: any, param: any, ctx: GraphQlContextType) => MutationResolverReturnType<any>;
+type MutationResolver = Record<MResolvers, MutationResolverFunc>;
 
 const schema = makeExecutableSchema<GraphQlContextType>({
     typeDefs: fileSchema,
@@ -765,25 +767,26 @@ const schema = makeExecutableSchema<GraphQlContextType>({
              * get items
              * 地図アイテム取得
              */
-            getItems: async(parent: any, param: GetItemsParam, ctx): Promise<ItemDefine[]> => {
+            getItems: async(parent: any, param: GetItemsParam, ctx): QueryResolverReturnType<'getItems'> => {
                 const session = sessionManager.get(ctx.connect.sessionKey as string);
                 console.log('session', session?.sid);
 
                 console.log('getItems', param);
                 await sleep(1);
-                return [
-                    {
-                        id: {
-                            id: 'aa',
-                            dataSourceId: 'bb',
-                        },
-                        contents: [],
-                        // @ts-ignore
-                        geoJson: {},
-                        name: 'ccc',
-                        lastEditedTime: 'aaa'
-                    }
-                ];
+                return [];
+                // return [
+                //     {
+                //         id: {
+                //             id: 'aa',
+                //             dataSourceId: 'bb',
+                //         },
+                //         contents: [],
+                //         // @ts-ignore
+                //         geoJson: {},
+                //         name: 'ccc',
+                //         lastEditedTime: 'aaa'
+                //     }
+                // ];
             },
             /**
              * カテゴリ取得
@@ -875,8 +878,35 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     throw e;
                 }
             },
+            getUnpointContents: async(parent: any, param: QueryGetUnpointContentsArgs, ctx): QueryResolverReturnType<'getUnpointContents'> => {
+                try {
+                    // 指定のアイテムに対して紐づけ可能なデータソースか確認
+                    // -> 紐づけ対象のアイテム情報をもらうインタフェースになっていないので、現状はコメントアウト
+                    // const checkOk = await checkLinkableDatasource(req.currentMap, param.dataSourceId);
+                    // if (!checkOk) {
+                    //     apiLogger.warn('check NG');
+                    //     res.send({
+                    //         contents: [],
+                    //     })
+                    //     return;
+                    // }
+        
+                    // call ODBA
+                    const result = await callOdbaApi(OdbaGetUnpointDataAPI, {
+                        currentMap: ctx.currentMap,
+                        dataSourceId: param.dataSourceId,
+                        nextToken: param.nextToken ?? undefined,
+                    });
+            
+                    return result;
 
-        },
+                } catch(e) {
+                    apiLogger.warn('get-unpointdata API error', param, e);
+                    throw e;
+                }
+        
+            }
+        } as QueryResolver,
         Mutation: {
             /**
              * コンテンツ更新
@@ -920,7 +950,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
 
             },
-        },
+        } as MutationResolver,
         DataId: DataIdScalarType,
     }
 })

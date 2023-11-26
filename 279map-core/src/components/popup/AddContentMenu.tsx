@@ -17,7 +17,7 @@ import { useApi } from '../../api/useApi';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern, ConfirmResult } from '../common/confirm/types';
 import { clientAtom } from 'jotai-urql';
-import { GetContentDocument } from '../../graphql/generated/graphql';
+import { GetContentDocument, GetUnpointContentsDocument } from '../../graphql/generated/graphql';
 
 type Props = {
     target: {
@@ -219,11 +219,14 @@ export default function AddContentMenu(props: Props) {
                 parent: props.target,
                 dataSources: linkableContentDataSources,
                 getUnpointDataAPI: async(dataSourceId: string, nextToken?: string) => {
-                    const result = await callApi(GetUnpointDataAPI, {
+                    const result = await gqlClient.query(GetUnpointContentsDocument, {
                         dataSourceId,
                         nextToken,
-                    });
-                    return result;
+                    })
+                    if (!result.data) {
+                        throw new Error('getUnpoinData error', result.error);
+                    }
+                    return result.data?.getUnpointContents;
                 },
                 linkContentToItemAPI: async(param: LinkContentToItemParam) => {
                     try {
@@ -251,7 +254,7 @@ export default function AddContentMenu(props: Props) {
             props.onClick();
         }
 
-    }, [callApi, props, confirm, registItemNameByContentsName, creatableContentDataSources, linkableContentDataSources, onAddNewContent, onLinkUnpointedContent]);
+    }, [callApi, props, confirm, registItemNameByContentsName, creatableContentDataSources, linkableContentDataSources, onAddNewContent, onLinkUnpointedContent, gqlClient]);
 
     const caption = useMemo(() => {
         if ('itemId' in props.target) {

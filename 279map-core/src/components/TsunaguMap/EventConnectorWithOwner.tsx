@@ -7,9 +7,9 @@ import { dialogTargetAtom, mapModeAtom, showingDetailItemIdAtom } from '../../st
 import { connectStatusLoadableAtom, mapDefineLoadableAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
-import { GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, SearchAPI } from 'tsunagumap-api';
+import { GetSnsPreviewAPI, GetThumbAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, SearchAPI } from 'tsunagumap-api';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { DataId, DataSourceGroup, MapKind, UnpointContent } from '279map-common';
+import { DataId, DataSourceGroup, MapKind } from '279map-common';
 import { MapMode, TsunaguMapHandler } from '../../types/types';
 import { useAtom } from 'jotai';
 import { itemDataSourceGroupsAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
@@ -18,7 +18,7 @@ import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
 import { useApi } from '../../api/useApi';
-import { CategoryDefine, EventDefine, ContentsDefine, GetContentsDocument, MutationUpdateContentArgs } from '../../graphql/generated/graphql';
+import { CategoryDefine, EventDefine, ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument } from '../../graphql/generated/graphql';
 import { updateContentAtom } from '../../store/content';
 import { clientAtom } from 'jotai-urql';
 
@@ -98,14 +98,14 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         },
     
         async getUnpointDataAPI(dataSourceId: string, nextToken?: string) {
-            const result = await callApi(GetUnpointDataAPI, {
+            const result = await gqlClient.query(GetUnpointContentsDocument, {
                 dataSourceId,
                 nextToken,
             });
-            return {
-                contents: result.contents as UnpointContent[],
-                nextToken: result.nextToken,
-            };
+            if (!result.data) {
+                throw new Error('getUnpoinData error', result.error);
+            }
+            return result.data.getUnpointContents;
     
         },
     

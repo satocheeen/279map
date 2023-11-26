@@ -36,6 +36,16 @@ type ContentsDefine {
     isEditable: Boolean!
     isDeletable: Boolean!
 }
+type UnpointContent {
+    id: DataId!
+    title: String!
+    thumb: String
+    overview: String
+}
+type GetUnpointContentsResult {
+    contents: [UnpointContent!]!
+    nextToken: String
+}
 type Query {
     getItems(wkt: String!, zoom: Float!, dataSourceId: String!, latestEditedTime: String, excludeItemIds: [String!]): [ItemDefine]
     getCategory(dataSourceIds: [String!]): [CategoryDefine!]!
@@ -43,4 +53,5 @@ type Query {
     getContent(id: DataId!): ContentsDefine!
     getContents(ids: [DataId!]!): [ContentsDefine!]!
     getContentsInItem(itemId: DataId!): [ContentsDefine!]!
+    getUnpointContents(dataSourceId: String!, nextToken: String): GetUnpointContentsResult!
 }
