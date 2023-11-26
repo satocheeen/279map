@@ -45,6 +45,7 @@ import { MutationResolverReturnType, QueryResolverReturnType, Resolvers } from '
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType } from './graphql/custom_scalar';
 import { makeExecutableSchema } from '@graphql-tools/schema'
+import { CustomError } from './graphql/CustomError';
  
 declare global {
     namespace Express {
@@ -61,7 +62,17 @@ declare global {
         }
     }
 }
-
+type GraphQlContextType = {
+    connect: {
+        sessionKey: string; // SID or Token
+        mapId: string;
+        mapPageInfo: MapPageInfoTable;
+        userAuthInfo: UserAuthInfo;
+        // userName?: string;
+    },
+    currentMap: CurrentMap;
+    authLv: Auth;
+}
 // ログ初期化
 configure(LogSetting);
 const logger = getLogger();
@@ -437,6 +448,37 @@ const sessionCheck = async(req: Request, res: Response, next: NextFunction) => {
     next();
 }
 
+/**
+ * セッション状態をチェックする。
+ * @returns セッションキー、接続中の地図情報
+ * @throws セッション接続できていない場合
+ */
+const sessionCheckFunc = async(req: Request) => {
+    const sessionKey = req.headers.sessionid;
+    if (!sessionKey || typeof sessionKey !== 'string') {
+        throw new CustomError({
+            type: ErrorType.IllegalError,
+            message: 'no sessionid in headers',
+        })
+    }
+    apiLogger.info('[start]', req.url, sessionKey);
+
+    const session = sessionManager.get(sessionKey);
+    if (!session) {
+        throw new CustomError({
+            type: ErrorType.SessionTimeout,
+            message: 'session timeout',
+        })
+    }
+    // extend expired time of session
+    session.extendExpire();
+
+    return { 
+        sessionKey,
+        currentMap: session.currentMap,
+    }
+}
+
 app.all('/api/*', sessionCheck);
 
 /**
@@ -537,16 +579,14 @@ const checkUserAuthLv = async(req: Request, res: Response, next: NextFunction) =
 
 app.all('/api/*', checkUserAuthLv);
 
-const checkGraphQlAuthLv = async(req: Request, res: Response, next: NextFunction) => {
-    const operationName = req.body.operationName as Resolvers | undefined;
-    if (!operationName || !(operationName in authDefine)) {
-        res.status(404).send({
+const checkGraphQlAuthLv = async(operationName: string, userAuthInfo: UserAuthInfo) => {
+    if (!(operationName in authDefine)) {
+        throw new CustomError({
             type: ErrorType.IllegalError,
-            detail: 'illegal operationName: ' + operationName,
-        } as ApiError);
-        return;
+            message: 'illegal operationName: ' + operationName,
+        })
     }
-    const needAuthLv = authDefine[operationName];
+    const needAuthLv = authDefine[operationName as Resolvers];
     let allowAuthList: Auth[];
     switch(needAuthLv) {
         case Auth.View:
@@ -559,27 +599,27 @@ const checkGraphQlAuthLv = async(req: Request, res: Response, next: NextFunction
             allowAuthList = [Auth.Admin];
     }
     const userAuthLv = function() {
-        if (!req.connect?.userAuthInfo) {
+        if (!userAuthInfo) {
             return Auth.None;
         }
-        switch(req.connect.userAuthInfo.authLv) {
+        switch(userAuthInfo.authLv) {
             case undefined:
             case Auth.None:
             case Auth.Request:
-                return req.connect.userAuthInfo.guestAuthLv;
+                return userAuthInfo.guestAuthLv;
             default:
-                return req.connect.userAuthInfo.authLv;
+                return userAuthInfo.authLv;
         }
     }();
-    req.authLv = userAuthLv;
     if (!userAuthLv || !allowAuthList.includes(userAuthLv)) {
-        res.status(403).send({
-            type: ErrorType.OperationForbidden,
-        } as ApiError);
-        return;
+        throw new CustomError({
+            type: ErrorType.Unauthorized,
+            message: 'user does not have authentication.'
+        })
     }
-    next();
+    return userAuthLv;
 }
+
 const checkApiAuthLv = (needAuthLv: Auth) => {
     return async(req: Request, res: Response, next: NextFunction) => {
         let allowAuthList: Auth[];
@@ -716,7 +756,7 @@ const fileSchema = loadSchemaSync(
 // The root provides a resolver function for each API endpoint
 type ResolverFunc = (param: any, req: express.Request) => QueryResolverReturnType<any> | MutationResolverReturnType<any>;
 
-const schema = makeExecutableSchema<Express.Request>({
+const schema = makeExecutableSchema<GraphQlContextType>({
     typeDefs: fileSchema,
     resolvers: {
         Query: {
@@ -725,9 +765,8 @@ const schema = makeExecutableSchema<Express.Request>({
              * get items
              * 地図アイテム取得
              */
-            getItems: async(parent: any, param: GetItemsParam, req): Promise<ItemDefine[]> => {
-                // console.log('context', context);
-                const session = sessionManager.get(req.connect?.sessionKey as string);
+            getItems: async(parent: any, param: GetItemsParam, ctx): Promise<ItemDefine[]> => {
+                const session = sessionManager.get(ctx.connect.sessionKey as string);
                 console.log('session', session?.sid);
 
                 console.log('getItems', param);
@@ -749,9 +788,9 @@ const schema = makeExecutableSchema<Express.Request>({
             /**
              * カテゴリ取得
              */
-            getCategory: async(parent: any, param: QueryGetCategoryArgs, req: express.Request): QueryResolverReturnType<'getCategory'> => {
+            getCategory: async(parent: any, param: QueryGetCategoryArgs, ctx): QueryResolverReturnType<'getCategory'> => {
                 try {
-                    const result = await getCategory(param, req.currentMap);
+                    const result = await getCategory(param, ctx.currentMap);
                     return result;
 
                 } catch(e) {    
@@ -763,9 +802,9 @@ const schema = makeExecutableSchema<Express.Request>({
             /**
              * イベント取得
              */
-            getEvent: async(parent: any, param: QueryGetEventArgs, req: express.Request): QueryResolverReturnType<'getEvent'> => {
+            getEvent: async(parent: any, param: QueryGetEventArgs, ctx): QueryResolverReturnType<'getEvent'> => {
                 try {
-                    const result = await getEvents(param, req.currentMap);
+                    const result = await getEvents(param, ctx.currentMap);
                     return result;
 
                 } catch(e) {    
@@ -776,14 +815,14 @@ const schema = makeExecutableSchema<Express.Request>({
             /**
              * コンテンツ取得（コンテンツID指定）
              */
-            getContent: async(parent: any, param: QueryGetContentArgs, req: express.Request): QueryResolverReturnType<'getContent'> => {
+            getContent: async(parent: any, param: QueryGetContentArgs, ctx): QueryResolverReturnType<'getContent'> => {
                 try {
                     const result = await getContents({
                         param: [{
                             contentId: param.id,
                         }],
-                        currentMap: req.currentMap,
-                        authLv: req.authLv,
+                        currentMap: ctx.currentMap,
+                        authLv: ctx.authLv,
                     });
 
                     return result[0];
@@ -796,14 +835,14 @@ const schema = makeExecutableSchema<Express.Request>({
             /**
              * 指定のアイテムに属するコンテンツ取得
              */
-            getContentsInItem: async(parent: any, param: QueryGetContentsInItemArgs, req: express.Request): QueryResolverReturnType<'getContentsInItem'> => {
+            getContentsInItem: async(parent: any, param: QueryGetContentsInItemArgs, ctx): QueryResolverReturnType<'getContentsInItem'> => {
                 try {
                     const result = await getContents({
                         param: [{
                             itemId: param.itemId,
                         }],
-                        currentMap: req.currentMap,
-                        authLv: req.authLv,
+                        currentMap: ctx.currentMap,
+                        authLv: ctx.authLv,
                     });
 
                     return result;
@@ -819,11 +858,11 @@ const schema = makeExecutableSchema<Express.Request>({
             /**
              * コンテンツ更新
              */
-            updateContent: async(parent: any, param: MutationUpdateContentArgs, req: express.Request): MutationResolverReturnType<'updateContent'> => {
+            updateContent: async(parent: any, param: MutationUpdateContentArgs, ctx): MutationResolverReturnType<'updateContent'> => {
                 try {
                     // call ODBA
                     await callOdbaApi(OdbaUpdateContentAPI, {
-                        currentMap: req.currentMap,
+                        currentMap: ctx.currentMap,
                         id: param.id,
                         categories: param.categories as string[] | undefined,
                         date: param.date as string | undefined,
@@ -841,11 +880,11 @@ const schema = makeExecutableSchema<Express.Request>({
                                 contentId: param.id,
                             }
                         ],
-                        currentMap: req.currentMap,
-                        authLv: req.authLv,
+                        currentMap: ctx.currentMap,
+                        authLv: ctx.authLv,
                     }))[0];
 
-                    broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
+                    broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
                         type: 'childcontents-update',
                         subtype: target.itemId,
                     });
@@ -865,16 +904,53 @@ const schema = makeExecutableSchema<Express.Request>({
 
 app.use(
     "/graphql",
-    sessionCheck,
-    checkAuthorization,
     authManagementClient.checkJwt,
     authenticateErrorProcess,
-    checkUserAuthLv,
-    checkGraphQlAuthLv,
-    checkCurrentMap,
-    graphqlHTTP({
-        schema,
-        graphiql: true,
+    graphqlHTTP(async(req, res, graphQLParams) => {
+        const operationName = graphQLParams?.operationName;
+        if (!operationName) {
+            throw new CustomError({
+                type: ErrorType.IllegalError,
+                message: 'no operation name'
+            })
+        }
+        const sessionInfo = await sessionCheckFunc(req as Request);
+        const mapPageInfo = await getMapPageInfo(sessionInfo.currentMap.mapId);
+        if (!mapPageInfo) {
+            throw new CustomError({
+                type: ErrorType.UndefinedMap,
+                message: 'map not found'
+            })
+        }
+
+        const userAuthInfo = await getUserAuthInfoInTheMap(mapPageInfo, req as Request);
+        if (!req.headers.authorization) {
+            // 未ログインの場合は、ゲストユーザ権限があるか確認
+            if (!userAuthInfo) {
+                throw new CustomError({
+                    type: ErrorType.Unauthorized,
+                    message: 'Unauthenticated.this map is private, please login.',
+                })
+            }        
+        }
+
+        const authLv = await checkGraphQlAuthLv(operationName, userAuthInfo);
+        const context: GraphQlContextType = {
+            connect: {
+                mapId: sessionInfo.currentMap.mapId,
+                sessionKey: sessionInfo.sessionKey,
+                mapPageInfo,
+                userAuthInfo,
+            },
+            currentMap: sessionInfo.currentMap,
+            authLv,
+        }
+
+        return {
+            schema,
+            graphiql: true,
+            context,
+        }
     }),
 )
 
