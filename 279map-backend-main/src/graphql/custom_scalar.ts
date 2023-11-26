@@ -5,11 +5,9 @@ export const DataIdScalarType = new GraphQLScalarType({
     name: 'DataId',
     description: 'id of items or contents',
     serialize(value: any) {
-        console.log('serialize', value)
         return JSON.stringify(value);
     },
     parseValue(value: any) {
-        console.log('parse', value)
         if (typeof value === 'string') {
             return JSON.parse(value) as DataId;
         } else if (typeof value === 'object') {

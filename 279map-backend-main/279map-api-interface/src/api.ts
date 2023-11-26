@@ -92,23 +92,6 @@ export const GetOriginalIconDefineAPI = {
 export type GetOriginalIconDefineResult = IconDefine[];
 
 /**
- * get unpoint data
- */
-export const GetUnpointDataAPI = {
-    uri: 'get-unpointdata',
-    method: 'post',
-    resultType: 'json',
-} as APIDefine<GetUnpointDataParam, GetUnpointDataResult>;
-export type GetUnpointDataParam = {
-    dataSourceId: string;
-    nextToken?: string;
-}
-export type GetUnpointDataResult = {
-    contents: UnpointContent[],
-    nextToken?: string;
-};
-
-/**
  * get items
  */
 export const GetItemsAPI = {

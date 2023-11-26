@@ -6,7 +6,7 @@ import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
 import { Auth, DataId, DataSourceKindType } from '279map-common';
-import { GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, UpdateItemAPI } from 'tsunagumap-api';
+import { GetSnsPreviewAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, UpdateItemAPI } from 'tsunagumap-api';
 import { Button } from '../common';
 import { compareAuth } from '../../util/CommonUtility';
 import { authLvAtom } from '../../store/session';

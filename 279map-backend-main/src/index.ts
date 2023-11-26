@@ -18,7 +18,7 @@ import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import cors from 'cors';
 import { exit } from 'process';
 import { getMapInfoById } from './getMapDefine';
-import { ConfigAPI, ConnectResult, GeocoderParam, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, GetUnpointDataAPI, GetUnpointDataParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
+import { ConfigAPI, ConnectResult, GeocoderParam, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, RemoveContentAPI, RemoveContentParam, RemoveItemAPI, RemoveItemParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
 import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, RequestAPI, RequestParam, GetUserListAPI, GetUserListResult, ChangeAuthLevelAPI, ChangeAuthLevelParam, GetItemsByIdAPI, GetItemsByIdParam, GetLinkableContentsAPI, LinkContentDatasourceToMapAPI, LinkContentDatasourceToMapParam, UnlinkContentDatasourceFromMapAPI, UnLinkContentDatasourceFromMapParam } from '../279map-api-interface/src/api';
@@ -1319,47 +1319,6 @@ app.post(`/api/${RegistContentAPI.uri}`,
             next();
         } catch(e) {    
             apiLogger.warn('regist-content API error', param, e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail : e + '',
-            } as ApiError);
-        }
-    }
-);
-
-/**
- * get unpointed conents
- * 地点未登録コンテンツ取得
- */
-app.post(`/api/${GetUnpointDataAPI.uri}`,
-    checkApiAuthLv(Auth.Edit), 
-    checkCurrentMap,
-    async(req, res, next) => {
-        const param = req.body as GetUnpointDataParam;
-        try {
-            // 指定のアイテムに対して紐づけ可能なデータソースか確認
-            // -> 紐づけ対象のアイテム情報をもらうインタフェースになっていないので、現状はコメントアウト
-            // const checkOk = await checkLinkableDatasource(req.currentMap, param.dataSourceId);
-            // if (!checkOk) {
-            //     apiLogger.warn('check NG');
-            //     res.send({
-            //         contents: [],
-            //     })
-            //     return;
-            // }
-
-            // call ODBA
-            const result = await callOdbaApi(OdbaGetUnpointDataAPI, {
-                currentMap: req.currentMap,
-                dataSourceId: param.dataSourceId,
-                nextToken: param.nextToken,
-            });
-    
-            res.send(result);
-    
-            next();
-        } catch(e) {
-            apiLogger.warn('get-unpointdata API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
