@@ -715,164 +715,165 @@ const fileSchema = loadSchemaSync(
 
 // The root provides a resolver function for each API endpoint
 type ResolverFunc = (param: any, req: express.Request) => QueryResolverReturnType<any> | MutationResolverReturnType<any>;
-const rootResolver: Record<Resolvers, ResolverFunc> = {
-    /**
-     * TODO: 要修正
-     * get items
-     * 地図アイテム取得
-     */
-    getItems: async(param: GetItemsParam, req: express.Request): Promise<ItemDefine[]> => {
-        // console.log('context', context);
-        const session = sessionManager.get(req.connect?.sessionKey as string);
-        console.log('session', session?.sid);
 
-        console.log('getItems', param);
-        await sleep(1);
-        return [
-            {
-                id: {
-                    id: 'aa',
-                    dataSourceId: 'bb',
-                },
-                contents: [],
-                // @ts-ignore
-                geoJson: {},
-                name: 'ccc',
-                lastEditedTime: 'aaa'
-            }
-        ];
-    },
-    /**
-     * カテゴリ取得
-     */
-    getCategory: async(param: QueryGetCategoryArgs, req: express.Request): QueryResolverReturnType<'getCategory'> => {
-        try {
-            const result = await getCategory(param, req.currentMap);
-            return result;
-
-        } catch(e) {    
-            apiLogger.warn('getCategory error', param, e);
-            throw e;
-        }
-
-    },
-    /**
-     * イベント取得
-     */
-    getEvent: async(param: QueryGetEventArgs, req: express.Request): QueryResolverReturnType<'getEvent'> => {
-        try {
-            const result = await getEvents(param, req.currentMap);
-            return result;
-
-        } catch(e) {    
-            apiLogger.warn('getEvent error', param, e);
-            throw e;
-        }
-    },
-    /**
-     * コンテンツ取得（コンテンツID指定）
-     */
-    getContent: async(param: QueryGetContentArgs, req: express.Request): QueryResolverReturnType<'getContent'> => {
-        try {
-            const result = await getContents({
-                param: [{
-                    contentId: param.id,
-                }],
-                currentMap: req.currentMap,
-                authLv: req.authLv,
-            });
-
-            return result[0];
-
-        } catch(e) {    
-            apiLogger.warn('getContent error', param, e);
-            throw e;
-        }
-    },
-    /**
-     * 指定のアイテムに属するコンテンツ取得
-     */
-    getContentsInItem: async(param: QueryGetContentsInItemArgs, req: express.Request): QueryResolverReturnType<'getContentsInItem'> => {
-        try {
-            const result = await getContents({
-                param: [{
-                    itemId: param.itemId,
-                }],
-                currentMap: req.currentMap,
-                authLv: req.authLv,
-            });
-
-            return result;
-
-        } catch(e) {    
-            apiLogger.warn('getContentsInItem error', param, e);
-            throw e;
-        }
-    },
-    /**
-     * コンテンツ更新
-     */
-    updateContent: async(param: MutationUpdateContentArgs, req: express.Request): MutationResolverReturnType<'updateContent'> => {
-        try {
-            // call ODBA
-            await callOdbaApi(OdbaUpdateContentAPI, {
-                currentMap: req.currentMap,
-                id: param.id,
-                categories: param.categories as string[] | undefined,
-                date: param.date as string | undefined,
-                imageUrl: param.imageUrl as string | undefined,
-                overview: param.overview as string | undefined,
-                title: param.title as string | undefined,
-                type: param.type,
-                url: param.url as string | undefined,
-            });
-    
-            // 更新通知
-            const target = (await getContents({
-                param: [
-                    {
-                        contentId: param.id,
-                    }
-                ],
-                currentMap: req.currentMap,
-                authLv: req.authLv,
-            }))[0];
-
-            broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                type: 'childcontents-update',
-                subtype: target.itemId,
-            });
-        
-            return true;
-
-        } catch(e) {
-            apiLogger.warn('update-content API error', param, e);
-            throw e;
-        }
-
-    },
-}
-
-const customScalars = {
-    DataId: DataIdScalarType,
-}
-const schema = makeExecutableSchema({
+const schema = makeExecutableSchema<Express.Request>({
     typeDefs: fileSchema,
-    resolvers: customScalars,
+    resolvers: {
+        Query: {
+            /**
+             * TODO: 要修正
+             * get items
+             * 地図アイテム取得
+             */
+            getItems: async(parent: any, param: GetItemsParam, req): Promise<ItemDefine[]> => {
+                // console.log('context', context);
+                const session = sessionManager.get(req.connect?.sessionKey as string);
+                console.log('session', session?.sid);
+
+                console.log('getItems', param);
+                await sleep(1);
+                return [
+                    {
+                        id: {
+                            id: 'aa',
+                            dataSourceId: 'bb',
+                        },
+                        contents: [],
+                        // @ts-ignore
+                        geoJson: {},
+                        name: 'ccc',
+                        lastEditedTime: 'aaa'
+                    }
+                ];
+            },
+            /**
+             * カテゴリ取得
+             */
+            getCategory: async(parent: any, param: QueryGetCategoryArgs, req: express.Request): QueryResolverReturnType<'getCategory'> => {
+                try {
+                    const result = await getCategory(param, req.currentMap);
+                    return result;
+
+                } catch(e) {    
+                    apiLogger.warn('getCategory error', param, e);
+                    throw e;
+                }
+
+            },
+            /**
+             * イベント取得
+             */
+            getEvent: async(parent: any, param: QueryGetEventArgs, req: express.Request): QueryResolverReturnType<'getEvent'> => {
+                try {
+                    const result = await getEvents(param, req.currentMap);
+                    return result;
+
+                } catch(e) {    
+                    apiLogger.warn('getEvent error', param, e);
+                    throw e;
+                }
+            },
+            /**
+             * コンテンツ取得（コンテンツID指定）
+             */
+            getContent: async(parent: any, param: QueryGetContentArgs, req: express.Request): QueryResolverReturnType<'getContent'> => {
+                try {
+                    const result = await getContents({
+                        param: [{
+                            contentId: param.id,
+                        }],
+                        currentMap: req.currentMap,
+                        authLv: req.authLv,
+                    });
+
+                    return result[0];
+
+                } catch(e) {    
+                    apiLogger.warn('getContent error', param, e);
+                    throw e;
+                }
+            },
+            /**
+             * 指定のアイテムに属するコンテンツ取得
+             */
+            getContentsInItem: async(parent: any, param: QueryGetContentsInItemArgs, req: express.Request): QueryResolverReturnType<'getContentsInItem'> => {
+                try {
+                    const result = await getContents({
+                        param: [{
+                            itemId: param.itemId,
+                        }],
+                        currentMap: req.currentMap,
+                        authLv: req.authLv,
+                    });
+
+                    return result;
+
+                } catch(e) {    
+                    apiLogger.warn('getContentsInItem error', param, e);
+                    throw e;
+                }
+            },
+
+        },
+        Mutation: {
+            /**
+             * コンテンツ更新
+             */
+            updateContent: async(parent: any, param: MutationUpdateContentArgs, req: express.Request): MutationResolverReturnType<'updateContent'> => {
+                try {
+                    // call ODBA
+                    await callOdbaApi(OdbaUpdateContentAPI, {
+                        currentMap: req.currentMap,
+                        id: param.id,
+                        categories: param.categories as string[] | undefined,
+                        date: param.date as string | undefined,
+                        imageUrl: param.imageUrl as string | undefined,
+                        overview: param.overview as string | undefined,
+                        title: param.title as string | undefined,
+                        type: param.type,
+                        url: param.url as string | undefined,
+                    });
+            
+                    // 更新通知
+                    const target = (await getContents({
+                        param: [
+                            {
+                                contentId: param.id,
+                            }
+                        ],
+                        currentMap: req.currentMap,
+                        authLv: req.authLv,
+                    }))[0];
+
+                    broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
+                        type: 'childcontents-update',
+                        subtype: target.itemId,
+                    });
+                
+                    return true;
+
+                } catch(e) {
+                    apiLogger.warn('update-content API error', param, e);
+                    throw e;
+                }
+
+            },
+        },
+        DataId: DataIdScalarType,
+    }
 })
 
 app.use(
     "/graphql",
-    // sessionCheck,
-    // checkAuthorization,
-    // authManagementClient.checkJwt,
-    // authenticateErrorProcess,
-    // checkUserAuthLv,
-    // checkGraphQlAuthLv,
-    // checkCurrentMap,
+    sessionCheck,
+    checkAuthorization,
+    authManagementClient.checkJwt,
+    authenticateErrorProcess,
+    checkUserAuthLv,
+    checkGraphQlAuthLv,
+    checkCurrentMap,
     graphqlHTTP({
         schema,
-        rootValue: rootResolver,
         graphiql: true,
     }),
 )

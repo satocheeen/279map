@@ -21,7 +21,8 @@ const config: CodegenConfig = {
         },
       }
     }
-  }
+  },
+  verbose: true,
 };
 
 export default config;
