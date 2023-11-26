@@ -36,9 +36,9 @@ export type ContentsDefine = {
   date?: Maybe<Scalars['String']['output']>;
   id: Scalars['DataId']['output'];
   image: Scalars['Boolean']['output'];
-  isDeletable?: Maybe<Scalars['Boolean']['output']>;
-  isEditable?: Maybe<Scalars['Boolean']['output']>;
-  isSnsContent?: Maybe<Scalars['Boolean']['output']>;
+  isDeletable: Scalars['Boolean']['output'];
+  isEditable: Scalars['Boolean']['output'];
+  isSnsContent: Scalars['Boolean']['output'];
   itemId: Scalars['DataId']['output'];
   overview?: Maybe<Scalars['String']['output']>;
   parentId?: Maybe<Scalars['DataId']['output']>;
@@ -77,7 +77,7 @@ export type MutationUpdateContentArgs = {
 
 export type Query = {
   getCategory: Array<CategoryDefine>;
-  getContent?: Maybe<ContentsDefine>;
+  getContent: ContentsDefine;
   getContents: Array<ContentsDefine>;
   getContentsInItem: Array<ContentsDefine>;
   getEvent: Array<EventDefine>;
@@ -230,9 +230,9 @@ export type ContentsDefineResolvers<ContextType = any, ParentType extends Resolv
   date?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   image?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  isDeletable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  isEditable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  isSnsContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  isDeletable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  isEditable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  isSnsContent?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   itemId?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   overview?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   parentId?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType>;
@@ -266,7 +266,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   getCategory?: Resolver<Array<ResolversTypes['CategoryDefine']>, ParentType, ContextType, Partial<QueryGetCategoryArgs>>;
-  getContent?: Resolver<Maybe<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentArgs, 'id'>>;
+  getContent?: Resolver<ResolversTypes['ContentsDefine'], ParentType, ContextType, RequireFields<QueryGetContentArgs, 'id'>>;
   getContents?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentsArgs, 'ids'>>;
   getContentsInItem?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentsInItemArgs, 'itemId'>>;
   getEvent?: Resolver<Array<ResolversTypes['EventDefine']>, ParentType, ContextType, Partial<QueryGetEventArgs>>;

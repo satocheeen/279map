@@ -33,6 +33,17 @@ query getContents(
     }
 }
 
+query getContentsInItem(
+    $itemId: DataId!
+) {
+    getContentsInItem(itemId: $itemId) {
+        ...content
+        children {
+            ...content
+        }
+    }
+}
+
 fragment content on ContentsDefine {
     id
     itemId

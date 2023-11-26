@@ -824,6 +824,9 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         currentMap: ctx.currentMap,
                         authLv: ctx.authLv,
                     });
+                    if (result.length === 0) {
+                        throw new Error('not found');
+                    }
 
                     return result[0];
 

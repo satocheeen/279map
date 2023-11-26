@@ -32,15 +32,15 @@ type ContentsDefine {
     children: [ContentsDefine!]
     usingAnotherMap: Boolean!
     anotherMapItemId: DataId
-    isSnsContent: Boolean
-    isEditable: Boolean
-    isDeletable: Boolean
+    isSnsContent: Boolean!
+    isEditable: Boolean!
+    isDeletable: Boolean!
 }
 type Query {
     getItems(wkt: String!, zoom: Float!, dataSourceId: String!, latestEditedTime: String, excludeItemIds: [String!]): [ItemDefine]
     getCategory(dataSourceIds: [String!]): [CategoryDefine!]!
     getEvent(dataSourceIds: [String!]): [EventDefine!]!
-    getContent(id: DataId!): ContentsDefine
+    getContent(id: DataId!): ContentsDefine!
     getContents(ids: [DataId!]!): [ContentsDefine!]!
     getContentsInItem(itemId: DataId!): [ContentsDefine!]!
 }

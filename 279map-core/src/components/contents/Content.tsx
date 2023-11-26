@@ -10,7 +10,7 @@ import useConfirm from "../common/confirm/useConfirm";
 import reactStringReplace from "react-string-replace";
 import PopupMenuIcon from "../popup/PopupMenuIcon";
 import AddContentMenu from "../popup/AddContentMenu";
-import { Auth, ContentAttr, ContentsDefine, DataId, MapKind } from "279map-common";
+import { Auth, ContentAttr, DataId, MapKind } from "279map-common";
 import Spinner from "../common/spinner/Spinner";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
@@ -28,7 +28,7 @@ import { useAtomCallback } from "jotai/utils";
 import { dialogTargetAtom } from "../../store/operation";
 import { updateContentAtom } from "../../store/content";
 import { clientAtom } from "jotai-urql";
-import { GetContentDocument, MutationUpdateContentArgs } from "../../graphql/generated/graphql";
+import { ContentsDefine, GetContentDocument, MutationUpdateContentArgs } from "../../graphql/generated/graphql";
 
 type Props = {
     itemId: DataId;
@@ -70,7 +70,8 @@ export default function Content(props: Props) {
             case UrlType.FacebookVideo:
                 break;
             default:
-                window.open(props.content.url, getMapKey(props.content.id));
+                if (props.content.url)
+                    window.open(props.content.url, getMapKey(props.content.id));
         }
         if(props.onClick !== undefined){
             props.onClick();

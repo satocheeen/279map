@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { Modal }  from '../common';
 import Content from './Content';
-import { Auth, ContentsDefine, DataId, MapKind } from '279map-common';
+import { Auth, DataId, MapKind } from '279map-common';
 import AddContentMenu from '../popup/AddContentMenu';
 import styles from './ContentsModal.module.scss';
 import { getMapKey } from '../../util/dataUtility';
@@ -9,7 +9,6 @@ import { useSubscribe } from '../../api/useSubscribe';
 import { useAtom } from 'jotai';
 import { authLvAtom, currentMapKindAtom } from '../../store/session';
 import { useApi } from '../../api/useApi';
-import { GetContentsAPI } from 'tsunagumap-api';
 import { compareAuth } from '../../util/CommonUtility';
 import EditItemNameModal from './EditItemNameModal';
 import PopupMenuIcon from '../popup/PopupMenuIcon';
@@ -18,6 +17,8 @@ import { itemDataSourcesAtom } from '../../store/datasource';
 import { allItemsAtom } from '../../store/item';
 import { useMap } from '../map/useMap';
 import { modalSpinnerAtom } from '../common/modal/Modal';
+import { clientAtom } from 'jotai-urql';
+import { ContentsDefine, GetContentDocument, GetContentsInItemDocument } from '../../graphql/generated/graphql';
 
 export type Props = ({
     type: 'item' | 'content';
@@ -51,6 +52,7 @@ export default function ContentsModal(props: Props) {
         return item?.temporary === 'registing';
     }, [item, props.type]);
 
+    const [ gqlClient ] = useAtom(clientAtom);
     const loadContentsInItem = useCallback(async() => {
         if (!item) return;
         if (isTemporaryItem) {
@@ -63,15 +65,14 @@ export default function ContentsModal(props: Props) {
         }
 
         setModalSpinner(true);
-        const result = await callApi(GetContentsAPI, [
-            {
-                itemId: item.id,
-            }
-        ]);
-        setContentsList(result.contents);
+        const result = await gqlClient.query(GetContentsInItemDocument, {
+            itemId: item.id,
+        });
+        const contents = result.data?.getContentsInItem ?? [];
+        setContentsList(contents);
         setModalSpinner(false);
 
-    }, [callApi, item, isTemporaryItem, setModalSpinner]);
+    }, [item, isTemporaryItem, setModalSpinner, gqlClient]);
 
     // 表示対象が指定されたらコンテンツロード
     const [ mapKind ] = useAtom(currentMapKindAtom);
@@ -105,21 +106,13 @@ export default function ContentsModal(props: Props) {
             setShow(true);
     
             // 最新コンテンツ取得
-            callApi(GetContentsAPI, [
-                    {
-                        contentId: props.id,
-                    }
-                ],
-            ).then(res => {
-                const result = res.contents;
-                setContentsList(result);
-                if (result.length === 0) {
-                    setItemId(undefined);
-                } else {
-                    setItemId(result[0].itemId);
-                }
-    
-            }).finally(() => {
+            gqlClient.query(GetContentDocument, {
+                id: props.id,
+            })
+            .then(res => {
+                const result = res.data?.getContent as ContentsDefine;
+                setContentsList([result]);
+                setItemId(result.itemId);
                 setModalSpinner(false);
             });
         }
@@ -131,7 +124,7 @@ export default function ContentsModal(props: Props) {
             }
         }
 
-    }, [props.id, props.type, mapKind, callApi, getSubscriber, loadContentsInItem, updateItems, setModalSpinner]);
+    }, [props.id, props.type, mapKind, callApi, getSubscriber, loadContentsInItem, updateItems, setModalSpinner, gqlClient]);
 
     const contents = useMemo((): ContentsDefine[] => {
         return contentsList.sort((a, b) => {
