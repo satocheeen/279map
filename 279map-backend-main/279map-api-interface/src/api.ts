@@ -51,24 +51,6 @@ export type RequestParam = {
 }
 
 /**
- * get map info
- */
-export const GetMapInfoAPI = {
-    uri: 'getmapinfo',
-    method: 'post', 
-    resultType: 'json',
-} as APIDefine<GetMapInfoParam, GetMapInfoResult>;
-export type GetMapInfoParam = {
-    mapKind?: MapKind;
-}
-export type GetMapInfoResult = {
-    mapKind: MapKind;
-    extent: Extent;
-    itemDataSourceGroups: DataSourceGroup[];
-    contentDataSources: DataSourceInfo[];
-};
-
-/**
  * get original icon define
  */
 export const GetOriginalIconDefineAPI = {

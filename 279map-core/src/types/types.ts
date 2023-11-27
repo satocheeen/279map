@@ -1,7 +1,7 @@
-import { ContentAttr, DataId, DataSourceGroup, FeatureType, GeoProperties, IconDefine, MapDefine } from "279map-common";
+import { ContentAttr, DataId, FeatureType, GeoProperties, IconDefine, MapDefine } from "279map-common";
 import { CSSProperties } from "react";
 import { MapKind } from '279map-common';
-import { ApiError, ErrorType, GetMapInfoResult, GetSnsPreviewResult } from "tsunagumap-api";
+import { ErrorType, GetSnsPreviewResult } from "tsunagumap-api";
 import { CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs } from "../graphql/generated/graphql";
 
 export type OnMapLoadParam = {
@@ -17,14 +17,6 @@ export type ApiAccessError = {
 export type OnConnectParam = {
     mapDefine: MapDefine;
 };
-
-export type LoadMapDefineResult = {
-    result: 'success';
-    mapInfo: GetMapInfoResult;
-} | {
-    result: 'failure';
-    error: ApiError;
-}
 
 export type TsunaguMapProps = {
     mapId: string;
