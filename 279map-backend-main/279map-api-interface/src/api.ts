@@ -230,21 +230,6 @@ export type GetGeoCoderFeatureResult = {
 };
 
 /**
- * コンテンツデータソースを地図に追加
- */
-export const LinkContentDatasourceToMapAPI = {
-    uri: 'link-contentdatasource-map',
-    method: 'post',
-    resultType: 'json',
-} as APIDefine<LinkContentDatasourceToMapParam, void>;
-export type LinkContentDatasourceToMapParam = {
-    contents: {
-        datasourceId: string;
-        name: string;   // 名前はユーザ側で指定可能
-    }[];
-}
-
-/**
  * コンテンツデータソースを地図から除去
  */
 export const UnlinkContentDatasourceFromMapAPI = {

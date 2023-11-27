@@ -2,11 +2,11 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { Button, Modal } from '../../common';
 import CurrentContentsListPage from './CurrentContentsListPage';
 import AddableContentsListPage from './AddableContentsListPage';
-import { useApi } from '../../../api/useApi';
-import { LinkContentDatasourceToMapAPI } from 'tsunagumap-api';
 import { modalSpinnerAtom } from '../../common/modal/Modal';
 import { useAtomCallback } from 'jotai/utils';
-import { ContentsDatasource } from '../../../graphql/generated/graphql';
+import { ContentsDatasource, LinkContentsDatasourceDocument } from '../../../graphql/generated/graphql';
+import { useAtom } from 'jotai';
+import { clientAtom } from 'jotai-urql';
 
 type Props = {
     onClose: () => void;
@@ -21,23 +21,23 @@ export default function DefaultContentsSettingModal(props: Props) {
         setAddTargetList(items);
     }, [])
 
-    const { callApi } = useApi();
+    const [ gqlClient ] = useAtom(clientAtom);
     const handleAddClicked = useAtomCallback(
         useCallback(async(get, set) => {
             set(modalSpinnerAtom, true);
-            await callApi(LinkContentDatasourceToMapAPI, {
-                contents: addTargetList.map(target => {
+            await gqlClient.mutation(LinkContentsDatasourceDocument, {
+                contentsDatasources: addTargetList.map(target => {
                     return {
-                        datasourceId: target.dataSourceId,
+                        dataSourceId: target.dataSourceId,
                         name: target.name,
                     }
                 })
-            })
+            });
             set(modalSpinnerAtom, false);
 
             // コンテンツ一覧ページに戻る
             setPage('current');
-        }, [addTargetList, callApi])
+        }, [addTargetList, gqlClient])
     )
 
     const footer = useMemo(() => {

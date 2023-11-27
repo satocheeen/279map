@@ -42,6 +42,11 @@ export type ContentsDatasource = {
   name: Scalars['String']['output'];
 };
 
+export type ContentsDatasourceInput = {
+  dataSourceId: Scalars['String']['input'];
+  name: Scalars['String']['input'];
+};
+
 export type ContentsDefine = {
   anotherMapItemId?: Maybe<Scalars['DataId']['output']>;
   category?: Maybe<Array<Scalars['String']['output']>>;
@@ -80,6 +85,7 @@ export type ItemDefine = {
 export type Mutation = {
   changeAuthLevel?: Maybe<Scalars['Boolean']['output']>;
   linkContent?: Maybe<Scalars['Boolean']['output']>;
+  linkContentsDatasource?: Maybe<Scalars['Boolean']['output']>;
   registContent?: Maybe<Scalars['Boolean']['output']>;
   removeContent?: Maybe<Scalars['Boolean']['output']>;
   removeItem?: Maybe<Scalars['Boolean']['output']>;
@@ -97,6 +103,11 @@ export type MutationChangeAuthLevelArgs = {
 export type MutationLinkContentArgs = {
   id: Scalars['DataId']['input'];
   parent: ParentInput;
+};
+
+
+export type MutationLinkContentsDatasourceArgs = {
+  contentsDatasources: Array<ContentsDatasourceInput>;
 };
 
 
@@ -291,6 +302,7 @@ export type ResolversTypes = {
   CategoryDefine: ResolverTypeWrapper<CategoryDefine>;
   ContentType: ContentType;
   ContentsDatasource: ResolverTypeWrapper<ContentsDatasource>;
+  ContentsDatasourceInput: ContentsDatasourceInput;
   ContentsDefine: ResolverTypeWrapper<ContentsDefine>;
   DataId: ResolverTypeWrapper<Scalars['DataId']['output']>;
   EventDefine: ResolverTypeWrapper<EventDefine>;
@@ -312,6 +324,7 @@ export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
   CategoryDefine: CategoryDefine;
   ContentsDatasource: ContentsDatasource;
+  ContentsDatasourceInput: ContentsDatasourceInput;
   ContentsDefine: ContentsDefine;
   DataId: Scalars['DataId']['output'];
   EventDefine: EventDefine;
@@ -386,6 +399,7 @@ export type ItemDefineResolvers<ContextType = any, ParentType extends ResolversP
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   changeAuthLevel?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationChangeAuthLevelArgs, 'authLv' | 'userId'>>;
   linkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkContentArgs, 'id' | 'parent'>>;
+  linkContentsDatasource?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkContentsDatasourceArgs, 'contentsDatasources'>>;
   registContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRegistContentArgs, 'dataSourceId' | 'parent' | 'title' | 'type'>>;
   removeContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveContentArgs, 'id'>>;
   removeItem?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveItemArgs, 'id'>>;

@@ -6,6 +6,10 @@ input ParentInput {
     type: ParentOfContent!
     id: DataId!
 }
+input ContentsDatasourceInput {
+    dataSourceId: String!
+    name: String!   # 名前はユーザ側で指定可能
+}
 type Mutation {
     removeItem (
         id: DataId!
@@ -52,5 +56,9 @@ type Mutation {
     changeAuthLevel (
         userId: ID!
         authLv: Auth!
+    ): Boolean
+
+    linkContentsDatasource (
+        contentsDatasources: [ContentsDatasourceInput!]!
     ): Boolean
 }

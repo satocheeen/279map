@@ -21,7 +21,7 @@ import { getMapInfoById } from './getMapDefine';
 import { ConfigAPI, ConnectResult, GeocoderParam, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, RegistItemAPI, RegistItemParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, RequestAPI, RequestParam, GetItemsByIdAPI, GetItemsByIdParam, LinkContentDatasourceToMapAPI, LinkContentDatasourceToMapParam, UnlinkContentDatasourceFromMapAPI, UnLinkContentDatasourceFromMapParam } from '../279map-api-interface/src/api';
+import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, RequestAPI, RequestParam, GetItemsByIdAPI, GetItemsByIdParam, UnlinkContentDatasourceFromMapAPI, UnLinkContentDatasourceFromMapParam } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 import { search } from './api/search';
@@ -39,7 +39,7 @@ import { graphqlHTTP } from 'express-graphql';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationRegistContentArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationUnlinkContentArgs, MutationUpdateContentArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetUnpointContentsArgs } from './graphql/__generated__/types';
+import { MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationUnlinkContentArgs, MutationUpdateContentArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetUnpointContentsArgs } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType } from './graphql/custom_scalar';
@@ -1199,7 +1199,32 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     apiLogger.warn('change-auth-level API error', param, e);
                     throw e;
                 }
-            }
+            },
+            /**
+             * コンテンツデータソースを地図に追加
+             */
+            linkContentsDatasource: async(_, param: MutationLinkContentsDatasourceArgs, ctx): MutationResolverReturnType<'linkContentsDatasource'> => {
+                try {
+                    // call odba
+                    await callOdbaApi(OdbaLinkContentDatasourceToMapAPI, {
+                        currentMap: ctx.currentMap,
+                        contents: param.contentsDatasources.map(d => ({
+                            datasourceId: d.dataSourceId,
+                            name: d.name,
+                        })),
+                    });
+
+                    broadCaster.publish(ctx.currentMap.mapId, undefined, {
+                        type: 'mapinfo-update',
+                    })
+
+                    return true;
+
+                } catch(e) {
+                    apiLogger.warn('link-contents-to-map API error', e);
+                    throw e;
+                }
+            } 
         } as MutationResolver,
         DataId: DataIdScalarType,
     }
@@ -1645,36 +1670,6 @@ app.get(`/api/${GetGeocoderFeatureAPI.uri}`,
     }
 );
 
-/**
- * コンテンツデータソースを地図に追加
- */
-app.post(`/api/${LinkContentDatasourceToMapAPI.uri}`,
-    checkApiAuthLv(Auth.Admin), 
-    checkCurrentMap,
-    async(req, res) => {
-        const param = req.body as LinkContentDatasourceToMapParam;
-
-        try {
-            // call odba
-            await callOdbaApi(OdbaLinkContentDatasourceToMapAPI, {
-                currentMap: req.currentMap,
-                contents: param.contents,
-            });
-            res.send('complete');
-
-            broadCaster.publish(req.currentMap.mapId, undefined, {
-                type: 'mapinfo-update',
-            })
-
-        } catch(e) {
-            apiLogger.warn('link-contents-to-map API error', e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail : e + '',
-            } as ApiError);
-        }
-    }
-);
 
 /**
  * コンテンツデータソースを地図から削除

@@ -81,12 +81,20 @@ mutation removeContent (
     )
 }
 
-mutation changeAuthLevel(
+mutation changeAuthLevel (
     $userId: ID!
     $authLv: Auth!
 ) {
     changeAuthLevel(
         userId: $userId
         authLv: $authLv
+    )
+}
+
+mutation linkContentsDatasource (
+    $contentsDatasources: [ContentsDatasourceInput!]!
+) {
+    linkContentsDatasource (
+        contentsDatasources: $contentsDatasources,
     )
 }
