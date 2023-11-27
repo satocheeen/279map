@@ -23,4 +23,5 @@ export const authDefine: AuthLvDefine = {
     // 管理者機能
     getUserList: Auth.Admin,
     changeAuthLevel: Auth.Admin,
+    getLinkableContentsDatasources: Auth.Admin,
 }

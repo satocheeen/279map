@@ -1,11 +1,12 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Button, Modal } from '../../common';
 import CurrentContentsListPage from './CurrentContentsListPage';
-import AddableContentsListPage, { ContentDatasourceItem } from './AddableContentsListPage';
+import AddableContentsListPage from './AddableContentsListPage';
 import { useApi } from '../../../api/useApi';
 import { LinkContentDatasourceToMapAPI } from 'tsunagumap-api';
 import { modalSpinnerAtom } from '../../common/modal/Modal';
 import { useAtomCallback } from 'jotai/utils';
+import { ContentsDatasource } from '../../../graphql/generated/graphql';
 
 type Props = {
     onClose: () => void;
@@ -15,8 +16,8 @@ export default function DefaultContentsSettingModal(props: Props) {
     const [show, setShow] = useState(true);
     const [page, setPage] = useState<'current'|'add'>('current'); 
 
-    const [addTargetList, setAddTargetList] = useState<ContentDatasourceItem[]>([]);
-    const handleChangeAddTargetChange = useCallback((items: ContentDatasourceItem[]) => {
+    const [addTargetList, setAddTargetList] = useState<ContentsDatasource[]>([]);
+    const handleChangeAddTargetChange = useCallback((items: ContentsDatasource[]) => {
         setAddTargetList(items);
     }, [])
 
@@ -27,7 +28,7 @@ export default function DefaultContentsSettingModal(props: Props) {
             await callApi(LinkContentDatasourceToMapAPI, {
                 contents: addTargetList.map(target => {
                     return {
-                        datasourceId: target.datasourceId,
+                        datasourceId: target.dataSourceId,
                         name: target.name,
                     }
                 })

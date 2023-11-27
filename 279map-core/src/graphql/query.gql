@@ -84,3 +84,10 @@ query getUserList {
         authLv
     }
 }
+
+query getLinkableContentsDatasources {
+    getLinkableContentsDatasources {
+        dataSourceId
+        name
+    }
+}

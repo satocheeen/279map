@@ -58,7 +58,10 @@ type User {
     name: String!
     authLv: Auth!
 }
-
+type ContentsDatasource {
+    dataSourceId: String!
+    name: String!
+}
 type Query {
     getItems(wkt: String!, zoom: Float!, dataSourceId: String!, latestEditedTime: String, excludeItemIds: [String!]): [ItemDefine]
     getCategory(dataSourceIds: [String!]): [CategoryDefine!]!
@@ -69,4 +72,5 @@ type Query {
     getUnpointContents(dataSourceId: String!, nextToken: String): GetUnpointContentsResult!
 
     getUserList: [User!]!
+    getLinkableContentsDatasources: [ContentsDatasource!]!
 }

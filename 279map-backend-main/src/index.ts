@@ -21,7 +21,7 @@ import { getMapInfoById } from './getMapDefine';
 import { ConfigAPI, ConnectResult, GeocoderParam, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, RegistItemAPI, RegistItemParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, RequestAPI, RequestParam, GetItemsByIdAPI, GetItemsByIdParam, GetLinkableContentsAPI, LinkContentDatasourceToMapAPI, LinkContentDatasourceToMapParam, UnlinkContentDatasourceFromMapAPI, UnLinkContentDatasourceFromMapParam } from '../279map-api-interface/src/api';
+import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, RequestAPI, RequestParam, GetItemsByIdAPI, GetItemsByIdParam, LinkContentDatasourceToMapAPI, LinkContentDatasourceToMapParam, UnlinkContentDatasourceFromMapAPI, UnLinkContentDatasourceFromMapParam } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 import { search } from './api/search';
@@ -917,7 +917,28 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     apiLogger.warn('get-userlist API error', e);
                     throw e;
                 }
-            }
+            },
+            /**
+             * リンク可能なコンテンツ一覧を返す
+             */
+            getLinkableContentsDatasources: async(_, param, ctx): QueryResolverReturnType<'getLinkableContentsDatasources'> => {
+                try {
+                    // call odba
+                    const result = await callOdbaApi(OdbaGetLinkableContentsAPI, {
+                        currentMap: ctx.currentMap,
+                    });
+                    return result.contents.map(c => {
+                        return {
+                            dataSourceId: c.datasourceId,
+                            name: c.name,
+                        }
+                    });
+
+                } catch(e) {
+                    apiLogger.warn('get-linkable-contents API error', e);
+                    throw e;
+                }
+            },
         } as QueryResolver,
         Mutation: {
             /**
@@ -1616,30 +1637,6 @@ app.get(`/api/${GetGeocoderFeatureAPI.uri}`,
 
         } catch(e) {
             apiLogger.warn('get-geocoder-feature API error', param, e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail : e + '',
-            } as ApiError);
-        }
-    }
-);
-
-/**
- * リンク可能なコンテンツ一覧を返す
- */
-app.post(`/api/${GetLinkableContentsAPI.uri}`,
-    checkApiAuthLv(Auth.Admin), 
-    checkCurrentMap,
-    async(req, res) => {
-        try {
-            // call odba
-            const result = await callOdbaApi(OdbaGetLinkableContentsAPI, {
-                currentMap: req.currentMap,
-            });
-            res.send(result);
-
-        } catch(e) {
-            apiLogger.warn('get-linkable-contents API error', e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',

@@ -1,28 +1,59 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useApi } from '../../../api/useApi';
-import { GetLinkableContentsAPI } from 'tsunagumap-api';
 import { useAtom } from 'jotai';
 import { modalSpinnerAtom } from '../../common/modal/Modal';
 import { useWatch } from '../../../util/useWatch2';
 import ListGroup from '../../common/list/ListGroup';
 import styles from './AddableContentsListPage.module.scss';
+import { atomWithQuery } from 'jotai-urql';
+import { ContentsDatasource, GetLinkableContentsDatasourcesDocument } from '../../../graphql/generated/graphql';
+import { loadable } from 'jotai/utils';
 
 type Props = {
     // 追加対象として✔されたコンテンツ一覧
-    onChange?: (items: ContentDatasourceItem[]) => void;
+    onChange?: (items: ContentsDatasource[]) => void;
 }
 
-export type ContentDatasourceItem = {
+export type GetLink = {
     datasourceId: string;
     name: string;
 }
-type AddableContentItem = ContentDatasourceItem & {
+type AddableContentItem = ContentsDatasource & {
     checked?: boolean;
 }
+const queryAtom = atomWithQuery({
+    query: GetLinkableContentsDatasourcesDocument,
+    getContext() {
+        return {
+            requestPolicy: 'network-only',
+        }
+    },
+});
+const queryLoadableAtom = loadable(queryAtom);
+
 export default function AddableContentsListPage(props: Props) {
-    const { callApi } = useApi();
     const [ list, setList ] = useState<AddableContentItem[]>([]);
     const [, setModalSpinner] = useAtom(modalSpinnerAtom);
+    const [ loadable ] = useAtom(queryLoadableAtom);
+
+    useEffect(() => {
+        if (loadable.state === 'loading') {
+            setModalSpinner(true);
+            return;
+        }
+        setModalSpinner(false);
+        if (loadable.state === 'hasError') {
+            setList([]);
+            return;
+        }
+        const newList = loadable.data.data?.getLinkableContentsDatasources.map(ds => {
+            return {
+                dataSourceId: ds.dataSourceId,
+                name: ds.name,
+            }
+        });
+        setList(newList ?? []);
+
+    }, [loadable, setModalSpinner])
 
     useWatch(list, 
         useCallback((oldVal, newVal) => {
@@ -32,20 +63,6 @@ export default function AddableContentsListPage(props: Props) {
             props.onChange(targets);
         }, [props])
     )
-
-    useEffect(() => {
-        setModalSpinner(true);
-        callApi(GetLinkableContentsAPI, undefined)
-        .then((result) => {
-            const listeItems = result.contents.map(item => {
-                return Object.assign(item, {real: {}})
-            })
-            setList(listeItems);
-        })
-        .finally(() => {
-            setModalSpinner(false);
-        })
-    }, [callApi, setModalSpinner])
 
     const handleChecked = useCallback((index: number, val: boolean) => {
         setList(cur => {
@@ -65,7 +82,7 @@ export default function AddableContentsListPage(props: Props) {
             <ListGroup>
                 {list.map((ds, index) => {
                     return (
-                        <ListGroup.Item key={ds.datasourceId} onClick={() => handleItemClicked(index)}>
+                        <ListGroup.Item key={ds.dataSourceId} onClick={() => handleItemClicked(index)}>
                             <div className={styles.Item}>
                                 <span>
                                     <input type='checkbox' checked={ds.checked ?? false} onChange={(evt) => handleChecked(index, evt.target.checked)} />
