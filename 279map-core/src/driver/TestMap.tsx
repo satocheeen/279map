@@ -8,7 +8,7 @@ import FilterCondition from './FilterCondition';
 import { mapId, myMapServer } from './const';
 import AuthPanel from './AuthPanel';
 import { AuthContext } from './DriverRoot';
-import { CategoryDefine } from '../graphql/generated/graphql';
+import { CategoryDefine, Condition } from '../graphql/generated/graphql';
 
 const props = {
     mapId,
@@ -46,15 +46,15 @@ export default function TestMap() {
         setCategories(categories);
     }, []);
 
-    const [ filterConditions, setFilterConditions ] = useState<FilterDefine[]|undefined>();
+    const [ filterCondition, setFilterCondition ] = useState<Condition|undefined>();
     const [ filterUnmatchView, setFilterUnmatchView ] = useState<'hidden'|'translucent'>('hidden');
     const filter = useMemo((): TsunaguMapProps['filter'] => {
-        if (!filterConditions) return;
+        if (!filterCondition) return;
         return {
-            conditions: filterConditions,
+            condition: filterCondition,
             unmatchView: filterUnmatchView,
         }
-    }, [filterConditions, filterUnmatchView]);
+    }, [filterCondition, filterUnmatchView]);
 
     // switch mapKind
     const [ mapKind, setMapKind ] = useState(MapKind.Real);
@@ -234,7 +234,7 @@ export default function TestMap() {
                                     onChange={() => setFilterUnmatchView('translucent')} />
                         </label>
                     </div>
-                    <FilterCondition categories={categories} onChange={(filter) => setFilterConditions(filter)} />
+                    <FilterCondition categories={categories} onChange={(filter) => setFilterCondition(filter)} />
                 </div>
                 {authLv !== Auth.View &&
                 <>
