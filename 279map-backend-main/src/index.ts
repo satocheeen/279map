@@ -39,13 +39,14 @@ import { graphqlHTTP } from 'express-graphql';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetUnpointContentsArgs, QuerySearchArgs } from './graphql/__generated__/types';
+import { MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetUnpointContentsArgs, QuerySearchArgs } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType } from './graphql/custom_scalar';
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { CustomError } from './graphql/CustomError';
 import { getLinkedItemIdList } from './api/apiUtility';
+import SessionInfo from './session/SessionInfo';
 
 declare global {
     namespace Express {
@@ -63,13 +64,12 @@ declare global {
     }
 }
 type GraphQlContextType = {
-    connect: {
-        sessionKey: string; // SID or Token
-        mapId: string;
-        mapPageInfo: MapPageInfoTable;
-        userAuthInfo: UserAuthInfo;
-        // userName?: string;
-    },
+    session: SessionInfo;
+    sessionKey: string; // SID or Token
+    // mapId: string;
+    // mapPageInfo: MapPageInfoTable;
+    userAuthInfo: UserAuthInfo;
+    // userName?: string;
     currentMap: CurrentMap;
     authLv: Auth;
 }
@@ -475,7 +475,7 @@ const sessionCheckFunc = async(req: Request) => {
 
     return { 
         sessionKey,
-        currentMap: session.currentMap,
+        session,
     }
 }
 
@@ -657,45 +657,6 @@ const checkApiAuthLv = (needAuthLv: Auth) => {
     }
 }
 
-// 地図基本情報取得
-app.post(`/api/${GetMapInfoAPI.uri}`, 
-    checkApiAuthLv(Auth.View), 
-    async(req, res, next) => {
-        try {
-            const session = sessionManager.get(req.connect?.sessionKey as string);
-            if (!session) {
-                throw 'no session';
-            }
-
-            const param = req.body as GetMapInfoParam;
-
-            const result = await getMapInfo({
-                mapId: session.currentMap.mapId,
-                param,
-                authLv: req.authLv,
-            });
-
-            // TODO
-            if (session) {
-                session.setMapKind(result.mapKind);
-            }
-
-            apiLogger.debug('result', result);
-
-            res.send(result);
-
-            next();
-
-        } catch(e) {    
-            apiLogger.warn(e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail : e + '',
-            } as ApiError);
-        }
-    }
-);
-
 /**
  * check whether connecting map and set the value of req.currentMap
  */
@@ -770,7 +731,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
              * 地図アイテム取得
              */
             getItems: async(parent: any, param: GetItemsParam, ctx): QueryResolverReturnType<'getItems'> => {
-                const session = sessionManager.get(ctx.connect.sessionKey as string);
+                const session = sessionManager.get(ctx.sessionKey as string);
                 console.log('session', session?.sid);
 
                 console.log('getItems', param);
@@ -968,6 +929,28 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             },
         } as QueryResolver,
         Mutation: {
+            /**
+             * 地図切り替え
+             */
+            switchMapKind: async(_, param: MutationSwitchMapKindArgs, ctx): MutationResolverReturnType<'switchMapKind'> => {
+                try {
+                    const result = await getMapInfo(
+                        ctx.currentMap.mapId,
+                        param.mapKind,
+                        ctx.authLv,
+                    );
+
+                    ctx.session.setMapKind(param.mapKind);
+
+                    apiLogger.debug('result', result);
+
+                    return result;
+
+                } catch(e) {    
+                    apiLogger.warn(e);
+                    throw e;
+                }
+            },
             /**
              * 位置アイテム削除
              */
@@ -1293,8 +1276,8 @@ app.use(
                 message: 'no operation name'
             })
         }
-        const sessionInfo = await sessionCheckFunc(req as Request);
-        const mapPageInfo = await getMapPageInfo(sessionInfo.currentMap.mapId);
+        const { sessionKey, session } = await sessionCheckFunc(req as Request);
+        const mapPageInfo = await getMapPageInfo(session.currentMap.mapId);
         if (!mapPageInfo) {
             throw new CustomError({
                 type: ErrorType.UndefinedMap,
@@ -1315,13 +1298,12 @@ app.use(
 
         const authLv = await checkGraphQlAuthLv(operationName, userAuthInfo);
         const context: GraphQlContextType = {
-            connect: {
-                mapId: sessionInfo.currentMap.mapId,
-                sessionKey: sessionInfo.sessionKey,
-                mapPageInfo,
-                userAuthInfo,
-            },
-            currentMap: sessionInfo.currentMap,
+            // mapId: session.currentMap.mapId,
+            sessionKey,
+            session,
+            // mapPageInfo,
+            userAuthInfo,
+            currentMap: session.currentMap,
             authLv,
         }
 

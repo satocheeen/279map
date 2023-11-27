@@ -1,18 +1,15 @@
 import { ConnectionPool } from '.';
-import { Auth, DatasourceConfig, DataSourceGroup, DataSourceInfo, MapKind, MapPageOptions } from '279map-common';
-import { GetMapInfoParam, GetMapInfoResult } from '../279map-api-interface/src';
+import { Auth, MapKind, MapPageOptions } from '279map-common';
 import mysql from 'mysql2/promise';
 import { DataSourceTable, MapPageInfoTable } from '../279map-backend-common/src/types/schema';
-import { DataSourceKindType } from '279map-common';
 import { schema } from '../279map-backend-common/src';
+import { DatasourceKindType, DatasourceConfig, DatasourceGroup, DatasourceInfo, MapInfo, RealPointContentConfig, ContentConfig } from './graphql/__generated__/types';
 
 /**
  * 指定の地図データページ配下のコンテンツ情報を返す
  * @param mapId Notion地図データページID
  */
-export async function getMapInfo({ param, mapId, authLv }: { param: GetMapInfoParam; mapId: string, authLv: Auth }): Promise<GetMapInfoResult> {
-    const mapKind = param.mapKind;
-    
+export async function getMapInfo(mapId: string, mapKind: MapKind, authLv: Auth): Promise<MapInfo> {
     const mapPageInfo = await getMapPageInfo(mapId);
     if (mapPageInfo === null) {
         // 該当地図が存在しない場合
@@ -28,7 +25,6 @@ export async function getMapInfo({ param, mapId, authLv }: { param: GetMapInfoPa
     const contentDataSources = await getContentDataSources(mapPageInfo.map_page_id, targetMapKind, authLv);
 
     return {
-        mapKind: targetMapKind,
         extent,
         itemDataSourceGroups,
         contentDataSources,
@@ -147,7 +143,7 @@ async function getExtent(mapPageId: string, mapKind: MapKind): Promise<[number,n
  * @param mapId 
  * @param mapKind 
  */
-async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise<DataSourceGroup[]> {
+async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise<DatasourceGroup[]> {
     const con = await ConnectionPool.getConnection();
 
     try {
@@ -170,52 +166,55 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
         const query = mysql.format(sql, [mapId]);
         const [rows] = await con.execute(query);
 
-        const dataSourceGroupMap = new Map<string, DataSourceInfo[]>();
+        const dataSourceGroupMap = new Map<string, DatasourceInfo[]>();
         (rows as DataSourceTable[]).forEach((row) => {
             const config = row.config as DatasourceConfig;
-            if (config.kind === DataSourceKindType.Content) {
+            if (row.kind === DatasourceKindType.Content) {
                 return;
             }
-            if (mapKind === MapKind.Virtual && config.kind !== DataSourceKindType.Item) {
+            if (mapKind === MapKind.Virtual && row.kind !== DatasourceKindType.Item) {
                 // 村マップの場合は、RealPointContentやTrackは返さない
                 return;
             }
-            const group = config.layerGroup ?? '';
+            const layerGroup = ('layerGroup' in config ? config.layerGroup : undefined);
+            const group = layerGroup ?? '';
             if(!dataSourceGroupMap.has(group)) {
                 dataSourceGroupMap.set(group, []);
             }
             const visible = !visibleDataSources ? true : visibleDataSources.some(vds => {
                 if ('group' in vds) {
-                    return vds.group === config.layerGroup;
+                    return vds.group === layerGroup;
                 } else {
                     return vds.dataSourceId === row.data_source_id;
                 }
             });
-            const infos = dataSourceGroupMap.get(group) as DataSourceInfo[];
-            infos.push(Object.assign({
-                dataSourceId: row.data_source_id,
+            const infos = dataSourceGroupMap.get(group) as DatasourceInfo[];
+            infos.push({
+                datasourceId: row.data_source_id,
                 name: row.name,
                 visible,
-            }, config));
+                kind: row.kind,
+                config,
+            })
 
         });
 
-        const result: DataSourceGroup[] = [];
+        const result: DatasourceGroup[] = [];
         for(const entry of dataSourceGroupMap.entries()) {
             const name = entry[0].length === 0 ? undefined : entry[0];
-            const dataSources = entry[1];
+            const datasources = entry[1];
 
             const visible = !visibleDataSources ? true : visibleDataSources.some(vds => {
                 if ('group' in vds) {
                     return vds.group === name;
                 } else {
-                    return dataSources.some(ds => ds.dataSourceId === vds.dataSourceId);
+                    return datasources.some(ds => ds.datasourceId === vds.dataSourceId);
                 }
             });
 
             result.push({
                 name,
-                dataSources,
+                datasources,
                 visible,
             });
         }
@@ -234,7 +233,7 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
  * @param mapId 
  * @param mapKind 
  */
-async function getContentDataSources(mapId: string, mapKind: MapKind, authLv: Auth): Promise<DataSourceInfo[]> {
+async function getContentDataSources(mapId: string, mapKind: MapKind, authLv: Auth): Promise<DatasourceInfo[]> {
     const con = await ConnectionPool.getConnection();
 
     try {
@@ -246,23 +245,25 @@ async function getContentDataSources(mapId: string, mapKind: MapKind, authLv: Au
         order by order_num`;
 
         const [rows] = await con.execute(sql, [mapId]);
-        return (rows as schema.DataSourceTable[]).map((rec): DataSourceInfo => {{
+        return (rows as schema.DataSourceTable[]).map((rec): DatasourceInfo => {{
             const config = rec.config as DatasourceConfig;
             if (authLv === Auth.None || authLv === Auth.View) {
                 config.deletable = false;
                 config.editable = false;
-                if (config.kind === DataSourceKindType.RealPointContent) {
-                    config.linkableContents = false;
+                if (rec.kind === DatasourceKindType.RealPointContent) {
+                    (config as RealPointContentConfig).linkableContents = false;
                 }
-                if (config.kind === DataSourceKindType.Content) {
-                    config.linkableChildContents = false;
+                if (rec.kind === DatasourceKindType.Content) {
+                    (config as ContentConfig).linkableChildContents = false;
                 }
             }
-            return Object.assign({
-                dataSourceId: rec.data_source_id,
+            return {
+                datasourceId: rec.data_source_id,
                 name: rec.name,
+                kind: rec.kind,
                 visible: true,
-            }, config);
+                config,
+            }
         }})
 
     } finally {

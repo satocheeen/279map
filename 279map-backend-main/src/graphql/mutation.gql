@@ -1,3 +1,7 @@
+enum MapKind {
+    Real
+    Virtual
+}
 enum ParentOfContent {
     Item
     Content
@@ -10,7 +14,66 @@ input ContentsDatasourceInput {
     datasourceId: String!
     name: String!   # 名前はユーザ側で指定可能
 }
+
+# --------------
+# swutchMapKind
+# --------------
+type MapInfo {
+    extent: [Float!]!
+    itemDataSourceGroups: [DatasourceGroup!]!
+    contentDataSources: [DatasourceInfo!]!
+}
+type DatasourceGroup {
+    name: String
+    visible: Boolean!
+    datasources: [DatasourceInfo!]!
+}
+
+enum DatasourceKindType {
+    Item
+    RealPointContent
+    Content
+    Track
+}
+type DatasourceInfo {
+    datasourceId: String!
+    name: String!
+    visible: Boolean!
+
+    kind: DatasourceKindType!
+    config: DatasourceConfig!
+}
+type ItemConfig {
+    layerGroup: String
+    editable: Boolean!
+    deletable: Boolean!
+}
+scalar IconKey
+type RealPointContentConfig {
+    defaultIcon: IconKey
+    layerGroup: String
+    linkableContents: Boolean!
+    editable: Boolean!
+    deletable: Boolean!
+}
+type TrackConfig {
+    layerGroup: String
+    editable: Boolean!
+    deletable: Boolean!
+}
+type ContentConfig {
+    linkableChildContents: Boolean!
+    disableUnlinkMap: Boolean
+    editable: Boolean!
+    deletable: Boolean!
+}
+union DatasourceConfig = ItemConfig | RealPointContentConfig | TrackConfig | ContentConfig
+
 type Mutation {
+    switchMapKind (
+        mapKind: MapKind!
+    ): MapInfo
+
     removeItem (
         id: DataId!
     ): Boolean

@@ -4,6 +4,8 @@ import { Resolvers } from "./type_utility";
 type AuthLvDefine = Record<Resolvers, Auth>
 
 export const authDefine: AuthLvDefine = {
+    switchMapKind: Auth.View,
+    
     getCategory: Auth.View,
     getEvent: Auth.View,
     getItems: Auth.View,
