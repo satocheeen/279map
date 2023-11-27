@@ -11,7 +11,7 @@ export async function getEvents(param: QueryGetEventArgs, currentMap: CurrentMap
     }
     try {
         // get contents which has date in the map
-        const records = await getAllDates(currentMap, param.dataSourceIds ?? undefined);
+        const records = await getAllDates(currentMap, param.datasourceIds ?? undefined);
         const dataSourceMap = new Map<string, DateResult[]>();
         records.forEach(rec => {
             if (!dataSourceMap.has(rec.data_source_id)) {

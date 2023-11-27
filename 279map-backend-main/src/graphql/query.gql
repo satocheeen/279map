@@ -8,10 +8,10 @@ type ItemDefine {
 type CategoryDefine {
     name: String!
     color: String!
-    dataSourceIds: [String!]!
+    datasourceIds: [String!]!
 }
 type EventDefine {
-    dataSourceId: String
+    datasourceId: String
     dates: [String!]!
 }
 enum ContentType {
@@ -59,17 +59,17 @@ type User {
     authLv: Auth!
 }
 type ContentsDatasource {
-    dataSourceId: String!
+    datasourceId: String!
     name: String!
 }
 type Query {
-    getItems(wkt: String!, zoom: Float!, dataSourceId: String!, latestEditedTime: String, excludeItemIds: [String!]): [ItemDefine]
-    getCategory(dataSourceIds: [String!]): [CategoryDefine!]!
-    getEvent(dataSourceIds: [String!]): [EventDefine!]!
+    getItems(wkt: String!, zoom: Float!, datasourceId: String!, latestEditedTime: String, excludeItemIds: [String!]): [ItemDefine]
+    getCategory(datasourceIds: [String!]): [CategoryDefine!]!
+    getEvent(datasourceIds: [String!]): [EventDefine!]!
     getContent(id: DataId!): ContentsDefine!
     getContents(ids: [DataId!]!): [ContentsDefine!]!
     getContentsInItem(itemId: DataId!): [ContentsDefine!]!
-    getUnpointContents(dataSourceId: String!, nextToken: String): GetUnpointContentsResult!
+    getUnpointContents(datasourceId: String!, nextToken: String): GetUnpointContentsResult!
 
     getUserList: [User!]!
     getLinkableContentsDatasources: [ContentsDatasource!]!

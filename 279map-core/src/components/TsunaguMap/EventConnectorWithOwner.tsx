@@ -99,9 +99,9 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             return res;
         },
     
-        async getUnpointDataAPI(dataSourceId: string, nextToken?: string) {
+        async getUnpointDataAPI(datasourceId: string, nextToken?: string) {
             const result = await gqlClient.query(GetUnpointContentsDocument, {
-                dataSourceId,
+                datasourceId,
                 nextToken,
             }, {
                 requestPolicy: 'network-only',

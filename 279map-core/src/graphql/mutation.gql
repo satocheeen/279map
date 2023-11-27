@@ -8,7 +8,7 @@ mutation removeItem (
 
 mutation registContent (
     $parent: ParentInput!
-    $dataSourceId: String!
+    $datasourceId: String!
 
     $title: String!
     $overview: String
@@ -20,7 +20,7 @@ mutation registContent (
 ) {
     registContent(
         parent: $parent
-        dataSourceId: $dataSourceId
+        datasourceId: $datasourceId
         title: $title
         overview: $overview
         categories: $categories

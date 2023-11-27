@@ -218,9 +218,9 @@ export default function AddContentMenu(props: Props) {
             onLinkUnpointedContent({
                 parent: props.target,
                 dataSources: linkableContentDataSources,
-                getUnpointDataAPI: async(dataSourceId: string, nextToken?: string) => {
+                getUnpointDataAPI: async(datasourceId: string, nextToken?: string) => {
                     const result = await gqlClient.query(GetUnpointContentsDocument, {
-                        dataSourceId,
+                        datasourceId,
                         nextToken,
                     }, {
                         requestPolicy: 'network-only',

@@ -68,7 +68,7 @@ export default function ContentInfoEditDialog(props: Props) {
                             type: ParentOfContent.Content,
                             id: props.param.parent.contentId,
                         },
-                        dataSourceId: contentDataSourceId,
+                        datasourceId: contentDataSourceId,
                         type: type === 'normal' ? ContentType.Normal : ContentType.Sns,
                         ...attr,
                     });

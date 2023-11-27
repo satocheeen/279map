@@ -28,7 +28,7 @@ export enum Auth {
 
 export type CategoryDefine = {
   color: Scalars['String']['output'];
-  dataSourceIds: Array<Scalars['String']['output']>;
+  datasourceIds: Array<Scalars['String']['output']>;
   name: Scalars['String']['output'];
 };
 
@@ -38,12 +38,12 @@ export enum ContentType {
 }
 
 export type ContentsDatasource = {
-  dataSourceId: Scalars['String']['output'];
+  datasourceId: Scalars['String']['output'];
   name: Scalars['String']['output'];
 };
 
 export type ContentsDatasourceInput = {
-  dataSourceId: Scalars['String']['input'];
+  datasourceId: Scalars['String']['input'];
   name: Scalars['String']['input'];
 };
 
@@ -67,7 +67,7 @@ export type ContentsDefine = {
 };
 
 export type EventDefine = {
-  dataSourceId?: Maybe<Scalars['String']['output']>;
+  datasourceId?: Maybe<Scalars['String']['output']>;
   dates: Array<Scalars['String']['output']>;
 };
 
@@ -113,7 +113,7 @@ export type MutationLinkContentsDatasourceArgs = {
 
 export type MutationRegistContentArgs = {
   categories?: InputMaybe<Array<Scalars['String']['input']>>;
-  dataSourceId: Scalars['String']['input'];
+  datasourceId: Scalars['String']['input'];
   date?: InputMaybe<Scalars['String']['input']>;
   imageUrl?: InputMaybe<Scalars['String']['input']>;
   overview?: InputMaybe<Scalars['String']['input']>;
@@ -175,7 +175,7 @@ export type Query = {
 
 
 export type QueryGetCategoryArgs = {
-  dataSourceIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  datasourceIds?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 
@@ -195,12 +195,12 @@ export type QueryGetContentsInItemArgs = {
 
 
 export type QueryGetEventArgs = {
-  dataSourceIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  datasourceIds?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 
 export type QueryGetItemsArgs = {
-  dataSourceId: Scalars['String']['input'];
+  datasourceId: Scalars['String']['input'];
   excludeItemIds?: InputMaybe<Array<Scalars['String']['input']>>;
   latestEditedTime?: InputMaybe<Scalars['String']['input']>;
   wkt: Scalars['String']['input'];
@@ -209,7 +209,7 @@ export type QueryGetItemsArgs = {
 
 
 export type QueryGetUnpointContentsArgs = {
-  dataSourceId: Scalars['String']['input'];
+  datasourceId: Scalars['String']['input'];
   nextToken?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -342,13 +342,13 @@ export type ResolversParentTypes = {
 
 export type CategoryDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['CategoryDefine'] = ResolversParentTypes['CategoryDefine']> = {
   color?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  dataSourceIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  datasourceIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type ContentsDatasourceResolvers<ContextType = any, ParentType extends ResolversParentTypes['ContentsDatasource'] = ResolversParentTypes['ContentsDatasource']> = {
-  dataSourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  datasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -378,7 +378,7 @@ export interface DataIdScalarConfig extends GraphQLScalarTypeConfig<ResolversTyp
 }
 
 export type EventDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventDefine'] = ResolversParentTypes['EventDefine']> = {
-  dataSourceId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  datasourceId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   dates?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -400,7 +400,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   changeAuthLevel?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationChangeAuthLevelArgs, 'authLv' | 'userId'>>;
   linkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkContentArgs, 'id' | 'parent'>>;
   linkContentsDatasource?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkContentsDatasourceArgs, 'contentsDatasources'>>;
-  registContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRegistContentArgs, 'dataSourceId' | 'parent' | 'title' | 'type'>>;
+  registContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRegistContentArgs, 'datasourceId' | 'parent' | 'title' | 'type'>>;
   removeContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveContentArgs, 'id'>>;
   removeItem?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveItemArgs, 'id'>>;
   unlinkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkContentArgs, 'id' | 'parent'>>;
@@ -413,9 +413,9 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getContents?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentsArgs, 'ids'>>;
   getContentsInItem?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentsInItemArgs, 'itemId'>>;
   getEvent?: Resolver<Array<ResolversTypes['EventDefine']>, ParentType, ContextType, Partial<QueryGetEventArgs>>;
-  getItems?: Resolver<Maybe<Array<Maybe<ResolversTypes['ItemDefine']>>>, ParentType, ContextType, RequireFields<QueryGetItemsArgs, 'dataSourceId' | 'wkt' | 'zoom'>>;
+  getItems?: Resolver<Maybe<Array<Maybe<ResolversTypes['ItemDefine']>>>, ParentType, ContextType, RequireFields<QueryGetItemsArgs, 'datasourceId' | 'wkt' | 'zoom'>>;
   getLinkableContentsDatasources?: Resolver<Array<ResolversTypes['ContentsDatasource']>, ParentType, ContextType>;
-  getUnpointContents?: Resolver<ResolversTypes['GetUnpointContentsResult'], ParentType, ContextType, RequireFields<QueryGetUnpointContentsArgs, 'dataSourceId'>>;
+  getUnpointContents?: Resolver<ResolversTypes['GetUnpointContentsResult'], ParentType, ContextType, RequireFields<QueryGetUnpointContentsArgs, 'datasourceId'>>;
   getUserList?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
 };
 

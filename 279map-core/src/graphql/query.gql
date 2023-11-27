@@ -1,18 +1,18 @@
 query getCategory(
-    $dataSourceIds: [String!]
+    $datasourceIds: [String!]
 ){
-    getCategory(dataSourceIds: $dataSourceIds) {
+    getCategory(datasourceIds: $datasourceIds) {
         name
         color
-        dataSourceIds
+        datasourceIds
     }    
 }
 
 query getEvent(
-    $dataSourceIds: [String!]
+    $datasourceIds: [String!]
 ){
-    getEvent(dataSourceIds: $dataSourceIds) {
-        dataSourceId
+    getEvent(datasourceIds: $datasourceIds) {
+        datasourceId
         dates
     }    
 }
@@ -63,10 +63,10 @@ fragment content on ContentsDefine {
 }
 
 query getUnpointContents(
-    $dataSourceId: String!
+    $datasourceId: String!
     $nextToken: String
 ) {
-    getUnpointContents(dataSourceId: $dataSourceId, nextToken: $nextToken) {
+    getUnpointContents(datasourceId: $datasourceId, nextToken: $nextToken) {
         contents {
             id
             title
@@ -87,7 +87,7 @@ query getUserList {
 
 query getLinkableContentsDatasources {
     getLinkableContentsDatasources {
-        dataSourceId
+        datasourceId
         name
     }
 }

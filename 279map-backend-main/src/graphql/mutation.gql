@@ -7,7 +7,7 @@ input ParentInput {
     id: DataId!
 }
 input ContentsDatasourceInput {
-    dataSourceId: String!
+    datasourceId: String!
     name: String!   # 名前はユーザ側で指定可能
 }
 type Mutation {
@@ -17,7 +17,7 @@ type Mutation {
 
     registContent (
         parent: ParentInput!
-        dataSourceId: String!
+        datasourceId: String!
 
         title: String!
         overview: String

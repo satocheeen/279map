@@ -896,7 +896,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     // call ODBA
                     const result = await callOdbaApi(OdbaGetUnpointDataAPI, {
                         currentMap: ctx.currentMap,
-                        dataSourceId: param.dataSourceId,
+                        dataSourceId: param.datasourceId,
                         nextToken: param.nextToken ?? undefined,
                     });
             
@@ -927,12 +927,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     const result = await callOdbaApi(OdbaGetLinkableContentsAPI, {
                         currentMap: ctx.currentMap,
                     });
-                    return result.contents.map(c => {
-                        return {
-                            dataSourceId: c.datasourceId,
-                            name: c.name,
-                        }
-                    });
+                    return result.contents;
 
                 } catch(e) {
                     apiLogger.warn('get-linkable-contents API error', e);
@@ -969,7 +964,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
              */
             registContent: async(_, param: MutationRegistContentArgs, ctx): MutationResolverReturnType<'registContent'> => {
                 try {
-                    const { parent, dataSourceId } = param;
+                    const { parent, datasourceId } = param;
                     // call ODBA
                     await callOdbaApi(OdbaRegistContentAPI, {
                         currentMap: ctx.currentMap,
@@ -978,7 +973,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         } : {
                             contentId: parent.id,
                         },
-                        contentDataSourceId: dataSourceId,
+                        contentDataSourceId: datasourceId,
                         categories: param.categories ?? [],
                         date: param.date ?? undefined,
                         imageUrl: param.imageUrl ?? undefined,
@@ -1209,7 +1204,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     await callOdbaApi(OdbaLinkContentDatasourceToMapAPI, {
                         currentMap: ctx.currentMap,
                         contents: param.contentsDatasources.map(d => ({
-                            datasourceId: d.dataSourceId,
+                            datasourceId: d.datasourceId,
                             name: d.name,
                         })),
                     });

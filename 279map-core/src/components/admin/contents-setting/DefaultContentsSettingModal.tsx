@@ -26,12 +26,7 @@ export default function DefaultContentsSettingModal(props: Props) {
         useCallback(async(get, set) => {
             set(modalSpinnerAtom, true);
             await gqlClient.mutation(LinkContentsDatasourceDocument, {
-                contentsDatasources: addTargetList.map(target => {
-                    return {
-                        dataSourceId: target.dataSourceId,
-                        name: target.name,
-                    }
-                })
+                contentsDatasources: addTargetList,
             });
             set(modalSpinnerAtom, false);
 

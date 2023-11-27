@@ -21,7 +21,7 @@ export async function getCategory(param: QueryGetCategoryArgs, currentMap: Curre
 
     try {
         // コンテンツで使用されているカテゴリを取得
-        const records = await getAllCategories(currentMap, param.dataSourceIds ?? undefined);
+        const records = await getAllCategories(currentMap, param.datasourceIds ?? undefined);
         const categoryMap = new Map<string, CategoryDefine>();
         records.forEach((row) => {
             const categories = (JSON.parse(row.category) ?? []) as string[];
@@ -48,7 +48,13 @@ export async function getCategory(param: QueryGetCategoryArgs, currentMap: Curre
             category.color = colors[index];
         });
 
-        return categories;
+        return categories.map(c => {
+            const { dataSourceIds, ...atr } = c;
+            return {
+                datasourceIds: dataSourceIds,
+                ...atr,
+            }
+        });
         
     } catch(e) {
         throw 'getCategory error' + e;

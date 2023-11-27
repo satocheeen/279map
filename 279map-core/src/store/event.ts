@@ -9,7 +9,7 @@ const getEventQueryAtom = atomWithQuery({
     getVariables: (get) => {
         const targetDataSourceIds = get(visibleDataSourceIdsAtom);
         return {
-            dataSourceIds: targetDataSourceIds,
+            datasourceIds: targetDataSourceIds,
         }
     },
     getPause(get) {

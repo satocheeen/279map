@@ -45,13 +45,8 @@ export default function AddableContentsListPage(props: Props) {
             setList([]);
             return;
         }
-        const newList = loadable.data.data?.getLinkableContentsDatasources.map(ds => {
-            return {
-                dataSourceId: ds.dataSourceId,
-                name: ds.name,
-            }
-        });
-        setList(newList ?? []);
+        const newList = loadable.data.data?.getLinkableContentsDatasources ?? [];
+        setList(newList);
 
     }, [loadable, setModalSpinner])
 
@@ -82,7 +77,7 @@ export default function AddableContentsListPage(props: Props) {
             <ListGroup>
                 {list.map((ds, index) => {
                     return (
-                        <ListGroup.Item key={ds.dataSourceId} onClick={() => handleItemClicked(index)}>
+                        <ListGroup.Item key={ds.datasourceId} onClick={() => handleItemClicked(index)}>
                             <div className={styles.Item}>
                                 <span>
                                     <input type='checkbox' checked={ds.checked ?? false} onChange={(evt) => handleChecked(index, evt.target.checked)} />
