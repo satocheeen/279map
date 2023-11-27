@@ -67,6 +67,8 @@ export default function ContentsModal(props: Props) {
         setModalSpinner(true);
         const result = await gqlClient.query(GetContentsInItemDocument, {
             itemId: item.id,
+        }, {
+            requestPolicy: 'network-only',
         });
         const contents = result.data?.getContentsInItem ?? [];
         setContentsList(contents);
