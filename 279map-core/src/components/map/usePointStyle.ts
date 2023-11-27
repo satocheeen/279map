@@ -16,7 +16,6 @@ import { filteredItemIdListAtom } from "../../store/filter";
 import { itemDataSourcesAtom } from "../../store/datasource";
 import { useAtom } from 'jotai';
 import { MapStyles } from "../../util/constant-defines";
-import { DatasourceKindType, RealPointContentConfig } from "../../graphql/generated/graphql";
 
 // 建物ラベルを表示するresolution境界値（これ以下の値の時に表示）
 const StructureLabelResolution = 0.003;
@@ -175,7 +174,7 @@ export default function usePointStyle() {
         if (!icon) {
             // icon未指定の場合はレイヤデフォルトアイコンを設定
             const datasource = dataSources.find(ds => ds.datasourceId === itemId.dataSourceId);
-            icon = datasource?.kind === DatasourceKindType.RealPointContent ? (datasource.config as RealPointContentConfig).defaultIcon : undefined;
+            icon = datasource?.config.__typename === 'RealPointContentConfig' ? datasource.config.defaultIcon : undefined;
         }
         const iconDefine = getIconDefine(icon);
 

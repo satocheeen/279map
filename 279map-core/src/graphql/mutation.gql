@@ -5,13 +5,11 @@ fragment datasourceInfo on DatasourceInfo {
     kind
     config {
         ... on ItemConfig {
-            kind
             layerGroup
             editable
             deletable
         }
         ... on RealPointContentConfig {
-            kind
             defaultIcon
             linkableContents
             layerGroup
@@ -20,7 +18,6 @@ fragment datasourceInfo on DatasourceInfo {
         }
 
         ... on ContentConfig {
-            kind
             linkableChildContents
             disableUnlinkMap
             editable

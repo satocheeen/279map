@@ -17,7 +17,7 @@ import { useApi } from '../../api/useApi';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern, ConfirmResult } from '../common/confirm/types';
 import { clientAtom } from 'jotai-urql';
-import { ContentConfig, DatasourceConfig, DatasourceKindType, GetContentDocument, GetUnpointContentsDocument, LinkContentDocument, MutationLinkContentArgs, MutationRegistContentArgs, RealPointContentConfig, RegistContentDocument } from '../../graphql/generated/graphql';
+import { DatasourceConfig, GetContentDocument, GetUnpointContentsDocument, LinkContentDocument, MutationLinkContentArgs, MutationRegistContentArgs, RegistContentDocument } from '../../graphql/generated/graphql';
 
 type Props = {
     target: {
@@ -72,14 +72,14 @@ export default function AddContentMenu(props: Props) {
         }
         const targetId = props.target.contentId;
         const targetDs = dataSources.find(ds => ds.datasourceId === targetId.dataSourceId);
-        if (targetDs?.kind === DatasourceKindType.Content) {
-            if (!(targetDs.config as ContentConfig).linkableChildContents) {
+        if (targetDs?.config.__typename === 'ContentConfig') {
+            if (!targetDs.config.linkableChildContents) {
                 return [];
             } else {
                 return [targetDs.datasourceId];
             }
-        } else if (targetDs?.kind === DatasourceKindType.RealPointContent) {
-            if (!(targetDs.config as RealPointContentConfig).linkableContents) {
+        } else if (targetDs?.config.__typename === 'RealPointContentConfig') {
+            if (!targetDs.config.linkableContents) {
                 return [];
             } else {
                 return [targetDs.datasourceId];

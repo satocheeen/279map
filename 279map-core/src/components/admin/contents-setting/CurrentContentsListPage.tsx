@@ -9,7 +9,7 @@ import { modalSpinnerAtom } from '../../common/modal/Modal';
 import ListGroup from '../../common/list/ListGroup';
 import styles from './CurrentContentsListPage.module.scss';
 import { clientAtom } from 'jotai-urql';
-import { ContentConfig, DatasourceKindType, UnlinkContentsDatasourceDocument } from '../../../graphql/generated/graphql';
+import { UnlinkContentsDatasourceDocument } from '../../../graphql/generated/graphql';
 
 type Props = {
 }
@@ -46,7 +46,7 @@ export default function CurrentContentsListPage(props: Props) {
                                     {ds.name}
                                 </span>
                                 <span className={styles.IconArea}>
-                                    {!(ds.kind === DatasourceKindType.Content && (ds.config as ContentConfig).disableUnlinkMap) &&
+                                    {!(ds.config.__typename === 'ContentConfig' && ds.config.disableUnlinkMap) &&
                                         <PopupMenuIcon onClick={()=>handleDelete(ds.datasourceId)}>
                                             <MdDelete />
                                         </PopupMenuIcon>

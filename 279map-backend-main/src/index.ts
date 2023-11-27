@@ -1262,7 +1262,8 @@ const schema = makeExecutableSchema<GraphQlContextType>({
         } as MutationResolver,
         DataId: DataIdScalarType,
         DatasourceConfig: {
-            __resolveType: (obj: DatasourceConfig) => {
+            __resolveType: (obj: DatasourceConfig, parent: any) => {
+                console.log('debug', obj, parent)
                 switch(obj.kind) {
                     case DatasourceKindType.Item:
                         return 'ItemConfig';
