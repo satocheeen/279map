@@ -61,4 +61,9 @@ type Mutation {
     linkContentsDatasource (
         contentsDatasources: [ContentsDatasourceInput!]!
     ): Boolean
+
+    unlinkContentsDatasource (
+        contentsDatasourceIds: [String!]!
+    ): Boolean
+
 }

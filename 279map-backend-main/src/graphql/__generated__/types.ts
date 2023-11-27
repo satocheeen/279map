@@ -90,6 +90,7 @@ export type Mutation = {
   removeContent?: Maybe<Scalars['Boolean']['output']>;
   removeItem?: Maybe<Scalars['Boolean']['output']>;
   unlinkContent?: Maybe<Scalars['Boolean']['output']>;
+  unlinkContentsDatasource?: Maybe<Scalars['Boolean']['output']>;
   updateContent?: Maybe<Scalars['Boolean']['output']>;
 };
 
@@ -137,6 +138,11 @@ export type MutationRemoveItemArgs = {
 export type MutationUnlinkContentArgs = {
   id: Scalars['DataId']['input'];
   parent: ParentInput;
+};
+
+
+export type MutationUnlinkContentsDatasourceArgs = {
+  contentsDatasourceIds: Array<Scalars['String']['input']>;
 };
 
 
@@ -404,6 +410,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   removeContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveContentArgs, 'id'>>;
   removeItem?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveItemArgs, 'id'>>;
   unlinkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkContentArgs, 'id' | 'parent'>>;
+  unlinkContentsDatasource?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkContentsDatasourceArgs, 'contentsDatasourceIds'>>;
   updateContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateContentArgs, 'id' | 'type'>>;
 };
 

@@ -230,20 +230,6 @@ export type GetGeoCoderFeatureResult = {
 };
 
 /**
- * コンテンツデータソースを地図から除去
- */
-export const UnlinkContentDatasourceFromMapAPI = {
-    uri: 'unlink-contentdatasource-map',
-    method: 'post',
-    resultType: 'json',
-} as APIDefine<UnLinkContentDatasourceFromMapParam, void>;
-export type UnLinkContentDatasourceFromMapParam = {
-    contents: {
-        datasourceId: string;
-    }[];
-}
-
-/**
  * Publishメッセージ（ユーザに対するもの）
  */
 export type PublishUserMessage = {

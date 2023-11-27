@@ -98,3 +98,11 @@ mutation linkContentsDatasource (
         contentsDatasources: $contentsDatasources,
     )
 }
+
+mutation unlinkContentsDatasource (
+    $contentsDatasourceIds: [String!]!
+) {
+    unlinkContentsDatasource (
+        contentsDatasourceIds: $contentsDatasourceIds,
+    )
+}
