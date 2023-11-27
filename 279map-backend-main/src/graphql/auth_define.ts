@@ -20,6 +20,8 @@ export const authDefine: AuthLvDefine = {
     unlinkContent: Auth.Edit,
     removeContent: Auth.Edit,
 
+    search: Auth.View,
+
     // 管理者機能
     getUserList: Auth.Admin,
     changeAuthLevel: Auth.Admin,

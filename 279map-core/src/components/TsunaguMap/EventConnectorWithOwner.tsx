@@ -18,7 +18,7 @@ import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
 import { useApi } from '../../api/useApi';
-import { CategoryDefine, EventDefine, ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument } from '../../graphql/generated/graphql';
+import { CategoryDefine, EventDefine, ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument } from '../../graphql/generated/graphql';
 import { updateContentAtom } from '../../store/content';
 import { clientAtom } from 'jotai-urql';
 
@@ -148,13 +148,13 @@ function useFilterListner() {
     const { filter } = useContext(OwnerContext);
 
     // 検索
-    const [filteredItem, setFilteredItem] = useAtom(filteredItemsAtom);
-    const { callApi } = useApi();
+    const [ , setFilteredItem ] = useAtom(filteredItemsAtom);
+    const [ gqlClient ] = useAtom(clientAtom);
     const [ visibleDataSourceIds ] = useAtom(visibleDataSourceIdsAtom);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
-    useWatch(filter, () => {
-        const conditions = filter?.conditions;
-        if (!conditions) {
+    useWatch(filter, async () => {
+        const condition = filter?.condition;
+        if (!condition) {
             setFilteredItem(null);
             return;
         };
@@ -163,15 +163,12 @@ function useFilterListner() {
             overlay: true,
             spinner: true,
         });
-        callApi(SearchAPI, {
-            conditions,
-            dataSourceIds: visibleDataSourceIds,
-        }).then(res => {
-            setFilteredItem(res.items);
-        }).finally(() => {
-            hideProcessMessage(h);
+        const result = await gqlClient.query(SearchDocument, {
+            condition,
+            datasourceIds: visibleDataSourceIds,
         });
-
+        setFilteredItem(result.data?.search ?? null);
+        hideProcessMessage(h);
     })
 }
 

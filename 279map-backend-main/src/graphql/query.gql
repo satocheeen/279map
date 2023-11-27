@@ -62,6 +62,22 @@ type ContentsDatasource {
     datasourceId: String!
     name: String!
 }
+
+# --------------
+# search関連
+# --------------
+input Condition {
+    category: [String!]
+    date: [String!]
+    keyword: [String!]
+}
+
+type SearchHitItem {
+    id: DataId!
+    hitContents: [DataId!]!  # 当該アイテム配下の検索条件に合致するコンテンツID一覧 TODO: 孫コンテンツも含める
+}
+# --------------
+
 type Query {
     getItems(wkt: String!, zoom: Float!, datasourceId: String!, latestEditedTime: String, excludeItemIds: [String!]): [ItemDefine]
     getCategory(datasourceIds: [String!]): [CategoryDefine!]!
@@ -70,6 +86,9 @@ type Query {
     getContents(ids: [DataId!]!): [ContentsDefine!]!
     getContentsInItem(itemId: DataId!): [ContentsDefine!]!
     getUnpointContents(datasourceId: String!, nextToken: String): GetUnpointContentsResult!
+
+    # datasourceIds => 指定されている場合、指定のデータソースのみ検索対象にする
+    search(condition: Condition!, datasourceIds: [String!]): [SearchHitItem!]!
 
     getUserList: [User!]!
     getLinkableContentsDatasources: [ContentsDatasource!]!

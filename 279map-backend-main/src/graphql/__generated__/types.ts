@@ -32,6 +32,12 @@ export type CategoryDefine = {
   name: Scalars['String']['output'];
 };
 
+export type Condition = {
+  category?: InputMaybe<Array<Scalars['String']['input']>>;
+  date?: InputMaybe<Array<Scalars['String']['input']>>;
+  keyword?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
 export enum ContentType {
   Normal = 'normal',
   Sns = 'sns'
@@ -177,6 +183,7 @@ export type Query = {
   getLinkableContentsDatasources: Array<ContentsDatasource>;
   getUnpointContents: GetUnpointContentsResult;
   getUserList: Array<User>;
+  search: Array<SearchHitItem>;
 };
 
 
@@ -217,6 +224,17 @@ export type QueryGetItemsArgs = {
 export type QueryGetUnpointContentsArgs = {
   datasourceId: Scalars['String']['input'];
   nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QuerySearchArgs = {
+  condition: Condition;
+  datasourceIds?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export type SearchHitItem = {
+  hitContents: Array<Scalars['DataId']['output']>;
+  id: Scalars['DataId']['output'];
 };
 
 export type UnpointContent = {
@@ -306,6 +324,7 @@ export type ResolversTypes = {
   Auth: Auth;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   CategoryDefine: ResolverTypeWrapper<CategoryDefine>;
+  Condition: Condition;
   ContentType: ContentType;
   ContentsDatasource: ResolverTypeWrapper<ContentsDatasource>;
   ContentsDatasourceInput: ContentsDatasourceInput;
@@ -320,6 +339,7 @@ export type ResolversTypes = {
   ParentInput: ParentInput;
   ParentOfContent: ParentOfContent;
   Query: ResolverTypeWrapper<{}>;
+  SearchHitItem: ResolverTypeWrapper<SearchHitItem>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   UnpointContent: ResolverTypeWrapper<UnpointContent>;
   User: ResolverTypeWrapper<User>;
@@ -329,6 +349,7 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
   CategoryDefine: CategoryDefine;
+  Condition: Condition;
   ContentsDatasource: ContentsDatasource;
   ContentsDatasourceInput: ContentsDatasourceInput;
   ContentsDefine: ContentsDefine;
@@ -341,6 +362,7 @@ export type ResolversParentTypes = {
   Mutation: {};
   ParentInput: ParentInput;
   Query: {};
+  SearchHitItem: SearchHitItem;
   String: Scalars['String']['output'];
   UnpointContent: UnpointContent;
   User: User;
@@ -424,6 +446,13 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getLinkableContentsDatasources?: Resolver<Array<ResolversTypes['ContentsDatasource']>, ParentType, ContextType>;
   getUnpointContents?: Resolver<ResolversTypes['GetUnpointContentsResult'], ParentType, ContextType, RequireFields<QueryGetUnpointContentsArgs, 'datasourceId'>>;
   getUserList?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
+  search?: Resolver<Array<ResolversTypes['SearchHitItem']>, ParentType, ContextType, RequireFields<QuerySearchArgs, 'condition'>>;
+};
+
+export type SearchHitItemResolvers<ContextType = any, ParentType extends ResolversParentTypes['SearchHitItem'] = ResolversParentTypes['SearchHitItem']> = {
+  hitContents?: Resolver<Array<ResolversTypes['DataId']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type UnpointContentResolvers<ContextType = any, ParentType extends ResolversParentTypes['UnpointContent'] = ResolversParentTypes['UnpointContent']> = {
@@ -451,6 +480,7 @@ export type Resolvers<ContextType = any> = {
   ItemDefine?: ItemDefineResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  SearchHitItem?: SearchHitItemResolvers<ContextType>;
   UnpointContent?: UnpointContentResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
 };

@@ -1,8 +1,8 @@
-import { SearchResult } from "tsunagumap-api";
 import { DataId } from "279map-common";
 import { atom } from "jotai";
+import { SearchHitItem } from "../../graphql/generated/graphql";
 
-export const filteredItemsAtom = atom<SearchResult['items'] | null>(null);
+export const filteredItemsAtom = atom<SearchHitItem[] | null>(null);
 
 /**
  * フィルタのかかっているアイテムidを返す。
@@ -26,6 +26,6 @@ export const filteredContentIdListAtom = atom<DataId[] | undefined>(( get ) => {
         return undefined;
     }
     return filteredItems.reduce((acc, cur) => {
-        return acc.concat(cur.contents);
+        return acc.concat(cur.hitContents);
     }, [] as DataId[]);
 })

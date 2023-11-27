@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import mysql from 'mysql2/promise';
 import { getMapInfo } from './getMapInfo';
-import { Auth, MapKind, AuthMethod, ServerConfig, DataId, MapPageOptions, MapDefine } from '279map-common';
+import { Auth, MapKind, AuthMethod, ServerConfig, DataId, MapPageOptions, MapDefine, FilterDefine } from '279map-common';
 import { getItems } from './getItems';
 import { configure, getLogger } from "log4js";
 import { DbSetting, LogSetting } from './config';
@@ -39,7 +39,7 @@ import { graphqlHTTP } from 'express-graphql';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetUnpointContentsArgs } from './graphql/__generated__/types';
+import { MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetUnpointContentsArgs, QuerySearchArgs } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType } from './graphql/custom_scalar';
@@ -907,6 +907,46 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     throw e;
                 }
             },
+            /**
+             * 検索
+             */
+            search: async(_, param: QuerySearchArgs, ctx): QueryResolverReturnType<'search'> => {
+                try {
+                    const conditions: FilterDefine[] = [];
+                    param.condition.category?.forEach(category => {
+                        conditions.push({
+                            type: 'category',
+                            category,
+                        })
+                    });
+                    param.condition.date?.forEach(date => {
+                        conditions.push({
+                            type: 'calendar',
+                            date,
+                        })
+                    });
+                    param.condition.keyword?.forEach(keyword => {
+                        conditions.push({
+                            type: 'keyword',
+                            keyword,
+                        })
+                    });
+                    const result = await search(ctx.currentMap, {
+                        conditions,
+                        dataSourceIds: param.datasourceIds ?? undefined,
+                    });
+                    return result.items.map(item => {
+                        return {
+                            hitContents: item.contents,
+                            id: item.id,
+                        }
+                    });
+
+                } catch(e) {
+                    apiLogger.warn('search API error', param, e);
+                    throw e;
+                }
+            },
             getUserList: async(parent: any, _, ctx): QueryResolverReturnType<'getUserList'> => {
                 try {
                     const mapId = ctx.currentMap.mapId;
@@ -1560,30 +1600,6 @@ app.post(`/api/${GetSnsPreviewAPI.uri}`,
             next();
         } catch(e) {
             apiLogger.warn('get-sns-preview API error', param, e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail : e + '',
-            } as ApiError);
-        }
-    }
-);
-
-/**
- * search items and contents
- * 検索
- */
-app.post(`/api/${SearchAPI.uri}`,
-    checkApiAuthLv(Auth.View), 
-    checkCurrentMap,
-    async(req, res, next) => {
-        const param = req.body as SearchParam;
-        try {
-            const result = await search(req.currentMap, param);
-            res.send(result);
-
-            next();
-        } catch(e) {
-            apiLogger.warn('search API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',

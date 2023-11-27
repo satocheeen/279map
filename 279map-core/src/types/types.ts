@@ -3,7 +3,7 @@ import { CSSProperties } from "react";
 import { MapKind } from '279map-common';
 import { ApiError, ErrorType, GetMapInfoResult, GetSnsPreviewResult } from "tsunagumap-api";
 import { FilterDefine } from "279map-common";
-import { CategoryDefine, ContentsDefine, EventDefine, GetUnpointContentsResult, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs } from "../graphql/generated/graphql";
+import { CategoryDefine, Condition, ContentsDefine, EventDefine, GetUnpointContentsResult, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs } from "../graphql/generated/graphql";
 
 export type OnMapLoadParam = {
     mapKind: MapKind;
@@ -50,7 +50,7 @@ export type TsunaguMapProps = {
     disabledContentDialog?: boolean;    // when true, the content dialog didn't show even if you click a item.
 
     filter?: {
-        conditions: FilterDefine[];
+        condition: Condition;
         unmatchView: 'hidden' | 'translucent';  // how view the items unmatched with conditions
     }
 

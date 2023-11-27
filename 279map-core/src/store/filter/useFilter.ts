@@ -43,7 +43,7 @@ export function useFilter() {
                 return 'Normal';
             }
             const filtered = filteredItems.some(filteredItem => {
-                return filteredItem.contents.some(filteredContent => {
+                return filteredItem.hitContents.some(filteredContent => {
                     return isEqualId(filteredContent, contentId);
                 });
             });

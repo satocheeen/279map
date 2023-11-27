@@ -77,6 +77,16 @@ query getUnpointContents(
     }
 }
 
+query search (
+    $condition: Condition!
+    $datasourceIds: [String!]
+) {
+    search(condition: $condition, datasourceIds: $datasourceIds) {
+        id
+        hitContents
+    }
+}
+
 query getUserList {
     getUserList {
         id
