@@ -1,15 +1,13 @@
 import { DataId } from "279map-common";
 import { CurrentMap } from "../../279map-backend-common/src";
-import { SearchParam, SearchResult } from "../../279map-api-interface/src";
 import { ConnectionPool } from "..";
 import { PoolConnection } from "mysql2/promise";
 import { ItemContentLink } from "../../279map-backend-common/src/types/schema";
+import { QuerySearchArgs, SearchHitItem } from "../graphql/__generated__/types";
 
-export async function search(currentMap: CurrentMap, param: SearchParam): Promise<SearchResult> {
-    if (param.dataSourceIds && param.dataSourceIds.length === 0) {
-        return {
-            items: []
-        }
+export async function search(currentMap: CurrentMap, param: QuerySearchArgs): Promise<SearchHitItem[]> {
+    if (param.datasourceIds && param.datasourceIds.length === 0) {
+        return []
     }
 
     // 将来、ANDやOR検索になる可能性があるので、この階層でトランザクション管理している
@@ -18,47 +16,43 @@ export async function search(currentMap: CurrentMap, param: SearchParam): Promis
     try {
         await con.beginTransaction();
 
-        let hitList: HitContent[] = [];
-        let firstFlag = true;
-        for (const condition of param.conditions) {
-            let searchResult: HitContent[];
-            switch(condition.type) {
-                case 'category':
-                    searchResult = await searchByCategory(con, currentMap, condition.category, param.dataSourceIds);
-                    break;
-                case 'calendar':
-                    searchResult = await searchByDate(con, currentMap, condition.date, param.dataSourceIds);
-                    break;
-                case 'keyword':
-                    searchResult = await searchByKeyword(con, currentMap, condition.keyword, param.dataSourceIds);
-                    break;
+        const hitContents: HitContent[] = []
+        if (param.condition.category) {
+            for (const category of param.condition.category) {
+                const searchResult = await searchByCategory(con, currentMap, category, param.datasourceIds ?? undefined);
+                Array.prototype.push.apply(hitContents, searchResult);
             }
-            if (firstFlag) {
-                firstFlag = false;
-                hitList = searchResult;
-                continue;
-            }
-            // ANDで絞る
-            hitList = filterArrayByAND(hitList, searchResult, (a, b) => a.contentId.id === b.contentId.id && a.contentId.dataSourceId === b.contentId.dataSourceId);
         }
+        if (param.condition.date) {
+            for (const date of param.condition.date) {
+                const searchResult = await searchByDate(con, currentMap, date, param.datasourceIds ?? undefined);
+                Array.prototype.push.apply(hitContents, searchResult);
+            }
+        }
+        if (param.condition.keyword) {
+            for (const keyword of param.condition.keyword) {
+                const searchResult = await searchByKeyword(con, currentMap, keyword, param.datasourceIds ?? undefined);
+                Array.prototype.push.apply(hitContents, searchResult);
+            }
+        }
+        // TODO: ANDで絞る
+        // hitList = filterArrayByAND(hitList, searchResult, (a, b) => a.contentId.id === b.contentId.id && a.contentId.dataSourceId === b.contentId.dataSourceId);
 
         // item単位でまとめる
-        const items: SearchResult['items'] = [];
-        hitList.forEach(hitRecord => {
+        const items: SearchHitItem[] = [];
+        hitContents.forEach(hitRecord => {
             const hitItem = items.find(item => item.id.id === hitRecord.itemId.id && item.id.dataSourceId === hitRecord.itemId.dataSourceId);
             if (hitItem) {
-                hitItem.contents.push(hitRecord.contentId);
+                hitItem.hitContents.push(hitRecord.contentId);
             } else {
                 items.push({
                     id: hitRecord.itemId,
-                    contents: [hitRecord.contentId],
+                    hitContents: [hitRecord.contentId],
                 });
             }
         })
 
-        return {
-            items,
-        }
+        return items;
     
     } finally {
         await con.commit();

@@ -21,7 +21,7 @@ import { getMapInfoById } from './getMapDefine';
 import { ConfigAPI, ConnectResult, GeocoderParam, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, RegistItemAPI, RegistItemParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, RequestAPI, RequestParam, GetItemsByIdAPI, GetItemsByIdParam } from '../279map-api-interface/src/api';
+import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, RequestAPI, RequestParam, GetItemsByIdAPI, GetItemsByIdParam } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 import { search } from './api/search';
@@ -931,16 +931,8 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                             keyword,
                         })
                     });
-                    const result = await search(ctx.currentMap, {
-                        conditions,
-                        dataSourceIds: param.datasourceIds ?? undefined,
-                    });
-                    return result.items.map(item => {
-                        return {
-                            hitContents: item.contents,
-                            id: item.id,
-                        }
-                    });
+                    const result = await search(ctx.currentMap, param)
+                    return result;
 
                 } catch(e) {
                     apiLogger.warn('search API error', param, e);

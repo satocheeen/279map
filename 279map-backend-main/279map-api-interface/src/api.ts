@@ -141,28 +141,6 @@ export type UpdateItemParam = {
     }[];
 };
 
-/**
- * search items and contents
- */
-export const SearchAPI = {
-    uri: 'search',
-    method: 'post',
-    resultType: 'json',
-} as APIDefine<SearchParam, SearchResult>;
-
-export type SearchParam = {
-    conditions: FilterDefine[];
-    dataSourceIds?: string[];   // 指定されている場合、指定のデータソースのみ検索対象にする
-}
-
-export type SearchResult = {
-    // 検索条件に合致するアイテム
-    items: {
-        id: DataId;
-        contents: DataId[]; // 当該アイテム配下の検索条件に合致するコンテンツID一覧 TODO: 孫コンテンツも含める
-    }[];
-}
-
 export const GetThumbAPI = {
     uri: 'getthumb',
     method: 'get',
