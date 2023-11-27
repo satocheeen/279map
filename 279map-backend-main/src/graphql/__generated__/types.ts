@@ -75,6 +75,7 @@ export type ItemDefine = {
 export type Mutation = {
   changeAuthLevel?: Maybe<Scalars['Boolean']['output']>;
   linkContent?: Maybe<Scalars['Boolean']['output']>;
+  registContent?: Maybe<Scalars['Boolean']['output']>;
   removeContent?: Maybe<Scalars['Boolean']['output']>;
   removeItem?: Maybe<Scalars['Boolean']['output']>;
   unlinkContent?: Maybe<Scalars['Boolean']['output']>;
@@ -91,6 +92,19 @@ export type MutationChangeAuthLevelArgs = {
 export type MutationLinkContentArgs = {
   id: Scalars['DataId']['input'];
   parent: ParentInput;
+};
+
+
+export type MutationRegistContentArgs = {
+  categories?: InputMaybe<Array<Scalars['String']['input']>>;
+  dataSourceId: Scalars['String']['input'];
+  date?: InputMaybe<Scalars['String']['input']>;
+  imageUrl?: InputMaybe<Scalars['String']['input']>;
+  overview?: InputMaybe<Scalars['String']['input']>;
+  parent: ParentInput;
+  title: Scalars['String']['input'];
+  type: ContentType;
+  url?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -358,6 +372,7 @@ export type ItemDefineResolvers<ContextType = any, ParentType extends ResolversP
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   changeAuthLevel?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationChangeAuthLevelArgs, 'authLv' | 'userId'>>;
   linkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkContentArgs, 'id' | 'parent'>>;
+  registContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRegistContentArgs, 'dataSourceId' | 'parent' | 'title' | 'type'>>;
   removeContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveContentArgs, 'id'>>;
   removeItem?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveItemArgs, 'id'>>;
   unlinkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkContentArgs, 'id' | 'parent'>>;

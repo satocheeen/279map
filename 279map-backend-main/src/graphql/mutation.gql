@@ -11,6 +11,19 @@ type Mutation {
         id: DataId!
     ): Boolean
 
+    registContent (
+        parent: ParentInput!
+        dataSourceId: String!
+
+        title: String!
+        overview: String
+        categories: [String!]
+        type: ContentType!
+        date: String
+        imageUrl: String
+        url: String
+    ): Boolean
+
     updateContent (
         id: DataId!
         title: String

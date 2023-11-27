@@ -7,7 +7,7 @@ import { dialogTargetAtom, mapModeAtom, showingDetailItemIdAtom } from '../../st
 import { connectStatusLoadableAtom, mapDefineLoadableAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
-import { GetSnsPreviewAPI, GetThumbAPI, RegistContentAPI, RegistContentParam, SearchAPI } from 'tsunagumap-api';
+import { GetSnsPreviewAPI, GetThumbAPI, SearchAPI } from 'tsunagumap-api';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { DataId, DataSourceGroup, MapKind } from '279map-common';
 import { MapMode, TsunaguMapHandler } from '../../types/types';
@@ -18,7 +18,7 @@ import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
 import { useApi } from '../../api/useApi';
-import { CategoryDefine, EventDefine, ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument } from '../../graphql/generated/graphql';
+import { CategoryDefine, EventDefine, ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument } from '../../graphql/generated/graphql';
 import { updateContentAtom } from '../../store/content';
 import { clientAtom } from 'jotai-urql';
 
@@ -77,9 +77,9 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             showDetailDialog(param);
         },
         
-        async registContentAPI(param: RegistContentParam) {
+        async registContentAPI(param: MutationRegistContentArgs) {
             try {
-                await callApi(RegistContentAPI, param);
+                await gqlClient.mutation(RegistContentDocument, param);
 
             } catch(e) {
                 throw new Error('registContentAPI failed.' + e);

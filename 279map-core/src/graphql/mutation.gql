@@ -6,7 +6,32 @@ mutation removeItem (
     )
 }
 
-mutation updateContent(
+mutation registContent (
+    $parent: ParentInput!
+    $dataSourceId: String!
+
+    $title: String!
+    $overview: String
+    $categories: [String!]
+    $type: ContentType!
+    $date: String
+    $imageUrl: String
+    $url: String
+) {
+    registContent(
+        parent: $parent
+        dataSourceId: $dataSourceId
+        title: $title
+        overview: $overview
+        categories: $categories
+        type: $type
+        date: $date
+        imageUrl: $imageUrl
+        url: $url
+    )
+}
+
+mutation updateContent (
     $id: DataId!
     $title: String
     $overview: String
@@ -15,7 +40,7 @@ mutation updateContent(
     $date: String
     $imageUrl: String
     $url: String
-){
+) {
     updateContent(
         id: $id
         title: $title

@@ -142,24 +142,6 @@ export type UpdateItemParam = {
 };
 
 /**
- * regist content
- */
-export const RegistContentAPI = {
-    uri: 'registcontent',
-    method: 'post',
-    resultType: 'none',
-} as APIDefine<RegistContentParam, void>;
-export type RegistContentParam = {
-    parent: {
-        itemId: DataId;
-    } | {
-        contentId: DataId;
-    };
-    // 登録先データソース
-    contentDataSourceId: string;
-} & ContentAttr;
-
-/**
  * search items and contents
  */
 export const SearchAPI = {

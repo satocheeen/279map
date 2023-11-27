@@ -18,7 +18,7 @@ import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import cors from 'cors';
 import { exit } from 'process';
 import { getMapInfoById } from './getMapDefine';
-import { ConfigAPI, ConnectResult, GeocoderParam, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
+import { ConfigAPI, ConnectResult, GeocoderParam, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, RegistItemAPI, RegistItemParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
 import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, RequestAPI, RequestParam, GetItemsByIdAPI, GetItemsByIdParam, GetLinkableContentsAPI, LinkContentDatasourceToMapAPI, LinkContentDatasourceToMapParam, UnlinkContentDatasourceFromMapAPI, UnLinkContentDatasourceFromMapParam } from '../279map-api-interface/src/api';
@@ -39,7 +39,7 @@ import { graphqlHTTP } from 'express-graphql';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationUnlinkContentArgs, MutationUpdateContentArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetUnpointContentsArgs } from './graphql/__generated__/types';
+import { MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationRegistContentArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationUnlinkContentArgs, MutationUpdateContentArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetUnpointContentsArgs } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType } from './graphql/custom_scalar';
@@ -944,6 +944,55 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
             },
             /**
+             * コンテンツ登録
+             */
+            registContent: async(_, param: MutationRegistContentArgs, ctx): MutationResolverReturnType<'registContent'> => {
+                try {
+                    const { parent, dataSourceId } = param;
+                    // call ODBA
+                    await callOdbaApi(OdbaRegistContentAPI, {
+                        currentMap: ctx.currentMap,
+                        parent: parent.type === ParentOfContent.Item ? {
+                            itemId: parent.id,
+                        } : {
+                            contentId: parent.id,
+                        },
+                        contentDataSourceId: dataSourceId,
+                        categories: param.categories ?? [],
+                        date: param.date ?? undefined,
+                        imageUrl: param.imageUrl ?? undefined,
+                        overview: param.overview ?? '',
+                        title: param.title,
+                        type: param.type,
+                        url: param.url ?? undefined,
+                    });
+            
+                    // TODO: OdbaRegistContentAPIの戻り値をcontentIdにして、それを元にgetContentsしてitemIdを取得するように変更する
+                    // 更新通知
+                    if (parent.type === ParentOfContent.Item) {
+                        // 更新通知
+                        const id = param.parent.id;
+                        const wkt = await getItemWkt(id);
+                        if (!wkt) {
+                            logger.warn('not found extent', id);
+                        } else {
+                            broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
+                                type: 'childcontents-update',
+                                subtype: {
+                                    id: id.id,
+                                    dataSourceId: id.dataSourceId,
+                                },
+                            });
+                        }
+                    }
+                    return true;
+            
+                } catch(e) {    
+                    apiLogger.warn('regist-content API error', param, e);
+                    throw e;
+                }
+            },
+            /**
              * コンテンツ更新
              */
             updateContent: async(parent: any, param: MutationUpdateContentArgs, ctx): MutationResolverReturnType<'updateContent'> => {
@@ -952,13 +1001,13 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     await callOdbaApi(OdbaUpdateContentAPI, {
                         currentMap: ctx.currentMap,
                         id: param.id,
-                        categories: param.categories as string[] | undefined,
-                        date: param.date as string | undefined,
-                        imageUrl: param.imageUrl as string | undefined,
-                        overview: param.overview as string | undefined,
-                        title: param.title as string | undefined,
+                        categories: param.categories ?? undefined,
+                        date: param.date ?? undefined,
+                        imageUrl: param.imageUrl ?? undefined,
+                        overview: param.overview ?? undefined,
+                        title: param.title ?? undefined,
                         type: param.type,
-                        url: param.url as string | undefined,
+                        url: param.url ?? undefined,
                     });
             
                     // 更新通知
@@ -974,7 +1023,10 @@ const schema = makeExecutableSchema<GraphQlContextType>({
 
                     broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
                         type: 'childcontents-update',
-                        subtype: target.itemId,
+                        subtype: {
+                            id: target.itemId.id,
+                            dataSourceId: target.itemId.dataSourceId
+                        }
                     });
                 
                     return true;
@@ -1418,50 +1470,6 @@ app.post(`/api/${UpdateItemAPI.uri}`,
             next();
         } catch(e) {    
             apiLogger.warn('update-item API error', param, e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail : e + '',
-            } as ApiError);
-        }
-    }
-);
-
-/**
- * regist a content
- * コンテンツ登録
- */
-app.post(`/api/${RegistContentAPI.uri}`,
-    checkApiAuthLv(Auth.Edit), 
-    checkCurrentMap,
-    async(req, res, next) => {
-        const param = req.body as RegistContentParam;
-        try {
-            // call ODBA
-            await callOdbaApi(OdbaRegistContentAPI, Object.assign({
-                currentMap: req.currentMap,
-            }, param));
-    
-            // TODO: OdbaRegistContentAPIの戻り値をcontentIdにして、それを元にgetContentsしてitemIdを取得するように変更する
-            // 更新通知
-            if ('itemId' in param.parent) {
-                // 更新通知
-                const id = param.parent.itemId;
-                const wkt = await getItemWkt(id);
-                if (!wkt) {
-                    logger.warn('not found extent', id);
-                } else {
-                    broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                        type: 'childcontents-update',
-                        subtype: id,
-                    });
-                }
-            }
-       
-            res.send('complete');
-    
-            next();
-        } catch(e) {    
-            apiLogger.warn('regist-content API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',

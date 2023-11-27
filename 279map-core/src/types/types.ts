@@ -1,9 +1,9 @@
 import { ContentAttr, DataId, DataSourceGroup, FeatureType, GeoProperties, IconDefine, MapDefine } from "279map-common";
 import { CSSProperties } from "react";
 import { MapKind } from '279map-common';
-import { ApiError, ErrorType, GetMapInfoResult, RegistContentParam, GetSnsPreviewResult } from "tsunagumap-api";
+import { ApiError, ErrorType, GetMapInfoResult, GetSnsPreviewResult } from "tsunagumap-api";
 import { FilterDefine } from "279map-common";
-import { CategoryDefine, ContentsDefine, EventDefine, GetUnpointContentsResult, MutationLinkContentArgs, MutationUpdateContentArgs } from "../graphql/generated/graphql";
+import { CategoryDefine, ContentsDefine, EventDefine, GetUnpointContentsResult, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs } from "../graphql/generated/graphql";
 
 export type OnMapLoadParam = {
     mapKind: MapKind;
@@ -140,7 +140,7 @@ export interface TsunaguMapHandler {
 
     showDetailDialog(param: {type: 'item' | 'content'; id: DataId}): void;
 
-    registContentAPI(param: RegistContentParam): Promise<void>;
+    registContentAPI(param: MutationRegistContentArgs): Promise<void>;
 
     updateContentAPI(param: MutationUpdateContentArgs): Promise<void>;
 
@@ -228,7 +228,7 @@ export type AddNewContentParam = {
         name: string;
     }[];
     getSnsPreviewAPI: (url: string) => Promise<GetSnsPreviewResult>;
-    registContentAPI: (param: RegistContentParam) => Promise<void>;
+    registContentAPI: (param: MutationRegistContentArgs) => Promise<void>;
 }
 /**
  * 地図上でコンテンツ編集が選択された場合のコールバック

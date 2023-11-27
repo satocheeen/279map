@@ -9,7 +9,7 @@ import Select from '../../common/form/Select';
 import { ConfirmBtnPattern } from '../../common/confirm/types';
 import { modalSpinnerAtom } from '../../common/modal/Modal';
 import { useAtomCallback } from 'jotai/utils';
-import { MutationUpdateContentArgs } from '../../../graphql/generated/graphql';
+import { ContentType, MutationUpdateContentArgs, ParentOfContent } from '../../../graphql/generated/graphql';
 
 type Props = {
     onClose?: () => void;
@@ -59,11 +59,19 @@ export default function ContentInfoEditDialog(props: Props) {
             try {
                 if (props.type === 'new') {
                     // 新規登録
-                    const apiParam = Object.assign({
-                        parent: props.param.parent,
-                        contentDataSourceId,
-                    }, attrValue);
-                    await props.param.registContentAPI(apiParam);
+                    const { type, ...attr } = attrValue;
+                    await props.param.registContentAPI({
+                        parent: 'itemId' in props.param.parent ? {
+                            type: ParentOfContent.Item,
+                            id: props.param.parent.itemId,
+                        } : {
+                            type: ParentOfContent.Content,
+                            id: props.param.parent.contentId,
+                        },
+                        dataSourceId: contentDataSourceId,
+                        type: type === 'normal' ? ContentType.Normal : ContentType.Sns,
+                        ...attr,
+                    });
 
                 } else {
                     // 更新
