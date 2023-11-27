@@ -6,7 +6,7 @@ import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
 import { Auth, DataId, DataSourceKindType } from '279map-common';
-import { GetSnsPreviewAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, UpdateItemAPI } from 'tsunagumap-api';
+import { GetSnsPreviewAPI, RegistContentAPI, RegistContentParam, UpdateItemAPI } from 'tsunagumap-api';
 import { Button } from '../common';
 import { compareAuth } from '../../util/CommonUtility';
 import { authLvAtom } from '../../store/session';
@@ -17,7 +17,7 @@ import { useApi } from '../../api/useApi';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern, ConfirmResult } from '../common/confirm/types';
 import { clientAtom } from 'jotai-urql';
-import { GetContentDocument, GetUnpointContentsDocument } from '../../graphql/generated/graphql';
+import { GetContentDocument, GetUnpointContentsDocument, LinkContentDocument, MutationLinkContentArgs } from '../../graphql/generated/graphql';
 
 type Props = {
     target: {
@@ -230,14 +230,14 @@ export default function AddContentMenu(props: Props) {
                     }
                     return result.data?.getUnpointContents;
                 },
-                linkContentToItemAPI: async(param: LinkContentToItemParam) => {
+                linkContentToItemAPI: async(param: MutationLinkContentArgs) => {
                     try {
-                        await callApi(LinkContentToItemAPI, param);
+                        await gqlClient.mutation(LinkContentDocument, param)
 
                         // 必要に応じてアイテム名設定
                         registItemNameByContentsName({
                             type: 'id',
-                            contentId: param.childContentId
+                            contentId: param.id
                         });
 
                     } catch(e) {

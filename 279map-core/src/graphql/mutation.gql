@@ -28,6 +28,16 @@ mutation updateContent(
     )
 }
 
+mutation linkContent (
+    $id: DataId!
+    $parent: ParentInput!
+) {
+    linkContent (
+        id: $id
+        parent: $parent
+    )
+}
+
 mutation unlinkContent (
     $id: DataId!
     $parent: ParentInput!

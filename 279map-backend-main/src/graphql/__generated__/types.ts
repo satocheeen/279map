@@ -74,6 +74,7 @@ export type ItemDefine = {
 
 export type Mutation = {
   changeAuthLevel?: Maybe<Scalars['Boolean']['output']>;
+  linkContent?: Maybe<Scalars['Boolean']['output']>;
   removeContent?: Maybe<Scalars['Boolean']['output']>;
   removeItem?: Maybe<Scalars['Boolean']['output']>;
   unlinkContent?: Maybe<Scalars['Boolean']['output']>;
@@ -84,6 +85,12 @@ export type Mutation = {
 export type MutationChangeAuthLevelArgs = {
   authLv: Auth;
   userId: Scalars['ID']['input'];
+};
+
+
+export type MutationLinkContentArgs = {
+  id: Scalars['DataId']['input'];
+  parent: ParentInput;
 };
 
 
@@ -350,6 +357,7 @@ export type ItemDefineResolvers<ContextType = any, ParentType extends ResolversP
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   changeAuthLevel?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationChangeAuthLevelArgs, 'authLv' | 'userId'>>;
+  linkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkContentArgs, 'id' | 'parent'>>;
   removeContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveContentArgs, 'id'>>;
   removeItem?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveItemArgs, 'id'>>;
   unlinkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkContentArgs, 'id' | 'parent'>>;

@@ -8,7 +8,7 @@ import Spinner from '../../common/spinner/Spinner';
 import { getMapKey } from '../../../util/dataUtility';
 import Select from '../../common/form/Select';
 import { useWatch } from '../../../util/useWatch2';
-import { UnpointContent } from '../../../graphql/generated/graphql';
+import { ParentOfContent, UnpointContent } from '../../../graphql/generated/graphql';
 
 type Props = {
     param: LinkUnpointContentParam;
@@ -66,8 +66,14 @@ export default function LinkUnpointContentModal(props: Props) {
     const onSelect = useCallback(async(id: DataId) => {
         setLoading(true);
         await props.param.linkContentToItemAPI({
-            parent: props.param.parent,
-            childContentId: id,
+            id,
+            parent: 'itemId' in props.param.parent ? {
+                type: ParentOfContent.Item,
+                id: props.param.parent.itemId,
+            } : {
+                type: ParentOfContent.Content,
+                id: props.param.parent.contentId,
+            }
         });
         setLoading(false);
         if (props.close) {

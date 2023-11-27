@@ -39,7 +39,7 @@ import { graphqlHTTP } from 'express-graphql';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { MutationChangeAuthLevelArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationUnlinkContentArgs, MutationUpdateContentArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetUnpointContentsArgs } from './graphql/__generated__/types';
+import { MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationUnlinkContentArgs, MutationUpdateContentArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetUnpointContentsArgs } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType } from './graphql/custom_scalar';
@@ -985,6 +985,46 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
             },
             /**
+             * コンテンツをアイテムに紐づけ
+             */
+            linkContent: async(parent: any, param: MutationLinkContentArgs, ctx): MutationResolverReturnType<'linkContent'> => {
+                try {
+                    // call ODBA
+                    await callOdbaApi(OdbaLinkContentToItemAPI, {
+                        currentMap: ctx.currentMap,
+                        childContentId: param.id,
+                        parent: param.parent.type === ParentOfContent.Content ? {
+                            contentId: param.parent.id,
+                        } : {
+                            itemId: param.parent.id,
+                        }
+                    });
+
+                    // 更新通知
+                    if (param.parent.type === ParentOfContent.Item) {
+                        const id = param.parent.id;
+                        const wkt = await getItemWkt(id);
+                        if (!wkt) {
+                            logger.warn('not found extent', id);
+                        } else {
+                            broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
+                                type: 'childcontents-update',
+                                subtype: {
+                                    id: id.id,
+                                    dataSourceId: id.dataSourceId,
+                                },
+                            });
+                        }
+                    }
+
+                    return true;
+            
+                } catch(e) {
+                    apiLogger.warn('link-content2item API error', param, e);
+                    throw e;
+                }
+            },
+            /**
              * コンテンツ削除
              */
             unlinkContent: async(parent: any, param: MutationUnlinkContentArgs, ctx): MutationResolverReturnType<'unlinkContent'> => {
@@ -1422,49 +1462,6 @@ app.post(`/api/${RegistContentAPI.uri}`,
             next();
         } catch(e) {    
             apiLogger.warn('regist-content API error', param, e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail : e + '',
-            } as ApiError);
-        }
-    }
-);
-
-/**
- * link content to item
- * コンテンツをアイテムに紐づけ
- */
-app.post(`/api/${LinkContentToItemAPI.uri}`,
-    checkApiAuthLv(Auth.Edit), 
-    checkCurrentMap,
-    async(req, res, next) => {
-        const param = req.body as LinkContentToItemParam;
-        try {
-            // call ODBA
-            await callOdbaApi(OdbaLinkContentToItemAPI, Object.assign({
-                currentMap: req.currentMap,
-            }, param));
-
-            // 更新通知
-            if ('itemId' in param.parent) {
-                const id = param.parent.itemId;
-                const wkt = await getItemWkt(id);
-                if (!wkt) {
-                    logger.warn('not found extent', id);
-                } else {
-                    broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                        type: 'childcontents-update',
-                        subtype: id,
-                    });
-                }
-            }
-            
-            res.send('complete');
-
-            next();
-    
-        } catch(e) {
-            apiLogger.warn('link-content2item API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',

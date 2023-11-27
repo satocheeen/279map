@@ -7,7 +7,7 @@ import { dialogTargetAtom, mapModeAtom, showingDetailItemIdAtom } from '../../st
 import { connectStatusLoadableAtom, mapDefineLoadableAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
-import { GetSnsPreviewAPI, GetThumbAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, SearchAPI } from 'tsunagumap-api';
+import { GetSnsPreviewAPI, GetThumbAPI, RegistContentAPI, RegistContentParam, SearchAPI } from 'tsunagumap-api';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { DataId, DataSourceGroup, MapKind } from '279map-common';
 import { MapMode, TsunaguMapHandler } from '../../types/types';
@@ -18,7 +18,7 @@ import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
 import { useApi } from '../../api/useApi';
-import { CategoryDefine, EventDefine, ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument } from '../../graphql/generated/graphql';
+import { CategoryDefine, EventDefine, ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument } from '../../graphql/generated/graphql';
 import { updateContentAtom } from '../../store/content';
 import { clientAtom } from 'jotai-urql';
 
@@ -88,8 +88,8 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         async updateContentAPI(param: MutationUpdateContentArgs) {
             await updateContent(param);
         },
-        async linkContentToItemAPI(param: LinkContentToItemParam) {
-            await callApi(LinkContentToItemAPI, param);
+        async linkContentToItemAPI(param: MutationLinkContentArgs) {
+            await gqlClient.mutation(LinkContentDocument, param);
         },
     
         async getSnsPreviewAPI(url: string) {

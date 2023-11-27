@@ -3,7 +3,7 @@ import { CSSProperties } from "react";
 import { MapKind } from '279map-common';
 import { ApiError, ErrorType, GetMapInfoResult, LinkContentToItemParam, RegistContentParam, GetSnsPreviewResult } from "tsunagumap-api";
 import { FilterDefine } from "279map-common";
-import { CategoryDefine, ContentsDefine, EventDefine, GetUnpointContentsResult, MutationUpdateContentArgs } from "../graphql/generated/graphql";
+import { CategoryDefine, ContentsDefine, EventDefine, GetUnpointContentsResult, MutationLinkContentArgs, MutationUpdateContentArgs } from "../graphql/generated/graphql";
 
 export type OnMapLoadParam = {
     mapKind: MapKind;
@@ -144,7 +144,7 @@ export interface TsunaguMapHandler {
 
     updateContentAPI(param: MutationUpdateContentArgs): Promise<void>;
 
-    linkContentToItemAPI(param: LinkContentToItemParam): Promise<void>;
+    linkContentToItemAPI(param: MutationLinkContentArgs): Promise<void>;
 
     getSnsPreviewAPI(url: string): Promise<GetSnsPreviewResult>;
 
@@ -257,5 +257,5 @@ export type LinkUnpointContentParam = {
     // 未配置コンテンツ情報取得API
     getUnpointDataAPI: (dataSourceId: string, nextToken?: string) => Promise<GetUnpointContentsResult>;
     // コンテンツ紐づけAPI
-    linkContentToItemAPI: (param: LinkContentToItemParam) => Promise<void>;
+    linkContentToItemAPI: (param: MutationLinkContentArgs) => Promise<void>;
 }
