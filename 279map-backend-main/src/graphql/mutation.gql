@@ -39,40 +39,48 @@ type DatasourceInfo {
     datasourceId: String!
     name: String!
     visible: Boolean!
-
     kind: DatasourceKindType!
     config: DatasourceConfig!
 }
+interface DatasourceConfig {
+    kind: DatasourceKindType!
+    editable: Boolean!
+    deletable: Boolean!
+}
 type ItemConfig {
+    kind: DatasourceKindType!
     layerGroup: String
     editable: Boolean!
     deletable: Boolean!
 }
 scalar IconKey
 type RealPointContentConfig {
+    kind: DatasourceKindType!
     defaultIcon: IconKey
     layerGroup: String
     linkableContents: Boolean!
     editable: Boolean!
     deletable: Boolean!
 }
-type TrackConfig {
-    layerGroup: String
-    editable: Boolean!
-    deletable: Boolean!
-}
 type ContentConfig {
+    kind: DatasourceKindType!
     linkableChildContents: Boolean!
     disableUnlinkMap: Boolean
     editable: Boolean!
     deletable: Boolean!
 }
-union DatasourceConfig = ItemConfig | RealPointContentConfig | TrackConfig | ContentConfig
+type TrackConfig {
+    kind: DatasourceKindType!
+    layerGroup: String
+    editable: Boolean!
+    deletable: Boolean!
+}
+union DatasourceConfig = ItemConfig | RealPointContentConfig | ContentConfig | TrackConfig
 
 type Mutation {
     switchMapKind (
         mapKind: MapKind!
-    ): MapInfo
+    ): MapInfo!
 
     removeItem (
         id: DataId!

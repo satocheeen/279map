@@ -1,6 +1,7 @@
 import { atom } from 'jotai';
-import { DataSourceInfo, DataSourceKindType, MapKind } from '279map-common';
-import { currentMapDefineAtom, currentMapKindAtom } from '../session';
+import { currentMapDefineAtom } from '../session';
+import { DatasourceGroup, DatasourceInfo } from '../../graphql/generated/graphql';
+import { DataSourceInfo } from '279map-common';
 
 /**
  * データソース関連のRecoil
@@ -30,14 +31,14 @@ export const itemDataSourceGroupsAtom = atom((get) => {
         const groupVisible = dataSourceVisibleInfo.group[group.name ?? ''] ?? group.visible;
         const newValue = Object.assign({}, group);
         newValue.visible = groupVisible;
-        newValue.dataSources = newValue.dataSources.map(ds => {
-            const dsVisible = dataSourceVisibleInfo.datasource[ds.dataSourceId] ?? ds.visible;
+        newValue.datasources = newValue.datasources.map(ds => {
+            const dsVisible = dataSourceVisibleInfo.datasource[ds.datasourceId] ?? ds.visible;
             const newDs = Object.assign({}, ds);
             newDs.visible = dsVisible;
             return newDs;
         });
         return newValue;
-    })
+    }) as DatasourceGroup[];
 })
 
 /**
@@ -46,8 +47,8 @@ export const itemDataSourceGroupsAtom = atom((get) => {
 export const itemDataSourcesAtom = atom((get) => {
     const dataSourceGroups = get(itemDataSourceGroupsAtom);
     return dataSourceGroups.reduce((acc, cur) => {
-        return acc.concat(cur.dataSources);
-    }, [] as DataSourceInfo[]);
+        return acc.concat(cur.datasources as DatasourceInfo[]);
+    }, [] as DatasourceInfo[]);
 })
 
 /**
@@ -64,9 +65,9 @@ export const visibleDataSourceIdsAtom = atom((get) => {
     const idList = [] as string[];
     dataSourceGroups.forEach(group => {
         if (!group.visible) return;
-        group.dataSources.forEach(ds => {
+        group.datasources.forEach(ds => {
             if (!ds.visible) return;
-            idList.push(ds.dataSourceId);
+            idList.push(ds.datasourceId);
         })
     });
     return idList;

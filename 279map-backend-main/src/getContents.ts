@@ -1,10 +1,10 @@
 import { ConnectionPool } from '.';
 import { getAncestorItemId } from "./util/utility";
-import { DataId, MapKind, Auth, DatasourceConfig } from '279map-common';
+import { DataId, MapKind, Auth } from '279map-common';
 import { PoolConnection } from 'mysql2/promise';
 import { ContentsInfo, ContentsTable, DataSourceTable, ItemContentLink } from '../279map-backend-common/src/types/schema';
 import { CurrentMap } from '../279map-backend-common/src';
-import { ContentsDefine } from './graphql/__generated__/types';
+import { ContentsDefine, DatasourceConfig } from './graphql/__generated__/types';
 
 type GetContentsParam = ({
     itemId: DataId;

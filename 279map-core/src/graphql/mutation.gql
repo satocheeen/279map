@@ -1,3 +1,54 @@
+fragment datasourceInfo on DatasourceInfo {
+    datasourceId
+    name
+    visible
+    kind
+    config {
+        ... on ItemConfig {
+            kind
+            layerGroup
+            editable
+            deletable
+        }
+        ... on RealPointContentConfig {
+            kind
+            defaultIcon
+            linkableContents
+            layerGroup
+            editable
+            deletable
+        }
+
+        ... on ContentConfig {
+            kind
+            linkableChildContents
+            disableUnlinkMap
+            editable
+            deletable
+        }
+
+    }
+}
+mutation switchMapKind (
+    $mapKind: MapKind!
+) {
+    switchMapKind (
+        mapKind: $mapKind
+    ) {
+        extent
+        itemDataSourceGroups {
+            name
+            visible
+            datasources {
+                ...datasourceInfo
+            }
+        }
+        contentDataSources {
+            ...datasourceInfo
+        }
+    }
+}
+
 mutation removeItem (
     $id: DataId!
 ) {

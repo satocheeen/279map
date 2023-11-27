@@ -5,7 +5,7 @@ import Tooltip from '../common/tooltip/Tooltip';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
-import { Auth, DataId, DataSourceKindType } from '279map-common';
+import { Auth, DataId } from '279map-common';
 import { GetSnsPreviewAPI, UpdateItemAPI } from 'tsunagumap-api';
 import { Button } from '../common';
 import { compareAuth } from '../../util/CommonUtility';
@@ -17,7 +17,7 @@ import { useApi } from '../../api/useApi';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern, ConfirmResult } from '../common/confirm/types';
 import { clientAtom } from 'jotai-urql';
-import { GetContentDocument, GetUnpointContentsDocument, LinkContentDocument, MutationLinkContentArgs, MutationRegistContentArgs, RegistContentDocument } from '../../graphql/generated/graphql';
+import { ContentConfig, DatasourceConfig, DatasourceKindType, GetContentDocument, GetUnpointContentsDocument, LinkContentDocument, MutationLinkContentArgs, MutationRegistContentArgs, RealPointContentConfig, RegistContentDocument } from '../../graphql/generated/graphql';
 
 type Props = {
     target: {
@@ -65,24 +65,24 @@ export default function AddContentMenu(props: Props) {
         // 追加可能なコンテンツ定義を取得
         if ('itemId' in props.target) {
             return dataSources
-                .filter(ds => ds.editable)
+                .filter(ds => (ds.config as DatasourceConfig).editable)
                 .map(ds => {
-                    return ds.dataSourceId;
+                    return ds.datasourceId;
                 });
         }
         const targetId = props.target.contentId;
-        const targetDs = dataSources.find(ds => ds.dataSourceId === targetId.dataSourceId);
-        if (targetDs?.kind === DataSourceKindType.Content) {
-            if (!targetDs.linkableChildContents) {
+        const targetDs = dataSources.find(ds => ds.datasourceId === targetId.dataSourceId);
+        if (targetDs?.kind === DatasourceKindType.Content) {
+            if (!(targetDs.config as ContentConfig).linkableChildContents) {
                 return [];
             } else {
-                return [targetDs.dataSourceId];
+                return [targetDs.datasourceId];
             }
-        } else if (targetDs?.kind === DataSourceKindType.RealPointContent) {
-            if (!targetDs.linkableContents) {
+        } else if (targetDs?.kind === DatasourceKindType.RealPointContent) {
+            if (!(targetDs.config as RealPointContentConfig).linkableContents) {
                 return [];
             } else {
-                return [targetDs.dataSourceId];
+                return [targetDs.datasourceId];
             }
         } else {
             return [];
@@ -95,18 +95,18 @@ export default function AddContentMenu(props: Props) {
                 // 追加対象データソースに絞る
                 .filter(ds => {
                     return addableContentDatasources.some(addableDs => {
-                        const addable = addableDs === ds.dataSourceId;
+                        const addable = addableDs === ds.datasourceId;
                         if (!addable) return false;
                         // コンテンツデータソースが編集可能でなければ、新規追加は不可能
-                        const target = dataSources.find(source => source.dataSourceId === addableDs);
-                        if (!target?.editable) return false;
+                        const target = dataSources.find(source => source.datasourceId === addableDs);
+                        if (!(target?.config as DatasourceConfig).editable) return false;
 
                         return true;
                     });
                 })
                 .map(ds => {
                     return {
-                        dataSourceId: ds.dataSourceId,
+                        dataSourceId: ds.datasourceId,
                         name: ds.name,
                     }
                 });
@@ -115,12 +115,12 @@ export default function AddContentMenu(props: Props) {
         return dataSources
                 // 追加対象データソースに絞る
                 .filter(ds => {
-                    const target = addableContentDatasources.find(addableDs => addableDs === ds.dataSourceId);
+                    const target = addableContentDatasources.find(addableDs => addableDs === ds.datasourceId);
                     return target;
                 })
                 .map(ds => {
                     return {
-                        dataSourceId: ds.dataSourceId,
+                        dataSourceId: ds.datasourceId,
                         name: ds.name,
                     }
                 });

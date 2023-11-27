@@ -2,14 +2,13 @@ import { ContentAttr, DataId, DataSourceGroup, FeatureType, GeoProperties, IconD
 import { CSSProperties } from "react";
 import { MapKind } from '279map-common';
 import { ApiError, ErrorType, GetMapInfoResult, GetSnsPreviewResult } from "tsunagumap-api";
-import { FilterDefine } from "279map-common";
-import { CategoryDefine, Condition, ContentsDefine, EventDefine, GetUnpointContentsResult, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs } from "../graphql/generated/graphql";
+import { CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs } from "../graphql/generated/graphql";
 
 export type OnMapLoadParam = {
     mapKind: MapKind;
 }
 export type onDatasourceChangedParam = {
-    dataSourceGroups: DataSourceGroup[];
+    datasourceGroups: DatasourceGroup[];
 }
 export type ApiAccessError = {
     type: ErrorType;

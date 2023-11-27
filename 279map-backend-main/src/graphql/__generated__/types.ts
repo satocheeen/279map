@@ -44,6 +44,7 @@ export type ContentConfig = {
   deletable: Scalars['Boolean']['output'];
   disableUnlinkMap?: Maybe<Scalars['Boolean']['output']>;
   editable: Scalars['Boolean']['output'];
+  kind: DatasourceKindType;
   linkableChildContents: Scalars['Boolean']['output'];
 };
 
@@ -117,6 +118,7 @@ export type GetUnpointContentsResult = {
 export type ItemConfig = {
   deletable: Scalars['Boolean']['output'];
   editable: Scalars['Boolean']['output'];
+  kind: DatasourceKindType;
   layerGroup?: Maybe<Scalars['String']['output']>;
 };
 
@@ -144,7 +146,7 @@ export type Mutation = {
   registContent?: Maybe<Scalars['Boolean']['output']>;
   removeContent?: Maybe<Scalars['Boolean']['output']>;
   removeItem?: Maybe<Scalars['Boolean']['output']>;
-  switchMapKind?: Maybe<MapInfo>;
+  switchMapKind: MapInfo;
   unlinkContent?: Maybe<Scalars['Boolean']['output']>;
   unlinkContentsDatasource?: Maybe<Scalars['Boolean']['output']>;
   updateContent?: Maybe<Scalars['Boolean']['output']>;
@@ -291,6 +293,7 @@ export type RealPointContentConfig = {
   defaultIcon?: Maybe<Scalars['IconKey']['output']>;
   deletable: Scalars['Boolean']['output'];
   editable: Scalars['Boolean']['output'];
+  kind: DatasourceKindType;
   layerGroup?: Maybe<Scalars['String']['output']>;
   linkableContents: Scalars['Boolean']['output'];
 };
@@ -303,6 +306,7 @@ export type SearchHitItem = {
 export type TrackConfig = {
   deletable: Scalars['Boolean']['output'];
   editable: Scalars['Boolean']['output'];
+  kind: DatasourceKindType;
   layerGroup?: Maybe<Scalars['String']['output']>;
 };
 
@@ -472,6 +476,7 @@ export type ContentConfigResolvers<ContextType = any, ParentType extends Resolve
   deletable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   disableUnlinkMap?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   editable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  kind?: Resolver<ResolversTypes['DatasourceKindType'], ParentType, ContextType>;
   linkableChildContents?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -545,6 +550,7 @@ export interface IconKeyScalarConfig extends GraphQLScalarTypeConfig<ResolversTy
 export type ItemConfigResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemConfig'] = ResolversParentTypes['ItemConfig']> = {
   deletable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   editable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  kind?: Resolver<ResolversTypes['DatasourceKindType'], ParentType, ContextType>;
   layerGroup?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -570,7 +576,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   registContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRegistContentArgs, 'datasourceId' | 'parent' | 'title' | 'type'>>;
   removeContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveContentArgs, 'id'>>;
   removeItem?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveItemArgs, 'id'>>;
-  switchMapKind?: Resolver<Maybe<ResolversTypes['MapInfo']>, ParentType, ContextType, RequireFields<MutationSwitchMapKindArgs, 'mapKind'>>;
+  switchMapKind?: Resolver<ResolversTypes['MapInfo'], ParentType, ContextType, RequireFields<MutationSwitchMapKindArgs, 'mapKind'>>;
   unlinkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkContentArgs, 'id' | 'parent'>>;
   unlinkContentsDatasource?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkContentsDatasourceArgs, 'contentsDatasourceIds'>>;
   updateContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateContentArgs, 'id' | 'type'>>;
@@ -593,6 +599,7 @@ export type RealPointContentConfigResolvers<ContextType = any, ParentType extend
   defaultIcon?: Resolver<Maybe<ResolversTypes['IconKey']>, ParentType, ContextType>;
   deletable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   editable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  kind?: Resolver<ResolversTypes['DatasourceKindType'], ParentType, ContextType>;
   layerGroup?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   linkableContents?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -607,6 +614,7 @@ export type SearchHitItemResolvers<ContextType = any, ParentType extends Resolve
 export type TrackConfigResolvers<ContextType = any, ParentType extends ResolversParentTypes['TrackConfig'] = ResolversParentTypes['TrackConfig']> = {
   deletable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   editable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  kind?: Resolver<ResolversTypes['DatasourceKindType'], ParentType, ContextType>;
   layerGroup?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };

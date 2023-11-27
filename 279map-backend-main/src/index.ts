@@ -39,7 +39,7 @@ import { graphqlHTTP } from 'express-graphql';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetUnpointContentsArgs, QuerySearchArgs } from './graphql/__generated__/types';
+import { ContentConfig, DatasourceConfig, DatasourceKindType, ItemConfig, MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, RealPointContentConfig, TrackConfig } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType } from './graphql/custom_scalar';
@@ -942,7 +942,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
 
                     ctx.session.setMapKind(param.mapKind);
 
-                    apiLogger.debug('result', result);
+                    apiLogger.debug('result', JSON.stringify(result,undefined,4));
 
                     return result;
 
@@ -1261,6 +1261,20 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             },
         } as MutationResolver,
         DataId: DataIdScalarType,
+        DatasourceConfig: {
+            __resolveType: (obj: DatasourceConfig) => {
+                switch(obj.kind) {
+                    case DatasourceKindType.Item:
+                        return 'ItemConfig';
+                    case DatasourceKindType.RealPointContent:
+                        return 'RealPointContentConfig';
+                    case DatasourceKindType.Content:
+                        return 'ContentConfig';
+                    case DatasourceKindType.Track:
+                        return 'TrackConfig';
+                }
+            }
+        }
     }
 })
 

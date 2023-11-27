@@ -22,6 +22,7 @@ import { convertDataIdFromFeatureId, getMapKey } from '../../util/dataUtility';
 import { GetGeocoderFeatureAPI } from 'tsunagumap-api';
 import { FitOptions } from 'ol/View';
 import { Coordinate } from 'ol/coordinate';
+import { DatasourceGroup, DatasourceKindType } from '../../graphql/generated/graphql';
 
 export type FeatureInfo = {
     id: DataId;
@@ -121,7 +122,7 @@ export class OlMapWrapper {
     /**
      * 地図種別に対応した初期レイヤを設定する
      */
-    initialize(mapKind: MapKind, dataSourceGroups: DataSourceGroup[], fitExtent?: Extent) {
+    initialize(mapKind: MapKind, dataSourceGroups: DatasourceGroup[], fitExtent?: Extent) {
         this._mapKind = mapKind;
         let extent = fitExtent;
         if (mapKind === MapKind.Real) {
@@ -158,13 +159,13 @@ export class OlMapWrapper {
             this._map.setLayers(layers);
 
             dataSourceGroups.forEach(group => {
-                group.dataSources.forEach(ds => {
-                    if (ds.kind === DataSourceKindType.Track) {
+                group.datasources.forEach(ds => {
+                    if (ds.kind === DatasourceKindType.Track) {
                         [[1, 8], [8, 13], [13, 21]].forEach(zoomLv => {
                             const layerDefine: LayerDefine = {
-                                dataSourceId: ds.dataSourceId,
+                                dataSourceId: ds.datasourceId,
                                 group: group.name ?? '',
-                                editable: ds.editable ?? false,
+                                editable: ds.config.editable ?? false,
                                 layerType: LayerType.Track,
                                 zoomLv: {
                                     min: zoomLv[0],
@@ -174,12 +175,12 @@ export class OlMapWrapper {
                             this.addLayer(layerDefine, ds.visible);
                         })
     
-                    } else if (ds.kind === DataSourceKindType.Item || ds.kind === DataSourceKindType.RealPointContent) {
+                    } else if (ds.kind === DatasourceKindType.Item || ds.kind === DatasourceKindType.RealPointContent) {
                         [LayerType.Point, LayerType.Topography].forEach(layerType => {
                             const layerDefine: LayerDefine = {
-                                dataSourceId: ds.dataSourceId,
+                                dataSourceId: ds.datasourceId,
                                 group: group.name ?? '',
-                                editable: ds.editable ?? false,
+                                editable: ds.config.editable ?? false,
                                 layerType: layerType as LayerType.Point| LayerType.Topography,
                             };
                             this.addLayer(layerDefine, ds.visible);
@@ -193,15 +194,15 @@ export class OlMapWrapper {
             // 村マップ
             extent ??= [0, 0, 2, 2];
             dataSourceGroups.forEach(group => {
-                group.dataSources.forEach(ds => {
-                    if (ds.kind !== DataSourceKindType.Item) {
+                group.datasources.forEach(ds => {
+                    if (ds.kind !== DatasourceKindType.Item) {
                         return;
                     }
                     [LayerType.Point, LayerType.Topography].forEach(layerType => {
                         const layerDefine: LayerDefine = {
-                            dataSourceId: ds.dataSourceId,
+                            dataSourceId: ds.datasourceId,
                             group: group.name ?? '',
-                            editable: ds.editable ?? false,
+                            editable: ds.config.editable ?? false,
                             layerType: layerType as LayerType.Point| LayerType.Topography,
                         };
                         this.addLayer(layerDefine, ds.visible);
@@ -597,7 +598,7 @@ export class OlMapWrapper {
      * @param target 
      * @param visible 
      */
-    updateLayerVisible(dataSourceGroups: DataSourceGroup[]) {
+    updateLayerVisible(dataSourceGroups: DatasourceGroup[]) {
         let hiddenToShowFlag = false;   // 非表示レイヤが表示に切り替わるケースがあるか
         const changeVisible = (target: { dataSourceId: string } | { group: string }, visible: boolean) => {
             let layerInfos: LayerInfo[];
@@ -620,9 +621,9 @@ export class OlMapWrapper {
             }, group.visible);
             if (!group.visible) return;
 
-            group.dataSources.forEach(ds => {
+            group.datasources.forEach(ds => {
                 changeVisible({
-                    dataSourceId: ds.dataSourceId,
+                    dataSourceId: ds.datasourceId,
                 }, ds.visible);
             });
         })

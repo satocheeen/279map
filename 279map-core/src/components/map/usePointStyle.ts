@@ -5,7 +5,7 @@ import { getStructureScale } from "../../util/MapUtility";
 import { SystemIconDefine } from "../../types/types";
 import useFilterStatus from "./useFilterStatus";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
-import { DataSourceKindType, IconKey } from "279map-common";
+import { IconKey } from "279map-common";
 import { Geometry } from "ol/geom";
 import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
 import { useMap } from "./useMap";
@@ -16,6 +16,7 @@ import { filteredItemIdListAtom } from "../../store/filter";
 import { itemDataSourcesAtom } from "../../store/datasource";
 import { useAtom } from 'jotai';
 import { MapStyles } from "../../util/constant-defines";
+import { DatasourceKindType, RealPointContentConfig } from "../../graphql/generated/graphql";
 
 // 建物ラベルを表示するresolution境界値（これ以下の値の時に表示）
 const StructureLabelResolution = 0.003;
@@ -173,8 +174,8 @@ export default function usePointStyle() {
         const itemId = convertDataIdFromFeatureId(mainFeature.getId() as string);
         if (!icon) {
             // icon未指定の場合はレイヤデフォルトアイコンを設定
-            const datasource = dataSources.find(ds => ds.dataSourceId === itemId.dataSourceId);
-            icon = datasource?.kind === DataSourceKindType.RealPointContent ? datasource.defaultIcon : undefined;
+            const datasource = dataSources.find(ds => ds.datasourceId === itemId.dataSourceId);
+            icon = datasource?.kind === DatasourceKindType.RealPointContent ? (datasource.config as RealPointContentConfig).defaultIcon : undefined;
         }
         const iconDefine = getIconDefine(icon);
 

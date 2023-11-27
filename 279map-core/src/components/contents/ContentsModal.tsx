@@ -145,9 +145,9 @@ export default function ContentsModal(props: Props) {
     const isShowItemNameEditBtn = useMemo(() => {
         if (props.type !== 'item') return false;
         if (isTemporaryItem) return false;
-        const targetDs = itemDatasources.find(ds => ds.dataSourceId === props.id.dataSourceId);
+        const targetDs = itemDatasources.find(ds => ds.datasourceId === props.id.dataSourceId);
         if (!targetDs) return false;
-        return targetDs.editable && compareAuth(authLv, Auth.Edit) >= 0
+        return targetDs.config.editable && compareAuth(authLv, Auth.Edit) >= 0
     }, [props, authLv, itemDatasources, isTemporaryItem])
 
     const itemNameEditTipLabel = useMemo(() => {

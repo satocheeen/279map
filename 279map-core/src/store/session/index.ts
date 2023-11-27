@@ -1,4 +1,4 @@
-import { ConnectAPI, ConnectResult, ErrorType, GetMapInfoAPI, GetMapInfoResult } from 'tsunagumap-api';
+import { ConnectAPI, ConnectResult, ErrorType } from 'tsunagumap-api';
 import { Auth, MapKind } from '279map-common';
 import { ApiException, callApi } from '../../api/api';
 import { Extent } from "ol/extent";
@@ -7,6 +7,8 @@ import { atomWithReducer, loadable, selectAtom } from 'jotai/utils';
 import { Loadable } from 'jotai/vanilla/utils/loadable';
 import { ServerInfo } from '../../types/types';
 import { atomWithCountup } from '../../util/jotaiUtility';
+import { clientAtom } from 'jotai-urql';
+import { MapInfo, SwitchMapKindDocument, SwitchMapKindMutation } from '../../graphql/generated/graphql';
 
 export const instanceIdAtom = atomWithCountup('instance-');
 
@@ -44,19 +46,29 @@ export const connectStatusLoadableAtom = loadable(connectStatusAtom);
 export const specifiedMapKindAtom = atom<MapKind|undefined>(undefined);
 
 export const mapDefineReducerAtom = atomWithReducer(0, (prev) => prev+1);
-const mapDefineAtom = atom<Promise<GetMapInfoResult>>(async(get) => {
+type SwitchMapKindResult = SwitchMapKindMutation['switchMapKind']
+type MapDefineType = SwitchMapKindResult & {
+    mapKind: MapKind
+}
+const mapDefineAtom = atom<Promise<MapDefineType>>(async(get) => {
     get(mapDefineReducerAtom);
 
     const connectStatus = await get(connectStatusAtom);
     const specifiedMapKind = get(specifiedMapKindAtom);
     const mapKind = specifiedMapKind ?? connectStatus.mapDefine.defaultMapKind;
     
-    const serverInfo = get(serverInfoAtom);
-    const sid = connectStatus.sid;
-    const res = await callApi(serverInfo, sid, GetMapInfoAPI, {
+    const gqlClient = get(clientAtom);
+    const res = await gqlClient.mutation(SwitchMapKindDocument, {
         mapKind,
     });
-    return res;
+    if (!res.data) {
+        throw res.error;
+    }
+    const data = res.data.switchMapKind;
+    return {
+        mapKind,
+        ...data
+    };
 });
 export const mapDefineLoadableAtom = loadable(mapDefineAtom);
 
@@ -64,7 +76,7 @@ export const mapDefineLoadableAtom = loadable(mapDefineAtom);
  * 地図定義情報。
  * 地図種別切り替え時、新データ取得までは切替前の情報を保持する
  */
-export const currentMapDefineAtom = selectAtom<Loadable<Promise<GetMapInfoResult>>, GetMapInfoResult|undefined>(mapDefineLoadableAtom, (current, prev) => {
+export const currentMapDefineAtom = selectAtom<Loadable<Promise<MapDefineType>>, MapDefineType|undefined>(mapDefineLoadableAtom, (current, prev) => {
     if (current?.state === 'hasData') {
         return current.data;
     } else {

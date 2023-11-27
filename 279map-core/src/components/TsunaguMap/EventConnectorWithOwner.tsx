@@ -9,7 +9,7 @@ import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { GetSnsPreviewAPI, GetThumbAPI } from 'tsunagumap-api';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { DataId, DataSourceGroup, MapKind } from '279map-common';
+import { DataId, MapKind } from '279map-common';
 import { MapMode, TsunaguMapHandler } from '../../types/types';
 import { useAtom } from 'jotai';
 import { itemDataSourceGroupsAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
@@ -18,7 +18,7 @@ import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
 import { useApi } from '../../api/useApi';
-import { CategoryDefine, EventDefine, ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument } from '../../graphql/generated/graphql';
+import { CategoryDefine, EventDefine, ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup } from '../../graphql/generated/graphql';
 import { updateContentAtom } from '../../store/content';
 import { clientAtom } from 'jotai-urql';
 
@@ -230,7 +230,7 @@ function useMapLoadListener() {
 function useDataSourceChangeListener() {
     const ownerContext = useContext(OwnerContext);
     const [ itemDataSources ] = useAtom(itemDataSourceGroupsAtom);
-    const latestDataSourceGroupsRef = useRef<DataSourceGroup[]>();
+    const latestDataSourceGroupsRef = useRef<DatasourceGroup[]>();
 
      // マウント後でないとイベント発火できないので、useEffect内で処理
      useEffect(() => {
@@ -238,7 +238,7 @@ function useDataSourceChangeListener() {
             console.log('DataSourceChange');
             if (ownerContext.onDatasourceChanged) {
                 ownerContext.onDatasourceChanged({
-                    dataSourceGroups: itemDataSources,
+                    datasourceGroups: itemDataSources,
                 })
                 latestDataSourceGroupsRef.current = itemDataSources;
             }

@@ -3,13 +3,14 @@ import { Overlay } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import styles from './ClusterMenu.module.scss';
 import useIcon from '../../store/icon/useIcon';
-import { DataId, DataSourceKindType } from '279map-common';
+import { DataId } from '279map-common';
 import { getMapKey } from '../../util/dataUtility';
 import { useMap } from '../map/useMap';
 import { BsImage } from 'react-icons/bs';
 import { useItem } from '../../store/item/useItem';
 import { itemDataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
+import { DatasourceKindType, RealPointContentConfig } from '../../graphql/generated/graphql';
 
 const ARROW_HEIGHT = 20;
 const ARROW_OFFSET_LEFT = 45;
@@ -103,8 +104,8 @@ function MenuItem(props: MenuItemProp) {
         }
         if (!('icon' in item.geoProperties)) {
             // icon未指定の場合はレイヤデフォルトアイコンを設定
-            const datasource = dataSources.find(ds => ds.dataSourceId === item.id.dataSourceId);
-            const icon = datasource?.kind === DataSourceKindType.RealPointContent ? datasource.defaultIcon : undefined;
+            const datasource = dataSources.find(ds => ds.datasourceId === item.id.dataSourceId);
+            const icon = datasource?.kind === DatasourceKindType.RealPointContent ? (datasource.config as RealPointContentConfig).defaultIcon : undefined;
             return getIconDefine(icon);
         }
         return getIconDefine(item.geoProperties.icon);

@@ -118,7 +118,7 @@ function useItemUpdater() {
     const [ itemMap, setItemMap ] = useAtom(allItemsAtom);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
-    const [ itemDataSourceGroups ] = useAtom(itemDataSourceGroupsAtom);
+    const [ itemDatasourceGroups ] = useAtom(itemDataSourceGroupsAtom);
     const [ currentMapKind ] = useAtom(currentMapKindAtom);
     // 地図初期化済みの地図種別
     const [ initializedMapKind, setInitializedMapKind ] = useState<MapKind|undefined>();
@@ -142,7 +142,7 @@ function useItemUpdater() {
         map.clearAllLayers();
         
         // 初期レイヤ生成
-        map.initialize(currentMapKind, itemDataSourceGroups, currentMapDefine?.extent);
+        map.initialize(currentMapKind, itemDatasourceGroups, currentMapDefine?.extent);
 
         setDialogTarget(undefined);
         fitToDefaultExtent(false);
@@ -230,13 +230,13 @@ function useMapStyleUpdater() {
  * データソース情報の変更検知して、レイヤの表示・非表示切り替え
  */
 function useLayerVisibleChanger() {
-    const [ itemDataSources ] = useAtom(itemDataSourceGroupsAtom);
+    const [ itemDatasources ] = useAtom(itemDataSourceGroupsAtom);
     const { map } = useMap();
 
     useEffect(() => {
-        map?.updateLayerVisible(itemDataSources);
+        map?.updateLayerVisible(itemDatasources);
 
-    }, [itemDataSources, map]);
+    }, [itemDatasources, map]);
 
 }
 

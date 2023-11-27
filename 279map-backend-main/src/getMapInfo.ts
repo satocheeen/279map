@@ -192,8 +192,8 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
             infos.push({
                 datasourceId: row.data_source_id,
                 name: row.name,
-                visible,
                 kind: row.kind,
+                visible,
                 config,
             })
 
@@ -260,8 +260,8 @@ async function getContentDataSources(mapId: string, mapKind: MapKind, authLv: Au
             return {
                 datasourceId: rec.data_source_id,
                 name: rec.name,
-                kind: rec.kind,
                 visible: true,
+                kind: rec.kind,
                 config,
             }
         }})

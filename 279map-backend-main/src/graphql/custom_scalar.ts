@@ -1,4 +1,4 @@
-import { GraphQLScalarType } from "graphql";
+import { GraphQLScalarType, GraphQLInterfaceType } from "graphql";
 import { DataId } from '279map-common';
 
 export const DataIdScalarType = new GraphQLScalarType({
