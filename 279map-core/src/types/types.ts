@@ -1,7 +1,7 @@
 import { ContentAttr, DataId, DataSourceGroup, FeatureType, GeoProperties, IconDefine, MapDefine } from "279map-common";
 import { CSSProperties } from "react";
 import { MapKind } from '279map-common';
-import { ApiError, ErrorType, GetMapInfoResult, LinkContentToItemParam, RegistContentParam, GetSnsPreviewResult } from "tsunagumap-api";
+import { ApiError, ErrorType, GetMapInfoResult, RegistContentParam, GetSnsPreviewResult } from "tsunagumap-api";
 import { FilterDefine } from "279map-common";
 import { CategoryDefine, ContentsDefine, EventDefine, GetUnpointContentsResult, MutationLinkContentArgs, MutationUpdateContentArgs } from "../graphql/generated/graphql";
 

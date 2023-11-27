@@ -18,7 +18,7 @@ import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import cors from 'cors';
 import { exit } from 'process';
 import { getMapInfoById } from './getMapDefine';
-import { ConfigAPI, ConnectResult, GeocoderParam, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
+import { ConfigAPI, ConnectResult, GeocoderParam, GetGeocoderFeatureParam, GetItemsAPI, GetMapInfoAPI, GetMapInfoParam, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, RegistContentAPI, RegistContentParam, RegistItemAPI, RegistItemParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
 import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, SearchAPI, SearchParam, RequestAPI, RequestParam, GetItemsByIdAPI, GetItemsByIdParam, GetLinkableContentsAPI, LinkContentDatasourceToMapAPI, LinkContentDatasourceToMapParam, UnlinkContentDatasourceFromMapAPI, UnLinkContentDatasourceFromMapParam } from '../279map-api-interface/src/api';

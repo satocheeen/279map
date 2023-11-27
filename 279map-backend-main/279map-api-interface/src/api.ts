@@ -160,24 +160,6 @@ export type RegistContentParam = {
 } & ContentAttr;
 
 /**
- * link conent to item
- */
-export const LinkContentToItemAPI = {
-    uri: 'link-content2item',
-    method: 'post',
-    resultType: 'none',
-} as APIDefine<LinkContentToItemParam, void>;
-
-export type LinkContentToItemParam = {
-    childContentId: DataId;
-    parent: {
-        itemId: DataId;
-    } | {
-        contentId: DataId;
-    }
-}
-
-/**
  * search items and contents
  */
 export const SearchAPI = {
