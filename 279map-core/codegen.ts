@@ -15,13 +15,17 @@ const config: CodegenConfig = {
       plugins: [
         {
           add: {
-            content: "import { DataId } from '279map-common'"
+            content: [
+              "import { DataId } from '279map-common'",
+              "import { Geometry } from 'geojson'",
+            ]
           }
         },
       ],
       config: {
         scalars: {
           DataId: 'DataId',
+          Geometry: 'Geometry',
         },
       }
     },

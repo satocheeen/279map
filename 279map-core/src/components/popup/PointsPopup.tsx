@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState, useEffect } from "react";
 import styles from './PointsPopup.module.scss';
-import { ContentsDefine, DataId, ItemContentInfo, ItemDefine } from "279map-common";
+import { ContentsDefine, DataId } from "279map-common";
 import { MapMode } from "../../types/types";
 import { isEqualId } from "../../util/dataUtility";
 import MyThumbnail from "../common/image/MyThumbnail";
@@ -12,6 +12,7 @@ import { filteredContentIdListAtom, filteredItemIdListAtom } from "../../store/f
 import { useItems } from "../../store/item/useItems";
 import { useAtom } from "jotai";
 import { useAtomCallback } from 'jotai/utils';
+import { ItemDefine } from "../../graphql/generated/graphql";
 
 type Props = {
     // このポップアップにて情報表示する対象アイテム
@@ -23,23 +24,10 @@ export type PopupItem = {
     content?: ContentsDefine;
 }
 
-function hasImageItem(item: ItemDefine): boolean {
-    if (item.contents.length===0) return false;
-    if (item.contents.some(c => c.hasImage)) return true;
-    const hasChildOwnImage = (children: ItemContentInfo[]): boolean => {
-        return children.some(child => {
-            if (child.hasImage) return true;
-            return hasChildOwnImage(child.children);
-        });
-    }
-    return hasChildOwnImage(item.contents);
-
-}
 export default function PointsPopup(props: Props) {
     const { map } = useMap();
     const [ filteredItemIdList ] = useAtom(filteredItemIdListAtom);
     const [ filteredContentIdList ] = useAtom(filteredContentIdListAtom);
-    const { getDescendantContentsIdList } = useItems();
     const [ targetItems, setTargetItems ] = useState<ItemDefine[]>([]);
     const { getItem } = useItems();
 
@@ -72,7 +60,7 @@ export default function PointsPopup(props: Props) {
             return infos[0];
         }
         // 複数アイテムが表示対象の場合は、画像を持つもののみ表示対象
-        const ownImageInfos = infos.filter(info => hasImageItem(info));
+        const ownImageInfos = infos.filter(info => info.hasImageContentId.length > 0);
         if (ownImageInfos.length === 0) {
             // 画像を持つものがない場合は、冒頭
             return infos[0];
@@ -88,43 +76,15 @@ export default function PointsPopup(props: Props) {
         if (!target) return null;
         if (popupMode !== 'maximum') return null;
 
-        const getImageOwnerContentId = (content: ItemContentInfo) : DataId | undefined => {
-            const isVisible = !filteredContentIdList || filteredContentIdList.some(filteredId => isEqualId(filteredId, content.id));
-            if (isVisible && content.hasImage) {
-                return content.id;
-            }
-            let id: DataId | undefined;
-            content.children?.some(child => {
-                id = getImageOwnerContentId(child);
-                return id ? true : false;
-            });
-            return id;
-        }
-        if (target.contents.length === 0) {
+        if (target.hasImageContentId.length === 0) {
             return null;
         }
-        let imageContentId: DataId | undefined ;
-        for (const content of target.contents) {
-            imageContentId = getImageOwnerContentId(content);
-            if (imageContentId) {
-                break;
-            }
+        if (!filteredContentIdList) {
+            return target.hasImageContentId[0];
         }
-        if (!imageContentId) {
-            return null;
-        }
-        return imageContentId;
+        return target.hasImageContentId.find(c => filteredContentIdList.some(f => f.dataSourceId === c.dataSourceId && f.id === c.id)) ?? null;
 
     }, [target, filteredContentIdList, popupMode]);
-
-    // このアイテムの中に含まれるコンテンツの総数
-    // （吹き出しに表示していたが、わかりづらいので、現在は未使用）
-    const contentsNum = useMemo(() => {
-        return props.itemIds.reduce((acc, cur) => {
-            const descendants = getDescendantContentsIdList(cur, true);
-            return acc + descendants.length;
-        }, 0);
-    }, [props.itemIds, getDescendantContentsIdList]);
 
     const onClick = useAtomCallback(
         useCallback((get, set, evt: React.MouseEvent) => {

@@ -1,5 +1,6 @@
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
 import { DataId } from '279map-common'
+import { Geometry } from 'geojson'
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -17,6 +18,8 @@ export type Scalars = {
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
   DataId: { input: DataId; output: DataId; }
+  Geometry: { input: Geometry; output: Geometry; }
+  GraphQLJSON: { input: any; output: any; }
   IconKey: { input: any; output: any; }
 };
 
@@ -130,10 +133,20 @@ export type ItemConfig = {
 };
 
 export type ItemDefine = {
+  geoJson: Scalars['Geometry']['output'];
+  geoProperties: Scalars['GraphQLJSON']['output'];
+  hasContents: Scalars['Boolean']['output'];
+  hasImageContentId: Array<Scalars['DataId']['output']>;
   id: Scalars['DataId']['output'];
   lastEditedTime: Scalars['String']['output'];
   name: Scalars['String']['output'];
+  temporary?: Maybe<ItemTemporaryState>;
 };
+
+export enum ItemTemporaryState {
+  Registing = 'Registing',
+  Updateing = 'Updateing'
+}
 
 export type MapInfo = {
   contentDataSources: Array<DatasourceInfo>;
@@ -244,7 +257,7 @@ export type Query = {
   getContents: Array<ContentsDefine>;
   getContentsInItem: Array<ContentsDefine>;
   getEvent: Array<EventDefine>;
-  getItems?: Maybe<Array<Maybe<ItemDefine>>>;
+  getItems: Array<ItemDefine>;
   getLinkableContentsDatasources: Array<ContentsDatasource>;
   getUnpointContents: GetUnpointContentsResult;
   getUserList: Array<User>;
@@ -422,12 +435,15 @@ export type ResolversTypes = {
   DatasourceKindType: DatasourceKindType;
   EventDefine: ResolverTypeWrapper<EventDefine>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
+  Geometry: ResolverTypeWrapper<Scalars['Geometry']['output']>;
   GetUnpointContentsResult: ResolverTypeWrapper<GetUnpointContentsResult>;
+  GraphQLJSON: ResolverTypeWrapper<Scalars['GraphQLJSON']['output']>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   IconDefine: ResolverTypeWrapper<IconDefine>;
   IconKey: ResolverTypeWrapper<Scalars['IconKey']['output']>;
   ItemConfig: ResolverTypeWrapper<ItemConfig>;
   ItemDefine: ResolverTypeWrapper<ItemDefine>;
+  ItemTemporaryState: ItemTemporaryState;
   MapInfo: ResolverTypeWrapper<MapInfo>;
   MapKind: MapKind;
   Mutation: ResolverTypeWrapper<{}>;
@@ -457,7 +473,9 @@ export type ResolversParentTypes = {
   DatasourceInfo: Omit<DatasourceInfo, 'config'> & { config: ResolversParentTypes['DatasourceConfig'] };
   EventDefine: EventDefine;
   Float: Scalars['Float']['output'];
+  Geometry: Scalars['Geometry']['output'];
   GetUnpointContentsResult: GetUnpointContentsResult;
+  GraphQLJSON: Scalars['GraphQLJSON']['output'];
   ID: Scalars['ID']['output'];
   IconDefine: IconDefine;
   IconKey: Scalars['IconKey']['output'];
@@ -547,11 +565,19 @@ export type EventDefineResolvers<ContextType = any, ParentType extends Resolvers
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export interface GeometryScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Geometry'], any> {
+  name: 'Geometry';
+}
+
 export type GetUnpointContentsResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['GetUnpointContentsResult'] = ResolversParentTypes['GetUnpointContentsResult']> = {
   contents?: Resolver<Array<ResolversTypes['UnpointContent']>, ParentType, ContextType>;
   nextToken?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
+
+export interface GraphQljsonScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['GraphQLJSON'], any> {
+  name: 'GraphQLJSON';
+}
 
 export type IconDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['IconDefine'] = ResolversParentTypes['IconDefine']> = {
   caption?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -574,9 +600,14 @@ export type ItemConfigResolvers<ContextType = any, ParentType extends ResolversP
 };
 
 export type ItemDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemDefine'] = ResolversParentTypes['ItemDefine']> = {
+  geoJson?: Resolver<ResolversTypes['Geometry'], ParentType, ContextType>;
+  geoProperties?: Resolver<ResolversTypes['GraphQLJSON'], ParentType, ContextType>;
+  hasContents?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  hasImageContentId?: Resolver<Array<ResolversTypes['DataId']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   lastEditedTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  temporary?: Resolver<Maybe<ResolversTypes['ItemTemporaryState']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -607,7 +638,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getContents?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentsArgs, 'ids'>>;
   getContentsInItem?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentsInItemArgs, 'itemId'>>;
   getEvent?: Resolver<Array<ResolversTypes['EventDefine']>, ParentType, ContextType, Partial<QueryGetEventArgs>>;
-  getItems?: Resolver<Maybe<Array<Maybe<ResolversTypes['ItemDefine']>>>, ParentType, ContextType, RequireFields<QueryGetItemsArgs, 'datasourceId' | 'wkt' | 'zoom'>>;
+  getItems?: Resolver<Array<ResolversTypes['ItemDefine']>, ParentType, ContextType, RequireFields<QueryGetItemsArgs, 'datasourceId' | 'wkt' | 'zoom'>>;
   getLinkableContentsDatasources?: Resolver<Array<ResolversTypes['ContentsDatasource']>, ParentType, ContextType>;
   getUnpointContents?: Resolver<ResolversTypes['GetUnpointContentsResult'], ParentType, ContextType, RequireFields<QueryGetUnpointContentsArgs, 'datasourceId'>>;
   getUserList?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
@@ -663,7 +694,9 @@ export type Resolvers<ContextType = any> = {
   DatasourceGroup?: DatasourceGroupResolvers<ContextType>;
   DatasourceInfo?: DatasourceInfoResolvers<ContextType>;
   EventDefine?: EventDefineResolvers<ContextType>;
+  Geometry?: GraphQLScalarType;
   GetUnpointContentsResult?: GetUnpointContentsResultResolvers<ContextType>;
+  GraphQLJSON?: GraphQLScalarType;
   IconDefine?: IconDefineResolvers<ContextType>;
   IconKey?: GraphQLScalarType;
   ItemConfig?: ItemConfigResolvers<ContextType>;

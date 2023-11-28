@@ -13,7 +13,7 @@ import VectorLayer from "ol/layer/Vector";
 import Style, { StyleFunction } from "ol/style/Style";
 import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
-import { DataId, FeatureType, ItemDefine, MapKind, DataSourceGroup, APIDefine, DataSourceKindType } from '279map-common';
+import { DataId, FeatureType, MapKind, APIDefine } from '279map-common';
 import BaseEvent from 'ol/events/Event';
 import * as MapUtility from '../../util/MapUtility';
 import { FeatureProperties } from '../../types/types';
@@ -22,7 +22,7 @@ import { convertDataIdFromFeatureId, getMapKey } from '../../util/dataUtility';
 import { GetGeocoderFeatureAPI } from 'tsunagumap-api';
 import { FitOptions } from 'ol/View';
 import { Coordinate } from 'ol/coordinate';
-import { DatasourceGroup, DatasourceKindType } from '../../graphql/generated/graphql';
+import { DatasourceGroup, DatasourceKindType, ItemDefine } from '../../graphql/generated/graphql';
 
 export type FeatureInfo = {
     id: DataId;

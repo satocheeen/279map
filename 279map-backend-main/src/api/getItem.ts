@@ -1,22 +1,21 @@
-import { DataId, ItemContentInfo, ItemDefine } from "279map-common";
+import { DataId, ItemContentInfo } from "279map-common";
 import { getLogger } from "log4js";
 import { ConnectionPool } from "..";
 import { ItemContentLink, ItemsTable } from "../../279map-backend-common/src/types/schema";
-import { getContentsInfo } from "../getItems";
-import { GetItemsByIdParam, GetItemsResult } from "../../279map-api-interface/src";
+import { getContentsInfo, getImageContentId } from "../getItems";
+import { GetItemsByIdParam } from "../../279map-api-interface/src";
+import { ItemDefine } from "../graphql/__generated__/types";
 
 const apiLogger = getLogger('api');
 
-export async function getItemsById(param: GetItemsByIdParam): Promise<GetItemsResult> {
+export async function getItemsById(param: GetItemsByIdParam): Promise<ItemDefine[]> {
     const list = [] as ItemDefine[];
     for (const target of param.targets) {
         const item = await getItem(target);
         if (item)
             list.push(item);
     }
-    return {
-        items: list,
-    }
+    return list;
 }
 
 export async function getItem(id: DataId): Promise<ItemDefine|undefined> {
@@ -64,7 +63,8 @@ export async function getItem(id: DataId): Promise<ItemDefine|undefined> {
             name,
             geoJson: row.geojson,
             geoProperties: row.geo_properties ? JSON.parse(row.geo_properties) : undefined,
-            contents,
+            hasContents: contents.length > 0,
+            hasImageContentId: getImageContentId(contents),
             lastEditedTime,
         }
 

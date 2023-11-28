@@ -18,7 +18,7 @@ import { allItemsAtom } from '../../store/item';
 import { useMap } from '../map/useMap';
 import { modalSpinnerAtom } from '../common/modal/Modal';
 import { clientAtom } from 'jotai-urql';
-import { ContentsDefine, GetContentDocument, GetContentsInItemDocument } from '../../graphql/generated/graphql';
+import { ContentsDefine, GetContentDocument, GetContentsInItemDocument, ItemTemporaryState } from '../../graphql/generated/graphql';
 
 export type Props = ({
     type: 'item' | 'content';
@@ -49,7 +49,7 @@ export default function ContentsModal(props: Props) {
         // アイテムが存在しない場合=一時アイテムが削除された場合
         if (!item) return true;
 
-        return item?.temporary === 'registing';
+        return item?.temporary === ItemTemporaryState.Registing;
     }, [item, props.type]);
 
     const [ gqlClient ] = useAtom(clientAtom);
@@ -59,7 +59,7 @@ export default function ContentsModal(props: Props) {
             setContentsList([]);
             return;
         }
-        if (!item || item.contents.length === 0) {
+        if (!item || !item.hasContents) {
             setContentsList([]);
             return;
         }

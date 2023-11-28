@@ -17,6 +17,25 @@ query getEvent(
     }    
 }
 
+query getItems (
+    $wkt: String!
+    $zoom: Float!
+    $datasourceId: String!
+    $latestEditedTime: String
+    $excludeItemIds: [String!]
+) {
+    getItems(wkt: $wkt, zoom: $zoom, datasourceId: $datasourceId, latestEditedTime: $latestEditedTime, excludeItemIds: $excludeItemIds) {
+        id
+        name
+        geoJson
+        geoProperties
+        lastEditedTime
+        hasContents
+        hasImageContentId
+        temporary
+    }
+}
+
 query getContent(
     $id: DataId!
 ) {

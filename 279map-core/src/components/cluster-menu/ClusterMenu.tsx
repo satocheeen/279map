@@ -112,7 +112,7 @@ function MenuItem(props: MenuItemProp) {
     }, [getIconDefine, item, dataSources]);
 
     const hasImage = useMemo(() => {
-        return item?.contents.some(c => c.hasImage);
+        return item?.hasImageContentId.length > 0;
     }, [item]);
 
     const itemName = useMemo(() => {

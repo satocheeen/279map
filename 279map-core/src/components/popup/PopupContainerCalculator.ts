@@ -1,4 +1,4 @@
-import { DataId, ItemDefine } from "279map-common";
+import { DataId } from "279map-common";
 import Feature from 'ol/Feature';
 import { GeolibInputCoordinates } from 'geolib/es/types';
 import { LayerType } from "../TsunaguMap/VectorLayerMap";
@@ -8,6 +8,7 @@ import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
 import { getFeatureCenter } from "../../util/MapUtility";
 import Style from "ol/style/Style";
 import { Extent } from "ol/extent";
+import { ItemDefine } from "../../graphql/generated/graphql";
 
 type PopupGroup = {
     mainFeature: Feature;
@@ -102,7 +103,7 @@ export default class PopupContainerCalculator {
 
                 const hasImage = itemIds.some(itemId => {
                     const target = this._hasContentsItemList.find(item => isEqualId(itemId, item.id));
-                    return target?.contents.some(c => c.hasImage);
+                    return (target?.hasImageContentId ?? []).length > 0;
                 });
     
                 popupInfoList.push({
@@ -134,7 +135,7 @@ export default class PopupContainerCalculator {
                 }
 
                 const item = this._hasContentsItemList.find(item => isEqualId(id, item.id));
-                const hasImage = item?.contents.some(c => c.hasImage) ?? false;
+                const hasImage = (item?.hasImageContentId ?? []).length > 0;
 
                 popupInfoList.push({
                     mainFeature: feature,

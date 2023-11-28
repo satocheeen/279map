@@ -1,4 +1,4 @@
-import { ItemDefine, MapKind } from '279map-common';
+import { MapKind } from '279map-common';
 import React, { useRef, useMemo, useContext, useEffect, lazy, Suspense, useState } from 'react';
 import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useSubscribe } from '../../api/useSubscribe';
@@ -19,6 +19,7 @@ import { filteredItemIdListAtom } from '../../store/filter';
 import VectorSource from 'ol/source/Vector';
 import useMyMedia from '../../util/useMyMedia';
 import { useWatch } from '../../util/useWatch2';
+import { ItemDefine } from '../../graphql/generated/graphql';
 
 const ContentsModal = lazy(() => import('../contents/ContentsModal'));
 

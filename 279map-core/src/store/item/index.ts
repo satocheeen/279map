@@ -1,5 +1,6 @@
-import { ItemDefine } from '279map-common';
 import { atom } from 'jotai';
+import { ItemDefine } from '../../graphql/generated/graphql';
+// import { ItemDefine } from '279map-common';
 
 export type LoadedItemKey = {
     datasourceId: string;

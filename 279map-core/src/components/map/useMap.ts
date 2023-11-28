@@ -5,7 +5,7 @@ import { useAtomCallback, atomWithReducer } from 'jotai/utils';
 import { currentMapKindAtom, defaultExtentAtom, instanceIdAtom, mapIdAtom } from '../../store/session';
 import { GetItemsAPI, GetItemsByIdAPI } from 'tsunagumap-api';
 import { LoadedAreaInfo, LoadedItemKey, allItemsAtom, latestEditedTimeOfDatasourceAtom, loadedItemMapAtom } from '../../store/item';
-import { DataId, Extent } from '279map-common';
+import { DataId, Extent, ItemDefine } from '279map-common';
 import { itemDataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import useMyMedia from '../../util/useMyMedia';
 import Feature from "ol/Feature";
@@ -18,7 +18,9 @@ import { geoJsonToTurfPolygon } from '../../util/MapUtility';
 import { bboxPolygon, intersect, union, booleanContains } from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 import { useItems } from '../../store/item/useItems';
-import { DatasourceKindType } from '../../graphql/generated/graphql';
+import { DatasourceKindType, GetItemsDocument } from '../../graphql/generated/graphql';
+import { clientAtom } from 'jotai-urql';
+import GeoJSON from 'geojson';
 
 /**
  * 地図インスタンス管理マップ。
@@ -42,6 +44,7 @@ export function useMap() {
     const { isPC } = useMyMedia();
     const [_, dispatch] = useAtom(mapInstanceCntReducerAtom);
     const { callApi } = useApi();
+    const [ gqlClient ] = useAtom(clientAtom);
 
     /**
      * 地図インスタンスを生成する
@@ -171,13 +174,20 @@ export function useMap() {
                     const latestEditedTime = get(latestEditedTimeOfDatasourceAtom)[target.datasourceId];
 
                     const excludeItemIds = getExcludeItemIds(target.datasourceId, param.extent);
-                    return callApi(GetItemsAPI, {
+                    return gqlClient.query(GetItemsDocument, {
                         wkt,
                         zoom,
                         latestEditedTime,
-                        dataSourceId: target.datasourceId,
+                        datasourceId: target.datasourceId,
                         excludeItemIds,
                     });
+                    // return callApi(GetItemsAPI, {
+                    //     wkt,
+                    //     zoom,
+                    //     latestEditedTime,
+                    //     dataSourceId: target.datasourceId,
+                    //     excludeItemIds,
+                    // });
                 }));
                 
                 // TODO: 地図が切り替えられていたら何もしない
@@ -187,14 +197,15 @@ export function useMap() {
                     console.log('cancel load items because map change', beforeMapId, beforeMapKind);
                     return;
                 }
-                const hasItem = apiResults.some(ar => {
-                    return ar.items.length > 0;
+                const hasItem = apiResults.some(apiResult => {
+                    const items = apiResult.data?.getItems ?? [];
+                    return items.length > 0;
                 });
                 if (hasItem) {
                     set(allItemsAtom, (currentItemMap) => {
                         const newItemsMap = structuredClone(currentItemMap);
                         apiResults.forEach(apiResult => {
-                            const items = apiResult.items;
+                            const items = apiResult.data?.getItems ?? [];
                             items.forEach(item => {
                                 newItemsMap[item.id.dataSourceId] ??= {};
                                 newItemsMap[item.id.dataSourceId][item.id.id] = item;
@@ -239,7 +250,7 @@ export function useMap() {
 
             }
 
-        }, [callApi, getLoadedAreaMapKey, getExcludeItemIds])
+        }, [gqlClient, getLoadedAreaMapKey, getExcludeItemIds])
     )
 
     /**
@@ -331,7 +342,8 @@ export function useMap() {
                     if (!newItemsMap[item.id.dataSourceId]) {
                         newItemsMap[item.id.dataSourceId] = {};
                     }
-                    newItemsMap[item.id.dataSourceId][item.id.id] = item;
+                    // @ts-ignore TODO;
+                    newItemsMap[item.id.dataSourceId][item.id.id] = item as ItemDefine;
                 });
                 return newItemsMap;
             })

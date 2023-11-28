@@ -1,8 +1,9 @@
-import { MapKind, DataId, ItemDefine } from '279map-common';
+import { MapKind, DataId } from '279map-common';
 import dayjs from 'dayjs';
 import { CurrentMap } from '../../279map-backend-common/src';
 import { RegistItemParam, UpdateItemParam } from '../../279map-api-interface/dist';
 import { createHash } from '../util/utility';
+import { ItemDefine, ItemTemporaryState } from '../graphql/__generated__/types';
 
 type ItemInfoMap = {[dataSourceId: string]: ItemInfo[]};
 type ItemInfo = {
@@ -109,7 +110,8 @@ export default class SessionInfo {
             geoJson: registItemParam.geometry,
             geoProperties:registItemParam.geoProperties,
             name: registItemParam.name ?? '',
-            contents: [],
+            hasContents: false,
+            hasImageContentId: [],
         })
 
         return processId;
@@ -130,7 +132,8 @@ export default class SessionInfo {
             geoJson: updateItemParam.geometry ?? currentItem.geoJson,
             geoProperties:updateItemParam.geoProperties ?? currentItem.geoProperties,
             name: updateItemParam.name ?? currentItem.name,
-            contents: currentItem.contents,
+            hasContents: currentItem.hasContents,
+            hasImageContentId: currentItem.hasImageContentId,
         })
 
         return processId;
@@ -164,8 +167,9 @@ export default class SessionInfo {
                     geoJson: item.geoJson,
                     geoProperties: item.geoProperties,
                     lastEditedTime: '',
-                    contents: item.contents,
-                    temporary: 'registing',
+                    hasContents: item.hasContents,
+                    hasImageContentId: item.hasImageContentId,
+                    temporary: ItemTemporaryState.Registing,
                 })
             } else {
                 items.push({
@@ -174,8 +178,9 @@ export default class SessionInfo {
                     geoJson: item.geoJson,
                     geoProperties: item.geoProperties,
                     lastEditedTime: '',
-                    contents: item.contents,
-                    temporary: 'updating',
+                    hasContents: item.hasContents,
+                    hasImageContentId: item.hasImageContentId,
+                    temporary: ItemTemporaryState.Updateing,
                 })
             }
         }
@@ -205,8 +210,9 @@ export default class SessionInfo {
                         geoJson: item.geoJson,
                         geoProperties: item.geoProperties,
                         lastEditedTime: '',
-                        contents: item.contents,
-                        temporary: 'registing',
+                        hasContents: item.hasContents,
+                        hasImageContentId: item.hasImageContentId,
+                        temporary: ItemTemporaryState.Registing,
                     })
                 }
                 continue;
@@ -216,11 +222,12 @@ export default class SessionInfo {
             items[index] = {
                 id: item.id,
                 name: item.name,
-                contents: item.contents,
+                hasContents: item.hasContents,
+                hasImageContentId: item.hasImageContentId,
                 geoJson: item.geoJson,
                 geoProperties: item.geoProperties,
                 lastEditedTime: '',
-                temporary: 'updating',
+                temporary: ItemTemporaryState.Updateing,
             }
         }
     }

@@ -38,7 +38,7 @@ import { graphqlHTTP } from 'express-graphql';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { ContentConfig, DatasourceConfig, DatasourceKindType, ItemConfig, MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, RealPointContentConfig, TrackConfig } from './graphql/__generated__/types';
+import { DatasourceConfig, DatasourceKindType, MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetItemsArgs, QueryGetUnpointContentsArgs, QuerySearchArgs } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType } from './graphql/custom_scalar';
@@ -46,6 +46,7 @@ import { makeExecutableSchema } from '@graphql-tools/schema'
 import { CustomError } from './graphql/CustomError';
 import { getLinkedItemIdList } from './api/apiUtility';
 import SessionInfo from './session/SessionInfo';
+import { GraphQLJSON } from 'graphql-scalars';
 
 declare global {
     namespace Express {
@@ -696,30 +697,26 @@ const schema = makeExecutableSchema<GraphQlContextType>({
     resolvers: {
         Query: {
             /**
-             * TODO: 要修正
-             * get items
              * 地図アイテム取得
              */
-            getItems: async(parent: any, param: GetItemsParam, ctx): QueryResolverReturnType<'getItems'> => {
-                const session = sessionManager.get(ctx.sessionKey as string);
-                console.log('session', session?.sid);
-
-                console.log('getItems', param);
-                await sleep(1);
-                return [];
-                // return [
-                //     {
-                //         id: {
-                //             id: 'aa',
-                //             dataSourceId: 'bb',
-                //         },
-                //         contents: [],
-                //         // @ts-ignore
-                //         geoJson: {},
-                //         name: 'ccc',
-                //         lastEditedTime: 'aaa'
-                //     }
-                // ];
+            getItems: async(parent: any, param: QueryGetItemsArgs, ctx): QueryResolverReturnType<'getItems'> => {
+                try {
+                    const items = await getItems({
+                        param,
+                        currentMap: ctx.currentMap,
+                    });
+        
+                    // 仮登録中の情報を付与して返す
+                    ctx.session.addTemporaryItems(items, ctx.currentMap);
+        
+                    // apiLogger.debug('result', result);
+        
+                    return items;
+        
+                } catch(e) {
+                    apiLogger.warn('get-items API error', param, e);
+                    throw e;
+                }
             },
             /**
              * カテゴリ取得
@@ -1231,6 +1228,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             },
         } as MutationResolver,
         DataId: DataIdScalarType,
+        GraphQLJSON,
         DatasourceConfig: {
             __resolveType: (obj: DatasourceConfig, parent: any) => {
                 console.log('debug', obj, parent)
@@ -1300,41 +1298,6 @@ app.use(
     }),
 )
 
-app.post(`/api/${GetItemsAPI.uri}`,
-    checkApiAuthLv(Auth.View), 
-    checkCurrentMap,
-    async(req, res, next) => {
-        const param = req.body as GetItemsParam;
-        try {
-            const session = sessionManager.get(req.connect?.sessionKey as string);
-            if (!session) {
-                throw new Error('session undefined');
-            }
-            
-            const result = await getItems({
-                param,
-                currentMap: req.currentMap,
-            });
-
-            // 仮登録中の情報を付与して返す
-            session.addTemporaryItems(result.items, req.currentMap);
-
-            // apiLogger.debug('result', result);
-
-            res.send(result);
-
-            next();
-
-        } catch(e) {
-            apiLogger.warn('get-items API error', param, e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail : e + '',
-            } as ApiError);
-        }
-    }
-);
-
 /**
  * get items by id
  * 地図アイテム取得(ID指定)
@@ -1353,7 +1316,7 @@ app.post(`/api/${GetItemsByIdAPI.uri}`,
             const result = await getItemsById(param);
 
             // 仮登録中の情報を付与して返す
-            session.mergeTemporaryItems(result.items, req.currentMap, param.targets);
+            session.mergeTemporaryItems(result, req.currentMap, param.targets);
 
             res.send(result);
 

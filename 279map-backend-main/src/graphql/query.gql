@@ -1,10 +1,22 @@
 scalar DataId
+scalar Geometry
+scalar GraphQLJSON
 
+enum ItemTemporaryState {
+    Registing
+    Updateing
+}
 type ItemDefine {
     id: DataId!
     name: String!
+    geoJson: Geometry!
+    geoProperties: GraphQLJSON!
     lastEditedTime: String!
+    temporary: ItemTemporaryState
+    hasContents: Boolean!
+    hasImageContentId: [DataId!]!  # 画像を持つコンテンツID一覧
 }
+
 type CategoryDefine {
     name: String!
     color: String!
@@ -79,7 +91,7 @@ type SearchHitItem {
 # --------------
 
 type Query {
-    getItems(wkt: String!, zoom: Float!, datasourceId: String!, latestEditedTime: String, excludeItemIds: [String!]): [ItemDefine]
+    getItems(wkt: String!, zoom: Float!, datasourceId: String!, latestEditedTime: String, excludeItemIds: [String!]): [ItemDefine!]!
     getCategory(datasourceIds: [String!]): [CategoryDefine!]!
     getEvent(datasourceIds: [String!]): [EventDefine!]!
     getContent(id: DataId!): ContentsDefine!

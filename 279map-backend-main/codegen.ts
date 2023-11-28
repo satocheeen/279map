@@ -10,7 +10,10 @@ const config: CodegenConfig = {
         "typescript", "typescript-resolvers", 
         {
           add: {
-            content: "import { DataId } from '279map-common'"
+            content: [
+              "import { DataId } from '279map-common'",
+              "import { Geometry } from 'geojson'",
+            ]
           }
         },
       ],
@@ -18,6 +21,7 @@ const config: CodegenConfig = {
         skipTypename: true,
         scalars: {
           DataId: 'DataId',
+          Geometry: 'Geometry',
         },
       }
     }
