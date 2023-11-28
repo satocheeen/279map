@@ -3,12 +3,11 @@ import { getLogger } from "log4js";
 import { ConnectionPool } from "..";
 import { ItemContentLink, ItemsTable } from "../../279map-backend-common/src/types/schema";
 import { getContentsInfo, getImageContentId } from "../getItems";
-import { GetItemsByIdParam } from "../../279map-api-interface/src";
-import { ItemDefine } from "../graphql/__generated__/types";
+import { ItemDefine, QueryGetItemsByIdArgs } from "../graphql/__generated__/types";
 
 const apiLogger = getLogger('api');
 
-export async function getItemsById(param: GetItemsByIdParam): Promise<ItemDefine[]> {
+export async function getItemsById(param: QueryGetItemsByIdArgs): Promise<ItemDefine[]> {
     const list = [] as ItemDefine[];
     for (const target of param.targets) {
         const item = await getItem(target);

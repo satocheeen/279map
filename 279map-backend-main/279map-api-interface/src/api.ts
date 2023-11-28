@@ -50,20 +50,6 @@ export type RequestParam = {
     name: string;
 }
 
-export type GetItemsResult = {
-    items: ItemDefine[],
-};
-
-export const GetItemsByIdAPI = {
-    uri: 'getitems-by-id',
-    method: 'post',
-    resultType: 'json',
-} as APIDefine<GetItemsByIdParam, GetItemsResult>;
-
-export type GetItemsByIdParam = {
-    targets: DataId[];
-}
-
 /**
  * regist item
  */

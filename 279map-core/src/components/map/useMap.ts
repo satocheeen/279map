@@ -3,9 +3,8 @@ import { OlMapWrapper } from '../TsunaguMap/OlMapWrapper';
 import { atom, useAtom } from 'jotai';
 import { useAtomCallback, atomWithReducer } from 'jotai/utils';
 import { currentMapKindAtom, defaultExtentAtom, instanceIdAtom, mapIdAtom } from '../../store/session';
-import { GetItemsByIdAPI } from 'tsunagumap-api';
 import { LoadedAreaInfo, LoadedItemKey, allItemsAtom, latestEditedTimeOfDatasourceAtom, loadedItemMapAtom } from '../../store/item';
-import { DataId, Extent, ItemDefine } from '279map-common';
+import { DataId, Extent } from '279map-common';
 import { itemDataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import useMyMedia from '../../util/useMyMedia';
 import Feature from "ol/Feature";
@@ -18,7 +17,7 @@ import { geoJsonToTurfPolygon } from '../../util/MapUtility';
 import { bboxPolygon, intersect, union, booleanContains } from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 import { useItems } from '../../store/item/useItems';
-import { DatasourceKindType, GetItemsDocument } from '../../graphql/generated/graphql';
+import { DatasourceKindType, GetItemsByIdDocument, GetItemsDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import GeoJSON from 'geojson';
 
@@ -331,10 +330,10 @@ export function useMap() {
 
             if (updateTargets.length === 0) return;
 
-            const apiResult = await callApi(GetItemsByIdAPI, {
+            const apiResult = await gqlClient.query(GetItemsByIdDocument, {
                 targets: updateTargets,
             });
-            const items = apiResult.items;
+            const items = apiResult.data?.getItemsById ?? [];
 
             set(allItemsAtom, (currentItemMap) => {
                 const newItemsMap = structuredClone(currentItemMap);
@@ -342,13 +341,12 @@ export function useMap() {
                     if (!newItemsMap[item.id.dataSourceId]) {
                         newItemsMap[item.id.dataSourceId] = {};
                     }
-                    // @ts-ignore TODO;
-                    newItemsMap[item.id.dataSourceId][item.id.id] = item as ItemDefine;
+                    newItemsMap[item.id.dataSourceId][item.id.id] = item;
                 });
                 return newItemsMap;
             })
 
-        }, [getItem, callApi, getLoadedAreaMapKey])
+        }, [getItem, gqlClient, getLoadedAreaMapKey])
     )
 
     /**

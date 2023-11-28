@@ -95,6 +95,8 @@ type Query {
     # excludeItemIds: 指定されている場合、このidのアイテムは結果から除く TODO: deprecated
     getItems(wkt: String!, zoom: Float!, datasourceId: String!, latestEditedTime: String, excludeItemIds: [String!]): [ItemDefine!]!
 
+    getItemsById(targets: [DataId!]!): [ItemDefine!]!
+
     getCategory(datasourceIds: [String!]): [CategoryDefine!]!
     getEvent(datasourceIds: [String!]): [EventDefine!]!
     getContent(id: DataId!): ContentsDefine!

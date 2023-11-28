@@ -36,6 +36,20 @@ query getItems (
     }
 }
 
+query getItemsById (
+    $targets: [DataId!]!
+) {
+    getItemsById(targets: $targets) {
+        id
+        name
+        geoJson
+        geoProperties
+        lastEditedTime
+        hasContents
+        hasImageContentId
+        temporary
+    }
+}
 query getContent(
     $id: DataId!
 ) {

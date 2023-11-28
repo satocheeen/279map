@@ -258,6 +258,7 @@ export type Query = {
   getContentsInItem: Array<ContentsDefine>;
   getEvent: Array<EventDefine>;
   getItems: Array<ItemDefine>;
+  getItemsById: Array<ItemDefine>;
   getLinkableContentsDatasources: Array<ContentsDatasource>;
   getUnpointContents: GetUnpointContentsResult;
   getUserList: Array<User>;
@@ -296,6 +297,11 @@ export type QueryGetItemsArgs = {
   latestEditedTime?: InputMaybe<Scalars['String']['input']>;
   wkt: Scalars['String']['input'];
   zoom: Scalars['Float']['input'];
+};
+
+
+export type QueryGetItemsByIdArgs = {
+  targets: Array<Scalars['DataId']['input']>;
 };
 
 
@@ -639,6 +645,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getContentsInItem?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentsInItemArgs, 'itemId'>>;
   getEvent?: Resolver<Array<ResolversTypes['EventDefine']>, ParentType, ContextType, Partial<QueryGetEventArgs>>;
   getItems?: Resolver<Array<ResolversTypes['ItemDefine']>, ParentType, ContextType, RequireFields<QueryGetItemsArgs, 'datasourceId' | 'wkt' | 'zoom'>>;
+  getItemsById?: Resolver<Array<ResolversTypes['ItemDefine']>, ParentType, ContextType, RequireFields<QueryGetItemsByIdArgs, 'targets'>>;
   getLinkableContentsDatasources?: Resolver<Array<ResolversTypes['ContentsDatasource']>, ParentType, ContextType>;
   getUnpointContents?: Resolver<ResolversTypes['GetUnpointContentsResult'], ParentType, ContextType, RequireFields<QueryGetUnpointContentsArgs, 'datasourceId'>>;
   getUserList?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;

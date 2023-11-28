@@ -20,7 +20,7 @@ import { getMapInfoById } from './getMapDefine';
 import { ConfigAPI, ConnectResult, GeocoderParam, GetGeocoderFeatureParam, GetMapListAPI, GetSnsPreviewAPI, GetSnsPreviewParam, RegistItemAPI, RegistItemParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, RequestAPI, RequestParam, GetItemsByIdAPI, GetItemsByIdParam } from '../279map-api-interface/src/api';
+import { GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, RequestAPI, RequestParam } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 import { search } from './api/search';
@@ -38,7 +38,7 @@ import { graphqlHTTP } from 'express-graphql';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { DatasourceConfig, DatasourceKindType, MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetItemsArgs, QueryGetUnpointContentsArgs, QuerySearchArgs } from './graphql/__generated__/types';
+import { DatasourceConfig, DatasourceKindType, MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetUnpointContentsArgs, QuerySearchArgs } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType } from './graphql/custom_scalar';
@@ -719,6 +719,23 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
             },
             /**
+             * 地図アイテム取得(ID指定)
+             */
+            getItemsById: async(_, param: QueryGetItemsByIdArgs, ctx): QueryResolverReturnType<'getItemsById'> => {
+                try {
+                    const result = await getItemsById(param);
+
+                    // 仮登録中の情報を付与して返す
+                    ctx.session.mergeTemporaryItems(result, ctx.currentMap, param.targets);
+
+                    return result;
+
+                } catch(e) {
+                    apiLogger.warn('get-items-by-id API error', param, e);
+                    throw e;
+                }
+            },
+            /**
              * カテゴリ取得
              */
             getCategory: async(parent: any, param: QueryGetCategoryArgs, ctx): QueryResolverReturnType<'getCategory'> => {
@@ -1297,40 +1314,6 @@ app.use(
         }
     }),
 )
-
-/**
- * get items by id
- * 地図アイテム取得(ID指定)
- */
-app.post(`/api/${GetItemsByIdAPI.uri}`,
-    checkApiAuthLv(Auth.View), 
-    checkCurrentMap,
-    async(req, res, next) => {
-        const param = req.body as GetItemsByIdParam;
-        try {
-            const session = sessionManager.get(req.connect?.sessionKey as string);
-            if (!session) {
-                throw new Error('session undefined');
-            }
-            
-            const result = await getItemsById(param);
-
-            // 仮登録中の情報を付与して返す
-            session.mergeTemporaryItems(result, req.currentMap, param.targets);
-
-            res.send(result);
-
-            next();
-
-        } catch(e) {
-            apiLogger.warn('get-items-by-id API error', param, e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail : e + '',
-            } as ApiError);
-        }
-    }
-);
 
 /**
  * regist item
