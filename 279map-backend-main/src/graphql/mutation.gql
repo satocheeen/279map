@@ -99,6 +99,13 @@ type Mutation {
         mapKind: MapKind!
     ): MapInfo!
 
+    registItem (
+        datasourceId: String!
+        name: String
+        geometry: Geometry!
+        geoProperties: GraphQLJSON!
+    ): Boolean
+    
     updateItem (
         targets: [UpdateItemInput!]!
     ): Boolean

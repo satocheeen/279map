@@ -165,6 +165,7 @@ export type Mutation = {
   linkContent?: Maybe<Scalars['Boolean']['output']>;
   linkContentsDatasource?: Maybe<Scalars['Boolean']['output']>;
   registContent?: Maybe<Scalars['Boolean']['output']>;
+  registItem?: Maybe<Scalars['Boolean']['output']>;
   removeContent?: Maybe<Scalars['Boolean']['output']>;
   removeItem?: Maybe<Scalars['Boolean']['output']>;
   switchMapKind: MapInfo;
@@ -202,6 +203,14 @@ export type MutationRegistContentArgs = {
   title: Scalars['String']['input'];
   type: ContentType;
   url?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationRegistItemArgs = {
+  datasourceId: Scalars['String']['input'];
+  geoProperties: Scalars['GraphQLJSON']['input'];
+  geometry: Scalars['Geometry']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -645,6 +654,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   linkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkContentArgs, 'id' | 'parent'>>;
   linkContentsDatasource?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkContentsDatasourceArgs, 'contentsDatasources'>>;
   registContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRegistContentArgs, 'datasourceId' | 'parent' | 'title' | 'type'>>;
+  registItem?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRegistItemArgs, 'datasourceId' | 'geoProperties' | 'geometry'>>;
   removeContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveContentArgs, 'id'>>;
   removeItem?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveItemArgs, 'id'>>;
   switchMapKind?: Resolver<ResolversTypes['MapInfo'], ParentType, ContextType, RequireFields<MutationSwitchMapKindArgs, 'mapKind'>>;

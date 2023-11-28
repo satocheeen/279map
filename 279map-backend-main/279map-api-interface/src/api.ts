@@ -50,22 +50,6 @@ export type RequestParam = {
     name: string;
 }
 
-/**
- * regist item
- */
-export const RegistItemAPI = {
-    uri: 'registitem',
-    method: 'post',
-    resultType: 'json',
-} as APIDefine<RegistItemParam, DataId>;
-
-export type RegistItemParam = {
-    dataSourceId: string;   // 登録先データソース
-    name?: string;  // only topography.  the structures' name is decided by content's name.
-    geometry: GeoJSON.Geometry;
-    geoProperties: GeoProperties;
-}
-
 export const GetThumbAPI = {
     uri: 'getthumb',
     method: 'get',

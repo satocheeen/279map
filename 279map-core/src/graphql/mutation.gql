@@ -52,6 +52,20 @@ mutation switchMapKind (
     }
 }
 
+mutation registItem (
+    $datasourceId: String!
+    $name: String
+    $geometry: Geometry!
+    $geoProperties: GraphQLJSON!
+) {
+    registItem (
+        datasourceId: $datasourceId,
+        name: $name,
+        geometry: $geometry,
+        geoProperties: $geoProperties
+    )
+}
+
 mutation updateItem (
     $targets: [UpdateItemInput!]!
 ) {

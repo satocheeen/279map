@@ -9,8 +9,9 @@ import { DrawFreeArea } from './DrawFreeArea';
 import { FeatureType, GeoProperties } from '279map-common';
 import { Geometry } from 'ol/geom';
 import { Feature } from 'ol';
-import { RegistItemAPI } from 'tsunagumap-api';
-import { useApi } from '../../../../api/useApi';
+import { useAtom } from 'jotai';
+import { clientAtom } from 'jotai-urql';
+import { RegistItemDocument } from '../../../../graphql/generated/graphql';
 
 type Props = {
     dataSourceId: string;
@@ -39,7 +40,7 @@ export default function DrawTopographyController(props: Props) {
     const [geometryType, setGeometryType] = useState('Polygon');
 
     const spinner = useProcessMessage();
-    const { callApi } = useApi();
+    const [ gqlClient ] = useAtom(clientAtom);
 
     const registFeatureFunc = useCallback(async(feature: Feature<Geometry>) => {
         const h = spinner.showProcessMessage({
@@ -55,8 +56,8 @@ export default function DrawTopographyController(props: Props) {
         } else {
             const geoJson = MapUtility.createGeoJson(feature);
 
-            await callApi(RegistItemAPI, {
-                dataSourceId: props.dataSourceId,
+            await gqlClient.mutation(RegistItemDocument, {
+                datasourceId: props.dataSourceId,
                 geometry: geoJson.geometry,
                 geoProperties: Object.assign({}, geoJson.properties, {
                     featureType: props.drawFeatureType,
@@ -66,7 +67,7 @@ export default function DrawTopographyController(props: Props) {
 
         spinner.hideProcessMessage(h);
         props.close();
-    }, [spinner, props, callApi]);
+    }, [spinner, props, gqlClient]);
 
     // 描画図形選択後
     const onSelectDrawFeatureType = useCallback((selected: DrawFeatureType) => {

@@ -1,9 +1,8 @@
 import { MapKind, DataId } from '279map-common';
 import dayjs from 'dayjs';
 import { CurrentMap } from '../../279map-backend-common/src';
-import { RegistItemParam } from '../../279map-api-interface/dist';
 import { createHash } from '../util/utility';
-import { ItemDefine, ItemTemporaryState, UpdateItemInput } from '../graphql/__generated__/types';
+import { ItemDefine, ItemTemporaryState, MutationRegistItemArgs, UpdateItemInput } from '../graphql/__generated__/types';
 
 type ItemInfoMap = {[dataSourceId: string]: ItemInfo[]};
 type ItemInfo = {
@@ -101,12 +100,12 @@ export default class SessionInfo {
      * @param registItemParam 
      * @return id。メモリから除去する際(removeTemporaryItem)に、このidを指定。
      */
-    addTemporaryRegistItem(currentMap: CurrentMap, registItemParam: RegistItemParam) {
+    addTemporaryRegistItem(currentMap: CurrentMap, registItemParam: MutationRegistItemArgs) {
         const processId = createHash();
         this.#temporaryItemMap.set(processId, {
             type: 'regist',
             currentMap,
-            dataSourceId: registItemParam.dataSourceId,
+            dataSourceId: registItemParam.datasourceId,
             geoJson: registItemParam.geometry,
             geoProperties:registItemParam.geoProperties,
             name: registItemParam.name ?? '',

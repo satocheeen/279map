@@ -17,7 +17,7 @@ import { getSnsPreview } from './api/getSnsPreview';
 import cors from 'cors';
 import { exit } from 'process';
 import { getMapInfoById } from './getMapDefine';
-import { ConfigAPI, ConnectResult, GeocoderParam, GetGeocoderFeatureParam, GetMapListAPI, GetSnsPreviewAPI, GetSnsPreviewParam, RegistItemAPI, RegistItemParam } from '../279map-api-interface/src';
+import { ConfigAPI, ConnectResult, GeocoderParam, GetGeocoderFeatureParam, GetMapListAPI, GetSnsPreviewAPI, GetSnsPreviewParam } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
 import { GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, RequestAPI, RequestParam } from '../279map-api-interface/src/api';
@@ -38,7 +38,7 @@ import { graphqlHTTP } from 'express-graphql';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { DatasourceConfig, DatasourceKindType, MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetUnpointContentsArgs, QuerySearchArgs } from './graphql/__generated__/types';
+import { DatasourceConfig, DatasourceKindType, MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetUnpointContentsArgs, QuerySearchArgs } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType } from './graphql/custom_scalar';
@@ -936,6 +936,84 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
             },
             /**
+             * 位置アイテム登録
+             */
+            registItem: async(_, param: MutationRegistItemArgs, ctx): MutationResolverReturnType<'registItem'> => {
+                try {
+                    // メモリに仮登録
+                    const session = ctx.session;
+                    const tempID = session.addTemporaryRegistItem(ctx.currentMap, param);
+                
+                    const wkt = geojsonToWKT(param.geometry);
+                    // call ODBA
+                    callOdbaApi(OdbaRegistItemAPI, {
+                        currentMap: ctx.currentMap,
+                        dataSourceId: param.datasourceId,
+                        name: param.name ?? undefined,
+                        geometry: param.geometry,
+                        geoProperties: param.geoProperties,
+                    }).then(async(id) => {
+                        // 更新通知
+                        broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
+                            type: 'mapitem-insert',
+                            targets: [
+                                {
+                                    id,
+                                    wkt,
+                                }
+                            ]
+                        });
+                    }).catch(e => {
+                        apiLogger.warn('callOdba-registItem error', e);
+                        // TODO: フロントエンドにエラーメッセージ表示
+
+                        // メモリから除去
+                        session.removeTemporaryItem(tempID);
+                        // 仮アイテム削除通知
+                        broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
+                            type: 'mapitem-delete',
+                            itemPageIdList: [{
+                                id: tempID,
+                                dataSourceId: param.datasourceId,
+                            }],
+                        });
+                    }).finally(() => {
+                        // メモリから除去
+                        session.removeTemporaryItem(tempID);
+
+                        // 仮アイテム削除通知
+                        broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
+                            type: 'mapitem-delete',
+                            itemPageIdList: [{
+                                id: tempID,
+                                dataSourceId: param.datasourceId,
+                            }],
+                        });
+                    })
+
+                    // 仮アイテム描画させるための通知
+                    broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
+                        type: 'mapitem-insert',
+                        targets: [
+                            {
+                                id: {
+                                    id: tempID,
+                                    dataSourceId: param.datasourceId,
+                                },
+                                wkt,
+                            }
+                        ]
+                    });
+
+                    return true;
+
+                } catch(e) {    
+                    apiLogger.warn('regist-item API error', param, e);
+                    throw e;
+                }
+
+            },
+            /**
              * 位置アイテム更新
              */
             updateItem: async(_, param: MutationUpdateItemArgs, ctx): MutationResolverReturnType<'updateItem'> => {
@@ -1321,7 +1399,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
         GraphQLJSON,
         DatasourceConfig: {
             __resolveType: (obj: DatasourceConfig, parent: any) => {
-                console.log('debug', obj, parent)
                 switch(obj.kind) {
                     case DatasourceKindType.Item:
                         return 'ItemConfig';
@@ -1371,10 +1448,8 @@ app.use(
 
         const authLv = await checkGraphQlAuthLv(operationName, userAuthInfo);
         const context: GraphQlContextType = {
-            // mapId: session.currentMap.mapId,
             sessionKey,
             session,
-            // mapPageInfo,
             userAuthInfo,
             currentMap: session.currentMap,
             authLv,
@@ -1387,97 +1462,6 @@ app.use(
         }
     }),
 )
-
-/**
- * regist item
- * 位置アイテム登録
- */
-app.post(`/api/${RegistItemAPI.uri}`,
-    checkApiAuthLv(Auth.Edit), 
-    checkCurrentMap,
-    async(req, res, next) => {
-        const param = req.body as RegistItemParam;
-        try {
-            // メモリに仮登録
-            const session = sessionManager.get(req.connect?.sessionKey as string);
-            if (!session) {
-                throw new Error('session undefined');
-            }
-            const tempID = session.addTemporaryRegistItem(req.currentMap, param);
-        
-            const wkt = geojsonToWKT(param.geometry);
-            // call ODBA
-            callOdbaApi(OdbaRegistItemAPI, {
-                currentMap: req.currentMap,
-                dataSourceId: param.dataSourceId,
-                name: param.name,
-                geometry: param.geometry,
-                geoProperties: param.geoProperties,
-            }).then(async(id) => {
-                // 更新通知
-                broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                    type: 'mapitem-insert',
-                    targets: [
-                        {
-                            id,
-                            wkt,
-                        }
-                    ]
-                });
-            }).catch(e => {
-                apiLogger.warn('callOdba-registItem error', e);
-                // TODO: フロントエンドにエラーメッセージ表示
-
-                // メモリから除去
-                session.removeTemporaryItem(tempID);
-                // 仮アイテム削除通知
-                broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                    type: 'mapitem-delete',
-                    itemPageIdList: [{
-                        id: tempID,
-                        dataSourceId: param.dataSourceId,
-                    }],
-                });
-            }).finally(() => {
-                // メモリから除去
-                session.removeTemporaryItem(tempID);
-
-                // 仮アイテム削除通知
-                broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                    type: 'mapitem-delete',
-                    itemPageIdList: [{
-                        id: tempID,
-                        dataSourceId: param.dataSourceId,
-                    }],
-                });
-            })
-
-            // 仮アイテム描画させるための通知
-            broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                type: 'mapitem-insert',
-                targets: [
-                    {
-                        id: {
-                            id: tempID,
-                            dataSourceId: param.dataSourceId,
-                        },
-                        wkt,
-                    }
-                ]
-            });
-            
-            res.send('ok');
-    
-            next();
-        } catch(e) {    
-            apiLogger.warn('regist-item API error', param, e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail : e + '',
-            } as ApiError);
-        }
-    }
-);
 
 /**
  * get sns preview
