@@ -19,8 +19,8 @@ export type Scalars = {
   Float: { input: number; output: number; }
   DataId: { input: DataId; output: DataId; }
   Geometry: { input: Geometry; output: Geometry; }
-  GraphQLJSON: { input: any; output: any; }
   IconKey: { input: any; output: any; }
+  JSON: { input: any; output: any; }
 };
 
 export enum Auth {
@@ -134,7 +134,7 @@ export type ItemConfig = {
 
 export type ItemDefine = {
   geoJson: Scalars['Geometry']['output'];
-  geoProperties: Scalars['GraphQLJSON']['output'];
+  geoProperties: Scalars['JSON']['output'];
   hasContents: Scalars['Boolean']['output'];
   hasImageContentId: Array<Scalars['DataId']['output']>;
   id: Scalars['DataId']['output'];
@@ -208,7 +208,7 @@ export type MutationRegistContentArgs = {
 
 export type MutationRegistItemArgs = {
   datasourceId: Scalars['String']['input'];
-  geoProperties: Scalars['GraphQLJSON']['input'];
+  geoProperties: Scalars['JSON']['input'];
   geometry: Scalars['Geometry']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
 };
@@ -360,7 +360,7 @@ export type UnpointContent = {
 };
 
 export type UpdateItemInput = {
-  geoProperties?: InputMaybe<Scalars['GraphQLJSON']['input']>;
+  geoProperties?: InputMaybe<Scalars['JSON']['input']>;
   geometry?: InputMaybe<Scalars['Geometry']['input']>;
   id: Scalars['DataId']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
@@ -465,13 +465,13 @@ export type ResolversTypes = {
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   Geometry: ResolverTypeWrapper<Scalars['Geometry']['output']>;
   GetUnpointContentsResult: ResolverTypeWrapper<GetUnpointContentsResult>;
-  GraphQLJSON: ResolverTypeWrapper<Scalars['GraphQLJSON']['output']>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   IconDefine: ResolverTypeWrapper<IconDefine>;
   IconKey: ResolverTypeWrapper<Scalars['IconKey']['output']>;
   ItemConfig: ResolverTypeWrapper<ItemConfig>;
   ItemDefine: ResolverTypeWrapper<ItemDefine>;
   ItemTemporaryState: ItemTemporaryState;
+  JSON: ResolverTypeWrapper<Scalars['JSON']['output']>;
   MapInfo: ResolverTypeWrapper<MapInfo>;
   MapKind: MapKind;
   Mutation: ResolverTypeWrapper<{}>;
@@ -504,12 +504,12 @@ export type ResolversParentTypes = {
   Float: Scalars['Float']['output'];
   Geometry: Scalars['Geometry']['output'];
   GetUnpointContentsResult: GetUnpointContentsResult;
-  GraphQLJSON: Scalars['GraphQLJSON']['output'];
   ID: Scalars['ID']['output'];
   IconDefine: IconDefine;
   IconKey: Scalars['IconKey']['output'];
   ItemConfig: ItemConfig;
   ItemDefine: ItemDefine;
+  JSON: Scalars['JSON']['output'];
   MapInfo: MapInfo;
   Mutation: {};
   ParentInput: ParentInput;
@@ -605,10 +605,6 @@ export type GetUnpointContentsResultResolvers<ContextType = any, ParentType exte
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export interface GraphQljsonScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['GraphQLJSON'], any> {
-  name: 'GraphQLJSON';
-}
-
 export type IconDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['IconDefine'] = ResolversParentTypes['IconDefine']> = {
   caption?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -631,7 +627,7 @@ export type ItemConfigResolvers<ContextType = any, ParentType extends ResolversP
 
 export type ItemDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemDefine'] = ResolversParentTypes['ItemDefine']> = {
   geoJson?: Resolver<ResolversTypes['Geometry'], ParentType, ContextType>;
-  geoProperties?: Resolver<ResolversTypes['GraphQLJSON'], ParentType, ContextType>;
+  geoProperties?: Resolver<ResolversTypes['JSON'], ParentType, ContextType>;
   hasContents?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   hasImageContentId?: Resolver<Array<ResolversTypes['DataId']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
@@ -640,6 +636,10 @@ export type ItemDefineResolvers<ContextType = any, ParentType extends ResolversP
   temporary?: Resolver<Maybe<ResolversTypes['ItemTemporaryState']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
+
+export interface JsonScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['JSON'], any> {
+  name: 'JSON';
+}
 
 export type MapInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapInfo'] = ResolversParentTypes['MapInfo']> = {
   contentDataSources?: Resolver<Array<ResolversTypes['DatasourceInfo']>, ParentType, ContextType>;
@@ -729,11 +729,11 @@ export type Resolvers<ContextType = any> = {
   EventDefine?: EventDefineResolvers<ContextType>;
   Geometry?: GraphQLScalarType;
   GetUnpointContentsResult?: GetUnpointContentsResultResolvers<ContextType>;
-  GraphQLJSON?: GraphQLScalarType;
   IconDefine?: IconDefineResolvers<ContextType>;
   IconKey?: GraphQLScalarType;
   ItemConfig?: ItemConfigResolvers<ContextType>;
   ItemDefine?: ItemDefineResolvers<ContextType>;
+  JSON?: GraphQLScalarType;
   MapInfo?: MapInfoResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;

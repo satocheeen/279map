@@ -86,12 +86,11 @@ type IconDefine {
 }
 
 # ------------------------------
-
 input UpdateItemInput {
     id: DataId!
     name: String
     geometry: Geometry
-    geoProperties: GraphQLJSON
+    geoProperties: JSON
 }
 
 type Mutation {
@@ -103,7 +102,7 @@ type Mutation {
         datasourceId: String!
         name: String
         geometry: Geometry!
-        geoProperties: GraphQLJSON!
+        geoProperties: JSON!
     ): Boolean
     
     updateItem (

@@ -1,6 +1,6 @@
 scalar DataId
 scalar Geometry
-scalar GraphQLJSON
+scalar JSON
 
 enum ItemTemporaryState {
     Registing
@@ -10,7 +10,7 @@ type ItemDefine {
     id: DataId!
     name: String!
     geoJson: Geometry!
-    geoProperties: GraphQLJSON!
+    geoProperties: JSON!
     lastEditedTime: String!
     temporary: ItemTemporaryState
     hasContents: Boolean!

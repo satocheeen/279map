@@ -41,3 +41,22 @@ export const GeometryScalarType = new GraphQLScalarType({
         return value;
     }
 })
+
+export const JsonScalarType = new GraphQLScalarType({
+    name: 'JSON',
+    description: 'json',
+    serialize(value: any) {
+        return value;
+    },
+    parseValue(value: any) {
+        if (typeof value === 'string') {
+            return JSON.parse(value);
+        } else if (typeof value === 'object') {
+            return value;
+        }
+        throw 'parse error';
+    },
+    parseLiteral(value) {
+        return value;
+    }
+})

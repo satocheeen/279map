@@ -41,12 +41,11 @@ import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { DatasourceConfig, DatasourceKindType, MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetUnpointContentsArgs, QuerySearchArgs } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
-import { DataIdScalarType } from './graphql/custom_scalar';
+import { DataIdScalarType, JsonScalarType } from './graphql/custom_scalar';
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { CustomError } from './graphql/CustomError';
 import { getLinkedItemIdList } from './api/apiUtility';
 import SessionInfo from './session/SessionInfo';
-import { GraphQLJSON } from 'graphql-scalars';
 
 declare global {
     namespace Express {
@@ -1396,7 +1395,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             },
         } as MutationResolver,
         DataId: DataIdScalarType,
-        GraphQLJSON,
+        JSON: JsonScalarType,
         DatasourceConfig: {
             __resolveType: (obj: DatasourceConfig, parent: any) => {
                 switch(obj.kind) {

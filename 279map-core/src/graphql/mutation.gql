@@ -56,7 +56,7 @@ mutation registItem (
     $datasourceId: String!
     $name: String
     $geometry: Geometry!
-    $geoProperties: GraphQLJSON!
+    $geoProperties: JSON!
 ) {
     registItem (
         datasourceId: $datasourceId,
