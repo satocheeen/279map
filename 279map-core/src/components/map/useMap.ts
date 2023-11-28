@@ -3,7 +3,7 @@ import { OlMapWrapper } from '../TsunaguMap/OlMapWrapper';
 import { atom, useAtom } from 'jotai';
 import { useAtomCallback, atomWithReducer } from 'jotai/utils';
 import { currentMapKindAtom, defaultExtentAtom, instanceIdAtom, mapIdAtom } from '../../store/session';
-import { GetItemsAPI, GetItemsByIdAPI } from 'tsunagumap-api';
+import { GetItemsByIdAPI } from 'tsunagumap-api';
 import { LoadedAreaInfo, LoadedItemKey, allItemsAtom, latestEditedTimeOfDatasourceAtom, loadedItemMapAtom } from '../../store/item';
 import { DataId, Extent, ItemDefine } from '279map-common';
 import { itemDataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';

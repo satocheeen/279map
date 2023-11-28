@@ -50,21 +50,6 @@ export type RequestParam = {
     name: string;
 }
 
-/**
- * get items
- */
-export const GetItemsAPI = {
-    uri: 'getitems',
-    method: 'post',
-    resultType: 'json',
-} as APIDefine<GetItemsParam, GetItemsResult>;
-export type GetItemsParam = {
-    wkt: string;
-    zoom: number;
-    dataSourceId: string;
-    latestEditedTime?: string;  // 指定されている場合、この更新日時以降に更新されたアイテムのみ返す
-    excludeItemIds?: string[];  // 指定されている場合、このidのアイテムは結果から除く TODO: deprecated
-}
 export type GetItemsResult = {
     items: ItemDefine[],
 };
