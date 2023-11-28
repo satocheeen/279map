@@ -4,6 +4,7 @@ import mysql from 'mysql2/promise';
 import { DataSourceTable, MapPageInfoTable } from '../279map-backend-common/src/types/schema';
 import { schema } from '../279map-backend-common/src';
 import { DatasourceKindType, DatasourceConfig, DatasourceGroup, DatasourceInfo, MapInfo, RealPointContentConfig, ContentConfig } from './graphql/__generated__/types';
+import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 
 /**
  * 指定の地図データページ配下のコンテンツ情報を返す
@@ -24,10 +25,17 @@ export async function getMapInfo(mapId: string, mapKind: MapKind, authLv: Auth):
     const itemDataSourceGroups = await getItemDataSourceGroups(mapPageInfo.map_page_id, targetMapKind);
     const contentDataSources = await getContentDataSources(mapPageInfo.map_page_id, targetMapKind, authLv);
 
+    // オリジナルアイコン定義を取得
+    const originalIcons = await getOriginalIconDefine({
+        mapId,
+        mapKind,
+    });
+
     return {
         extent,
         itemDataSourceGroups,
         contentDataSources,
+        originalIcons,
     }
 
 }

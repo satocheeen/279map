@@ -43,6 +43,12 @@ mutation switchMapKind (
         contentDataSources {
             ...datasourceInfo
         }
+        originalIcons {
+            id
+            caption
+            imagePath
+            useMaps
+        }
     }
 }
 

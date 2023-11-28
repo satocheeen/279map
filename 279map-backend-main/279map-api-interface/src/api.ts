@@ -51,16 +51,6 @@ export type RequestParam = {
 }
 
 /**
- * get original icon define
- */
-export const GetOriginalIconDefineAPI = {
-    uri: 'get-original-icon-define',
-    method: 'post',
-    resultType: 'json',
-} as APIDefine<void, GetOriginalIconDefineResult>;
-export type GetOriginalIconDefineResult = IconDefine[];
-
-/**
  * get items
  */
 export const GetItemsAPI = {

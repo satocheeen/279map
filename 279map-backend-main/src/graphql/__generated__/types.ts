@@ -115,6 +115,13 @@ export type GetUnpointContentsResult = {
   nextToken?: Maybe<Scalars['String']['output']>;
 };
 
+export type IconDefine = {
+  caption?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  imagePath: Scalars['String']['output'];
+  useMaps: Array<MapKind>;
+};
+
 export type ItemConfig = {
   deletable: Scalars['Boolean']['output'];
   editable: Scalars['Boolean']['output'];
@@ -132,6 +139,7 @@ export type MapInfo = {
   contentDataSources: Array<DatasourceInfo>;
   extent: Array<Scalars['Float']['output']>;
   itemDataSourceGroups: Array<DatasourceGroup>;
+  originalIcons: Array<IconDefine>;
 };
 
 export enum MapKind {
@@ -416,6 +424,7 @@ export type ResolversTypes = {
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   GetUnpointContentsResult: ResolverTypeWrapper<GetUnpointContentsResult>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
+  IconDefine: ResolverTypeWrapper<IconDefine>;
   IconKey: ResolverTypeWrapper<Scalars['IconKey']['output']>;
   ItemConfig: ResolverTypeWrapper<ItemConfig>;
   ItemDefine: ResolverTypeWrapper<ItemDefine>;
@@ -450,6 +459,7 @@ export type ResolversParentTypes = {
   Float: Scalars['Float']['output'];
   GetUnpointContentsResult: GetUnpointContentsResult;
   ID: Scalars['ID']['output'];
+  IconDefine: IconDefine;
   IconKey: Scalars['IconKey']['output'];
   ItemConfig: ItemConfig;
   ItemDefine: ItemDefine;
@@ -543,6 +553,14 @@ export type GetUnpointContentsResultResolvers<ContextType = any, ParentType exte
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type IconDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['IconDefine'] = ResolversParentTypes['IconDefine']> = {
+  caption?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  imagePath?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  useMaps?: Resolver<Array<ResolversTypes['MapKind']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export interface IconKeyScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['IconKey'], any> {
   name: 'IconKey';
 }
@@ -566,6 +584,7 @@ export type MapInfoResolvers<ContextType = any, ParentType extends ResolversPare
   contentDataSources?: Resolver<Array<ResolversTypes['DatasourceInfo']>, ParentType, ContextType>;
   extent?: Resolver<Array<ResolversTypes['Float']>, ParentType, ContextType>;
   itemDataSourceGroups?: Resolver<Array<ResolversTypes['DatasourceGroup']>, ParentType, ContextType>;
+  originalIcons?: Resolver<Array<ResolversTypes['IconDefine']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -645,6 +664,7 @@ export type Resolvers<ContextType = any> = {
   DatasourceInfo?: DatasourceInfoResolvers<ContextType>;
   EventDefine?: EventDefineResolvers<ContextType>;
   GetUnpointContentsResult?: GetUnpointContentsResultResolvers<ContextType>;
+  IconDefine?: IconDefineResolvers<ContextType>;
   IconKey?: GraphQLScalarType;
   ItemConfig?: ItemConfigResolvers<ContextType>;
   ItemDefine?: ItemDefineResolvers<ContextType>;

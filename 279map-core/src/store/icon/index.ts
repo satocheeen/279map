@@ -1,40 +1,33 @@
 import { SystemIconDefine, TsunaguMapProps } from '../../types/types';
-import { connectStatusAtom, currentMapKindAtom, serverInfoAtom } from '../session';
-import { GetOriginalIconDefineAPI } from 'tsunagumap-api';
+import { currentMapDefineAtom, currentMapKindAtom } from '../session';
 import { MapKind } from '279map-common';
 import defaultIcon from './pin.png'
 import { atom } from 'jotai';
-import { loadable } from 'jotai/utils';
-import { callApi } from '../../api/api';
 
-const originalIconDefineAtom = atom<Promise<SystemIconDefine[]>>(async(get) => {
-    try {
-        const serverInfo = get(serverInfoAtom);
-        const sid = (await get(connectStatusAtom)).sid;
-        const apiResult = await callApi(serverInfo, sid, GetOriginalIconDefineAPI, undefined);
-        const originalDefines = apiResult.map(def => {
-            return {
-                type: 'original',
-                id: def.id,
-                caption: def.caption,
-                imagePath: def.imagePath,
-                useMaps: def.useMaps,
-            } as SystemIconDefine;
-        })
-        return originalDefines;
+/**
+ * オリジナルアイコン
+ */
+const originalIconDefineAtom = atom((get) => {
+    const mapDefine = get(currentMapDefineAtom);
+    const originalIcons = mapDefine?.originalIcons ?? [];
 
-    } catch (e) {
-        console.warn('loadOriginalIcon error', e);
-        return [];
-    }
-});
-const originalIconDefineLoadableAtom = loadable(originalIconDefineAtom);
+    const originalDefines = originalIcons.map(def => {
+        return {
+            type: 'original',
+            id: def.id,
+            caption: def.caption,
+            imagePath: def.imagePath,
+            useMaps: def.useMaps,
+        } as SystemIconDefine;
+    })
+    return originalDefines;
+})
 
 export const defaultIconDefineAtom = atom<Required<TsunaguMapProps>['iconDefine']>([]);
 
 const iconDefineAtom = atom<SystemIconDefine[]>((get) => {
     const defaultIconDefine = get(defaultIconDefineAtom);
-    const originalIconDefineLoadable = get(originalIconDefineLoadableAtom);
+    const originalIconDefine = get(originalIconDefineAtom);
     const list = defaultIconDefine.map(def => {
         if (def.id === 'default') {
             return getDefaultIconDefine(def.useMaps);
@@ -43,9 +36,7 @@ const iconDefineAtom = atom<SystemIconDefine[]>((get) => {
             type: 'system',
         } as SystemIconDefine, def);
     });
-    if (originalIconDefineLoadable.state === 'hasData') {
-        Array.prototype.push.apply(list, originalIconDefineLoadable.data);
-    }
+    Array.prototype.push.apply(list, originalIconDefine);
     return list;        
 })
 

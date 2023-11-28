@@ -22,6 +22,7 @@ type MapInfo {
     extent: [Float!]!
     itemDataSourceGroups: [DatasourceGroup!]!
     contentDataSources: [DatasourceInfo!]!
+    originalIcons: [IconDefine!]!
 }
 type DatasourceGroup {
     name: String
@@ -76,6 +77,15 @@ type TrackConfig {
     deletable: Boolean!
 }
 union DatasourceConfig = ItemConfig | RealPointContentConfig | ContentConfig | TrackConfig
+
+type IconDefine {
+    id: ID!
+    caption: String
+    imagePath: String!
+    useMaps: [MapKind!]!
+}
+
+# ------------------------------
 
 type Mutation {
     switchMapKind (

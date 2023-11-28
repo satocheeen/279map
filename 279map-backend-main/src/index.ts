@@ -14,11 +14,10 @@ import { convertBase64ToBinary, getItemWkt } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
 import { getSnsPreview } from './api/getSnsPreview';
-import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import cors from 'cors';
 import { exit } from 'process';
 import { getMapInfoById } from './getMapDefine';
-import { ConfigAPI, ConnectResult, GeocoderParam, GetGeocoderFeatureParam, GetItemsAPI, GetMapListAPI, GetOriginalIconDefineAPI, GetSnsPreviewAPI, GetSnsPreviewParam, RegistItemAPI, RegistItemParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
+import { ConfigAPI, ConnectResult, GeocoderParam, GetGeocoderFeatureParam, GetItemsAPI, GetMapListAPI, GetSnsPreviewAPI, GetSnsPreviewParam, RegistItemAPI, RegistItemParam, UpdateItemAPI, UpdateItemParam } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
 import { GetItemsParam, GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, RequestAPI, RequestParam, GetItemsByIdAPI, GetItemsByIdParam } from '../279map-api-interface/src/api';
@@ -674,35 +673,6 @@ const checkCurrentMap = async(req: Request, res: Response, next: NextFunction) =
     session.extendExpire();
     next();
 }
-
-
-/**
- * get original icon define
- * オリジナルアイコン情報取得
- */
-app.post(`/api/${GetOriginalIconDefineAPI.uri}`, 
-    checkApiAuthLv(Auth.View), 
-    checkCurrentMap,
-    async(req, res, next) => {
-        try {
-            const result = await getOriginalIconDefine(req.currentMap);
-
-            apiLogger.debug('result', result);
-
-            res.send(result);
-
-            next();
-
-        } catch(e) {    
-            apiLogger.warn(e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail : e + '',
-            } as ApiError);
-        }
-    }
-);
-
 
 const fileSchema = loadSchemaSync(
     [

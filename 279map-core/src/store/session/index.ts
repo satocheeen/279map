@@ -8,7 +8,7 @@ import { Loadable } from 'jotai/vanilla/utils/loadable';
 import { ServerInfo } from '../../types/types';
 import { atomWithCountup } from '../../util/jotaiUtility';
 import { clientAtom } from 'jotai-urql';
-import { MapInfo, SwitchMapKindDocument, SwitchMapKindMutation } from '../../graphql/generated/graphql';
+import { SwitchMapKindDocument, SwitchMapKindMutation } from '../../graphql/generated/graphql';
 
 export const instanceIdAtom = atomWithCountup('instance-');
 
