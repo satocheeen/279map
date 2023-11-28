@@ -1,7 +1,7 @@
 import { MapKind, DataId } from '279map-common';
 import dayjs from 'dayjs';
 import { CurrentMap } from '../../279map-backend-common/src';
-import { RegistItemParam, UpdateItemParam } from '../../279map-api-interface/dist';
+import { RegistItemParam } from '../../279map-api-interface/dist';
 import { createHash } from '../util/utility';
 import { ItemDefine, ItemTemporaryState, UpdateItemInput } from '../graphql/__generated__/types';
 

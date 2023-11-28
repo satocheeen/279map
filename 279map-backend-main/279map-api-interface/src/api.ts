@@ -66,24 +66,6 @@ export type RegistItemParam = {
     geoProperties: GeoProperties;
 }
 
-/**
- * update item
- */
-export const UpdateItemAPI = {
-    uri: 'updateitem',
-    method: 'post',
-    resultType: 'none',
-} as APIDefine<UpdateItemParam, void>;
-
-export type UpdateItemParam = {
-    targets: {
-        id: DataId;
-        name?: string;  // only topography.  the structures' name is decided by content's name.
-        geometry?: GeoJSON.Geometry;
-        geoProperties?: GeoProperties;
-    }[];
-};
-
 export const GetThumbAPI = {
     uri: 'getthumb',
     method: 'get',
