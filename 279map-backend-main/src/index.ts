@@ -38,7 +38,7 @@ import { graphqlHTTP } from 'express-graphql';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { DatasourceConfig, DatasourceKindType, MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetUnpointContentsArgs, QuerySearchArgs } from './graphql/__generated__/types';
+import { DatasourceConfig, DatasourceKindType, MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetUnpointContentsArgs, QuerySearchArgs } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType } from './graphql/custom_scalar';
@@ -936,6 +936,79 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
             },
             /**
+             * 位置アイテム更新
+             */
+            updateItem: async(_, param: MutationUpdateItemArgs, ctx): MutationResolverReturnType<'updateItem'> => {
+                try {
+                    const session = ctx.session;
+                    // メモリに仮登録
+                    const targets = await Promise.all(param.targets.map(async(target) => {
+                        const currentItem = await getItem(target.id);
+                        if (!currentItem) {
+                            throw new Error('item not found: ' + target.id);
+                        }
+                        const tempID = session.addTemporaryUpdateItem(ctx.currentMap, currentItem, target);
+
+                        const beforeWkt = await getItemWkt(target.id);
+                        if (!beforeWkt) {
+                            throw new Error('wkt not found');
+                        }
+                        const afterWkt = target.geometry ? geojsonToWKT(target.geometry) : undefined;
+                        return {
+                            target,
+                            tempID,
+                            wkt: afterWkt ?? beforeWkt,
+                        }
+                    }));
+
+                    // 仮アイテム描画させるための通知
+                    broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
+                        type: 'mapitem-update',
+                        targets: targets.map(t => {
+                            return {
+                                id: t.target.id,
+                                wkt: t.wkt,
+                            }
+                        })
+                    });
+
+                    for (const target of targets) {
+                        // call ODBA
+                        callOdbaApi(OdbaUpdateItemAPI, {
+                            currentMap: ctx.currentMap,
+                            id: target.target.id,
+                            geometry: target.target.geometry ?? undefined,
+                            geoProperties: target.target.geoProperties ?? undefined,
+                            name: target.target.name ?? undefined,
+                        })
+                        .catch(e => {
+                            apiLogger.warn('callOdba-updateItem error', e);
+                            // TODO: フロントエンドにエラーメッセージ表示
+                        }).finally(() => {
+                            // メモリから除去
+                            session.removeTemporaryItem(target.tempID);
+
+                            // 更新通知
+                            broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
+                                type: 'mapitem-update',
+                                targets: [
+                                    {
+                                        id: target.target.id,
+                                        wkt: target.wkt,
+                                    }
+                                ]
+                            });
+                        })
+                    }
+                
+                    return true;
+
+                } catch(e) {    
+                    apiLogger.warn('update-item API error', param, e);
+                    throw e;
+                }
+            },
+            /**
              * 位置アイテム削除
              */
             removeItem: async(parent: any, param: MutationRemoveItemArgs, ctx): MutationResolverReturnType<'removeItem'> => {
@@ -1398,88 +1471,6 @@ app.post(`/api/${RegistItemAPI.uri}`,
             next();
         } catch(e) {    
             apiLogger.warn('regist-item API error', param, e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail : e + '',
-            } as ApiError);
-        }
-    }
-);
-
-/**
- * update item
- * 位置アイテム更新
- */
-app.post(`/api/${UpdateItemAPI.uri}`,
-    checkApiAuthLv(Auth.Edit), 
-    checkCurrentMap,
-    async(req, res, next) => {
-        const param = req.body as UpdateItemParam;
-        try {
-            const session = sessionManager.get(req.connect?.sessionKey as string);
-            if (!session) {
-                throw new Error('session undefined');
-            }
-            // メモリに仮登録
-            const targets = await Promise.all(param.targets.map(async(target) => {
-                const currentItem = await getItem(target.id);
-                if (!currentItem) {
-                    throw new Error('item not found: ' + target.id);
-                }
-                const tempID = session.addTemporaryUpdateItem(req.currentMap, currentItem, target);
-
-                const beforeWkt = await getItemWkt(target.id);
-                if (!beforeWkt) {
-                    throw new Error('wkt not found');
-                }
-                const afterWkt = target.geometry ? geojsonToWKT(target.geometry) : undefined;
-                return {
-                    target,
-                    tempID,
-                    wkt: afterWkt ?? beforeWkt,
-                }
-            }));
-
-            // 仮アイテム描画させるための通知
-            broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                type: 'mapitem-update',
-                targets: targets.map(t => {
-                    return {
-                        id: t.target.id,
-                        wkt: t.wkt,
-                    }
-                })
-            });
-            res.send('complete');
-            for (const target of targets) {
-                // call ODBA
-                callOdbaApi(OdbaUpdateItemAPI, Object.assign({
-                    currentMap: req.currentMap,
-                }, target.target))
-                .catch(e => {
-                    apiLogger.warn('callOdba-updateItem error', e);
-                    // TODO: フロントエンドにエラーメッセージ表示
-                }).finally(() => {
-                    // メモリから除去
-                    session.removeTemporaryItem(target.tempID);
-
-                    // 更新通知
-                    broadCaster.publish(req.currentMap.mapId, req.currentMap.mapKind, {
-                        type: 'mapitem-update',
-                        targets: [
-                            {
-                                id: target.target.id,
-                                wkt: target.wkt,
-                            }
-                        ]
-                    });
-                })
-            }
-        
-    
-            next();
-        } catch(e) {    
-            apiLogger.warn('update-item API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',

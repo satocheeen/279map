@@ -16,9 +16,10 @@ import { Geometry } from 'ol/geom';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useMap } from '../../useMap';
-import { UpdateItemAPI } from 'tsunagumap-api';
 import { ConfirmResult } from '../../../common/confirm/types';
-import { useApi } from '../../../../api/useApi';
+import { useAtom } from 'jotai';
+import { clientAtom } from 'jotai-urql';
+import { UpdateItemDocument } from '../../../../graphql/generated/graphql';
 
 type Props = {
     close: () => void;  // 作図完了時のコールバック
@@ -106,7 +107,8 @@ enum Stage {
         props.close();
     }, [props]);
 
-    const { callApi } = useApi();
+    const [ gqlClient ] = useAtom(clientAtom);
+
     /**
      * 変更後Featureを保存する
      * @param feature 変更後Feature
@@ -129,7 +131,7 @@ enum Stage {
         const geoProperties = extractGeoProperty(feature.getProperties());
         const geoJson = geoProperties.featureType === FeatureType.ROAD ? geoProperties.lineJson : createGeoJson(feature);
         const id = convertDataIdFromFeatureId(selectedFeature.current?.getId() as string);
-        await callApi(UpdateItemAPI, {
+        await gqlClient.mutation(UpdateItemDocument, {
             targets: [
                 {
                     id,
@@ -143,7 +145,7 @@ enum Stage {
 
         onClose();
 
-    }, [onClose, confirmHook, callApi, spinnerHook]);
+    }, [onClose, confirmHook, gqlClient, spinnerHook]);
 
     const onEditOkClicked = useCallback(() => {
         if ((selectedFeature.current?.getProperties() as GeoProperties).featureType === FeatureType.ROAD) {

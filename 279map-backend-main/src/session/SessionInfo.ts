@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import { CurrentMap } from '../../279map-backend-common/src';
 import { RegistItemParam, UpdateItemParam } from '../../279map-api-interface/dist';
 import { createHash } from '../util/utility';
-import { ItemDefine, ItemTemporaryState } from '../graphql/__generated__/types';
+import { ItemDefine, ItemTemporaryState, UpdateItemInput } from '../graphql/__generated__/types';
 
 type ItemInfoMap = {[dataSourceId: string]: ItemInfo[]};
 type ItemInfo = {
@@ -123,7 +123,7 @@ export default class SessionInfo {
      * @param updateItemParam 
      * @returns 
      */
-    addTemporaryUpdateItem(currentMap: CurrentMap, currentItem: ItemDefine, updateItemParam: UpdateItemParam['targets'][0]) {
+    addTemporaryUpdateItem(currentMap: CurrentMap, currentItem: ItemDefine, updateItemParam: UpdateItemInput) {
         const processId = createHash();
         this.#temporaryItemMap.set(processId, {
             type: 'update',

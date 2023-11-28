@@ -52,6 +52,14 @@ mutation switchMapKind (
     }
 }
 
+mutation updateItem (
+    $targets: [UpdateItemInput!]!
+) {
+    updateItem (
+        targets: $targets
+    )
+}
+
 mutation removeItem (
     $id: DataId!
 ) {

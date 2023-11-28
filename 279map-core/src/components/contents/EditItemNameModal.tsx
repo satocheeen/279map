@@ -3,15 +3,15 @@ import { Button, Modal } from '../common';
 import { DataId, MapKind } from '279map-common';
 import FormGroup from '../common/form/FormGroup';
 import Input from '../common/form/Input';
-import { UpdateItemAPI } from 'tsunagumap-api';
 import useConfirm from '../common/confirm/useConfirm';
-import { useApi } from '../../api/useApi';
 import { ConfirmBtnPattern } from '../common/confirm/types';
 import { useItems } from '../../store/item/useItems';
 import { useAtom } from 'jotai';
 import { currentMapKindAtom } from '../../store/session';
 import { modalSpinnerAtom } from '../common/modal/Modal';
 import { useAtomCallback } from 'jotai/utils';
+import { clientAtom } from 'jotai-urql';
+import { UpdateItemDocument } from '../../graphql/generated/graphql';
 
 type Props = {
     target: DataId;
@@ -25,14 +25,14 @@ export default function EditItemNameModal(props: Props) {
         getItem(props.target)?.name ?? ''
     )
 
-    const { callApi } = useApi();
+    const [ gqlClient ] = useAtom(clientAtom);
     // const [registing, setRegisting] = useAtom(modalSpinnerAtom);
     const { confirm } = useConfirm();
     const onOk = useAtomCallback(
         useCallback(async(get, set) => {
             set(modalSpinnerAtom, true);
             try {
-                await callApi(UpdateItemAPI, {
+                await gqlClient.mutation(UpdateItemDocument, {
                     targets: [
                         {
                             id: props.target,
@@ -52,7 +52,7 @@ export default function EditItemNameModal(props: Props) {
                 set(modalSpinnerAtom, false);
 
             }
-        }, [callApi, props, title, confirm])
+        }, [gqlClient, props, title, confirm])
     );
 
     const [ mapKind ] = useAtom(currentMapKindAtom);

@@ -87,10 +87,21 @@ type IconDefine {
 
 # ------------------------------
 
+input UpdateItemInput {
+    id: DataId!
+    name: String
+    geometry: Geometry
+    geoProperties: GraphQLJSON
+}
+
 type Mutation {
     switchMapKind (
         mapKind: MapKind!
     ): MapInfo!
+
+    updateItem (
+        targets: [UpdateItemInput!]!
+    ): Boolean
 
     removeItem (
         id: DataId!

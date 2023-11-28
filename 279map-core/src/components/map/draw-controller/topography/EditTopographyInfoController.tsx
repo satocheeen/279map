@@ -6,9 +6,10 @@ import PromptMessageBox from '../PromptMessageBox';
 import SelectFeature from '../SelectFeature';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
-import { UpdateItemAPI } from 'tsunagumap-api';
 import { useItems } from '../../../../store/item/useItems';
-import { useApi } from '../../../../api/useApi';
+import { useAtom } from 'jotai';
+import { clientAtom } from 'jotai-urql';
+import { UpdateItemDocument } from '../../../../graphql/generated/graphql';
 
 type Props = {
     close: () => void;  // 作図完了時のコールバック
@@ -39,7 +40,7 @@ export default function EditTopographyInfoController(props: Props) {
         props.close();
     }, [props]);
 
-    const { callApi } = useApi();
+    const [ gqlClient ] = useAtom(clientAtom);
 
     const onInputOk = useCallback(async() => {
         const h = showProcessMessage({
@@ -50,7 +51,7 @@ export default function EditTopographyInfoController(props: Props) {
 
         const id = convertDataIdFromFeatureId(selectedFeatureId.current as string);
         // update DB
-        await callApi(UpdateItemAPI, {
+        await gqlClient.mutation(UpdateItemDocument, {
             targets: [
                 {
                     id,
@@ -62,7 +63,7 @@ export default function EditTopographyInfoController(props: Props) {
         hideProcessMessage(h);
         props.close();
 
-    }, [callApi, showProcessMessage, hideProcessMessage, name, props]);
+    }, [gqlClient, showProcessMessage, hideProcessMessage, name, props]);
 
     switch(stage) {
         case Stage.SELECTING_FEATURE:

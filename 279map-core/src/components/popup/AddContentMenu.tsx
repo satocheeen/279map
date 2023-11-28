@@ -6,7 +6,7 @@ import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
 import { Auth, DataId } from '279map-common';
-import { GetSnsPreviewAPI, UpdateItemAPI } from 'tsunagumap-api';
+import { GetSnsPreviewAPI } from 'tsunagumap-api';
 import { Button } from '../common';
 import { compareAuth } from '../../util/CommonUtility';
 import { authLvAtom } from '../../store/session';
@@ -17,7 +17,7 @@ import { useApi } from '../../api/useApi';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern, ConfirmResult } from '../common/confirm/types';
 import { clientAtom } from 'jotai-urql';
-import { DatasourceConfig, GetContentDocument, GetUnpointContentsDocument, LinkContentDocument, MutationLinkContentArgs, MutationRegistContentArgs, RegistContentDocument } from '../../graphql/generated/graphql';
+import { DatasourceConfig, GetContentDocument, GetUnpointContentsDocument, LinkContentDocument, MutationLinkContentArgs, MutationRegistContentArgs, RegistContentDocument, UpdateItemDocument } from '../../graphql/generated/graphql';
 
 type Props = {
     target: {
@@ -36,6 +36,7 @@ export default function AddContentMenu(props: Props) {
     const { onAddNewContent, onLinkUnpointedContent } = useContext(OwnerContext);
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
     const { callApi } = useApi();
+    const [ gqlClient ] = useAtom(clientAtom);
     const [ dataSources ] = useAtom(contentDataSourcesAtom);
     const [ authLv ] = useAtom(authLvAtom);
     const { getItem } = useItems();
@@ -144,7 +145,6 @@ export default function AddContentMenu(props: Props) {
     }, [isShowSubMenu]);
 
     const { confirm } = useConfirm();
-    const [ gqlClient ] = useAtom(clientAtom);
 
     type FuncParam = {
         type: 'id';
@@ -178,7 +178,7 @@ export default function AddContentMenu(props: Props) {
             name = param.contentTitle;
         }
 
-        await callApi(UpdateItemAPI, {
+        await gqlClient.mutation(UpdateItemDocument, {
             targets: [
                 {
                     id: item.id,
@@ -187,7 +187,7 @@ export default function AddContentMenu(props: Props) {
             ]
         });
 
-    }, [item, callApi, confirm, gqlClient]);
+    }, [item, confirm, gqlClient]);
 
     const onAddContent = useCallback((val: 'new' | 'unpoint') => {
         setShowSubMenu(false);

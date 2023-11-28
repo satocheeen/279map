@@ -16,14 +16,15 @@ import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { useMap } from '../../useMap';
-import { UpdateItemAPI, UpdateItemParam } from 'tsunagumap-api';
-import { useApi } from '../../../../api/useApi';
 import { FeatureLike } from 'ol/Feature';
 import { Style } from 'ol/style';
 import useTopographyStyle from '../../useTopographyStyle';
 import { topographySelectStyleFunction } from '../utility';
 import { FeatureType, GeoProperties } from '279map-common';
 import { LineString, Polygon } from 'ol/geom';
+import { useAtom } from 'jotai';
+import { clientAtom } from 'jotai-urql';
+import { UpdateItemDocument, UpdateItemInput } from '../../../../graphql/generated/graphql';
 
 type Props = {
     close: () => void;  // 編集完了時のコールバック
@@ -71,7 +72,7 @@ export default function MoveItemController(props: Props) {
     const prevGeometoryRef = useRef<{[id: string]: Geometry}>({});
     const [multipleMode, setMultipleMode] = useState(false);    // 複数選択モードの場合、true
     const spinnerHook = useProcessMessage();
-    const { callApi } = useApi();
+    const [ gqlClient ] = useAtom(clientAtom);
 
     useEffect(() => {
         movedFeatureCollection.clear();
@@ -95,7 +96,7 @@ export default function MoveItemController(props: Props) {
             spinner: true,
             message: '更新中...'
         });
-        const targets = [] as UpdateItemParam['targets'];
+        const targets = [] as UpdateItemInput[];
         for (const mf of movedFeatureCollection.getArray()) {
             const mfGeoJson = createGeoJson(mf);
             const features = (mf.get('features') as Feature<Geometry>[] | undefined) ?? [mf];
@@ -125,7 +126,7 @@ export default function MoveItemController(props: Props) {
                 })
             }
         }
-        await callApi(UpdateItemAPI, {
+        await gqlClient.mutation(UpdateItemDocument, {
             targets
         });
         spinnerHook.hideProcessMessage(h);

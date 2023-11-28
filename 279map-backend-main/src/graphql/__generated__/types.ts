@@ -171,6 +171,7 @@ export type Mutation = {
   unlinkContent?: Maybe<Scalars['Boolean']['output']>;
   unlinkContentsDatasource?: Maybe<Scalars['Boolean']['output']>;
   updateContent?: Maybe<Scalars['Boolean']['output']>;
+  updateItem?: Maybe<Scalars['Boolean']['output']>;
 };
 
 
@@ -239,6 +240,11 @@ export type MutationUpdateContentArgs = {
   title?: InputMaybe<Scalars['String']['input']>;
   type: ContentType;
   url?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationUpdateItemArgs = {
+  targets: Array<UpdateItemInput>;
 };
 
 export type ParentInput = {
@@ -342,6 +348,13 @@ export type UnpointContent = {
   overview?: Maybe<Scalars['String']['output']>;
   thumb?: Maybe<Scalars['String']['output']>;
   title: Scalars['String']['output'];
+};
+
+export type UpdateItemInput = {
+  geoProperties?: InputMaybe<Scalars['GraphQLJSON']['input']>;
+  geometry?: InputMaybe<Scalars['Geometry']['input']>;
+  id: Scalars['DataId']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type User = {
@@ -461,6 +474,7 @@ export type ResolversTypes = {
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   TrackConfig: ResolverTypeWrapper<TrackConfig>;
   UnpointContent: ResolverTypeWrapper<UnpointContent>;
+  UpdateItemInput: UpdateItemInput;
   User: ResolverTypeWrapper<User>;
 };
 
@@ -496,6 +510,7 @@ export type ResolversParentTypes = {
   String: Scalars['String']['output'];
   TrackConfig: TrackConfig;
   UnpointContent: UnpointContent;
+  UpdateItemInput: UpdateItemInput;
   User: User;
 };
 
@@ -636,6 +651,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   unlinkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkContentArgs, 'id' | 'parent'>>;
   unlinkContentsDatasource?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkContentsDatasourceArgs, 'contentsDatasourceIds'>>;
   updateContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateContentArgs, 'id' | 'type'>>;
+  updateItem?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateItemArgs, 'targets'>>;
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
