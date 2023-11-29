@@ -11,7 +11,6 @@ import Feature from "ol/Feature";
 import { Geometry } from 'ol/geom';
 import { sleep } from '../../util/CommonUtility';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { useApi } from '../../api/useApi';
 import { initialLoadingAtom } from '../TsunaguMap/MapController';
 import { geoJsonToTurfPolygon } from '../../util/MapUtility';
 import { bboxPolygon, intersect, union, booleanContains } from '@turf/turf';
@@ -42,7 +41,6 @@ export const mapInstanceIdAtom = atom('');
 export function useMap() {
     const { isPC } = useMyMedia();
     const [_, dispatch] = useAtom(mapInstanceCntReducerAtom);
-    const { callApi } = useApi();
     const [ gqlClient ] = useAtom(clientAtom);
 
     /**
@@ -56,12 +54,12 @@ export function useMap() {
             dispatch();
             const mapInstanceId = get(instanceIdAtom) + '-' + get(mapInstanceCntReducerAtom);
             set(mapInstanceIdAtom, mapInstanceId);
-            const map = new OlMapWrapper(mapInstanceId, target, isPC ? 'pc' : 'sp', callApi);
+            const map = new OlMapWrapper(mapInstanceId, target, isPC ? 'pc' : 'sp', gqlClient);
             console.log('create map', mapInstanceId);
 
             instansMap.set(mapInstanceId, map);
             return mapInstanceId;
-        }, [dispatch, isPC, callApi])
+        }, [dispatch, isPC, gqlClient])
     );
 
     const destroyMapInstance = useAtomCallback(

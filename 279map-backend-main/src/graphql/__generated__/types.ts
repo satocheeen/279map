@@ -285,6 +285,7 @@ export type Query = {
   getContents: Array<ContentsDefine>;
   getContentsInItem: Array<ContentsDefine>;
   getEvent: Array<EventDefine>;
+  getGeocoderFeature: Scalars['Geometry']['output'];
   getImageUrl: Scalars['String']['output'];
   getItems: Array<ItemDefine>;
   getItemsById: Array<ItemDefine>;
@@ -324,6 +325,11 @@ export type QueryGetContentsInItemArgs = {
 
 export type QueryGetEventArgs = {
   datasourceIds?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+
+export type QueryGetGeocoderFeatureArgs = {
+  id: Scalars['GeocoderId']['input'];
 };
 
 
@@ -725,6 +731,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getContents?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentsArgs, 'ids'>>;
   getContentsInItem?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentsInItemArgs, 'itemId'>>;
   getEvent?: Resolver<Array<ResolversTypes['EventDefine']>, ParentType, ContextType, Partial<QueryGetEventArgs>>;
+  getGeocoderFeature?: Resolver<ResolversTypes['Geometry'], ParentType, ContextType, RequireFields<QueryGetGeocoderFeatureArgs, 'id'>>;
   getImageUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryGetImageUrlArgs, 'contentId'>>;
   getItems?: Resolver<Array<ResolversTypes['ItemDefine']>, ParentType, ContextType, RequireFields<QueryGetItemsArgs, 'datasourceId' | 'wkt' | 'zoom'>>;
   getItemsById?: Resolver<Array<ResolversTypes['ItemDefine']>, ParentType, ContextType, RequireFields<QueryGetItemsByIdArgs, 'targets'>>;

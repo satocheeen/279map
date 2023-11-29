@@ -13,16 +13,16 @@ import VectorLayer from "ol/layer/Vector";
 import Style, { StyleFunction } from "ol/style/Style";
 import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
-import { DataId, FeatureType, MapKind, APIDefine } from '279map-common';
+import { DataId, FeatureType, MapKind } from '279map-common';
 import BaseEvent from 'ol/events/Event';
 import * as MapUtility from '../../util/MapUtility';
 import { FeatureProperties } from '../../types/types';
 import { Pixel } from 'ol/pixel';
 import { convertDataIdFromFeatureId, getMapKey } from '../../util/dataUtility';
-import { GetGeocoderFeatureAPI } from 'tsunagumap-api';
 import { FitOptions } from 'ol/View';
 import { Coordinate } from 'ol/coordinate';
-import { DatasourceGroup, DatasourceKindType, ItemDefine } from '../../graphql/generated/graphql';
+import { DatasourceGroup, DatasourceKindType, GetGeocoderFeatureDocument, ItemDefine } from '../../graphql/generated/graphql';
+import { Client } from 'urql';
 
 export type FeatureInfo = {
     id: DataId;
@@ -34,7 +34,6 @@ type Device = 'pc' | 'sp';
 const pcControls = olControl.defaults({attribution: true});
 const spControls = olControl.defaults({attribution: true, zoom: false});
 
-type CallApiType = <API extends APIDefine<any, any>>(api: API, param: API['param']) => Promise<API['result']>
 /**
  * OpenLayersの地図を内包したクラス。
  * 当該システムで必要な機能を実装している。
@@ -46,15 +45,15 @@ export class OlMapWrapper {
     _mapKind?: MapKind;
     _currentZoom: number;   // Zoomレベル変更検知用に保持
     _device: Device = 'pc';
-    _callApi: CallApiType;
+    _gqlClient: Client;
 
     // 描画用レイヤ
     _drawingLayers: VectorLayer<VectorSource>[] = [];
 
-    constructor(id: string, target: HTMLDivElement, device: Device, mycallApi: CallApiType) {
+    constructor(id: string, target: HTMLDivElement, device: Device, gqlClient: Client) {
         this._id = id;
         this._vectorLayerMap = new VectorLayerMap();
-        this._callApi = mycallApi;
+        this._gqlClient = gqlClient;
         console.log('create OlMapWrapper', this._id);
 
         const map = new OlMap({
@@ -259,10 +258,13 @@ export class OlMapWrapper {
             // 仮設定ジオメトリ（矩形）は非表示
             feature.setStyle(new Style());
 
-            this._callApi(GetGeocoderFeatureAPI, def.geoProperties.geocoderId)
+            this._gqlClient.query(GetGeocoderFeatureDocument, {
+                id: def.geoProperties.geocoderId,
+            })
             .then((result => {
+                const geometry = result.data?.getGeocoderFeature;
                 // 呼び出し完了後に差し替え
-                const newFeature = new GeoJSON().readFeatures(result.geoJson)[0];
+                const newFeature = new GeoJSON().readFeatures(geometry)[0];
                 feature.setGeometry(newFeature.getGeometry());
                 feature.setStyle();
             }))

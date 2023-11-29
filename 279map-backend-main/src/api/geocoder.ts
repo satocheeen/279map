@@ -2,9 +2,8 @@ import { GeocoderId } from "279map-common";
 import axios from "axios";
 import { Geometry } from "geojson";
 import { getLogger } from "log4js";
-import { GetGeocoderFeatureParam, GetGeoCoderFeatureResult } from "../../279map-api-interface/src";
 import { MapboxAccessToken } from "../config";
-import { GeocoderItem, GeocoderTarget, QueryGeocoderArgs } from "../graphql/__generated__/types";
+import { GeocoderItem, GeocoderTarget, QueryGeocoderArgs, QueryGetGeocoderFeatureArgs } from "../graphql/__generated__/types";
 
 type OSMGeocordingResult = {
     boundingbox: [number, number, number, number];
@@ -122,12 +121,10 @@ async function osmSearch(address: string, searchTarget: GeocoderTarget[]): Promi
     return list;
 };
 
-export async function getGeocoderFeature(param: GetGeocoderFeatureParam): Promise<GetGeoCoderFeatureResult> {
-    const result = await getFeatureById(param);
+export async function getGeocoderFeature(param: QueryGetGeocoderFeatureArgs): Promise<Geometry> {
+    const result = await getFeatureById(param.id);
 
-    return {
-        geoJson: result,
-    }
+    return result;
 }
 
 /**

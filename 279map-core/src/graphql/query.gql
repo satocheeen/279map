@@ -144,6 +144,12 @@ query geocoder (
     }
 }
 
+query getGeocoderFeature (
+    $id: GeocoderId!
+) {
+    getGeocoderFeature(id: $id)
+}
+
 query getUserList {
     getUserList {
         id

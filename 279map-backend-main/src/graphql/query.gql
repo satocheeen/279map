@@ -132,6 +132,7 @@ type Query {
     search(condition: Condition!, datasourceIds: [String!]): [SearchHitItem!]!
 
     geocoder(address: String!, searchTarget: [GeocoderTarget!]!): [GeocoderItem!]!
+    getGeocoderFeature(id: GeocoderId!): Geometry!
 
     getUserList: [User!]!
     getLinkableContentsDatasources: [ContentsDatasource!]!
