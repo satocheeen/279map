@@ -1,8 +1,8 @@
 import { ContentAttr, DataId, FeatureType, GeoProperties, IconDefine, MapDefine } from "279map-common";
 import { CSSProperties } from "react";
 import { MapKind } from '279map-common';
-import { ErrorType, GetSnsPreviewResult } from "tsunagumap-api";
-import { CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs } from "../graphql/generated/graphql";
+import { ErrorType } from "tsunagumap-api";
+import { CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult } from "../graphql/generated/graphql";
 
 export type OnMapLoadParam = {
     mapKind: MapKind;
@@ -137,7 +137,7 @@ export interface TsunaguMapHandler {
 
     linkContentToItemAPI(param: MutationLinkContentArgs): Promise<void>;
 
-    getSnsPreviewAPI(url: string): Promise<GetSnsPreviewResult>;
+    getSnsPreviewAPI(url: string): Promise<SnsPreviewResult>;
 
     getUnpointDataAPI(dataSourceId: string, nextToken?: string): Promise<GetUnpointContentsResult>;
 
@@ -218,7 +218,7 @@ export type AddNewContentParam = {
         dataSourceId: string;
         name: string;
     }[];
-    getSnsPreviewAPI: (url: string) => Promise<GetSnsPreviewResult>;
+    getSnsPreviewAPI: (url: string) => Promise<SnsPreviewResult>;
     registContentAPI: (param: MutationRegistContentArgs) => Promise<void>;
 }
 /**
@@ -227,7 +227,7 @@ export type AddNewContentParam = {
 export type EditContentParam = {
     contentId: DataId;
     currentAttr: ContentAttr;
-    getSnsPreviewAPI: (url: string) => Promise<GetSnsPreviewResult>;
+    getSnsPreviewAPI: (url: string) => Promise<SnsPreviewResult>;
     updateContentAPI: (param: MutationUpdateContentArgs) => Promise<void>;
 }
 /**

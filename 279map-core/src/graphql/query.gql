@@ -150,6 +150,21 @@ query getGeocoderFeature (
     getGeocoderFeature(id: $id)
 }
 
+query getSnsPreview (
+    $url: String!
+) {
+    getSnsPreview(url: $url) {
+        type
+        posts {
+            text
+            media {
+                type
+                url
+            }
+            date
+        }
+    }
+}
 query getUserList {
     getUserList {
         id

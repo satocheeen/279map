@@ -172,6 +172,16 @@ export enum MapKind {
   Virtual = 'Virtual'
 }
 
+export type MediaInfo = {
+  type: MediaType;
+  url: Scalars['String']['output'];
+};
+
+export enum MediaType {
+  Video = 'Video',
+  Image = 'image'
+}
+
 export type Mutation = {
   changeAuthLevel?: Maybe<Scalars['Boolean']['output']>;
   linkContent?: Maybe<Scalars['Boolean']['output']>;
@@ -290,6 +300,7 @@ export type Query = {
   getItems: Array<ItemDefine>;
   getItemsById: Array<ItemDefine>;
   getLinkableContentsDatasources: Array<ContentsDatasource>;
+  getSnsPreview: SnsPreviewResult;
   getThumb: Scalars['String']['output'];
   getUnpointContents: GetUnpointContentsResult;
   getUserList: Array<User>;
@@ -352,6 +363,11 @@ export type QueryGetItemsByIdArgs = {
 };
 
 
+export type QueryGetSnsPreviewArgs = {
+  url: Scalars['String']['input'];
+};
+
+
 export type QueryGetThumbArgs = {
   contentId: Scalars['DataId']['input'];
   size?: InputMaybe<ThumbSize>;
@@ -382,6 +398,21 @@ export type SearchHitItem = {
   hitContents: Array<Scalars['DataId']['output']>;
   id: Scalars['DataId']['output'];
 };
+
+export type SnsPreviewPost = {
+  date?: Maybe<Scalars['String']['output']>;
+  media?: Maybe<MediaInfo>;
+  text: Scalars['String']['output'];
+};
+
+export type SnsPreviewResult = {
+  posts: Array<SnsPreviewPost>;
+  type: SnsType;
+};
+
+export enum SnsType {
+  InstagramUser = 'InstagramUser'
+}
 
 export enum ThumbSize {
   Medium = 'Medium',
@@ -520,12 +551,17 @@ export type ResolversTypes = {
   JSON: ResolverTypeWrapper<Scalars['JSON']['output']>;
   MapInfo: ResolverTypeWrapper<MapInfo>;
   MapKind: MapKind;
+  MediaInfo: ResolverTypeWrapper<MediaInfo>;
+  MediaType: MediaType;
   Mutation: ResolverTypeWrapper<{}>;
   ParentInput: ParentInput;
   ParentOfContent: ParentOfContent;
   Query: ResolverTypeWrapper<{}>;
   RealPointContentConfig: ResolverTypeWrapper<RealPointContentConfig>;
   SearchHitItem: ResolverTypeWrapper<SearchHitItem>;
+  SnsPreviewPost: ResolverTypeWrapper<SnsPreviewPost>;
+  SnsPreviewResult: ResolverTypeWrapper<SnsPreviewResult>;
+  SnsType: SnsType;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   ThumbSize: ThumbSize;
   TrackConfig: ResolverTypeWrapper<TrackConfig>;
@@ -560,11 +596,14 @@ export type ResolversParentTypes = {
   ItemDefine: ItemDefine;
   JSON: Scalars['JSON']['output'];
   MapInfo: MapInfo;
+  MediaInfo: MediaInfo;
   Mutation: {};
   ParentInput: ParentInput;
   Query: {};
   RealPointContentConfig: RealPointContentConfig;
   SearchHitItem: SearchHitItem;
+  SnsPreviewPost: SnsPreviewPost;
+  SnsPreviewResult: SnsPreviewResult;
   String: Scalars['String']['output'];
   TrackConfig: TrackConfig;
   UnpointContent: UnpointContent;
@@ -709,6 +748,12 @@ export type MapInfoResolvers<ContextType = any, ParentType extends ResolversPare
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type MediaInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['MediaInfo'] = ResolversParentTypes['MediaInfo']> = {
+  type?: Resolver<ResolversTypes['MediaType'], ParentType, ContextType>;
+  url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   changeAuthLevel?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationChangeAuthLevelArgs, 'authLv' | 'userId'>>;
   linkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkContentArgs, 'id' | 'parent'>>;
@@ -736,6 +781,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getItems?: Resolver<Array<ResolversTypes['ItemDefine']>, ParentType, ContextType, RequireFields<QueryGetItemsArgs, 'datasourceId' | 'wkt' | 'zoom'>>;
   getItemsById?: Resolver<Array<ResolversTypes['ItemDefine']>, ParentType, ContextType, RequireFields<QueryGetItemsByIdArgs, 'targets'>>;
   getLinkableContentsDatasources?: Resolver<Array<ResolversTypes['ContentsDatasource']>, ParentType, ContextType>;
+  getSnsPreview?: Resolver<ResolversTypes['SnsPreviewResult'], ParentType, ContextType, RequireFields<QueryGetSnsPreviewArgs, 'url'>>;
   getThumb?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryGetThumbArgs, 'contentId'>>;
   getUnpointContents?: Resolver<ResolversTypes['GetUnpointContentsResult'], ParentType, ContextType, RequireFields<QueryGetUnpointContentsArgs, 'datasourceId'>>;
   getUserList?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
@@ -755,6 +801,19 @@ export type RealPointContentConfigResolvers<ContextType = any, ParentType extend
 export type SearchHitItemResolvers<ContextType = any, ParentType extends ResolversParentTypes['SearchHitItem'] = ResolversParentTypes['SearchHitItem']> = {
   hitContents?: Resolver<Array<ResolversTypes['DataId']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type SnsPreviewPostResolvers<ContextType = any, ParentType extends ResolversParentTypes['SnsPreviewPost'] = ResolversParentTypes['SnsPreviewPost']> = {
+  date?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  media?: Resolver<Maybe<ResolversTypes['MediaInfo']>, ParentType, ContextType>;
+  text?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type SnsPreviewResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['SnsPreviewResult'] = ResolversParentTypes['SnsPreviewResult']> = {
+  posts?: Resolver<Array<ResolversTypes['SnsPreviewPost']>, ParentType, ContextType>;
+  type?: Resolver<ResolversTypes['SnsType'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -801,10 +860,13 @@ export type Resolvers<ContextType = any> = {
   ItemDefine?: ItemDefineResolvers<ContextType>;
   JSON?: GraphQLScalarType;
   MapInfo?: MapInfoResolvers<ContextType>;
+  MediaInfo?: MediaInfoResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   RealPointContentConfig?: RealPointContentConfigResolvers<ContextType>;
   SearchHitItem?: SearchHitItemResolvers<ContextType>;
+  SnsPreviewPost?: SnsPreviewPostResolvers<ContextType>;
+  SnsPreviewResult?: SnsPreviewResultResolvers<ContextType>;
   TrackConfig?: TrackConfigResolvers<ContextType>;
   UnpointContent?: UnpointContentResolvers<ContextType>;
   User?: UserResolvers<ContextType>;

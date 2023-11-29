@@ -7,7 +7,6 @@ import { dialogTargetAtom, mapModeAtom, showingDetailItemIdAtom } from '../../st
 import { connectStatusLoadableAtom, mapDefineLoadableAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
-import { GetSnsPreviewAPI } from 'tsunagumap-api';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { DataId, MapKind } from '279map-common';
 import { MapMode, TsunaguMapHandler } from '../../types/types';
@@ -18,7 +17,7 @@ import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
 import { useApi } from '../../api/useApi';
-import { CategoryDefine, EventDefine, ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument } from '../../graphql/generated/graphql';
+import { CategoryDefine, EventDefine, ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument } from '../../graphql/generated/graphql';
 import { updateContentAtom } from '../../store/content';
 import { clientAtom } from 'jotai-urql';
 
@@ -93,10 +92,14 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         },
     
         async getSnsPreviewAPI(url: string) {
-            const res = await callApi(GetSnsPreviewAPI, {
+            const res = await gqlClient.query(GetSnsPreviewDocument, {
                 url,
             });
-            return res;
+            if (!res.data) {
+                throw new Error('get sns preview error');
+            }
+
+            return res.data.getSnsPreview;
         },
     
         async getUnpointDataAPI(datasourceId: string, nextToken?: string) {

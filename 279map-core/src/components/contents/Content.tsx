@@ -15,7 +15,6 @@ import Spinner from "../common/spinner/Spinner";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
 import { getMapKey, isEqualId } from "../../util/dataUtility";
-import { GetSnsPreviewAPI } from 'tsunagumap-api';
 import { useMap } from "../map/useMap";
 import { authLvAtom, currentMapKindAtom } from "../../store/session";
 import { filteredContentIdListAtom } from "../../store/filter";
@@ -23,12 +22,11 @@ import { useAtom } from 'jotai';
 import { categoriesAtom } from "../../store/category";
 import { ConfirmBtnPattern, ConfirmResult } from "../common/confirm/types";
 import { useMapController } from "../../store/useMapController";
-import { useApi } from "../../api/useApi";
 import { useAtomCallback } from "jotai/utils";
 import { dialogTargetAtom } from "../../store/operation";
 import { updateContentAtom } from "../../store/content";
 import { clientAtom } from "jotai-urql";
-import { ContentsDefine, GetContentDocument, GetImageUrlDocument, MutationUpdateContentArgs, ParentOfContent, RemoveContentDocument, UnlinkContentDocument } from "../../graphql/generated/graphql";
+import { ContentsDefine, GetContentDocument, GetImageUrlDocument, GetSnsPreviewDocument, MutationUpdateContentArgs, ParentOfContent, RemoveContentDocument, UnlinkContentDocument } from "../../graphql/generated/graphql";
 
 type Props = {
     itemId: DataId;
@@ -47,7 +45,6 @@ export default function Content(props: Props) {
     const [ filteredContentIdList ] = useAtom(filteredContentIdListAtom);
     const { onEditContent }  = useContext(OwnerContext);
     const { focusItem } = useMap();
-    const { callApi } = useApi();
     const [, updateContent] = useAtom(updateContentAtom);
 
     /**
@@ -217,17 +214,21 @@ export default function Content(props: Props) {
             contentId: props.content.id,
             currentAttr,
             getSnsPreviewAPI: async(url: string) => {
-                const res = await callApi(GetSnsPreviewAPI, {
+                const res = await gqlClient.query(GetSnsPreviewDocument, {
                     url,
                 });
-                return res;
+                if (!res.data) {
+                    throw new Error('get sns preview error');
+                }
+    
+                return res.data.getSnsPreview;
             },
             updateContentAPI: async(param: MutationUpdateContentArgs) => {
                 await updateContent(param);
         
             },
         })
-    }, [props.content, onEditContent, callApi, updateContent, gqlClient]);
+    }, [props.content, onEditContent, updateContent, gqlClient]);
 
     const onDelete = useCallback(async() => {
         const result = await confirm({

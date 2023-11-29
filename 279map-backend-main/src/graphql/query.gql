@@ -110,6 +110,29 @@ type GeocoderItem {
 }
 
 # --------------
+# SNS関連
+# --------------
+type SnsPreviewResult {
+    type: SnsType!
+    posts: [SnsPreviewPost!]!
+}
+enum SnsType {
+    InstagramUser
+}
+type SnsPreviewPost {
+    text: String!
+    media: MediaInfo
+    date: String
+}
+type MediaInfo {
+    type: MediaType!
+    url: String!
+}
+enum MediaType {
+    image
+    Video
+}
+# --------------
 
 type Query {
     # lastestEditedTime: 指定されている場合、この更新日時以降に更新されたアイテムのみ返す
@@ -133,6 +156,8 @@ type Query {
 
     geocoder(address: String!, searchTarget: [GeocoderTarget!]!): [GeocoderItem!]!
     getGeocoderFeature(id: GeocoderId!): Geometry!
+
+    getSnsPreview(url: String!): SnsPreviewResult!
 
     getUserList: [User!]!
     getLinkableContentsDatasources: [ContentsDatasource!]!

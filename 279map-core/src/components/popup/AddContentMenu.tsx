@@ -6,18 +6,16 @@ import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
 import { Auth, DataId } from '279map-common';
-import { GetSnsPreviewAPI } from 'tsunagumap-api';
 import { Button } from '../common';
 import { compareAuth } from '../../util/CommonUtility';
 import { authLvAtom } from '../../store/session';
 import { useItems } from '../../store/item/useItems';
 import { contentDataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
-import { useApi } from '../../api/useApi';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern, ConfirmResult } from '../common/confirm/types';
 import { clientAtom } from 'jotai-urql';
-import { DatasourceConfig, GetContentDocument, GetUnpointContentsDocument, LinkContentDocument, MutationLinkContentArgs, MutationRegistContentArgs, RegistContentDocument, UpdateItemDocument } from '../../graphql/generated/graphql';
+import { DatasourceConfig, GetContentDocument, GetSnsPreviewDocument, GetUnpointContentsDocument, LinkContentDocument, MutationLinkContentArgs, MutationRegistContentArgs, RegistContentDocument, UpdateItemDocument } from '../../graphql/generated/graphql';
 
 type Props = {
     target: {
@@ -35,7 +33,6 @@ export default function AddContentMenu(props: Props) {
     const id = useRef('add-content-menu-'+maxId++);
     const { onAddNewContent, onLinkUnpointedContent } = useContext(OwnerContext);
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
-    const { callApi } = useApi();
     const [ gqlClient ] = useAtom(clientAtom);
     const [ dataSources ] = useAtom(contentDataSourcesAtom);
     const [ authLv ] = useAtom(authLvAtom);
@@ -208,10 +205,14 @@ export default function AddContentMenu(props: Props) {
                     }
                 },
                 getSnsPreviewAPI: async(url: string) => {
-                    const res = await callApi(GetSnsPreviewAPI, {
+                    const res = await gqlClient.query(GetSnsPreviewDocument, {
                         url,
                     });
-                    return res;
+                    if (!res.data) {
+                        throw new Error('get sns preview error');
+                    }
+        
+                    return res.data.getSnsPreview;
                 },
             });
         } else {
@@ -256,7 +257,7 @@ export default function AddContentMenu(props: Props) {
             props.onClick();
         }
 
-    }, [callApi, props, confirm, registItemNameByContentsName, creatableContentDataSources, linkableContentDataSources, onAddNewContent, onLinkUnpointedContent, gqlClient]);
+    }, [props, confirm, registItemNameByContentsName, creatableContentDataSources, linkableContentDataSources, onAddNewContent, onLinkUnpointedContent, gqlClient]);
 
     const caption = useMemo(() => {
         if ('itemId' in props.target) {

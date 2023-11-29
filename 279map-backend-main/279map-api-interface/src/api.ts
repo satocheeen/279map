@@ -51,22 +51,6 @@ export type RequestParam = {
 }
 
 /**
- * get sns preview
- */
-export const GetSnsPreviewAPI = {
-    uri: 'getsnspreview',
-    method: 'post',
-    resultType: 'json',
-} as APIDefine<GetSnsPreviewParam, GetSnsPreviewResult>;
-export type GetSnsPreviewParam = {
-    url: string;
-}
-export type GetSnsPreviewResult = {
-    type:  'InstagramUser';
-    posts: SnsPreviewPost[];
-};
-
-/**
  * Publishメッセージ（ユーザに対するもの）
  */
 export type PublishUserMessage = {

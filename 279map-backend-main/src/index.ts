@@ -17,7 +17,7 @@ import { getSnsPreview } from './api/getSnsPreview';
 import cors from 'cors';
 import { exit } from 'process';
 import { getMapInfoById } from './getMapDefine';
-import { ConfigAPI, ConnectResult, GetMapListAPI, GetSnsPreviewAPI, GetSnsPreviewParam } from '../279map-api-interface/src';
+import { ConfigAPI, ConnectResult, GetMapListAPI } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
 import { RequestAPI, RequestParam } from '../279map-api-interface/src/api';
@@ -38,7 +38,7 @@ import { graphqlHTTP } from 'express-graphql';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { DatasourceConfig, DatasourceKindType, MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, ThumbSize } from './graphql/__generated__/types';
+import { DatasourceConfig, DatasourceKindType, MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, ThumbSize } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -968,6 +968,20 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
 
             },
+            /**
+             * SNSプレビュー取得
+             */
+            getSnsPreview: async(_, param: QueryGetSnsPreviewArgs): QueryResolverReturnType<'getSnsPreview'> => {
+
+                try {
+                    const result = await getSnsPreview(param);
+                    return result;
+
+                } catch(e) {
+                    apiLogger.warn('get-sns-preview API error', param, e);
+                    throw e;
+                }
+            },
             getUserList: async(parent: any, _, ctx): QueryResolverReturnType<'getUserList'> => {
                 try {
                     const mapId = ctx.currentMap.mapId;
@@ -1546,31 +1560,6 @@ app.use(
         }
     }),
 )
-
-/**
- * get sns preview
- * SNSプレビュー取得
- */
-app.post(`/api/${GetSnsPreviewAPI.uri}`,
-    checkApiAuthLv(Auth.Edit), 
-    checkCurrentMap,
-    async(req, res, next) => {
-        const param = req.body as GetSnsPreviewParam;
-        try {
-            const result = await getSnsPreview(param);
-    
-            res.send(result);
-    
-            next();
-        } catch(e) {
-            apiLogger.warn('get-sns-preview API error', param, e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail : e + '',
-            } as ApiError);
-        }
-    }
-);
 
 app.all('/api/*', (req) => {
     apiLogger.info('[end]', req.url, req.connect?.sessionKey);
