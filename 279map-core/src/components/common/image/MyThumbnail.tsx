@@ -1,6 +1,5 @@
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { DataId } from '279map-common';
-import { useWatch } from '../../../util/useWatch';
 import Spinner from '../spinner/Spinner';
 import { connectStatusAtom } from '../../../store/session';
 import { useAtom } from 'jotai';
@@ -34,7 +33,7 @@ export default function MyThumbnail(props: Props) {
     /**
      * 画像取得
      */
-    useWatch(() => {
+    useEffect(() => {
         if (!sid) return;
 
         gqlClient.query(GetThumbDocument, {
@@ -48,7 +47,7 @@ export default function MyThumbnail(props: Props) {
             setLoaded(true);
         });
 
-    }, [sid, props.id, props.mode]);
+    }, [sid, props.id, props.mode, gqlClient]);
 
     return (
         <>
