@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect } from 'react';
-import { connectStatusLoadableAtom, instanceIdAtom, mapIdAtom, connectReducerAtom } from '../../store/session';
+import { connectStatusLoadableAtom, instanceIdAtom, mapIdAtom, connectReducerAtom, serverInfoAtom, recreatedGqlClientReducerAtom } from '../../store/session';
 import { ErrorType } from 'tsunagumap-api';
 import Overlay from '../common/spinner/Overlay';
 import { Button } from '../common';
@@ -13,6 +13,9 @@ import { useApi } from '../../api/useApi';
 import { ServerInfo } from '../../types/types';
 import { clientAtom } from 'jotai-urql';
 import { RequestDocument } from '../../graphql/generated/graphql';
+import { useWatch } from '../../util/useWatch2';
+import { cacheExchange, createClient, fetchExchange } from 'urql';
+import { useAtomCallback } from 'jotai/utils';
 
 type Props = {
     server: ServerInfo;
@@ -31,6 +34,37 @@ export default function MapConnector(props: Props) {
     const [ mapId ] = useAtom(mapIdAtom);
     
     const { getSubscriber } = useSubscribe();
+
+
+    /**
+     * GraphQL Client生成
+     */
+    const [serverInfo] = useAtom(serverInfoAtom);
+    const [, dispatch] = useAtom(recreatedGqlClientReducerAtom);
+    useWatch([serverInfo, connectLoadable], 
+        useAtomCallback((get, set) => {
+            const protocol = serverInfo.ssl ? 'https' : 'http';
+            const url = `${protocol}://${serverInfo.host}/graphql`;
+
+            const sessionid = connectLoadable.state === 'hasData' ? connectLoadable.data.sid : '';
+            const urqlClient = createClient({
+                url,
+                exchanges: [cacheExchange, fetchExchange],
+                fetchOptions: () => {
+                    return {
+                        headers: {
+                            Authorization:  serverInfo.token ? `Bearer ${serverInfo.token}` : '',
+                            sessionid,
+                        },
+                    }
+                }
+            })
+
+            console.log('recreate GQLClient', connectLoadable, sessionid);
+            set(clientAtom, urqlClient);
+            dispatch();
+        }
+    ), { immediate: true })
 
     // Subscriber用意
     useEffect(() => {

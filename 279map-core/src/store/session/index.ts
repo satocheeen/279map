@@ -39,6 +39,7 @@ export const connectStatusAtom = atom<Promise<ConnectResult>>(async( get ) => {
         })
     }
 })
+export const recreatedGqlClientReducerAtom = atomWithReducer(0, (prev) => prev+1);
 
 export const connectStatusLoadableAtom = loadable(connectStatusAtom);
 
@@ -52,6 +53,7 @@ type MapDefineType = SwitchMapKindResult & {
 }
 const mapDefineAtom = atom<Promise<MapDefineType>>(async(get) => {
     get(mapDefineReducerAtom);
+    get(recreatedGqlClientReducerAtom);
 
     const connectStatus = await get(connectStatusAtom);
     const specifiedMapKind = get(specifiedMapKindAtom);

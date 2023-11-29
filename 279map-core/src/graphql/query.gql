@@ -1,3 +1,16 @@
+query config {
+    config {
+        ...on NoneConfig {
+            dummy
+        }
+
+        ...on Auth0Config {
+            domain
+            clientId
+            audience
+        }
+    }
+}
 query getCategory(
     $datasourceIds: [String!]
 ){

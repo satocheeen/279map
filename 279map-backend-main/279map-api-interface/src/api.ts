@@ -3,15 +3,6 @@ import { GeoJsonObject, Position } from "geojson";
 import { APIDefine, ContentAttr, SnsPreviewPost, MapDefine } from '279map-common';
 import { FilterDefine, DataSourceGroup } from "279map-common";
 
-/**
- * get common config
- */
-export const ConfigAPI = {
-    uri: 'config',
-    method: 'get',
-    resultType: 'json',
-} as APIDefine<void, ServerConfig>;
-
 export const GetMapListAPI = {
     uri: 'getmaplist',
     method: 'get',
