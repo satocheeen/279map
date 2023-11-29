@@ -167,6 +167,16 @@ mutation changeAuthLevel (
     )
 }
 
+mutation request (
+    $mapId: String!
+    $name: String!
+) {
+    request(
+        mapId: $mapId
+        name: $name
+    )
+}
+
 mutation linkContentsDatasource (
     $contentsDatasources: [ContentsDatasourceInput!]!
 ) {

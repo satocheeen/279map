@@ -38,19 +38,6 @@ export type ConnectResult = {
 }
 
 /**
- * ユーザ登録申請API
- */
-export const RequestAPI = {
-    uri: 'request',
-    method: 'post',
-    resultType: 'none',
-} as APIDefine<RequestParam, void>;
-export type RequestParam = {
-    mapId: string;
-    name: string;
-}
-
-/**
  * Publishメッセージ（ユーザに対するもの）
  */
 export type PublishUserMessage = {

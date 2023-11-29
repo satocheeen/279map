@@ -20,7 +20,6 @@ import { getMapInfoById } from './getMapDefine';
 import { ConfigAPI, ConnectResult, GetMapListAPI } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { RequestAPI, RequestParam } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 import { search } from './api/search';
@@ -38,7 +37,7 @@ import { graphqlHTTP } from 'express-graphql';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { DatasourceConfig, DatasourceKindType, MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, ThumbSize } from './graphql/__generated__/types';
+import { DatasourceConfig, DatasourceKindType, MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, ThumbSize } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -66,12 +65,10 @@ declare global {
 type GraphQlContextType = {
     session: SessionInfo;
     sessionKey: string; // SID or Token
-    // mapId: string;
-    // mapPageInfo: MapPageInfoTable;
     userAuthInfo: UserAuthInfo;
-    // userName?: string;
     currentMap: CurrentMap;
     authLv: Auth;
+    request: Express.Request,
 }
 // ログ初期化
 configure(LogSetting);
@@ -365,61 +362,6 @@ app.get('/api/connect',
 );
 
 /**
- * 地図へのユーザ登録申請
- */
-app.post(`/api/${RequestAPI.uri}`, 
-    authManagementClient.checkJwt,
-    authenticateErrorProcess,
-    async(req: Request, res: Response) => {
-
-        try {
-            const param = req.body as RequestParam;
-            apiLogger.info('[start] request', param);
-
-            const queryMapId = param.mapId;
-            const mapInfo = await getMapInfoById(queryMapId);
-            if (mapInfo === null) {
-                res.status(400).send({
-                    type: ErrorType.UndefinedMap,
-                    detail: 'mapId is not found : ' + queryMapId,
-                } as ApiError);
-                return;
-            }
-
-            const userId = getUserIdByRequest(req);
-            if (!userId) {
-                throw new Error('userId undefined');
-            }
-            await authManagementClient.requestForEnterMap({
-                userId,
-                mapId: mapInfo.map_page_id,
-                name: param.name,
-                newUserAuthLevel: (mapInfo.options as MapPageOptions)?.newUserAuthLevel ?? Auth.None,
-            });
-            res.send('ok');
-
-            // publish
-            broadCaster.publish(queryMapId, undefined, {
-                type: 'userlist-update',
-            })
-            broadCaster.publishUserMessage(userId, {
-                type: 'update-userauth',
-            });
-
-        } catch(e) {
-            apiLogger.warn('request error', e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail: e + '',
-            } as ApiError);
-        } finally {
-            apiLogger.info('[end] request');
-
-        }
-    }
-);
-
-/**
  * セッション情報を取得してrequestに格納
  */
 const sessionCheck = async(req: Request, res: Response, next: NextFunction) => {
@@ -589,6 +531,9 @@ const checkGraphQlAuthLv = async(operationName: string, userAuthInfo: UserAuthIn
     const needAuthLv = authDefine[operationName as Resolvers];
     let allowAuthList: Auth[];
     switch(needAuthLv) {
+        case Auth.None:
+            allowAuthList = [Auth.None, Auth.View, Auth.Edit, Auth.Admin];
+            break;
         case Auth.View:
             allowAuthList = [Auth.View, Auth.Edit, Auth.Admin];
             break;
@@ -1444,6 +1389,55 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
             },
             /**
+             * 地図へのユーザ登録申請
+             */
+            request: async(_, param: MutationRequestArgs, ctx): MutationResolverReturnType<'request'> => {
+                try {
+                    apiLogger.info('[start] request', param);
+
+                    const queryMapId = param.mapId;
+                    const mapInfo = await getMapInfoById(queryMapId);
+                    if (mapInfo === null) {
+                        throw new CustomError({
+                            type: ErrorType.UndefinedMap,
+                            message: 'mapId is not found : ' + queryMapId,
+                        })
+                    }
+
+                    // @ts-ignore
+                    const userId = getUserIdByRequest(ctx.request);
+                    if (!userId) {
+                        throw new Error('userId undefined');
+                    }
+                    await authManagementClient.requestForEnterMap({
+                        userId,
+                        mapId: mapInfo.map_page_id,
+                        name: param.name,
+                        newUserAuthLevel: (mapInfo.options as MapPageOptions)?.newUserAuthLevel ?? Auth.None,
+                    });
+
+                    // publish
+                    broadCaster.publish(queryMapId, undefined, {
+                        type: 'userlist-update',
+                    })
+                    broadCaster.publishUserMessage(userId, {
+                        type: 'update-userauth',
+                    });
+
+                    return true;
+
+                } catch(e) {
+                    apiLogger.warn('request error', e);
+                    throw e;
+
+                } finally {
+                    apiLogger.info('[end] request');
+
+                }
+
+
+            },
+            /**
              * コンテンツデータソースを地図に追加
              */
             linkContentsDatasource: async(_, param: MutationLinkContentsDatasourceArgs, ctx): MutationResolverReturnType<'linkContentsDatasource'> => {
@@ -1551,6 +1545,7 @@ app.use(
             userAuthInfo,
             currentMap: session.currentMap,
             authLv,
+            request: req as Request,
         }
 
         return {

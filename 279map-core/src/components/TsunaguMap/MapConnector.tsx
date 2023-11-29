@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { connectStatusLoadableAtom, instanceIdAtom, mapIdAtom, connectReducerAtom } from '../../store/session';
-import { ErrorType, RequestAPI } from 'tsunagumap-api';
+import { ErrorType } from 'tsunagumap-api';
 import Overlay from '../common/spinner/Overlay';
 import { Button } from '../common';
 import Input from '../common/form/Input';
@@ -11,6 +11,8 @@ import { useAtom } from 'jotai';
 import { MyError, MyErrorType } from '../../api/api';
 import { useApi } from '../../api/useApi';
 import { ServerInfo } from '../../types/types';
+import { clientAtom } from 'jotai-urql';
+import { RequestDocument } from '../../graphql/generated/graphql';
 
 type Props = {
     server: ServerInfo;
@@ -154,7 +156,7 @@ type RequestComponetProps = {
    onCancel?: () => void;
 }
 function RequestComponet(props: RequestComponetProps) {
-    const { callApi } = useApi();
+    const [ gqlClient ] = useAtom(clientAtom);
     const [ mapId ] = useAtom(mapIdAtom);
     const [ stage, setStage ] = useState<RequestComponetStage>(props.stage ?? 'button');
     const [ name, setName ] = useState('');
@@ -166,11 +168,11 @@ function RequestComponet(props: RequestComponetProps) {
             return;
         }
         setStage('requested');
-        await callApi(RequestAPI, {
+        await gqlClient.mutation(RequestDocument, {
             mapId,
             name,
         });
-    }, [callApi, mapId, name]);
+    }, [gqlClient, mapId, name]);
 
     const onCancel = useCallback(() => {
         if (props.onCancel) {

@@ -156,6 +156,11 @@ type Mutation {
         authLv: Auth!
     ): Boolean
 
+    request (
+        mapId: String!
+        name: String!
+    ): Boolean
+
     linkContentsDatasource (
         contentsDatasources: [ContentsDatasourceInput!]!
     ): Boolean

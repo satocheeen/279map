@@ -36,6 +36,7 @@ export const authDefine: AuthLvDefine = {
     // 管理者機能
     getUserList: Auth.Admin,
     changeAuthLevel: Auth.Admin,
+    request: Auth.None,
     getLinkableContentsDatasources: Auth.Admin,
     linkContentsDatasource: Auth.Admin,
     unlinkContentsDatasource: Auth.Admin,
