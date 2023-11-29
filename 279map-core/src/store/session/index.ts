@@ -1,4 +1,4 @@
-import { ConnectAPI, ConnectResult, ErrorType } from 'tsunagumap-api';
+import { ConnectAPI, ErrorType } from 'tsunagumap-api';
 import { Auth, MapKind } from '279map-common';
 import { ApiException, callApi } from '../../api/api';
 import { Extent } from "ol/extent";
@@ -8,7 +8,7 @@ import { Loadable } from 'jotai/vanilla/utils/loadable';
 import { ServerInfo } from '../../types/types';
 import { atomWithCountup } from '../../util/jotaiUtility';
 import { clientAtom } from 'jotai-urql';
-import { SwitchMapKindDocument, SwitchMapKindMutation } from '../../graphql/generated/graphql';
+import { ConnectResult, SwitchMapKindDocument, SwitchMapKindMutation } from '../../graphql/generated/graphql';
 
 export const instanceIdAtom = atomWithCountup('instance-');
 
@@ -20,28 +20,21 @@ export const serverInfoAtom = atom<ServerInfo>({
 });
 
 export const connectReducerAtom = atomWithReducer(0, (prev) => prev+1);
-export const connectStatusAtom = atom<Promise<ConnectResult>>(async( get ) => {
-    try {
-        get(connectReducerAtom);
 
-        const mapId = get(mapIdAtom);
-        console.log('connect to', mapId);
-
-        const serverInfo = get(serverInfoAtom);
-        const json = await callApi(serverInfo, undefined, ConnectAPI, {mapId});
-
-        return json;
-
-    } catch(e) {
-        throw new ApiException({
-            type: ErrorType.IllegalError,
-            detail: e + '',
-        })
+export const connectStatusAtom = atom<ConnectResult>({
+    connect: {
+        authLv: Auth.None,
+        sid: '',
+    },
+    mapDefine: {
+        defaultMapKind: MapKind.Real,
+        name: '',
+        options: {} as any,
+        useMaps: [],
     }
-})
-export const recreatedGqlClientReducerAtom = atomWithReducer(0, (prev) => prev+1);
+});
 
-export const connectStatusLoadableAtom = loadable(connectStatusAtom);
+export const recreatedGqlClientReducerAtom = atomWithReducer(0, (prev) => prev+1);
 
 // ユーザに表示指定された地図種別
 export const specifiedMapKindAtom = atom<MapKind|undefined>(undefined);
@@ -56,6 +49,10 @@ const mapDefineAtom = atom<Promise<MapDefineType>>(async(get) => {
     get(recreatedGqlClientReducerAtom);
 
     const connectStatus = await get(connectStatusAtom);
+    if (!connectStatus) {
+        throw Promise;
+    }
+
     const specifiedMapKind = get(specifiedMapKindAtom);
     const mapKind = specifiedMapKind ?? connectStatus.mapDefine.defaultMapKind;
     
@@ -106,13 +103,6 @@ export const defaultExtentAtom = atom<Extent>((get) => {
 })
 
 export const authLvAtom = atom<Auth>(( get ) => {
-    const connectStatus = get(connectStatusLoadableAtom);
-    if (connectStatus.state !== 'hasData') return Auth.None;
-    switch(connectStatus.data.mapDefine.authLv) {
-        case Auth.None:
-        case Auth.Request:
-            return connectStatus.data.mapDefine.guestAuthLv;
-        default:
-            return connectStatus.data.mapDefine.authLv;
-    }
+    const connectStatus = get(connectStatusAtom);
+    return connectStatus.connect.authLv ?? Auth.None;
 })

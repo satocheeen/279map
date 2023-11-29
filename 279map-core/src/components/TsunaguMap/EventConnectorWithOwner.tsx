@@ -4,7 +4,7 @@ import { OwnerContext } from './TsunaguMap';
 import { categoriesAtom, categoriesLoadableAtom } from '../../store/category';
 import { eventsLoadableAtom } from '../../store/event';
 import { dialogTargetAtom, mapModeAtom, showingDetailItemIdAtom } from '../../store/operation';
-import { connectStatusLoadableAtom, mapDefineLoadableAtom } from '../../store/session';
+import { mapDefineLoadableAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
@@ -136,7 +136,6 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
     }));
 
     useFilterListner();
-    useConnectListener();
     useMapLoadListener();
     useDataSourceChangeListener();
     useCategoryLoadListener();
@@ -173,28 +172,6 @@ function useFilterListner() {
         setFilteredItem(result.data?.search ?? null);
         hideProcessMessage(h);
     })
-}
-
-/**
- * connect時に呼び出し元にイベント発火する
- */
-function useConnectListener() {
-    const { onConnect } = useContext(OwnerContext);
-    const [ connectLoadable ] = useAtom(connectStatusLoadableAtom);
-    const connectedRef = useRef(false);
-
-    // マウント後でないとイベント発火できないので、useEffect内で処理
-    useEffect(() => {
-        if (!connectedRef.current && connectLoadable.state === 'hasData') {
-            connectedRef.current = true;
-            if (onConnect) {
-                onConnect({
-                    mapDefine: connectLoadable.data.mapDefine,
-                })
-            }
-        }
-    });
-
 }
 
 /**

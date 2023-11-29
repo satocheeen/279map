@@ -1,5 +1,5 @@
-import React, { useCallback, useState, useEffect } from 'react';
-import { connectStatusLoadableAtom, instanceIdAtom, mapIdAtom, connectReducerAtom, serverInfoAtom, recreatedGqlClientReducerAtom } from '../../store/session';
+import React, { useCallback, useState, useEffect, useContext } from 'react';
+import { instanceIdAtom, mapIdAtom, connectReducerAtom, serverInfoAtom, recreatedGqlClientReducerAtom, connectStatusAtom } from '../../store/session';
 import { ErrorType } from 'tsunagumap-api';
 import Overlay from '../common/spinner/Overlay';
 import { Button } from '../common';
@@ -12,10 +12,12 @@ import { MyError, MyErrorType } from '../../api/api';
 import { useApi } from '../../api/useApi';
 import { ServerInfo } from '../../types/types';
 import { clientAtom } from 'jotai-urql';
-import { RequestDocument } from '../../graphql/generated/graphql';
+import { ConnectDocument, RequestDocument } from '../../graphql/generated/graphql';
 import { useWatch } from '../../util/useWatch2';
 import { cacheExchange, createClient, fetchExchange } from 'urql';
 import { useAtomCallback } from 'jotai/utils';
+import { map } from 'wonka';
+import { OwnerContext } from './TsunaguMap';
 
 type Props = {
     server: ServerInfo;
@@ -29,42 +31,11 @@ type Props = {
  * @returns 
  */
 export default function MapConnector(props: Props) {
-    const [connectLoadable] = useAtom(connectStatusLoadableAtom);
+    const { onConnect } = useContext(OwnerContext);
     const [instanceId ] = useAtom(instanceIdAtom);
     const [ mapId ] = useAtom(mapIdAtom);
     
     const { getSubscriber } = useSubscribe();
-
-
-    /**
-     * GraphQL Client生成
-     */
-    const [serverInfo] = useAtom(serverInfoAtom);
-    const [, dispatch] = useAtom(recreatedGqlClientReducerAtom);
-    useWatch([serverInfo, connectLoadable], 
-        useAtomCallback((get, set) => {
-            const protocol = serverInfo.ssl ? 'https' : 'http';
-            const url = `${protocol}://${serverInfo.host}/graphql`;
-
-            const sessionid = connectLoadable.state === 'hasData' ? connectLoadable.data.sid : '';
-            const urqlClient = createClient({
-                url,
-                exchanges: [cacheExchange, fetchExchange],
-                fetchOptions: () => {
-                    return {
-                        headers: {
-                            Authorization:  serverInfo.token ? `Bearer ${serverInfo.token}` : '',
-                            sessionid,
-                        },
-                    }
-                }
-            })
-
-            console.log('recreate GQLClient', connectLoadable, sessionid);
-            set(clientAtom, urqlClient);
-            dispatch();
-        }
-    ), { immediate: true })
 
     // Subscriber用意
     useEffect(() => {
@@ -75,35 +46,74 @@ export default function MapConnector(props: Props) {
         }
     }, [instanceId, props.server, mapId]);
 
-    const [, connectDispatch] = useAtom(connectReducerAtom);
+    const [ loading, setLoading ] = useState(false);
+
+    const connect = useAtomCallback(
+        useCallback(async(get, set, mapId: string) => {
+            try {
+                // get(connectReducerAtom);
+        
+                console.log('connect to', mapId);
+        
+                setLoading(true);
+                const gqlClient = get(clientAtom);
+                const result = await gqlClient.mutation(ConnectDocument, { mapId });
+                if (!result.data) {
+                    throw new Error('connect failed. ' + result.error)
+                }
+                set(connectStatusAtom, result.data.connect);
+                setLoading(false);
+
+                if (onConnect) {
+                    onConnect({
+                        mapDefine: result.data.connect.mapDefine,
+                    })
+                }
+    
+            } catch(e) {
+                console.warn(e);
+                // throw new ApiException({
+                //     type: ErrorType.IllegalError,
+                //     detail: e + '',
+                // })
+            }    
+        }, [])
+    );
+
     useEffect(() => {
-        const userId = function() {
-            if (connectLoadable.state === 'hasError') {
-                const e = connectLoadable.error as any;
-                const error: MyError = ('apiError' in e) ? e.apiError
-                                    : {type: ErrorType.IllegalError, detail: e + ''};
-                return error?.userId;
-            } else if (connectLoadable.state === 'hasData') {
-                return connectLoadable.data?.userId;
-            } else {
-                return undefined;
-            }
-        }();
-        if (!userId) return;
-        const subscriber = getSubscriber();
-        if (!subscriber) return;
-        subscriber?.setUser(userId);
+        console.log('debug');
+        connect(mapId)
+    }, [mapId, connect])
 
-        const h = subscriber.subscribeUser('update-userauth', () => {
-            // 権限変更されたので再接続
-            connectDispatch();
-        });
+    // const [, connectDispatch] = useAtom(connectReducerAtom);
+    // useEffect(() => {
+    //     const userId = function() {
+    //         if (connectLoadable.state === 'hasError') {
+    //             const e = connectLoadable.error as any;
+    //             const error: MyError = ('apiError' in e) ? e.apiError
+    //                                 : {type: ErrorType.IllegalError, detail: e + ''};
+    //             return error?.userId;
+    //         } else if (connectLoadable.state === 'hasData') {
+    //             return connectLoadable.data?.connect.userId;
+    //         } else {
+    //             return undefined;
+    //         }
+    //     }();
+    //     if (!userId) return;
+    //     const subscriber = getSubscriber();
+    //     if (!subscriber) return;
+    //     subscriber?.setUser(userId);
 
-        return () => {
-            if (h)
-                subscriber.unsubscribe(h);
-        }
-    }, [connectLoadable, getSubscriber, connectDispatch])
+    //     const h = subscriber.subscribeUser('update-userauth', () => {
+    //         // 権限変更されたので再接続
+    //         connectDispatch();
+    //     });
+
+    //     return () => {
+    //         if (h)
+    //             subscriber.unsubscribe(h);
+    //     }
+    // }, [/* connectLoadable, getSubscriber, connectDispatch */])
 
 
     // ゲストモードで動作させる場合、true
@@ -114,70 +124,72 @@ export default function MapConnector(props: Props) {
 
     const { hasToken } = useApi()
 
-    switch (connectLoadable.state) {
-        case 'hasData':
-            // Auth0ログイン済みだが、地図ユーザ未登録の場合は、登録申請フォーム表示
-            const showRequestPanel = function() {
-                if (guestMode) {
-                    return false;
-                }
-                if (!hasToken) {
-                    return false;
-                }
-                if (connectLoadable.data.mapDefine.options?.newUserAuthLevel === Auth.None) {
-                    // 新規ユーザ登録禁止の地図では表示しない
-                    return false;
-                }
-                return connectLoadable.data.mapDefine.authLv === Auth.None;
-            }();
-            return (
-                <>
-                    {props.children}
-                    {showRequestPanel &&
-                        <Overlay message="ユーザ登録しますか？">
-                            <RequestComponet stage='input' onCancel={onRequestCancel} />
-                        </Overlay>
-                    }
-                </>
-            );
-        case 'loading':
-            return <Overlay spinner message='ロード中...' />
+    return <div>Test</div>
 
-        case 'hasError':
-            const e = connectLoadable.error as any;
-            const error: MyError = ('apiError' in e) ? e.apiError
-                                : {type: ErrorType.IllegalError, detail: e + ''};
+    // switch (connectLoadable.state) {
+    //     case 'hasData':
+    //         // Auth0ログイン済みだが、地図ユーザ未登録の場合は、登録申請フォーム表示
+    //         const showRequestPanel = function() {
+    //             if (guestMode) {
+    //                 return false;
+    //             }
+    //             if (!hasToken) {
+    //                 return false;
+    //             }
+    //             if (connectLoadable.data?.mapDefine.options?.newUserAuthLevel === Auth.None) {
+    //                 // 新規ユーザ登録禁止の地図では表示しない
+    //                 return false;
+    //             }
+    //             return connectLoadable.data?.connect.authLv === Auth.None;
+    //         }();
+    //         return (
+    //             <>
+    //                 {props.children}
+    //                 {showRequestPanel &&
+    //                     <Overlay message="ユーザ登録しますか？">
+    //                         <RequestComponet stage='input' onCancel={onRequestCancel} />
+    //                     </Overlay>
+    //                 }
+    //             </>
+    //         );
+    //     case 'loading':
+    //         return <Overlay spinner message='ロード中...' />
 
-            if (error.type === MyErrorType.NonInitialize) {
-                return <Overlay spinner message='初期化中...' />
-            }
-            const errorMessage = function(): string {
-                switch(error.type) {
-                    case ErrorType.UndefinedMap:
-                        return '指定の地図は存在しません';
-                    case ErrorType.Unauthorized:
-                        return 'この地図を表示するには、ログインが必要です';
-                    case ErrorType.Forbidden:
-                        return '認証期限が切れている可能性があります。再ログインを試してください。問題が解決しない場合は、管理者へ問い合わせてください。';
-                    case ErrorType.NoAuthenticate:
-                        return 'この地図に入るには管理者の承認が必要です';
-                    case ErrorType.Requesting:
-                        return '管理者からの承認待ちです';
-                    case ErrorType.SessionTimeout:
-                        return 'しばらく操作されなかったため、セッション接続が切れました。再ロードしてください。';
-                    default:
-                        return '想定外の問題が発生しました。再ロードしても問題が解決しない場合は、管理者へ問い合わせてください。';
-                }
-            }();
-            const detail = error.detail ? `\n${error.detail}` : '';
-            return (
-                <Overlay message={errorMessage + detail}>
-                    {error.type === ErrorType.NoAuthenticate &&
-                        <RequestComponet />
-                    }
-                </Overlay>
-            );
-    }
+    //     case 'hasError':
+    //         const e = connectLoadable.error as any;
+    //         const error: MyError = ('apiError' in e) ? e.apiError
+    //                             : {type: ErrorType.IllegalError, detail: e + ''};
+
+    //         if (error.type === MyErrorType.NonInitialize) {
+    //             return <Overlay spinner message='初期化中...' />
+    //         }
+    //         const errorMessage = function(): string {
+    //             switch(error.type) {
+    //                 case ErrorType.UndefinedMap:
+    //                     return '指定の地図は存在しません';
+    //                 case ErrorType.Unauthorized:
+    //                     return 'この地図を表示するには、ログインが必要です';
+    //                 case ErrorType.Forbidden:
+    //                     return '認証期限が切れている可能性があります。再ログインを試してください。問題が解決しない場合は、管理者へ問い合わせてください。';
+    //                 case ErrorType.NoAuthenticate:
+    //                     return 'この地図に入るには管理者の承認が必要です';
+    //                 case ErrorType.Requesting:
+    //                     return '管理者からの承認待ちです';
+    //                 case ErrorType.SessionTimeout:
+    //                     return 'しばらく操作されなかったため、セッション接続が切れました。再ロードしてください。';
+    //                 default:
+    //                     return '想定外の問題が発生しました。再ロードしても問題が解決しない場合は、管理者へ問い合わせてください。';
+    //             }
+    //         }();
+    //         const detail = error.detail ? `\n${error.detail}` : '';
+    //         return (
+    //             <Overlay message={errorMessage + detail}>
+    //                 {error.type === ErrorType.NoAuthenticate &&
+    //                     <RequestComponet />
+    //                 }
+    //             </Overlay>
+    //         );
+    // }
 }
 
 /**

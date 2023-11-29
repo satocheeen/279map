@@ -1,3 +1,22 @@
+mutation connect (
+    $mapId: String!
+) {
+    connect(mapId: $mapId) {
+        mapDefine {
+            name
+            useMaps
+            defaultMapKind
+            options
+        }
+        connect {
+            sid
+            authLv
+            userId
+            userName
+        }
+    }
+}
+
 fragment datasourceInfo on DatasourceInfo {
     datasourceId
     name

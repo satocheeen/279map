@@ -24,7 +24,7 @@ export default function MyThumbnail(props: Props) {
     const myRef = useRef<HTMLImageElement>(null);
     const [connectStatus] = useAtom(connectStatusAtom);
     const sid = useMemo(() => {
-        return connectStatus.sid;
+        return connectStatus.connect.sid;
     }, [connectStatus]);
     
     const [ gqlClient ] = useAtom(clientAtom);

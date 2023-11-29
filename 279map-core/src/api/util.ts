@@ -54,6 +54,7 @@ export async function getAuthConfig(host: string, ssl: boolean) {
 
     } catch(e) {
         console.warn('get server config failed.', e);
-        throw new Error('get server config failed.', { cause: e});
+        return {};
+        // throw new Error('get server config failed.', { cause: e});
     }
 }

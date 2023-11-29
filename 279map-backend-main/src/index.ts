@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import mysql from 'mysql2/promise';
 import { getMapInfo } from './getMapInfo';
-import { Auth, MapKind, AuthMethod, DataId, MapPageOptions, MapDefine, FilterDefine } from '279map-common';
+import { Auth, AuthMethod, DataId, MapPageOptions, FilterDefine } from '279map-common';
 import { getItems } from './getItems';
 import { configure, getLogger } from "log4js";
 import { DbSetting, LogSetting } from './config';
@@ -37,7 +37,7 @@ import { graphqlHTTP } from 'express-graphql';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { DatasourceConfig, DatasourceKindType, MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, ThumbSize } from './graphql/__generated__/types';
+import { ConnectInfo, DatasourceConfig, DatasourceKindType, MapDefine, MapKind, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, ThumbSize } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -46,7 +46,6 @@ import { CustomError } from './graphql/CustomError';
 import { getLinkedItemIdList } from './api/apiUtility';
 import SessionInfo from './session/SessionInfo';
 import { Geometry } from 'geojson';
-import { ConfigAPI } from '../279map-api-interface/dist';
 
 declare global {
     namespace Express {
@@ -189,26 +188,6 @@ export const authManagementClient = function() {
         }
 }();
 authManagementClient.initialize();
-/**
- * システム共通定義を返す
- */
-app.get(`/api/config`, async(_, res) => {
-    if (authMethod === AuthMethod.Auth0) {
-        const result = {
-            authMethod: AuthMethod.Auth0,
-            auth0: {
-                domain: process.env.AUTH0_DOMAIN,
-                clientId: process.env.AUTH0_FRONTEND_CLIENT_ID,
-                audience: process.env.AUTH0_AUDIENCE,
-            }
-        } ;
-        res.send(result);
-    } else {
-        res.send({
-            authMethod,
-        })
-    }
-});
 
 /**
  * ログインユーザーがアクセス可能な地図一覧を返す。
@@ -344,6 +323,7 @@ app.get('/api/connect',
             });
         
             const result: ConnectResult = {
+                // @ts-ignore
                 mapDefine,
                 sid: session.sid,
                 userId: userAccessInfo.userId,
@@ -975,6 +955,86 @@ const schema = makeExecutableSchema<GraphQlContextType>({
         } as QueryResolver,
         Mutation: {
             /**
+             * 接続確立
+             */
+            connect: async(_, param: MutationConnectArgs, ctx): MutationResolverReturnType<'connect'> => {
+                apiLogger.info('[start] connect');
+
+                try {
+                    const mapInfo = await getMapInfoById(param.mapId);
+                    if (mapInfo === null) {
+                        throw new CustomError({
+                            type: ErrorType.UndefinedMap,
+                            message: 'mapId is not found : ' + param.mapId,
+                        });
+                    }
+
+                    // @ts-ignore TODO:
+                    const userAccessInfo = await getUserAuthInfoInTheMap(mapInfo, ctx.request, true);
+                    if (userAccessInfo.authLv === undefined && userAccessInfo.guestAuthLv === Auth.None) {
+                        // ログインが必要な地図の場合
+                        throw new CustomError({
+                            type: ErrorType.Unauthorized,
+                            message: 'need login',
+                        });
+                    }
+
+                    if (userAccessInfo.authLv === Auth.None && userAccessInfo.guestAuthLv === Auth.None) {
+                        // 権限なしエラーを返却
+                        throw new CustomError({
+                            type: ErrorType.NoAuthenticate,
+                            message: 'this user does not have authentication' + userAccessInfo.userId,
+                        })
+                    }
+                    if (userAccessInfo.authLv === Auth.Request && userAccessInfo.guestAuthLv === Auth.None) {
+                        // 承認待ちエラーを返却
+                        throw new CustomError({
+                            type: ErrorType.Requesting,
+                            message: 'requesting',
+                        })
+                    }
+
+                    const session = sessionManager.createSession({
+                        mapId: mapInfo.map_page_id,
+                        mapKind: mapInfo.default_map,
+                    });
+                
+                    const mapDefine: MapDefine = {
+                        name: mapInfo.title,
+                        useMaps: mapInfo.use_maps.split(',').map(mapKindStr => {
+                            return mapKindStr as MapKind;
+                        }),
+                        defaultMapKind: mapInfo.default_map as MapKind,
+                        options: mapInfo.options,
+                    };
+
+                    const connect: ConnectInfo = 
+                        (userAccessInfo.authLv === undefined || userAccessInfo.authLv === Auth.None || userAccessInfo.authLv === Auth.Request)
+                        ? {
+                            sid: session.sid,
+                            authLv: userAccessInfo.guestAuthLv,
+                        }
+                        : {
+                            sid: session.sid,
+                            authLv: userAccessInfo.authLv,
+                            userId: userAccessInfo.userId,
+                            // @ts-ignore なぜかTypeScriptエラーになるので
+                            userName: userAccessInfo.userName,
+                        };
+
+                    return {
+                        mapDefine,
+                        connect,
+                    }
+                
+                } catch(e) {
+                    apiLogger.warn('connect error', e);
+                    throw e;
+
+                }
+
+            },
+            /**
              * 地図切り替え
              */
             switchMapKind: async(_, param: MutationSwitchMapKindArgs, ctx): MutationResolverReturnType<'switchMapKind'> => {
@@ -1542,7 +1602,7 @@ app.use(
         const context: GraphQlContextType = await async function() {
             const operationName = graphQLParams?.operationName;
             console.log('operationName', operationName)
-            if (!operationName || operationName == 'config' || operationName === 'IntrospectionQuery') {
+            if (!operationName || ['config', 'connect', 'IntrospectionQuery'].includes(operationName)) {
                 return {
                     request: req as Request,
                 }

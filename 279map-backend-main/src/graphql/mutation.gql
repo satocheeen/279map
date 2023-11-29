@@ -16,6 +16,27 @@ input ContentsDatasourceInput {
 }
 
 # --------------
+# connect
+# --------------
+scalar MapPageOptions
+type MapDefine {
+    name: String!
+    useMaps: [MapKind!]!
+    defaultMapKind: MapKind!
+    options: MapPageOptions!
+}
+type ConnectInfo {
+    sid: String!
+    authLv: Auth!
+    userId: String
+    userName: String
+}
+type ConnectResult {
+    mapDefine: MapDefine!
+    connect: ConnectInfo!
+}
+
+# --------------
 # swutchMapKind
 # --------------
 type MapInfo {
@@ -94,6 +115,10 @@ input UpdateItemInput {
 }
 
 type Mutation {
+    connect (
+        mapId: String!
+    ): ConnectResult!
+
     switchMapKind (
         mapKind: MapKind!
     ): MapInfo!

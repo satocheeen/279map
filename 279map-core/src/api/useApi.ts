@@ -11,6 +11,7 @@ export function useApi() {
 
     const callApi: CallFuncType = useAtomCallback(
         useCallback(async(get, set, api, param) => {
+            // @ts-ignore
             const sid = (await get(connectStatusAtom)).sid;
             return callApiFunc(serverInfo, sid, api, param);
         }, [serverInfo])

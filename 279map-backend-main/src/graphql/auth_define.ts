@@ -6,6 +6,7 @@ type AuthLvDefine = Record<Resolvers, Auth>
 export const authDefine: AuthLvDefine = {
     config: Auth.None,
     
+    connect: Auth.None,
     switchMapKind: Auth.View,
     
     getCategory: Auth.View,

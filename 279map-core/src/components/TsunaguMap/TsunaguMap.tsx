@@ -18,6 +18,7 @@ import { instanceIdAtom, mapIdAtom, serverInfoAtom } from '../../store/session';
 import ContentsSettingController from '../admin/contents-setting/ContentsSettingController';
 import UserListController from '../admin/user-list/UserListController';
 import { defaultIconDefineAtom } from '../../store/icon';
+import UrqlSetup from './UrqlSetup';
 
 const DefaultComponents = lazy(() => import('../default/DefaultComponents'));
 
@@ -118,7 +119,8 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
         <div className={styles.TsunaguMap}>
             <OwnerContext.Provider value={ownerContextValue}>
                 <Provider store={myStoreRef.current}>
-                    <MapConnector server={props.mapServer}>
+                    <UrqlSetup>
+                        <MapConnector server={props.mapServer}>
                             <EventConnectorWithOwner ref={eventControlerRef} />
                             <TooltipContext.Provider value={tooltipContextValue}>
                                 <MapController />
@@ -146,7 +148,8 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
                                     }
                                 </Suspense>
                             </TooltipContext.Provider>
-                    </MapConnector>
+                        </MapConnector>
+                    </UrqlSetup>
                     <ProcessOverlay />
                 </Provider>
             </OwnerContext.Provider>

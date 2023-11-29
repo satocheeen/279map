@@ -22,6 +22,7 @@ export type Scalars = {
   Geometry: { input: Geometry; output: Geometry; }
   IconKey: { input: any; output: any; }
   JSON: { input: any; output: any; }
+  MapPageOptions: { input: any; output: any; }
 };
 
 export enum Auth {
@@ -48,6 +49,18 @@ export type Condition = {
   category?: InputMaybe<Array<Scalars['String']['input']>>;
   date?: InputMaybe<Array<Scalars['String']['input']>>;
   keyword?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export type ConnectInfo = {
+  authLv: Auth;
+  sid: Scalars['String']['output'];
+  userId?: Maybe<Scalars['String']['output']>;
+  userName?: Maybe<Scalars['String']['output']>;
+};
+
+export type ConnectResult = {
+  connect: ConnectInfo;
+  mapDefine: MapDefine;
 };
 
 export type ContentConfig = {
@@ -166,6 +179,13 @@ export enum ItemTemporaryState {
   Updateing = 'Updateing'
 }
 
+export type MapDefine = {
+  defaultMapKind: MapKind;
+  name: Scalars['String']['output'];
+  options: Scalars['MapPageOptions']['output'];
+  useMaps: Array<MapKind>;
+};
+
 export type MapInfo = {
   contentDataSources: Array<DatasourceInfo>;
   extent: Array<Scalars['Float']['output']>;
@@ -190,6 +210,7 @@ export enum MediaType {
 
 export type Mutation = {
   changeAuthLevel?: Maybe<Scalars['Boolean']['output']>;
+  connect: ConnectResult;
   linkContent?: Maybe<Scalars['Boolean']['output']>;
   linkContentsDatasource?: Maybe<Scalars['Boolean']['output']>;
   registContent?: Maybe<Scalars['Boolean']['output']>;
@@ -208,6 +229,11 @@ export type Mutation = {
 export type MutationChangeAuthLevelArgs = {
   authLv: Auth;
   userId: Scalars['ID']['input'];
+};
+
+
+export type MutationConnectArgs = {
+  mapId: Scalars['String']['input'];
 };
 
 
@@ -547,6 +573,8 @@ export type ResolversTypes = {
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   CategoryDefine: ResolverTypeWrapper<CategoryDefine>;
   Condition: Condition;
+  ConnectInfo: ResolverTypeWrapper<ConnectInfo>;
+  ConnectResult: ResolverTypeWrapper<ConnectResult>;
   ContentConfig: ResolverTypeWrapper<ContentConfig>;
   ContentType: ContentType;
   ContentsDatasource: ResolverTypeWrapper<ContentsDatasource>;
@@ -571,8 +599,10 @@ export type ResolversTypes = {
   ItemDefine: ResolverTypeWrapper<ItemDefine>;
   ItemTemporaryState: ItemTemporaryState;
   JSON: ResolverTypeWrapper<Scalars['JSON']['output']>;
+  MapDefine: ResolverTypeWrapper<MapDefine>;
   MapInfo: ResolverTypeWrapper<MapInfo>;
   MapKind: MapKind;
+  MapPageOptions: ResolverTypeWrapper<Scalars['MapPageOptions']['output']>;
   MediaInfo: ResolverTypeWrapper<MediaInfo>;
   MediaType: MediaType;
   Mutation: ResolverTypeWrapper<{}>;
@@ -600,6 +630,8 @@ export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
   CategoryDefine: CategoryDefine;
   Condition: Condition;
+  ConnectInfo: ConnectInfo;
+  ConnectResult: ConnectResult;
   ContentConfig: ContentConfig;
   ContentsDatasource: ContentsDatasource;
   ContentsDatasourceInput: ContentsDatasourceInput;
@@ -620,7 +652,9 @@ export type ResolversParentTypes = {
   ItemConfig: ItemConfig;
   ItemDefine: ItemDefine;
   JSON: Scalars['JSON']['output'];
+  MapDefine: MapDefine;
   MapInfo: MapInfo;
+  MapPageOptions: Scalars['MapPageOptions']['output'];
   MediaInfo: MediaInfo;
   Mutation: {};
   NoneConfig: NoneConfig;
@@ -649,6 +683,20 @@ export type CategoryDefineResolvers<ContextType = any, ParentType extends Resolv
   color?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   datasourceIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type ConnectInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['ConnectInfo'] = ResolversParentTypes['ConnectInfo']> = {
+  authLv?: Resolver<ResolversTypes['Auth'], ParentType, ContextType>;
+  sid?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  userId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  userName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type ConnectResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['ConnectResult'] = ResolversParentTypes['ConnectResult']> = {
+  connect?: Resolver<ResolversTypes['ConnectInfo'], ParentType, ContextType>;
+  mapDefine?: Resolver<ResolversTypes['MapDefine'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -774,6 +822,14 @@ export interface JsonScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes
   name: 'JSON';
 }
 
+export type MapDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapDefine'] = ResolversParentTypes['MapDefine']> = {
+  defaultMapKind?: Resolver<ResolversTypes['MapKind'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  options?: Resolver<ResolversTypes['MapPageOptions'], ParentType, ContextType>;
+  useMaps?: Resolver<Array<ResolversTypes['MapKind']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type MapInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapInfo'] = ResolversParentTypes['MapInfo']> = {
   contentDataSources?: Resolver<Array<ResolversTypes['DatasourceInfo']>, ParentType, ContextType>;
   extent?: Resolver<Array<ResolversTypes['Float']>, ParentType, ContextType>;
@@ -781,6 +837,10 @@ export type MapInfoResolvers<ContextType = any, ParentType extends ResolversPare
   originalIcons?: Resolver<Array<ResolversTypes['IconDefine']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
+
+export interface MapPageOptionsScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['MapPageOptions'], any> {
+  name: 'MapPageOptions';
+}
 
 export type MediaInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['MediaInfo'] = ResolversParentTypes['MediaInfo']> = {
   type?: Resolver<ResolversTypes['MediaType'], ParentType, ContextType>;
@@ -790,6 +850,7 @@ export type MediaInfoResolvers<ContextType = any, ParentType extends ResolversPa
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   changeAuthLevel?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationChangeAuthLevelArgs, 'authLv' | 'userId'>>;
+  connect?: Resolver<ResolversTypes['ConnectResult'], ParentType, ContextType, RequireFields<MutationConnectArgs, 'mapId'>>;
   linkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkContentArgs, 'id' | 'parent'>>;
   linkContentsDatasource?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkContentsDatasourceArgs, 'contentsDatasources'>>;
   registContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRegistContentArgs, 'datasourceId' | 'parent' | 'title' | 'type'>>;
@@ -888,6 +949,8 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
 export type Resolvers<ContextType = any> = {
   Auth0Config?: Auth0ConfigResolvers<ContextType>;
   CategoryDefine?: CategoryDefineResolvers<ContextType>;
+  ConnectInfo?: ConnectInfoResolvers<ContextType>;
+  ConnectResult?: ConnectResultResolvers<ContextType>;
   ContentConfig?: ContentConfigResolvers<ContextType>;
   ContentsDatasource?: ContentsDatasourceResolvers<ContextType>;
   ContentsDefine?: ContentsDefineResolvers<ContextType>;
@@ -905,7 +968,9 @@ export type Resolvers<ContextType = any> = {
   ItemConfig?: ItemConfigResolvers<ContextType>;
   ItemDefine?: ItemDefineResolvers<ContextType>;
   JSON?: GraphQLScalarType;
+  MapDefine?: MapDefineResolvers<ContextType>;
   MapInfo?: MapInfoResolvers<ContextType>;
+  MapPageOptions?: GraphQLScalarType;
   MediaInfo?: MediaInfoResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   NoneConfig?: NoneConfigResolvers<ContextType>;
