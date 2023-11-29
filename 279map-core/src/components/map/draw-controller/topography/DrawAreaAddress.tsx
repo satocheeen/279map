@@ -9,6 +9,7 @@ import { Feature } from "ol";
 import { Geometry } from "ol/geom";
 import VectorSource from "ol/source/Vector";
 import { useMap } from "../../useMap";
+import { GeocoderTarget } from "../../../../graphql/generated/graphql";
 
 type Props = {
     onCancel?: () => void;
@@ -88,7 +89,7 @@ export function DrawAreaAddress(props: Props) {
                     cancel={onSelectAdressCanceled}>
                         <div>
                             <SearchAddress
-                                searchTarget={['area']}
+                                searchTarget={[GeocoderTarget.Area]}
                                 onAddress={onSelectAddress} />
                         </div>
                 </PromptMessageBox>

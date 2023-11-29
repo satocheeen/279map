@@ -133,6 +133,17 @@ query search (
     }
 }
 
+query geocoder (
+    $address: String!
+    $searchTarget: [GeocoderTarget!]!
+) {
+    geocoder(address: $address, searchTarget: $searchTarget) {
+        idInfo
+        name
+        geoJson
+    }
+}
+
 query getUserList {
     getUserList {
         id

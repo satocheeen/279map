@@ -17,7 +17,7 @@ import { useMap } from '../../useMap';
 import { currentMapKindAtom } from '../../../../store/session';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
-import { RegistItemDocument } from '../../../../graphql/generated/graphql';
+import { GeocoderTarget, RegistItemDocument } from '../../../../graphql/generated/graphql';
 
 type Props = {
     dataSourceId: string;   // 作図対象のデータソース
@@ -213,7 +213,7 @@ export default function DrawStructureController(props: Props) {
                             <SearchAddress
                                 ref={searchAddressRef}
                                 onAddress={onSelectAddress}
-                                searchTarget={['point']}
+                                searchTarget={[GeocoderTarget.Point]}
                                 disabled={stage === Stage.CONFIRM} />
                         }
                 </PromptMessageBox>

@@ -29,6 +29,7 @@ export const authDefine: AuthLvDefine = {
     removeContent: Auth.Edit,
 
     search: Auth.View,
+    geocoder: Auth.View,
 
     // 管理者機能
     getUserList: Auth.Admin,

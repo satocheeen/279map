@@ -17,10 +17,10 @@ import { getSnsPreview } from './api/getSnsPreview';
 import cors from 'cors';
 import { exit } from 'process';
 import { getMapInfoById } from './getMapDefine';
-import { ConfigAPI, ConnectResult, GeocoderParam, GetGeocoderFeatureParam, GetMapListAPI, GetSnsPreviewAPI, GetSnsPreviewParam } from '../279map-api-interface/src';
+import { ConfigAPI, ConnectResult, GetGeocoderFeatureParam, GetMapListAPI, GetSnsPreviewAPI, GetSnsPreviewParam } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { GeocoderAPI, GetGeocoderFeatureAPI, RequestAPI, RequestParam } from '../279map-api-interface/src/api';
+import { GetGeocoderFeatureAPI, RequestAPI, RequestParam } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 import { search } from './api/search';
@@ -38,7 +38,7 @@ import { graphqlHTTP } from 'express-graphql';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { DatasourceConfig, DatasourceKindType, MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, ThumbSize } from './graphql/__generated__/types';
+import { DatasourceConfig, DatasourceKindType, GeocoderTarget, MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, ThumbSize } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -46,6 +46,7 @@ import { makeExecutableSchema } from '@graphql-tools/schema'
 import { CustomError } from './graphql/CustomError';
 import { getLinkedItemIdList } from './api/apiUtility';
 import SessionInfo from './session/SessionInfo';
+import { Geometry } from 'geojson';
 
 declare global {
     namespace Express {
@@ -932,6 +933,27 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     throw e;
                 }
             },
+            /**
+             * 住所検索
+             */
+            geocoder: async(_, param: QueryGeocoderArgs, ctx): QueryResolverReturnType<'geocoder'> => {
+
+                try {
+                    const result = await geocoder(param);
+                    return result.map(res => {
+                        return {
+                            idInfo: res.idInfo,
+                            name: res.name,
+                            geoJson: res.geoJson as Geometry,
+                        }
+                    });
+            
+                } catch(e) {
+                    apiLogger.warn('geocoder API error', param, e);
+                    throw e;
+                }
+
+            },
             getUserList: async(parent: any, _, ctx): QueryResolverReturnType<'getUserList'> => {
                 try {
                     const mapId = ctx.currentMap.mapId;
@@ -1528,28 +1550,6 @@ app.post(`/api/${GetSnsPreviewAPI.uri}`,
             next();
         } catch(e) {
             apiLogger.warn('get-sns-preview API error', param, e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail : e + '',
-            } as ApiError);
-        }
-    }
-);
-
-/**
- * 住所検索
- */
-app.post(`/api/${GeocoderAPI.uri}`,
-    checkApiAuthLv(Auth.View), 
-    checkCurrentMap,
-    async(req, res) => {
-        const param = req.body as GeocoderParam;
-        try {
-            const result = await geocoder(param);
-            res.send(result);
-    
-        } catch(e) {
-            apiLogger.warn('geocoder API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',

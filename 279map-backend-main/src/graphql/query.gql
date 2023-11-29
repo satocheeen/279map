@@ -93,6 +93,22 @@ type SearchHitItem {
     id: DataId!
     hitContents: [DataId!]!  # 当該アイテム配下の検索条件に合致するコンテンツID一覧 TODO: 孫コンテンツも含める
 }
+
+# --------------
+# geocoder関連
+# --------------
+enum GeocoderTarget {
+    Point
+    Area
+}
+
+scalar GeocoderId
+type GeocoderItem {
+    idInfo: GeocoderId!
+    name: String!
+    geoJson: Geometry!
+}
+
 # --------------
 
 type Query {
@@ -114,6 +130,8 @@ type Query {
 
     # datasourceIds => 指定されている場合、指定のデータソースのみ検索対象にする
     search(condition: Condition!, datasourceIds: [String!]): [SearchHitItem!]!
+
+    geocoder(address: String!, searchTarget: [GeocoderTarget!]!): [GeocoderItem!]!
 
     getUserList: [User!]!
     getLinkableContentsDatasources: [ContentsDatasource!]!

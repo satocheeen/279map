@@ -21,6 +21,7 @@ import { FeatureType } from '279map-common';
 import FormGroup from '../../../common/form/FormGroup';
 import Input from '../../../common/form/Input';
 import { useMap } from '../../useMap';
+import { GeocoderTarget } from '../../../../graphql/generated/graphql';
 
 type Props = {
     onCancel?: () => void;
@@ -280,7 +281,7 @@ export default function DrawPointRadius(props: Props) {
                     <SearchAddress
                         ref={searchAddressRef}
                         disabled={stage !== Stage.SelectCenter}
-                        searchTarget={['point']}
+                        searchTarget={[GeocoderTarget.Point]}
                         onAddress={onSelectAddress} />
                     <Button variant="secondary"
                         onClick={onCertainCenter}

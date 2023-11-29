@@ -1,9 +1,10 @@
 import { GeocoderId } from "279map-common";
 import axios from "axios";
-import { GeoJsonObject } from "geojson";
+import { Geometry } from "geojson";
 import { getLogger } from "log4js";
-import { GeocoderItem, GeocoderParam, GeocoderResult, GetGeocoderFeatureParam, GetGeoCoderFeatureResult } from "../../279map-api-interface/src";
+import { GetGeocoderFeatureParam, GetGeoCoderFeatureResult } from "../../279map-api-interface/src";
 import { MapboxAccessToken } from "../config";
+import { GeocoderItem, GeocoderTarget, QueryGeocoderArgs } from "../graphql/__generated__/types";
 
 type OSMGeocordingResult = {
     boundingbox: [number, number, number, number];
@@ -17,7 +18,7 @@ type OSMGeocordingResult = {
     place_id: number;
     type: string;
     licence: string;
-    geojson?: GeoJsonObject;
+    geojson?: Geometry;
 }[];
 type MapboxResult = {
     type: string;
@@ -30,13 +31,13 @@ type MapboxResult = {
         place_name: string;
         bbox: [number, number, number, number];
         center: [number, number];
-        geometry: GeoJsonObject;
+        geometry: Geometry;
     }[];
 }
 
 const logger = getLogger('api');
 
-export async function geocoder(param: GeocoderParam): Promise<GeocoderResult> {
+export async function geocoder(param: QueryGeocoderArgs): Promise<GeocoderItem[]> {
     const address = param.address;
 
     try {
@@ -58,7 +59,7 @@ export async function geocoder(param: GeocoderParam): Promise<GeocoderResult> {
     return [];
 }
 
-async function mapboxSearch(address: string, searchTarget: ('point' | 'area')[]): Promise<GeocoderItem[]> {
+async function mapboxSearch(address: string, searchTarget: GeocoderTarget[]): Promise<GeocoderItem[]> {
     let url = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + address + '.json?access_token=' + MapboxAccessToken;
     url = encodeURI(url);
 
@@ -68,9 +69,9 @@ async function mapboxSearch(address: string, searchTarget: ('point' | 'area')[])
     const resultJson = result.data as MapboxResult;
     const list = resultJson.features.filter(feature => {
         if (feature.geometry.type === 'Point') {
-            return searchTarget.includes('point');
+            return searchTarget.includes(GeocoderTarget.Point);
         } else {
-            if(!searchTarget.includes('area')) {
+            if(!searchTarget.includes(GeocoderTarget.Area)) {
                 return false;
             }
             // サイズが大きいものは弾く TODO: 間引いたものを生成する
@@ -89,7 +90,7 @@ async function mapboxSearch(address: string, searchTarget: ('point' | 'area')[])
     return list;
 };
 
-async function osmSearch(address: string, searchTarget: ('point' | 'area')[]): Promise<GeocoderItem[]> {
+async function osmSearch(address: string, searchTarget: GeocoderTarget[]): Promise<GeocoderItem[]> {
     let url = 'https://nominatim.openstreetmap.org/search?q=' + address + '&format=json&polygon_geojson=1';
     url = encodeURI(url);
 
@@ -103,9 +104,9 @@ async function osmSearch(address: string, searchTarget: ('point' | 'area')[]): P
             return false;
         }
         if (res.geojson.type === 'Point') {
-            return searchTarget.includes('point');
+            return searchTarget.includes(GeocoderTarget.Point);
         } else {
-            return searchTarget.includes('area');
+            return searchTarget.includes(GeocoderTarget.Area);
         }
     }).map((res): GeocoderItem => {
         return {
@@ -115,7 +116,7 @@ async function osmSearch(address: string, searchTarget: ('point' | 'area')[]): P
                 osm_id: res.osm_id,
             },
             name: res.display_name,
-            geoJson: res.geojson as GeoJsonObject,
+            geoJson: res.geojson as Geometry,
         }
     });
     return list;
@@ -133,7 +134,7 @@ export async function getGeocoderFeature(param: GetGeocoderFeatureParam): Promis
  * 指定のIDに対応するGeoJsonを返す
  * @param id 
  */
-async function getFeatureById(id: GeocoderId): Promise<GeoJsonObject> {
+async function getFeatureById(id: GeocoderId): Promise<Geometry> {
     if (id.map === 'mapbox') {
         throw '現状、対応外';
     }

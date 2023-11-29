@@ -67,26 +67,6 @@ export type GetSnsPreviewResult = {
 };
 
 /**
- * search address
- */
-export const GeocoderAPI = {
-    uri: 'geocoder',
-    method: 'post',
-    resultType: 'json',
-} as APIDefine<GeocoderParam, GeocoderResult>;
-
-export type GeocoderParam = {
-    address: string;
-    searchTarget: ('point' | 'area')[];
-}
-export type GeocoderItem = {
-    idInfo: GeocoderId;
-    name: string;
-    geoJson: GeoJsonObject;
-}
-export type GeocoderResult = GeocoderItem[];
-
-/**
  * get geocoder feature
  */
 export const GetGeocoderFeatureAPI = {
