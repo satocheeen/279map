@@ -32,6 +32,12 @@ export enum Auth {
   View = 'View'
 }
 
+export type Auth0Config = {
+  audience: Scalars['String']['output'];
+  clientId: Scalars['String']['output'];
+  domain: Scalars['String']['output'];
+};
+
 export type CategoryDefine = {
   color: Scalars['String']['output'];
   datasourceIds: Array<Scalars['String']['output']>;
@@ -285,6 +291,10 @@ export type MutationUpdateItemArgs = {
   targets: Array<UpdateItemInput>;
 };
 
+export type NoneConfig = {
+  dummy?: Maybe<Scalars['Boolean']['output']>;
+};
+
 export type ParentInput = {
   id: Scalars['DataId']['input'];
   type: ParentOfContent;
@@ -296,6 +306,7 @@ export enum ParentOfContent {
 }
 
 export type Query = {
+  config: ServerConfig;
   geocoder: Array<GeocoderItem>;
   getCategory: Array<CategoryDefine>;
   getContent: ContentsDefine;
@@ -405,6 +416,8 @@ export type SearchHitItem = {
   hitContents: Array<Scalars['DataId']['output']>;
   id: Scalars['DataId']['output'];
 };
+
+export type ServerConfig = Auth0Config | NoneConfig;
 
 export type SnsPreviewPost = {
   date?: Maybe<Scalars['String']['output']>;
@@ -523,12 +536,14 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping of union types */
 export type ResolversUnionTypes<RefType extends Record<string, unknown>> = {
   DatasourceConfig: ( ContentConfig ) | ( ItemConfig ) | ( RealPointContentConfig ) | ( TrackConfig );
+  ServerConfig: ( Auth0Config ) | ( NoneConfig );
 };
 
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
   Auth: Auth;
+  Auth0Config: ResolverTypeWrapper<Auth0Config>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   CategoryDefine: ResolverTypeWrapper<CategoryDefine>;
   Condition: Condition;
@@ -561,11 +576,13 @@ export type ResolversTypes = {
   MediaInfo: ResolverTypeWrapper<MediaInfo>;
   MediaType: MediaType;
   Mutation: ResolverTypeWrapper<{}>;
+  NoneConfig: ResolverTypeWrapper<NoneConfig>;
   ParentInput: ParentInput;
   ParentOfContent: ParentOfContent;
   Query: ResolverTypeWrapper<{}>;
   RealPointContentConfig: ResolverTypeWrapper<RealPointContentConfig>;
   SearchHitItem: ResolverTypeWrapper<SearchHitItem>;
+  ServerConfig: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['ServerConfig']>;
   SnsPreviewPost: ResolverTypeWrapper<SnsPreviewPost>;
   SnsPreviewResult: ResolverTypeWrapper<SnsPreviewResult>;
   SnsType: SnsType;
@@ -579,6 +596,7 @@ export type ResolversTypes = {
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
+  Auth0Config: Auth0Config;
   Boolean: Scalars['Boolean']['output'];
   CategoryDefine: CategoryDefine;
   Condition: Condition;
@@ -605,10 +623,12 @@ export type ResolversParentTypes = {
   MapInfo: MapInfo;
   MediaInfo: MediaInfo;
   Mutation: {};
+  NoneConfig: NoneConfig;
   ParentInput: ParentInput;
   Query: {};
   RealPointContentConfig: RealPointContentConfig;
   SearchHitItem: SearchHitItem;
+  ServerConfig: ResolversUnionTypes<ResolversParentTypes>['ServerConfig'];
   SnsPreviewPost: SnsPreviewPost;
   SnsPreviewResult: SnsPreviewResult;
   String: Scalars['String']['output'];
@@ -616,6 +636,13 @@ export type ResolversParentTypes = {
   UnpointContent: UnpointContent;
   UpdateItemInput: UpdateItemInput;
   User: User;
+};
+
+export type Auth0ConfigResolvers<ContextType = any, ParentType extends ResolversParentTypes['Auth0Config'] = ResolversParentTypes['Auth0Config']> = {
+  audience?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  clientId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  domain?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type CategoryDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['CategoryDefine'] = ResolversParentTypes['CategoryDefine']> = {
@@ -777,7 +804,13 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   updateItem?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateItemArgs, 'targets'>>;
 };
 
+export type NoneConfigResolvers<ContextType = any, ParentType extends ResolversParentTypes['NoneConfig'] = ResolversParentTypes['NoneConfig']> = {
+  dummy?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+  config?: Resolver<ResolversTypes['ServerConfig'], ParentType, ContextType>;
   geocoder?: Resolver<Array<ResolversTypes['GeocoderItem']>, ParentType, ContextType, RequireFields<QueryGeocoderArgs, 'address' | 'searchTarget'>>;
   getCategory?: Resolver<Array<ResolversTypes['CategoryDefine']>, ParentType, ContextType, Partial<QueryGetCategoryArgs>>;
   getContent?: Resolver<ResolversTypes['ContentsDefine'], ParentType, ContextType, RequireFields<QueryGetContentArgs, 'id'>>;
@@ -810,6 +843,10 @@ export type SearchHitItemResolvers<ContextType = any, ParentType extends Resolve
   hitContents?: Resolver<Array<ResolversTypes['DataId']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type ServerConfigResolvers<ContextType = any, ParentType extends ResolversParentTypes['ServerConfig'] = ResolversParentTypes['ServerConfig']> = {
+  __resolveType: TypeResolveFn<'Auth0Config' | 'NoneConfig', ParentType, ContextType>;
 };
 
 export type SnsPreviewPostResolvers<ContextType = any, ParentType extends ResolversParentTypes['SnsPreviewPost'] = ResolversParentTypes['SnsPreviewPost']> = {
@@ -849,6 +886,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
 };
 
 export type Resolvers<ContextType = any> = {
+  Auth0Config?: Auth0ConfigResolvers<ContextType>;
   CategoryDefine?: CategoryDefineResolvers<ContextType>;
   ContentConfig?: ContentConfigResolvers<ContextType>;
   ContentsDatasource?: ContentsDatasourceResolvers<ContextType>;
@@ -870,9 +908,11 @@ export type Resolvers<ContextType = any> = {
   MapInfo?: MapInfoResolvers<ContextType>;
   MediaInfo?: MediaInfoResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
+  NoneConfig?: NoneConfigResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   RealPointContentConfig?: RealPointContentConfigResolvers<ContextType>;
   SearchHitItem?: SearchHitItemResolvers<ContextType>;
+  ServerConfig?: ServerConfigResolvers<ContextType>;
   SnsPreviewPost?: SnsPreviewPostResolvers<ContextType>;
   SnsPreviewResult?: SnsPreviewResultResolvers<ContextType>;
   TrackConfig?: TrackConfigResolvers<ContextType>;

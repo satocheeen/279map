@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import mysql from 'mysql2/promise';
 import { getMapInfo } from './getMapInfo';
-import { Auth, MapKind, AuthMethod, ServerConfig, DataId, MapPageOptions, MapDefine, FilterDefine } from '279map-common';
+import { Auth, MapKind, AuthMethod, DataId, MapPageOptions, MapDefine, FilterDefine } from '279map-common';
 import { getItems } from './getItems';
 import { configure, getLogger } from "log4js";
 import { DbSetting, LogSetting } from './config';
@@ -17,7 +17,7 @@ import { getSnsPreview } from './api/getSnsPreview';
 import cors from 'cors';
 import { exit } from 'process';
 import { getMapInfoById } from './getMapDefine';
-import { ConfigAPI, ConnectResult, GetMapListAPI } from '../279map-api-interface/src';
+import { ConnectResult, GetMapListAPI } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
 import { getMapList } from './api/getMapList';
@@ -46,6 +46,7 @@ import { CustomError } from './graphql/CustomError';
 import { getLinkedItemIdList } from './api/apiUtility';
 import SessionInfo from './session/SessionInfo';
 import { Geometry } from 'geojson';
+import { ConfigAPI } from '../279map-api-interface/dist';
 
 declare global {
     namespace Express {
@@ -63,6 +64,7 @@ declare global {
     }
 }
 type GraphQlContextType = {
+    connected: true,
     session: SessionInfo;
     sessionKey: string; // SID or Token
     userAuthInfo: UserAuthInfo;
@@ -70,6 +72,7 @@ type GraphQlContextType = {
     authLv: Auth;
     request: Express.Request,
 }
+
 // ログ初期化
 configure(LogSetting);
 const logger = getLogger();
@@ -186,11 +189,10 @@ export const authManagementClient = function() {
         }
 }();
 authManagementClient.initialize();
-
 /**
  * システム共通定義を返す
  */
-app.get(`/api/${ConfigAPI.uri}`, async(_, res) => {
+app.get(`/api/config`, async(_, res) => {
     if (authMethod === AuthMethod.Auth0) {
         const result = {
             authMethod: AuthMethod.Auth0,
@@ -199,12 +201,12 @@ app.get(`/api/${ConfigAPI.uri}`, async(_, res) => {
                 clientId: process.env.AUTH0_FRONTEND_CLIENT_ID,
                 audience: process.env.AUTH0_AUDIENCE,
             }
-        } as ServerConfig;
+        } ;
         res.send(result);
     } else {
         res.send({
             authMethod,
-        } as ServerConfig)
+        })
     }
 });
 
@@ -641,6 +643,22 @@ const schema = makeExecutableSchema<GraphQlContextType>({
     typeDefs: fileSchema,
     resolvers: {
         Query: {
+            /**
+             * システム共通定義を返す
+             */
+            config: async(): QueryResolverReturnType<'config'> => {
+                if (authMethod === AuthMethod.Auth0) {
+                    return {
+                        domain: process.env.AUTH0_DOMAIN ?? '',
+                        clientId: process.env.AUTH0_FRONTEND_CLIENT_ID ?? '',
+                        audience: process.env.AUTH0_AUDIENCE ?? '',
+                    }
+                } else {
+                    return {
+                        dummy: true,
+                    }
+                }
+            },
             /**
              * 地図アイテム取得
              */
@@ -1489,8 +1507,17 @@ const schema = makeExecutableSchema<GraphQlContextType>({
         } as MutationResolver,
         DataId: DataIdScalarType,
         JSON: JsonScalarType,
+        ServerConfig: {
+            __resolveType: (obj: any) => {
+                if ('domain' in obj && 'clientId' in obj && 'audience' in obj) {
+                    return 'Auth0Config';
+                } else {
+                    return 'NoneConfig';
+                }
+            }
+        },
         DatasourceConfig: {
-            __resolveType: (obj: DatasourceConfig, parent: any) => {
+            __resolveType: (obj: DatasourceConfig) => {
                 switch(obj.kind) {
                     case DatasourceKindType.Item:
                         return 'ItemConfig';
@@ -1502,7 +1529,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         return 'TrackConfig';
                 }
             }
-        }
+        },
     }
 })
 
@@ -1511,42 +1538,47 @@ app.use(
     authManagementClient.checkJwt,
     authenticateErrorProcess,
     graphqlHTTP(async(req, res, graphQLParams) => {
-        const operationName = graphQLParams?.operationName;
-        if (!operationName) {
-            throw new CustomError({
-                type: ErrorType.IllegalError,
-                message: 'no operation name'
-            })
-        }
-        const { sessionKey, session } = await sessionCheckFunc(req as Request);
-        const mapPageInfo = await getMapPageInfo(session.currentMap.mapId);
-        if (!mapPageInfo) {
-            throw new CustomError({
-                type: ErrorType.UndefinedMap,
-                message: 'map not found'
-            })
-        }
-
-        const userAuthInfo = await getUserAuthInfoInTheMap(mapPageInfo, req as Request);
-        if (!req.headers.authorization) {
-            // 未ログインの場合は、ゲストユーザ権限があるか確認
-            if (!userAuthInfo) {
+        // @ts-ignore
+        const context: GraphQlContextType = await async function() {
+            const operationName = graphQLParams?.operationName;
+            console.log('operationName', operationName)
+            if (!operationName || operationName == 'config' || operationName === 'IntrospectionQuery') {
+                return {
+                    request: req as Request,
+                }
+            }
+    
+            const { sessionKey, session } = await sessionCheckFunc(req as Request);
+            const mapPageInfo = await getMapPageInfo(session.currentMap.mapId);
+            if (!mapPageInfo) {
                 throw new CustomError({
-                    type: ErrorType.Unauthorized,
-                    message: 'Unauthenticated.this map is private, please login.',
+                    type: ErrorType.UndefinedMap,
+                    message: 'map not found'
                 })
-            }        
-        }
-
-        const authLv = await checkGraphQlAuthLv(operationName, userAuthInfo);
-        const context: GraphQlContextType = {
-            sessionKey,
-            session,
-            userAuthInfo,
-            currentMap: session.currentMap,
-            authLv,
-            request: req as Request,
-        }
+            }
+    
+            const userAuthInfo = await getUserAuthInfoInTheMap(mapPageInfo, req as Request);
+            if (!req.headers.authorization) {
+                // 未ログインの場合は、ゲストユーザ権限があるか確認
+                if (!userAuthInfo) {
+                    throw new CustomError({
+                        type: ErrorType.Unauthorized,
+                        message: 'Unauthenticated.this map is private, please login.',
+                    })
+                }        
+            }
+    
+            const authLv = await checkGraphQlAuthLv(operationName, userAuthInfo);
+            return {
+                sessionKey,
+                session,
+                userAuthInfo,
+                currentMap: session.currentMap,
+                authLv,
+                request: req as Request,
+            }
+    
+        }()
 
         return {
             schema,
@@ -1563,14 +1595,14 @@ app.all('/api/*', (req) => {
 /**
  * Frontend資源へプロキシ
  */
-if (process.env.FRONTEND_SERVICE_HOST && process.env.FRONTEND_SERVICE_PORT) {
-    const url = process.env.FRONTEND_SERVICE_HOST + ':' + process.env.FRONTEND_SERVICE_PORT;
-    app.use('*', proxy(url, {
-        proxyReqPathResolver: (req) => {
-            return req.originalUrl;
-        },
-    }));    
-}
+// if (process.env.FRONTEND_SERVICE_HOST && process.env.FRONTEND_SERVICE_PORT) {
+//     const url = process.env.FRONTEND_SERVICE_HOST + ':' + process.env.FRONTEND_SERVICE_PORT;
+//     app.use('*', proxy(url, {
+//         proxyReqPathResolver: (req) => {
+//             return req.originalUrl;
+//         },
+//     }));    
+// }
 
 logger.info('starting internal server');
 /**

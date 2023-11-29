@@ -2,6 +2,16 @@ scalar DataId
 scalar Geometry
 scalar JSON
 
+type Auth0Config {
+    domain: String!
+    clientId: String!
+    audience: String!
+}
+type NoneConfig {
+    dummy: Boolean  # fragmentで種別判定するために型用意
+}
+union ServerConfig = Auth0Config | NoneConfig
+
 enum ItemTemporaryState {
     Registing
     Updateing
@@ -135,6 +145,8 @@ enum MediaType {
 # --------------
 
 type Query {
+    config: ServerConfig!
+
     # lastestEditedTime: 指定されている場合、この更新日時以降に更新されたアイテムのみ返す
     # excludeItemIds: 指定されている場合、このidのアイテムは結果から除く TODO: deprecated
     getItems(wkt: String!, zoom: Float!, datasourceId: String!, latestEditedTime: String, excludeItemIds: [String!]): [ItemDefine!]!

@@ -43,11 +43,11 @@ type DatasourceInfo {
     kind: DatasourceKindType!
     config: DatasourceConfig!
 }
-interface DatasourceConfig {
-    kind: DatasourceKindType!
-    editable: Boolean!
-    deletable: Boolean!
-}
+# interface DatasourceConfig {
+#     kind: DatasourceKindType!
+#     editable: Boolean!
+#     deletable: Boolean!
+# }
 type ItemConfig {
     kind: DatasourceKindType!
     layerGroup: String
