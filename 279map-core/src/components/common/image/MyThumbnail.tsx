@@ -1,13 +1,11 @@
 import React, { useMemo, useState, useRef } from 'react';
 import { DataId } from '279map-common';
-import { GetImageUrlAPI } from 'tsunagumap-api';
 import { useWatch } from '../../../util/useWatch';
 import Spinner from '../spinner/Spinner';
 import { connectStatusAtom } from '../../../store/session';
 import { useAtom } from 'jotai';
-import { useApi } from '../../../api/useApi';
 import { clientAtom } from 'jotai-urql';
-import { GetThumbDocument } from '../../../graphql/generated/graphql';
+import { GetThumbDocument, ThumbSize } from '../../../graphql/generated/graphql';
 
 type Props = {
     id: DataId; // サムネイル画像id（コンテンツID）
@@ -30,7 +28,6 @@ export default function MyThumbnail(props: Props) {
         return connectStatus.sid;
     }, [connectStatus]);
     
-    const { callApi } = useApi();
     const [ gqlClient ] = useAtom(clientAtom);
     const [ loaded, setLoaded ] = useState(false);
 
@@ -40,33 +37,18 @@ export default function MyThumbnail(props: Props) {
     useWatch(() => {
         if (!sid) return;
 
-        if (props.mode === 'thumb') {
-            gqlClient.query(GetThumbDocument, {
-                contentId: props.id,
-            }).then((result) => {
-                const base64 = result.data?.getThumb;
-                if (myRef.current && base64) {
-                    myRef.current.src = 'data:image/' + base64;
-                }
-                setLoaded(true);
-            });
-    
-        } else {
-            callApi(GetImageUrlAPI, {
-                id: props.id,
-            }).then((imageUrl) => {
-                if (myRef.current && imageUrl) {
-                    myRef.current.src = imageUrl;
-                }
-            }).catch(e => {
-                console.warn('get thumbnail failed.', e);
-            }).finally(() => {
-                setLoaded(true);
-            });
+        gqlClient.query(GetThumbDocument, {
+            contentId: props.id,
+            size: props.mode === 'thumb' ? ThumbSize.Thumbnail : ThumbSize.Medium,
+        }).then((result) => {
+            const base64 = result.data?.getThumb;
+            if (myRef.current && base64) {
+                myRef.current.src = 'data:image/' + base64;
+            }
+            setLoaded(true);
+        });
 
-        }
-
-    }, [sid, props.id.id]);
+    }, [sid, props.id, props.mode]);
 
     return (
         <>

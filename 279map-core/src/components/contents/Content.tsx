@@ -15,7 +15,7 @@ import Spinner from "../common/spinner/Spinner";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
 import { getMapKey, isEqualId } from "../../util/dataUtility";
-import { GetImageUrlAPI, GetSnsPreviewAPI } from 'tsunagumap-api';
+import { GetSnsPreviewAPI } from 'tsunagumap-api';
 import { useMap } from "../map/useMap";
 import { authLvAtom, currentMapKindAtom } from "../../store/session";
 import { filteredContentIdListAtom } from "../../store/filter";
@@ -28,7 +28,7 @@ import { useAtomCallback } from "jotai/utils";
 import { dialogTargetAtom } from "../../store/operation";
 import { updateContentAtom } from "../../store/content";
 import { clientAtom } from "jotai-urql";
-import { ContentsDefine, GetContentDocument, MutationUpdateContentArgs, ParentOfContent, RemoveContentDocument, UnlinkContentDocument } from "../../graphql/generated/graphql";
+import { ContentsDefine, GetContentDocument, GetImageUrlDocument, MutationUpdateContentArgs, ParentOfContent, RemoveContentDocument, UnlinkContentDocument } from "../../graphql/generated/graphql";
 
 type Props = {
     itemId: DataId;
@@ -168,6 +168,8 @@ export default function Content(props: Props) {
         }, [mapKind, props.content.anotherMapItemId, changeMapKind, focusItem])
     );
 
+    const [ gqlClient ] = useAtom(clientAtom);
+    
     /**
      * イメージロード
      */
@@ -175,19 +177,19 @@ export default function Content(props: Props) {
     const onImageClick = useCallback(async() => {
         setShowSpinner(true);
         try {
-            const imageUrl = await callApi(GetImageUrlAPI, {
-                id: props.content.id,
+            const result = await gqlClient.query(GetImageUrlDocument, {
+                contentId: props.content.id,
             });
-            window.open(imageUrl, 'image' + props.content.id);
+            const imageUrl = result.data?.getImageUrl;
+            if (imageUrl)
+                window.open(imageUrl, 'image' + props.content.id);
         } catch(e) {
             console.warn('getImageUrl failed.', e);
         } finally {
             setShowSpinner(false);
         }
-    }, [props.content.id, callApi]);
+    }, [props.content.id, gqlClient]);
 
-    const [ gqlClient ] = useAtom(clientAtom);
-    
     const onEdit = useCallback(async() => {
         // // 編集対象コンテンツをロード
         const getContent = await gqlClient.query(GetContentDocument, {

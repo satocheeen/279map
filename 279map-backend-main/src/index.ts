@@ -28,7 +28,7 @@ import { Auth0Management } from './auth/Auth0Management';
 import { OriginalAuthManagement } from './auth/OriginalAuthManagement';
 import { NoneAuthManagement } from './auth/NoneAuthManagement';
 import { MapPageInfoTable } from '../279map-backend-common/src/types/schema';
-import { CurrentMap, sleep } from '../279map-backend-common/src';
+import { CurrentMap, getImageBase64, sleep } from '../279map-backend-common/src';
 import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUnpointDataAPI, OdbaLinkContentDatasourceToMapAPI, OdbaLinkContentToItemAPI, OdbaRegistContentAPI, OdbaRegistItemAPI, OdbaRemoveContentAPI, OdbaRemoveItemAPI, OdbaUnlinkContentDatasourceFromMapAPI, OdbaUpdateContentAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
 import MqttBroadcaster from './session/MqttBroadcaster';
 import SessionManager from './session/SessionManager';
@@ -38,7 +38,7 @@ import { graphqlHTTP } from 'express-graphql';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { DatasourceConfig, DatasourceKindType, MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs } from './graphql/__generated__/types';
+import { DatasourceConfig, DatasourceKindType, MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, ThumbSize } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -857,21 +857,48 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             getThumb: async(_, param: QueryGetThumbArgs): QueryResolverReturnType<'getThumb'> => {
 
                 try {
-                    const result = await getThumbnail(param.contentId);
+                    if (param.size === ThumbSize.Medium) {
+                        // オリジナル画像を縮小する
+                        const url = await callOdbaApi(OdbaGetImageUrlAPI, {
+                            id: param.contentId,
+                        });
+                        if (!url) {
+                            throw new Error('original image url not found');
+                        }
+                        const image = await getImageBase64(url, {
+                             size: { width: 500, height: 500},
+                             fit: 'cover',
+                        });
+
+                        return image.base64;
+
+                    } else {
+                        const result = await getThumbnail(param.contentId);
             
-                    return result;
-                    // const bin = convertBase64ToBinary(result);
-                    // res.writeHead(200, {
-                    //     'Content-Type': bin.contentType,
-                    //     'Content-Length': bin.binary.length
-                    // });
-                    // res.end(bin.binary);
+                        return result;
+                    }
 
                 } catch(e) {
                     apiLogger.warn('get-thumb error', param.contentId, e);
                     throw e;
                 }
 
+            },
+            /**
+             * オリジナル画像URL取得
+             */
+            getImageUrl: async(_, param: QueryGetImageUrlArgs, ctx): QueryResolverReturnType<'getImageUrl'> => {
+                try {
+                    // call odba
+                    const result = await callOdbaApi(OdbaGetImageUrlAPI, {
+                        id: param.contentId,
+                    });
+                    return result ?? '';
+
+                } catch(e) {
+                    apiLogger.warn('get-imageurl API error', param, e);
+                    throw e;
+                }
             },
             /**
              * 検索
@@ -1501,30 +1528,6 @@ app.post(`/api/${GetSnsPreviewAPI.uri}`,
             next();
         } catch(e) {
             apiLogger.warn('get-sns-preview API error', param, e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail : e + '',
-            } as ApiError);
-        }
-    }
-);
-
-/**
- * get original image's url.
- * オリジナル画像URL取得
- */
-app.post(`/api/${GetImageUrlAPI.uri}`,
-    checkApiAuthLv(Auth.View), 
-    checkCurrentMap,
-    async(req, res) => {
-        const param = req.body as { id: DataId };
-        try {
-            // call odba
-            const result = await callOdbaApi(OdbaGetImageUrlAPI, param);
-            res.send(result);
-
-        } catch(e) {
-            apiLogger.warn('get-imageurl API error', param, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',

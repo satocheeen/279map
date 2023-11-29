@@ -272,6 +272,7 @@ export type Query = {
   getContents: Array<ContentsDefine>;
   getContentsInItem: Array<ContentsDefine>;
   getEvent: Array<EventDefine>;
+  getImageUrl: Scalars['String']['output'];
   getItems: Array<ItemDefine>;
   getItemsById: Array<ItemDefine>;
   getLinkableContentsDatasources: Array<ContentsDatasource>;
@@ -307,6 +308,11 @@ export type QueryGetEventArgs = {
 };
 
 
+export type QueryGetImageUrlArgs = {
+  contentId: Scalars['DataId']['input'];
+};
+
+
 export type QueryGetItemsArgs = {
   datasourceId: Scalars['String']['input'];
   excludeItemIds?: InputMaybe<Array<Scalars['String']['input']>>;
@@ -323,6 +329,7 @@ export type QueryGetItemsByIdArgs = {
 
 export type QueryGetThumbArgs = {
   contentId: Scalars['DataId']['input'];
+  size?: InputMaybe<ThumbSize>;
 };
 
 
@@ -350,6 +357,11 @@ export type SearchHitItem = {
   hitContents: Array<Scalars['DataId']['output']>;
   id: Scalars['DataId']['output'];
 };
+
+export enum ThumbSize {
+  Medium = 'Medium',
+  Thumbnail = 'Thumbnail'
+}
 
 export type TrackConfig = {
   deletable: Scalars['Boolean']['output'];
@@ -487,6 +499,7 @@ export type ResolversTypes = {
   RealPointContentConfig: ResolverTypeWrapper<RealPointContentConfig>;
   SearchHitItem: ResolverTypeWrapper<SearchHitItem>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
+  ThumbSize: ThumbSize;
   TrackConfig: ResolverTypeWrapper<TrackConfig>;
   UnpointContent: ResolverTypeWrapper<UnpointContent>;
   UpdateItemInput: UpdateItemInput;
@@ -676,6 +689,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getContents?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentsArgs, 'ids'>>;
   getContentsInItem?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentsInItemArgs, 'itemId'>>;
   getEvent?: Resolver<Array<ResolversTypes['EventDefine']>, ParentType, ContextType, Partial<QueryGetEventArgs>>;
+  getImageUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryGetImageUrlArgs, 'contentId'>>;
   getItems?: Resolver<Array<ResolversTypes['ItemDefine']>, ParentType, ContextType, RequireFields<QueryGetItemsArgs, 'datasourceId' | 'wkt' | 'zoom'>>;
   getItemsById?: Resolver<Array<ResolversTypes['ItemDefine']>, ParentType, ContextType, RequireFields<QueryGetItemsByIdArgs, 'targets'>>;
   getLinkableContentsDatasources?: Resolver<Array<ResolversTypes['ContentsDatasource']>, ParentType, ContextType>;
