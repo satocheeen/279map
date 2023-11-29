@@ -7,7 +7,7 @@ import { dialogTargetAtom, mapModeAtom, showingDetailItemIdAtom } from '../../st
 import { connectStatusLoadableAtom, mapDefineLoadableAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
-import { GetSnsPreviewAPI, GetThumbAPI } from 'tsunagumap-api';
+import { GetSnsPreviewAPI } from 'tsunagumap-api';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { DataId, MapKind } from '279map-common';
 import { MapMode, TsunaguMapHandler } from '../../types/types';
@@ -18,7 +18,7 @@ import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
 import { useApi } from '../../api/useApi';
-import { CategoryDefine, EventDefine, ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup } from '../../graphql/generated/graphql';
+import { CategoryDefine, EventDefine, ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument } from '../../graphql/generated/graphql';
 import { updateContentAtom } from '../../store/content';
 import { clientAtom } from 'jotai-urql';
 
@@ -117,10 +117,10 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
          * 指定のコンテンツのサムネイル画像（Blob）を取得する
          */
         async getThumbnail(contentId: DataId) {
-            const imgData = await callApi(GetThumbAPI, {
-                id: contentId.id,
+            const imgData = await gqlClient.query(GetThumbDocument, {
+                contentId: contentId,
             });
-            return URL.createObjectURL(imgData);
+            return 'data:image/' +  imgData;
         },
     
         changeVisibleLayer(target: { dataSourceId: string } | { group: string }, visible: boolean) {

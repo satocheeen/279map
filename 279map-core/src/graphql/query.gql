@@ -110,6 +110,12 @@ query getUnpointContents(
     }
 }
 
+query getThumb (
+    $contentId: DataId!
+) {
+    getThumb(contentId: $contentId)
+}
+
 query search (
     $condition: Condition!
     $datasourceIds: [String!]

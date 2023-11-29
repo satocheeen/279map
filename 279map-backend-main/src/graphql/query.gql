@@ -104,6 +104,8 @@ type Query {
     getContentsInItem(itemId: DataId!): [ContentsDefine!]!
     getUnpointContents(datasourceId: String!, nextToken: String): GetUnpointContentsResult!
 
+    getThumb(contentId: DataId!): String!
+
     # datasourceIds => 指定されている場合、指定のデータソースのみ検索対象にする
     search(condition: Condition!, datasourceIds: [String!]): [SearchHitItem!]!
 

@@ -275,6 +275,7 @@ export type Query = {
   getItems: Array<ItemDefine>;
   getItemsById: Array<ItemDefine>;
   getLinkableContentsDatasources: Array<ContentsDatasource>;
+  getThumb: Scalars['String']['output'];
   getUnpointContents: GetUnpointContentsResult;
   getUserList: Array<User>;
   search: Array<SearchHitItem>;
@@ -317,6 +318,11 @@ export type QueryGetItemsArgs = {
 
 export type QueryGetItemsByIdArgs = {
   targets: Array<Scalars['DataId']['input']>;
+};
+
+
+export type QueryGetThumbArgs = {
+  contentId: Scalars['DataId']['input'];
 };
 
 
@@ -673,6 +679,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getItems?: Resolver<Array<ResolversTypes['ItemDefine']>, ParentType, ContextType, RequireFields<QueryGetItemsArgs, 'datasourceId' | 'wkt' | 'zoom'>>;
   getItemsById?: Resolver<Array<ResolversTypes['ItemDefine']>, ParentType, ContextType, RequireFields<QueryGetItemsByIdArgs, 'targets'>>;
   getLinkableContentsDatasources?: Resolver<Array<ResolversTypes['ContentsDatasource']>, ParentType, ContextType>;
+  getThumb?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryGetThumbArgs, 'contentId'>>;
   getUnpointContents?: Resolver<ResolversTypes['GetUnpointContentsResult'], ParentType, ContextType, RequireFields<QueryGetUnpointContentsArgs, 'datasourceId'>>;
   getUserList?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
   search?: Resolver<Array<ResolversTypes['SearchHitItem']>, ParentType, ContextType, RequireFields<QuerySearchArgs, 'condition'>>;

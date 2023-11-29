@@ -1,11 +1,13 @@
 import React, { useMemo, useState, useRef } from 'react';
 import { DataId } from '279map-common';
-import { GetImageUrlAPI, GetThumbAPI } from 'tsunagumap-api';
+import { GetImageUrlAPI } from 'tsunagumap-api';
 import { useWatch } from '../../../util/useWatch';
 import Spinner from '../spinner/Spinner';
 import { connectStatusAtom } from '../../../store/session';
 import { useAtom } from 'jotai';
 import { useApi } from '../../../api/useApi';
+import { clientAtom } from 'jotai-urql';
+import { GetThumbDocument } from '../../../graphql/generated/graphql';
 
 type Props = {
     id: DataId; // サムネイル画像id（コンテンツID）
@@ -29,6 +31,7 @@ export default function MyThumbnail(props: Props) {
     }, [connectStatus]);
     
     const { callApi } = useApi();
+    const [ gqlClient ] = useAtom(clientAtom);
     const [ loaded, setLoaded ] = useState(false);
 
     /**
@@ -38,15 +41,13 @@ export default function MyThumbnail(props: Props) {
         if (!sid) return;
 
         if (props.mode === 'thumb') {
-            callApi(GetThumbAPI, {
-                id: props.id.id,
-            }).then((imgData) => {
-                if (myRef.current) {
-                    myRef.current.src = URL.createObjectURL(imgData);            
+            gqlClient.query(GetThumbDocument, {
+                contentId: props.id,
+            }).then((result) => {
+                const base64 = result.data?.getThumb;
+                if (myRef.current && base64) {
+                    myRef.current.src = 'data:image/' + base64;
                 }
-            }).catch(e => {
-                console.warn('get thumbnail failed.', e);
-            }).finally(() => {
                 setLoaded(true);
             });
     

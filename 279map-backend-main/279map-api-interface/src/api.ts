@@ -50,16 +50,6 @@ export type RequestParam = {
     name: string;
 }
 
-export const GetThumbAPI = {
-    uri: 'getthumb',
-    method: 'get',
-    resultType: 'blob',
-} as APIDefine<GetThumbParam, Blob>;
-export type GetThumbParam = {
-    // TODO: DataIdに変更
-    id: string;
-}
-
 export const GetImageUrlAPI = {
     uri: 'get-imageurl',
     method: 'post',

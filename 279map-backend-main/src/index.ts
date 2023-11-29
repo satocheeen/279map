@@ -10,7 +10,7 @@ import { getContents } from './getContents';
 import { getEvents } from './getEvents';
 import proxy from 'express-http-proxy';
 import http from 'http';
-import { convertBase64ToBinary, getItemWkt } from './util/utility';
+import { getItemWkt } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
 import { getSnsPreview } from './api/getSnsPreview';
@@ -20,7 +20,7 @@ import { getMapInfoById } from './getMapDefine';
 import { ConfigAPI, ConnectResult, GeocoderParam, GetGeocoderFeatureParam, GetMapListAPI, GetSnsPreviewAPI, GetSnsPreviewParam } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
-import { GeocoderAPI, GetImageUrlAPI, GetThumbAPI, GetGeocoderFeatureAPI, RequestAPI, RequestParam } from '../279map-api-interface/src/api';
+import { GeocoderAPI, GetImageUrlAPI, GetGeocoderFeatureAPI, RequestAPI, RequestParam } from '../279map-api-interface/src/api';
 import { getMapList } from './api/getMapList';
 import { ApiError, ErrorType } from '../279map-api-interface/src/error';
 import { search } from './api/search';
@@ -38,7 +38,7 @@ import { graphqlHTTP } from 'express-graphql';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { DatasourceConfig, DatasourceKindType, MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetUnpointContentsArgs, QuerySearchArgs } from './graphql/__generated__/types';
+import { DatasourceConfig, DatasourceKindType, MutationChangeAuthLevelArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -852,6 +852,28 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
             },
             /**
+             * サムネイル画像取得
+             */
+            getThumb: async(_, param: QueryGetThumbArgs): QueryResolverReturnType<'getThumb'> => {
+
+                try {
+                    const result = await getThumbnail(param.contentId);
+            
+                    return result;
+                    // const bin = convertBase64ToBinary(result);
+                    // res.writeHead(200, {
+                    //     'Content-Type': bin.contentType,
+                    //     'Content-Length': bin.binary.length
+                    // });
+                    // res.end(bin.binary);
+
+                } catch(e) {
+                    apiLogger.warn('get-thumb error', param.contentId, e);
+                    throw e;
+                }
+
+            },
+            /**
              * 検索
              */
             search: async(_, param: QuerySearchArgs, ctx): QueryResolverReturnType<'search'> => {
@@ -925,7 +947,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
 
                     ctx.session.setMapKind(param.mapKind);
 
-                    apiLogger.debug('result', JSON.stringify(result,undefined,4));
+                    // apiLogger.debug('result', JSON.stringify(result,undefined,4));
 
                     return result;
 
@@ -1479,35 +1501,6 @@ app.post(`/api/${GetSnsPreviewAPI.uri}`,
             next();
         } catch(e) {
             apiLogger.warn('get-sns-preview API error', param, e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail : e + '',
-            } as ApiError);
-        }
-    }
-);
-
-/**
- * get thumbnail
- * サムネイル画像取得
- */
-app.get(`/api/${GetThumbAPI.uri}`,
-    checkApiAuthLv(Auth.View), 
-    checkCurrentMap,
-    async(req, res) => {
-        const id = req.query.id as string;
-        try {
-            const result = await getThumbnail(id);
-    
-            const bin = convertBase64ToBinary(result);
-            res.writeHead(200, {
-                'Content-Type': bin.contentType,
-                'Content-Length': bin.binary.length
-            });
-            res.end(bin.binary);
-
-        } catch(e) {
-            apiLogger.warn('get-thumb error', id, e);
             res.status(500).send({
                 type: ErrorType.IllegalError,
                 detail : e + '',
