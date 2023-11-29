@@ -50,12 +50,6 @@ export type RequestParam = {
     name: string;
 }
 
-export const GetImageUrlAPI = {
-    uri: 'get-imageurl',
-    method: 'post',
-    resultType: 'string',
-} as APIDefine<{id: DataId}, string|undefined>;
-
 /**
  * get sns preview
  */
