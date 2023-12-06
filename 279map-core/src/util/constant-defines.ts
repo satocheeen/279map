@@ -36,6 +36,6 @@ export const MapStyles = {
         zIndex: 1,
     },
     Item: {
-        maxLabelLength: 10,     // 地図上に表示するラベル最大長
+        maxLabelLength: 15,     // 地図上に表示するラベル最大長
     }
 }

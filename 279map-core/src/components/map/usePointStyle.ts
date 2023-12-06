@@ -256,7 +256,8 @@ function createItemNameLabel(feature: FeatureLike): Text {
     // ラベル設定
     let name = (feature.getProperties().name ?? '') as string;
     if (name.length > MapStyles.Item.maxLabelLength) {
-        name = name.substring(0, MapStyles.Item.maxLabelLength) + '…';
+        // 折り返す
+        name = splitString(name, MapStyles.Item.maxLabelLength).join('\n');
     }
 
     const text = new Text({
@@ -269,6 +270,22 @@ function createItemNameLabel(feature: FeatureLike): Text {
     });
 
     return text;
+}
+
+/**
+ * 文字列を指定の文字数で分割
+ * @param inputString 
+ * @param chunkSize 
+ * @returns 
+ */
+function splitString(inputString: string, chunkSize: number) {
+    const resultArray: string[] = [];
+    for (let index = 0; index < inputString.length; index+=chunkSize) {
+      resultArray.push(inputString.substring(index, index + chunkSize));
+      console.log('debug', index, chunkSize, inputString.substring(index, chunkSize));
+    }
+    console.log('resultArray', inputString, resultArray);
+    return resultArray;
 }
 
 function setClusterLabel(style: Style, size: number) {
