@@ -4,6 +4,7 @@ $radius: 5px;
 .Popup {
     position: absolute;
     background-color: white;
+    box-sizing: border-box;
     box-shadow: 0 1px 4px rgba(0,0,0,0.2);
     padding: 5px;
     border-radius: $radius;
@@ -16,9 +17,7 @@ $radius: 5px;
 
     &.Minimum {
         left: -15px;
-        min-width: 30px;
-        width: 30px;
-        height: 30px;
+        // min-width: 30px;
         display: inline-flex;
         color: #888;
         cursor: pointer;
@@ -76,6 +75,8 @@ $arrow-offset-left: 5px;
     }
     &.Popup.Minimum {
         left: -15px;
+        width: 36px;
+        height: 36px;
     }
 }
 .Medium {
@@ -87,10 +88,9 @@ $arrow-offset-left: 5px;
         left: -40px;
     }
     &.Popup.Minimum {
-        left: -15px;
-        min-width: 20px;
-        width: 20px;
-        height: 20px;
+        left: -13px;
+        width: 28px;
+        height: 28px;
     }
 }
 .Small {
@@ -102,10 +102,9 @@ $arrow-offset-left: 5px;
         left: -25px;
     }
     &.Popup.Minimum {
-        left: -6px;
-        min-width: 12px;
-        width: 12px;
-        height: 12px;
+        left: -8px;
+        width: 24px;
+        height: 24px;
     }
 }
 
