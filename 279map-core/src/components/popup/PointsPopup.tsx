@@ -16,6 +16,8 @@ import { useAtomCallback } from 'jotai/utils';
 type Props = {
     // このポップアップにて情報表示する対象アイテム
     itemIds: DataId[];
+
+    size: 's' | 'm' | 'l';
 }
 
 export type PopupItem = {
@@ -117,15 +119,6 @@ export default function PointsPopup(props: Props) {
 
     }, [target, filteredContentIdList, popupMode]);
 
-    // このアイテムの中に含まれるコンテンツの総数
-    // （吹き出しに表示していたが、わかりづらいので、現在は未使用）
-    const contentsNum = useMemo(() => {
-        return props.itemIds.reduce((acc, cur) => {
-            const descendants = getDescendantContentsIdList(cur, true);
-            return acc + descendants.length;
-        }, 0);
-    }, [props.itemIds, getDescendantContentsIdList]);
-
     const onClick = useAtomCallback(
         useCallback((get, set, evt: React.MouseEvent) => {
             if (props.itemIds.length === 1) {
@@ -147,6 +140,17 @@ export default function PointsPopup(props: Props) {
         }, [props.itemIds, map])
     );
 
+    const sizeClassName = useMemo(() => {
+        switch(props.size) {
+            case 's':
+                return styles.Small;
+            case 'm':
+                return styles.Medium;
+            case 'l':
+                return styles.Large;
+        }
+    }, [props.size]);
+
     const [mapMode] = useAtom(mapModeAtom);
 
     if (!target) {
@@ -157,10 +161,10 @@ export default function PointsPopup(props: Props) {
     }
     return (
         <>
-            <div className={`${styles.Popup} ${imageContentId ? '' : styles.Minimum}`} onClick={onClick}>
+            <div className={`${styles.Popup} ${imageContentId ? '' : styles.Minimum} ${sizeClassName}`} onClick={onClick}>
                 <div className={styles.Contents}>
                     {imageContentId ?
-                        <div className={styles.ImageContainer}>
+                        <div className={`${styles.ImageContainer}`}>
                             <MyThumbnail mode='thumb' className={styles.Image} id={imageContentId} alt="contents" />
                         </div>
                         :

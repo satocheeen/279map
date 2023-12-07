@@ -282,9 +282,7 @@ function splitString(inputString: string, chunkSize: number) {
     const resultArray: string[] = [];
     for (let index = 0; index < inputString.length; index+=chunkSize) {
       resultArray.push(inputString.substring(index, index + chunkSize));
-      console.log('debug', index, chunkSize, inputString.substring(index, chunkSize));
     }
-    console.log('resultArray', inputString, resultArray);
     return resultArray;
 }
 

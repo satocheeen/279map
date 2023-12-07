@@ -186,6 +186,16 @@ export default function PopupContainer() {
 
     }, [map, popupGroups, zoom]);
 
+    const popupSize = useMemo(() => {
+        if (popupGroups.length > 30) {
+            return 's';
+        } else if (popupGroups.length > 15) {
+            return 'm';
+        } else {
+            return 'l';
+        }
+    }, [popupGroups]);
+
     return (
         <>
             {
@@ -194,7 +204,7 @@ export default function PopupContainer() {
                     return (
                         <div key={key}>
                             <div ref={ref => elementRefMap.current[key] = ref as HTMLDivElement}>
-                                <PointsPopup itemIds={target.itemIds} />
+                                <PointsPopup itemIds={target.itemIds} size={popupSize} />
                             </div>
                         </div>
                     )

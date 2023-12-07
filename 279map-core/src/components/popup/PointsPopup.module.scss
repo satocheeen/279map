@@ -65,9 +65,39 @@ $arrow-offset-left: 5px;
 }
 .ImageContainer {
     width: 200px;
+    height: 130px;
     position: relative;
     overflow: hidden;
 }
+.Large {
+    .ImageContainer {
+        width: 200px;
+        height: 130px;
+    }
+}
+.Medium {
+    .ImageContainer {
+        width: 100px;
+        height: 65px;
+    }
+    &.Popup.Minimum {
+        min-width: 20px;
+        width: 20px;
+        height: 20px;
+    }
+}
+.Small {
+    .ImageContainer {
+        width: 50px;
+        height: 32px;
+    }
+    &.Popup.Minimum {
+        min-width: 10px;
+        width: 10px;
+        height: 10px;
+    }
+}
+
 .Image {
     width: 100%;
 }
