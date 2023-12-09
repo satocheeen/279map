@@ -12,10 +12,10 @@ import { MyError, MyErrorType } from '../../api/api';
 import { ServerInfo, TsunaguMapProps } from '../../types/types';
 import { clientAtom } from 'jotai-urql';
 import { ConnectDocument, ConnectResult, RequestDocument } from '../../graphql/generated/graphql';
-import { cacheExchange, createClient, fetchExchange } from 'urql';
 import { OwnerContext } from './TsunaguMap';
 import { Provider, createStore } from 'jotai';
 import { defaultIconDefineAtom } from '../../store/icon';
+import { createGqlClient } from '../../api';
 
 type Props = {
     server: ServerInfo;
@@ -41,8 +41,11 @@ function createMyStore(mapId: string, iconDefine: TsunaguMapProps['iconDefine'])
  */
 export default function MapConnector(props: Props) {
     const { onConnect } = useContext(OwnerContext);
+    const onConnectRef = useRef(onConnect);
+    useEffect(() => {
+        onConnectRef.current = onConnect;
+    }, [onConnect]);
     const [instanceId ] = useAtom(instanceIdAtom);
-    // const [ mapId ] = useAtom(mapIdAtom);
     
     const { getSubscriber } = useSubscribe();
 
@@ -59,27 +62,13 @@ export default function MapConnector(props: Props) {
     const [ connectStatus, setConnectStatus ] = useState<ConnectResult|undefined>();
     const myStoreRef = useRef(createMyStore(props.mapId, props.iconDefine));
 
-    const connect = useCallback(async(mapId: string) => {
+    const connect = useCallback(async() => {
         try {
-            const protocol = props.server.ssl ? 'https' : 'http';
-            const url = `${protocol}://${props.server.host}/graphql`;
-            const gqlClient = createClient({
-                url,
-                exchanges: [cacheExchange, fetchExchange],
-                fetchOptions: () => {
-                    return {
-                        headers: {
-                            Authorization:  props.server.token ? `Bearer ${props.server.token}` : '',
-                        },
-                    }
-                }
-            })
-
-            console.log('connect to', mapId);
+            const gqlClient = createGqlClient(props.server);
+            console.log('connect to', props.mapId);
     
             setLoading(true);
-            // const gqlClient = get(clientAtom);
-            const result = await gqlClient.mutation(ConnectDocument, { mapId });
+            const result = await gqlClient.mutation(ConnectDocument, { mapId: props.mapId });
             if (!result.data) {
                 throw new Error('connect failed. ' + result.error)
             }
@@ -87,44 +76,37 @@ export default function MapConnector(props: Props) {
             myStoreRef.current.set(connectStatusAtom, result.data.connect);
 
             const sessionid = result.data?.connect.connect.sid ?? '';
-            const urqlClient = createClient({
-                url,
-                exchanges: [cacheExchange, fetchExchange],
-                fetchOptions: () => {
-                    return {
-                        headers: {
-                            Authorization:  props.server.token ? `Bearer ${props.server.token}` : '',
-                            sessionid,
-                        },
-                    }
-                }
-            })
-
-            console.log('recreate GQLClient', result.data.connect, sessionid);
+            const urqlClient = createGqlClient(props.server, sessionid);
             myStoreRef.current.set(clientAtom, urqlClient);
-
 
             setLoading(false);
 
-            if (onConnect) {
-                onConnect({
+            if (onConnectRef.current) {
+                onConnectRef.current({
                     mapDefine: result.data.connect.mapDefine,
                 })
             }
 
         } catch(e) {
             console.warn(e);
-            // throw new ApiException({
-            //     type: ErrorType.IllegalError,
-            //     detail: e + '',
-            // })
         }    
-    }, [props.server])
+    }, [props.server, props.mapId])
+
+    useEffect(() => {
+        // IDカウントアップ
+        myStoreRef.current.set(instanceIdAtom);
+        const id = myStoreRef.current.get(instanceIdAtom);
+        console.log('MapConnector mounted', id);
+
+        return () => {
+            console.log('MapConnector unmounted', id);
+        }
+    }, []);
 
     useEffect(() => {
         console.log('debug');
-        connect(props.mapId)
-    }, [props.mapId])
+        connect()
+    }, [connect])
 
     // const [, connectDispatch] = useAtom(connectReducerAtom);
     // useEffect(() => {
@@ -198,8 +180,6 @@ export default function MapConnector(props: Props) {
             }
         </>
     );
-
-    // return <div>Test</div>
 
     // switch (connectLoadable.state) {
     //     case 'hasData':

@@ -4,12 +4,20 @@ import { callApi } from "./api";
 import { cacheExchange, createClient, fetchExchange } from "urql";
 import { ConfigDocument } from "../graphql/generated/graphql";
 
-function createGqlClient(serverInfo: ServerInfo) {
+export function createGqlClient(serverInfo: ServerInfo, sessionid?: string) {
     const protocol = serverInfo.ssl ? 'https' : 'http';
     const url = `${protocol}://${serverInfo.host}/graphql`;
     const client = createClient({
         url,
         exchanges: [cacheExchange, fetchExchange],
+        fetchOptions: () => {
+            return {
+                headers: {
+                    Authorization:  serverInfo.token ? `Bearer ${serverInfo.token}` : '',
+                    sessionid: sessionid ?? '',
+                },
+            }
+        }
     })
     return client;
 }

@@ -7,17 +7,14 @@ import { AddNewContentParam, EditContentParam, LinkUnpointContentParam, TsunaguM
 import EventConnectorWithOwner, { EventControllerHandler } from './EventConnectorWithOwner';
 import MapConnector from './MapConnector';
 import ProcessOverlay from './ProcessOverlay';
-import { Provider, createStore } from 'jotai';
 import MapController from './MapController';
 import MapChart from './MapChart';
 import PopupContainer from '../popup/PopupContainer';
 import LandNameOverlay from '../map/LandNameOverlay';
 import DrawController, { DrawControllerHandler } from '../map/DrawController';
 import ClusterMenuContainer from '../cluster-menu/ClusterMenuContainer';
-import { instanceIdAtom, mapIdAtom } from '../../store/session';
 import ContentsSettingController from '../admin/contents-setting/ContentsSettingController';
 import UserListController from '../admin/user-list/UserListController';
-import { defaultIconDefineAtom } from '../../store/icon';
 
 const DefaultComponents = lazy(() => import('../default/DefaultComponents'));
 
@@ -41,37 +38,6 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
         throw new Error('mapServer not found in TsunaguMap props');
     }
 
-    const initializeFlagRef = useRef(false);
-    const myStoreRef = useRef(createStore());
-
-    useEffect(() => {
-        const myStore = myStoreRef.current;
-        const id = myStore.get(instanceIdAtom);
-        console.log('TsunaguMap mounted', id);
-
-        initializeFlagRef.current = true;
-        return () => {
-            // 再レンダリングされたらIDカウントアップ
-            myStore.set(instanceIdAtom);
-            console.log('TsunaguMap unmounted', id);
-        }
-    }, []);
-
-    // レンダリング前に初期値設定する
-    if (!initializeFlagRef.current) {
-        myStoreRef.current.set(instanceIdAtom);
-        myStoreRef.current.set(mapIdAtom, props.mapId);
-        if (props.iconDefine) {
-            myStoreRef.current.set(defaultIconDefineAtom, props.iconDefine);
-        }
-    }
-
-    useEffect(() => {
-        if (myStoreRef.current.get(mapIdAtom) !== props.mapId) {
-            myStoreRef.current.set(mapIdAtom, props.mapId);
-        }    
-    }, [props.mapId])
-
     const [ showTooltipId, setShowTooltipId ] = useState<{[name: string]: string}>({});
     const tooltipContextValue = {
         showIdMap: showTooltipId,
@@ -88,11 +54,12 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
     const [ defaultLinkUnpointedContentParam, setDefaultLinkUnpointedContentParam ] = useState<LinkUnpointContentParam|undefined>();
 
     const ownerContextValue = useMemo((): OwnerContextType => {
-        return Object.assign({}, props, {
+        return {
+            ...props,
             onAddNewContent: props.onAddNewContent ?? function(param: AddNewContentParam){setDefaultNewContentParam(param)},
             onEditContent: props.onEditContent ?? function(param: EditContentParam){setDefaultEditContentParam(param)},
             onLinkUnpointedContent: props.onLinkUnpointedContent ?? function(param: LinkUnpointContentParam){setDefaultLinkUnpointedContentParam(param)},
-        })
+        }
     }, [props]);
 
     const eventControlerRef = useRef<EventControllerHandler>(null);
@@ -110,38 +77,36 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
     return (
         <div className={styles.TsunaguMap}>
             <OwnerContext.Provider value={ownerContextValue}>
-                {/* <Provider store={myStoreRef.current}> */}
-                        <MapConnector server={props.mapServer} iconDefine={props.iconDefine} mapId={props.mapId}>
-                            <EventConnectorWithOwner ref={eventControlerRef} />
-                            <TooltipContext.Provider value={tooltipContextValue}>
-                                <MapController />
-                                <MapChart />
-                                <PopupContainer />
-                                <LandNameOverlay />
-                                <ClusterMenuContainer />
+                <MapConnector server={props.mapServer} iconDefine={props.iconDefine} mapId={props.mapId}>
+                    <EventConnectorWithOwner ref={eventControlerRef} />
+                    <TooltipContext.Provider value={tooltipContextValue}>
+                        <MapController />
+                        <MapChart />
+                        <PopupContainer />
+                        <LandNameOverlay />
+                        <ClusterMenuContainer />
 
-                                {/* 外部からの操作指示を受けて特定の動作をするコントローラー群 */}
-                                <DrawController ref={drawControllerRef} />
-                                <ContentsSettingController ref={contentsSettingControlerRef} />
-                                <UserListController ref={userListControlerRef} />
+                        {/* 外部からの操作指示を受けて特定の動作をするコントローラー群 */}
+                        <DrawController ref={drawControllerRef} />
+                        <ContentsSettingController ref={contentsSettingControlerRef} />
+                        <UserListController ref={userListControlerRef} />
 
-                                <ConfirmDialog />
+                        <ConfirmDialog />
 
-                                <Suspense>
-                                    {defaultLinkUnpointedContentParam &&
-                                        <DefaultComponents linkUnpointedContentParam={defaultLinkUnpointedContentParam} onClose={()=>{setDefaultLinkUnpointedContentParam(undefined)}} />
-                                    }
-                                    {defaultNewContentParam &&
-                                        <DefaultComponents newContentParam={defaultNewContentParam} onClose={()=>{setDefaultNewContentParam(undefined)}} />
-                                    }
-                                    {defaultEditContentParam &&
-                                        <DefaultComponents editContentParam={defaultEditContentParam} onClose={()=>{setDefaultEditContentParam(undefined)}} />
-                                    }
-                                </Suspense>
-                            </TooltipContext.Provider>
-                        </MapConnector>
-                    <ProcessOverlay />
-                {/* </Provider> */}
+                        <Suspense>
+                            {defaultLinkUnpointedContentParam &&
+                                <DefaultComponents linkUnpointedContentParam={defaultLinkUnpointedContentParam} onClose={()=>{setDefaultLinkUnpointedContentParam(undefined)}} />
+                            }
+                            {defaultNewContentParam &&
+                                <DefaultComponents newContentParam={defaultNewContentParam} onClose={()=>{setDefaultNewContentParam(undefined)}} />
+                            }
+                            {defaultEditContentParam &&
+                                <DefaultComponents editContentParam={defaultEditContentParam} onClose={()=>{setDefaultEditContentParam(undefined)}} />
+                            }
+                        </Suspense>
+                    </TooltipContext.Provider>
+                </MapConnector>
+                <ProcessOverlay />
             </OwnerContext.Provider>
         </div>
     );
