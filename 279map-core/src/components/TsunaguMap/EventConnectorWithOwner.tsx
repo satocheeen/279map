@@ -134,12 +134,12 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
     }));
 
     useFilterListner();
-    // useMapLoadListener();
-    // useDataSourceChangeListener();
+    useMapLoadListener();
+    useDataSourceChangeListener();
     // useCategoryLoadListener();
     // useEventLoadListener();
-    // useMapModeChangeListener();
-    // useSelectChangeLister();
+    useMapModeChangeListener();
+    useSelectChangeLister();
 
     return null;
 }
@@ -239,17 +239,17 @@ function useCategoryLoadListener() {
         }
         latestCategories.current = categories;
     })
-     // マウント後でないとイベント発火できないので、useEffect内で処理
-     useEffect(() => {
-        if (categoriesLoadable.state !== 'hasData') return;
+    //  // マウント後でないとイベント発火できないので、useEffect内で処理
+    //  useEffect(() => {
+    //     if (categoriesLoadable.state !== 'hasData') return;
 
-        if (JSON.stringify(categoriesLoadable.data) !== JSON.stringify(latestCategories.current)) {
-            if (onCategoriesLoaded) {
-                onCategoriesLoaded(categoriesLoadable.data);
-            }
-            latestCategories.current = categoriesLoadable.data;
-        }
-    });
+    //     if (JSON.stringify(categoriesLoadable.data) !== JSON.stringify(latestCategories.current)) {
+    //         if (onCategoriesLoaded) {
+    //             onCategoriesLoaded(categoriesLoadable.data);
+    //         }
+    //         latestCategories.current = categoriesLoadable.data;
+    //     }
+    // });
 }
 
 /**

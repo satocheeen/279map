@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { OlMapWrapper } from '../TsunaguMap/OlMapWrapper';
 import { atom, useAtom } from 'jotai';
 import { useAtomCallback, atomWithReducer } from 'jotai/utils';
-import { currentMapKindAtom, defaultExtentAtom, instanceIdAtom, mapIdAtom } from '../../store/session';
+import { currentMapKindAtom, defaultExtentAtom, instanceIdAtom } from '../../store/session';
 import { LoadedAreaInfo, LoadedItemKey, allItemsAtom, latestEditedTimeOfDatasourceAtom, loadedItemMapAtom } from '../../store/item';
 import { DataId, Extent } from '279map-common';
 import { itemDataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
@@ -164,7 +164,6 @@ export function useMap() {
                     });
                 });
 
-                const beforeMapId = get(mapIdAtom);
                 const beforeMapKind = get(currentMapKindAtom);
                 const apiResults = await Promise.all(loadTargets.map((target) => {
                     const wkt = geojsonToWKT(target.geometry);
@@ -188,10 +187,9 @@ export function useMap() {
                 }));
                 
                 // TODO: 地図が切り替えられていたら何もしない
-                const afterMapId = get(mapIdAtom);
                 const afterMapKind = get(currentMapKindAtom);
-                if (beforeMapId !== afterMapId || beforeMapKind !== afterMapKind) {
-                    console.log('cancel load items because map change', beforeMapId, beforeMapKind);
+                if (beforeMapKind !== afterMapKind) {
+                    console.log('cancel load items because map change', beforeMapKind);
                     return;
                 }
                 const hasItem = apiResults.some(apiResult => {

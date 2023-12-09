@@ -1,6 +1,5 @@
-import { useCallback, useEffect } from 'react';
-import { instanceIdAtom, mapIdAtom } from '../store/session';
-import { useAtom } from 'jotai';
+import { useCallback } from 'react';
+import { instanceIdAtom } from '../store/session';
 import { TsunaguMapProps } from "../types/types";
 import { MyMqttClient } from './MyMqttClient';
 import { useAtomCallback } from 'jotai/utils';

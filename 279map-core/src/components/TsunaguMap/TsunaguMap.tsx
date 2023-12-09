@@ -19,9 +19,10 @@ import UserListController from '../admin/user-list/UserListController';
 const DefaultComponents = lazy(() => import('../default/DefaultComponents'));
 
 type SomeRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
-type OwnerContextType = Omit<SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'>, 'mapServer' | 'mapId'>;
+type OwnerContextType = Omit<SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'>, 'mapServer'>;
 
 export const OwnerContext = React.createContext<OwnerContextType>({
+    mapId: '',
     onAddNewContent: () => {},
     onEditContent: () => {},
     onLinkUnpointedContent: () => {},

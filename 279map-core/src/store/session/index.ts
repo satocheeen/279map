@@ -5,23 +5,21 @@ import { atomWithReducer, loadable, selectAtom } from 'jotai/utils';
 import { Loadable } from 'jotai/vanilla/utils/loadable';
 import { atomWithCountup } from '../../util/jotaiUtility';
 import { clientAtom } from 'jotai-urql';
-import { ConnectResult, SwitchMapKindDocument, SwitchMapKindMutation } from '../../graphql/generated/graphql';
+import { SwitchMapKindDocument, SwitchMapKindMutation } from '../../graphql/generated/graphql';
 
 export const instanceIdAtom = atomWithCountup('instance-');
 
-export const mapIdAtom = atom<string>('');
+export const mapDefineAtom = atom({
+    defaultMapKind: MapKind.Real,
+    name: '',
+    options: {} as any,
+    useMaps: [] as MapKind[],
+    authLv: Auth.None,
+});
 
-export const connectStatusAtom = atom<ConnectResult>({
-    connect: {
-        authLv: Auth.None,
-        sid: '',
-    },
-    mapDefine: {
-        defaultMapKind: MapKind.Real,
-        name: '',
-        options: {} as any,
-        useMaps: [],
-    }
+export const authLvAtom = atom<Auth>((get) => {
+    const mapDefine = get(mapDefineAtom);
+    return mapDefine.authLv;
 });
 
 // ユーザに表示指定された地図種別
@@ -33,15 +31,10 @@ type MapDefineType = SwitchMapKindResult & {
     mapKind: MapKind
 }
 const currentMapKindInfoAtom = atom<Promise<MapDefineType>>(async(get) => {
-    // get(mapDefineReducerAtom);
-
-    const connectStatus = get(connectStatusAtom);
-    // if (!connectStatus) {
-    //     throw Promise;
-    // }
+    const mapDefine = get(mapDefineAtom);
 
     const specifiedMapKind = get(specifiedMapKindAtom);
-    const mapKind = specifiedMapKind ?? connectStatus.mapDefine.defaultMapKind;
+    const mapKind = specifiedMapKind ?? mapDefine.defaultMapKind;
     
     const gqlClient = get(clientAtom);
     console.log('switch mapkind')
@@ -88,9 +81,4 @@ export const defaultExtentAtom = atom<Extent>((get) => {
     } else {
         return [0,0,0,0];
     }
-})
-
-export const authLvAtom = atom<Auth>(( get ) => {
-    const connectStatus = get(connectStatusAtom);
-    return connectStatus.connect.authLv ?? Auth.None;
 })

@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect, useContext, useMemo, useRef } from 'react';
-import { instanceIdAtom, mapIdAtom, connectStatusAtom } from '../../store/session';
+import { instanceIdAtom, mapDefineAtom } from '../../store/session';
 import { ErrorType } from 'tsunagumap-api';
 import Overlay from '../common/spinner/Overlay';
 import { Button } from '../common';
@@ -24,9 +24,8 @@ type Props = {
     children: React.ReactNode | React.ReactNode[];
 }
 
-function createMyStore(mapId: string, iconDefine: TsunaguMapProps['iconDefine']) {
+function createMyStore(iconDefine: TsunaguMapProps['iconDefine']) {
     const store = createStore();
-    store.set(mapIdAtom, mapId);
     if (iconDefine) {
         store.set(defaultIconDefineAtom, iconDefine);
     }
@@ -60,7 +59,7 @@ export default function MapConnector(props: Props) {
 
     const [ loading, setLoading ] = useState(false);
     const [ connectStatus, setConnectStatus ] = useState<ConnectResult|undefined>();
-    const myStoreRef = useRef(createMyStore(props.mapId, props.iconDefine));
+    const myStoreRef = useRef(createMyStore(props.iconDefine));
 
     const connect = useCallback(async() => {
         try {
@@ -73,7 +72,11 @@ export default function MapConnector(props: Props) {
                 throw new Error('connect failed. ' + result.error)
             }
             setConnectStatus(result.data.connect);
-            myStoreRef.current.set(connectStatusAtom, result.data.connect);
+            const mapDefine = result.data.connect.mapDefine;
+            myStoreRef.current.set(mapDefineAtom, {
+                ...mapDefine,
+                authLv: result.data.connect.connect.authLv,
+            });
 
             const sessionid = result.data?.connect.connect.sid ?? '';
             const urqlClient = createGqlClient(props.server, sessionid);
@@ -257,8 +260,8 @@ type RequestComponetProps = {
    onCancel?: () => void;
 }
 function RequestComponet(props: RequestComponetProps) {
+    const { mapId } = useContext(OwnerContext);
     const [ gqlClient ] = useAtom(clientAtom);
-    const [ mapId ] = useAtom(mapIdAtom);
     const [ stage, setStage ] = useState<RequestComponetStage>(props.stage ?? 'button');
     const [ name, setName ] = useState('');
     const [ errorMessage, setErrorMessage ] = useState<string|undefined>();
