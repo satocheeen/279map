@@ -1,7 +1,6 @@
-import React, { useMemo, useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { DataId } from '279map-common';
 import Spinner from '../spinner/Spinner';
-import { connectStatusAtom } from '../../../store/session';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
 import { GetThumbDocument, ThumbSize } from '../../../graphql/generated/graphql';
@@ -22,10 +21,6 @@ type Props = {
  */
 export default function MyThumbnail(props: Props) {
     const myRef = useRef<HTMLImageElement>(null);
-    const [connectStatus] = useAtom(connectStatusAtom);
-    const sid = useMemo(() => {
-        return connectStatus.connect.sid;
-    }, [connectStatus]);
     
     const [ gqlClient ] = useAtom(clientAtom);
     const [ loaded, setLoaded ] = useState(false);
@@ -34,8 +29,6 @@ export default function MyThumbnail(props: Props) {
      * 画像取得
      */
     useEffect(() => {
-        if (!sid) return;
-
         gqlClient.query(GetThumbDocument, {
             contentId: props.id,
             size: props.mode === 'thumb' ? ThumbSize.Thumbnail : ThumbSize.Medium,
@@ -47,7 +40,7 @@ export default function MyThumbnail(props: Props) {
             setLoaded(true);
         });
 
-    }, [sid, props.id, props.mode, gqlClient]);
+    }, [props.id, props.mode, gqlClient]);
 
     return (
         <>

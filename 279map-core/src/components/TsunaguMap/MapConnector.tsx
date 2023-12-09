@@ -1,5 +1,5 @@
-import React, { useCallback, useState, useEffect, useContext } from 'react';
-import { instanceIdAtom, mapIdAtom, connectReducerAtom, serverInfoAtom, recreatedGqlClientReducerAtom, connectStatusAtom } from '../../store/session';
+import React, { useCallback, useState, useEffect, useContext, useMemo, useRef } from 'react';
+import { instanceIdAtom, mapIdAtom, connectStatusAtom } from '../../store/session';
 import { ErrorType } from 'tsunagumap-api';
 import Overlay from '../common/spinner/Overlay';
 import { Button } from '../common';
@@ -9,19 +9,28 @@ import { createMqttClientInstance, destroyMqttClientInstance, useSubscribe } fro
 import { Auth } from '279map-common';
 import { useAtom } from 'jotai';
 import { MyError, MyErrorType } from '../../api/api';
-import { useApi } from '../../api/useApi';
-import { ServerInfo } from '../../types/types';
+import { ServerInfo, TsunaguMapProps } from '../../types/types';
 import { clientAtom } from 'jotai-urql';
-import { ConnectDocument, RequestDocument } from '../../graphql/generated/graphql';
-import { useWatch } from '../../util/useWatch2';
+import { ConnectDocument, ConnectResult, RequestDocument } from '../../graphql/generated/graphql';
 import { cacheExchange, createClient, fetchExchange } from 'urql';
-import { useAtomCallback } from 'jotai/utils';
-import { map } from 'wonka';
 import { OwnerContext } from './TsunaguMap';
+import { Provider, createStore } from 'jotai';
+import { defaultIconDefineAtom } from '../../store/icon';
 
 type Props = {
     server: ServerInfo;
+    mapId: string;
+    iconDefine: TsunaguMapProps['iconDefine'];
     children: React.ReactNode | React.ReactNode[];
+}
+
+function createMyStore(mapId: string, iconDefine: TsunaguMapProps['iconDefine']) {
+    const store = createStore();
+    store.set(mapIdAtom, mapId);
+    if (iconDefine) {
+        store.set(defaultIconDefineAtom, iconDefine);
+    }
+    return store;
 }
 
 /**
@@ -33,57 +42,89 @@ type Props = {
 export default function MapConnector(props: Props) {
     const { onConnect } = useContext(OwnerContext);
     const [instanceId ] = useAtom(instanceIdAtom);
-    const [ mapId ] = useAtom(mapIdAtom);
+    // const [ mapId ] = useAtom(mapIdAtom);
     
     const { getSubscriber } = useSubscribe();
 
     // Subscriber用意
     useEffect(() => {
-        createMqttClientInstance(instanceId, props.server, mapId);
+        createMqttClientInstance(instanceId, props.server, props.mapId);
 
         return () => {
             destroyMqttClientInstance(instanceId);
         }
-    }, [instanceId, props.server, mapId]);
+    }, [instanceId, props.server, props.mapId]);
 
     const [ loading, setLoading ] = useState(false);
+    const [ connectStatus, setConnectStatus ] = useState<ConnectResult|undefined>();
+    const myStoreRef = useRef(createMyStore(props.mapId, props.iconDefine));
 
-    const connect = useAtomCallback(
-        useCallback(async(get, set, mapId: string) => {
-            try {
-                // get(connectReducerAtom);
-        
-                console.log('connect to', mapId);
-        
-                setLoading(true);
-                const gqlClient = get(clientAtom);
-                const result = await gqlClient.mutation(ConnectDocument, { mapId });
-                if (!result.data) {
-                    throw new Error('connect failed. ' + result.error)
+    const connect = useCallback(async(mapId: string) => {
+        try {
+            const protocol = props.server.ssl ? 'https' : 'http';
+            const url = `${protocol}://${props.server.host}/graphql`;
+            const gqlClient = createClient({
+                url,
+                exchanges: [cacheExchange, fetchExchange],
+                fetchOptions: () => {
+                    return {
+                        headers: {
+                            Authorization:  props.server.token ? `Bearer ${props.server.token}` : '',
+                        },
+                    }
                 }
-                set(connectStatusAtom, result.data.connect);
-                setLoading(false);
+            })
 
-                if (onConnect) {
-                    onConnect({
-                        mapDefine: result.data.connect.mapDefine,
-                    })
-                }
+            console.log('connect to', mapId);
     
-            } catch(e) {
-                console.warn(e);
-                // throw new ApiException({
-                //     type: ErrorType.IllegalError,
-                //     detail: e + '',
-                // })
-            }    
-        }, [])
-    );
+            setLoading(true);
+            // const gqlClient = get(clientAtom);
+            const result = await gqlClient.mutation(ConnectDocument, { mapId });
+            if (!result.data) {
+                throw new Error('connect failed. ' + result.error)
+            }
+            setConnectStatus(result.data.connect);
+            myStoreRef.current.set(connectStatusAtom, result.data.connect);
+
+            const sessionid = result.data?.connect.connect.sid ?? '';
+            const urqlClient = createClient({
+                url,
+                exchanges: [cacheExchange, fetchExchange],
+                fetchOptions: () => {
+                    return {
+                        headers: {
+                            Authorization:  props.server.token ? `Bearer ${props.server.token}` : '',
+                            sessionid,
+                        },
+                    }
+                }
+            })
+
+            console.log('recreate GQLClient', result.data.connect, sessionid);
+            myStoreRef.current.set(clientAtom, urqlClient);
+
+
+            setLoading(false);
+
+            if (onConnect) {
+                onConnect({
+                    mapDefine: result.data.connect.mapDefine,
+                })
+            }
+
+        } catch(e) {
+            console.warn(e);
+            // throw new ApiException({
+            //     type: ErrorType.IllegalError,
+            //     detail: e + '',
+            // })
+        }    
+    }, [props.server])
 
     useEffect(() => {
         console.log('debug');
-        connect(mapId)
-    }, [mapId, connect])
+        connect(props.mapId)
+    }, [props.mapId])
 
     // const [, connectDispatch] = useAtom(connectReducerAtom);
     // useEffect(() => {
@@ -122,9 +163,43 @@ export default function MapConnector(props: Props) {
         setGuestMode(true);
     }, []);
 
-    const { hasToken } = useApi()
+    const showRequestPanel = useMemo(() => {
+        if (guestMode) {
+            return false;
+        }
+        if (!props.server.token) {
+            return false;
+        }
+        if (!connectStatus) {
+            return false;
+        }
+        if (connectStatus.mapDefine.options?.newUserAuthLevel === Auth.None) {
+            // 新規ユーザ登録禁止の地図では表示しない
+            return false;
+        }
+        return connectStatus.connect.authLv === Auth.None;
 
-    return <div>Test</div>
+    }, [guestMode, connectStatus, props.server]);
+
+
+    if (loading) {
+        return <Overlay spinner message='ロード中...' />
+    }
+
+    return (
+        <>
+            <Provider store={myStoreRef.current}>
+                {props.children}
+            </Provider>
+            {showRequestPanel &&
+                <Overlay message="ユーザ登録しますか？">
+                    <RequestComponet stage='input' onCancel={onRequestCancel} />
+                </Overlay>
+            }
+        </>
+    );
+
+    // return <div>Test</div>
 
     // switch (connectLoadable.state) {
     //     case 'hasData':

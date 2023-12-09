@@ -37,6 +37,7 @@ export default function DriverRoot() {
      * 起動時に認証定義情報を取得する
      */
     useMounted(() => {
+        console.log('mount');
         getAuthConfig(myMapServer.host, myMapServer.ssl)
         .then((result) => {
             setAuthConfig(result);

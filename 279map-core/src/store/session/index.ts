@@ -1,11 +1,8 @@
-import { ConnectAPI, ErrorType } from 'tsunagumap-api';
 import { Auth, MapKind } from '279map-common';
-import { ApiException, callApi } from '../../api/api';
 import { Extent } from "ol/extent";
 import { atom } from 'jotai';
 import { atomWithReducer, loadable, selectAtom } from 'jotai/utils';
 import { Loadable } from 'jotai/vanilla/utils/loadable';
-import { ServerInfo } from '../../types/types';
 import { atomWithCountup } from '../../util/jotaiUtility';
 import { clientAtom } from 'jotai-urql';
 import { ConnectResult, SwitchMapKindDocument, SwitchMapKindMutation } from '../../graphql/generated/graphql';
@@ -13,13 +10,6 @@ import { ConnectResult, SwitchMapKindDocument, SwitchMapKindMutation } from '../
 export const instanceIdAtom = atomWithCountup('instance-');
 
 export const mapIdAtom = atom<string>('');
-
-export const serverInfoAtom = atom<ServerInfo>({
-    host: window.location.host,
-    ssl: window.location.protocol === 'https:',
-});
-
-export const connectReducerAtom = atomWithReducer(0, (prev) => prev+1);
 
 export const connectStatusAtom = atom<ConnectResult>({
     connect: {
@@ -34,8 +24,6 @@ export const connectStatusAtom = atom<ConnectResult>({
     }
 });
 
-export const recreatedGqlClientReducerAtom = atomWithReducer(0, (prev) => prev+1);
-
 // ユーザに表示指定された地図種別
 export const specifiedMapKindAtom = atom<MapKind|undefined>(undefined);
 
@@ -44,19 +32,19 @@ type SwitchMapKindResult = SwitchMapKindMutation['switchMapKind']
 type MapDefineType = SwitchMapKindResult & {
     mapKind: MapKind
 }
-const mapDefineAtom = atom<Promise<MapDefineType>>(async(get) => {
-    get(mapDefineReducerAtom);
-    get(recreatedGqlClientReducerAtom);
+const currentMapKindInfoAtom = atom<Promise<MapDefineType>>(async(get) => {
+    // get(mapDefineReducerAtom);
 
-    const connectStatus = await get(connectStatusAtom);
-    if (!connectStatus) {
-        throw Promise;
-    }
+    const connectStatus = get(connectStatusAtom);
+    // if (!connectStatus) {
+    //     throw Promise;
+    // }
 
     const specifiedMapKind = get(specifiedMapKindAtom);
     const mapKind = specifiedMapKind ?? connectStatus.mapDefine.defaultMapKind;
     
     const gqlClient = get(clientAtom);
+    console.log('switch mapkind')
     const res = await gqlClient.mutation(SwitchMapKindDocument, {
         mapKind,
     });
@@ -69,7 +57,7 @@ const mapDefineAtom = atom<Promise<MapDefineType>>(async(get) => {
         ...data
     };
 });
-export const mapDefineLoadableAtom = loadable(mapDefineAtom);
+export const mapDefineLoadableAtom = loadable(currentMapKindInfoAtom);
 
 /**
  * 地図定義情報。

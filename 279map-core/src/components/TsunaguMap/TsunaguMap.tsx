@@ -14,11 +14,10 @@ import PopupContainer from '../popup/PopupContainer';
 import LandNameOverlay from '../map/LandNameOverlay';
 import DrawController, { DrawControllerHandler } from '../map/DrawController';
 import ClusterMenuContainer from '../cluster-menu/ClusterMenuContainer';
-import { instanceIdAtom, mapIdAtom, serverInfoAtom } from '../../store/session';
+import { instanceIdAtom, mapIdAtom } from '../../store/session';
 import ContentsSettingController from '../admin/contents-setting/ContentsSettingController';
 import UserListController from '../admin/user-list/UserListController';
 import { defaultIconDefineAtom } from '../../store/icon';
-import UrqlSetup from './UrqlSetup';
 
 const DefaultComponents = lazy(() => import('../default/DefaultComponents'));
 
@@ -62,7 +61,6 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
     if (!initializeFlagRef.current) {
         myStoreRef.current.set(instanceIdAtom);
         myStoreRef.current.set(mapIdAtom, props.mapId);
-        myStoreRef.current.set(serverInfoAtom, props.mapServer);
         if (props.iconDefine) {
             myStoreRef.current.set(defaultIconDefineAtom, props.iconDefine);
         }
@@ -73,12 +71,6 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
             myStoreRef.current.set(mapIdAtom, props.mapId);
         }    
     }, [props.mapId])
-
-    useEffect(() => {
-        if (myStoreRef.current.get(serverInfoAtom) !== props.mapServer) {
-            myStoreRef.current.set(serverInfoAtom, props.mapServer);
-        }    
-    }, [props.mapServer])
 
     const [ showTooltipId, setShowTooltipId ] = useState<{[name: string]: string}>({});
     const tooltipContextValue = {
@@ -118,9 +110,8 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
     return (
         <div className={styles.TsunaguMap}>
             <OwnerContext.Provider value={ownerContextValue}>
-                <Provider store={myStoreRef.current}>
-                    <UrqlSetup>
-                        <MapConnector server={props.mapServer}>
+                {/* <Provider store={myStoreRef.current}> */}
+                        <MapConnector server={props.mapServer} iconDefine={props.iconDefine} mapId={props.mapId}>
                             <EventConnectorWithOwner ref={eventControlerRef} />
                             <TooltipContext.Provider value={tooltipContextValue}>
                                 <MapController />
@@ -149,9 +140,8 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
                                 </Suspense>
                             </TooltipContext.Provider>
                         </MapConnector>
-                    </UrqlSetup>
                     <ProcessOverlay />
-                </Provider>
+                {/* </Provider> */}
             </OwnerContext.Provider>
         </div>
     );

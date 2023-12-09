@@ -16,7 +16,6 @@ import { useAtomCallback } from 'jotai/utils';
 import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
-import { useApi } from '../../api/useApi';
 import { CategoryDefine, EventDefine, ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument } from '../../graphql/generated/graphql';
 import { updateContentAtom } from '../../store/content';
 import { clientAtom } from 'jotai-urql';
@@ -37,7 +36,6 @@ export type EventControllerHandler = Pick<TsunaguMapHandler,
 function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControllerHandler>) {
     const { changeMapKind } = useMapController();
     const { focusItem } = useMap();
-    const { callApi } = useApi();
     const { updateDatasourceVisible } = useDataSource();
     const [, updateContent] = useAtom(updateContentAtom);
     const [ gqlClient ] = useAtom(clientAtom);
@@ -136,12 +134,12 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
     }));
 
     useFilterListner();
-    useMapLoadListener();
-    useDataSourceChangeListener();
-    useCategoryLoadListener();
-    useEventLoadListener();
-    useMapModeChangeListener();
-    useSelectChangeLister();
+    // useMapLoadListener();
+    // useDataSourceChangeListener();
+    // useCategoryLoadListener();
+    // useEventLoadListener();
+    // useMapModeChangeListener();
+    // useSelectChangeLister();
 
     return null;
 }

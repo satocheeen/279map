@@ -8,7 +8,6 @@ import { getMapKey } from '../../util/dataUtility';
 import { useSubscribe } from '../../api/useSubscribe';
 import { useAtom } from 'jotai';
 import { authLvAtom, currentMapKindAtom } from '../../store/session';
-import { useApi } from '../../api/useApi';
 import { compareAuth } from '../../util/CommonUtility';
 import EditItemNameModal from './EditItemNameModal';
 import PopupMenuIcon from '../popup/PopupMenuIcon';
@@ -33,7 +32,6 @@ export default function ContentsModal(props: Props) {
     const [itemId, setItemId] = useState<DataId | undefined>();
 
     const [ contentsList, setContentsList ] = useState<ContentsDefine[]>([]);
-    const { callApi } = useApi();
     const { getSubscriber } = useSubscribe();
 
     const [ allItems ] = useAtom(allItemsAtom);
@@ -127,7 +125,7 @@ export default function ContentsModal(props: Props) {
             }
         }
 
-    }, [props.id, props.type, mapKind, callApi, getSubscriber, loadContentsInItem, updateItems, setModalSpinner, gqlClient]);
+    }, [props.id, props.type, mapKind, getSubscriber, loadContentsInItem, updateItems, setModalSpinner, gqlClient]);
 
     const contents = useMemo((): ContentsDefine[] => {
         return contentsList.sort((a, b) => {
