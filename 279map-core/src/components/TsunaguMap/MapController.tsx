@@ -2,12 +2,12 @@ import { MapKind } from '279map-common';
 import React, { useRef, useMemo, useContext, useEffect, lazy, Suspense, useState } from 'react';
 import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useSubscribe } from '../../api/useSubscribe';
-import { currentMapDefineAtom, currentMapKindAtom, mapDefineLoadableAtom, mapDefineReducerAtom } from '../../store/session';
+import { currentMapDefineAtom, currentMapKindAtom, mapDefineReducerAtom } from '../../store/session';
 import { atom, useAtom } from 'jotai';
 import { useItems } from '../../store/item/useItems';
-import { itemDataSourceGroupsAtom, itemDataSourcesAtom } from '../../store/datasource';
+import { itemDataSourceGroupsAtom } from '../../store/datasource';
 import { mapInstanceIdAtom, useMap } from '../map/useMap';
-import { dialogTargetAtom, showingDetailItemIdAtom } from '../../store/operation';
+import { dialogTargetAtom } from '../../store/operation';
 import { OwnerContext } from './TsunaguMap';
 import { usePrevious } from '../../util/usePrevious';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
@@ -128,12 +128,10 @@ function useItemUpdater() {
     const [ currentMapDefine ] = useAtom(currentMapDefineAtom);
     const [ , setDialogTarget ] = useAtom(dialogTargetAtom);
 
-    const [ mapDefineLoadable ] = useAtom(mapDefineLoadableAtom);
-
     /**
      * 地図が切り替わったら、レイヤ再配置
      */
-    useWatch(mapDefineLoadable, () => {
+    useWatch(currentMapKind, () => {
         if (!map || !currentMapKind) return;
         if (initializedMapKind ===  currentMapKind) return;
 

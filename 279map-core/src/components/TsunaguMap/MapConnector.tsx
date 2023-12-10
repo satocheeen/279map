@@ -73,9 +73,10 @@ export default function MapConnector(props: Props) {
             }
             setConnectStatus(result.data.connect);
             const mapDefine = result.data.connect.mapDefine;
+            const authLv = result.data.connect.connect.authLv;
             myStoreRef.current.set(mapDefineAtom, {
                 ...mapDefine,
-                authLv: result.data.connect.connect.authLv,
+                authLv,
                 connected: true,
             });
 
@@ -89,6 +90,7 @@ export default function MapConnector(props: Props) {
             if (onConnectRef.current) {
                 onConnectRef.current({
                     mapDefine: result.data.connect.mapDefine,
+                    authLv,
                 })
             }
 

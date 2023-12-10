@@ -1,5 +1,4 @@
 import { atom } from 'jotai';
-import { loadable } from "jotai/utils";
 import { visibleDataSourceIdsAtom } from "./datasource";
 import { atomWithQuery } from "jotai-urql";
 import { GetEventDocument } from "../graphql/generated/graphql";
@@ -18,9 +17,7 @@ const getEventQueryAtom = atomWithQuery({
         return targetDataSourceIds.length === 0;
     }
 })
-const eventsAtom = atom(async(get) => {
+export const eventsAtom = atom(async(get) => {
     const getEventQuery = await get(getEventQueryAtom);
     return getEventQuery.data?.getEvent ?? [];
 })
-
-export const eventsLoadableAtom = loadable(eventsAtom);

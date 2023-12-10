@@ -41,7 +41,6 @@ const currentMapKindInfoAtom = atom<Promise<MapDefineType>>(async(get) => {
     const mapKind = specifiedMapKind ?? mapDefine.defaultMapKind;
     
     const gqlClient = get(clientAtom);
-    console.log('switch mapkind')
     const res = await gqlClient.mutation(SwitchMapKindDocument, {
         mapKind,
     });
@@ -54,7 +53,7 @@ const currentMapKindInfoAtom = atom<Promise<MapDefineType>>(async(get) => {
         ...data
     };
 });
-export const mapDefineLoadableAtom = loadable(currentMapKindInfoAtom);
+const mapDefineLoadableAtom = loadable(currentMapKindInfoAtom);
 
 /**
  * 地図定義情報。

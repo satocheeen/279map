@@ -34,11 +34,7 @@ export default function TestMap() {
     const onConnect = useCallback((param: OnConnectParam) => {
         console.log('connect', param);
         setMapKind(param.mapDefine.defaultMapKind);
-        if (param.mapDefine.authLv === Auth.None || param.mapDefine.authLv === Auth.Request) {
-            setAuthLv(param.mapDefine.guestAuthLv);
-        } else {
-            setAuthLv(param.mapDefine.authLv);
-        }
+        setAuthLv(param.authLv);
         setCnt(cnt + 1);
     }, [cnt]);
 
