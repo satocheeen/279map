@@ -2,11 +2,8 @@ import { ApiError, ConfigAPI, ConnectAPI, ErrorType, GetMapListAPI } from "tsuna
 import { ServerInfo } from '../types/types';
 import { APIDefine } from "279map-common";
 
-export enum MyErrorType {
-    NonInitialize = "NonInitialize"
-}
 export type MyError = {
-    type: ErrorType | MyErrorType;
+    type: ErrorType;
     detail?: string;
     userId?: string;
 }

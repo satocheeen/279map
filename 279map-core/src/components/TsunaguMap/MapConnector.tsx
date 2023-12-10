@@ -8,7 +8,7 @@ import styles from './MapConnector.module.scss';
 import { createMqttClientInstance, destroyMqttClientInstance, useSubscribe } from '../../api/useSubscribe';
 import { Auth } from '279map-common';
 import { useAtom } from 'jotai';
-import { MyError, MyErrorType } from '../../api/api';
+import { MyError } from '../../api/api';
 import { ServerInfo, TsunaguMapProps } from '../../types/types';
 import { clientAtom } from 'jotai-urql';
 import { ConnectDocument, ConnectResult, RequestDocument } from '../../graphql/generated/graphql';
@@ -59,17 +59,23 @@ export default function MapConnector(props: Props) {
 
     const [ loading, setLoading ] = useState(true);
     const [ connectStatus, setConnectStatus ] = useState<ConnectResult|undefined>();
+    const [ errorType, setErrorType ] = useState<ErrorType|undefined>();
     const myStoreRef = useRef(createMyStore(props.iconDefine));
 
     const connect = useCallback(async() => {
         try {
             const gqlClient = createGqlClient(props.server);
-            console.log('connect to', props.mapId);
+            console.log('connect to', props.mapId, props.server.token);
     
-            setLoading(true);
             const result = await gqlClient.mutation(ConnectDocument, { mapId: props.mapId });
             if (!result.data) {
-                throw new Error('connect failed. ' + result.error)
+                if (result.error?.graphQLErrors[0]) {
+                    const errorType = result.error?.graphQLErrors[0].extensions.type as ErrorType;
+                    setErrorType(errorType);
+                } else {
+                    setErrorType(ErrorType.IllegalError);
+                }
+                return;
             }
             setConnectStatus(result.data.connect);
             const mapDefine = result.data.connect.mapDefine;
@@ -85,8 +91,6 @@ export default function MapConnector(props: Props) {
             myStoreRef.current.set(clientAtom, urqlClient);
             console.log('connected');
 
-            setLoading(false);
-
             if (onConnectRef.current) {
                 onConnectRef.current({
                     mapDefine: result.data.connect.mapDefine,
@@ -96,7 +100,12 @@ export default function MapConnector(props: Props) {
 
         } catch(e) {
             console.warn(e);
-        }    
+            setErrorType(ErrorType.IllegalError);
+
+        } finally {
+            setLoading(false);
+
+        }
     }, [props.server, props.mapId])
 
     useEffect(() => {
@@ -169,9 +178,38 @@ export default function MapConnector(props: Props) {
 
     }, [guestMode, connectStatus, props.server]);
 
+    const errorMessage = useMemo(() => {
+        switch(errorType) {
+            case ErrorType.UndefinedMap:
+                return '指定の地図は存在しません';
+            case ErrorType.Unauthorized:
+                return 'この地図を表示するには、ログインが必要です';
+            case ErrorType.Forbidden:
+                return '認証期限が切れている可能性があります。再ログインを試してください。問題が解決しない場合は、管理者へ問い合わせてください。';
+            case ErrorType.NoAuthenticate:
+                return 'この地図に入るには管理者の承認が必要です';
+            case ErrorType.Requesting:
+                return '管理者からの承認待ちです';
+            case ErrorType.SessionTimeout:
+                return 'しばらく操作されなかったため、セッション接続が切れました。再ロードしてください。';
+            default:
+                return '想定外の問題が発生しました。再ロードしても問題が解決しない場合は、管理者へ問い合わせてください。';
+        }
+    }, [errorType]);
+
 
     if (loading) {
         return <Overlay spinner message='ロード中...' />
+    }
+
+    if (errorType) {
+        return (
+            <Overlay message={errorMessage}>
+                {errorType === ErrorType.NoAuthenticate &&
+                    <RequestComponet />
+                }
+            </Overlay>
+        );
     }
 
     return (
@@ -187,70 +225,6 @@ export default function MapConnector(props: Props) {
         </>
     );
 
-    // switch (connectLoadable.state) {
-    //     case 'hasData':
-    //         // Auth0ログイン済みだが、地図ユーザ未登録の場合は、登録申請フォーム表示
-    //         const showRequestPanel = function() {
-    //             if (guestMode) {
-    //                 return false;
-    //             }
-    //             if (!hasToken) {
-    //                 return false;
-    //             }
-    //             if (connectLoadable.data?.mapDefine.options?.newUserAuthLevel === Auth.None) {
-    //                 // 新規ユーザ登録禁止の地図では表示しない
-    //                 return false;
-    //             }
-    //             return connectLoadable.data?.connect.authLv === Auth.None;
-    //         }();
-    //         return (
-    //             <>
-    //                 {props.children}
-    //                 {showRequestPanel &&
-    //                     <Overlay message="ユーザ登録しますか？">
-    //                         <RequestComponet stage='input' onCancel={onRequestCancel} />
-    //                     </Overlay>
-    //                 }
-    //             </>
-    //         );
-    //     case 'loading':
-    //         return <Overlay spinner message='ロード中...' />
-
-    //     case 'hasError':
-    //         const e = connectLoadable.error as any;
-    //         const error: MyError = ('apiError' in e) ? e.apiError
-    //                             : {type: ErrorType.IllegalError, detail: e + ''};
-
-    //         if (error.type === MyErrorType.NonInitialize) {
-    //             return <Overlay spinner message='初期化中...' />
-    //         }
-    //         const errorMessage = function(): string {
-    //             switch(error.type) {
-    //                 case ErrorType.UndefinedMap:
-    //                     return '指定の地図は存在しません';
-    //                 case ErrorType.Unauthorized:
-    //                     return 'この地図を表示するには、ログインが必要です';
-    //                 case ErrorType.Forbidden:
-    //                     return '認証期限が切れている可能性があります。再ログインを試してください。問題が解決しない場合は、管理者へ問い合わせてください。';
-    //                 case ErrorType.NoAuthenticate:
-    //                     return 'この地図に入るには管理者の承認が必要です';
-    //                 case ErrorType.Requesting:
-    //                     return '管理者からの承認待ちです';
-    //                 case ErrorType.SessionTimeout:
-    //                     return 'しばらく操作されなかったため、セッション接続が切れました。再ロードしてください。';
-    //                 default:
-    //                     return '想定外の問題が発生しました。再ロードしても問題が解決しない場合は、管理者へ問い合わせてください。';
-    //             }
-    //         }();
-    //         const detail = error.detail ? `\n${error.detail}` : '';
-    //         return (
-    //             <Overlay message={errorMessage + detail}>
-    //                 {error.type === ErrorType.NoAuthenticate &&
-    //                     <RequestComponet />
-    //                 }
-    //             </Overlay>
-    //         );
-    // }
 }
 
 /**

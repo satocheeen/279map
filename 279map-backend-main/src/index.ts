@@ -540,7 +540,7 @@ const checkGraphQlAuthLv = async(operationName: string, userAuthInfo: UserAuthIn
     }();
     if (!userAuthLv || !allowAuthList.includes(userAuthLv)) {
         throw new CustomError({
-            type: ErrorType.Unauthorized,
+            type: ErrorType.NoAuthenticate,
             message: 'user does not have authentication.'
         })
     }

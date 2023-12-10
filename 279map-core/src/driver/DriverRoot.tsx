@@ -44,32 +44,32 @@ export default function DriverRoot() {
         })
     });
 
-    // if (!authConfig) {
-    //     return null;
-    // }
+    if (!authConfig) {
+        return null;
+    }
 
-    // if (authConfig.__typename === 'Auth0Config') {
-    //     console.log('debug', authConfig)
-    //     return (
-    //         <Auth0Provider
-    //             domain={authConfig.domain}
-    //             clientId={authConfig.clientId}
-    //             authorizationParams={{
-    //                 redirect_uri: window.location.origin,
-    //                 audience: authConfig.audience,
-    //             }}
-    //         >
-    //             <AuthContext.Provider value={authContextValue}>
-    //                 <TestMap />
-    //             </AuthContext.Provider>
-    //         </Auth0Provider>
-    //     );        
-    // } else {
+    if (authConfig.__typename === 'Auth0Config') {
+        console.log('debug', authConfig)
+        return (
+            <Auth0Provider
+                domain={authConfig.domain}
+                clientId={authConfig.clientId}
+                authorizationParams={{
+                    redirect_uri: window.location.origin,
+                    audience: authConfig.audience,
+                }}
+            >
+                <AuthContext.Provider value={authContextValue}>
+                    <TestMap />
+                </AuthContext.Provider>
+            </Auth0Provider>
+        );        
+    } else {
         return (
             <AuthContext.Provider value={authContextValue}>
                 <TestMap />
             </AuthContext.Provider>
         );        
 
-    // }
+    }
 }

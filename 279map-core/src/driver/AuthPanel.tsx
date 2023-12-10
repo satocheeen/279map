@@ -2,8 +2,6 @@ import React, { useCallback, useContext } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useWatch } from '../util/useWatch';
 import { AuthContext } from './DriverRoot';
-import { AuthMethod } from '279map-common';
-import { myToken } from './const';
 
 export default function AuthPanel() {
     const { isAuthenticated, getAccessTokenSilently, loginWithRedirect, logout } = useAuth0();
@@ -11,22 +9,14 @@ export default function AuthPanel() {
 
     useWatch(() => {
         if (!authConfig) return;
-        switch(authConfig.authMethod) {
-            case AuthMethod.Auth0:
+        switch(authConfig.__typename) {
+            case 'Auth0Config':
                 if (!isAuthenticated) return;
                 getAccessTokenSilently()
                 .then(token => {
                     setToken(token);
                     console.log('token', token);
                 });
-                break;
-
-            case AuthMethod.Original:
-                setTimeout(() => {
-                    console.log('setToken', myToken);
-                    if (myToken)
-                        setToken(myToken);
-                }, 500);
                 break;
 
             default:
