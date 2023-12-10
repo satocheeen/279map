@@ -1,4 +1,4 @@
-import { ApiError, ConfigAPI, ConnectAPI, ErrorType, GetMapListAPI } from "tsunagumap-api";
+import { ApiError, ErrorType, GetMapListAPI } from "tsunagumap-api";
 import { ServerInfo } from '../types/types';
 import { APIDefine } from "279map-common";
 
@@ -19,11 +19,6 @@ export class ApiException extends Error {
 
 export async function callApi<API extends APIDefine<any, any>>(serverInfo: ServerInfo, sid: string | undefined, api: API, param: API['param']): Promise<API['result']> {
     try {
-        if (!sid) {
-            if (api !== ConnectAPI && api !== GetMapListAPI && api !== ConfigAPI) {
-                throw 'not set SID: ' + api.uri;
-            }
-        }
         const protocol = serverInfo.ssl ? 'https' : 'http';
         const url = `${protocol}://${serverInfo.host}/api/${api.uri}`;
         const headers = {

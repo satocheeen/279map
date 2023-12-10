@@ -64,6 +64,8 @@ export default function MapConnector(props: Props) {
 
     const connect = useCallback(async() => {
         try {
+            setLoading(true);
+            setErrorType(undefined);
             const gqlClient = createGqlClient(props.server);
             console.log('connect to', props.mapId, props.server.token);
     

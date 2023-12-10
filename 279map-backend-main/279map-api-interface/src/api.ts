@@ -14,20 +14,6 @@ export type MapInfo = {
     name: string;
 };
 
-export const ConnectAPI = {
-    uri: 'connect',
-    method: 'get',
-    resultType: 'json',
-} as APIDefine<ConnectParam, ConnectResult>;
-export type ConnectParam = {
-    mapId: string;
-}
-export type ConnectResult = {
-    mapDefine: MapDefine;
-    sid: string;   // セッションID
-    userId?: string;
-}
-
 /**
  * Publishメッセージ（ユーザに対するもの）
  */

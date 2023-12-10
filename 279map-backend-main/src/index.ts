@@ -17,7 +17,7 @@ import { getSnsPreview } from './api/getSnsPreview';
 import cors from 'cors';
 import { exit } from 'process';
 import { getMapInfoById } from './getMapDefine';
-import { ConnectResult, GetMapListAPI } from '../279map-api-interface/src';
+import { GetMapListAPI } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
 import { getMapList } from './api/getMapList';
@@ -243,105 +243,6 @@ const authenticateErrorProcess = (err: Error, req: Request, res: Response, next:
         } as ApiError);
     }
 };
-
-/**
- * 接続確立
- */
-app.get('/api/connect', 
-    authManagementClient.checkJwt,
-    authenticateErrorProcess,
-    async(req: Request, res: Response) => {
-        apiLogger.info('[start] connect', req.query);
-
-        try {
-            const queryMapId = req.query.mapId;
-            if (!queryMapId || typeof queryMapId !== 'string') {
-                res.status(400).send({
-                    type: ErrorType.UndefinedMap,
-                    detail: 'not set mapId',
-                } as ApiError);
-                return;
-            }
-            const mapInfo = await getMapInfoById(queryMapId);
-            if (mapInfo === null) {
-                res.status(400).send({
-                    type: ErrorType.UndefinedMap,
-                    detail: 'mapId is not found : ' + queryMapId,
-                } as ApiError);
-                return;
-            }
-
-            const userAccessInfo = await getUserAuthInfoInTheMap(mapInfo, req, true);
-            if (userAccessInfo.authLv === undefined && userAccessInfo.guestAuthLv === Auth.None) {
-                // ログインが必要な地図の場合
-                res.status(403).send({
-                    type: ErrorType.Unauthorized,
-                } as ApiError);
-                return;
-            }
-
-            const mapDefine: MapDefine = Object.assign({
-                mapId: mapInfo.map_page_id,
-                name: mapInfo.title,
-                useMaps: mapInfo.use_maps.split(',').map(mapKindStr => {
-                    return mapKindStr as MapKind;
-                }),
-                defaultMapKind: mapInfo.default_map,
-                options: mapInfo.options as MapPageOptions,
-            }, 
-            (userAccessInfo.authLv === undefined || userAccessInfo.authLv === Auth.None || userAccessInfo.authLv === Auth.Request)
-                ? {
-                    authLv: userAccessInfo.authLv ?? Auth.None,
-                    guestAuthLv: userAccessInfo.guestAuthLv,
-                }
-                : {
-                    authLv: userAccessInfo.authLv,
-                    // @ts-ignore なぜかTypeScriptエラーになるので
-                    userName: userAccessInfo.userName,
-                });
-
-            if (userAccessInfo.authLv === Auth.None && userAccessInfo.guestAuthLv === Auth.None) {
-                // 権限なしエラーを返却
-                res.status(403).send({
-                    type: ErrorType.NoAuthenticate,
-                    userId: userAccessInfo.userId,
-                } as ApiError);
-                return;
-            }
-            if (userAccessInfo.authLv === Auth.Request && userAccessInfo.guestAuthLv === Auth.None) {
-                // 承認待ちエラーを返却
-                res.status(403).send({
-                    type: ErrorType.Requesting,
-                    userId: userAccessInfo.userId,
-                } as ApiError);
-                return;
-            }
-
-            const session = sessionManager.createSession({
-                mapId: mapInfo.map_page_id,
-                mapKind: mapInfo.default_map,
-            });
-        
-            const result: ConnectResult = {
-                // @ts-ignore
-                mapDefine,
-                sid: session.sid,
-                userId: userAccessInfo.userId,
-            }
-
-            res.send(result);
-            apiLogger.info('[end] connect', session.sid);
-        
-        } catch(e) {
-            apiLogger.warn('connect error', e);
-            res.status(500).send({
-                type: ErrorType.IllegalError,
-                detail: e + '',
-            } as ApiError);
-
-        }
-    },
-);
 
 /**
  * セッション情報を取得してrequestに格納
