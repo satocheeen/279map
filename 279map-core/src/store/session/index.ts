@@ -10,6 +10,7 @@ import { SwitchMapKindDocument, SwitchMapKindMutation } from '../../graphql/gene
 export const instanceIdAtom = atomWithCountup('instance-');
 
 export const mapDefineAtom = atom({
+    connected: false,
     defaultMapKind: MapKind.Real,
     name: '',
     options: {} as any,
@@ -32,6 +33,9 @@ type MapDefineType = SwitchMapKindResult & {
 }
 const currentMapKindInfoAtom = atom<Promise<MapDefineType>>(async(get) => {
     const mapDefine = get(mapDefineAtom);
+    if (!mapDefine.connected) {
+        throw Promise;
+    }
 
     const specifiedMapKind = get(specifiedMapKindAtom);
     const mapKind = specifiedMapKind ?? mapDefine.defaultMapKind;

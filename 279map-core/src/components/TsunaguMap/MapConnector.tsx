@@ -57,7 +57,7 @@ export default function MapConnector(props: Props) {
         }
     }, [instanceId, props.server, props.mapId]);
 
-    const [ loading, setLoading ] = useState(false);
+    const [ loading, setLoading ] = useState(true);
     const [ connectStatus, setConnectStatus ] = useState<ConnectResult|undefined>();
     const myStoreRef = useRef(createMyStore(props.iconDefine));
 
@@ -76,11 +76,13 @@ export default function MapConnector(props: Props) {
             myStoreRef.current.set(mapDefineAtom, {
                 ...mapDefine,
                 authLv: result.data.connect.connect.authLv,
+                connected: true,
             });
 
             const sessionid = result.data?.connect.connect.sid ?? '';
             const urqlClient = createGqlClient(props.server, sessionid);
             myStoreRef.current.set(clientAtom, urqlClient);
+            console.log('connected');
 
             setLoading(false);
 
@@ -107,7 +109,6 @@ export default function MapConnector(props: Props) {
     }, []);
 
     useEffect(() => {
-        console.log('debug');
         connect()
     }, [connect])
 

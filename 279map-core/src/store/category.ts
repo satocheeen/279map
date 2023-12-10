@@ -1,5 +1,4 @@
 import { atom } from 'jotai';
-import { loadable } from "jotai/utils";
 import { visibleDataSourceIdsAtom } from './datasource';
 import { atomWithQuery } from 'jotai-urql';
 import { GetCategoryDocument } from '../graphql/generated/graphql';
@@ -20,7 +19,6 @@ const categoriesQueryAtom = atomWithQuery({
 })
 export const categoriesAtom = atom(async(get) => {
     const categoriesQuery = await get(categoriesQueryAtom);
-    return categoriesQuery.data?.getCategory ?? [];
+    const result = categoriesQuery.data?.getCategory ?? [];
+    return result;
 })
-
-export const categoriesLoadableAtom = loadable(categoriesAtom);

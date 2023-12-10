@@ -1,10 +1,10 @@
 import React, { useRef, useContext, useEffect, useCallback, useImperativeHandle } from 'react';
 import { useWatch } from '../../util/useWatch2';
 import { OwnerContext } from './TsunaguMap';
-import { categoriesAtom, categoriesLoadableAtom } from '../../store/category';
+import { categoriesAtom } from '../../store/category';
 import { eventsLoadableAtom } from '../../store/event';
 import { dialogTargetAtom, mapModeAtom, showingDetailItemIdAtom } from '../../store/operation';
-import { mapDefineLoadableAtom } from '../../store/session';
+import { mapDefineAtom, mapDefineLoadableAtom, specifiedMapKindAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
@@ -136,7 +136,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
     useFilterListner();
     useMapLoadListener();
     useDataSourceChangeListener();
-    // useCategoryLoadListener();
+    useCategoryLoadListener();
     // useEventLoadListener();
     useMapModeChangeListener();
     useSelectChangeLister();
@@ -229,27 +229,15 @@ function useDataSourceChangeListener() {
  */
 function useCategoryLoadListener() {
     const { onCategoriesLoaded}  = useContext(OwnerContext);
-    const [ categoriesLoadable ] = useAtom(categoriesLoadableAtom);
     const [ categories ] = useAtom(categoriesAtom);
-    const latestCategories = useRef<CategoryDefine[]>();
 
-    useWatch(categories, () => {
-        if (onCategoriesLoaded) {
-            onCategoriesLoaded(categories);
-        }
-        latestCategories.current = categories;
-    })
-    //  // マウント後でないとイベント発火できないので、useEffect内で処理
-    //  useEffect(() => {
-    //     if (categoriesLoadable.state !== 'hasData') return;
-
-    //     if (JSON.stringify(categoriesLoadable.data) !== JSON.stringify(latestCategories.current)) {
-    //         if (onCategoriesLoaded) {
-    //             onCategoriesLoaded(categoriesLoadable.data);
-    //         }
-    //         latestCategories.current = categoriesLoadable.data;
-    //     }
-    // });
+    useWatch(categories, 
+        useCallback(() => {
+            if (onCategoriesLoaded) {
+                onCategoriesLoaded(categories);
+            }
+        }, [categories, onCategoriesLoaded])
+    , { immediate: true })
 }
 
 /**
