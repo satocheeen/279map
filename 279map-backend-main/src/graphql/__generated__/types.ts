@@ -198,6 +198,11 @@ export enum MapKind {
   Virtual = 'Virtual'
 }
 
+export type MapListItem = {
+  mapId: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+};
+
 export type MediaInfo = {
   type: MediaType;
   url: Scalars['String']['output'];
@@ -344,6 +349,7 @@ export type Query = {
   getItems: Array<ItemDefine>;
   getItemsById: Array<ItemDefine>;
   getLinkableContentsDatasources: Array<ContentsDatasource>;
+  getMapList: Array<MapListItem>;
   getSnsPreview: SnsPreviewResult;
   getThumb: Scalars['String']['output'];
   getUnpointContents: GetUnpointContentsResult;
@@ -602,6 +608,7 @@ export type ResolversTypes = {
   MapDefine: ResolverTypeWrapper<MapDefine>;
   MapInfo: ResolverTypeWrapper<MapInfo>;
   MapKind: MapKind;
+  MapListItem: ResolverTypeWrapper<MapListItem>;
   MapPageOptions: ResolverTypeWrapper<Scalars['MapPageOptions']['output']>;
   MediaInfo: ResolverTypeWrapper<MediaInfo>;
   MediaType: MediaType;
@@ -654,6 +661,7 @@ export type ResolversParentTypes = {
   JSON: Scalars['JSON']['output'];
   MapDefine: MapDefine;
   MapInfo: MapInfo;
+  MapListItem: MapListItem;
   MapPageOptions: Scalars['MapPageOptions']['output'];
   MediaInfo: MediaInfo;
   Mutation: {};
@@ -838,6 +846,12 @@ export type MapInfoResolvers<ContextType = any, ParentType extends ResolversPare
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type MapListItemResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapListItem'] = ResolversParentTypes['MapListItem']> = {
+  mapId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export interface MapPageOptionsScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['MapPageOptions'], any> {
   name: 'MapPageOptions';
 }
@@ -883,6 +897,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getItems?: Resolver<Array<ResolversTypes['ItemDefine']>, ParentType, ContextType, RequireFields<QueryGetItemsArgs, 'datasourceId' | 'wkt' | 'zoom'>>;
   getItemsById?: Resolver<Array<ResolversTypes['ItemDefine']>, ParentType, ContextType, RequireFields<QueryGetItemsByIdArgs, 'targets'>>;
   getLinkableContentsDatasources?: Resolver<Array<ResolversTypes['ContentsDatasource']>, ParentType, ContextType>;
+  getMapList?: Resolver<Array<ResolversTypes['MapListItem']>, ParentType, ContextType>;
   getSnsPreview?: Resolver<ResolversTypes['SnsPreviewResult'], ParentType, ContextType, RequireFields<QueryGetSnsPreviewArgs, 'url'>>;
   getThumb?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryGetThumbArgs, 'contentId'>>;
   getUnpointContents?: Resolver<ResolversTypes['GetUnpointContentsResult'], ParentType, ContextType, RequireFields<QueryGetUnpointContentsArgs, 'datasourceId'>>;
@@ -970,6 +985,7 @@ export type Resolvers<ContextType = any> = {
   JSON?: GraphQLScalarType;
   MapDefine?: MapDefineResolvers<ContextType>;
   MapInfo?: MapInfoResolvers<ContextType>;
+  MapListItem?: MapListItemResolvers<ContextType>;
   MapPageOptions?: GraphQLScalarType;
   MediaInfo?: MediaInfoResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;

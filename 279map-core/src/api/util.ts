@@ -1,8 +1,6 @@
-import { GetMapListAPI } from "tsunagumap-api";
 import { ServerInfo } from '../types/types';
-import { callApi } from "./api";
 import { cacheExchange, createClient, fetchExchange } from "urql";
-import { ConfigDocument } from "../graphql/generated/graphql";
+import { ConfigDocument, GetMapListDocument } from "../graphql/generated/graphql";
 
 export function createGqlClient(serverInfo: ServerInfo, sessionid?: string) {
     const protocol = serverInfo.ssl ? 'https' : 'http';
@@ -33,10 +31,11 @@ export async function getAccessableMapList(host: string, ssl: boolean, token: st
         ssl,
         token,
     } as ServerInfo;
+    const gqlClient = createGqlClient(mapServer);
 
     try {
-        const result = await callApi(mapServer, undefined, GetMapListAPI, undefined);
-        return result;
+        const result = await gqlClient.query(GetMapListDocument, {});
+        return result.data?.getMapList;
 
     } catch(e) {
         console.warn('get accessable maplist failed.', e);

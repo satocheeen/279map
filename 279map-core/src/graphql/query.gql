@@ -11,6 +11,12 @@ query config {
         }
     }
 }
+query getMapList {
+    getMapList {
+        mapId
+        name
+    }
+}
 query getCategory(
     $datasourceIds: [String!]
 ){

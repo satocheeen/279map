@@ -1,4 +1,4 @@
-import { ApiError, ErrorType, GetMapListAPI } from "tsunagumap-api";
+import { ApiError, ErrorType } from "tsunagumap-api";
 import { ServerInfo } from '../types/types';
 import { APIDefine } from "279map-common";
 

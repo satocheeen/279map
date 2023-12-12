@@ -17,7 +17,6 @@ import { getSnsPreview } from './api/getSnsPreview';
 import cors from 'cors';
 import { exit } from 'process';
 import { getMapInfoById } from './getMapDefine';
-import { GetMapListAPI } from '../279map-api-interface/src';
 import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
 import { getMapList } from './api/getMapList';
@@ -188,40 +187,6 @@ export const authManagementClient = function() {
         }
 }();
 authManagementClient.initialize();
-
-/**
- * ログインユーザーがアクセス可能な地図一覧を返す。
- * ログインしていないユーザーの場合は、Public地図のみ返す
- */
-app.get('/api/' + GetMapListAPI.uri,
-    async(req: Request, res: Response, next: NextFunction) => {
-        if (!req.headers.authorization) {
-            // 未ログインの場合は、認証チェックしない
-            next('route');
-            return;
-
-        } else {
-            // 認証情報ある場合は、後続の認証チェック処理
-            next();
-        }
-    },
-    authManagementClient.checkJwt,
-);
-app.get('/api/' + GetMapListAPI.uri,
-    async(req: Request, res: Response) => {
-        apiLogger.info('[start] getmaplist');
-
-        const userId = getUserIdByRequest(req);
-        if (userId) {
-            await authManagementClient.getUserMapList(userId);
-        }
-        const list = await getMapList(userId);
-
-        res.send(list);
-
-        apiLogger.info('[end] getmaplist');
-    }
-);
 
 const authenticateErrorProcess = (err: Error, req: Request, res: Response, next: NextFunction) => {
     // 認証エラー
@@ -448,61 +413,6 @@ const checkGraphQlAuthLv = async(operationName: string, userAuthInfo: UserAuthIn
     return userAuthLv;
 }
 
-const checkApiAuthLv = (needAuthLv: Auth) => {
-    return async(req: Request, res: Response, next: NextFunction) => {
-        let allowAuthList: Auth[];
-        switch(needAuthLv) {
-            case Auth.View:
-                allowAuthList = [Auth.View, Auth.Edit, Auth.Admin];
-                break;
-            case Auth.Edit:
-                allowAuthList = [Auth.Edit, Auth.Admin];
-                break;
-            default:
-                allowAuthList = [Auth.Admin];
-        }
-        const userAuthLv = function() {
-            if (!req.connect?.userAuthInfo) {
-                return Auth.None;
-            }
-            switch(req.connect.userAuthInfo.authLv) {
-                case undefined:
-                case Auth.None:
-                case Auth.Request:
-                    return req.connect.userAuthInfo.guestAuthLv;
-                default:
-                    return req.connect.userAuthInfo.authLv;
-            }
-        }();
-        req.authLv = userAuthLv;
-        if (!userAuthLv || !allowAuthList.includes(userAuthLv)) {
-            res.status(403).send({
-                type: ErrorType.OperationForbidden,
-            } as ApiError);
-            return;
-        }
-        next();
-    }
-}
-
-/**
- * check whether connecting map and set the value of req.currentMap
- */
-const checkCurrentMap = async(req: Request, res: Response, next: NextFunction) => {
-    const session = sessionManager.get(req.connect?.sessionKey as string);
-    if (!session) {
-        res.status(409).send({
-            type: ErrorType.SessionTimeout,
-        } as ApiError);
-        return;
-    }
-    req.currentMap = session.currentMap;
-
-    // extend expired time of session
-    session.extendExpire();
-    next();
-}
-
 const fileSchema = loadSchemaSync(
     [
         join(__dirname, './graphql/query.gql'),
@@ -539,6 +449,21 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         dummy: true,
                     }
                 }
+            },
+            /**
+             * ログインユーザーがアクセス可能な地図一覧を返す。
+             * ログインしていないユーザーの場合は、Public地図のみ返す
+             */
+            getMapList: async(_, param, ctx): QueryResolverReturnType<'getMapList'> => {
+                apiLogger.info('[start] getmaplist');
+                const userId = ctx.userAuthInfo.userId;
+                if (userId) {
+                    await authManagementClient.getUserMapList(userId);
+                }
+                const list = await getMapList(userId);
+        
+                return list;
+        
             },
             /**
              * 地図アイテム取得
@@ -1503,9 +1428,13 @@ app.use(
         const context: GraphQlContextType = await async function() {
             const operationName = graphQLParams?.operationName;
             console.log('operationName', operationName)
-            if (!operationName || ['config', 'connect', 'IntrospectionQuery'].includes(operationName)) {
+            if (!operationName || ['config', 'getMapList', 'connect', 'IntrospectionQuery'].includes(operationName)) {
+                const userId = getUserIdByRequest(req as Request);
                 return {
                     request: req as Request,
+                    userAuthInfo: {
+                        userId,
+                    }
                 }
             }
     

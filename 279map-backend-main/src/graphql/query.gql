@@ -7,6 +7,10 @@ type Auth0Config {
     clientId: String!
     audience: String!
 }
+type MapListItem {
+    mapId: String!
+    name: String!
+}
 type NoneConfig {
     dummy: Boolean  # fragmentで種別判定するために型用意
 }
@@ -146,6 +150,7 @@ enum MediaType {
 
 type Query {
     config: ServerConfig!
+    getMapList: [MapListItem!]!
 
     # lastestEditedTime: 指定されている場合、この更新日時以降に更新されたアイテムのみ返す
     # excludeItemIds: 指定されている場合、このidのアイテムは結果から除く TODO: deprecated

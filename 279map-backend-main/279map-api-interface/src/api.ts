@@ -1,18 +1,4 @@
-import { Auth, CategoryDefine, ContentsDefine, DataId, DataSourceInfo, EventDefine, Extent, GeocoderId, GeoProperties, IconDefine, ItemDefine, MapKind, ServerConfig, UnpointContent, User } from "279map-common";
-import { GeoJsonObject, Position } from "geojson";
-import { APIDefine, ContentAttr, SnsPreviewPost, MapDefine } from '279map-common';
-import { FilterDefine, DataSourceGroup } from "279map-common";
-
-export const GetMapListAPI = {
-    uri: 'getmaplist',
-    method: 'get',
-    resultType: 'json',
-} as APIDefine<void, MapInfo[]>;
-
-export type MapInfo = {
-    mapId: string;
-    name: string;
-};
+import { DataId } from "279map-common";
 
 /**
  * Publishメッセージ（ユーザに対するもの）

@@ -2,7 +2,7 @@ import { Auth, DataId, FeatureType, MapKind } from '279map-common';
 import React, { useState, useCallback, useMemo, useRef, useContext } from 'react';
 import { ServerInfo, TsunaguMapHandler, onDatasourceChangedParam } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
-import { OnConnectParam, OnMapLoadParam, TsunaguMapProps } from '../entry';
+import { OnConnectParam, OnMapLoadParam, TsunaguMapProps, getAccessableMapList } from '../entry';
 import styles from './TestMap.module.scss';
 import FilterCondition from './FilterCondition';
 import { mapId, myMapServer } from './const';
@@ -137,6 +137,11 @@ export default function TestMap() {
         console.log('thumb', img);
     }, []);
 
+    const getAccessableMapListFunc = useCallback(async() => {
+        const result = await getAccessableMapList(mapServer.host, mapServer.ssl, mapServer.token);
+        console.log('getAccessableMapList', result);
+    }, [mapServer]);
+
     const changeVisibleLayerDataSource = useCallback((dataSourceId: string, visible: boolean) => {
         mapRef.current?.changeVisibleLayer({
             dataSourceId,
@@ -260,6 +265,7 @@ export default function TestMap() {
                     <button onClick={() => mapRef.current?.showContentsSetting()}>コンテンツ設定</button>
                     <button onClick={callGetSnsPreview}>GetSNS</button>
                     <button onClick={getThumbnail}>GetThumbnail</button>
+                    <button onClick={getAccessableMapListFunc}>GetAccessableMapList</button>
                 </div>
 
                 <div className={styles.Col}>
