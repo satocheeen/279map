@@ -119,6 +119,8 @@ type Mutation {
         mapId: String!
     ): ConnectResult!
 
+    disconnect: Boolean
+
     switchMapKind (
         mapKind: MapKind!
     ): MapInfo!

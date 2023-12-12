@@ -8,6 +8,7 @@ export const authDefine: AuthLvDefine = {
     getMapList: Auth.None,
     
     connect: Auth.None,
+    disconnect: Auth.None,
     switchMapKind: Auth.View,
     
     getCategory: Auth.View,

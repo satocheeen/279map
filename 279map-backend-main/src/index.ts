@@ -272,17 +272,6 @@ const sessionCheckFunc = async(req: Request) => {
 app.all('/api/*', sessionCheck);
 
 /**
- * 切断
- */
-app.get('/api/disconnect', async(req, res) => {
-    if (req.connect) {
-        sessionManager.delete(req.connect.sessionKey);
-    }
-
-    res.send('disconnect');
-});
-
-/**
  * Authorization.
  * set connect.mapPageInfo, auth in this process.
  * 認証チェック。チェックの課程で、connect.mapPageInfo, authに値設定。
@@ -859,6 +848,13 @@ const schema = makeExecutableSchema<GraphQlContextType>({
 
                 }
 
+            },
+            /**
+             * 切断
+             */
+            disconnect: async(_, param, ctx): MutationResolverReturnType<'disconnect'> => {
+                sessionManager.delete(ctx.sessionKey);
+                return true;
             },
             /**
              * 地図切り替え

@@ -11,7 +11,7 @@ import { useAtom } from 'jotai';
 import { MyError } from '../../api/api';
 import { ServerInfo, TsunaguMapProps } from '../../types/types';
 import { clientAtom } from 'jotai-urql';
-import { ConnectDocument, ConnectResult, RequestDocument } from '../../graphql/generated/graphql';
+import { ConnectDocument, ConnectResult, DisconnectDocument, RequestDocument } from '../../graphql/generated/graphql';
 import { OwnerContext } from './TsunaguMap';
 import { Provider, createStore } from 'jotai';
 import { defaultIconDefineAtom } from '../../store/icon';
@@ -110,6 +110,11 @@ export default function MapConnector(props: Props) {
         }
     }, [props.server, props.mapId])
 
+    const disconnect = useCallback(async() => {
+        const gqlClient = myStoreRef.current.get(clientAtom);
+        await gqlClient.mutation(DisconnectDocument, {});
+    }, []);
+
     useEffect(() => {
         // IDカウントアップ
         myStoreRef.current.set(instanceIdAtom);
@@ -122,8 +127,16 @@ export default function MapConnector(props: Props) {
     }, []);
 
     useEffect(() => {
-        connect()
-    }, [connect])
+        connect();
+
+        window.addEventListener('beforeunload', () => {
+            disconnect();
+        })
+
+        return () => {
+            disconnect();
+        }
+    }, [connect, disconnect])
 
     // const [, connectDispatch] = useAtom(connectReducerAtom);
     // useEffect(() => {

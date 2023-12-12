@@ -16,6 +16,9 @@ mutation connect (
         }
     }
 }
+mutation disconnect {
+    disconnect
+}
 
 fragment datasourceInfo on DatasourceInfo {
     datasourceId
