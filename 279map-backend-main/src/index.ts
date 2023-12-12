@@ -25,7 +25,6 @@ import { search } from './api/search';
 import { Auth0Management } from './auth/Auth0Management';
 import { OriginalAuthManagement } from './auth/OriginalAuthManagement';
 import { NoneAuthManagement } from './auth/NoneAuthManagement';
-import { MapPageInfoTable } from '../279map-backend-common/src/types/schema';
 import { CurrentMap, getImageBase64, sleep } from '../279map-backend-common/src';
 import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUnpointDataAPI, OdbaLinkContentDatasourceToMapAPI, OdbaLinkContentToItemAPI, OdbaRegistContentAPI, OdbaRegistItemAPI, OdbaRemoveContentAPI, OdbaRemoveItemAPI, OdbaUnlinkContentDatasourceFromMapAPI, OdbaUpdateContentAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
 import MqttBroadcaster from './session/MqttBroadcaster';
@@ -46,21 +45,6 @@ import { getLinkedItemIdList } from './api/apiUtility';
 import SessionInfo from './session/SessionInfo';
 import { Geometry } from 'geojson';
 
-declare global {
-    namespace Express {
-        interface Request {
-            connect?: {
-                sessionKey: string; // SID or Token
-                mapId: string;
-                mapPageInfo?: MapPageInfoTable;
-                userAuthInfo?: UserAuthInfo;
-                // userName?: string;
-            },
-            currentMap: CurrentMap;
-            authLv: Auth;
-        }
-    }
-}
 type GraphQlContextType = {
     connected: true,
     session: SessionInfo;
@@ -210,35 +194,6 @@ const authenticateErrorProcess = (err: Error, req: Request, res: Response, next:
 };
 
 /**
- * セッション情報を取得してrequestに格納
- */
-const sessionCheck = async(req: Request, res: Response, next: NextFunction) => {
-    const sessionKey = req.headers.sessionid;
-    if (!sessionKey || typeof sessionKey !== 'string') {
-        res.status(400).send({
-            type: ErrorType.IllegalError,
-            detail: 'no sessionid in headers',
-        } as ApiError);
-        return;
-    }
-    apiLogger.info('[start]', req.url, sessionKey);
-
-    const session = sessionManager.get(sessionKey);
-    if (!session) {
-        res.status(400).send({
-            type: ErrorType.SessionTimeout,
-            detail: 'the session not found.' + sessionKey,
-        } as ApiError);
-        return;
-    }
-    req.connect = { 
-        sessionKey,
-        mapId: session.currentMap.mapId
-    };
-    next();
-}
-
-/**
  * セッション状態をチェックする。
  * @returns セッションキー、接続中の地図情報
  * @throws セッション接続できていない場合
@@ -268,95 +223,6 @@ const sessionCheckFunc = async(req: Request) => {
         session,
     }
 }
-
-app.all('/api/*', sessionCheck);
-
-/**
- * Authorization.
- * set connect.mapPageInfo, auth in this process.
- * 認証チェック。チェックの課程で、connect.mapPageInfo, authに値設定。
- */
-const checkAuthorization = async(req: Request, res: Response, next: NextFunction) => {
-    if (!req.connect) {
-        // 手前で弾かれているはずなので、ここには来ないはず
-        apiLogger.error('connect not found.');
-        res.status(500).send({
-            type: ErrorType.IllegalError,
-            detail: 'Illegal state error.  connect not found.',
-        } as ApiError);
-        return;
-    }
-    apiLogger.info('authorization', req.connect);
-
-    const mapId = req.connect.mapId;
-
-    // 地図情報取得
-    const mapPageInfo = await getMapPageInfo(mapId);
-    if (!mapPageInfo) {
-        res.status(400).send({
-            type: ErrorType.UndefinedMap,
-            detail: 'map not found.',
-        } as ApiError);
-        return;
-    }
-    req.connect.mapPageInfo = mapPageInfo;
-
-    // checkJWTを実行する必要があるかどうかチェック
-    if (!req.headers.authorization) {
-        // 未ログインの場合は、ゲストユーザ権限があるか確認
-        const userAuthInfo = await getUserAuthInfoInTheMap(mapPageInfo, req);
-        if (!userAuthInfo) {
-        apiLogger.debug('not auth');
-            next({
-                name: 'Unauthenticated',
-                message: 'this map is private, please login.',
-            });
-        } else {
-            apiLogger.debug('skip checkJwt');
-            next('route');
-        }
-    
-    } else {
-        // 認証情報ある場合は、後続の認証チェック処理
-        next();
-    }
-}
-
-app.all('/api/*', 
-    checkAuthorization,
-    authManagementClient.checkJwt,
-    authenticateErrorProcess,
-);
-
-/**
- * check the user's auth Level.
- * set req.connect.authLv
- */
-const checkUserAuthLv = async(req: Request, res: Response, next: NextFunction) => {
-    const mapId = req.connect?.mapId;
-    const mapDefine = req.connect?.mapPageInfo;
-    if (!req.connect || !mapId || !mapDefine) {
-        // 手前で弾かれているはずなので、ここには来ないはず
-        res.status(500).send({
-            type: ErrorType.IllegalError,
-            detail: 'Illegal state error.',
-        } as ApiError);
-        return;
-    }
-
-    const userAuth = await getUserAuthInfoInTheMap(mapDefine, req);
-    if (!userAuth) {
-        // ログインが必要な地図の場合
-        res.status(403).send({
-            type: ErrorType.Unauthorized,
-        } as ApiError);
-        return;
-    }
-    req.connect.userAuthInfo = userAuth;
-    next();
-}
-
-app.all('/api/*', checkUserAuthLv);
 
 const checkGraphQlAuthLv = async(operationName: string, userAuthInfo: UserAuthInfo) => {
     if (!(operationName in authDefine)) {
@@ -418,7 +284,6 @@ type QueryResolver = Record<QResolvers, QueryResolverFunc>
 type MutationResolverFunc<T extends MResolvers> = (parent: any, param: any, ctx: GraphQlContextType) => MutationResolverReturnType<T>;
 type MutationResolver = Record<MResolvers, MutationResolverFunc<MResolvers>>;
 
-// TODO:
 const schema = makeExecutableSchema<GraphQlContextType>({
     typeDefs: fileSchema,
     resolvers: {
@@ -1473,10 +1338,6 @@ app.use(
         }
     }),
 )
-
-app.all('/api/*', (req) => {
-    apiLogger.info('[end]', req.url, req.connect?.sessionKey);
-});
 
 /**
  * Frontend資源へプロキシ
