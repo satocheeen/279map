@@ -12,14 +12,12 @@ export const getUserIdByRequest = (req: Request): string | undefined => {
         return;
 
     } else if (authMethod === AuthMethod.Auth0) {
-        if (!('auth' in req)) {
+        if (!req.auth) {
             return;
         }
-        // @ts-ignore
         return req.auth.payload.sub;
 
     } else {
-        // @ts-ignore
         return req.headers.authorization?.replace('Bearer ', '');
     }
 }

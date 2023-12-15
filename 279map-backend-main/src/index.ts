@@ -46,7 +46,7 @@ import SessionInfo from './session/SessionInfo';
 import { Geometry } from 'geojson';
 
 type GraphQlContextType = {
-    request: Express.Request,
+    request: express.Request,
     userId?: string;
 
     // コネクション確立時にのみ設定される値
@@ -650,7 +650,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         });
                     }
 
-                    // @ts-ignore TODO:
                     const userAccessInfo = await getUserAuthInfoInTheMap(mapInfo, ctx.request, true);
                     if (userAccessInfo.authLv === undefined && userAccessInfo.guestAuthLv === Auth.None) {
                         // ログインが必要な地図の場合
@@ -699,8 +698,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                             sid: session.sid,
                             authLv: userAccessInfo.authLv,
                             userId: userAccessInfo.userId,
-                            // @ts-ignore なぜかTypeScriptエラーになるので
-                            userName: userAccessInfo.userName,
+                            userName: 'userName' in userAccessInfo ? userAccessInfo.userName : '',
                         };
 
                     return {
@@ -1170,7 +1168,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         })
                     }
 
-                    // @ts-ignore
                     const userId = getUserIdByRequest(ctx.request);
                     if (!userId) {
                         throw new Error('userId undefined');
