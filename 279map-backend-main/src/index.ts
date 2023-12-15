@@ -9,7 +9,7 @@ import { getThumbnail } from './getThumbnsil';
 import { getContents } from './getContents';
 import { getEvents } from './getEvents';
 import proxy from 'express-http-proxy';
-import http, { createServer } from 'http';
+import http from 'http';
 import { getItemWkt } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
@@ -31,7 +31,6 @@ import MqttBroadcaster from './session/MqttBroadcaster';
 import SessionManager from './session/SessionManager';
 import { geojsonToWKT } from '@terraformer/wkt';
 import { getItem, getItemsById } from './api/getItem';
-import { graphqlHTTP } from 'express-graphql';
 import { PubSub } from 'graphql-subscriptions';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
@@ -47,6 +46,7 @@ import SessionInfo from './session/SessionInfo';
 import { Geometry } from 'geojson';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { execute, subscribe } from 'graphql';
+import { createHandler } from 'graphql-http/lib/use/express';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -1302,21 +1302,23 @@ app.use(
     "/graphql",
     authManagementClient.checkJwt,
     authenticateErrorProcess,
-    graphqlHTTP(async(req, res, graphQLParams) => {
-        const context = await async function(): Promise<GraphQlContextType> {
+    createHandler({
+        schema,
+        context: async(request, graphQLParams) => {
+            const req = request.raw;
             const operationName = graphQLParams?.operationName;
             console.log('operationName', operationName)
             if (!operationName || ['test', 'config', 'getMapList', 'connect', 'IntrospectionQuery'].includes(operationName)) {
-                const userId = getUserIdByRequest(req as Request);
+                const userId = getUserIdByRequest(req);
                 // @ts-ignore セッション関連情報は存在しないので
                 return {
-                    request: req as Request,
+                    request: req,
                     userId,
                     authLv: Auth.None,
                 }
             }
     
-            const { sessionKey, session } = await sessionCheckFunc(req as Request);
+            const { sessionKey, session } = await sessionCheckFunc(req);
             const mapPageInfo = await getMapPageInfo(session.currentMap.mapId);
             if (!mapPageInfo) {
                 throw new CustomError({
@@ -1325,7 +1327,7 @@ app.use(
                 })
             }
     
-            const userAuthInfo = await getUserAuthInfoInTheMap(mapPageInfo, req as Request);
+            const userAuthInfo = await getUserAuthInfoInTheMap(mapPageInfo, req);
             if (!req.headers.authorization) {
                 // 未ログインの場合は、ゲストユーザ権限があるか確認
                 if (!userAuthInfo) {
@@ -1343,16 +1345,8 @@ app.use(
                 userId: userAuthInfo.userId,
                 currentMap: session.currentMap,
                 authLv,
-                request: req as Request,
-
+                request: req,    
             }
-    
-        }()
-
-        return {
-            schema,
-            graphiql: true,
-            context,
         }
     }),
 )
@@ -1368,13 +1362,13 @@ app.use(
     )
 // })
 
-setInterval(() => {
-    // TODO: test
-    console.log('publish TEST');
-    pubsub.publish('TEST', {
-        message: 'hogehoge'
-    });
-}, 5000);
+// setInterval(() => {
+//     // TODO: test
+//     console.log('publish TEST');
+//     pubsub.publish('TEST', {
+//         message: 'hogehoge'
+//     });
+// }, 5000);
 
 
 /**
