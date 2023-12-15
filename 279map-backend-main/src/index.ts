@@ -46,7 +46,7 @@ import SessionInfo from './session/SessionInfo';
 import { Geometry } from 'geojson';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { execute, subscribe } from 'graphql';
-import { createHandler } from 'graphql-http/lib/use/express';
+import { ApolloServer } from 'apollo-server-express';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -645,7 +645,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
              * 接続確立
              */
             connect: async(_, param: MutationConnectArgs, ctx): MutationResolverReturnType<'connect'> => {
-                apiLogger.info('[start] connect');
+                apiLogger.info('[start] connect', ctx);
 
                 try {
                     const mapInfo = await getMapInfoById(param.mapId);
@@ -1302,171 +1302,182 @@ app.use(
     "/graphql",
     authManagementClient.checkJwt,
     authenticateErrorProcess,
-    createHandler({
-        schema,
-        context: async(request, graphQLParams) => {
-            const req = request.raw;
-            const operationName = graphQLParams?.operationName;
-            console.log('operationName', operationName)
-            if (!operationName || ['test', 'config', 'getMapList', 'connect', 'IntrospectionQuery'].includes(operationName)) {
-                const userId = getUserIdByRequest(req);
-                // @ts-ignore セッション関連情報は存在しないので
-                return {
-                    request: req,
-                    userId,
-                    authLv: Auth.None,
+);
+
+const apolloServer = new ApolloServer({
+    schema,
+    context: async(ctx) => {
+        const req = ctx.req;
+        const operationName = ctx.req.body.operationName;
+        console.log('operationName', operationName)
+        if (!operationName || ['test', 'config', 'getMapList', 'connect', 'IntrospectionQuery'].includes(operationName)) {
+            const userId = getUserIdByRequest(req);
+            // @ts-ignore セッション関連情報は存在しないので
+            return {
+                request: req,
+                userId,
+                authLv: Auth.None,
+            }
+        }
+
+        const { sessionKey, session } = await sessionCheckFunc(req);
+        const mapPageInfo = await getMapPageInfo(session.currentMap.mapId);
+        if (!mapPageInfo) {
+            throw new CustomError({
+                type: ErrorType.UndefinedMap,
+                message: 'map not found'
+            })
+        }
+
+        const userAuthInfo = await getUserAuthInfoInTheMap(mapPageInfo, req);
+        if (!req.headers.authorization) {
+            // 未ログインの場合は、ゲストユーザ権限があるか確認
+            if (!userAuthInfo) {
+                throw new CustomError({
+                    type: ErrorType.Unauthorized,
+                    message: 'Unauthenticated.this map is private, please login.',
+                })
+            }        
+        }
+
+        const authLv = await checkGraphQlAuthLv(operationName, userAuthInfo);
+        return {
+            sessionKey,
+            session,
+            userId: userAuthInfo.userId,
+            currentMap: session.currentMap,
+            authLv,
+            request: req,    
+        }
+
+    }
+});
+
+apolloServer.start().then(() => {
+    apolloServer.applyMiddleware({
+        app,
+        path: '/graphql',
+    });
+
+    // Subscriptionサーバー
+    // server.listen(80, () => {
+        new SubscriptionServer(
+            { execute, subscribe, schema },
+            {
+                server,
+                path: '/subscriptions',
+            }
+        )
+    // })
+
+    // setInterval(() => {
+    //     // TODO: test
+    //     console.log('publish TEST');
+    //     pubsub.publish('TEST', {
+    //         message: 'hogehoge'
+    //     });
+    // }, 5000);
+
+    /**
+     * Frontend資源へプロキシ
+     */
+    if (process.env.FRONTEND_SERVICE_HOST && process.env.FRONTEND_SERVICE_PORT) {
+        const url = process.env.FRONTEND_SERVICE_HOST + ':' + process.env.FRONTEND_SERVICE_PORT;
+        app.use('*', proxy(url, {
+            proxyReqPathResolver: (req) => {
+                return req.originalUrl;
+            },
+        }));    
+    }
+
+    logger.info('starting internal server');
+    /**
+     * 内部向けサーバー
+     */
+    internalApp.use(express.urlencoded({extended: true}));
+    internalApp.use(express.json({
+        limit: '1mb',
+    })); 
+    internalApp.post('/api/broadcast', async(req: Request, res: Response) => {
+        const param = req.body as BroadcastItemParam;
+        logger.info('broadcast', param);
+        // 変更範囲を取得する
+        const itemIdListByDataSource = param.itemIdList.reduce((acc, cur) => {
+            if (cur.dataSourceId in acc) {
+                acc[cur.dataSourceId].push(cur);
+            } else {
+                acc[cur.dataSourceId] = [cur];
+            }
+            return acc;
+        }, {} as {[datasourceId: string]: DataId[]});
+        const targets = [] as {id: DataId; wkt: string}[];
+        for (const entry of Object.entries(itemIdListByDataSource)) {
+            const itemIdList = entry[1];
+            for (const itemId of itemIdList) {
+                const wkt = await getItemWkt(itemId);
+                if (wkt) {
+                    targets.push({
+                        id: itemId,
+                        wkt,
+                    })
                 }
             }
-    
-            const { sessionKey, session } = await sessionCheckFunc(req);
-            const mapPageInfo = await getMapPageInfo(session.currentMap.mapId);
-            if (!mapPageInfo) {
-                throw new CustomError({
-                    type: ErrorType.UndefinedMap,
-                    message: 'map not found'
-                })
-            }
-    
-            const userAuthInfo = await getUserAuthInfoInTheMap(mapPageInfo, req);
-            if (!req.headers.authorization) {
-                // 未ログインの場合は、ゲストユーザ権限があるか確認
-                if (!userAuthInfo) {
-                    throw new CustomError({
-                        type: ErrorType.Unauthorized,
-                        message: 'Unauthenticated.this map is private, please login.',
-                    })
-                }        
-            }
-    
-            const authLv = await checkGraphQlAuthLv(operationName, userAuthInfo);
-            return {
-                sessionKey,
-                session,
-                userId: userAuthInfo.userId,
-                currentMap: session.currentMap,
-                authLv,
-                request: req,    
-            }
         }
-    }),
-)
-
-// Subscriptionサーバー
-// server.listen(80, () => {
-    new SubscriptionServer(
-        { execute, subscribe, schema },
-        {
-            server,
-            path: '/subscriptions',
+        switch(param.operation) {
+            case 'insert':
+                broadCaster.publish(param.mapId, undefined, {
+                    type: 'mapitem-update',
+                    targets,
+                });
+                break;
+            case 'update':
+                broadCaster.publish(param.mapId, undefined, {
+                    type: 'mapitem-update',
+                    targets,
+                });
+                break;
+            case 'delete':
+                broadCaster.publish(param.mapId, undefined, {
+                    type: 'mapitem-delete',
+                    itemPageIdList: param.itemIdList
+                });
+                break;
         }
-    )
-// })
-
-// setInterval(() => {
-//     // TODO: test
-//     console.log('publish TEST');
-//     pubsub.publish('TEST', {
-//         message: 'hogehoge'
-//     });
-// }, 5000);
-
-
-/**
- * Frontend資源へプロキシ
- */
-// if (process.env.FRONTEND_SERVICE_HOST && process.env.FRONTEND_SERVICE_PORT) {
-//     const url = process.env.FRONTEND_SERVICE_HOST + ':' + process.env.FRONTEND_SERVICE_PORT;
-//     app.use('*', proxy(url, {
-//         proxyReqPathResolver: (req) => {
-//             return req.originalUrl;
-//         },
-//     }));    
-// }
-
-logger.info('starting internal server');
-/**
- * 内部向けサーバー
- */
-internalApp.use(express.urlencoded({extended: true}));
-internalApp.use(express.json({
-    limit: '1mb',
-})); 
-internalApp.post('/api/broadcast', async(req: Request, res: Response) => {
-    const param = req.body as BroadcastItemParam;
-    logger.info('broadcast', param);
-    // 変更範囲を取得する
-    const itemIdListByDataSource = param.itemIdList.reduce((acc, cur) => {
-        if (cur.dataSourceId in acc) {
-            acc[cur.dataSourceId].push(cur);
-        } else {
-            acc[cur.dataSourceId] = [cur];
-        }
-        return acc;
-    }, {} as {[datasourceId: string]: DataId[]});
-    const targets = [] as {id: DataId; wkt: string}[];
-    for (const entry of Object.entries(itemIdListByDataSource)) {
-        const itemIdList = entry[1];
-        for (const itemId of itemIdList) {
-            const wkt = await getItemWkt(itemId);
-            if (wkt) {
-                targets.push({
-                    id: itemId,
-                    wkt,
-                })
-            }
-        }
-    }
-    switch(param.operation) {
-        case 'insert':
-            broadCaster.publish(param.mapId, undefined, {
-                type: 'mapitem-update',
-                targets,
-            });
-            break;
-        case 'update':
-            broadCaster.publish(param.mapId, undefined, {
-                type: 'mapitem-update',
-                targets,
-            });
-            break;
-        case 'delete':
-            broadCaster.publish(param.mapId, undefined, {
-                type: 'mapitem-delete',
-                itemPageIdList: param.itemIdList
-            });
-            break;
-    }
-	res.setHeader('Access-Control-Allow-Origin', '*');
-    res.status(201).send('broadcasted.');
-});
-
-/**
- * 有効期限切れセッション削除（定期監視）
- */
-const checkSessionProcess = () => {
-    try {
-        sessionManager.removeExpiredSessions();
-
-    } catch(e) {
-        logger.warn('更新チェック失敗', e);
-
-    } finally {
-        setTimeout(() => {
-            checkSessionProcess();
-        }, 1 * 60000); // 1分ごとにチェック
-    }
-}
-
-// DB接続完了してから開始
-logger.info('starting db');
-initializeDb()
-.then(() => {
-    logger.info('starting main server');
-    server.listen(port, () => {
-        logger.info('start server', port);
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.status(201).send('broadcasted.');
     });
-    internalApp.listen(process.env.MAIN_SERVICE_PORT, () => {
-        logger.info('start internal server', process.env.MAIN_SERVICE_PORT);
-    })
-    checkSessionProcess();
-});
+
+    /**
+     * 有効期限切れセッション削除（定期監視）
+     */
+    const checkSessionProcess = () => {
+        try {
+            sessionManager.removeExpiredSessions();
+
+        } catch(e) {
+            logger.warn('更新チェック失敗', e);
+
+        } finally {
+            setTimeout(() => {
+                checkSessionProcess();
+            }, 1 * 60000); // 1分ごとにチェック
+        }
+    }
+
+    // DB接続完了してから開始
+    logger.info('starting db');
+    initializeDb()
+    .then(() => {
+        logger.info('starting main server');
+        server.listen(port, () => {
+            logger.info('start server', port);
+        });
+        internalApp.listen(process.env.MAIN_SERVICE_PORT, () => {
+            logger.info('start internal server', process.env.MAIN_SERVICE_PORT);
+        })
+        checkSessionProcess();
+    });
+
+
+
+})

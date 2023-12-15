@@ -37,9 +37,9 @@ export const GeometryScalarType = new GraphQLScalarType({
         }
         throw 'parse error';
     },
-    parseLiteral(value) {
-        return value;
-    }
+    // parseLiteral(value) {
+    //     return value;
+    // }
 })
 
 export const JsonScalarType = new GraphQLScalarType({
