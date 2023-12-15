@@ -1258,16 +1258,10 @@ const schema = makeExecutableSchema<GraphQlContextType>({
         } as MutationResolver,
         Subscription: {
             test: {
-                resolve: () => {
-                    console.log('resolving new document');
-                    return {
-                        message: 'start',
-                    }
+                resolve: (payload) => {
+                    return payload;
                 },
-                subscribe: () => {
-                    console.log('debug1');
-                    return pubsub.asyncIterator('TEST')
-                }
+                subscribe: () =>  pubsub.asyncIterator('TEST'),
             }
         },
         DataId: DataIdScalarType,
@@ -1360,23 +1354,21 @@ apolloServer.start().then(() => {
     });
 
     // Subscriptionサーバー
-    // server.listen(80, () => {
-        new SubscriptionServer(
-            { execute, subscribe, schema },
-            {
-                server,
-                path: '/subscriptions',
-            }
-        )
-    // })
+    new SubscriptionServer(
+        { execute, subscribe, schema },
+        {
+            server,
+            path: '/graphql',
+        }
+    )
 
-    // setInterval(() => {
-    //     // TODO: test
-    //     console.log('publish TEST');
-    //     pubsub.publish('TEST', {
-    //         message: 'hogehoge'
-    //     });
-    // }, 5000);
+    setInterval(() => {
+        // TODO: test
+        console.log('publish TEST');
+        pubsub.publish('TEST', {
+            message: 'hogehoge'
+        });
+    }, 5000);
 
     /**
      * Frontend資源へプロキシ
