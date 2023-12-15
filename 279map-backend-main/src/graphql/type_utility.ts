@@ -1,4 +1,4 @@
-import { MutationResolvers, QueryResolvers } from "./__generated__/types";
+import { MutationResolvers, QueryResolvers, SubscriptionResolvers } from "./__generated__/types";
 
 type Members<T> = {
   [K in keyof T]: K;
@@ -15,5 +15,9 @@ export type QueryResolverReturnType<R extends QResolvers> = Promise<GetReturnTyp
 type AllMutationResolvers = Required<MutationResolvers>;
 export type MResolvers = Members<AllMutationResolvers>;
 export type MutationResolverReturnType<R extends MResolvers> = Promise<GetReturnType<AllMutationResolvers[R]>>;
+
+type AllSubscriptionResolvers = Required<SubscriptionResolvers>;
+export type SResolvers = Members<AllSubscriptionResolvers>;
+export type SubscriptionResolverReturnType<R extends SResolvers> = Promise<GetReturnType<AllSubscriptionResolvers[R]>>;
 
 export type Resolvers = QResolvers | MResolvers;

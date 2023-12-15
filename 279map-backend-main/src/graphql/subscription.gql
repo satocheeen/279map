@@ -1,0 +1,6 @@
+type Hoge {
+    message: String!
+}
+type Subscription {
+    test: Hoge!
+}

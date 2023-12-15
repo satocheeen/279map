@@ -9,7 +9,7 @@ import { getThumbnail } from './getThumbnsil';
 import { getContents } from './getContents';
 import { getEvents } from './getEvents';
 import proxy from 'express-http-proxy';
-import http from 'http';
+import http, { createServer } from 'http';
 import { getItemWkt } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
@@ -32,11 +32,12 @@ import SessionManager from './session/SessionManager';
 import { geojsonToWKT } from '@terraformer/wkt';
 import { getItem, getItemsById } from './api/getItem';
 import { graphqlHTTP } from 'express-graphql';
+import { PubSub } from 'graphql-subscriptions';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { ConnectInfo, DatasourceConfig, DatasourceKindType, MapDefine, MapKind, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, ThumbSize } from './graphql/__generated__/types';
-import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
+import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers, SubscriptionResolverReturnType } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType, JsonScalarType } from './graphql/custom_scalar';
 import { makeExecutableSchema } from '@graphql-tools/schema'
@@ -44,6 +45,8 @@ import { CustomError } from './graphql/CustomError';
 import { getLinkedItemIdList } from './api/apiUtility';
 import SessionInfo from './session/SessionInfo';
 import { Geometry } from 'geojson';
+import { SubscriptionServer } from 'subscriptions-transport-ws';
+import { execute, subscribe } from 'graphql';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -273,17 +276,20 @@ const fileSchema = loadSchemaSync(
     [
         join(__dirname, './graphql/query.gql'),
         join(__dirname, './graphql/mutation.gql'),
+        join(__dirname, './graphql/subscription.gql'),
     ],
     {
         loaders: [new GraphQLFileLoader()],
     }
 );
 
+const pubsub = new PubSub();
 // The root provides a resolver function for each API endpoint
 type QueryResolverFunc = (parent: any, param: any, ctx: GraphQlContextType) => QueryResolverReturnType<any>;
 type QueryResolver = Record<QResolvers, QueryResolverFunc>
 type MutationResolverFunc<T extends MResolvers> = (parent: any, param: any, ctx: GraphQlContextType) => MutationResolverReturnType<T>;
 type MutationResolver = Record<MResolvers, MutationResolverFunc<MResolvers>>;
+// type SubscriptionResolverFunc<T extends MResolvers> = (parent: any, param: any, ctx: GraphQlContextType) => MutationResolverReturnType<T>;
 
 const schema = makeExecutableSchema<GraphQlContextType>({
     typeDefs: fileSchema,
@@ -1250,6 +1256,20 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
             },
         } as MutationResolver,
+        Subscription: {
+            test: {
+                resolve: () => {
+                    console.log('resolving new document');
+                    return {
+                        message: 'start',
+                    }
+                },
+                subscribe: () => {
+                    console.log('debug1');
+                    return pubsub.asyncIterator('TEST')
+                }
+            }
+        },
         DataId: DataIdScalarType,
         JSON: JsonScalarType,
         ServerConfig: {
@@ -1286,7 +1306,7 @@ app.use(
         const context = await async function(): Promise<GraphQlContextType> {
             const operationName = graphQLParams?.operationName;
             console.log('operationName', operationName)
-            if (!operationName || ['config', 'getMapList', 'connect', 'IntrospectionQuery'].includes(operationName)) {
+            if (!operationName || ['test', 'config', 'getMapList', 'connect', 'IntrospectionQuery'].includes(operationName)) {
                 const userId = getUserIdByRequest(req as Request);
                 // @ts-ignore セッション関連情報は存在しないので
                 return {
@@ -1336,6 +1356,26 @@ app.use(
         }
     }),
 )
+
+// Subscriptionサーバー
+// server.listen(80, () => {
+    new SubscriptionServer(
+        { execute, subscribe, schema },
+        {
+            server,
+            path: '/subscriptions',
+        }
+    )
+// })
+
+setInterval(() => {
+    // TODO: test
+    console.log('publish TEST');
+    pubsub.publish('TEST', {
+        message: 'hogehoge'
+    });
+}, 5000);
+
 
 /**
  * Frontend資源へプロキシ

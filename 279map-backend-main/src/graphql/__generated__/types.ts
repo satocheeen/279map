@@ -149,6 +149,10 @@ export type GetUnpointContentsResult = {
   nextToken?: Maybe<Scalars['String']['output']>;
 };
 
+export type Hoge = {
+  message: Scalars['String']['output'];
+};
+
 export type IconDefine = {
   caption?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
@@ -467,6 +471,10 @@ export enum SnsType {
   InstagramUser = 'InstagramUser'
 }
 
+export type Subscription = {
+  test: Hoge;
+};
+
 export enum ThumbSize {
   Medium = 'Medium',
   Thumbnail = 'Thumbnail'
@@ -599,6 +607,7 @@ export type ResolversTypes = {
   GeocoderTarget: GeocoderTarget;
   Geometry: ResolverTypeWrapper<Scalars['Geometry']['output']>;
   GetUnpointContentsResult: ResolverTypeWrapper<GetUnpointContentsResult>;
+  Hoge: ResolverTypeWrapper<Hoge>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   IconDefine: ResolverTypeWrapper<IconDefine>;
   IconKey: ResolverTypeWrapper<Scalars['IconKey']['output']>;
@@ -625,6 +634,7 @@ export type ResolversTypes = {
   SnsPreviewResult: ResolverTypeWrapper<SnsPreviewResult>;
   SnsType: SnsType;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
+  Subscription: ResolverTypeWrapper<{}>;
   ThumbSize: ThumbSize;
   TrackConfig: ResolverTypeWrapper<TrackConfig>;
   UnpointContent: ResolverTypeWrapper<UnpointContent>;
@@ -654,6 +664,7 @@ export type ResolversParentTypes = {
   GeocoderItem: GeocoderItem;
   Geometry: Scalars['Geometry']['output'];
   GetUnpointContentsResult: GetUnpointContentsResult;
+  Hoge: Hoge;
   ID: Scalars['ID']['output'];
   IconDefine: IconDefine;
   IconKey: Scalars['IconKey']['output'];
@@ -675,6 +686,7 @@ export type ResolversParentTypes = {
   SnsPreviewPost: SnsPreviewPost;
   SnsPreviewResult: SnsPreviewResult;
   String: Scalars['String']['output'];
+  Subscription: {};
   TrackConfig: TrackConfig;
   UnpointContent: UnpointContent;
   UpdateItemInput: UpdateItemInput;
@@ -792,6 +804,11 @@ export interface GeometryScalarConfig extends GraphQLScalarTypeConfig<ResolversT
 export type GetUnpointContentsResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['GetUnpointContentsResult'] = ResolversParentTypes['GetUnpointContentsResult']> = {
   contents?: Resolver<Array<ResolversTypes['UnpointContent']>, ParentType, ContextType>;
   nextToken?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type HogeResolvers<ContextType = any, ParentType extends ResolversParentTypes['Hoge'] = ResolversParentTypes['Hoge']> = {
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -940,6 +957,10 @@ export type SnsPreviewResultResolvers<ContextType = any, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
+  test?: SubscriptionResolver<ResolversTypes['Hoge'], "test", ParentType, ContextType>;
+};
+
 export type TrackConfigResolvers<ContextType = any, ParentType extends ResolversParentTypes['TrackConfig'] = ResolversParentTypes['TrackConfig']> = {
   deletable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   editable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -980,6 +1001,7 @@ export type Resolvers<ContextType = any> = {
   GeocoderItem?: GeocoderItemResolvers<ContextType>;
   Geometry?: GraphQLScalarType;
   GetUnpointContentsResult?: GetUnpointContentsResultResolvers<ContextType>;
+  Hoge?: HogeResolvers<ContextType>;
   IconDefine?: IconDefineResolvers<ContextType>;
   IconKey?: GraphQLScalarType;
   ItemConfig?: ItemConfigResolvers<ContextType>;
@@ -998,6 +1020,7 @@ export type Resolvers<ContextType = any> = {
   ServerConfig?: ServerConfigResolvers<ContextType>;
   SnsPreviewPost?: SnsPreviewPostResolvers<ContextType>;
   SnsPreviewResult?: SnsPreviewResultResolvers<ContextType>;
+  Subscription?: SubscriptionResolvers<ContextType>;
   TrackConfig?: TrackConfigResolvers<ContextType>;
   UnpointContent?: UnpointContentResolvers<ContextType>;
   User?: UserResolvers<ContextType>;

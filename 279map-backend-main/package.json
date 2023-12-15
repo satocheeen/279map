@@ -48,6 +48,7 @@
     "geolib": "^3.3.3",
     "gpxparser": "^3.0.8",
     "graphql": "^15.8.0",
+    "graphql-subscriptions": "^2.0.0",
     "jsonfile": "^6.1.0",
     "jsonschema": "^1.2.6",
     "log4js": "^6.4.6",
@@ -57,6 +58,7 @@
     "proj4": "^2.9.0",
     "randomcolor": "^0.6.2",
     "sharp": "^0.30.4",
+    "subscriptions-transport-ws": "^0.11.0",
     "utf-8-validate": "^5.0.10",
     "websocket-stream": "^5.5.2"
   },
