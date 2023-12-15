@@ -46,13 +46,14 @@ import SessionInfo from './session/SessionInfo';
 import { Geometry } from 'geojson';
 
 type GraphQlContextType = {
-    connected: true,
+    request: Express.Request,
+    userId?: string;
+
+    // コネクション確立時にのみ設定される値
     session: SessionInfo;
     sessionKey: string; // SID or Token
-    userAuthInfo: UserAuthInfo;
     currentMap: CurrentMap;
     authLv: Auth;
-    request: Express.Request,
 }
 
 // ログ初期化
@@ -310,7 +311,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
              */
             getMapList: async(_, param, ctx): QueryResolverReturnType<'getMapList'> => {
                 apiLogger.info('[start] getmaplist');
-                const userId = ctx.userAuthInfo.userId;
+                const userId = ctx.userId;
                 if (userId) {
                     await authManagementClient.getUserMapList(userId);
                 }
@@ -1285,17 +1286,16 @@ app.use(
     authManagementClient.checkJwt,
     authenticateErrorProcess,
     graphqlHTTP(async(req, res, graphQLParams) => {
-        // @ts-ignore
-        const context: GraphQlContextType = await async function() {
+        const context = await async function(): Promise<GraphQlContextType> {
             const operationName = graphQLParams?.operationName;
             console.log('operationName', operationName)
             if (!operationName || ['config', 'getMapList', 'connect', 'IntrospectionQuery'].includes(operationName)) {
                 const userId = getUserIdByRequest(req as Request);
+                // @ts-ignore セッション関連情報は存在しないので
                 return {
                     request: req as Request,
-                    userAuthInfo: {
-                        userId,
-                    }
+                    userId,
+                    authLv: Auth.None,
                 }
             }
     
@@ -1323,10 +1323,11 @@ app.use(
             return {
                 sessionKey,
                 session,
-                userAuthInfo,
+                userId: userAuthInfo.userId,
                 currentMap: session.currentMap,
                 authLv,
                 request: req as Request,
+
             }
     
         }()
