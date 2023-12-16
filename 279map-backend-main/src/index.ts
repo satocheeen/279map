@@ -31,12 +31,11 @@ import MqttBroadcaster from './session/MqttBroadcaster';
 import SessionManager from './session/SessionManager';
 import { geojsonToWKT } from '@terraformer/wkt';
 import { getItem, getItemsById } from './api/getItem';
-import { PubSub } from 'graphql-subscriptions';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { ConnectInfo, DatasourceConfig, DatasourceKindType, MapDefine, MapKind, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, ThumbSize } from './graphql/__generated__/types';
-import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers, SubscriptionResolverReturnType } from './graphql/type_utility';
+import { ConnectInfo, DatasourceConfig, DatasourceKindType, MapDefine, MapKind, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, ThumbSize } from './graphql/__generated__/types';
+import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType, JsonScalarType } from './graphql/custom_scalar';
 import { makeExecutableSchema } from '@graphql-tools/schema'
@@ -47,6 +46,7 @@ import { Geometry } from 'geojson';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { execute, subscribe } from 'graphql';
 import { ApolloServer } from 'apollo-server-express';
+import MyPubSub from './graphql/MyPubSub';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -283,7 +283,7 @@ const fileSchema = loadSchemaSync(
     }
 );
 
-const pubsub = new PubSub();
+const pubsub = new MyPubSub();
 // The root provides a resolver function for each API endpoint
 type QueryResolverFunc = (parent: any, param: any, ctx: GraphQlContextType) => QueryResolverReturnType<any>;
 type QueryResolver = Record<QResolvers, QueryResolverFunc>
@@ -1261,7 +1261,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 resolve: (payload) => {
                     return payload;
                 },
-                subscribe: () =>  pubsub.asyncIterator('TEST'),
+                subscribe: () =>  pubsub.asyncIterator('test'),
             }
         },
         DataId: DataIdScalarType,
@@ -1365,7 +1365,7 @@ apolloServer.start().then(() => {
     setInterval(() => {
         // TODO: test
         console.log('publish TEST');
-        pubsub.publish('TEST', {
+        pubsub.publish('test', {
             message: 'hogehoge'
         });
     }, 5000);
