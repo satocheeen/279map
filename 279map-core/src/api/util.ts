@@ -1,13 +1,27 @@
 import { ServerInfo } from '../types/types';
-import { cacheExchange, createClient, fetchExchange } from "urql";
+import { cacheExchange, createClient, fetchExchange, subscriptionExchange } from "urql";
 import { ConfigDocument, GetMapListDocument } from "../graphql/generated/graphql";
+import { SubscriptionClient } from 'subscriptions-transport-ws';
+
 
 export function createGqlClient(serverInfo: ServerInfo, sessionid?: string) {
     const protocol = serverInfo.ssl ? 'https' : 'http';
     const url = `${protocol}://${serverInfo.host}/graphql`;
+
+    const wsProtocol = serverInfo.ssl ? 'wss' : 'ws';
+    const wsUrl = `${wsProtocol}://${serverInfo.host}/graphql`;
+    console.log('wsUrl', wsUrl);
+    const subscriptionClient = new SubscriptionClient(wsUrl, { reconnect: true });
+
     const client = createClient({
         url,
-        exchanges: [cacheExchange, fetchExchange],
+        exchanges: [
+            cacheExchange, 
+            fetchExchange, 
+            subscriptionExchange({
+                forwardSubscription: request => subscriptionClient.request(request),
+            })
+        ],
         fetchOptions: () => {
             return {
                 headers: {
@@ -15,7 +29,7 @@ export function createGqlClient(serverInfo: ServerInfo, sessionid?: string) {
                     sessionid: sessionid ?? '',
                 },
             }
-        }
+        },
     })
     return client;
 }

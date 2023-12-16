@@ -19,7 +19,8 @@ import { filteredItemIdListAtom } from '../../store/filter';
 import VectorSource from 'ol/source/Vector';
 import useMyMedia from '../../util/useMyMedia';
 import { useWatch } from '../../util/useWatch2';
-import { ItemDefine } from '../../graphql/generated/graphql';
+import { ItemDefine, ItemInsertDocument, TestDocument } from '../../graphql/generated/graphql';
+import { clientAtom } from 'jotai-urql';
 
 const ContentsModal = lazy(() => import('../contents/ContentsModal'));
 
@@ -70,6 +71,29 @@ function useMapInitializer() {
         }
 
     }, [getSubscriber, dispatchMapDefine, currentMapKind]);
+
+    const [ urqlClient ] = useAtom(clientAtom);
+    useEffect(() => {
+        console.log('start subscribe');
+        urqlClient.subscription(TestDocument, {}).subscribe((val) => {
+            console.log('subscribe test', val);
+        })
+        if (!currentMapKind) return;
+
+        const h1 = urqlClient.subscription(ItemInsertDocument, {}).subscribe((val) => {
+            console.log('subscribe', val.data);
+            const targets = val.data?.itemInsert;
+
+            if (targets) {
+                // 表示中エリアの場合は最新ロードする
+                updateItems(targets);
+            }
+        });
+        
+        return () => {
+            h1.unsubscribe();
+        }
+    }, [urqlClient])
 
     // 地図種別が変更されたら、地図に対してsubscribe, unsubscribeする
     useEffect(() => {

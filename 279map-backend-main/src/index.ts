@@ -34,7 +34,8 @@ import { getItem, getItemsById } from './api/getItem';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { ConnectInfo, DatasourceConfig, DatasourceKindType, MapDefine, MapKind, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, ThumbSize } from './graphql/__generated__/types';
+import { IFieldResolverOptions } from '@graphql-tools/utils';
+import { ConnectInfo, DatasourceConfig, DatasourceKindType, MapDefine, MapKind, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, SubscriptionTestArgs, ThumbSize } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -289,7 +290,6 @@ type QueryResolverFunc = (parent: any, param: any, ctx: GraphQlContextType) => Q
 type QueryResolver = Record<QResolvers, QueryResolverFunc>
 type MutationResolverFunc<T extends MResolvers> = (parent: any, param: any, ctx: GraphQlContextType) => MutationResolverReturnType<T>;
 type MutationResolver = Record<MResolvers, MutationResolverFunc<MResolvers>>;
-// type SubscriptionResolverFunc<T extends MResolvers> = (parent: any, param: any, ctx: GraphQlContextType) => MutationResolverReturnType<T>;
 
 const schema = makeExecutableSchema<GraphQlContextType>({
     typeDefs: fileSchema,
@@ -1258,12 +1258,14 @@ const schema = makeExecutableSchema<GraphQlContextType>({
         } as MutationResolver,
         Subscription: {
             test: {
-                resolve: (payload) => {
-                    return payload;
-                },
-                subscribe: () =>  pubsub.asyncIterator('test'),
+                resolve: (payload) => payload,
+                subscribe: (_, args) =>  pubsub.asyncIterator('test', args),
+            },
+            itemInsert: {
+                resolve: (payload) => payload,
+                subscribe: (_, args) => pubsub.asyncIterator('itemInsert', args),
             }
-        },
+        }as Record<keyof Subscription, IFieldResolverOptions>,
         DataId: DataIdScalarType,
         JSON: JsonScalarType,
         ServerConfig: {
@@ -1303,8 +1305,8 @@ const apolloServer = new ApolloServer({
     context: async(ctx) => {
         const req = ctx.req;
         const operationName = ctx.req.body.operationName;
-        console.log('operationName', operationName)
-        if (!operationName || ['test', 'config', 'getMapList', 'connect', 'IntrospectionQuery'].includes(operationName)) {
+        console.log('operationName', operationName);
+        if (!operationName || ['IntrospectionQuery'].includes(operationName) || authDefine[operationName as Resolvers] === Auth.None) {
             const userId = getUserIdByRequest(req);
             // @ts-ignore セッション関連情報は存在しないので
             return {
@@ -1366,6 +1368,8 @@ apolloServer.start().then(() => {
         // TODO: test
         console.log('publish TEST');
         pubsub.publish('test', {
+            type: 'AAA'
+        }, {
             message: 'hogehoge'
         });
     }, 5000);

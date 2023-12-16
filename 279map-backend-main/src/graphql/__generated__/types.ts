@@ -472,7 +472,24 @@ export enum SnsType {
 }
 
 export type Subscription = {
+  itemInsert: Array<Target>;
   test: Hoge;
+};
+
+
+export type SubscriptionItemInsertArgs = {
+  mapId: Scalars['String']['input'];
+  mapKind: MapKind;
+};
+
+
+export type SubscriptionTestArgs = {
+  type: Scalars['String']['input'];
+};
+
+export type Target = {
+  id: Scalars['DataId']['output'];
+  wkt: Scalars['String']['output'];
 };
 
 export enum ThumbSize {
@@ -635,6 +652,7 @@ export type ResolversTypes = {
   SnsType: SnsType;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Subscription: ResolverTypeWrapper<{}>;
+  Target: ResolverTypeWrapper<Target>;
   ThumbSize: ThumbSize;
   TrackConfig: ResolverTypeWrapper<TrackConfig>;
   UnpointContent: ResolverTypeWrapper<UnpointContent>;
@@ -687,6 +705,7 @@ export type ResolversParentTypes = {
   SnsPreviewResult: SnsPreviewResult;
   String: Scalars['String']['output'];
   Subscription: {};
+  Target: Target;
   TrackConfig: TrackConfig;
   UnpointContent: UnpointContent;
   UpdateItemInput: UpdateItemInput;
@@ -958,7 +977,14 @@ export type SnsPreviewResultResolvers<ContextType = any, ParentType extends Reso
 };
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
-  test?: SubscriptionResolver<ResolversTypes['Hoge'], "test", ParentType, ContextType>;
+  itemInsert?: SubscriptionResolver<Array<ResolversTypes['Target']>, "itemInsert", ParentType, ContextType, RequireFields<SubscriptionItemInsertArgs, 'mapId' | 'mapKind'>>;
+  test?: SubscriptionResolver<ResolversTypes['Hoge'], "test", ParentType, ContextType, RequireFields<SubscriptionTestArgs, 'type'>>;
+};
+
+export type TargetResolvers<ContextType = any, ParentType extends ResolversParentTypes['Target'] = ResolversParentTypes['Target']> = {
+  id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
+  wkt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type TrackConfigResolvers<ContextType = any, ParentType extends ResolversParentTypes['TrackConfig'] = ResolversParentTypes['TrackConfig']> = {
@@ -1021,6 +1047,7 @@ export type Resolvers<ContextType = any> = {
   SnsPreviewPost?: SnsPreviewPostResolvers<ContextType>;
   SnsPreviewResult?: SnsPreviewResultResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
+  Target?: TargetResolvers<ContextType>;
   TrackConfig?: TrackConfigResolvers<ContextType>;
   UnpointContent?: UnpointContentResolvers<ContextType>;
   User?: UserResolvers<ContextType>;

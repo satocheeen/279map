@@ -1,0 +1,16 @@
+subscription test {
+    test {
+        message
+    }
+}
+subscription test2 {
+    test2(type: "AAA") {
+        message
+    }
+}
+subscription itemInsert {
+    itemInsert {
+        id
+        wkt
+    }
+}

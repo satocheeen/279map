@@ -45,4 +45,8 @@ export const authDefine: AuthLvDefine = {
     getLinkableContentsDatasources: Auth.Admin,
     linkContentsDatasource: Auth.Admin,
     unlinkContentsDatasource: Auth.Admin,
+
+    // Subscription
+    test: Auth.None,
+    itemInsert: Auth.View,
 }

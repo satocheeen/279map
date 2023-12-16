@@ -1,6 +1,11 @@
 type Hoge {
     message: String!
 }
+type Target {
+    id: DataId!
+    wkt: String!
+}
 type Subscription {
-    test: Hoge!
+    test(type: String!): Hoge!
+    itemInsert(mapId: String!, mapKind: MapKind!): [Target!]!
 }
