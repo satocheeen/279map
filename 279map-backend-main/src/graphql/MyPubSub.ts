@@ -1,8 +1,8 @@
 import { PubSub } from "graphql-subscriptions";
-import { Subscription, SubscriptionResolver, SubscriptionResolvers } from "./__generated__/types";
+import { MapKind, Subscription, SubscriptionResolver, SubscriptionResolvers } from "./__generated__/types";
 
 type PickSubscriptionArgs<T> = T extends SubscriptionResolver<any, any, any, any, infer TArgs> ? TArgs : any;
-type SubscriptionArgs<T extends keyof Subscription> = PickSubscriptionArgs<Required<SubscriptionResolvers>[T]>;
+export type SubscriptionArgs<T extends keyof Subscription> = PickSubscriptionArgs<Required<SubscriptionResolvers>[T]>;
 
 export default class MyPubSub {
     #pubsub: PubSub;
@@ -11,19 +11,25 @@ export default class MyPubSub {
         this.#pubsub = new PubSub();
     }
 
-    asyncIterator<T extends keyof Subscription>(name: T, args: SubscriptionArgs<T>) {
-        const triggerName = getTriggerName(name, args)
+    asyncIteratorOfMap<T extends keyof Subscription>(name: T, targetMap: { mapId: string, mapKind: MapKind }) {
+        const triggerName = getTriggerName(name, targetMap);
         return this.#pubsub.asyncIterator(triggerName);
+    }
+
+    asyncIterator<T extends keyof Subscription>(name: T) {
+        return this.#pubsub.asyncIterator(name);
     }
 
     publish<T extends keyof Subscription>(name: T, args: SubscriptionArgs<T>, payload: Subscription[T]) {
         const triggerName = getTriggerName(name, args)
+        console.log('publish', triggerName);
         this.#pubsub.publish(triggerName, payload);
     }
 }
 
 function getTriggerName(name: string, args: any) {
     const argsStr = serializeArgs(args)
+    if (argsStr.length === 0) return name;
     return `${name}_${argsStr}`;
 }
 
@@ -37,6 +43,7 @@ function serializeArgs(args: any) {
     if (typeof args === 'object') {
         // sort key
         const keys = Object.keys(args).sort();
+        if (keys.length === 0) return '';
         const newObj = {} as any;
         keys.forEach(key => {
             newObj[key] = args[key];

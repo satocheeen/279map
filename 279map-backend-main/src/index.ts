@@ -35,7 +35,7 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { IFieldResolverOptions } from '@graphql-tools/utils';
-import { ConnectInfo, DatasourceConfig, DatasourceKindType, MapDefine, MapKind, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, SubscriptionTestArgs, ThumbSize } from './graphql/__generated__/types';
+import { ConnectInfo, DatasourceConfig, DatasourceKindType, MapDefine, MapKind, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, ThumbSize } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -47,7 +47,7 @@ import { Geometry } from 'geojson';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { execute, subscribe } from 'graphql';
 import { ApolloServer } from 'apollo-server-express';
-import MyPubSub from './graphql/MyPubSub';
+import MyPubSub, { SubscriptionArgs } from './graphql/MyPubSub';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -645,7 +645,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
              * 接続確立
              */
             connect: async(_, param: MutationConnectArgs, ctx): MutationResolverReturnType<'connect'> => {
-                apiLogger.info('[start] connect', ctx);
+                apiLogger.info('[start] connect');
 
                 try {
                     const mapInfo = await getMapInfoById(param.mapId);
@@ -767,15 +767,21 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         geoProperties: param.geoProperties,
                     }).then(async(id) => {
                         // 更新通知
-                        broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
-                            type: 'mapitem-insert',
-                            targets: [
-                                {
-                                    id,
-                                    wkt,
-                                }
-                            ]
-                        });
+                        pubsub.publish('itemInsert', ctx.currentMap, [
+                            {
+                                id,
+                                wkt,
+                            }
+                        ])
+                        // broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
+                        //     type: 'mapitem-insert',
+                        //     targets: [
+                        //         {
+                        //             id,
+                        //             wkt,
+                        //         }
+                        //     ]
+                        // });
                     }).catch(e => {
                         apiLogger.warn('callOdba-registItem error', e);
                         // TODO: フロントエンドにエラーメッセージ表示
@@ -1259,13 +1265,25 @@ const schema = makeExecutableSchema<GraphQlContextType>({
         Subscription: {
             test: {
                 resolve: (payload) => payload,
-                subscribe: (_, args) =>  pubsub.asyncIterator('test', args),
+                subscribe: (_, args) =>  {
+                    console.log('start subscribe test');
+                    return pubsub.asyncIterator('test');
+                }
+            },
+            test2: {
+                resolve: (payload) => payload,
+                subscribe: (_, args, ctx) =>  {
+                    console.log('start subscribe test2');
+                    return pubsub.asyncIterator('test2');
+                }
             },
             itemInsert: {
                 resolve: (payload) => payload,
-                subscribe: (_, args) => pubsub.asyncIterator('itemInsert', args),
+                subscribe: (_, args: SubscriptionArgs<'itemInsert'>) => {
+                    return pubsub.asyncIteratorOfMap('itemInsert', { mapId: args.mapId, mapKind: args.mapKind });
+                }
             }
-        }as Record<keyof Subscription, IFieldResolverOptions>,
+        }as Record<keyof Subscription, IFieldResolverOptions<any, GraphQlContextType, any>>,
         DataId: DataIdScalarType,
         JSON: JsonScalarType,
         ServerConfig: {
@@ -1368,7 +1386,7 @@ apolloServer.start().then(() => {
         // TODO: test
         console.log('publish TEST');
         pubsub.publish('test', {
-            type: 'AAA'
+            // type: 'AAA'
         }, {
             message: 'hogehoge'
         });

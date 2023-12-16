@@ -6,6 +6,7 @@ type Target {
     wkt: String!
 }
 type Subscription {
-    test(type: String!): Hoge!
+    test: Hoge!
+    test2(type: String!): Hoge!
     itemInsert(mapId: String!, mapKind: MapKind!): [Target!]!
 }

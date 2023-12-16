@@ -505,6 +505,12 @@ export type Subscription = {
 };
 
 
+export type SubscriptionItemInsertArgs = {
+  mapId: Scalars['String']['input'];
+  mapKind: MapKind;
+};
+
+
 export type SubscriptionTest2Args = {
   type: Scalars['String']['input'];
 };
@@ -815,7 +821,10 @@ export type Test2SubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 export type Test2Subscription = { __typename?: 'Subscription', test2: { __typename?: 'Hoge', message: string } };
 
-export type ItemInsertSubscriptionVariables = Exact<{ [key: string]: never; }>;
+export type ItemInsertSubscriptionVariables = Exact<{
+  mapId: Scalars['String']['input'];
+  mapKind: MapKind;
+}>;
 
 
 export type ItemInsertSubscription = { __typename?: 'Subscription', itemInsert: Array<{ __typename?: 'Target', id: DataId, wkt: string }> };
@@ -857,4 +866,4 @@ export const GetUserListDocument = {"kind":"Document","definitions":[{"kind":"Op
 export const GetLinkableContentsDatasourcesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getLinkableContentsDatasources"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getLinkableContentsDatasources"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"datasourceId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]} as unknown as DocumentNode<GetLinkableContentsDatasourcesQuery, GetLinkableContentsDatasourcesQueryVariables>;
 export const TestDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"test"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"test"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"message"}}]}}]}}]} as unknown as DocumentNode<TestSubscription, TestSubscriptionVariables>;
 export const Test2Document = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"test2"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"test2"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"type"},"value":{"kind":"StringValue","value":"AAA","block":false}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"message"}}]}}]}}]} as unknown as DocumentNode<Test2Subscription, Test2SubscriptionVariables>;
-export const ItemInsertDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"itemInsert"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"itemInsert"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"wkt"}}]}}]}}]} as unknown as DocumentNode<ItemInsertSubscription, ItemInsertSubscriptionVariables>;
+export const ItemInsertDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"itemInsert"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"mapId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"mapKind"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"MapKind"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"itemInsert"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"mapId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"mapId"}}},{"kind":"Argument","name":{"kind":"Name","value":"mapKind"},"value":{"kind":"Variable","name":{"kind":"Name","value":"mapKind"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"wkt"}}]}}]}}]} as unknown as DocumentNode<ItemInsertSubscription, ItemInsertSubscriptionVariables>;

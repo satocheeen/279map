@@ -8,8 +8,11 @@ subscription test2 {
         message
     }
 }
-subscription itemInsert {
-    itemInsert {
+subscription itemInsert(
+    $mapId: String!
+    $mapKind: MapKind!
+) {
+    itemInsert(mapId: $mapId, mapKind: $mapKind) {
         id
         wkt
     }

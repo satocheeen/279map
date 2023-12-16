@@ -73,14 +73,15 @@ function useMapInitializer() {
     }, [getSubscriber, dispatchMapDefine, currentMapKind]);
 
     const [ urqlClient ] = useAtom(clientAtom);
+    const { mapId } = useContext(OwnerContext);
     useEffect(() => {
+        if (!currentMapKind) return;
         console.log('start subscribe');
         urqlClient.subscription(TestDocument, {}).subscribe((val) => {
             console.log('subscribe test', val);
         })
-        if (!currentMapKind) return;
 
-        const h1 = urqlClient.subscription(ItemInsertDocument, {}).subscribe((val) => {
+        const h1 = urqlClient.subscription(ItemInsertDocument, { mapId, mapKind: currentMapKind }).subscribe((val) => {
             console.log('subscribe', val.data);
             const targets = val.data?.itemInsert;
 
@@ -93,7 +94,7 @@ function useMapInitializer() {
         return () => {
             h1.unsubscribe();
         }
-    }, [urqlClient])
+    }, [urqlClient, currentMapKind, mapId])
 
     // 地図種別が変更されたら、地図に対してsubscribe, unsubscribeする
     useEffect(() => {

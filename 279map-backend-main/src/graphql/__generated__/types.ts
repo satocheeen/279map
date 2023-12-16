@@ -474,6 +474,7 @@ export enum SnsType {
 export type Subscription = {
   itemInsert: Array<Target>;
   test: Hoge;
+  test2: Hoge;
 };
 
 
@@ -483,7 +484,7 @@ export type SubscriptionItemInsertArgs = {
 };
 
 
-export type SubscriptionTestArgs = {
+export type SubscriptionTest2Args = {
   type: Scalars['String']['input'];
 };
 
@@ -978,7 +979,8 @@ export type SnsPreviewResultResolvers<ContextType = any, ParentType extends Reso
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
   itemInsert?: SubscriptionResolver<Array<ResolversTypes['Target']>, "itemInsert", ParentType, ContextType, RequireFields<SubscriptionItemInsertArgs, 'mapId' | 'mapKind'>>;
-  test?: SubscriptionResolver<ResolversTypes['Hoge'], "test", ParentType, ContextType, RequireFields<SubscriptionTestArgs, 'type'>>;
+  test?: SubscriptionResolver<ResolversTypes['Hoge'], "test", ParentType, ContextType>;
+  test2?: SubscriptionResolver<ResolversTypes['Hoge'], "test2", ParentType, ContextType, RequireFields<SubscriptionTest2Args, 'type'>>;
 };
 
 export type TargetResolvers<ContextType = any, ParentType extends ResolversParentTypes['Target'] = ResolversParentTypes['Target']> = {
