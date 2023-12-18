@@ -54,7 +54,7 @@ export default function AddableContentsListPage(props: Props) {
         useCallback((oldVal, newVal) => {
             if (!props.onChange) return;
             // チェックされたものに絞る
-            const targets = newVal.filter(item => item.checked);
+            const targets = newVal.filter(item => item.checked).map(item => ({ datasourceId: item.datasourceId, name: item.name }));
             props.onChange(targets);
         }, [props])
     )

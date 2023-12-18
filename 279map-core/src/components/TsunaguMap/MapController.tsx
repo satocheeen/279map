@@ -1,7 +1,6 @@
 import { MapKind } from '279map-common';
 import React, { useRef, useMemo, useContext, useEffect, lazy, Suspense, useState } from 'react';
 import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
-import { useSubscribe } from '../../api/useSubscribe';
 import { currentMapDefineAtom, currentMapKindAtom, mapDefineReducerAtom } from '../../store/session';
 import { atom, useAtom } from 'jotai';
 import { useItems } from '../../store/item/useItems';
@@ -19,7 +18,7 @@ import { filteredItemIdListAtom } from '../../store/filter';
 import VectorSource from 'ol/source/Vector';
 import useMyMedia from '../../util/useMyMedia';
 import { useWatch } from '../../util/useWatch2';
-import { ItemDefine, ItemDeleteDocument, ItemInsertDocument, ItemUpdateDocument, TestDocument } from '../../graphql/generated/graphql';
+import { ItemDefine, ItemDeleteDocument, ItemInsertDocument, ItemUpdateDocument, MapInfoUpdateDocument, TestDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 
 const ContentsModal = lazy(() => import('../contents/ContentsModal'));
@@ -49,30 +48,27 @@ export default function MapController() {
  */
 function useMapInitializer() {
     const [ currentMapKind ] = useAtom(currentMapKindAtom);
-    const { getSubscriber } = useSubscribe();
     const { removeItems } = useItems();
     const { updateItems } = useMap();
+
+    const [ urqlClient ] = useAtom(clientAtom);
+    const { mapId } = useContext(OwnerContext);
 
     // 地図の接続完了したら、地図情報に対するsubscribe開始する
     const [, dispatchMapDefine] = useAtom(mapDefineReducerAtom);
     useEffect(() => {
-        const subscriber = getSubscriber();
-        if (!subscriber || !currentMapKind) return;
-
-        const h = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapinfo-update', undefined, (payload) => {
-            dispatchMapDefine();
-        });
+        const h = urqlClient.subscription(MapInfoUpdateDocument, { mapId }).subscribe((val) => {
+            if (val.data?.mapInfoUpdate) {
+                // TODO:
+                dispatchMapDefine();
+            }
+        })
 
         return () => {
-            if (h) {
-                subscriber.unsubscribe(h);
-            }
+            h.unsubscribe();
         }
 
-    }, [getSubscriber, dispatchMapDefine, currentMapKind]);
-
-    const [ urqlClient ] = useAtom(clientAtom);
-    const { mapId } = useContext(OwnerContext);
+    }, [urqlClient, dispatchMapDefine, mapId]);
 
     // 地図種別が変更されたら、地図に対してsubscribe, unsubscribeする
     useEffect(() => {

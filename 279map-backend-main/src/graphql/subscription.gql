@@ -39,4 +39,12 @@ type Subscription {
         "対象の地図種別"
         mapKind: MapKind!
     ): [DataId!]!
+
+    """
+    地図定義に変更があった場合
+    """
+    mapInfoUpdate (
+        "対象の地図ID"
+        mapId: String!
+    ): Boolean
 }

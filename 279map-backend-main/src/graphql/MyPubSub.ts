@@ -11,7 +11,24 @@ export default class MyPubSub {
         this.#pubsub = new PubSub();
     }
 
-    asyncIteratorOfMap<T extends keyof Subscription>(name: T, targetMap: { mapId: string, mapKind: MapKind }) {
+    /**
+     * 指定の地図（種別指定なし）に対するsubscription用iteratorを生成して返す
+     * @param name 
+     * @param targetMap 
+     * @returns 
+     */
+    asyncIteratorOfMap<T extends keyof Subscription>(name: T, mapId: string) {
+        const triggerName = getTriggerName(name, { mapId });
+        return this.#pubsub.asyncIterator(triggerName);
+    }
+
+    /**
+     * 指定の地図（種別指定あり）に対するsubscription用iteratorを生成して返す
+     * @param name 
+     * @param targetMap 
+     * @returns 
+     */
+    asyncIteratorOfTheMapKind<T extends keyof Subscription>(name: T, targetMap: { mapId: string, mapKind: MapKind }) {
         const triggerName = getTriggerName(name, targetMap);
         return this.#pubsub.asyncIterator(triggerName);
     }

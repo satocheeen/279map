@@ -479,6 +479,8 @@ export type Subscription = {
   itemInsert: Array<Target>;
   /** 地図上のアイテムが更新された場合に通知する */
   itemUpdate: Array<Target>;
+  /** 地図定義に変更があった場合 */
+  mapInfoUpdate?: Maybe<Scalars['Boolean']['output']>;
   test: Hoge;
 };
 
@@ -498,6 +500,11 @@ export type SubscriptionItemInsertArgs = {
 export type SubscriptionItemUpdateArgs = {
   mapId: Scalars['String']['input'];
   mapKind: MapKind;
+};
+
+
+export type SubscriptionMapInfoUpdateArgs = {
+  mapId: Scalars['String']['input'];
 };
 
 export type Target = {
@@ -995,6 +1002,7 @@ export type SubscriptionResolvers<ContextType = any, ParentType extends Resolver
   itemDelete?: SubscriptionResolver<Array<ResolversTypes['DataId']>, "itemDelete", ParentType, ContextType, RequireFields<SubscriptionItemDeleteArgs, 'mapId' | 'mapKind'>>;
   itemInsert?: SubscriptionResolver<Array<ResolversTypes['Target']>, "itemInsert", ParentType, ContextType, RequireFields<SubscriptionItemInsertArgs, 'mapId' | 'mapKind'>>;
   itemUpdate?: SubscriptionResolver<Array<ResolversTypes['Target']>, "itemUpdate", ParentType, ContextType, RequireFields<SubscriptionItemUpdateArgs, 'mapId' | 'mapKind'>>;
+  mapInfoUpdate?: SubscriptionResolver<Maybe<ResolversTypes['Boolean']>, "mapInfoUpdate", ParentType, ContextType, RequireFields<SubscriptionMapInfoUpdateArgs, 'mapId'>>;
   test?: SubscriptionResolver<ResolversTypes['Hoge'], "test", ParentType, ContextType>;
 };
 

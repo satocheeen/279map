@@ -33,3 +33,10 @@ subscription itemDelete (
 ) {
     itemDelete(mapId: $mapId, mapKind: $mapKind)
 }
+
+# 地図定義に変更があった場合に通知を受け取る
+subscription mapInfoUpdate (
+    $mapId: String!
+) {
+    mapInfoUpdate(mapId: $mapId)
+}
