@@ -13,7 +13,7 @@ type Subscription {
     """
     地図上にアイテムが追加された場合に通知する
     """
-    itemInsert(
+    itemInsert (
         "対象の地図ID"
         mapId: String!
         "対象の地図種別"
@@ -23,10 +23,20 @@ type Subscription {
     """
     地図上のアイテムが更新された場合に通知する
     """
-    itemUpdate(
+    itemUpdate (
         "対象の地図ID"
         mapId: String!
         "対象の地図種別"
         mapKind: MapKind!
     ): [Target!]!
+
+    """
+    地図上のアイテムが削除された場合に通知する
+    """
+    itemDelete (
+        "対象の地図ID"
+        mapId: String!
+        "対象の地図種別"
+        mapKind: MapKind!
+    ): [DataId!]!
 }

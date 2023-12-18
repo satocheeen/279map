@@ -4,7 +4,7 @@ subscription test {
     }
 }
 
-# 地図上のアイテムに追加があった場合に通知を受け取る
+# 地図上にアイテムが追加された場合に通知を受け取る
 subscription itemInsert (
     $mapId: String!
     $mapKind: MapKind!
@@ -24,4 +24,12 @@ subscription itemUpdate (
         id
         wkt
     }
+}
+
+# 地図上のアイテムが削除された場合に通知を受け取る
+subscription itemDelete (
+    $mapId: String!
+    $mapKind: MapKind!
+) {
+    itemDelete(mapId: $mapId, mapKind: $mapKind)
 }

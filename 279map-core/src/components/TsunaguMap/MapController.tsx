@@ -6,7 +6,7 @@ import { currentMapDefineAtom, currentMapKindAtom, mapDefineReducerAtom } from '
 import { atom, useAtom } from 'jotai';
 import { useItems } from '../../store/item/useItems';
 import { itemDataSourceGroupsAtom } from '../../store/datasource';
-import { mapInstanceIdAtom, useMap } from '../map/useMap';
+import { useMap } from '../map/useMap';
 import { dialogTargetAtom } from '../../store/operation';
 import { OwnerContext } from './TsunaguMap';
 import { usePrevious } from '../../util/usePrevious';
@@ -19,7 +19,7 @@ import { filteredItemIdListAtom } from '../../store/filter';
 import VectorSource from 'ol/source/Vector';
 import useMyMedia from '../../util/useMyMedia';
 import { useWatch } from '../../util/useWatch2';
-import { ItemDefine, ItemInsertDocument, ItemUpdateDocument, TestDocument } from '../../graphql/generated/graphql';
+import { ItemDefine, ItemDeleteDocument, ItemInsertDocument, ItemUpdateDocument, TestDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 
 const ContentsModal = lazy(() => import('../contents/ContentsModal'));
@@ -52,7 +52,6 @@ function useMapInitializer() {
     const { getSubscriber } = useSubscribe();
     const { removeItems } = useItems();
     const { updateItems } = useMap();
-    const [ mapInstanceId ] = useAtom(mapInstanceIdAtom);
 
     // 地図の接続完了したら、地図情報に対するsubscribe開始する
     const [, dispatchMapDefine] = useAtom(mapDefineReducerAtom);
@@ -98,31 +97,22 @@ function useMapInitializer() {
                 updateItems(targets);
             }
         })
+
+        const h3 = urqlClient.subscription(ItemDeleteDocument, {mapId, mapKind: currentMapKind }).subscribe((val) => {
+            const targets = val.data?.itemDelete;
+            if (targets) {
+                // アイテム削除
+                removeItems(targets);
+            }
+        })
         
         return () => {
             h1.unsubscribe();
             h2.unsubscribe();
+            h3.unsubscribe();
         }
-    }, [urqlClient, currentMapKind, mapId, updateItems])
 
-    // 地図種別が変更されたら、地図に対してsubscribe, unsubscribeする
-    useEffect(() => {
-        if (!currentMapKind) return;
-
-        const subscriber = getSubscriber();
-        if (!subscriber) return;
-
-        const h2 = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapitem-delete', undefined, (payload) => {
-            if (payload.type === 'mapitem-delete')
-                // アイテム削除
-                removeItems(payload.itemPageIdList);
-        })
-
-        return () => {
-            if (h2)
-                subscriber.unsubscribe(h2);
-        }
-    }, [currentMapKind, removeItems, getSubscriber, updateItems, mapInstanceId]);
+    }, [urqlClient, currentMapKind, mapId, updateItems, removeItems])
 
 }
 

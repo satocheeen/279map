@@ -12,11 +12,6 @@ export type PublishUserMessage = {
  * Publishメッセージ（地図に対するもの）
  */
 export type PublishMapMessage = {
-    // 地図上のアイテムが削除された場合
-    type: 'mapitem-delete';
-    subtype?: undefined;
-    itemPageIdList: DataId[];
-} | {
     // ユーザ一覧情報が更新された場合
     type: 'userlist-update';
     subtype?: undefined;

@@ -473,11 +473,19 @@ export enum SnsType {
 }
 
 export type Subscription = {
+  /** 地図上のアイテムが削除された場合に通知する */
+  itemDelete: Array<Scalars['DataId']['output']>;
   /** 地図上にアイテムが追加された場合に通知する */
   itemInsert: Array<Target>;
   /** 地図上のアイテムが更新された場合に通知する */
   itemUpdate: Array<Target>;
   test: Hoge;
+};
+
+
+export type SubscriptionItemDeleteArgs = {
+  mapId: Scalars['String']['input'];
+  mapKind: MapKind;
 };
 
 
@@ -984,6 +992,7 @@ export type SnsPreviewResultResolvers<ContextType = any, ParentType extends Reso
 };
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
+  itemDelete?: SubscriptionResolver<Array<ResolversTypes['DataId']>, "itemDelete", ParentType, ContextType, RequireFields<SubscriptionItemDeleteArgs, 'mapId' | 'mapKind'>>;
   itemInsert?: SubscriptionResolver<Array<ResolversTypes['Target']>, "itemInsert", ParentType, ContextType, RequireFields<SubscriptionItemInsertArgs, 'mapId' | 'mapKind'>>;
   itemUpdate?: SubscriptionResolver<Array<ResolversTypes['Target']>, "itemUpdate", ParentType, ContextType, RequireFields<SubscriptionItemUpdateArgs, 'mapId' | 'mapKind'>>;
   test?: SubscriptionResolver<ResolversTypes['Hoge'], "test", ParentType, ContextType>;

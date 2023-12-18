@@ -780,25 +780,23 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         // メモリから除去
                         session.removeTemporaryItem(tempID);
                         // 仮アイテム削除通知
-                        broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
-                            type: 'mapitem-delete',
-                            itemPageIdList: [{
+                        pubsub.publish('itemDelete', ctx.currentMap, [
+                            {
                                 id: tempID,
                                 dataSourceId: param.datasourceId,
-                            }],
-                        });
+                            }                            
+                        ])
                     }).finally(() => {
                         // メモリから除去
                         session.removeTemporaryItem(tempID);
 
                         // 仮アイテム削除通知
-                        broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
-                            type: 'mapitem-delete',
-                            itemPageIdList: [{
+                        pubsub.publish('itemDelete', ctx.currentMap, [
+                            {
                                 id: tempID,
                                 dataSourceId: param.datasourceId,
-                            }],
-                        });
+                            }
+                        ])
                     })
 
                     // 仮アイテム描画させるための通知
@@ -900,10 +898,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     }, param));
             
                     // 更新通知
-                    broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
-                        type: 'mapitem-delete',
-                        itemPageIdList: [param.id],
-                    });
+                    pubsub.publish('itemDelete', ctx.currentMap, [param.id]);
                     
                     return true;
 
@@ -1265,7 +1260,13 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 subscribe: (_, args: SubscriptionArgs<'itemUpdate'>) => {
                     return pubsub.asyncIteratorOfMap('itemUpdate', { mapId: args.mapId, mapKind: args.mapKind });
                 }
-            }
+            },
+            itemDelete: {
+                resolve: (payload) => payload,
+                subscribe: (_, args: SubscriptionArgs<'itemDelete'>) => {
+                    return pubsub.asyncIteratorOfMap('itemDelete', { mapId: args.mapId, mapKind: args.mapKind });
+                }
+            },
         }as Record<keyof Subscription, IFieldResolverOptions<any, GraphQlContextType, any>>,
         DataId: DataIdScalarType,
         JSON: JsonScalarType,
@@ -1442,10 +1443,14 @@ apolloServer.start().then(() => {
                 }, targets);
                 break;
             case 'delete':
-                broadCaster.publish(param.mapId, undefined, {
-                    type: 'mapitem-delete',
-                    itemPageIdList: param.itemIdList
-                });
+                pubsub.publish('itemDelete', {
+                    mapId: param.mapId,
+                    mapKind: MapKind.Real,
+                }, param.itemIdList);
+                pubsub.publish('itemDelete', {
+                    mapId: param.mapId,
+                    mapKind: MapKind.Virtual,
+                }, param.itemIdList);
                 break;
         }
         res.setHeader('Access-Control-Allow-Origin', '*');
