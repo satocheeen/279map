@@ -354,6 +354,7 @@ export type Query = {
   getItems: Array<ItemDefine>;
   getItemsById: Array<ItemDefine>;
   getLinkableContentsDatasources: Array<ContentsDatasource>;
+  /** ユーザがアクセス可能な地図情報一覧を返す */
   getMapList: Array<MapListItem>;
   getSnsPreview: SnsPreviewResult;
   getThumb: Scalars['String']['output'];
@@ -472,9 +473,11 @@ export enum SnsType {
 }
 
 export type Subscription = {
+  /** 地図上にアイテムが追加された場合に通知する */
   itemInsert: Array<Target>;
+  /** 地図上のアイテムが更新された場合に通知する */
+  itemUpdate: Array<Target>;
   test: Hoge;
-  test2: Hoge;
 };
 
 
@@ -484,12 +487,15 @@ export type SubscriptionItemInsertArgs = {
 };
 
 
-export type SubscriptionTest2Args = {
-  type: Scalars['String']['input'];
+export type SubscriptionItemUpdateArgs = {
+  mapId: Scalars['String']['input'];
+  mapKind: MapKind;
 };
 
 export type Target = {
+  /** 対象アイテムのID */
   id: Scalars['DataId']['output'];
+  /** アイテムの地図範囲。update時は更新後範囲 */
   wkt: Scalars['String']['output'];
 };
 
@@ -979,8 +985,8 @@ export type SnsPreviewResultResolvers<ContextType = any, ParentType extends Reso
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
   itemInsert?: SubscriptionResolver<Array<ResolversTypes['Target']>, "itemInsert", ParentType, ContextType, RequireFields<SubscriptionItemInsertArgs, 'mapId' | 'mapKind'>>;
+  itemUpdate?: SubscriptionResolver<Array<ResolversTypes['Target']>, "itemUpdate", ParentType, ContextType, RequireFields<SubscriptionItemUpdateArgs, 'mapId' | 'mapKind'>>;
   test?: SubscriptionResolver<ResolversTypes['Hoge'], "test", ParentType, ContextType>;
-  test2?: SubscriptionResolver<ResolversTypes['Hoge'], "test2", ParentType, ContextType, RequireFields<SubscriptionTest2Args, 'type'>>;
 };
 
 export type TargetResolvers<ContextType = any, ParentType extends ResolversParentTypes['Target'] = ResolversParentTypes['Target']> = {

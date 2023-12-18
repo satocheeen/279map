@@ -3,16 +3,24 @@ subscription test {
         message
     }
 }
-subscription test2 {
-    test2(type: "AAA") {
-        message
-    }
-}
-subscription itemInsert(
+
+# 地図上のアイテムに追加があった場合に通知を受け取る
+subscription itemInsert (
     $mapId: String!
     $mapKind: MapKind!
 ) {
     itemInsert(mapId: $mapId, mapKind: $mapKind) {
+        id
+        wkt
+    }
+}
+
+# 地図上のアイテムに更新があった場合に通知を受け取る
+subscription itemUpdate (
+    $mapId: String!
+    $mapKind: MapKind!
+) {
+    itemUpdate(mapId: $mapId, mapKind: $mapKind) {
         id
         wkt
     }

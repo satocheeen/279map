@@ -19,7 +19,7 @@ import { filteredItemIdListAtom } from '../../store/filter';
 import VectorSource from 'ol/source/Vector';
 import useMyMedia from '../../util/useMyMedia';
 import { useWatch } from '../../util/useWatch2';
-import { ItemDefine, ItemInsertDocument, TestDocument } from '../../graphql/generated/graphql';
+import { ItemDefine, ItemInsertDocument, ItemUpdateDocument, TestDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 
 const ContentsModal = lazy(() => import('../contents/ContentsModal'));
@@ -74,6 +74,8 @@ function useMapInitializer() {
 
     const [ urqlClient ] = useAtom(clientAtom);
     const { mapId } = useContext(OwnerContext);
+
+    // 地図種別が変更されたら、地図に対してsubscribe, unsubscribeする
     useEffect(() => {
         if (!currentMapKind) return;
         console.log('start subscribe');
@@ -82,19 +84,26 @@ function useMapInitializer() {
         })
 
         const h1 = urqlClient.subscription(ItemInsertDocument, { mapId, mapKind: currentMapKind }).subscribe((val) => {
-            console.log('subscribe', val.data);
             const targets = val.data?.itemInsert;
-
             if (targets) {
                 // 表示中エリアの場合は最新ロードする
                 updateItems(targets);
             }
         });
+
+        const h2 = urqlClient.subscription(ItemUpdateDocument, { mapId, mapKind: currentMapKind }).subscribe((val) => {
+            const targets = val.data?.itemUpdate;
+            if (targets) {
+                // 表示中エリアの場合は最新ロードする
+                updateItems(targets);
+            }
+        })
         
         return () => {
             h1.unsubscribe();
+            h2.unsubscribe();
         }
-    }, [urqlClient, currentMapKind, mapId])
+    }, [urqlClient, currentMapKind, mapId, updateItems])
 
     // 地図種別が変更されたら、地図に対してsubscribe, unsubscribeする
     useEffect(() => {
@@ -103,18 +112,6 @@ function useMapInitializer() {
         const subscriber = getSubscriber();
         if (!subscriber) return;
 
-        const h0 = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapitem-insert', undefined, (payload) => {
-            if (payload.type === 'mapitem-insert') {
-                // 表示中エリアの場合は最新ロードする
-                updateItems(payload.targets);
-            }
-        });
-        const h1 = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapitem-update', undefined, (payload) => {
-            if (payload.type === 'mapitem-update') {
-                // 表示中エリアの場合は最新ロードする
-                updateItems(payload.targets);
-            }
-        });
         const h2 = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapitem-delete', undefined, (payload) => {
             if (payload.type === 'mapitem-delete')
                 // アイテム削除
@@ -122,10 +119,6 @@ function useMapInitializer() {
         })
 
         return () => {
-            if (h0)
-                subscriber.unsubscribe(h0);
-            if (h1) 
-                subscriber.unsubscribe(h1);
             if (h2)
                 subscriber.unsubscribe(h2);
         }

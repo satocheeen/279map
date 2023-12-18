@@ -847,15 +847,14 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     }));
 
                     // 仮アイテム描画させるための通知
-                    broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
-                        type: 'mapitem-update',
-                        targets: targets.map(t => {
+                    pubsub.publish('itemUpdate', ctx.currentMap, 
+                        targets.map(t => {
                             return {
                                 id: t.target.id,
                                 wkt: t.wkt,
                             }
                         })
-                    });
+                    );
 
                     for (const target of targets) {
                         // call ODBA
@@ -874,15 +873,12 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                             session.removeTemporaryItem(target.tempID);
 
                             // 更新通知
-                            broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
-                                type: 'mapitem-update',
-                                targets: [
-                                    {
-                                        id: target.target.id,
-                                        wkt: target.wkt,
-                                    }
-                                ]
-                            });
+                            pubsub.publish('itemUpdate', ctx.currentMap, [
+                                {
+                                    id: target.target.id,
+                                    wkt: target.wkt,
+                                }
+                            ])
                         })
                     }
                 
@@ -1258,17 +1254,16 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     return pubsub.asyncIterator('test');
                 }
             },
-            test2: {
-                resolve: (payload) => payload,
-                subscribe: (_, args, ctx) =>  {
-                    console.log('start subscribe test2');
-                    return pubsub.asyncIterator('test2');
-                }
-            },
             itemInsert: {
                 resolve: (payload) => payload,
                 subscribe: (_, args: SubscriptionArgs<'itemInsert'>) => {
                     return pubsub.asyncIteratorOfMap('itemInsert', { mapId: args.mapId, mapKind: args.mapKind });
+                }
+            },
+            itemUpdate: {
+                resolve: (payload) => payload,
+                subscribe: (_, args: SubscriptionArgs<'itemUpdate'>) => {
+                    return pubsub.asyncIteratorOfMap('itemUpdate', { mapId: args.mapId, mapKind: args.mapKind });
                 }
             }
         }as Record<keyof Subscription, IFieldResolverOptions<any, GraphQlContextType, any>>,
@@ -1427,16 +1422,24 @@ apolloServer.start().then(() => {
         }
         switch(param.operation) {
             case 'insert':
-                broadCaster.publish(param.mapId, undefined, {
-                    type: 'mapitem-update',
-                    targets,
-                });
+                pubsub.publish('itemInsert', {
+                    mapId: param.mapId,
+                    mapKind: MapKind.Real,
+                }, targets);
+                pubsub.publish('itemInsert', {
+                    mapId: param.mapId,
+                    mapKind: MapKind.Virtual,
+                }, targets);
                 break;
             case 'update':
-                broadCaster.publish(param.mapId, undefined, {
-                    type: 'mapitem-update',
-                    targets,
-                });
+                pubsub.publish('itemUpdate', {
+                    mapId: param.mapId,
+                    mapKind: MapKind.Real,
+                }, targets);
+                pubsub.publish('itemUpdate', {
+                    mapId: param.mapId,
+                    mapKind: MapKind.Virtual,
+                }, targets);
                 break;
             case 'delete':
                 broadCaster.publish(param.mapId, undefined, {

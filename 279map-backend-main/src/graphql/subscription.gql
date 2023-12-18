@@ -2,11 +2,31 @@ type Hoge {
     message: String!
 }
 type Target {
+    "対象アイテムのID"
     id: DataId!
+    "アイテムの地図範囲。update時は更新後範囲"
     wkt: String!
 }
 type Subscription {
     test: Hoge!
-    test2(type: String!): Hoge!
-    itemInsert(mapId: String!, mapKind: MapKind!): [Target!]!
+
+    """
+    地図上にアイテムが追加された場合に通知する
+    """
+    itemInsert(
+        "対象の地図ID"
+        mapId: String!
+        "対象の地図種別"
+        mapKind: MapKind!
+    ): [Target!]!
+
+    """
+    地図上のアイテムが更新された場合に通知する
+    """
+    itemUpdate(
+        "対象の地図ID"
+        mapId: String!
+        "対象の地図種別"
+        mapKind: MapKind!
+    ): [Target!]!
 }
