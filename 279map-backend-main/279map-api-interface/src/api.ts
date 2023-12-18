@@ -12,14 +12,6 @@ export type PublishUserMessage = {
  * Publishメッセージ（地図に対するもの）
  */
 export type PublishMapMessage = {
-    // 地図にアイテム追加された場合
-    type: 'mapitem-insert';
-    subtype?: undefined;
-    targets: {
-        id: DataId;
-        wkt: string; // 追加された範囲
-    }[];
-} | {
     // 地図上のアイテムが更新された場合
     type: 'mapitem-update';
     subtype?: undefined;

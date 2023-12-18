@@ -773,15 +773,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                                 wkt,
                             }
                         ])
-                        // broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
-                        //     type: 'mapitem-insert',
-                        //     targets: [
-                        //         {
-                        //             id,
-                        //             wkt,
-                        //         }
-                        //     ]
-                        // });
                     }).catch(e => {
                         apiLogger.warn('callOdba-registItem error', e);
                         // TODO: フロントエンドにエラーメッセージ表示
@@ -811,18 +802,15 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     })
 
                     // 仮アイテム描画させるための通知
-                    broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
-                        type: 'mapitem-insert',
-                        targets: [
-                            {
-                                id: {
-                                    id: tempID,
-                                    dataSourceId: param.datasourceId,
-                                },
-                                wkt,
-                            }
-                        ]
-                    });
+                    pubsub.publish('itemInsert', ctx.currentMap, [
+                        {
+                            id: {
+                                id: tempID,
+                                dataSourceId: param.datasourceId,
+                            },
+                            wkt,
+                        }
+                    ])
 
                     return true;
 

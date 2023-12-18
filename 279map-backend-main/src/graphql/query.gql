@@ -150,11 +150,21 @@ enum MediaType {
 
 type Query {
     config: ServerConfig!
+
+    "ユーザがアクセス可能な地図情報一覧を返す"
     getMapList: [MapListItem!]!
 
-    # lastestEditedTime: 指定されている場合、この更新日時以降に更新されたアイテムのみ返す
-    # excludeItemIds: 指定されている場合、このidのアイテムは結果から除く TODO: deprecated
-    getItems(wkt: String!, zoom: Float!, datasourceId: String!, latestEditedTime: String, excludeItemIds: [String!]): [ItemDefine!]!
+    getItems(
+        wkt: String!,
+        zoom: Float!,
+        datasourceId: String!,
+
+        "(optional) 指定されている場合、この更新日時以降に更新されたアイテムのみ返す"
+        latestEditedTime: String
+
+        "(optional) 指定されている場合、このidのアイテムは結果から除く TODO: deprecated"
+        excludeItemIds: [String!]
+    ): [ItemDefine!]!
 
     getItemsById(targets: [DataId!]!): [ItemDefine!]!
 
