@@ -1129,9 +1129,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         userId: param.userId,
                         authLv: param.authLv,
                     });
-                    broadCaster.publish(mapId, undefined, {
-                        type: 'userlist-update',
-                    })
+                    pubsub.publish('userListUpdate', { mapId }, true);
                     broadCaster.publishUserMessage(param.userId, {
                         type: 'update-userauth',
                     });
@@ -1171,9 +1169,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     });
 
                     // publish
-                    broadCaster.publish(queryMapId, undefined, {
-                        type: 'userlist-update',
-                    })
+                    pubsub.publish('userListUpdate', { mapId: queryMapId }, true);
                     broadCaster.publishUserMessage(userId, {
                         type: 'update-userauth',
                     });
@@ -1243,31 +1239,37 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 resolve: (payload) => payload,
                 subscribe: (_, args) =>  {
                     console.log('start subscribe test');
-                    return pubsub.asyncIterator('test');
+                    return pubsub.asyncIterator('test', {});
                 }
             },
             itemInsert: {
                 resolve: (payload) => payload,
                 subscribe: (_, args: SubscriptionArgs<'itemInsert'>) => {
-                    return pubsub.asyncIteratorOfTheMapKind('itemInsert', { mapId: args.mapId, mapKind: args.mapKind });
+                    return pubsub.asyncIterator('itemInsert', args);
                 }
             },
             itemUpdate: {
                 resolve: (payload) => payload,
                 subscribe: (_, args: SubscriptionArgs<'itemUpdate'>) => {
-                    return pubsub.asyncIteratorOfTheMapKind('itemUpdate', { mapId: args.mapId, mapKind: args.mapKind });
+                    return pubsub.asyncIterator('itemUpdate', args);
                 }
             },
             itemDelete: {
                 resolve: (payload) => payload,
                 subscribe: (_, args: SubscriptionArgs<'itemDelete'>) => {
-                    return pubsub.asyncIteratorOfTheMapKind('itemDelete', { mapId: args.mapId, mapKind: args.mapKind });
+                    return pubsub.asyncIterator('itemDelete', args);
+                }
+            },
+            userListUpdate: {
+                resolve: (payload) => payload,
+                subscribe: (_, args: SubscriptionArgs<'userListUpdate'>) => {
+                    return pubsub.asyncIterator('userListUpdate', args);
                 }
             },
             mapInfoUpdate: {
                 resolve: (payload) => payload,
                 subscribe: (_, args: SubscriptionArgs<'mapInfoUpdate'>) => {
-                    return pubsub.asyncIteratorOfMap('mapInfoUpdate', args.mapId);
+                    return pubsub.asyncIterator('mapInfoUpdate', args);
                 }
             }
         }as Record<keyof Subscription, IFieldResolverOptions<any, GraphQlContextType, any>>,

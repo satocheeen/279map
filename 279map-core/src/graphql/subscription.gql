@@ -34,6 +34,13 @@ subscription itemDelete (
     itemDelete(mapId: $mapId, mapKind: $mapKind)
 }
 
+# ユーザ一覧情報が更新された場合に通知を受け取る
+subscription userListUpdate (
+    $mapId: String!
+) {
+    userListUpdate(mapId: $mapId)
+}
+
 # 地図定義に変更があった場合に通知を受け取る
 subscription mapInfoUpdate (
     $mapId: String!

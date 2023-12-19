@@ -41,6 +41,14 @@ type Subscription {
     ): [DataId!]!
 
     """
+    ユーザ一覧情報が更新された場合
+    """
+    userListUpdate (
+        "対象の地図ID"
+        mapId: String!
+    ): Boolean
+
+    """
     地図定義に変更があった場合
     """
     mapInfoUpdate (

@@ -1,16 +1,14 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useContext } from 'react';
 import { Button, Modal } from '../../common';
 import styles from './DefaultUserListModal.module.scss';
-import { useWatch } from '../../../util/useWatch2';
 import { Auth } from '279map-common';
 import Select from '../../common/form/Select';
-import { useSubscribe } from '../../../api/useSubscribe';
 import { modalSpinnerAtom } from '../../common/modal/Modal';
 import { useAtomCallback } from 'jotai/utils';
 import { useAtom } from 'jotai';
 import { atomWithQuery, clientAtom } from 'jotai-urql';
-import { ChangeAuthLevelDocument, GetUserListDocument, User } from '../../../graphql/generated/graphql';
-import { currentMapKindAtom } from '../../../store/session';
+import { ChangeAuthLevelDocument, GetUserListDocument, User, UserListUpdateDocument } from '../../../graphql/generated/graphql';
+import { OwnerContext } from '../../TsunaguMap/TsunaguMap';
 
 type Props = {
     onClose: () => void;
@@ -21,34 +19,25 @@ const getUserListQueryAtom = atomWithQuery({
 })
 export default function DefaultUserListModal(props: Props) {
     const [ show, setShow ] = useState(true);
-    const [ currentMapKind ] = useAtom(currentMapKindAtom);
     const [ getUserList, refetchUserList ] = useAtom(getUserListQueryAtom);
+    const [ gqlClient ] = useAtom(clientAtom);
+    const { mapId } = useContext(OwnerContext);
     
     const users = useMemo(() => {
         return getUserList.data?.getUserList ?? []
     }, [getUserList]);
 
-    const { getSubscriber } = useSubscribe();
-    useWatch(show, () => {
-        console.log('currentMapKind', currentMapKind);
-        if (!show || !currentMapKind) return;
-
-        refetchUserList({
-            requestPolicy: 'network-only',
-        });
-        const subscriber = getSubscriber();
-        const h = subscriber?.subscribeMap({mapKind: currentMapKind}, 'userlist-update', undefined, () => {
-            console.log('refetch');
+    useEffect(() => {
+        const h = gqlClient.subscription(UserListUpdateDocument, { mapId }).subscribe(() => {
             refetchUserList({
                 requestPolicy: 'network-only',
             });
         });
 
         return () => {
-            if (h)
-                subscriber?.unsubscribe(h);
+            h.unsubscribe();
         }
-    }, { immediate: true })
+    }, [gqlClient, mapId, refetchUserList])
 
     const onCloseBtnClicked = useCallback(() => {
         setShow(false);
