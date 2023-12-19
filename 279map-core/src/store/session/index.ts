@@ -32,6 +32,7 @@ type MapDefineType = SwitchMapKindResult & {
     mapKind: MapKind
 }
 const currentMapKindInfoAtom = atom<Promise<MapDefineType>>(async(get) => {
+    get(mapDefineReducerAtom);
     const mapDefine = get(mapDefineAtom);
     if (!mapDefine.connected) {
         throw Promise;

@@ -59,7 +59,7 @@ function useMapInitializer() {
     useEffect(() => {
         const h = urqlClient.subscription(MapInfoUpdateDocument, { mapId }).subscribe((val) => {
             if (val.data?.mapInfoUpdate) {
-                // TODO:
+                // 地図定義再取得
                 dispatchMapDefine();
             }
         })
