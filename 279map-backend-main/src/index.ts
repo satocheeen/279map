@@ -670,6 +670,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         throw new CustomError({
                             type: ErrorType.NoAuthenticate,
                             message: 'this user does not have authentication' + userAccessInfo.userId,
+                            userId: userAccessInfo.userId,
                         })
                     }
                     if (userAccessInfo.authLv === Auth.Request && userAccessInfo.guestAuthLv === Auth.None) {
@@ -677,6 +678,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         throw new CustomError({
                             type: ErrorType.Requesting,
                             message: 'requesting',
+                            userId: userAccessInfo.userId,
                         })
                     }
 
@@ -1130,9 +1132,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         authLv: param.authLv,
                     });
                     pubsub.publish('userListUpdate', { mapId }, true);
-                    broadCaster.publishUserMessage(param.userId, {
-                        type: 'update-userauth',
-                    });
+                    pubsub.publish('updateUserAuth', { userId: param.userId, mapId }, true);
         
                     return true;
 
@@ -1170,9 +1170,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
 
                     // publish
                     pubsub.publish('userListUpdate', { mapId: queryMapId }, true);
-                    broadCaster.publishUserMessage(userId, {
-                        type: 'update-userauth',
-                    });
+                    pubsub.publish('updateUserAuth', { userId, mapId: queryMapId }, true);
 
                     return true;
 
@@ -1258,6 +1256,12 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 resolve: (payload) => payload,
                 subscribe: (_, args: SubscriptionArgs<'itemDelete'>) => {
                     return pubsub.asyncIterator('itemDelete', args);
+                }
+            },
+            updateUserAuth: {
+                resolve: (payload) => payload,
+                subscribe: (_, args: SubscriptionArgs<'updateUserAuth'>) => {
+                    return pubsub.asyncIterator('updateUserAuth', args);
                 }
             },
             userListUpdate: {
@@ -1371,15 +1375,15 @@ apolloServer.start().then(() => {
         }
     )
 
-    setInterval(() => {
-        // TODO: test
-        console.log('publish TEST');
-        pubsub.publish('test', {
-            // type: 'AAA'
-        }, {
-            message: 'hogehoge'
-        });
-    }, 5000);
+    // setInterval(() => {
+    //     // TODO: test
+    //     console.log('publish TEST');
+    //     pubsub.publish('test', {
+    //         // type: 'AAA'
+    //     }, {
+    //         message: 'hogehoge'
+    //     });
+    // }, 5000);
 
     /**
      * Frontend資源へプロキシ

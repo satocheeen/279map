@@ -41,6 +41,16 @@ type Subscription {
     ): [DataId!]!
 
     """
+    ユーザ権限に更新があった場合
+    """
+    updateUserAuth (
+        "対象ユーザ"
+        userId: ID!
+        "対象の地図ID"
+        mapId: String!
+    ): Boolean
+
+    """
     ユーザ一覧情報が更新された場合
     """
     userListUpdate (

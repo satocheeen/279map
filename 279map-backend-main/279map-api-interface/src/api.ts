@@ -1,14 +1,6 @@
 import { DataId } from "279map-common";
 
 /**
- * Publishメッセージ（ユーザに対するもの）
- */
-export type PublishUserMessage = {
-    // ユーザ権限に更新があった場合
-    type: 'update-userauth';
-}
-
-/**
  * Publishメッセージ（地図に対するもの）
  */
 export type PublishMapMessage = {

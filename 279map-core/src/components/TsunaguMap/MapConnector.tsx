@@ -8,10 +8,9 @@ import styles from './MapConnector.module.scss';
 import { createMqttClientInstance, destroyMqttClientInstance, useSubscribe } from '../../api/useSubscribe';
 import { Auth } from '279map-common';
 import { useAtom } from 'jotai';
-import { MyError } from '../../api/api';
 import { ServerInfo, TsunaguMapProps } from '../../types/types';
 import { clientAtom } from 'jotai-urql';
-import { ConnectDocument, ConnectResult, DisconnectDocument, RequestDocument } from '../../graphql/generated/graphql';
+import { ConnectDocument, ConnectResult, DisconnectDocument, RequestDocument, UpdateUserAuthDocument } from '../../graphql/generated/graphql';
 import { OwnerContext } from './TsunaguMap';
 import { Provider, createStore } from 'jotai';
 import { defaultIconDefineAtom } from '../../store/icon';
@@ -46,8 +45,6 @@ export default function MapConnector(props: Props) {
     }, [onConnect]);
     const [instanceId ] = useAtom(instanceIdAtom);
     
-    const { getSubscriber } = useSubscribe();
-
     // Subscriber用意
     useEffect(() => {
         createMqttClientInstance(instanceId, props.server, props.mapId);
@@ -61,19 +58,24 @@ export default function MapConnector(props: Props) {
     const [ connectStatus, setConnectStatus ] = useState<ConnectResult|undefined>();
     const [ errorType, setErrorType ] = useState<ErrorType|undefined>();
     const myStoreRef = useRef(createMyStore(props.iconDefine));
+    const [ userId, setUserId ] = useState<string|undefined>();
 
     const connect = useCallback(async() => {
         try {
             setLoading(true);
             setErrorType(undefined);
             const gqlClient = createGqlClient(props.server);
+            myStoreRef.current.set(clientAtom, gqlClient);
             console.log('connect to', props.mapId, props.server.token);
     
             const result = await gqlClient.mutation(ConnectDocument, { mapId: props.mapId });
             if (!result.data) {
                 if (result.error?.graphQLErrors[0]) {
-                    const errorType = result.error?.graphQLErrors[0].extensions.type as ErrorType;
+                    const errorExtensions = result.error.graphQLErrors[0].extensions;
+                    const errorType = errorExtensions.type as ErrorType;
+                    const userId = errorExtensions.userId as string | undefined;
                     setErrorType(errorType);
+                    setUserId(userId);
                 } else {
                     setErrorType(ErrorType.IllegalError);
                 }
@@ -100,6 +102,8 @@ export default function MapConnector(props: Props) {
                 })
             }
 
+            setUserId(result.data.connect.connect.userId ?? undefined);
+
         } catch(e) {
             console.warn(e);
             setErrorType(ErrorType.IllegalError);
@@ -108,7 +112,7 @@ export default function MapConnector(props: Props) {
             setLoading(false);
 
         }
-    }, [props.server, props.mapId])
+    }, [props.server, props.mapId]);
 
     const disconnect = useCallback(async() => {
         const gqlClient = myStoreRef.current.get(clientAtom);
@@ -127,10 +131,11 @@ export default function MapConnector(props: Props) {
     }, []);
 
     useEffect(() => {
-        connect();
-
-        window.addEventListener('beforeunload', () => {
-            disconnect();
+        connect()
+        .then(() => {
+            window.addEventListener('beforeunload', () => {
+                disconnect();
+            })
         })
 
         return () => {
@@ -138,36 +143,19 @@ export default function MapConnector(props: Props) {
         }
     }, [connect, disconnect])
 
-    // const [, connectDispatch] = useAtom(connectReducerAtom);
-    // useEffect(() => {
-    //     const userId = function() {
-    //         if (connectLoadable.state === 'hasError') {
-    //             const e = connectLoadable.error as any;
-    //             const error: MyError = ('apiError' in e) ? e.apiError
-    //                                 : {type: ErrorType.IllegalError, detail: e + ''};
-    //             return error?.userId;
-    //         } else if (connectLoadable.state === 'hasData') {
-    //             return connectLoadable.data?.connect.userId;
-    //         } else {
-    //             return undefined;
-    //         }
-    //     }();
-    //     if (!userId) return;
-    //     const subscriber = getSubscriber();
-    //     if (!subscriber) return;
-    //     subscriber?.setUser(userId);
+    useEffect(() => {
+        if (!userId) return;
+        const urqlClient = myStoreRef.current.get(clientAtom);
+        const h = urqlClient.subscription(UpdateUserAuthDocument, { userId, mapId: props.mapId }).subscribe(() => {
+            // 権限変更されたので再接続
+            connect();
+        })
 
-    //     const h = subscriber.subscribeUser('update-userauth', () => {
-    //         // 権限変更されたので再接続
-    //         connectDispatch();
-    //     });
+        return () => {
+            h.unsubscribe();
+        }
 
-    //     return () => {
-    //         if (h)
-    //             subscriber.unsubscribe(h);
-    //     }
-    // }, [/* connectLoadable, getSubscriber, connectDispatch */])
-
+    }, [ userId, props.mapId, connect ])
 
     // ゲストモードで動作させる場合、true
     const [guestMode, setGuestMode] = useState(false);

@@ -34,6 +34,14 @@ subscription itemDelete (
     itemDelete(mapId: $mapId, mapKind: $mapKind)
 }
 
+# ユーザ権限に更新があった場合に通知を受け取る
+subscription updateUserAuth (
+    $userId: ID!
+    $mapId: String!
+) {
+    updateUserAuth(userId: $userId, mapId: $mapId)
+}
+
 # ユーザ一覧情報が更新された場合に通知を受け取る
 subscription userListUpdate (
     $mapId: String!

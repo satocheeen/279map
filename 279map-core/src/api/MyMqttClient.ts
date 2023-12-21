@@ -2,7 +2,7 @@ import { MqttClient } from "mqtt/*";
 import { ServerInfo } from "../types/types";
 // @ts-ignore mqtt/dist配下にアクセスできないので、コピーしてきたものをimportしている
 import * as mqtt from '../util/mqtt.min';
-import { PublishMapMessage, PublishUserMessage } from "tsunagumap-api";
+import { PublishMapMessage } from "tsunagumap-api";
 import { MapKind } from "279map-common";
 
 type Callback = (payload: PublishMapMessage) => void;
@@ -75,22 +75,6 @@ export class MyMqttClient {
             return;
         }
         const mytopic = makeTopic(this._mapId, target.mapKind, msg, subType);
-        return this._subscribe(mytopic, callback);
-    }
-
-    /**
-     * ユーザに対する指定のトピックの購読を開始する
-     * @param target 
-     * @param msg 
-     * @param subType 
-     * @returns 購読id。unsubscribe時に渡す。
-     */
-    subscribeUser(msg: PublishUserMessage['type'], callback: Callback) {
-        if (!this._userId) {
-            console.warn('not found userId');
-            return;
-        }
-        const mytopic = `${this._userId}/${msg}`;
         return this._subscribe(mytopic, callback);
     }
 
