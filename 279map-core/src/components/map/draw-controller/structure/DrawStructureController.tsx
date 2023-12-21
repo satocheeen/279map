@@ -10,14 +10,14 @@ import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import SearchAddress, { SearchAddressHandler } from '../../../common/SearchAddress';
 import GeoJSON from 'ol/format/GeoJSON';
 import { GeoJsonObject } from 'geojson';
-import { FeatureType, GeoProperties, MapKind } from '279map-common';
+import { FeatureType, GeoProperties } from '279map-common';
 import { SystemIconDefine } from '../../../../types/types';
 import VectorLayer from 'ol/layer/Vector';
 import { useMap } from '../../useMap';
 import { currentMapKindAtom } from '../../../../store/session';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
-import { GeocoderTarget, RegistItemDocument } from '../../../../graphql/generated/graphql';
+import { GeocoderTarget, MapKind, RegistItemDocument } from '../../../../graphql/generated/graphql';
 
 type Props = {
     dataSourceId: string;   // 作図対象のデータソース

@@ -8,7 +8,7 @@ import { currentMapKindAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { DataId, MapKind } from '279map-common';
+import { DataId } from '279map-common';
 import { TsunaguMapHandler } from '../../types/types';
 import { useAtom } from 'jotai';
 import { itemDataSourceGroupsAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
@@ -19,6 +19,7 @@ import useDataSource from '../../store/datasource/useDataSource';
 import { ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument } from '../../graphql/generated/graphql';
 import { updateContentAtom } from '../../store/content';
 import { clientAtom } from 'jotai-urql';
+import { MapKind } from '../../graphql/generated/graphql';
 
 /**
  * 呼び出し元とイベント連携するためのコンポーネントもどき。

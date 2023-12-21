@@ -13,7 +13,7 @@ import VectorLayer from "ol/layer/Vector";
 import Style, { StyleFunction } from "ol/style/Style";
 import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
-import { DataId, FeatureType, MapKind } from '279map-common';
+import { DataId, FeatureType } from '279map-common';
 import BaseEvent from 'ol/events/Event';
 import * as MapUtility from '../../util/MapUtility';
 import { FeatureProperties } from '../../types/types';
@@ -21,7 +21,7 @@ import { Pixel } from 'ol/pixel';
 import { convertDataIdFromFeatureId, getMapKey } from '../../util/dataUtility';
 import { FitOptions } from 'ol/View';
 import { Coordinate } from 'ol/coordinate';
-import { DatasourceGroup, DatasourceKindType, GetGeocoderFeatureDocument, ItemDefine } from '../../graphql/generated/graphql';
+import { DatasourceGroup, DatasourceKindType, GetGeocoderFeatureDocument, ItemDefine, MapKind } from '../../graphql/generated/graphql';
 import { Client } from 'urql';
 
 export type FeatureInfo = {

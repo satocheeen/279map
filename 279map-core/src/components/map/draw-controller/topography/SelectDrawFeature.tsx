@@ -1,10 +1,10 @@
-import { MapKind } from '279map-common';
 import React from 'react';
 import ListGroup from '../../../common/list/ListGroup';
 import { TbCircle, TbHexagon } from 'react-icons/tb';
 import styles from './SelectDrawFeature.module.scss';
 import { currentMapKindAtom } from '../../../../store/session';
 import { useAtom } from 'jotai';
+import { MapKind } from '../../../../graphql/generated/graphql';
 
 export enum DrawFeatureType {
     FreePolygon,

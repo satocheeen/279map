@@ -1,7 +1,7 @@
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
-import { MapKind } from "279map-common";
 import { currentMapKindAtom, specifiedMapKindAtom } from "./session";
+import { MapKind } from "../graphql/generated/graphql";
 
 export function useMapController() {
 

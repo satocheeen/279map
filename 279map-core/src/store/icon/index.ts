@@ -1,6 +1,6 @@
+import { MapKind } from '../../graphql/generated/graphql';
 import { SystemIconDefine, TsunaguMapProps } from '../../types/types';
 import { currentMapDefineAtom, currentMapKindAtom } from '../session';
-import { MapKind } from '279map-common';
 import defaultIcon from './pin.png'
 import { atom } from 'jotai';
 

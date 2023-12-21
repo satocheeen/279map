@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { Modal }  from '../common';
 import Content from './Content';
-import { Auth, DataId, MapKind } from '279map-common';
+import { DataId } from '279map-common';
 import AddContentMenu from '../popup/AddContentMenu';
 import styles from './ContentsModal.module.scss';
 import { getMapKey } from '../../util/dataUtility';
@@ -16,7 +16,7 @@ import { allItemsAtom } from '../../store/item';
 import { useMap } from '../map/useMap';
 import { modalSpinnerAtom } from '../common/modal/Modal';
 import { clientAtom } from 'jotai-urql';
-import { ChildContentsUpdateDocument, ContentsDefine, GetContentDocument, GetContentsInItemDocument, ItemTemporaryState } from '../../graphql/generated/graphql';
+import { Auth, ChildContentsUpdateDocument, ContentsDefine, GetContentDocument, GetContentsInItemDocument, ItemTemporaryState, MapKind } from '../../graphql/generated/graphql';
 import { Subscription } from 'wonka';
 
 export type Props = ({

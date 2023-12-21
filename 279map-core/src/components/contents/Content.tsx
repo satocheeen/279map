@@ -10,7 +10,7 @@ import useConfirm from "../common/confirm/useConfirm";
 import reactStringReplace from "react-string-replace";
 import PopupMenuIcon from "../popup/PopupMenuIcon";
 import AddContentMenu from "../popup/AddContentMenu";
-import { Auth, ContentAttr, DataId, MapKind } from "279map-common";
+import { ContentAttr, DataId } from "279map-common";
 import Spinner from "../common/spinner/Spinner";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
@@ -26,7 +26,7 @@ import { useAtomCallback } from "jotai/utils";
 import { dialogTargetAtom } from "../../store/operation";
 import { updateContentAtom } from "../../store/content";
 import { clientAtom } from "jotai-urql";
-import { ContentsDefine, GetContentDocument, GetImageUrlDocument, GetSnsPreviewDocument, MutationUpdateContentArgs, ParentOfContent, RemoveContentDocument, UnlinkContentDocument } from "../../graphql/generated/graphql";
+import { Auth, ContentsDefine, GetContentDocument, GetImageUrlDocument, GetSnsPreviewDocument, MapKind, MutationUpdateContentArgs, ParentOfContent, RemoveContentDocument, UnlinkContentDocument } from "../../graphql/generated/graphql";
 
 type Props = {
     itemId: DataId;

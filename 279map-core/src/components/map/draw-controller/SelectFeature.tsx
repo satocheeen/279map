@@ -1,15 +1,11 @@
 import { Feature, MapBrowserEvent } from 'ol';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PromptMessageBox from './PromptMessageBox';
-import Style from 'ol/style/Style';
-import Stroke from 'ol/style/Stroke';
-import Fill from 'ol/style/Fill';
 import Select, { SelectEvent } from 'ol/interaction/Select';
 import { click } from 'ol/events/condition';
 import { FeatureLike } from 'ol/Feature';
 import useTopographyStyle from '../useTopographyStyle';
 import usePointStyle from '../usePointStyle';
-import { MapKind } from '279map-common';
 import { LayerInfo, LayerType } from '../../TsunaguMap/VectorLayerMap';
 import { containFeatureInLayer } from '../../../util/MapUtility';
 import { useMap } from '../useMap';
@@ -18,6 +14,7 @@ import { useAtom } from 'jotai';
 import { convertDataIdFromFeatureId } from '../../../util/dataUtility';
 import { useItems } from '../../../store/item/useItems';
 import { topographySelectStyleFunction } from './utility';
+import { MapKind } from '../../../graphql/generated/graphql';
 
 type Props = {
     targetType: LayerType;

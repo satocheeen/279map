@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState, useEffect } from "react";
 import styles from './PointsPopup.module.scss';
-import { ContentsDefine, DataId } from "279map-common";
+import { DataId } from "279map-common";
 import { MapMode } from "../../types/types";
 import { isEqualId } from "../../util/dataUtility";
 import MyThumbnail from "../common/image/MyThumbnail";
@@ -12,7 +12,7 @@ import { filteredContentIdListAtom, filteredItemIdListAtom } from "../../store/f
 import { useItems } from "../../store/item/useItems";
 import { useAtom } from "jotai";
 import { useAtomCallback } from 'jotai/utils';
-import { ItemDefine } from "../../graphql/generated/graphql";
+import { ContentsDefine, ItemDefine } from "../../graphql/generated/graphql";
 
 type Props = {
     // このポップアップにて情報表示する対象アイテム

@@ -1,4 +1,4 @@
-import { FeatureType, MapKind } from "279map-common";
+import { FeatureType } from "279map-common";
 import { FeatureLike } from "ol/Feature";
 import { Fill, Stroke, Style } from "ol/style";
 import { useCallback } from "react";
@@ -6,6 +6,7 @@ import { colorWithAlpha } from '../../util/CommonUtility';
 import { MapStyles } from "../../util/constant-defines";
 import { currentMapKindAtom } from "../../store/session";
 import { useAtomCallback } from "jotai/utils";
+import { MapKind } from "../../graphql/generated/graphql";
 
 const DRAWING_COLOR = '#eebbaa'
 

@@ -5,7 +5,7 @@ import Tooltip from '../common/tooltip/Tooltip';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
-import { Auth, DataId } from '279map-common';
+import { DataId } from '279map-common';
 import { Button } from '../common';
 import { compareAuth } from '../../util/CommonUtility';
 import { authLvAtom } from '../../store/session';
@@ -15,7 +15,7 @@ import { useAtom } from 'jotai';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern, ConfirmResult } from '../common/confirm/types';
 import { clientAtom } from 'jotai-urql';
-import { DatasourceConfig, GetContentDocument, GetSnsPreviewDocument, GetUnpointContentsDocument, LinkContentDocument, MutationLinkContentArgs, MutationRegistContentArgs, RegistContentDocument, UpdateItemDocument } from '../../graphql/generated/graphql';
+import { Auth, DatasourceConfig, GetContentDocument, GetSnsPreviewDocument, GetUnpointContentsDocument, LinkContentDocument, MutationLinkContentArgs, MutationRegistContentArgs, RegistContentDocument, UpdateItemDocument } from '../../graphql/generated/graphql';
 
 type Props = {
     target: {

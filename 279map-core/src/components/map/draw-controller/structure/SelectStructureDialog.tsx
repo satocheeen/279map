@@ -2,11 +2,11 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Button from '../../../common/button/Button';
 import Modal from  '../../../common/modal/Modal';
 import styles from './SelectStructureDialog.module.scss';
-import { MapKind } from '279map-common';
 import { SystemIconDefine } from '../../../../types/types';
 import { currentMapIconDefineAtom } from '../../../../store/icon';
 import { currentMapKindAtom } from '../../../../store/session';
 import { useAtom } from 'jotai';
+import { MapKind } from '../../../../graphql/generated/graphql';
 
 type Props = {
     currentIconId?: string;         // 現在の画像ID

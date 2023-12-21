@@ -1,4 +1,4 @@
-import { Auth, DataId, FeatureType, MapKind } from '279map-common';
+import { DataId, FeatureType } from '279map-common';
 import React, { useState, useCallback, useMemo, useRef, useContext } from 'react';
 import { ServerInfo, TsunaguMapHandler, onDatasourceChangedParam } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
@@ -8,7 +8,7 @@ import FilterCondition from './FilterCondition';
 import { mapId, myMapServer } from './const';
 import AuthPanel from './AuthPanel';
 import { AuthContext } from './DriverRoot';
-import { CategoryDefine, Condition, DatasourceGroup, DatasourceKindType } from '../graphql/generated/graphql';
+import { Auth, CategoryDefine, Condition, DatasourceGroup, DatasourceKindType, MapKind } from '../graphql/generated/graphql';
 
 const props = {
     mapId,

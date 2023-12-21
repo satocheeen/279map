@@ -1,4 +1,4 @@
-import { Auth } from "279map-common";
+import { Auth } from "../graphql/generated/graphql";
 import { UrlType } from "../types/types";
 import * as olColor from 'ol/color';
 

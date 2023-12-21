@@ -1,7 +1,6 @@
 import { ContentAttr, DataId, FeatureType, GeoProperties, IconDefine } from "279map-common";
 import { CSSProperties } from "react";
-import { MapKind } from '279map-common';
-import { Auth, CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MapDefine, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult } from "../graphql/generated/graphql";
+import { Auth, CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult } from "../graphql/generated/graphql";
 
 export type OnMapLoadParam = {
     mapKind: MapKind;

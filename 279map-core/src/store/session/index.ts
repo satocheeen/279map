@@ -1,11 +1,10 @@
-import { Auth } from '279map-common';
 import { Extent } from "ol/extent";
 import { atom } from 'jotai';
 import { atomWithReducer, loadable, selectAtom } from 'jotai/utils';
 import { Loadable } from 'jotai/vanilla/utils/loadable';
 import { atomWithCountup } from '../../util/jotaiUtility';
 import { clientAtom } from 'jotai-urql';
-import { SwitchMapKindDocument, SwitchMapKindMutation, MapKind } from '../../graphql/generated/graphql';
+import { SwitchMapKindDocument, SwitchMapKindMutation, MapKind, Auth } from '../../graphql/generated/graphql';
 
 export const instanceIdAtom = atomWithCountup('instance-');
 

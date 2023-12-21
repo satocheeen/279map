@@ -1,9 +1,9 @@
 import { useAtomCallback } from 'jotai/utils';
 import React, { lazy, Suspense, useCallback, useImperativeHandle, useState } from 'react';
 import { authLvAtom } from '../../../store/session';
-import { Auth } from '279map-common';
 import LoadingOverlay from '../../common/spinner/LoadingOverlay';
 import { TsunaguMapHandler } from '../../../types/types';
+import { Auth } from '../../../graphql/generated/graphql';
 const DefaultContentsSettingModal = lazy(() => import('./DefaultContentsSettingModal'));
 
 type Props = {

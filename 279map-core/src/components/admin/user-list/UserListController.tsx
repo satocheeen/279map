@@ -2,8 +2,8 @@ import React, { lazy, Suspense, useCallback, useImperativeHandle, useState } fro
 import { TsunaguMapHandler } from '../../../types/types';
 import { useAtomCallback } from 'jotai/utils';
 import { authLvAtom } from '../../../store/session';
-import { Auth } from '279map-common';
 import LoadingOverlay from '../../common/spinner/LoadingOverlay';
+import { Auth } from '../../../graphql/generated/graphql';
 const DefaultUserListModal = lazy(() => import('./DefaultUserListModal'));
 
 type Props = {
