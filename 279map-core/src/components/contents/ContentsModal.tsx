@@ -5,7 +5,6 @@ import { Auth, DataId, MapKind } from '279map-common';
 import AddContentMenu from '../popup/AddContentMenu';
 import styles from './ContentsModal.module.scss';
 import { getMapKey } from '../../util/dataUtility';
-import { useSubscribe } from '../../api/useSubscribe';
 import { useAtom } from 'jotai';
 import { authLvAtom, currentMapKindAtom } from '../../store/session';
 import { compareAuth } from '../../util/CommonUtility';
@@ -17,7 +16,8 @@ import { allItemsAtom } from '../../store/item';
 import { useMap } from '../map/useMap';
 import { modalSpinnerAtom } from '../common/modal/Modal';
 import { clientAtom } from 'jotai-urql';
-import { ContentsDefine, GetContentDocument, GetContentsInItemDocument, ItemTemporaryState } from '../../graphql/generated/graphql';
+import { ChildContentsUpdateDocument, ContentsDefine, GetContentDocument, GetContentsInItemDocument, ItemTemporaryState } from '../../graphql/generated/graphql';
+import { Subscription } from 'wonka';
 
 export type Props = ({
     type: 'item' | 'content';
@@ -32,7 +32,6 @@ export default function ContentsModal(props: Props) {
     const [itemId, setItemId] = useState<DataId | undefined>();
 
     const [ contentsList, setContentsList ] = useState<ContentsDefine[]>([]);
-    const { getSubscriber } = useSubscribe();
 
     const [ allItems ] = useAtom(allItemsAtom);
     const item = useMemo(() => {
@@ -79,8 +78,7 @@ export default function ContentsModal(props: Props) {
     const { updateItems } = useMap();
     useEffect(() => {
         if (!mapKind) return;
-        const subscriber = getSubscriber();
-        let h: number | undefined;
+        let h: Subscription;
         if (props.type === 'item') {
             setModalSpinner(true);
             setShow(true);
@@ -90,7 +88,7 @@ export default function ContentsModal(props: Props) {
             .finally(() => {
                 setModalSpinner(false);
             });
-            h = subscriber?.subscribeMap({mapKind}, 'childcontents-update', props.id, async() => {
+            h = gqlClient.subscription(ChildContentsUpdateDocument, { itemId: props.id }).subscribe(async() => {
                 // アイテム情報再取得
                 await updateItems([{
                     id: props.id
@@ -98,7 +96,7 @@ export default function ContentsModal(props: Props) {
 
                 // コンテンツロード
                 loadContentsInItem()
-            });
+            })
 
             setItemId(props.id);
 
@@ -121,11 +119,11 @@ export default function ContentsModal(props: Props) {
 
         return () => {
             if (h) {
-                subscriber?.unsubscribe(h);
+                h.unsubscribe();
             }
         }
 
-    }, [props.id, props.type, mapKind, getSubscriber, loadContentsInItem, updateItems, setModalSpinner, gqlClient]);
+    }, [props.id, props.type, mapKind, loadContentsInItem, updateItems, setModalSpinner, gqlClient]);
 
     const contents = useMemo((): ContentsDefine[] => {
         return contentsList.sort((a, b) => {

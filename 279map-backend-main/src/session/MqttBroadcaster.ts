@@ -1,9 +1,8 @@
 import { getLogger } from 'log4js';
 import { Server } from 'http';
 import aedes from 'aedes';
-import { PublishMapMessage, PublishUserMessage } from '../../279map-api-interface/src';
+import { PublishMapMessage } from '../../279map-api-interface/src';
 import { MapKind } from '279map-common';
-import ws from 'websocket-stream';
 
 const apiLogger = getLogger('api');
 export default class MqttBroadcaster {
@@ -13,32 +12,13 @@ export default class MqttBroadcaster {
         this.#server = aedes.createBroker();
 
         // @ts-ignore
-        ws.createServer({ server }, this.#server.handle);
+        // ws.createServer({ server }, this.#server.handle);
 
         this.#server.on('client', (client: any) => {
             apiLogger.info('mqtt client conneted', client.id);
         });
         this.#server.on('subscribe', (topic: any) => {
             apiLogger.info('mqtt client subscribed', topic);
-        });
-    }
-
-    /**
-     * 対象のユーザに大して通知を送信する
-     * @param userId 
-     */
-    publishUserMessage(userId: string, message: PublishUserMessage) {
-        const topic = `${userId}/${message.type}`;
-        apiLogger.debug('publish user', topic);
-        this.#server.publish({
-            cmd: 'publish',
-            topic,
-            dup: false,
-            payload: JSON.stringify(message),
-            qos: 2,
-            retain: false,
-        }, (err) => {
-            console.warn('publish err', err);
         });
     }
 

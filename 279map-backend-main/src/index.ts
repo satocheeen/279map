@@ -942,13 +942,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         if (!wkt) {
                             logger.warn('not found extent', id);
                         } else {
-                            broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
-                                type: 'childcontents-update',
-                                subtype: {
-                                    id: id.id,
-                                    dataSourceId: id.dataSourceId,
-                                },
-                            });
+                            pubsub.publish('childContentsUpdate', { itemId: id }, true);
                         }
                     }
                     return true;
@@ -987,13 +981,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         authLv: ctx.authLv,
                     }))[0];
 
-                    broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
-                        type: 'childcontents-update',
-                        subtype: {
-                            id: target.itemId.id,
-                            dataSourceId: target.itemId.dataSourceId
-                        }
-                    });
+                    pubsub.publish('childContentsUpdate', { itemId: target.itemId }, true);
                 
                     return true;
 
@@ -1025,13 +1013,8 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         if (!wkt) {
                             logger.warn('not found extent', id);
                         } else {
-                            broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
-                                type: 'childcontents-update',
-                                subtype: {
-                                    id: id.id,
-                                    dataSourceId: id.dataSourceId,
-                                },
-                            });
+                            pubsub.publish('childContentsUpdate', { itemId: id }, true);
+
                         }
                     }
 
@@ -1063,13 +1046,8 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         if (!wkt) {
                             logger.warn('not found extent', id);
                         } else {
-                            broadCaster.publish(ctx.currentMap.mapId, ctx.currentMap.mapKind, {
-                                type: 'childcontents-update',
-                                subtype: {
-                                    id: id.id,
-                                    dataSourceId: id.dataSourceId,
-                                },
-                            });
+                            pubsub.publish('childContentsUpdate', { itemId: id }, true);
+
                         }
                     }
 
@@ -1103,13 +1081,8 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         if (!wkt) {
                             logger.warn('not found extent', item.itemId);
                         } else {
-                            broadCaster.publish(item.mapId, item.mapKind, {
-                                type: 'childcontents-update',
-                                subtype: {
-                                    id: item.itemId.id,
-                                    dataSourceId: item.itemId.dataSourceId
-                                }
-                            });
+                            pubsub.publish('childContentsUpdate', { itemId: item.itemId }, true);
+
                         }
                     }));
 
@@ -1256,6 +1229,12 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 resolve: (payload) => payload,
                 subscribe: (_, args: SubscriptionArgs<'itemDelete'>) => {
                     return pubsub.asyncIterator('itemDelete', args);
+                }
+            },
+            childContentsUpdate: {
+                resolve: (payload) => payload,
+                subscribe: (_, args: SubscriptionArgs<'childContentsUpdate'>) => {
+                    return pubsub.asyncIterator('childContentsUpdate', args);
                 }
             },
             updateUserAuth: {

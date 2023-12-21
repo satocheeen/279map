@@ -41,6 +41,13 @@ type Subscription {
     ): [DataId!]!
 
     """
+    指定のアイテム配下のコンテンツに変更（登録・更新・削除）があった場合
+    """
+    childContentsUpdate (
+        itemId: DataId!
+    ): Boolean
+
+    """
     ユーザ権限に更新があった場合
     """
     updateUserAuth (

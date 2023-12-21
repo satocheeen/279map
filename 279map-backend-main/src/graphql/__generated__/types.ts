@@ -473,6 +473,8 @@ export enum SnsType {
 }
 
 export type Subscription = {
+  /** 指定のアイテム配下のコンテンツに変更（登録・更新・削除）があった場合 */
+  childContentsUpdate?: Maybe<Scalars['Boolean']['output']>;
   /** 地図上のアイテムが削除された場合に通知する */
   itemDelete: Array<Scalars['DataId']['output']>;
   /** 地図上にアイテムが追加された場合に通知する */
@@ -486,6 +488,11 @@ export type Subscription = {
   updateUserAuth?: Maybe<Scalars['Boolean']['output']>;
   /** ユーザ一覧情報が更新された場合 */
   userListUpdate?: Maybe<Scalars['Boolean']['output']>;
+};
+
+
+export type SubscriptionChildContentsUpdateArgs = {
+  itemId: Scalars['DataId']['input'];
 };
 
 
@@ -1014,6 +1021,7 @@ export type SnsPreviewResultResolvers<ContextType = any, ParentType extends Reso
 };
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
+  childContentsUpdate?: SubscriptionResolver<Maybe<ResolversTypes['Boolean']>, "childContentsUpdate", ParentType, ContextType, RequireFields<SubscriptionChildContentsUpdateArgs, 'itemId'>>;
   itemDelete?: SubscriptionResolver<Array<ResolversTypes['DataId']>, "itemDelete", ParentType, ContextType, RequireFields<SubscriptionItemDeleteArgs, 'mapId' | 'mapKind'>>;
   itemInsert?: SubscriptionResolver<Array<ResolversTypes['Target']>, "itemInsert", ParentType, ContextType, RequireFields<SubscriptionItemInsertArgs, 'mapId' | 'mapKind'>>;
   itemUpdate?: SubscriptionResolver<Array<ResolversTypes['Target']>, "itemUpdate", ParentType, ContextType, RequireFields<SubscriptionItemUpdateArgs, 'mapId' | 'mapKind'>>;
