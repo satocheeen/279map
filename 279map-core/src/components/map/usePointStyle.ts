@@ -17,9 +17,6 @@ import { itemDataSourcesAtom } from "../../store/datasource";
 import { useAtom } from 'jotai';
 import { MapStyles } from "../../util/constant-defines";
 
-// 建物ラベルを表示するresolution境界値（これ以下の値の時に表示）
-const StructureLabelResolution = 0.003;
-
 const STRUCTURE_SELECTED_COLOR = '#8888ff';
 
 /**
@@ -215,9 +212,9 @@ export default function usePointStyle() {
             // 複数アイテムがまとまっている場合、まとまっている数を表示
             setClusterLabel(style, showFeaturesLength);
 
-        } else if (!disabledLabel && resolution <= StructureLabelResolution) {
+        } else if (!disabledLabel) {
             // ラベル設定
-            const text = createItemNameLabel(mainFeature);
+            const text = createItemNameLabel(mainFeature, resolution);
             style.setText(text);
         }
         return style;
@@ -252,12 +249,15 @@ export default function usePointStyle() {
  * 建物名ラベルを生成して返す
  * @param feature 
  */
-function createItemNameLabel(feature: FeatureLike): Text {
+function createItemNameLabel(feature: FeatureLike, resolution: number): Text {
     // ラベル設定
     let name = (feature.getProperties().name ?? '') as string;
     if (name.length > MapStyles.Item.maxLabelLength) {
-        name = name.substring(0, MapStyles.Item.maxLabelLength) + '…';
+        // 折り返す
+        name = splitString(name, MapStyles.Item.maxLabelLength).join('\n');
     }
+
+    const scale = Math.min(0.002 * (1 / resolution), 1);
 
     const text = new Text({
         textAlign: 'center',
@@ -265,10 +265,24 @@ function createItemNameLabel(feature: FeatureLike): Text {
         text: name,
         overflow: true,
         backgroundFill: new Fill({ color: '#ffffffaa' }),
-        font: '1rem Calibri,sans-serif',
+        font: `${scale}rem Calibri,sans-serif`,
     });
 
     return text;
+}
+
+/**
+ * 文字列を指定の文字数で分割
+ * @param inputString 
+ * @param chunkSize 
+ * @returns 
+ */
+function splitString(inputString: string, chunkSize: number) {
+    const resultArray: string[] = [];
+    for (let index = 0; index < inputString.length; index+=chunkSize) {
+      resultArray.push(inputString.substring(index, index + chunkSize));
+    }
+    return resultArray;
 }
 
 function setClusterLabel(style: Style, size: number) {

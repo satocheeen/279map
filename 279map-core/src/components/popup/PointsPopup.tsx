@@ -17,6 +17,8 @@ import { ItemDefine } from "../../graphql/generated/graphql";
 type Props = {
     // このポップアップにて情報表示する対象アイテム
     itemIds: DataId[];
+
+    size: 's' | 'm' | 'l';
 }
 
 export type PopupItem = {
@@ -107,6 +109,17 @@ export default function PointsPopup(props: Props) {
         }, [props.itemIds, map])
     );
 
+    const sizeClassName = useMemo(() => {
+        switch(props.size) {
+            case 's':
+                return styles.Small;
+            case 'm':
+                return styles.Medium;
+            case 'l':
+                return styles.Large;
+        }
+    }, [props.size]);
+
     const [mapMode] = useAtom(mapModeAtom);
 
     if (!target) {
@@ -117,10 +130,10 @@ export default function PointsPopup(props: Props) {
     }
     return (
         <>
-            <div className={`${styles.Popup} ${imageContentId ? '' : styles.Minimum}`} onClick={onClick}>
+            <div className={`${styles.Popup} ${imageContentId ? '' : styles.Minimum} ${sizeClassName}`} onClick={onClick}>
                 <div className={styles.Contents}>
                     {imageContentId ?
-                        <div className={styles.ImageContainer}>
+                        <div className={`${styles.ImageContainer}`}>
                             <MyThumbnail mode='thumb' className={styles.Image} id={imageContentId} alt="contents" />
                         </div>
                         :

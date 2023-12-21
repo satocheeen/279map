@@ -21,9 +21,6 @@ export type PopupGroupWithPosition = {
     itemIds: DataId[];  // ポップアップに紐づくアイテムID一覧
 }
 
-// 最大表示ポップアップ数（数が多いと見づらいので）
-const MAX_POPUP_GROUP_NUM = 20;
-
 /**
  * ポップアップ表示に関する以下を行うクラス
  * - ポップアップ表示対象を抽出してグルーピング
@@ -63,16 +60,7 @@ export default class PopupContainerCalculator {
         const itemPopupInfos = this._makeItemPopupGroups();
         const areaPopupInfos = this._makeAreaPopupGroups();
         let infos = itemPopupInfos.concat(areaPopupInfos);
-        if (infos.length <= MAX_POPUP_GROUP_NUM) {
-            return infos;
-        }
-        // 数が多い場合は絞る
-        infos = infos.filter(info => info.hasImage);
-        if (infos.length <= MAX_POPUP_GROUP_NUM) {
-            return infos;
-        }
-        
-        return [];
+        return infos;
     }
 
     /**
