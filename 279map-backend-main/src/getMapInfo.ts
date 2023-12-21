@@ -1,9 +1,9 @@
 import { ConnectionPool } from '.';
-import { Auth, MapKind, MapPageOptions } from '279map-common';
+import { MapPageOptions } from '279map-common';
 import mysql from 'mysql2/promise';
 import { DataSourceTable, MapPageInfoTable } from '../279map-backend-common/src/types/schema';
 import { schema } from '../279map-backend-common/src';
-import { DatasourceKindType, DatasourceConfig, DatasourceGroup, DatasourceInfo, MapInfo, RealPointContentConfig, ContentConfig } from './graphql/__generated__/types';
+import { DatasourceKindType, DatasourceConfig, DatasourceGroup, DatasourceInfo, MapInfo, RealPointContentConfig, ContentConfig, MapKind, Auth } from './graphql/__generated__/types';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 
 /**

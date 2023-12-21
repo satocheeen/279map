@@ -1,7 +1,7 @@
-import { Auth, User } from "279map-common";
 import axios, { AxiosResponse } from "axios";
 import { Request, Response, NextFunction } from "express";
 import { AuthManagementInterface, MapInfo } from "../../279map-backend-common/src";
+import { Auth, User } from "../graphql/__generated__/types";
 
 /**
  * オリジナルの認証サーバーで認証処理を行う場合

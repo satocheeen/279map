@@ -1,4 +1,4 @@
-import { Auth } from "279map-common";
+import { Auth } from "./__generated__/types";
 import { Resolvers } from "./type_utility";
 
 type AuthLvDefine = Record<Resolvers, Auth>

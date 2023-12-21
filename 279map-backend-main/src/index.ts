@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import mysql from 'mysql2/promise';
 import { getMapInfo } from './getMapInfo';
-import { Auth, AuthMethod, DataId, MapPageOptions, FilterDefine } from '279map-common';
+import { AuthMethod, DataId, MapPageOptions } from '279map-common';
 import { getItems } from './getItems';
 import { configure, getLogger } from "log4js";
 import { DbSetting, LogSetting } from './config';
@@ -33,7 +33,7 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { IFieldResolverOptions } from '@graphql-tools/utils';
-import { ConnectInfo, DatasourceConfig, DatasourceKindType, ErrorType, MapDefine, MapKind, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, ThumbSize } from './graphql/__generated__/types';
+import { Auth, ConnectInfo, DatasourceConfig, DatasourceKindType, ErrorType, MapDefine, MapKind, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, ThumbSize } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -531,25 +531,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
              */
             search: async(_, param: QuerySearchArgs, ctx): QueryResolverReturnType<'search'> => {
                 try {
-                    const conditions: FilterDefine[] = [];
-                    param.condition.category?.forEach(category => {
-                        conditions.push({
-                            type: 'category',
-                            category,
-                        })
-                    });
-                    param.condition.date?.forEach(date => {
-                        conditions.push({
-                            type: 'calendar',
-                            date,
-                        })
-                    });
-                    param.condition.keyword?.forEach(keyword => {
-                        conditions.push({
-                            type: 'keyword',
-                            keyword,
-                        })
-                    });
                     const result = await search(ctx.currentMap, param)
                     return result;
 

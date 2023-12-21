@@ -11,7 +11,7 @@ const config: CodegenConfig = {
         {
           add: {
             content: [
-              "import { DataId, GeocoderId } from '279map-common'",
+              "import { DataId } from '279map-common'",
               "import { Geometry } from 'geojson'",
             ]
           }

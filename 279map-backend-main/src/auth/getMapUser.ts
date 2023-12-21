@@ -1,9 +1,10 @@
 import { authManagementClient } from "..";
-import { Auth, AuthMethod, MapPageOptions } from '279map-common';
+import { AuthMethod, MapPageOptions } from '279map-common';
 import { getLogger } from 'log4js';
 import { authMethod } from '..';
 import { Request } from 'express';
 import { MapPageInfoTable, PublicRange } from "../../279map-backend-common/src/types/schema";
+import { Auth } from "../graphql/__generated__/types";
 
 const apiLogger = getLogger('api');
 

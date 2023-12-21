@@ -1,9 +1,8 @@
 import { ConnectionPool } from "..";
-import { MapKind } from "279map-common";
 import { getIcon } from "./getIcon";
 import { CurrentMap } from "../../279map-backend-common/src";
 import { OriginalIconsTable } from "../../279map-backend-common/src/types/schema";
-import { IconDefine } from "../graphql/__generated__/types";
+import { IconDefine, MapKind } from "../graphql/__generated__/types";
 
 export async function getOriginalIconDefine(currentMap: CurrentMap): Promise<IconDefine[]> {
     const pageId = currentMap?.mapId;

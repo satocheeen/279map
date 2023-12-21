@@ -1,12 +1,13 @@
 import { ConnectionPool } from '..';
-import { MapKind, Extent, DataId } from '279map-common';
+import { Extent, DataId } from '279map-common';
 import mysql, { PoolConnection } from 'mysql2/promise';
 import { ContentsTable, ItemsTable } from '../../279map-backend-common/src/types/schema';
 import { CurrentMap } from '../../279map-backend-common/src';
-import { buffer, circle, envelope, featureCollection, lineString, multiLineString, multiPolygon, point, polygon, union } from '@turf/turf';
+import { buffer, circle, featureCollection, lineString, multiLineString, multiPolygon, point, polygon, union } from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 import crypto from 'crypto';
 import * as geojson from 'geojson';
+import { MapKind } from '../graphql/__generated__/types';
 
 export function getExtentWkt(ext: Extent): string {
     const [lon1, lat1, lon2, lat2] = ext;

@@ -1,6 +1,7 @@
-import { DataId, MapKind } from "279map-common";
+import { DataId } from "279map-common";
 import { ConnectionPool } from "..";
 import { schema } from "../../279map-backend-common/src";
+import { MapKind } from "../graphql/__generated__/types";
 
 type Result = {
     mapId: string;

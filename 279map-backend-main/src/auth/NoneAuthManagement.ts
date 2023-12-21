@@ -1,8 +1,8 @@
-import { Auth, User } from "279map-common"
 import { Request, Response, NextFunction } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
 import { ParsedQs } from "qs";
 import { AuthManagementInterface, MapInfo } from "../../279map-backend-common/src";
+import { Auth, User } from "../graphql/__generated__/types";
 
 export class NoneAuthManagement extends AuthManagementInterface {
     async initialize(): Promise<void> {
