@@ -136,6 +136,25 @@ export enum DatasourceKindType {
   Track = 'Track'
 }
 
+export enum ErrorType {
+  /** ユーザのtokenが有効切れの場合 */
+  Forbidden = 'Forbidden',
+  /** その他接続エラー */
+  IllegalError = 'IllegalError',
+  /** アクセス権限のない地図にユーザがアクセスしようとした場合 */
+  NoAuthenticate = 'NoAuthenticate',
+  /** 編集権限を持たないユーザが編集権限の必要なAPIを実行しようとした場合 */
+  OperationForbidden = 'OperationForbidden',
+  /** アクセス権限のない地図に登録申請中の場合 */
+  Requesting = 'Requesting',
+  /** セッションタイムアウト時 */
+  SessionTimeout = 'SessionTimeout',
+  /** 地図が認証必要だが、ユーザがtokenを持たない場合（＝ログインが必要な場合） */
+  Unauthorized = 'Unauthorized',
+  /** 指定の地図が存在しない場合 */
+  UndefinedMap = 'UndefinedMap'
+}
+
 export type EventDefine = {
   __typename?: 'EventDefine';
   datasourceId?: Maybe<Scalars['String']['output']>;

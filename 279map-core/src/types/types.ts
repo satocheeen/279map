@@ -1,7 +1,6 @@
 import { ContentAttr, DataId, FeatureType, GeoProperties, IconDefine } from "279map-common";
 import { CSSProperties } from "react";
 import { MapKind } from '279map-common';
-import { ErrorType } from "tsunagumap-api";
 import { Auth, CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MapDefine, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult } from "../graphql/generated/graphql";
 
 export type OnMapLoadParam = {
@@ -9,10 +8,6 @@ export type OnMapLoadParam = {
 }
 export type onDatasourceChangedParam = {
     datasourceGroups: DatasourceGroup[];
-}
-export type ApiAccessError = {
-    type: ErrorType;
-    detail?: string;
 }
 export type OnConnectParam = {
     authLv: Auth;

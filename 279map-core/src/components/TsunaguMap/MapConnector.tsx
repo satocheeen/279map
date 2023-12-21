@@ -1,16 +1,14 @@
 import React, { useCallback, useState, useEffect, useContext, useMemo, useRef } from 'react';
 import { instanceIdAtom, mapDefineAtom } from '../../store/session';
-import { ErrorType } from 'tsunagumap-api';
 import Overlay from '../common/spinner/Overlay';
 import { Button } from '../common';
 import Input from '../common/form/Input';
 import styles from './MapConnector.module.scss';
-import { createMqttClientInstance, destroyMqttClientInstance, useSubscribe } from '../../api/useSubscribe';
 import { Auth } from '279map-common';
 import { useAtom } from 'jotai';
 import { ServerInfo, TsunaguMapProps } from '../../types/types';
 import { clientAtom } from 'jotai-urql';
-import { ConnectDocument, ConnectResult, DisconnectDocument, RequestDocument, UpdateUserAuthDocument } from '../../graphql/generated/graphql';
+import { ConnectDocument, ConnectResult, DisconnectDocument, ErrorType, RequestDocument, UpdateUserAuthDocument } from '../../graphql/generated/graphql';
 import { OwnerContext } from './TsunaguMap';
 import { Provider, createStore } from 'jotai';
 import { defaultIconDefineAtom } from '../../store/icon';
@@ -43,17 +41,7 @@ export default function MapConnector(props: Props) {
     useEffect(() => {
         onConnectRef.current = onConnect;
     }, [onConnect]);
-    const [instanceId ] = useAtom(instanceIdAtom);
     
-    // Subscriber用意
-    useEffect(() => {
-        createMqttClientInstance(instanceId, props.server, props.mapId);
-
-        return () => {
-            destroyMqttClientInstance(instanceId);
-        }
-    }, [instanceId, props.server, props.mapId]);
-
     const [ loading, setLoading ] = useState(true);
     const [ connectStatus, setConnectStatus ] = useState<ConnectResult|undefined>();
     const [ errorType, setErrorType ] = useState<ErrorType|undefined>();

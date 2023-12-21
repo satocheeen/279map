@@ -1,5 +1,5 @@
 import { GraphQLError } from 'graphql';
-import { ErrorType } from '../../279map-api-interface/dist';
+import { ErrorType } from './__generated__/types';
 
 type Param = {
     type: ErrorType;
