@@ -1,14 +1,14 @@
-import { FeatureType, ItemContentInfo, ItemDefine, MapKind, DataId } from '279map-common';
+import { FeatureType, ItemContentInfo, MapKind } from '279map-common';
 import { getLogger } from 'log4js';
 import { ConnectionPool } from '.';
-import { GetItemsParam, GetItemsResult } from '../279map-api-interface/src';
 import { PoolConnection } from 'mysql2/promise';
 import { CurrentMap } from '../279map-backend-common/src';
 import { ContentsTable, ItemContentLink, ItemsTable, TrackGeoJsonTable, TracksTable } from '../279map-backend-common/src/types/schema';
+import { QueryGetItemsArgs, ItemDefine } from './graphql/__generated__/types';
 
 const apiLogger = getLogger('api');
 
-export async function getItems({ param, currentMap }: {param:GetItemsParam; currentMap: CurrentMap}): Promise<GetItemsResult> {
+export async function getItems({ param, currentMap }: {param:QueryGetItemsArgs; currentMap: CurrentMap}): Promise<ItemDefine[]> {
     if (!currentMap) {
         throw 'no currentMap';
     }
@@ -21,17 +21,13 @@ export async function getItems({ param, currentMap }: {param:GetItemsParam; curr
     const items = await getItemsSub(currentMap, param);
 
     if (param.excludeItemIds) {
-    // 除外対象のアイテムを除く
-    return {
-            items: items.filter(item => !param.excludeItemIds?.includes(item.id.id))
-        };
+        // 除外対象のアイテムを除く
+        return items.filter(item => !param.excludeItemIds?.includes(item.id.id))
     } else {
-        return {
-            items,
-        };
+        return items;
     }
 }
-export async function getItemsSub(currentMap: CurrentMap, param: GetItemsParam): Promise<ItemDefine[]> {
+export async function getItemsSub(currentMap: CurrentMap, param: QueryGetItemsArgs): Promise<ItemDefine[]> {
     const con = await ConnectionPool.getConnection();
     
     try {
@@ -60,7 +56,7 @@ export async function getItemsSub(currentMap: CurrentMap, param: GetItemsParam):
     
 }
 
-async function selectItems(con: PoolConnection, param: GetItemsParam, currentMap: CurrentMap): Promise<ItemDefine[]> {
+async function selectItems(con: PoolConnection, param: QueryGetItemsArgs, currentMap: CurrentMap): Promise<ItemDefine[]> {
     try {
         // 位置コンテンツ
         let sql = `
@@ -71,7 +67,7 @@ async function selectItems(con: PoolConnection, param: GetItemsParam, currentMap
         where map_page_id = ? and i.map_kind = ? and i.data_source_id = ?
         and ST_Intersects(location, ST_GeomFromText(?,4326))
         `;
-        const params = [currentMap.mapId, currentMap.mapKind, param.dataSourceId, param.wkt];
+        const params = [currentMap.mapId, currentMap.mapKind, param.datasourceId, param.wkt];
         if (param.latestEditedTime) {
             sql += ' and i.last_edited_time > ?';
             params.push(param.latestEditedTime);
@@ -109,7 +105,8 @@ async function selectItems(con: PoolConnection, param: GetItemsParam, currentMap
                 name,
                 geoJson: row.geojson,
                 geoProperties: row.geo_properties ? JSON.parse(row.geo_properties) : undefined,
-                contents,
+                hasContents: contents.length > 0,
+                hasImageContentId: getImageContentId(contents),
                 lastEditedTime,
             });
         }
@@ -128,7 +125,7 @@ async function selectItems(con: PoolConnection, param: GetItemsParam, currentMap
  * @param zoom_lv 
  * @param ext 
  */
-async function selectTrackInArea(con: PoolConnection, param: GetItemsParam, mapPageId: string): Promise<ItemDefine[]> {
+async function selectTrackInArea(con: PoolConnection, param: QueryGetItemsArgs, mapPageId: string): Promise<ItemDefine[]> {
     try {
         const wkt = param.wkt;// getExtentWkt(param.extent);
         const sql = `
@@ -138,7 +135,7 @@ async function selectTrackInArea(con: PoolConnection, param: GetItemsParam, mapP
                     inner join data_source ds on ds.data_source_id = t.data_source_id 
                     inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
                     WHERE map_page_id= ? AND MBRIntersects(geojson, GeomFromText(?,4326)) AND min_zoom <= ? AND ? < max_zoom AND t.data_source_id = ?`;
-        const [rows] = await con.execute(sql, [mapPageId, wkt, param.zoom, param.zoom, param.dataSourceId]);
+        const [rows] = await con.execute(sql, [mapPageId, wkt, param.zoom, param.zoom, param.datasourceId]);
         
         const list = [] as ItemDefine[];
         for (const row of (rows as (TrackGeoJsonTable & TracksTable)[])) {
@@ -154,7 +151,8 @@ async function selectTrackInArea(con: PoolConnection, param: GetItemsParam, mapP
                     max_zoom: row.max_zoom,
                 },
                 name: '',
-                contents: [],
+                hasContents: false,
+                hasImageContentId: [],
                 lastEditedTime: row.last_edited_time,
             })
         }
@@ -210,3 +208,20 @@ export async function  getContentsInfo(con: PoolConnection, contentPageId: strin
     };
 }
 
+/**
+ * ItemContentInfo配列内に存在する画像を持つコンテンツIDを返す
+ * @param contents 
+ * @returns 
+ */
+export function getImageContentId(contents: ItemContentInfo[]) {
+    const getDescendant = (contents: ItemContentInfo[]): ItemContentInfo[] => {
+        const list: ItemContentInfo[] = [];
+        for (const content of contents) {
+            const descendant = getDescendant(content.children);
+            Array.prototype.push.apply(list, [content, ...descendant]);
+        }
+        return list;
+    }
+    const allContent = getDescendant(contents);
+    return allContent.filter(c => c.hasImage).map(c => c.id);
+}

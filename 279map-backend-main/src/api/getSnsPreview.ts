@@ -1,8 +1,7 @@
 import { getSnsPostGetterByUrl } from "../../279map-backend-common/src/sns";
-import { GetSnsPreviewParam, GetSnsPreviewResult } from "../../279map-api-interface/src";
-import { SnsPreviewPost } from '279map-common';
+import { QueryGetSnsPreviewArgs, SnsPreviewResult, SnsType, SnsPreviewPost, MediaType } from "../graphql/__generated__/types";
 
-export async function getSnsPreview(param: GetSnsPreviewParam): Promise<GetSnsPreviewResult> {
+export async function getSnsPreview(param: QueryGetSnsPreviewArgs): Promise<SnsPreviewResult> {
     const postGetter = getSnsPostGetterByUrl(param.url);
     if (!postGetter) {
         throw '対応しているURLではありません。';
@@ -13,12 +12,15 @@ export async function getSnsPreview(param: GetSnsPreviewParam): Promise<GetSnsPr
         return {
             text: post.text,
             date: post.date,
-            media: post.media,
+            media: post.media ? {
+                type: (post.media.type === 'IMAGE' ? MediaType.Image : MediaType.Video),
+                url: post.media.url,
+            } : undefined,
         };
     });
 
     return {
-        type: postGetter.type,
+        type: SnsType.InstagramUser,
         posts: resPost,
     };
 }

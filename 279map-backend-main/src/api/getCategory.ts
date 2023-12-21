@@ -1,9 +1,9 @@
 import randomColor from "randomcolor";
 import { ConnectionPool } from "..";
-import { CurrentMap } from "../../279map-backend-common/src";
-import { GetCategoryParam, GetCategoryResult } from "../../279map-api-interface/src";
+import { CategoryDefine, CurrentMap } from "../../279map-backend-common/src";
 import { getLogger } from "log4js";
-import { CategoryDefine } from '279map-common';
+import { QueryGetCategoryArgs } from "../graphql/__generated__/types";
+import { QueryResolverReturnType } from "../graphql/type_utility";
 
 const apiLogger = getLogger('api');
 
@@ -12,7 +12,7 @@ const apiLogger = getLogger('api');
  * @param currentMap 
  * @returns categories
  */
-export async function getCategory(param: GetCategoryParam, currentMap: CurrentMap): Promise<GetCategoryResult> {
+export async function getCategory(param: QueryGetCategoryArgs, currentMap: CurrentMap): QueryResolverReturnType<'getCategory'> {
     if (!currentMap) {
         throw 'mapPageId or mapKind not defined.';
     }
@@ -21,7 +21,7 @@ export async function getCategory(param: GetCategoryParam, currentMap: CurrentMa
 
     try {
         // コンテンツで使用されているカテゴリを取得
-        const records = await getAllCategories(currentMap, param.dataSourceIds);
+        const records = await getAllCategories(currentMap, param.datasourceIds ?? undefined);
         const categoryMap = new Map<string, CategoryDefine>();
         records.forEach((row) => {
             const categories = (JSON.parse(row.category) ?? []) as string[];
@@ -48,7 +48,13 @@ export async function getCategory(param: GetCategoryParam, currentMap: CurrentMa
             category.color = colors[index];
         });
 
-        return categories;
+        return categories.map(c => {
+            const { dataSourceIds, ...atr } = c;
+            return {
+                datasourceIds: dataSourceIds,
+                ...atr,
+            }
+        });
         
     } catch(e) {
         throw 'getCategory error' + e;

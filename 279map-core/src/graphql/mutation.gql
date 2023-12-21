@@ -1,0 +1,216 @@
+mutation connect (
+    $mapId: String!
+) {
+    connect(mapId: $mapId) {
+        mapDefine {
+            name
+            useMaps
+            defaultMapKind
+            options
+        }
+        connect {
+            sid
+            authLv
+            userId
+            userName
+        }
+    }
+}
+mutation disconnect {
+    disconnect
+}
+
+fragment datasourceInfo on DatasourceInfo {
+    datasourceId
+    name
+    visible
+    kind
+    config {
+        ... on ItemConfig {
+            layerGroup
+            editable
+            deletable
+        }
+        ... on RealPointContentConfig {
+            defaultIcon
+            linkableContents
+            layerGroup
+            editable
+            deletable
+        }
+
+        ... on ContentConfig {
+            linkableChildContents
+            disableUnlinkMap
+            editable
+            deletable
+        }
+
+    }
+}
+mutation switchMapKind (
+    $mapKind: MapKind!
+) {
+    switchMapKind (
+        mapKind: $mapKind
+    ) {
+        extent
+        itemDataSourceGroups {
+            name
+            visible
+            datasources {
+                ...datasourceInfo
+            }
+        }
+        contentDataSources {
+            ...datasourceInfo
+        }
+        originalIcons {
+            id
+            caption
+            imagePath
+            useMaps
+        }
+    }
+}
+
+mutation registItem (
+    $datasourceId: String!
+    $name: String
+    $geometry: Geometry!
+    $geoProperties: JSON!
+) {
+    registItem (
+        datasourceId: $datasourceId,
+        name: $name,
+        geometry: $geometry,
+        geoProperties: $geoProperties
+    )
+}
+
+mutation updateItem (
+    $targets: [UpdateItemInput!]!
+) {
+    updateItem (
+        targets: $targets
+    )
+}
+
+mutation removeItem (
+    $id: DataId!
+) {
+    removeItem(
+        id: $id
+    )
+}
+
+mutation registContent (
+    $parent: ParentInput!
+    $datasourceId: String!
+
+    $title: String!
+    $overview: String
+    $categories: [String!]
+    $type: ContentType!
+    $date: String
+    $imageUrl: String
+    $url: String
+) {
+    registContent(
+        parent: $parent
+        datasourceId: $datasourceId
+        title: $title
+        overview: $overview
+        categories: $categories
+        type: $type
+        date: $date
+        imageUrl: $imageUrl
+        url: $url
+    )
+}
+
+mutation updateContent (
+    $id: DataId!
+    $title: String
+    $overview: String
+    $categories: [String!]
+    $type: ContentType!
+    $date: String
+    $imageUrl: String
+    $url: String
+) {
+    updateContent(
+        id: $id
+        title: $title
+        overview: $overview
+        categories: $categories
+        type: $type
+        date: $date
+        imageUrl: $imageUrl
+        url: $url
+    )
+}
+
+mutation linkContent (
+    $id: DataId!
+    $parent: ParentInput!
+) {
+    linkContent (
+        id: $id
+        parent: $parent
+    )
+}
+
+mutation unlinkContent (
+    $id: DataId!
+    $parent: ParentInput!
+) {
+    unlinkContent (
+        id: $id
+        parent: $parent
+    )
+}
+
+mutation removeContent (
+    $id: DataId!
+) {
+    removeContent (
+        id: $id
+    )
+}
+
+mutation changeAuthLevel (
+    $userId: ID!
+    $authLv: Auth!
+) {
+    changeAuthLevel(
+        userId: $userId
+        authLv: $authLv
+    )
+}
+
+mutation request (
+    $mapId: String!
+    $name: String!
+) {
+    request(
+        mapId: $mapId
+        name: $name
+    )
+}
+
+mutation linkContentsDatasource (
+    $contentsDatasources: [ContentsDatasourceInput!]!
+) {
+    linkContentsDatasource (
+        contentsDatasources: $contentsDatasources,
+    )
+}
+
+mutation unlinkContentsDatasource (
+    $contentsDatasourceIds: [String!]!
+) {
+    unlinkContentsDatasource (
+        contentsDatasourceIds: $contentsDatasourceIds,
+    )
+}

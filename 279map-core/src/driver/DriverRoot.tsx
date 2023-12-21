@@ -1,10 +1,10 @@
-import { AuthMethod, ServerConfig } from '279map-common';
 import React, { useMemo, useState } from 'react';
 import { useMounted } from '../util/useMounted';
 import { getAuthConfig } from '../api';
 import { Auth0Provider } from "@auth0/auth0-react";
 import TestMap from './TestMap';
 import { myMapServer } from './const';
+import { ServerConfig } from '../graphql/generated/graphql';
 
 /**
  * for Development
@@ -37,8 +37,9 @@ export default function DriverRoot() {
      * 起動時に認証定義情報を取得する
      */
     useMounted(() => {
+        console.log('mount');
         getAuthConfig(myMapServer.host, myMapServer.ssl)
-        .then((result: ServerConfig) => {
+        .then((result) => {
             setAuthConfig(result);
         })
     });
@@ -47,14 +48,15 @@ export default function DriverRoot() {
         return null;
     }
 
-    if (authConfig.authMethod === AuthMethod.Auth0) {
+    if (authConfig.__typename === 'Auth0Config') {
+        console.log('debug', authConfig)
         return (
             <Auth0Provider
-                domain={authConfig.auth0.domain}
-                clientId={authConfig.auth0.clientId}
+                domain={authConfig.domain}
+                clientId={authConfig.clientId}
                 authorizationParams={{
                     redirect_uri: window.location.origin,
-                    audience: authConfig.auth0.audience,
+                    audience: authConfig.audience,
                 }}
             >
                 <AuthContext.Provider value={authContextValue}>

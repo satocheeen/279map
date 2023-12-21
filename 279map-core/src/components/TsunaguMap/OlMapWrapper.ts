@@ -13,15 +13,16 @@ import VectorLayer from "ol/layer/Vector";
 import Style, { StyleFunction } from "ol/style/Style";
 import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
-import { DataId, FeatureType, ItemDefine, MapKind, DataSourceGroup, APIDefine, DataSourceKindType } from '279map-common';
+import { DataId, FeatureType, MapKind } from '279map-common';
 import BaseEvent from 'ol/events/Event';
 import * as MapUtility from '../../util/MapUtility';
 import { FeatureProperties } from '../../types/types';
 import { Pixel } from 'ol/pixel';
 import { convertDataIdFromFeatureId, getMapKey } from '../../util/dataUtility';
-import { GetGeocoderFeatureAPI } from 'tsunagumap-api';
 import { FitOptions } from 'ol/View';
 import { Coordinate } from 'ol/coordinate';
+import { DatasourceGroup, DatasourceKindType, GetGeocoderFeatureDocument, ItemDefine } from '../../graphql/generated/graphql';
+import { Client } from 'urql';
 
 export type FeatureInfo = {
     id: DataId;
@@ -33,7 +34,6 @@ type Device = 'pc' | 'sp';
 const pcControls = olControl.defaults({attribution: true});
 const spControls = olControl.defaults({attribution: true, zoom: false});
 
-type CallApiType = <API extends APIDefine<any, any>>(api: API, param: API['param']) => Promise<API['result']>
 /**
  * OpenLayersの地図を内包したクラス。
  * 当該システムで必要な機能を実装している。
@@ -45,15 +45,15 @@ export class OlMapWrapper {
     _mapKind?: MapKind;
     _currentZoom: number;   // Zoomレベル変更検知用に保持
     _device: Device = 'pc';
-    _callApi: CallApiType;
+    _gqlClient: Client;
 
     // 描画用レイヤ
     _drawingLayers: VectorLayer<VectorSource>[] = [];
 
-    constructor(id: string, target: HTMLDivElement, device: Device, mycallApi: CallApiType) {
+    constructor(id: string, target: HTMLDivElement, device: Device, gqlClient: Client) {
         this._id = id;
         this._vectorLayerMap = new VectorLayerMap();
-        this._callApi = mycallApi;
+        this._gqlClient = gqlClient;
         console.log('create OlMapWrapper', this._id);
 
         const map = new OlMap({
@@ -121,7 +121,7 @@ export class OlMapWrapper {
     /**
      * 地図種別に対応した初期レイヤを設定する
      */
-    initialize(mapKind: MapKind, dataSourceGroups: DataSourceGroup[], fitExtent?: Extent) {
+    initialize(mapKind: MapKind, dataSourceGroups: DatasourceGroup[], fitExtent?: Extent) {
         this._mapKind = mapKind;
         let extent = fitExtent;
         if (mapKind === MapKind.Real) {
@@ -158,13 +158,13 @@ export class OlMapWrapper {
             this._map.setLayers(layers);
 
             dataSourceGroups.forEach(group => {
-                group.dataSources.forEach(ds => {
-                    if (ds.kind === DataSourceKindType.Track) {
+                group.datasources.forEach(ds => {
+                    if (ds.kind === DatasourceKindType.Track) {
                         [[1, 8], [8, 13], [13, 21]].forEach(zoomLv => {
                             const layerDefine: LayerDefine = {
-                                dataSourceId: ds.dataSourceId,
+                                dataSourceId: ds.datasourceId,
                                 group: group.name ?? '',
-                                editable: ds.editable ?? false,
+                                editable: ds.config.editable ?? false,
                                 layerType: LayerType.Track,
                                 zoomLv: {
                                     min: zoomLv[0],
@@ -174,12 +174,12 @@ export class OlMapWrapper {
                             this.addLayer(layerDefine, ds.visible);
                         })
     
-                    } else if (ds.kind === DataSourceKindType.Item || ds.kind === DataSourceKindType.RealPointContent) {
+                    } else if (ds.kind === DatasourceKindType.Item || ds.kind === DatasourceKindType.RealPointContent) {
                         [LayerType.Point, LayerType.Topography].forEach(layerType => {
                             const layerDefine: LayerDefine = {
-                                dataSourceId: ds.dataSourceId,
+                                dataSourceId: ds.datasourceId,
                                 group: group.name ?? '',
-                                editable: ds.editable ?? false,
+                                editable: ds.config.editable ?? false,
                                 layerType: layerType as LayerType.Point| LayerType.Topography,
                             };
                             this.addLayer(layerDefine, ds.visible);
@@ -193,15 +193,15 @@ export class OlMapWrapper {
             // 村マップ
             extent ??= [0, 0, 2, 2];
             dataSourceGroups.forEach(group => {
-                group.dataSources.forEach(ds => {
-                    if (ds.kind !== DataSourceKindType.Item) {
+                group.datasources.forEach(ds => {
+                    if (ds.kind !== DatasourceKindType.Item) {
                         return;
                     }
                     [LayerType.Point, LayerType.Topography].forEach(layerType => {
                         const layerDefine: LayerDefine = {
-                            dataSourceId: ds.dataSourceId,
+                            dataSourceId: ds.datasourceId,
                             group: group.name ?? '',
-                            editable: ds.editable ?? false,
+                            editable: ds.config.editable ?? false,
                             layerType: layerType as LayerType.Point| LayerType.Topography,
                         };
                         this.addLayer(layerDefine, ds.visible);
@@ -258,10 +258,13 @@ export class OlMapWrapper {
             // 仮設定ジオメトリ（矩形）は非表示
             feature.setStyle(new Style());
 
-            this._callApi(GetGeocoderFeatureAPI, def.geoProperties.geocoderId)
+            this._gqlClient.query(GetGeocoderFeatureDocument, {
+                id: def.geoProperties.geocoderId,
+            })
             .then((result => {
+                const geometry = result.data?.getGeocoderFeature;
                 // 呼び出し完了後に差し替え
-                const newFeature = new GeoJSON().readFeatures(result.geoJson)[0];
+                const newFeature = new GeoJSON().readFeatures(geometry)[0];
                 feature.setGeometry(newFeature.getGeometry());
                 feature.setStyle();
             }))
@@ -597,7 +600,7 @@ export class OlMapWrapper {
      * @param target 
      * @param visible 
      */
-    updateLayerVisible(dataSourceGroups: DataSourceGroup[]) {
+    updateLayerVisible(dataSourceGroups: DatasourceGroup[]) {
         let hiddenToShowFlag = false;   // 非表示レイヤが表示に切り替わるケースがあるか
         const changeVisible = (target: { dataSourceId: string } | { group: string }, visible: boolean) => {
             let layerInfos: LayerInfo[];
@@ -620,9 +623,9 @@ export class OlMapWrapper {
             }, group.visible);
             if (!group.visible) return;
 
-            group.dataSources.forEach(ds => {
+            group.datasources.forEach(ds => {
                 changeVisible({
-                    dataSourceId: ds.dataSourceId,
+                    dataSourceId: ds.datasourceId,
                 }, ds.visible);
             });
         })

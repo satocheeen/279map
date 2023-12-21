@@ -1,0 +1,199 @@
+enum MapKind {
+    Real
+    Virtual
+}
+enum ParentOfContent {
+    Item
+    Content
+}
+input ParentInput {
+    type: ParentOfContent!
+    id: DataId!
+}
+input ContentsDatasourceInput {
+    datasourceId: String!
+    name: String!   # 名前はユーザ側で指定可能
+}
+
+# --------------
+# connect
+# --------------
+scalar MapPageOptions
+type MapDefine {
+    name: String!
+    useMaps: [MapKind!]!
+    defaultMapKind: MapKind!
+    options: MapPageOptions!
+}
+type ConnectInfo {
+    sid: String!
+    authLv: Auth!
+    userId: String
+    userName: String
+}
+type ConnectResult {
+    mapDefine: MapDefine!
+    connect: ConnectInfo!
+}
+
+# --------------
+# swutchMapKind
+# --------------
+type MapInfo {
+    extent: [Float!]!
+    itemDataSourceGroups: [DatasourceGroup!]!
+    contentDataSources: [DatasourceInfo!]!
+    originalIcons: [IconDefine!]!
+}
+type DatasourceGroup {
+    name: String
+    visible: Boolean!
+    datasources: [DatasourceInfo!]!
+}
+
+enum DatasourceKindType {
+    Item
+    RealPointContent
+    Content
+    Track
+}
+type DatasourceInfo {
+    datasourceId: String!
+    name: String!
+    visible: Boolean!
+    kind: DatasourceKindType!
+    config: DatasourceConfig!
+}
+# interface DatasourceConfig {
+#     kind: DatasourceKindType!
+#     editable: Boolean!
+#     deletable: Boolean!
+# }
+type ItemConfig {
+    kind: DatasourceKindType!
+    layerGroup: String
+    editable: Boolean!
+    deletable: Boolean!
+}
+scalar IconKey
+type RealPointContentConfig {
+    kind: DatasourceKindType!
+    defaultIcon: IconKey
+    layerGroup: String
+    linkableContents: Boolean!
+    editable: Boolean!
+    deletable: Boolean!
+}
+type ContentConfig {
+    kind: DatasourceKindType!
+    linkableChildContents: Boolean!
+    disableUnlinkMap: Boolean
+    editable: Boolean!
+    deletable: Boolean!
+}
+type TrackConfig {
+    kind: DatasourceKindType!
+    layerGroup: String
+    editable: Boolean!
+    deletable: Boolean!
+}
+union DatasourceConfig = ItemConfig | RealPointContentConfig | ContentConfig | TrackConfig
+
+type IconDefine {
+    id: ID!
+    caption: String
+    imagePath: String!
+    useMaps: [MapKind!]!
+}
+
+# ------------------------------
+input UpdateItemInput {
+    id: DataId!
+    name: String
+    geometry: Geometry
+    geoProperties: JSON
+}
+
+type Mutation {
+    connect (
+        mapId: String!
+    ): ConnectResult!
+
+    disconnect: Boolean
+
+    switchMapKind (
+        mapKind: MapKind!
+    ): MapInfo!
+
+    registItem (
+        datasourceId: String!
+        name: String
+        geometry: Geometry!
+        geoProperties: JSON!
+    ): Boolean
+    
+    updateItem (
+        targets: [UpdateItemInput!]!
+    ): Boolean
+
+    removeItem (
+        id: DataId!
+    ): Boolean
+
+    registContent (
+        parent: ParentInput!
+        datasourceId: String!
+
+        title: String!
+        overview: String
+        categories: [String!]
+        type: ContentType!
+        date: String
+        imageUrl: String
+        url: String
+    ): Boolean
+
+    updateContent (
+        id: DataId!
+        title: String
+        overview: String
+        categories: [String!]
+        type: ContentType!
+        date: String
+        imageUrl: String
+        url: String
+    ): Boolean
+
+    linkContent (
+        id: DataId!
+        parent: ParentInput!
+    ): Boolean
+
+    unlinkContent (
+        id: DataId!
+        parent: ParentInput!
+    ): Boolean
+
+    removeContent (
+        id: DataId!
+    ): Boolean
+
+    changeAuthLevel (
+        userId: ID!
+        authLv: Auth!
+    ): Boolean
+
+    request (
+        mapId: String!
+        name: String!
+    ): Boolean
+
+    linkContentsDatasource (
+        contentsDatasources: [ContentsDatasourceInput!]!
+    ): Boolean
+
+    unlinkContentsDatasource (
+        contentsDatasourceIds: [String!]!
+    ): Boolean
+
+}

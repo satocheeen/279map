@@ -1,11 +1,12 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Button, Modal } from '../../common';
 import CurrentContentsListPage from './CurrentContentsListPage';
-import AddableContentsListPage, { ContentDatasourceItem } from './AddableContentsListPage';
-import { useApi } from '../../../api/useApi';
-import { LinkContentDatasourceToMapAPI } from 'tsunagumap-api';
+import AddableContentsListPage from './AddableContentsListPage';
 import { modalSpinnerAtom } from '../../common/modal/Modal';
 import { useAtomCallback } from 'jotai/utils';
+import { ContentsDatasource, LinkContentsDatasourceDocument } from '../../../graphql/generated/graphql';
+import { useAtom } from 'jotai';
+import { clientAtom } from 'jotai-urql';
 
 type Props = {
     onClose: () => void;
@@ -15,28 +16,23 @@ export default function DefaultContentsSettingModal(props: Props) {
     const [show, setShow] = useState(true);
     const [page, setPage] = useState<'current'|'add'>('current'); 
 
-    const [addTargetList, setAddTargetList] = useState<ContentDatasourceItem[]>([]);
-    const handleChangeAddTargetChange = useCallback((items: ContentDatasourceItem[]) => {
+    const [addTargetList, setAddTargetList] = useState<ContentsDatasource[]>([]);
+    const handleChangeAddTargetChange = useCallback((items: ContentsDatasource[]) => {
         setAddTargetList(items);
     }, [])
 
-    const { callApi } = useApi();
+    const [ gqlClient ] = useAtom(clientAtom);
     const handleAddClicked = useAtomCallback(
         useCallback(async(get, set) => {
             set(modalSpinnerAtom, true);
-            await callApi(LinkContentDatasourceToMapAPI, {
-                contents: addTargetList.map(target => {
-                    return {
-                        datasourceId: target.datasourceId,
-                        name: target.name,
-                    }
-                })
-            })
+            await gqlClient.mutation(LinkContentsDatasourceDocument, {
+                contentsDatasources: addTargetList,
+            });
             set(modalSpinnerAtom, false);
 
             // コンテンツ一覧ページに戻る
             setPage('current');
-        }, [addTargetList, callApi])
+        }, [addTargetList, gqlClient])
     )
 
     const footer = useMemo(() => {

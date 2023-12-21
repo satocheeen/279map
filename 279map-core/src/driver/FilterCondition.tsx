@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useCallback, useRef } from 'react';
-import { CategoryDefine, FilterDefine } from '../entry';
+import { FilterDefine } from '../entry';
 import styles from './FilterCondition.module.scss';
-import { useWatch } from '../util/useWatch';
+import { useWatch } from '../util/useWatch2';
+import { CategoryDefine, Condition } from '../graphql/generated/graphql';
 
 type Props = {
     categories: CategoryDefine[];
-    onChange: (filter: FilterDefine[] | undefined) => void;
+    onChange: (filter: Condition | undefined) => void;
 }
 
 export default function FilterCondition(props: Props) {
@@ -17,43 +18,22 @@ export default function FilterCondition(props: Props) {
 
     const [ date, setDate ] = useState<string>('');
     const [ keyword, setKeyword ] = useState<string>('');
-    const filter = useMemo((): FilterDefine[] | undefined => {
-        const filter = [] as FilterDefine[];
-        if (category) {
-            filter.push(
-                {
-                    type: 'category',
-                    category,
-                }
-            );
-        }
-        if (date.length > 0) {
-            filter.push(
-                {
-                    type: 'calendar',
-                    date,
-                }
-            )
-        }
-        if (keyword.length > 0) {
-            filter.push(
-                {
-                    type: 'keyword',
-                    keyword,
-                }
-            )
-
-        }
-        if (filter.length === 0) {
+    const filter = useMemo((): Condition | undefined => {
+        if ([category, date, keyword].every(val => !val)) {
             return undefined;
         }
+        const filter: Condition = {
+            category: category ? [category] : undefined,
+            date: date ? [date] : undefined,
+            keyword: keyword ? [keyword] : undefined
+        };
         return filter;
 
     }, [category, date, keyword]);
 
-    useWatch(() => {
+    useWatch(filter, () => {
         props.onChange(filter);
-    }, [filter]);
+    });
     
     const categoryFilter = useMemo(() => {
         return (

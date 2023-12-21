@@ -1,13 +1,13 @@
 import { ConnectionPool, authManagementClient } from "..";
-import { MapInfo } from "../../279map-api-interface/src";
 import { MapPageInfoTable, PublicRange } from "../../279map-backend-common/src/types/schema";
+import { MapListItem } from "../graphql/__generated__/types";
 
 /**
  * ユーザがアクセス可能な地図一覧を返す
  * @param userId 
  * @returns 
  */
-export async function getMapList(userId: string | undefined): Promise<MapInfo[]> {
+export async function getMapList(userId: string | undefined): Promise<MapListItem[]> {
     const con = await ConnectionPool.getConnection();
 
     try {
@@ -17,7 +17,7 @@ export async function getMapList(userId: string | undefined): Promise<MapInfo[]>
         const selectPublicQuery = 'select * from map_page_info where public_range = ?';
         const [rows] = await con.execute(selectPublicQuery, [PublicRange.Public]);
         const records = rows as MapPageInfoTable[];
-        const publicMapList = records.map((record): MapInfo => {
+        const publicMapList = records.map((record): MapListItem => {
             return {
                 mapId: record.map_page_id,
                 name: record.title,
@@ -31,7 +31,7 @@ export async function getMapList(userId: string | undefined): Promise<MapInfo[]>
 
         // ユーザがアクセス権限のあるPrivate地図一覧を取得
         const accessableMapIdList = await authManagementClient.getUserMapList(userId);
-        const privateMapList = [] as MapInfo[];
+        const privateMapList = [] as MapListItem[];
         for (const mapId of accessableMapIdList) {
             const selectPublicQuery = 'select * from map_page_info where map_page_id = ? and  public_range = ?';
             const [rows] = await con.execute(selectPublicQuery, [mapId, PublicRange.Private]);

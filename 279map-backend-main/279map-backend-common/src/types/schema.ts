@@ -1,4 +1,5 @@
-import { MapKind, MapPageOptions, DatasourceConfig, DataSourceKindType } from '279map-common';
+import { MapKind, MapPageOptions } from '279map-common';
+import { DatasourceConfig, DatasourceKindType } from '../../../src/graphql/__generated__/types';
 import { SnsOptions } from '../sns';
 
 export enum PublicRange {
@@ -24,7 +25,7 @@ export interface OdbaConnection {
 export type DataSourceTable = {
     data_source_id: string;
     name: string;
-    kind: DataSourceKindType;
+    kind: DatasourceKindType;
 
     // 登録時はstring, 取得時はDatasourceConfig
     config: string | DatasourceConfig;

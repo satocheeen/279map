@@ -1,17 +1,17 @@
 import { ConnectionPool } from ".";
-import { EventDefine } from "279map-common";
-import { GetEventParam, GetEventsResult } from "../279map-api-interface/src";
 import { getLogger } from "log4js";
 import { CurrentMap } from "../279map-backend-common/src";
+import { QueryGetEventArgs } from "./graphql/__generated__/types";
+import { QueryResolverReturnType } from "./graphql/type_utility";
 
 const logger = getLogger('api');
-export async function getEvents(param: GetEventParam, currentMap: CurrentMap): Promise<GetEventsResult> {
+export async function getEvents(param: QueryGetEventArgs, currentMap: CurrentMap): QueryResolverReturnType<'getEvent'> {
     if (!currentMap) {
         throw 'no currentmap';
     }
     try {
         // get contents which has date in the map
-        const records = await getAllDates(currentMap, param.dataSourceIds);
+        const records = await getAllDates(currentMap, param.datasourceIds ?? undefined);
         const dataSourceMap = new Map<string, DateResult[]>();
         records.forEach(rec => {
             if (!dataSourceMap.has(rec.data_source_id)) {
@@ -19,19 +19,11 @@ export async function getEvents(param: GetEventParam, currentMap: CurrentMap): P
             }
             dataSourceMap.get(rec.data_source_id)?.push(rec);
         });
-        return Array.from(dataSourceMap.entries()).map((entry): EventDefine => {
+        return Array.from(dataSourceMap.entries()).map((entry) => {
             const val = entry[1];
             return {
                 dataSourceId: entry[0],
-                contentDate: val.map(v => {
-                    return {
-                        date: v.date,
-                        contentId: {
-                            dataSourceId: v.content_datasource_id,
-                            id: v.content_page_id,
-                        }
-                    }
-                })
+                dates: val.map(v => v.date),
             }
         })
 
@@ -61,14 +53,14 @@ async function getAllDates(currentMap: CurrentMap, dataSourceIds?: string[]): Pr
         await con.beginTransaction();
 
         const sql = `
-        select c.data_source_id, c.date, icl.content_page_id, icl.content_datasource_id from contents c
+        select c.data_source_id, DATE_FORMAT(c.date, '%Y-%m-%d') as date, icl.content_page_id, icl.content_datasource_id from contents c
         inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
         inner join item_content_link icl on icl.content_page_id = c.content_page_id and icl.content_datasource_id = c.data_source_id 
         inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id
         where date is not null and mdl.map_page_id = ? and i.map_kind = ?
         ${dataSourceIds ? 'and c.data_source_id in (?)' : ''}
         union distinct 
-        select distinct icl.item_datasource_id as data_source_id, c.date, icl.content_page_id, icl.content_datasource_id from contents c 
+        select distinct icl.item_datasource_id as data_source_id, DATE_FORMAT(c.date, '%Y-%m-%d') as date, icl.content_page_id, icl.content_datasource_id from contents c 
         inner join item_content_link icl on icl.content_page_id = c.content_page_id and icl.content_datasource_id = c.data_source_id 
         inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id
         inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 

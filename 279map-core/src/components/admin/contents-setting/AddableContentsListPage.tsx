@@ -1,51 +1,63 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useApi } from '../../../api/useApi';
-import { GetLinkableContentsAPI } from 'tsunagumap-api';
 import { useAtom } from 'jotai';
 import { modalSpinnerAtom } from '../../common/modal/Modal';
 import { useWatch } from '../../../util/useWatch2';
 import ListGroup from '../../common/list/ListGroup';
 import styles from './AddableContentsListPage.module.scss';
+import { atomWithQuery } from 'jotai-urql';
+import { ContentsDatasource, GetLinkableContentsDatasourcesDocument } from '../../../graphql/generated/graphql';
+import { loadable } from 'jotai/utils';
 
 type Props = {
     // 追加対象として✔されたコンテンツ一覧
-    onChange?: (items: ContentDatasourceItem[]) => void;
+    onChange?: (items: ContentsDatasource[]) => void;
 }
 
-export type ContentDatasourceItem = {
+export type GetLink = {
     datasourceId: string;
     name: string;
 }
-type AddableContentItem = ContentDatasourceItem & {
+type AddableContentItem = ContentsDatasource & {
     checked?: boolean;
 }
+const queryAtom = atomWithQuery({
+    query: GetLinkableContentsDatasourcesDocument,
+    getContext() {
+        return {
+            requestPolicy: 'network-only',
+        }
+    },
+});
+const queryLoadableAtom = loadable(queryAtom);
+
 export default function AddableContentsListPage(props: Props) {
-    const { callApi } = useApi();
     const [ list, setList ] = useState<AddableContentItem[]>([]);
     const [, setModalSpinner] = useAtom(modalSpinnerAtom);
+    const [ loadable ] = useAtom(queryLoadableAtom);
+
+    useEffect(() => {
+        if (loadable.state === 'loading') {
+            setModalSpinner(true);
+            return;
+        }
+        setModalSpinner(false);
+        if (loadable.state === 'hasError') {
+            setList([]);
+            return;
+        }
+        const newList = loadable.data.data?.getLinkableContentsDatasources ?? [];
+        setList(newList);
+
+    }, [loadable, setModalSpinner])
 
     useWatch(list, 
         useCallback((oldVal, newVal) => {
             if (!props.onChange) return;
             // チェックされたものに絞る
-            const targets = newVal.filter(item => item.checked);
+            const targets = newVal.filter(item => item.checked).map(item => ({ datasourceId: item.datasourceId, name: item.name }));
             props.onChange(targets);
         }, [props])
     )
-
-    useEffect(() => {
-        setModalSpinner(true);
-        callApi(GetLinkableContentsAPI, undefined)
-        .then((result) => {
-            const listeItems = result.contents.map(item => {
-                return Object.assign(item, {real: {}})
-            })
-            setList(listeItems);
-        })
-        .finally(() => {
-            setModalSpinner(false);
-        })
-    }, [callApi, setModalSpinner])
 
     const handleChecked = useCallback((index: number, val: boolean) => {
         setList(cur => {

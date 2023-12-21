@@ -1,0 +1,191 @@
+scalar DataId
+scalar Geometry
+scalar JSON
+
+type Auth0Config {
+    domain: String!
+    clientId: String!
+    audience: String!
+}
+type MapListItem {
+    mapId: String!
+    name: String!
+}
+type NoneConfig {
+    dummy: Boolean  # fragmentで種別判定するために型用意
+}
+union ServerConfig = Auth0Config | NoneConfig
+
+enum ItemTemporaryState {
+    Registing
+    Updateing
+}
+type ItemDefine {
+    id: DataId!
+    name: String!
+    geoJson: Geometry!
+    geoProperties: JSON!
+    lastEditedTime: String!
+    temporary: ItemTemporaryState
+    hasContents: Boolean!
+    hasImageContentId: [DataId!]!  # 画像を持つコンテンツID一覧
+}
+
+type CategoryDefine {
+    name: String!
+    color: String!
+    datasourceIds: [String!]!
+}
+type EventDefine {
+    datasourceId: String
+    dates: [String!]!
+}
+enum ContentType {
+    normal
+    sns
+}
+enum Auth {
+    None
+    Request
+    View
+    Edit
+    Admin
+}
+type ContentsDefine {
+    id: DataId!
+    itemId: DataId!
+    date: String
+    url: String
+    title: String!
+    overview: String
+    category: [String!]
+    image: Boolean!
+    videoUrl: String
+    parentId: DataId
+    children: [ContentsDefine!]
+    usingAnotherMap: Boolean!
+    anotherMapItemId: DataId
+    isSnsContent: Boolean!
+    isEditable: Boolean!
+    isDeletable: Boolean!
+}
+type UnpointContent {
+    id: DataId!
+    title: String!
+    thumb: String
+    overview: String
+}
+type GetUnpointContentsResult {
+    contents: [UnpointContent!]!
+    nextToken: String
+}
+# getThumbで返す画像サイズ
+enum ThumbSize {
+    Thumbnail
+    Medium
+}
+type User {
+    id: ID!
+    name: String!
+    authLv: Auth!
+}
+type ContentsDatasource {
+    datasourceId: String!
+    name: String!
+}
+
+# --------------
+# search関連
+# --------------
+input Condition {
+    category: [String!]
+    date: [String!]
+    keyword: [String!]
+}
+
+type SearchHitItem {
+    id: DataId!
+    hitContents: [DataId!]!  # 当該アイテム配下の検索条件に合致するコンテンツID一覧 TODO: 孫コンテンツも含める
+}
+
+# --------------
+# geocoder関連
+# --------------
+enum GeocoderTarget {
+    Point
+    Area
+}
+
+scalar GeocoderId
+type GeocoderItem {
+    idInfo: GeocoderId!
+    name: String!
+    geoJson: Geometry!
+}
+
+# --------------
+# SNS関連
+# --------------
+type SnsPreviewResult {
+    type: SnsType!
+    posts: [SnsPreviewPost!]!
+}
+enum SnsType {
+    InstagramUser
+}
+type SnsPreviewPost {
+    text: String!
+    media: MediaInfo
+    date: String
+}
+type MediaInfo {
+    type: MediaType!
+    url: String!
+}
+enum MediaType {
+    image
+    Video
+}
+# --------------
+
+type Query {
+    config: ServerConfig!
+
+    "ユーザがアクセス可能な地図情報一覧を返す"
+    getMapList: [MapListItem!]!
+
+    getItems(
+        wkt: String!,
+        zoom: Float!,
+        datasourceId: String!,
+
+        "(optional) 指定されている場合、この更新日時以降に更新されたアイテムのみ返す"
+        latestEditedTime: String
+
+        "(optional) 指定されている場合、このidのアイテムは結果から除く TODO: deprecated"
+        excludeItemIds: [String!]
+    ): [ItemDefine!]!
+
+    getItemsById(targets: [DataId!]!): [ItemDefine!]!
+
+    getCategory(datasourceIds: [String!]): [CategoryDefine!]!
+    getEvent(datasourceIds: [String!]): [EventDefine!]!
+    getContent(id: DataId!): ContentsDefine!
+    getContents(ids: [DataId!]!): [ContentsDefine!]!
+    getContentsInItem(itemId: DataId!): [ContentsDefine!]!
+    getUnpointContents(datasourceId: String!, nextToken: String): GetUnpointContentsResult!
+
+    getThumb(contentId: DataId!, size: ThumbSize): String!
+    getImageUrl(contentId: DataId!): String!
+
+    # datasourceIds => 指定されている場合、指定のデータソースのみ検索対象にする
+    search(condition: Condition!, datasourceIds: [String!]): [SearchHitItem!]!
+
+    geocoder(address: String!, searchTarget: [GeocoderTarget!]!): [GeocoderItem!]!
+    getGeocoderFeature(id: GeocoderId!): Geometry!
+
+    getSnsPreview(url: String!): SnsPreviewResult!
+
+    getUserList: [User!]!
+    getLinkableContentsDatasources: [ContentsDatasource!]!
+}

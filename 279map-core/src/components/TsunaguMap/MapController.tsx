@@ -1,13 +1,12 @@
-import { ItemDefine, MapKind } from '279map-common';
+import { MapKind } from '279map-common';
 import React, { useRef, useMemo, useContext, useEffect, lazy, Suspense, useState } from 'react';
 import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
-import { useSubscribe } from '../../api/useSubscribe';
-import { currentMapDefineAtom, currentMapKindAtom, mapDefineLoadableAtom, mapDefineReducerAtom } from '../../store/session';
+import { currentMapDefineAtom, currentMapKindAtom, mapDefineReducerAtom } from '../../store/session';
 import { atom, useAtom } from 'jotai';
 import { useItems } from '../../store/item/useItems';
-import { itemDataSourceGroupsAtom, itemDataSourcesAtom } from '../../store/datasource';
-import { mapInstanceIdAtom, useMap } from '../map/useMap';
-import { dialogTargetAtom, showingDetailItemIdAtom } from '../../store/operation';
+import { itemDataSourceGroupsAtom } from '../../store/datasource';
+import { useMap } from '../map/useMap';
+import { dialogTargetAtom } from '../../store/operation';
 import { OwnerContext } from './TsunaguMap';
 import { usePrevious } from '../../util/usePrevious';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
@@ -19,6 +18,8 @@ import { filteredItemIdListAtom } from '../../store/filter';
 import VectorSource from 'ol/source/Vector';
 import useMyMedia from '../../util/useMyMedia';
 import { useWatch } from '../../util/useWatch2';
+import { ItemDefine, ItemDeleteDocument, ItemInsertDocument, ItemUpdateDocument, MapInfoUpdateDocument, TestDocument } from '../../graphql/generated/graphql';
+import { clientAtom } from 'jotai-urql';
 
 const ContentsModal = lazy(() => import('../contents/ContentsModal'));
 
@@ -47,63 +48,67 @@ export default function MapController() {
  */
 function useMapInitializer() {
     const [ currentMapKind ] = useAtom(currentMapKindAtom);
-    const { getSubscriber } = useSubscribe();
     const { removeItems } = useItems();
     const { updateItems } = useMap();
-    const [ mapInstanceId ] = useAtom(mapInstanceIdAtom);
+
+    const [ urqlClient ] = useAtom(clientAtom);
+    const { mapId } = useContext(OwnerContext);
 
     // 地図の接続完了したら、地図情報に対するsubscribe開始する
     const [, dispatchMapDefine] = useAtom(mapDefineReducerAtom);
     useEffect(() => {
-        const subscriber = getSubscriber();
-        if (!subscriber) return;
-
-        const h = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapinfo-update', undefined, (payload) => {
-            dispatchMapDefine();
-        });
+        const h = urqlClient.subscription(MapInfoUpdateDocument, { mapId }).subscribe((val) => {
+            if (val.data?.mapInfoUpdate) {
+                // 地図定義再取得
+                dispatchMapDefine();
+            }
+        })
 
         return () => {
-            if (h) {
-                subscriber.unsubscribe(h);
-            }
+            h.unsubscribe();
         }
 
-    }, [getSubscriber, dispatchMapDefine, currentMapKind]);
+    }, [urqlClient, dispatchMapDefine, mapId]);
 
     // 地図種別が変更されたら、地図に対してsubscribe, unsubscribeする
     useEffect(() => {
         if (!currentMapKind) return;
-
-        const subscriber = getSubscriber();
-        if (!subscriber) return;
-
-        const h0 = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapitem-insert', undefined, (payload) => {
-            if (payload.type === 'mapitem-insert') {
-                // 表示中エリアの場合は最新ロードする
-                updateItems(payload.targets);
-            }
-        });
-        const h1 = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapitem-update', undefined, (payload) => {
-            if (payload.type === 'mapitem-update') {
-                // 表示中エリアの場合は最新ロードする
-                updateItems(payload.targets);
-            }
-        });
-        const h2 = subscriber.subscribeMap({mapKind: currentMapKind}, 'mapitem-delete', undefined, (payload) => {
-            if (payload.type === 'mapitem-delete')
-                // アイテム削除
-                removeItems(payload.itemPageIdList);
+        console.log('start subscribe');
+        urqlClient.subscription(TestDocument, {}).subscribe((val) => {
+            console.log('subscribe test', val);
         })
 
+        const h1 = urqlClient.subscription(ItemInsertDocument, { mapId, mapKind: currentMapKind }).subscribe((val) => {
+            const targets = val.data?.itemInsert;
+            if (targets) {
+                // 表示中エリアの場合は最新ロードする
+                updateItems(targets);
+            }
+        });
+
+        const h2 = urqlClient.subscription(ItemUpdateDocument, { mapId, mapKind: currentMapKind }).subscribe((val) => {
+            const targets = val.data?.itemUpdate;
+            if (targets) {
+                // 表示中エリアの場合は最新ロードする
+                updateItems(targets);
+            }
+        })
+
+        const h3 = urqlClient.subscription(ItemDeleteDocument, {mapId, mapKind: currentMapKind }).subscribe((val) => {
+            const targets = val.data?.itemDelete;
+            if (targets) {
+                // アイテム削除
+                removeItems(targets);
+            }
+        })
+        
         return () => {
-            if (h0)
-                subscriber.unsubscribe(h0);
-            if (h1) 
-                subscriber.unsubscribe(h1);
-            if (h2)
-                subscriber.unsubscribe(h2);
+            h1.unsubscribe();
+            h2.unsubscribe();
+            h3.unsubscribe();
         }
-    }, [currentMapKind, removeItems, getSubscriber, updateItems, mapInstanceId]);
+
+    }, [urqlClient, currentMapKind, mapId, updateItems, removeItems])
 
 }
 
@@ -118,7 +123,7 @@ function useItemUpdater() {
     const [ itemMap, setItemMap ] = useAtom(allItemsAtom);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
-    const [ itemDataSourceGroups ] = useAtom(itemDataSourceGroupsAtom);
+    const [ itemDatasourceGroups ] = useAtom(itemDataSourceGroupsAtom);
     const [ currentMapKind ] = useAtom(currentMapKindAtom);
     // 地図初期化済みの地図種別
     const [ initializedMapKind, setInitializedMapKind ] = useState<MapKind|undefined>();
@@ -127,12 +132,10 @@ function useItemUpdater() {
     const [ currentMapDefine ] = useAtom(currentMapDefineAtom);
     const [ , setDialogTarget ] = useAtom(dialogTargetAtom);
 
-    const [ mapDefineLoadable ] = useAtom(mapDefineLoadableAtom);
-
     /**
      * 地図が切り替わったら、レイヤ再配置
      */
-    useWatch(mapDefineLoadable, () => {
+    useWatch(currentMapKind, () => {
         if (!map || !currentMapKind) return;
         if (initializedMapKind ===  currentMapKind) return;
 
@@ -142,7 +145,7 @@ function useItemUpdater() {
         map.clearAllLayers();
         
         // 初期レイヤ生成
-        map.initialize(currentMapKind, itemDataSourceGroups, currentMapDefine?.extent);
+        map.initialize(currentMapKind, itemDatasourceGroups, currentMapDefine?.extent);
 
         setDialogTarget(undefined);
         fitToDefaultExtent(false);
@@ -230,13 +233,13 @@ function useMapStyleUpdater() {
  * データソース情報の変更検知して、レイヤの表示・非表示切り替え
  */
 function useLayerVisibleChanger() {
-    const [ itemDataSources ] = useAtom(itemDataSourceGroupsAtom);
+    const [ itemDatasources ] = useAtom(itemDataSourceGroupsAtom);
     const { map } = useMap();
 
     useEffect(() => {
-        map?.updateLayerVisible(itemDataSources);
+        map?.updateLayerVisible(itemDatasources);
 
-    }, [itemDataSources, map]);
+    }, [itemDatasources, map]);
 
 }
 

@@ -1,32 +1,24 @@
-import { CategoryDefine } from '279map-common';
-import { GetCategoryAPI } from 'tsunagumap-api';
 import { atom } from 'jotai';
-import { loadable } from "jotai/utils";
 import { visibleDataSourceIdsAtom } from './datasource';
-import { connectStatusAtom, serverInfoAtom } from './session';
-import { callApi } from '../api/api';
+import { atomWithQuery } from 'jotai-urql';
+import { GetCategoryDocument } from '../graphql/generated/graphql';
 
-export const categoriesAtom = atom(async(get): Promise<CategoryDefine[]> => {
-    try {
-        const serverInfo = get(serverInfoAtom);
-        const sid = (await get(connectStatusAtom)).sid;
-
-        // 表示中のデータソースに紐づくカテゴリを取得
+const categoriesQueryAtom = atomWithQuery({
+    query: GetCategoryDocument,
+    getVariables: (get) => {
         const targetDataSourceIds = get(visibleDataSourceIdsAtom);
-        if (targetDataSourceIds.length === 0) {
-            return [];
+        return {
+            datasourceIds: targetDataSourceIds,
         }
-        const apiResult = await callApi(serverInfo, sid, GetCategoryAPI, {
-            dataSourceIds: targetDataSourceIds,
-        });
-
-        return apiResult;
-
-    } catch (e) {
-        console.warn('loadCategories error', e);
-        return [];
+    },
+    getPause(get) {
+        // 表示対象データがない場合は実行しない
+        const targetDataSourceIds = get(visibleDataSourceIdsAtom);
+        return targetDataSourceIds.length === 0;
     }
-
 })
-
-export const categoriesLoadableAtom = loadable(categoriesAtom);
+export const categoriesAtom = atom(async(get) => {
+    const categoriesQuery = await get(categoriesQueryAtom);
+    const result = categoriesQuery.data?.getCategory ?? [];
+    return result;
+})

@@ -1,0 +1,18 @@
+enum ErrorType {
+    "指定の地図が存在しない場合"
+    UndefinedMap
+    "地図が認証必要だが、ユーザがtokenを持たない場合（＝ログインが必要な場合）"
+    Unauthorized
+    "ユーザのtokenが有効切れの場合"
+    Forbidden
+    "アクセス権限のない地図にユーザがアクセスしようとした場合"
+    NoAuthenticate
+    "アクセス権限のない地図に登録申請中の場合"
+    Requesting
+    "編集権限を持たないユーザが編集権限の必要なAPIを実行しようとした場合"
+    OperationForbidden
+    "セッションタイムアウト時"
+    SessionTimeout
+    "その他接続エラー"
+    IllegalError
+}

@@ -1,23 +1,24 @@
-import React, { useRef, useContext, useEffect, useCallback, useImperativeHandle } from 'react';
-import { useWatch } from '../../util/useWatch';
+import React, { useContext, useCallback, useImperativeHandle } from 'react';
+import { useWatch } from '../../util/useWatch2';
 import { OwnerContext } from './TsunaguMap';
-import { categoriesLoadableAtom } from '../../store/category';
-import { eventsLoadableAtom } from '../../store/event';
+import { categoriesAtom } from '../../store/category';
+import { eventsAtom } from '../../store/event';
 import { dialogTargetAtom, mapModeAtom, showingDetailItemIdAtom } from '../../store/operation';
-import { connectStatusLoadableAtom, mapDefineLoadableAtom } from '../../store/session';
+import { currentMapKindAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
-import { GetContentsAPI, GetContentsParam, GetSnsPreviewAPI, GetThumbAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, SearchAPI, UpdateContentAPI, UpdateContentParam } from 'tsunagumap-api';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { CategoryDefine, ContentsDefine, DataId, DataSourceGroup, EventDefine, FeatureType, MapKind, UnpointContent } from '279map-common';
-import { MapMode, TsunaguMapHandler } from '../../types/types';
+import { DataId, MapKind } from '279map-common';
+import { TsunaguMapHandler } from '../../types/types';
 import { useAtom } from 'jotai';
 import { itemDataSourceGroupsAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import { useAtomCallback } from 'jotai/utils';
 import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
-import { useApi } from '../../api/useApi';
+import { ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument } from '../../graphql/generated/graphql';
+import { updateContentAtom } from '../../store/content';
+import { clientAtom } from 'jotai-urql';
 
 /**
  * 呼び出し元とイベント連携するためのコンポーネントもどき。
@@ -35,8 +36,9 @@ export type EventControllerHandler = Pick<TsunaguMapHandler,
 function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControllerHandler>) {
     const { changeMapKind } = useMapController();
     const { focusItem } = useMap();
-    const { callApi } = useApi();
     const { updateDatasourceVisible } = useDataSource();
+    const [, updateContent] = useAtom(updateContentAtom);
+    const [ gqlClient ] = useAtom(clientAtom);
 
     const showDetailDialog = useAtomCallback(
         useCallback((get, set, param: {type: 'item' | 'content'; id: DataId}) => {
@@ -54,10 +56,14 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 zoom: opts?.zoom,
             })
         },
-        async loadContentsAPI(param: GetContentsParam): Promise<ContentsDefine[]> {
+        async loadContentsAPI(contentIds: DataId[]): Promise<ContentsDefine[]> {
             try {
-                const res = await callApi(GetContentsAPI, param);
-                return res.contents;
+                const getContents = await gqlClient.query(GetContentsDocument, {
+                    ids: contentIds,
+                }, {
+                    requestPolicy: 'network-only'
+                });
+                return getContents.data?.getContents ?? [];
 
             } catch(err) {
                 throw new Error('registContentAPI failed.' + err);
@@ -68,37 +74,43 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             showDetailDialog(param);
         },
         
-        async registContentAPI(param: RegistContentParam) {
+        async registContentAPI(param: MutationRegistContentArgs) {
             try {
-                await callApi(RegistContentAPI, param);
+                await gqlClient.mutation(RegistContentDocument, param);
 
             } catch(e) {
                 throw new Error('registContentAPI failed.' + e);
             }
         },
-        async updateContentAPI(param: UpdateContentParam) {
-            await callApi(UpdateContentAPI, param);
+        async updateContentAPI(param: MutationUpdateContentArgs) {
+            await updateContent(param);
         },
-        async linkContentToItemAPI(param: LinkContentToItemParam) {
-            await callApi(LinkContentToItemAPI, param);
+        async linkContentToItemAPI(param: MutationLinkContentArgs) {
+            await gqlClient.mutation(LinkContentDocument, param);
         },
     
         async getSnsPreviewAPI(url: string) {
-            const res = await callApi(GetSnsPreviewAPI, {
+            const res = await gqlClient.query(GetSnsPreviewDocument, {
                 url,
             });
-            return res;
+            if (!res.data) {
+                throw new Error('get sns preview error');
+            }
+
+            return res.data.getSnsPreview;
         },
     
-        async getUnpointDataAPI(dataSourceId: string, nextToken?: string) {
-            const result = await callApi(GetUnpointDataAPI, {
-                dataSourceId,
+        async getUnpointDataAPI(datasourceId: string, nextToken?: string) {
+            const result = await gqlClient.query(GetUnpointContentsDocument, {
+                datasourceId,
                 nextToken,
+            }, {
+                requestPolicy: 'network-only',
             });
-            return {
-                contents: result.contents as UnpointContent[],
-                nextToken: result.nextToken,
-            };
+            if (!result.data) {
+                throw new Error('getUnpoinData error', result.error);
+            }
+            return result.data.getUnpointContents;
     
         },
     
@@ -106,10 +118,10 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
          * 指定のコンテンツのサムネイル画像（Blob）を取得する
          */
         async getThumbnail(contentId: DataId) {
-            const imgData = await callApi(GetThumbAPI, {
-                id: contentId.id,
+            const imgData = await gqlClient.query(GetThumbDocument, {
+                contentId: contentId,
             });
-            return URL.createObjectURL(imgData);
+            return 'data:image/' +  imgData;
         },
     
         changeVisibleLayer(target: { dataSourceId: string } | { group: string }, visible: boolean) {
@@ -122,13 +134,8 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
     }));
 
     useFilterListner();
-    useConnectListener();
     useMapLoadListener();
-    useDataSourceChangeListener();
-    useCategoryLoadListener();
-    useEventLoadListener();
-    useMapModeChangeListener();
-    useSelectChangeLister();
+    useEventListener();
 
     return null;
 }
@@ -137,13 +144,13 @@ function useFilterListner() {
     const { filter } = useContext(OwnerContext);
 
     // 検索
-    const [filteredItem, setFilteredItem] = useAtom(filteredItemsAtom);
-    const { callApi } = useApi();
+    const [ , setFilteredItem ] = useAtom(filteredItemsAtom);
+    const [ gqlClient ] = useAtom(clientAtom);
     const [ visibleDataSourceIds ] = useAtom(visibleDataSourceIdsAtom);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
-    useWatch(() => {
-        const conditions = filter?.conditions;
-        if (!conditions) {
+    useWatch(filter, async () => {
+        const condition = filter?.condition;
+        if (!condition) {
             setFilteredItem(null);
             return;
         };
@@ -152,38 +159,13 @@ function useFilterListner() {
             overlay: true,
             spinner: true,
         });
-        callApi(SearchAPI, {
-            conditions,
-            dataSourceIds: visibleDataSourceIds,
-        }).then(res => {
-            setFilteredItem(res.items);
-        }).finally(() => {
-            hideProcessMessage(h);
+        const result = await gqlClient.query(SearchDocument, {
+            condition,
+            datasourceIds: visibleDataSourceIds,
         });
-
-    }, [filter])
-}
-
-/**
- * connect時に呼び出し元にイベント発火する
- */
-function useConnectListener() {
-    const { onConnect } = useContext(OwnerContext);
-    const [ connectLoadable ] = useAtom(connectStatusLoadableAtom);
-    const connectedRef = useRef(false);
-
-    // マウント後でないとイベント発火できないので、useEffect内で処理
-    useEffect(() => {
-        if (!connectedRef.current && connectLoadable.state === 'hasData') {
-            connectedRef.current = true;
-            if (onConnect) {
-                onConnect({
-                    mapDefine: connectLoadable.data.mapDefine,
-                })
-            }
-        }
-    });
-
+        setFilteredItem(result.data?.search ?? null);
+        hideProcessMessage(h);
+    })
 }
 
 /**
@@ -191,8 +173,7 @@ function useConnectListener() {
  */
 function useMapLoadListener() {
     const { onMapLoad } = useContext(OwnerContext);
-    const [ mapDefineLoadable ] = useAtom(mapDefineLoadableAtom);
-    const latestMapKindRef = useRef<MapKind>();
+    const [ currentMapKind ] = useAtom(currentMapKindAtom);
 
     const resetItems = useAtomCallback(
         useCallback(async(get, set) => {
@@ -201,127 +182,86 @@ function useMapLoadListener() {
         }, [])
     );
 
-    // マウント後でないとイベント発火できないので、useEffect内で処理
-    useEffect(() => {
-        if (mapDefineLoadable.state === 'hasData' && latestMapKindRef.current !== mapDefineLoadable.data.mapKind) {
-            latestMapKindRef.current = mapDefineLoadable.data.mapKind;
-            if (onMapLoad) {
+    useWatch(currentMapKind,
+        useCallback(() => {
+            if (onMapLoad && currentMapKind) {
                 onMapLoad({
-                    mapKind: mapDefineLoadable.data.mapKind,
+                    mapKind: currentMapKind,
                 })
+                resetItems();
             }
-            resetItems();
-        }
-    });
+        }, [currentMapKind, onMapLoad, resetItems])
+    , { immediate: true })
+
 }
 
-/**
- * Datasource定義、表示状態が変化した場合に呼び出し元にイベント発火する
- * @returns 
- */
-function useDataSourceChangeListener() {
-    const ownerContext = useContext(OwnerContext);
+function useEventListener() {
+    const { onDatasourceChanged, onCategoriesLoaded, onEventsLoaded, onModeChanged, onSelect }  = useContext(OwnerContext);
+
+    /**
+     * Datasource定義、表示状態が変化した場合に呼び出し元にイベント発火する
+     */
     const [ itemDataSources ] = useAtom(itemDataSourceGroupsAtom);
-    const latestDataSourceGroupsRef = useRef<DataSourceGroup[]>();
-
-     // マウント後でないとイベント発火できないので、useEffect内で処理
-     useEffect(() => {
-        if (JSON.stringify(latestDataSourceGroupsRef.current) !== JSON.stringify(itemDataSources)) {
-            console.log('DataSourceChange');
-            if (ownerContext.onDatasourceChanged) {
-                ownerContext.onDatasourceChanged({
-                    dataSourceGroups: itemDataSources,
+    useWatch(itemDataSources,
+        useCallback(() => {
+            if (onDatasourceChanged) {
+                onDatasourceChanged({
+                    datasourceGroups: itemDataSources,
                 })
-                latestDataSourceGroupsRef.current = itemDataSources;
             }
-        }
-     })
-}
 
-/**
- * カテゴリロード時に呼び出し元にイベント発火する
- */
-function useCategoryLoadListener() {
-    const { onCategoriesLoaded}  = useContext(OwnerContext);
-    const [ categoriesLoadable ] = useAtom(categoriesLoadableAtom);
-    const latestCategories = useRef<CategoryDefine[]>();
+        }, [itemDataSources, onDatasourceChanged])
+    , { immediate: true })
 
-     // マウント後でないとイベント発火できないので、useEffect内で処理
-     useEffect(() => {
-        if (categoriesLoadable.state !== 'hasData') return;
-
-        if (JSON.stringify(categoriesLoadable.data) !== JSON.stringify(latestCategories.current)) {
+    /**
+     * カテゴリロード時に呼び出し元にイベント発火する
+     */
+    const [ categories ] = useAtom(categoriesAtom);
+    useWatch(categories, 
+        useCallback(() => {
             if (onCategoriesLoaded) {
-                onCategoriesLoaded(categoriesLoadable.data);
+                onCategoriesLoaded(categories);
             }
-            latestCategories.current = categoriesLoadable.data;
-        }
-    });
-}
+        }, [categories, onCategoriesLoaded])
+    , { immediate: true })
 
-/**
- * イベントロード時に呼び出し元にイベント発火する
- */
-function useEventLoadListener() {
-    const { onEventsLoaded }  = useContext(OwnerContext);
-    const latestEvents = useRef<EventDefine[]>();
-    const [ eventLoadable ] = useAtom(eventsLoadableAtom);
 
-     // マウント後でないとイベント発火できないので、useEffect内で処理
-     useEffect(() => {
-        if (eventLoadable.state !== 'hasData') return;
-        const events = eventLoadable.data;
-
-        if (JSON.stringify(events) !== JSON.stringify(latestEvents.current)) {
+    /**
+     * イベントロード時に呼び出し元にイベント発火する
+     */
+    const [ events ] = useAtom(eventsAtom);
+    useWatch(events,
+        useCallback(() => {
             if (onEventsLoaded) {
                 onEventsLoaded(events);
             }
-            latestEvents.current = events;
-        }
-    });
+        }, [events, onEventsLoaded])
+    , { immediate: true })
 
-}
 
-/**
- * 地図モードが変化した場合に呼び出し元にイベント発火する
- * @returns 
- */
-function useMapModeChangeListener() {
-    const { onModeChanged}  = useContext(OwnerContext);
+    /**
+     * 地図モードが変化した場合に呼び出し元にイベント発火する
+     */
     const [mapMode] = useAtom(mapModeAtom);
-    const latestMapModeRef = useRef<MapMode>();
-
-     // マウント後でないとイベント発火できないので、useEffect内で処理
-     useEffect(() => {
-        if(mapMode !== latestMapModeRef.current) {
+    useWatch(mapMode,
+        useCallback(() => {
             if (onModeChanged) {
                 onModeChanged(mapMode);
             }
-            latestMapModeRef.current = mapMode;
-        }
-    })
+        }, [mapMode, onModeChanged])
+    , { immediate: true })
 
-}
-
-/**
- * 選択アイテムが変化した場合に呼び出し元にイベント発火する
- * @returns 
- */
-function useSelectChangeLister() {
-    const { onSelect}  = useContext(OwnerContext);
+    /**
+     * 選択アイテムが変化した場合に呼び出し元にイベント発火する
+     */
     const [selectedItemId] = useAtom(showingDetailItemIdAtom);
-    const latestItemIdsRef = useRef<DataId|null>(null);
-
-    // マウント後でないとイベント発火できないので、useEffect内で処理
-    useEffect(() => {
-        if (!selectedItemId) return;
-        if (JSON.stringify(selectedItemId) !== JSON.stringify(latestItemIdsRef.current)) {
-            if (onSelect) {
+    useWatch(selectedItemId,
+        useCallback(() => {
+            if (onSelect && selectedItemId) {
                 onSelect(selectedItemId);
             }
-            latestItemIdsRef.current = selectedItemId;
-        }
-    });
-
+        }, [selectedItemId, onSelect])
+    , { immediate: true })
 }
+
 export default React.forwardRef(EventConnectorWithOwner);

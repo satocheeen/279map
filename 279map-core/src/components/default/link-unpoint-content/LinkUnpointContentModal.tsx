@@ -1,13 +1,14 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { Button, Modal } from '../../common';
 import { LinkUnpointContentParam } from '../../../types/types';
-import { DataId, UnpointContent } from '279map-common';
+import { DataId } from '279map-common';
 import styles from './LinkUnpointContentModal.module.scss';
 import Card from '../../common/card/Card';
 import Spinner from '../../common/spinner/Spinner';
 import { getMapKey } from '../../../util/dataUtility';
 import Select from '../../common/form/Select';
 import { useWatch } from '../../../util/useWatch2';
+import { ParentOfContent, UnpointContent } from '../../../graphql/generated/graphql';
 
 type Props = {
     param: LinkUnpointContentParam;
@@ -44,7 +45,7 @@ export default function LinkUnpointContentModal(props: Props) {
         props.param.getUnpointDataAPI(targetContentDataSourceId, nextToken)
         .then((result) => {
             setUnpointContents(result.contents);
-            setNextToken(result.nextToken);
+            setNextToken(result.nextToken ?? undefined);
         })
         .catch(err => {
             console.warn('getUnpointDataAPI failed.', err);
@@ -65,8 +66,14 @@ export default function LinkUnpointContentModal(props: Props) {
     const onSelect = useCallback(async(id: DataId) => {
         setLoading(true);
         await props.param.linkContentToItemAPI({
-            parent: props.param.parent,
-            childContentId: id,
+            id,
+            parent: 'itemId' in props.param.parent ? {
+                type: ParentOfContent.Item,
+                id: props.param.parent.itemId,
+            } : {
+                type: ParentOfContent.Content,
+                id: props.param.parent.contentId,
+            }
         });
         setLoading(false);
         if (props.close) {
@@ -103,8 +110,8 @@ export default function LinkUnpointContentModal(props: Props) {
                                         }
                                         return (
                                             <li key={getMapKey(uc.id)}>
-                                                <Card title={uc.title} imageUrl={imageUrl} 
-                                                    overview={uc.overview} onClick={()=>onSelect(uc.id)} />
+                                                <Card title={uc.title} imageUrl={imageUrl ?? undefined} 
+                                                    overview={uc.overview ?? undefined} onClick={()=>onSelect(uc.id)} />
                                             </li>
                                         ) 
                                     })}

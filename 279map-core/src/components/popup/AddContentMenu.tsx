@@ -5,17 +5,17 @@ import Tooltip from '../common/tooltip/Tooltip';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
-import { Auth, DataId, DataSourceKindType } from '279map-common';
-import { GetContentsAPI, GetSnsPreviewAPI, GetUnpointDataAPI, LinkContentToItemAPI, LinkContentToItemParam, RegistContentAPI, RegistContentParam, UpdateItemAPI } from 'tsunagumap-api';
+import { Auth, DataId } from '279map-common';
 import { Button } from '../common';
 import { compareAuth } from '../../util/CommonUtility';
 import { authLvAtom } from '../../store/session';
 import { useItems } from '../../store/item/useItems';
 import { contentDataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
-import { useApi } from '../../api/useApi';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern, ConfirmResult } from '../common/confirm/types';
+import { clientAtom } from 'jotai-urql';
+import { DatasourceConfig, GetContentDocument, GetSnsPreviewDocument, GetUnpointContentsDocument, LinkContentDocument, MutationLinkContentArgs, MutationRegistContentArgs, RegistContentDocument, UpdateItemDocument } from '../../graphql/generated/graphql';
 
 type Props = {
     target: {
@@ -33,7 +33,7 @@ export default function AddContentMenu(props: Props) {
     const id = useRef('add-content-menu-'+maxId++);
     const { onAddNewContent, onLinkUnpointedContent } = useContext(OwnerContext);
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
-    const { callApi } = useApi();
+    const [ gqlClient ] = useAtom(clientAtom);
     const [ dataSources ] = useAtom(contentDataSourcesAtom);
     const [ authLv ] = useAtom(authLvAtom);
     const { getItem } = useItems();
@@ -63,24 +63,24 @@ export default function AddContentMenu(props: Props) {
         // 追加可能なコンテンツ定義を取得
         if ('itemId' in props.target) {
             return dataSources
-                .filter(ds => ds.editable)
+                .filter(ds => (ds.config as DatasourceConfig).editable)
                 .map(ds => {
-                    return ds.dataSourceId;
+                    return ds.datasourceId;
                 });
         }
         const targetId = props.target.contentId;
-        const targetDs = dataSources.find(ds => ds.dataSourceId === targetId.dataSourceId);
-        if (targetDs?.kind === DataSourceKindType.Content) {
-            if (!targetDs.linkableChildContents) {
+        const targetDs = dataSources.find(ds => ds.datasourceId === targetId.dataSourceId);
+        if (targetDs?.config.__typename === 'ContentConfig') {
+            if (!targetDs.config.linkableChildContents) {
                 return [];
             } else {
-                return [targetDs.dataSourceId];
+                return [targetDs.datasourceId];
             }
-        } else if (targetDs?.kind === DataSourceKindType.RealPointContent) {
-            if (!targetDs.linkableContents) {
+        } else if (targetDs?.config.__typename === 'RealPointContentConfig') {
+            if (!targetDs.config.linkableContents) {
                 return [];
             } else {
-                return [targetDs.dataSourceId];
+                return [targetDs.datasourceId];
             }
         } else {
             return [];
@@ -93,18 +93,18 @@ export default function AddContentMenu(props: Props) {
                 // 追加対象データソースに絞る
                 .filter(ds => {
                     return addableContentDatasources.some(addableDs => {
-                        const addable = addableDs === ds.dataSourceId;
+                        const addable = addableDs === ds.datasourceId;
                         if (!addable) return false;
                         // コンテンツデータソースが編集可能でなければ、新規追加は不可能
-                        const target = dataSources.find(source => source.dataSourceId === addableDs);
-                        if (!target?.editable) return false;
+                        const target = dataSources.find(source => source.datasourceId === addableDs);
+                        if (!(target?.config as DatasourceConfig).editable) return false;
 
                         return true;
                     });
                 })
                 .map(ds => {
                     return {
-                        dataSourceId: ds.dataSourceId,
+                        dataSourceId: ds.datasourceId,
                         name: ds.name,
                     }
                 });
@@ -113,12 +113,12 @@ export default function AddContentMenu(props: Props) {
         return dataSources
                 // 追加対象データソースに絞る
                 .filter(ds => {
-                    const target = addableContentDatasources.find(addableDs => addableDs === ds.dataSourceId);
+                    const target = addableContentDatasources.find(addableDs => addableDs === ds.datasourceId);
                     return target;
                 })
                 .map(ds => {
                     return {
-                        dataSourceId: ds.dataSourceId,
+                        dataSourceId: ds.datasourceId,
                         name: ds.name,
                     }
                 });
@@ -162,21 +162,20 @@ export default function AddContentMenu(props: Props) {
 
         let name: string;
         if (param.type === 'id') {
-            const contents = await callApi(GetContentsAPI, [
-                {
-                    contentId: param.contentId,
-                }
-            ]);
-            if (contents.contents.length === 0) {
+            const getContent = await gqlClient.query(GetContentDocument, {
+                id: param.contentId,
+            });
+            const content = getContent.data?.getContent;
+            if (!content) {
                 console.warn('コンテンツなし');
                 return;
             }
-            name = contents.contents[0].title;
+            name = content.title;
         } else {
             name = param.contentTitle;
         }
 
-        await callApi(UpdateItemAPI, {
+        await gqlClient.mutation(UpdateItemDocument, {
             targets: [
                 {
                     id: item.id,
@@ -185,7 +184,7 @@ export default function AddContentMenu(props: Props) {
             ]
         });
 
-    }, [item, callApi, confirm]);
+    }, [item, confirm, gqlClient]);
 
     const onAddContent = useCallback((val: 'new' | 'unpoint') => {
         setShowSubMenu(false);
@@ -193,9 +192,9 @@ export default function AddContentMenu(props: Props) {
             onAddNewContent({
                 parent: props.target,
                 dataSources: creatableContentDataSources,
-                registContentAPI: async(param: RegistContentParam) => {
+                registContentAPI: async(param: MutationRegistContentArgs) => {
                     try {
-                        await callApi(RegistContentAPI, param);
+                        await gqlClient.mutation(RegistContentDocument, param)
                         // 必要に応じてアイテム名設定
                         registItemNameByContentsName({
                             type: 'title',
@@ -206,31 +205,40 @@ export default function AddContentMenu(props: Props) {
                     }
                 },
                 getSnsPreviewAPI: async(url: string) => {
-                    const res = await callApi(GetSnsPreviewAPI, {
+                    const res = await gqlClient.query(GetSnsPreviewDocument, {
                         url,
                     });
-                    return res;
+                    if (!res.data) {
+                        throw new Error('get sns preview error');
+                    }
+        
+                    return res.data.getSnsPreview;
                 },
             });
         } else {
             onLinkUnpointedContent({
                 parent: props.target,
                 dataSources: linkableContentDataSources,
-                getUnpointDataAPI: async(dataSourceId: string, nextToken?: string) => {
-                    const result = await callApi(GetUnpointDataAPI, {
-                        dataSourceId,
+                getUnpointDataAPI: async(datasourceId: string, nextToken?: string) => {
+                    const result = await gqlClient.query(GetUnpointContentsDocument, {
+                        datasourceId,
                         nextToken,
-                    });
-                    return result;
+                    }, {
+                        requestPolicy: 'network-only',
+                    })
+                    if (!result.data) {
+                        throw new Error('getUnpoinData error', result.error);
+                    }
+                    return result.data?.getUnpointContents;
                 },
-                linkContentToItemAPI: async(param: LinkContentToItemParam) => {
+                linkContentToItemAPI: async(param: MutationLinkContentArgs) => {
                     try {
-                        await callApi(LinkContentToItemAPI, param);
+                        await gqlClient.mutation(LinkContentDocument, param)
 
                         // 必要に応じてアイテム名設定
                         registItemNameByContentsName({
                             type: 'id',
-                            contentId: param.childContentId
+                            contentId: param.id
                         });
 
                     } catch(e) {
@@ -249,7 +257,7 @@ export default function AddContentMenu(props: Props) {
             props.onClick();
         }
 
-    }, [callApi, props, confirm, registItemNameByContentsName, creatableContentDataSources, linkableContentDataSources, onAddNewContent, onLinkUnpointedContent]);
+    }, [props, confirm, registItemNameByContentsName, creatableContentDataSources, linkableContentDataSources, onAddNewContent, onLinkUnpointedContent, gqlClient]);
 
     const caption = useMemo(() => {
         if ('itemId' in props.target) {

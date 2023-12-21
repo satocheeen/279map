@@ -2,7 +2,7 @@ import { useContext, useMemo } from 'react';
 import { OwnerContext } from '../components/TsunaguMap/TsunaguMap';
 import { TsunaguMapProps } from '../types/types';
 import useMyMedia from './useMyMedia';
-import { connectStatusAtom } from '../store/session';
+import { mapDefineAtom } from '../store/session';
 import { useAtom } from 'jotai';
 
 /**
@@ -12,11 +12,11 @@ import { useAtom } from 'jotai';
 export function useMapOptions() {
     const ownerContext = useContext(OwnerContext);
     const { isPC } = useMyMedia();
-    const [ connectStatus ] = useAtom(connectStatusAtom);
+    const [ mapDefine ] = useAtom(mapDefineAtom);
 
     const options = useMemo(() => {
-        return connectStatus.mapDefine.options;
-    }, [connectStatus]);
+        return mapDefine.options;
+    }, [mapDefine]);
 
     const popupMode = useMemo((): TsunaguMapProps['popupMode'] => {
         // 優先順位：呼び出し元から指定された値→地図に対するオプション指定→デフォルト値

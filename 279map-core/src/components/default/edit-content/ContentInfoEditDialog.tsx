@@ -7,9 +7,9 @@ import { Button, Modal } from '../../common';
 import useConfirm from '../../common/confirm/useConfirm';
 import Select from '../../common/form/Select';
 import { ConfirmBtnPattern } from '../../common/confirm/types';
-import { useAtom } from 'jotai';
 import { modalSpinnerAtom } from '../../common/modal/Modal';
 import { useAtomCallback } from 'jotai/utils';
+import { ContentType, MutationUpdateContentArgs, ParentOfContent } from '../../../graphql/generated/graphql';
 
 type Props = {
     onClose?: () => void;
@@ -59,17 +59,25 @@ export default function ContentInfoEditDialog(props: Props) {
             try {
                 if (props.type === 'new') {
                     // 新規登録
-                    const apiParam = Object.assign({
-                        parent: props.param.parent,
-                        contentDataSourceId,
-                    }, attrValue);
-                    await props.param.registContentAPI(apiParam);
+                    const { type, ...attr } = attrValue;
+                    await props.param.registContentAPI({
+                        parent: 'itemId' in props.param.parent ? {
+                            type: ParentOfContent.Item,
+                            id: props.param.parent.itemId,
+                        } : {
+                            type: ParentOfContent.Content,
+                            id: props.param.parent.contentId,
+                        },
+                        datasourceId: contentDataSourceId,
+                        type: type === 'normal' ? ContentType.Normal : ContentType.Sns,
+                        ...attr,
+                    });
 
                 } else {
                     // 更新
                     const apiParam = Object.assign({
                         id: props.param.contentId,
-                    }, attrValue);
+                    }, attrValue) as MutationUpdateContentArgs;
                     if (apiParam.type === 'normal' && apiParam.imageUrl) {
                         // TODO:
                         apiParam.imageUrl = (apiParam.imageUrl === '/api/getthumb?id=' + props.param.contentId) ? undefined : apiParam.imageUrl;

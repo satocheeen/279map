@@ -1,11 +1,11 @@
 import { ConnectionPool } from "..";
-import { GetOriginalIconDefineResult } from "../../279map-api-interface/src";
-import { IconDefine, MapKind } from "279map-common";
+import { MapKind } from "279map-common";
 import { getIcon } from "./getIcon";
 import { CurrentMap } from "../../279map-backend-common/src";
 import { OriginalIconsTable } from "../../279map-backend-common/src/types/schema";
+import { IconDefine } from "../graphql/__generated__/types";
 
-export async function getOriginalIconDefine(currentMap: CurrentMap): Promise<GetOriginalIconDefineResult> {
+export async function getOriginalIconDefine(currentMap: CurrentMap): Promise<IconDefine[]> {
     const pageId = currentMap?.mapId;
     if (!pageId) {
         throw 'mapId is undefined.';

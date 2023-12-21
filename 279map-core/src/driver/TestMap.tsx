@@ -1,13 +1,14 @@
-import { Auth, CategoryDefine, DataId, DataSourceGroup, DataSourceKindType, FeatureType, MapKind } from '279map-common';
+import { Auth, DataId, FeatureType, MapKind } from '279map-common';
 import React, { useState, useCallback, useMemo, useRef, useContext } from 'react';
 import { ServerInfo, TsunaguMapHandler, onDatasourceChangedParam } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
-import { FilterDefine, OnConnectParam, OnMapLoadParam, TsunaguMapProps } from '../entry';
+import { OnConnectParam, OnMapLoadParam, TsunaguMapProps, getAccessableMapList } from '../entry';
 import styles from './TestMap.module.scss';
 import FilterCondition from './FilterCondition';
 import { mapId, myMapServer } from './const';
 import AuthPanel from './AuthPanel';
 import { AuthContext } from './DriverRoot';
+import { CategoryDefine, Condition, DatasourceGroup, DatasourceKindType } from '../graphql/generated/graphql';
 
 const props = {
     mapId,
@@ -33,11 +34,7 @@ export default function TestMap() {
     const onConnect = useCallback((param: OnConnectParam) => {
         console.log('connect', param);
         setMapKind(param.mapDefine.defaultMapKind);
-        if (param.mapDefine.authLv === Auth.None || param.mapDefine.authLv === Auth.Request) {
-            setAuthLv(param.mapDefine.guestAuthLv);
-        } else {
-            setAuthLv(param.mapDefine.authLv);
-        }
+        setAuthLv(param.authLv);
         setCnt(cnt + 1);
     }, [cnt]);
 
@@ -45,15 +42,15 @@ export default function TestMap() {
         setCategories(categories);
     }, []);
 
-    const [ filterConditions, setFilterConditions ] = useState<FilterDefine[]|undefined>();
+    const [ filterCondition, setFilterCondition ] = useState<Condition|undefined>();
     const [ filterUnmatchView, setFilterUnmatchView ] = useState<'hidden'|'translucent'>('hidden');
     const filter = useMemo((): TsunaguMapProps['filter'] => {
-        if (!filterConditions) return;
+        if (!filterCondition) return;
         return {
-            conditions: filterConditions,
+            condition: filterCondition,
             unmatchView: filterUnmatchView,
         }
-    }, [filterConditions, filterUnmatchView]);
+    }, [filterCondition, filterUnmatchView]);
 
     // switch mapKind
     const [ mapKind, setMapKind ] = useState(MapKind.Real);
@@ -65,15 +62,15 @@ export default function TestMap() {
 
     const [ disabledContentDialog, setDisableContentDialog ] = useState(false);
 
-    const [ dataSourceGroups, setDataSourceGroups] = useState<DataSourceGroup[]>([]);
+    const [ dataSourceGroups, setDataSourceGroups] = useState<DatasourceGroup[]>([]);
 
     const featureDataSourceGroups = useMemo(() => {
-        return dataSourceGroups.map((group): DataSourceGroup => {
-            const dataSources = group.dataSources.filter(ds => {
-                return ds.kind !== DataSourceKindType.Content;
+        return dataSourceGroups.map((group): DatasourceGroup => {
+            const datasources = group.datasources.filter(ds => {
+                return ds.kind !== DatasourceKindType.Content;
             });
             return Object.assign({}, group, {
-                dataSources,
+                datasources,
             });
         });
     }, [dataSourceGroups]);
@@ -84,8 +81,8 @@ export default function TestMap() {
     }, []);
 
     const onDataSourceChanged = useCallback((param: onDatasourceChangedParam) => {
-        console.log('onDataSourceChanged', param.dataSourceGroups)
-        setDataSourceGroups(param.dataSourceGroups);
+        console.log('onDataSourceChanged', param.datasourceGroups)
+        setDataSourceGroups(param.datasourceGroups);
     }, []);
 
     const switchMapKind = useCallback((mapKind: MapKind) => {
@@ -140,6 +137,11 @@ export default function TestMap() {
         console.log('thumb', img);
     }, []);
 
+    const getAccessableMapListFunc = useCallback(async() => {
+        const result = await getAccessableMapList(mapServer.host, mapServer.ssl, mapServer.token);
+        console.log('getAccessableMapList', result);
+    }, [mapServer]);
+
     const changeVisibleLayerDataSource = useCallback((dataSourceId: string, visible: boolean) => {
         mapRef.current?.changeVisibleLayer({
             dataSourceId,
@@ -193,21 +195,21 @@ export default function TestMap() {
                                         {group.name}
                                     </label>
                                 }
-                                {group.dataSources.map(ds => {
+                                {group.datasources.map(ds => {
                                     return (
-                                        <label key={ds.dataSourceId} className={`${group.name ? styles.Child : ''}`}>
-                                            <input type="checkbox" checked={ds.visible} onChange={(evt) => changeVisibleLayerDataSource(ds.dataSourceId, evt.target.checked)} />
+                                        <label key={ds.datasourceId} className={`${group.name ? styles.Child : ''}`}>
+                                            <input type="checkbox" checked={ds.visible} onChange={(evt) => changeVisibleLayerDataSource(ds.datasourceId, evt.target.checked)} />
                                             {ds.name}
                                             {(authLv !== Auth.View) &&
                                                 <>
-                                                    <button onClick={()=>mapRef.current?.drawStructure(ds.dataSourceId)}>建設</button>
+                                                    <button onClick={()=>mapRef.current?.drawStructure(ds.datasourceId)}>建設</button>
                                                     {mapKind === MapKind.Real ?
-                                                        <button onClick={()=>mapRef.current?.drawTopography(ds.dataSourceId, FeatureType.AREA)}>エリア作成</button>
+                                                        <button onClick={()=>mapRef.current?.drawTopography(ds.datasourceId, FeatureType.AREA)}>エリア作成</button>
                                                         :
                                                         <>
-                                                            <button onClick={()=>mapRef.current?.drawRoad(ds.dataSourceId)}>道作成</button>
-                                                            <button onClick={()=>mapRef.current?.drawTopography(ds.dataSourceId, FeatureType.EARTH)}>島作成</button>
-                                                            <button onClick={()=>mapRef.current?.drawTopography(ds.dataSourceId, FeatureType.FOREST)}>緑地作成</button>
+                                                            <button onClick={()=>mapRef.current?.drawRoad(ds.datasourceId)}>道作成</button>
+                                                            <button onClick={()=>mapRef.current?.drawTopography(ds.datasourceId, FeatureType.EARTH)}>島作成</button>
+                                                            <button onClick={()=>mapRef.current?.drawTopography(ds.datasourceId, FeatureType.FOREST)}>緑地作成</button>
                                                         </>
                                                     }
                                                 </>
@@ -233,7 +235,7 @@ export default function TestMap() {
                                     onChange={() => setFilterUnmatchView('translucent')} />
                         </label>
                     </div>
-                    <FilterCondition categories={categories} onChange={(filter) => setFilterConditions(filter)} />
+                    <FilterCondition categories={categories} onChange={(filter) => setFilterCondition(filter)} />
                 </div>
                 {authLv !== Auth.View &&
                 <>
@@ -263,6 +265,7 @@ export default function TestMap() {
                     <button onClick={() => mapRef.current?.showContentsSetting()}>コンテンツ設定</button>
                     <button onClick={callGetSnsPreview}>GetSNS</button>
                     <button onClick={getThumbnail}>GetThumbnail</button>
+                    <button onClick={getAccessableMapListFunc}>GetAccessableMapList</button>
                 </div>
 
                 <div className={styles.Col}>

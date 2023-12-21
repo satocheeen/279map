@@ -14,10 +14,10 @@ import { FeatureType, GeoProperties, MapKind } from '279map-common';
 import { SystemIconDefine } from '../../../../types/types';
 import VectorLayer from 'ol/layer/Vector';
 import { useMap } from '../../useMap';
-import { RegistItemAPI } from 'tsunagumap-api';
 import { currentMapKindAtom } from '../../../../store/session';
 import { useAtom } from 'jotai';
-import { useApi } from '../../../../api/useApi';
+import { clientAtom } from 'jotai-urql';
+import { GeocoderTarget, RegistItemDocument } from '../../../../graphql/generated/graphql';
 
 type Props = {
     dataSourceId: string;   // 作図対象のデータソース
@@ -118,7 +118,7 @@ export default function DrawStructureController(props: Props) {
         startDrawing();
     }, [startDrawing]);
 
-    const { callApi } = useApi();
+    const [ gqlClient ] = useAtom(clientAtom);
 
     const registFeatureFunc = useCallback(async() => {
         if (!drawingFeature.current) {
@@ -133,8 +133,8 @@ export default function DrawStructureController(props: Props) {
         });
         const geoJson = createGeoJson(drawingFeature.current);
 
-        await callApi(RegistItemAPI, {
-            dataSourceId: props.dataSourceId,
+        await gqlClient.mutation(RegistItemDocument, {
+            datasourceId: props.dataSourceId,
             geometry: geoJson.geometry,
             geoProperties: Object.assign({}, geoJson.properties, {
                 featureType: FeatureType.STRUCTURE,
@@ -148,7 +148,7 @@ export default function DrawStructureController(props: Props) {
         spinner.hideProcessMessage(h);
         props.close();
 
-    }, [callApi, props, spinner]);
+    }, [gqlClient, props, spinner]);
 
     const onSelectAddress= useCallback((address: GeoJsonObject) => {
         if (!map) return;
@@ -213,7 +213,7 @@ export default function DrawStructureController(props: Props) {
                             <SearchAddress
                                 ref={searchAddressRef}
                                 onAddress={onSelectAddress}
-                                searchTarget={['point']}
+                                searchTarget={[GeocoderTarget.Point]}
                                 disabled={stage === Stage.CONFIRM} />
                         }
                 </PromptMessageBox>

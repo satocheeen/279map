@@ -1,15 +1,12 @@
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { Modal }  from '../common';
 import Content from './Content';
-import { Auth, ContentsDefine, DataId, MapKind } from '279map-common';
+import { Auth, DataId, MapKind } from '279map-common';
 import AddContentMenu from '../popup/AddContentMenu';
 import styles from './ContentsModal.module.scss';
 import { getMapKey } from '../../util/dataUtility';
-import { useSubscribe } from '../../api/useSubscribe';
 import { useAtom } from 'jotai';
 import { authLvAtom, currentMapKindAtom } from '../../store/session';
-import { useApi } from '../../api/useApi';
-import { GetContentsAPI } from 'tsunagumap-api';
 import { compareAuth } from '../../util/CommonUtility';
 import EditItemNameModal from './EditItemNameModal';
 import PopupMenuIcon from '../popup/PopupMenuIcon';
@@ -18,6 +15,9 @@ import { itemDataSourcesAtom } from '../../store/datasource';
 import { allItemsAtom } from '../../store/item';
 import { useMap } from '../map/useMap';
 import { modalSpinnerAtom } from '../common/modal/Modal';
+import { clientAtom } from 'jotai-urql';
+import { ChildContentsUpdateDocument, ContentsDefine, GetContentDocument, GetContentsInItemDocument, ItemTemporaryState } from '../../graphql/generated/graphql';
+import { Subscription } from 'wonka';
 
 export type Props = ({
     type: 'item' | 'content';
@@ -32,8 +32,6 @@ export default function ContentsModal(props: Props) {
     const [itemId, setItemId] = useState<DataId | undefined>();
 
     const [ contentsList, setContentsList ] = useState<ContentsDefine[]>([]);
-    const { callApi } = useApi();
-    const { getSubscriber } = useSubscribe();
 
     const [ allItems ] = useAtom(allItemsAtom);
     const item = useMemo(() => {
@@ -48,37 +46,39 @@ export default function ContentsModal(props: Props) {
         // アイテムが存在しない場合=一時アイテムが削除された場合
         if (!item) return true;
 
-        return item?.temporary === 'registing';
+        return item?.temporary === ItemTemporaryState.Registing;
     }, [item, props.type]);
 
+    const [ gqlClient ] = useAtom(clientAtom);
     const loadContentsInItem = useCallback(async() => {
         if (!item) return;
         if (isTemporaryItem) {
             setContentsList([]);
             return;
         }
-        if (!item || item.contents.length === 0) {
+        if (!item || !item.hasContents) {
             setContentsList([]);
             return;
         }
 
         setModalSpinner(true);
-        const result = await callApi(GetContentsAPI, [
-            {
-                itemId: item.id,
-            }
-        ]);
-        setContentsList(result.contents);
+        const result = await gqlClient.query(GetContentsInItemDocument, {
+            itemId: item.id,
+        }, {
+            requestPolicy: 'network-only',
+        });
+        const contents = result.data?.getContentsInItem ?? [];
+        setContentsList(contents);
         setModalSpinner(false);
 
-    }, [callApi, item, isTemporaryItem, setModalSpinner]);
+    }, [item, isTemporaryItem, setModalSpinner, gqlClient]);
 
     // 表示対象が指定されたらコンテンツロード
     const [ mapKind ] = useAtom(currentMapKindAtom);
     const { updateItems } = useMap();
     useEffect(() => {
-        const subscriber = getSubscriber();
-        let h: number | undefined;
+        if (!mapKind) return;
+        let h: Subscription;
         if (props.type === 'item') {
             setModalSpinner(true);
             setShow(true);
@@ -88,7 +88,7 @@ export default function ContentsModal(props: Props) {
             .finally(() => {
                 setModalSpinner(false);
             });
-            h = subscriber?.subscribeMap({mapKind}, 'childcontents-update', props.id, async() => {
+            h = gqlClient.subscription(ChildContentsUpdateDocument, { itemId: props.id }).subscribe(async() => {
                 // アイテム情報再取得
                 await updateItems([{
                     id: props.id
@@ -96,7 +96,7 @@ export default function ContentsModal(props: Props) {
 
                 // コンテンツロード
                 loadContentsInItem()
-            });
+            })
 
             setItemId(props.id);
 
@@ -105,21 +105,13 @@ export default function ContentsModal(props: Props) {
             setShow(true);
     
             // 最新コンテンツ取得
-            callApi(GetContentsAPI, [
-                    {
-                        contentId: props.id,
-                    }
-                ],
-            ).then(res => {
-                const result = res.contents;
-                setContentsList(result);
-                if (result.length === 0) {
-                    setItemId(undefined);
-                } else {
-                    setItemId(result[0].itemId);
-                }
-    
-            }).finally(() => {
+            gqlClient.query(GetContentDocument, {
+                id: props.id,
+            })
+            .then(res => {
+                const result = res.data?.getContent as ContentsDefine;
+                setContentsList([result]);
+                setItemId(result.itemId);
                 setModalSpinner(false);
             });
         }
@@ -127,11 +119,11 @@ export default function ContentsModal(props: Props) {
 
         return () => {
             if (h) {
-                subscriber?.unsubscribe(h);
+                h.unsubscribe();
             }
         }
 
-    }, [props.id, props.type, mapKind, callApi, getSubscriber, loadContentsInItem, updateItems, setModalSpinner]);
+    }, [props.id, props.type, mapKind, loadContentsInItem, updateItems, setModalSpinner, gqlClient]);
 
     const contents = useMemo((): ContentsDefine[] => {
         return contentsList.sort((a, b) => {
@@ -149,9 +141,9 @@ export default function ContentsModal(props: Props) {
     const isShowItemNameEditBtn = useMemo(() => {
         if (props.type !== 'item') return false;
         if (isTemporaryItem) return false;
-        const targetDs = itemDatasources.find(ds => ds.dataSourceId === props.id.dataSourceId);
+        const targetDs = itemDatasources.find(ds => ds.datasourceId === props.id.dataSourceId);
         if (!targetDs) return false;
-        return targetDs.editable && compareAuth(authLv, Auth.Edit) >= 0
+        return targetDs.config.editable && compareAuth(authLv, Auth.Edit) >= 0
     }, [props, authLv, itemDatasources, isTemporaryItem])
 
     const itemNameEditTipLabel = useMemo(() => {

@@ -1,30 +1,18 @@
-import { ContentAttr, ContentsDefine, DataId, DataSourceGroup, FeatureType, GeoProperties, IconDefine, MapDefine, UnpointContent } from "279map-common";
+import { ContentAttr, DataId, FeatureType, GeoProperties, IconDefine } from "279map-common";
 import { CSSProperties } from "react";
-import { CategoryDefine, EventDefine, MapKind } from '279map-common';
-import { ApiError, ErrorType, GetMapInfoResult, LinkContentToItemParam, RegistContentParam, GetSnsPreviewResult, UpdateContentParam, GetUnpointDataResult, GetContentsParam } from "tsunagumap-api";
-import { FilterDefine } from "279map-common";
+import { MapKind } from '279map-common';
+import { Auth, CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MapDefine, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult } from "../graphql/generated/graphql";
 
 export type OnMapLoadParam = {
     mapKind: MapKind;
 }
 export type onDatasourceChangedParam = {
-    dataSourceGroups: DataSourceGroup[];
-}
-export type ApiAccessError = {
-    type: ErrorType;
-    detail?: string;
+    datasourceGroups: DatasourceGroup[];
 }
 export type OnConnectParam = {
+    authLv: Auth;
     mapDefine: MapDefine;
 };
-
-export type LoadMapDefineResult = {
-    result: 'success';
-    mapInfo: GetMapInfoResult;
-} | {
-    result: 'failure';
-    error: ApiError;
-}
 
 export type TsunaguMapProps = {
     mapId: string;
@@ -49,7 +37,7 @@ export type TsunaguMapProps = {
     disabledContentDialog?: boolean;    // when true, the content dialog didn't show even if you click a item.
 
     filter?: {
-        conditions: FilterDefine[];
+        condition: Condition;
         unmatchView: 'hidden' | 'translucent';  // how view the items unmatched with conditions
     }
 
@@ -135,19 +123,19 @@ export interface TsunaguMapHandler {
 
     editTopographyInfo(): void;
 
-    loadContentsAPI(param: GetContentsParam): Promise<ContentsDefine[]>;
+    loadContentsAPI(contentIds: DataId[]): Promise<ContentsDefine[]>;
 
     showDetailDialog(param: {type: 'item' | 'content'; id: DataId}): void;
 
-    registContentAPI(param: RegistContentParam): Promise<void>;
+    registContentAPI(param: MutationRegistContentArgs): Promise<void>;
 
-    updateContentAPI(param: UpdateContentParam): Promise<void>;
+    updateContentAPI(param: MutationUpdateContentArgs): Promise<void>;
 
-    linkContentToItemAPI(param: LinkContentToItemParam): Promise<void>;
+    linkContentToItemAPI(param: MutationLinkContentArgs): Promise<void>;
 
-    getSnsPreviewAPI(url: string): Promise<GetSnsPreviewResult>;
+    getSnsPreviewAPI(url: string): Promise<SnsPreviewResult>;
 
-    getUnpointDataAPI(dataSourceId: string, nextToken?: string): Promise<GetUnpointDataResult>;
+    getUnpointDataAPI(dataSourceId: string, nextToken?: string): Promise<GetUnpointContentsResult>;
 
     /**
      * 指定のコンテンツのサムネイル画像（Blob）を取得する
@@ -226,8 +214,8 @@ export type AddNewContentParam = {
         dataSourceId: string;
         name: string;
     }[];
-    getSnsPreviewAPI: (url: string) => Promise<GetSnsPreviewResult>;
-    registContentAPI: (param: RegistContentParam) => Promise<void>;
+    getSnsPreviewAPI: (url: string) => Promise<SnsPreviewResult>;
+    registContentAPI: (param: MutationRegistContentArgs) => Promise<void>;
 }
 /**
  * 地図上でコンテンツ編集が選択された場合のコールバック
@@ -235,8 +223,8 @@ export type AddNewContentParam = {
 export type EditContentParam = {
     contentId: DataId;
     currentAttr: ContentAttr;
-    getSnsPreviewAPI: (url: string) => Promise<GetSnsPreviewResult>;
-    updateContentAPI: (param: UpdateContentParam) => Promise<void>;
+    getSnsPreviewAPI: (url: string) => Promise<SnsPreviewResult>;
+    updateContentAPI: (param: MutationUpdateContentArgs) => Promise<void>;
 }
 /**
  * 地図上で新規コンテンツ追加→未配置コンテンツが選択された場合に、コールバック関数に渡される情報
@@ -254,7 +242,7 @@ export type LinkUnpointContentParam = {
         name: string;
     }[];
     // 未配置コンテンツ情報取得API
-    getUnpointDataAPI: (dataSourceId: string, nextToken?: string) => Promise<GetUnpointDataResult>;
+    getUnpointDataAPI: (dataSourceId: string, nextToken?: string) => Promise<GetUnpointContentsResult>;
     // コンテンツ紐づけAPI
-    linkContentToItemAPI: (param: LinkContentToItemParam) => Promise<void>;
+    linkContentToItemAPI: (param: MutationLinkContentArgs) => Promise<void>;
 }

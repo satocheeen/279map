@@ -12,9 +12,9 @@ import { useMapOptions } from '../../util/useMapOptions';
 import { allItemsAtom } from '../../store/item';
 import { mapViewAtom } from '../../store/operation';
 import { filteredItemIdListAtom } from '../../store/filter';
-import { ItemDefine } from '279map-common';
 import { useAtom } from 'jotai';
 import { visibleDataSourceIdsAtom } from '../../store/datasource';
+import { ItemDefine } from '../../graphql/generated/graphql';
 
 function createKeyFromPopupInfo(param: PopupGroupWithPosition): string {
     if (!param) {
@@ -48,7 +48,7 @@ export default function PopupContainer() {
             return acc.concat(Object.values(items));
         }, [] as ItemDefine[])
         .filter(item => {
-            if (item.contents.length === 0) return false;
+            if (!item.hasContents) return false;
             // フィルタが掛かっている場合は条件外のものは除外する
             if (!filteredItemIdList) return true;
             return filteredItemIdList.some(filteredItemId => isEqualId(filteredItemId, item.id));

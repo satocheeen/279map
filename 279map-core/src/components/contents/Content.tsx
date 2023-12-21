@@ -10,12 +10,11 @@ import useConfirm from "../common/confirm/useConfirm";
 import reactStringReplace from "react-string-replace";
 import PopupMenuIcon from "../popup/PopupMenuIcon";
 import AddContentMenu from "../popup/AddContentMenu";
-import { Auth, ContentAttr, ContentsDefine, DataId, MapKind } from "279map-common";
+import { Auth, ContentAttr, DataId, MapKind } from "279map-common";
 import Spinner from "../common/spinner/Spinner";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import MyThumbnail from "../common/image/MyThumbnail";
 import { getMapKey, isEqualId } from "../../util/dataUtility";
-import { GetContentsAPI, GetImageUrlAPI, GetSnsPreviewAPI, RemoveContentAPI, UpdateContentAPI, UpdateContentParam } from 'tsunagumap-api';
 import { useMap } from "../map/useMap";
 import { authLvAtom, currentMapKindAtom } from "../../store/session";
 import { filteredContentIdListAtom } from "../../store/filter";
@@ -23,9 +22,11 @@ import { useAtom } from 'jotai';
 import { categoriesAtom } from "../../store/category";
 import { ConfirmBtnPattern, ConfirmResult } from "../common/confirm/types";
 import { useMapController } from "../../store/useMapController";
-import { useApi } from "../../api/useApi";
 import { useAtomCallback } from "jotai/utils";
 import { dialogTargetAtom } from "../../store/operation";
+import { updateContentAtom } from "../../store/content";
+import { clientAtom } from "jotai-urql";
+import { ContentsDefine, GetContentDocument, GetImageUrlDocument, GetSnsPreviewDocument, MutationUpdateContentArgs, ParentOfContent, RemoveContentDocument, UnlinkContentDocument } from "../../graphql/generated/graphql";
 
 type Props = {
     itemId: DataId;
@@ -44,7 +45,7 @@ export default function Content(props: Props) {
     const [ filteredContentIdList ] = useAtom(filteredContentIdListAtom);
     const { onEditContent }  = useContext(OwnerContext);
     const { focusItem } = useMap();
-    const { callApi } = useApi();
+    const [, updateContent] = useAtom(updateContentAtom);
 
     /**
      * 表示対象コンテンツかどうか。
@@ -66,7 +67,8 @@ export default function Content(props: Props) {
             case UrlType.FacebookVideo:
                 break;
             default:
-                window.open(props.content.url, getMapKey(props.content.id));
+                if (props.content.url)
+                    window.open(props.content.url, getMapKey(props.content.id));
         }
         if(props.onClick !== undefined){
             props.onClick();
@@ -163,6 +165,8 @@ export default function Content(props: Props) {
         }, [mapKind, props.content.anotherMapItemId, changeMapKind, focusItem])
     );
 
+    const [ gqlClient ] = useAtom(clientAtom);
+    
     /**
      * イメージロード
      */
@@ -170,26 +174,28 @@ export default function Content(props: Props) {
     const onImageClick = useCallback(async() => {
         setShowSpinner(true);
         try {
-            const imageUrl = await callApi(GetImageUrlAPI, {
-                id: props.content.id,
+            const result = await gqlClient.query(GetImageUrlDocument, {
+                contentId: props.content.id,
             });
-            window.open(imageUrl, 'image' + props.content.id);
+            const imageUrl = result.data?.getImageUrl;
+            if (imageUrl)
+                window.open(imageUrl, 'image' + props.content.id);
         } catch(e) {
             console.warn('getImageUrl failed.', e);
         } finally {
             setShowSpinner(false);
         }
-    }, [props.content.id, callApi]);
+    }, [props.content.id, gqlClient]);
 
     const onEdit = useCallback(async() => {
-        // 編集対象コンテンツをロード
-        const contents = (await callApi(GetContentsAPI, [{
-            contentId: props.content.id,
-        }])).contents;
-        if (!contents || contents?.length === 0) {
+        // // 編集対象コンテンツをロード
+        const getContent = await gqlClient.query(GetContentDocument, {
+            id: props.content.id,
+        });
+        const content = getContent.data?.getContent;
+        if (!content) {
             return;
         }
-        const content = contents[0];
         const currentAttr: ContentAttr = content.url ? {
             title: content.title,
             overview: content.overview ?? '',
@@ -208,17 +214,21 @@ export default function Content(props: Props) {
             contentId: props.content.id,
             currentAttr,
             getSnsPreviewAPI: async(url: string) => {
-                const res = await callApi(GetSnsPreviewAPI, {
+                const res = await gqlClient.query(GetSnsPreviewDocument, {
                     url,
                 });
-                return res;
+                if (!res.data) {
+                    throw new Error('get sns preview error');
+                }
+    
+                return res.data.getSnsPreview;
             },
-            updateContentAPI: async(param: UpdateContentParam) => {
-                await callApi(UpdateContentAPI, param);
+            updateContentAPI: async(param: MutationUpdateContentArgs) => {
+                await updateContent(param);
         
             },
         })
-    }, [props.content, onEditContent, callApi]);
+    }, [props.content, onEditContent, updateContent, gqlClient]);
 
     const onDelete = useCallback(async() => {
         const result = await confirm({
@@ -242,12 +252,22 @@ export default function Content(props: Props) {
         setShowSpinner(true);
 
         try {
-            await callApi(RemoveContentAPI, {
-                id: props.content.id,
-                itemId: props.itemId,
-                parentContentId: props.parentContentId,
-                mode: deleteOnlyLink ? 'unlink' : 'alldelete',
-            });
+            if (deleteOnlyLink) {
+                await gqlClient.mutation(UnlinkContentDocument, {
+                    id: props.content.id,
+                    parent: props.parentContentId ? {
+                        type: ParentOfContent.Content,
+                        id: props.parentContentId,
+                    } : {
+                        type: ParentOfContent.Item,
+                        id: props.itemId,
+                    }
+                })
+            } else {
+                await gqlClient.mutation(RemoveContentDocument, {
+                    id: props.content.id,
+                })
+            }
     
         } catch(e) {
             confirm({
@@ -260,7 +280,7 @@ export default function Content(props: Props) {
 
         }
 
-    }, [callApi, props.itemId, props.parentContentId, confirm, props.content]);
+    }, [gqlClient, props.itemId, props.parentContentId, confirm, props.content]);
 
     const overview = useMemo(() => {
         if (!props.content.overview) {

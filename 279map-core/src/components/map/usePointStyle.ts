@@ -5,7 +5,7 @@ import { getStructureScale } from "../../util/MapUtility";
 import { SystemIconDefine } from "../../types/types";
 import useFilterStatus from "./useFilterStatus";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
-import { DataSourceKindType, IconKey } from "279map-common";
+import { IconKey } from "279map-common";
 import { Geometry } from "ol/geom";
 import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
 import { useMap } from "./useMap";
@@ -170,8 +170,8 @@ export default function usePointStyle() {
         const itemId = convertDataIdFromFeatureId(mainFeature.getId() as string);
         if (!icon) {
             // icon未指定の場合はレイヤデフォルトアイコンを設定
-            const datasource = dataSources.find(ds => ds.dataSourceId === itemId.dataSourceId);
-            icon = datasource?.kind === DataSourceKindType.RealPointContent ? datasource.defaultIcon : undefined;
+            const datasource = dataSources.find(ds => ds.datasourceId === itemId.dataSourceId);
+            icon = datasource?.config.__typename === 'RealPointContentConfig' ? datasource.config.defaultIcon : undefined;
         }
         const iconDefine = getIconDefine(icon);
 

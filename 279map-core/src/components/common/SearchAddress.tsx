@@ -3,15 +3,16 @@ import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } 
 import Input from '../common/form/Input';
 import { FeatureType, GeoProperties } from '279map-common';
 import Spinner from './spinner/Spinner';
-import { GeocoderAPI, GeocoderItem } from 'tsunagumap-api';
 import ListGroup from './list/ListGroup';
-import { useApi } from '../../api/useApi';
+import { useAtom } from 'jotai';
+import { clientAtom } from 'jotai-urql';
+import { GeocoderDocument, GeocoderItem, GeocoderTarget } from '../../graphql/generated/graphql';
 
 type Props = {
     disabled?: boolean; // trueの場合、住所入力不可
     defaultAddress?: string;
     onAddress?: (geoJson: GeoJsonObject) => void;
-    searchTarget: ('point' | 'area')[];
+    searchTarget: GeocoderTarget[];
 }
 
 export interface SearchAddressHandler {
@@ -28,7 +29,6 @@ function SearchAddress(props: Props, ref: React.ForwardedRef<SearchAddressHandle
     const [searchMode, setSearchMode] = useState(true); // trueの場合、addressが変化したら住所検索実行。候補から住所を選択した直後は住所検索を行わないようにするために用意。
     const lastSearchAddress = useRef<string>();    // 最後に検索文字列として渡された文字列（多重実行時の最後の結果を反映するようにするために用意）
     const [showProcessMessage, setShowSpinner] = useState(false);
-    const { callApi } = useApi();
 
     const onInput = useCallback((evt: React.ChangeEvent<HTMLInputElement>) => {
         const value = evt.target.value;
@@ -82,6 +82,7 @@ function SearchAddress(props: Props, ref: React.ForwardedRef<SearchAddressHandle
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isIME, address]);
 
+    const [ gqlClient ] = useAtom(clientAtom);
     const search = useCallback(async() => {
         if (!searchMode) {
             return;
@@ -94,19 +95,20 @@ function SearchAddress(props: Props, ref: React.ForwardedRef<SearchAddressHandle
         // 住所検索
         setShowSpinner(true);
         lastSearchAddress.current = address;
-        const searchResult = await callApi(GeocoderAPI, {
+        const searchResult = await gqlClient.query(GeocoderDocument, {
             address,
             searchTarget: props.searchTarget,
         });
+        const candidate = searchResult.data?.geocoder ?? [];
 
         if (lastSearchAddress.current === address) {
             console.log('採用', address, searchResult);
-            setCandidates(searchResult);
+            setCandidates(candidate);
             lastSearchAddress.current = undefined;
             setShowSpinner(false);
         }
 
-    }, [address, props.searchTarget, searchMode, callApi]);
+    }, [address, props.searchTarget, searchMode, gqlClient]);
 
     const onSelectCandidate = useCallback((item: GeocoderItem) => {
         if (props.onAddress) {

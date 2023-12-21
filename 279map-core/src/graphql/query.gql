@@ -1,0 +1,200 @@
+query config {
+    config {
+        ...on NoneConfig {
+            dummy
+        }
+
+        ...on Auth0Config {
+            domain
+            clientId
+            audience
+        }
+    }
+}
+query getMapList {
+    getMapList {
+        mapId
+        name
+    }
+}
+query getCategory(
+    $datasourceIds: [String!]
+){
+    getCategory(datasourceIds: $datasourceIds) {
+        name
+        color
+        datasourceIds
+    }    
+}
+
+query getEvent(
+    $datasourceIds: [String!]
+){
+    getEvent(datasourceIds: $datasourceIds) {
+        datasourceId
+        dates
+    }    
+}
+
+query getItems (
+    $wkt: String!
+    $zoom: Float!
+    $datasourceId: String!
+    $latestEditedTime: String
+    $excludeItemIds: [String!]
+) {
+    getItems(wkt: $wkt, zoom: $zoom, datasourceId: $datasourceId, latestEditedTime: $latestEditedTime, excludeItemIds: $excludeItemIds) {
+        id
+        name
+        geoJson
+        geoProperties
+        lastEditedTime
+        hasContents
+        hasImageContentId
+        temporary
+    }
+}
+
+query getItemsById (
+    $targets: [DataId!]!
+) {
+    getItemsById(targets: $targets) {
+        id
+        name
+        geoJson
+        geoProperties
+        lastEditedTime
+        hasContents
+        hasImageContentId
+        temporary
+    }
+}
+query getContent(
+    $id: DataId!
+) {
+    getContent(id: $id) {
+        ...content
+    }
+}
+
+query getContents(
+    $ids: [DataId!]!
+) {
+    getContents(ids: $ids) {
+        ...content
+    }
+}
+
+query getContentsInItem(
+    $itemId: DataId!
+) {
+    getContentsInItem(itemId: $itemId) {
+        ...content
+        children {
+            ...content
+        }
+    }
+}
+
+fragment content on ContentsDefine {
+    id
+    itemId
+    date
+    url
+    title
+    overview
+    category
+    image
+    videoUrl
+    parentId
+    usingAnotherMap
+    anotherMapItemId
+    isSnsContent
+    isEditable
+    isDeletable
+}
+
+query getUnpointContents(
+    $datasourceId: String!
+    $nextToken: String
+) {
+    getUnpointContents(datasourceId: $datasourceId, nextToken: $nextToken) {
+        contents {
+            id
+            title
+            thumb
+            overview
+        }
+        nextToken
+    }
+}
+
+query getThumb (
+    $contentId: DataId!
+    $size: ThumbSize
+) {
+    getThumb(contentId: $contentId, size: $size)
+}
+
+query getImageUrl (
+    $contentId: DataId!
+) {
+    getImageUrl(contentId: $contentId)
+}
+
+query search (
+    $condition: Condition!
+    $datasourceIds: [String!]
+) {
+    search(condition: $condition, datasourceIds: $datasourceIds) {
+        id
+        hitContents
+    }
+}
+
+query geocoder (
+    $address: String!
+    $searchTarget: [GeocoderTarget!]!
+) {
+    geocoder(address: $address, searchTarget: $searchTarget) {
+        idInfo
+        name
+        geoJson
+    }
+}
+
+query getGeocoderFeature (
+    $id: GeocoderId!
+) {
+    getGeocoderFeature(id: $id)
+}
+
+query getSnsPreview (
+    $url: String!
+) {
+    getSnsPreview(url: $url) {
+        type
+        posts {
+            text
+            media {
+                type
+                url
+            }
+            date
+        }
+    }
+}
+query getUserList {
+    getUserList {
+        id
+        name
+        authLv
+    }
+}
+
+query getLinkableContentsDatasources {
+    getLinkableContentsDatasources {
+        datasourceId
+        name
+    }
+}

@@ -7,8 +7,9 @@ import { SystemIconDefine } from '../../../../types/types';
 import { FeatureLike } from 'ol/Feature';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
-import { UpdateItemAPI } from 'tsunagumap-api';
-import { useApi } from '../../../../api/useApi';
+import { useAtom } from 'jotai';
+import { clientAtom } from 'jotai-urql';
+import { UpdateItemDocument } from '../../../../graphql/generated/graphql';
 
 type Props = {
     close: () => void;  // 編集完了時のコールバック
@@ -33,7 +34,7 @@ export default function ChangeStructureIconController(props: Props) {
         setStage(Stage.SELECTING_STRUCTURE);
     }, []);
 
-    const { callApi } = useApi();
+    const [ gqlClient ] = useAtom(clientAtom);
     const onSelectedStructure = useCallback(async(iconDefine: SystemIconDefine) => {
         if (!selectedFeature.current) {
             console.warn('選択アイテムなし');
@@ -47,7 +48,7 @@ export default function ChangeStructureIconController(props: Props) {
 
         // update DB
         const id = convertDataIdFromFeatureId(selectedFeature.current.getId() as string);
-        await callApi(UpdateItemAPI, {
+        await gqlClient.mutation(UpdateItemDocument, {
             targets: [
                 {
                     id,
@@ -64,7 +65,7 @@ export default function ChangeStructureIconController(props: Props) {
 
         spinnerHook.hideProcessMessage(h);
         props.close();
-    }, [selectedFeature, callApi, spinnerHook, props]);
+    }, [selectedFeature, gqlClient, spinnerHook, props]);
 
     if (stage === Stage.SELECTING_TARGET) {
         return (

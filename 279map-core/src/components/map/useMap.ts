@@ -2,22 +2,23 @@ import { useCallback, useMemo } from 'react';
 import { OlMapWrapper } from '../TsunaguMap/OlMapWrapper';
 import { atom, useAtom } from 'jotai';
 import { useAtomCallback, atomWithReducer } from 'jotai/utils';
-import { currentMapKindAtom, defaultExtentAtom, instanceIdAtom, mapIdAtom } from '../../store/session';
-import { GetItemsAPI, GetItemsByIdAPI } from 'tsunagumap-api';
+import { currentMapKindAtom, defaultExtentAtom, instanceIdAtom } from '../../store/session';
 import { LoadedAreaInfo, LoadedItemKey, allItemsAtom, latestEditedTimeOfDatasourceAtom, loadedItemMapAtom } from '../../store/item';
-import { DataId, DataSourceKindType, Extent } from '279map-common';
+import { DataId, Extent } from '279map-common';
 import { itemDataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import useMyMedia from '../../util/useMyMedia';
 import Feature from "ol/Feature";
 import { Geometry } from 'ol/geom';
 import { sleep } from '../../util/CommonUtility';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { useApi } from '../../api/useApi';
 import { initialLoadingAtom } from '../TsunaguMap/MapController';
 import { geoJsonToTurfPolygon } from '../../util/MapUtility';
 import { bboxPolygon, intersect, union, booleanContains } from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 import { useItems } from '../../store/item/useItems';
+import { DatasourceKindType, GetItemsByIdDocument, GetItemsDocument } from '../../graphql/generated/graphql';
+import { clientAtom } from 'jotai-urql';
+import GeoJSON from 'geojson';
 
 /**
  * 地図インスタンス管理マップ。
@@ -40,7 +41,7 @@ export const mapInstanceIdAtom = atom('');
 export function useMap() {
     const { isPC } = useMyMedia();
     const [_, dispatch] = useAtom(mapInstanceCntReducerAtom);
-    const { callApi } = useApi();
+    const [ gqlClient ] = useAtom(clientAtom);
 
     /**
      * 地図インスタンスを生成する
@@ -53,12 +54,12 @@ export function useMap() {
             dispatch();
             const mapInstanceId = get(instanceIdAtom) + '-' + get(mapInstanceCntReducerAtom);
             set(mapInstanceIdAtom, mapInstanceId);
-            const map = new OlMapWrapper(mapInstanceId, target, isPC ? 'pc' : 'sp', callApi);
+            const map = new OlMapWrapper(mapInstanceId, target, isPC ? 'pc' : 'sp', gqlClient);
             console.log('create map', mapInstanceId);
 
             instansMap.set(mapInstanceId, map);
             return mapInstanceId;
-        }, [dispatch, isPC, callApi])
+        }, [dispatch, isPC, gqlClient])
     );
 
     const destroyMapInstance = useAtomCallback(
@@ -83,10 +84,10 @@ export function useMap() {
         useCallback((get, set, datasourceId: string, zoom: number): LoadedItemKey => {
             const datasources = get(itemDataSourcesAtom);
             // データソースがGPXの場合は、ZoomLv.もkeyとして扱う
-            const dsInfo = datasources.find(ds => ds.dataSourceId === datasourceId);
+            const dsInfo = datasources.find(ds => ds.datasourceId === datasourceId);
             const key: LoadedItemKey = {
                 datasourceId,
-                zoom: dsInfo?.kind === DataSourceKindType.Track ? zoom : undefined,
+                zoom: dsInfo?.kind === DatasourceKindType.Track ? zoom : undefined,
             }
             return key;
         }, [])        
@@ -98,8 +99,8 @@ export function useMap() {
     const getExcludeItemIds = useAtomCallback(
         useCallback((get, set, datasourceId: string, extent: Extent) => {
             const datasources = get(itemDataSourcesAtom);
-            const dsInfo = datasources.find(ds => ds.dataSourceId === datasourceId);
-            if (dsInfo?.kind !== DataSourceKindType.Track) {
+            const dsInfo = datasources.find(ds => ds.datasourceId === datasourceId);
+            if (dsInfo?.kind !== DatasourceKindType.Track) {
                 // Track以外は関係なし
                 return undefined;
             }
@@ -163,37 +164,43 @@ export function useMap() {
                     });
                 });
 
-                const beforeMapId = get(mapIdAtom);
                 const beforeMapKind = get(currentMapKindAtom);
                 const apiResults = await Promise.all(loadTargets.map((target) => {
                     const wkt = geojsonToWKT(target.geometry);
                     const latestEditedTime = get(latestEditedTimeOfDatasourceAtom)[target.datasourceId];
 
                     const excludeItemIds = getExcludeItemIds(target.datasourceId, param.extent);
-                    return callApi(GetItemsAPI, {
+                    return gqlClient.query(GetItemsDocument, {
                         wkt,
                         zoom,
                         latestEditedTime,
-                        dataSourceId: target.datasourceId,
+                        datasourceId: target.datasourceId,
                         excludeItemIds,
                     });
+                    // return callApi(GetItemsAPI, {
+                    //     wkt,
+                    //     zoom,
+                    //     latestEditedTime,
+                    //     dataSourceId: target.datasourceId,
+                    //     excludeItemIds,
+                    // });
                 }));
                 
                 // TODO: 地図が切り替えられていたら何もしない
-                const afterMapId = get(mapIdAtom);
                 const afterMapKind = get(currentMapKindAtom);
-                if (beforeMapId !== afterMapId || beforeMapKind !== afterMapKind) {
-                    console.log('cancel load items because map change', beforeMapId, beforeMapKind);
+                if (beforeMapKind !== afterMapKind) {
+                    console.log('cancel load items because map change', beforeMapKind);
                     return;
                 }
-                const hasItem = apiResults.some(ar => {
-                    return ar.items.length > 0;
+                const hasItem = apiResults.some(apiResult => {
+                    const items = apiResult.data?.getItems ?? [];
+                    return items.length > 0;
                 });
                 if (hasItem) {
                     set(allItemsAtom, (currentItemMap) => {
                         const newItemsMap = structuredClone(currentItemMap);
                         apiResults.forEach(apiResult => {
-                            const items = apiResult.items;
+                            const items = apiResult.data?.getItems ?? [];
                             items.forEach(item => {
                                 newItemsMap[item.id.dataSourceId] ??= {};
                                 newItemsMap[item.id.dataSourceId][item.id.id] = item;
@@ -238,7 +245,7 @@ export function useMap() {
 
             }
 
-        }, [callApi, getLoadedAreaMapKey, getExcludeItemIds])
+        }, [gqlClient, getLoadedAreaMapKey, getExcludeItemIds])
     )
 
     /**
@@ -319,10 +326,10 @@ export function useMap() {
 
             if (updateTargets.length === 0) return;
 
-            const apiResult = await callApi(GetItemsByIdAPI, {
+            const apiResult = await gqlClient.query(GetItemsByIdDocument, {
                 targets: updateTargets,
             });
-            const items = apiResult.items;
+            const items = apiResult.data?.getItemsById ?? [];
 
             set(allItemsAtom, (currentItemMap) => {
                 const newItemsMap = structuredClone(currentItemMap);
@@ -335,7 +342,7 @@ export function useMap() {
                 return newItemsMap;
             })
 
-        }, [getItem, callApi, getLoadedAreaMapKey])
+        }, [getItem, gqlClient, getLoadedAreaMapKey])
     )
 
     /**

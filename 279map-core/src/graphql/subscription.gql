@@ -1,0 +1,64 @@
+subscription test {
+    test {
+        message
+    }
+}
+
+# 地図上にアイテムが追加された場合に通知を受け取る
+subscription itemInsert (
+    $mapId: String!
+    $mapKind: MapKind!
+) {
+    itemInsert(mapId: $mapId, mapKind: $mapKind) {
+        id
+        wkt
+    }
+}
+
+# 地図上のアイテムに更新があった場合に通知を受け取る
+subscription itemUpdate (
+    $mapId: String!
+    $mapKind: MapKind!
+) {
+    itemUpdate(mapId: $mapId, mapKind: $mapKind) {
+        id
+        wkt
+    }
+}
+
+# 地図上のアイテムが削除された場合に通知を受け取る
+subscription itemDelete (
+    $mapId: String!
+    $mapKind: MapKind!
+) {
+    itemDelete(mapId: $mapId, mapKind: $mapKind)
+}
+
+# 指定のアイテム配下のコンテンツに変更（登録・更新・削除）があった場合に通知を受け取る
+subscription childContentsUpdate (
+    $itemId: DataId!
+) {
+    childContentsUpdate(itemId: $itemId)
+}
+
+# ユーザ権限に更新があった場合に通知を受け取る
+subscription updateUserAuth (
+    $userId: ID!
+    $mapId: String!
+) {
+    updateUserAuth(userId: $userId, mapId: $mapId)
+}
+
+# ユーザ一覧情報が更新された場合に通知を受け取る
+subscription userListUpdate (
+    $mapId: String!
+) {
+    userListUpdate(mapId: $mapId)
+}
+
+# 地図定義に変更があった場合に通知を受け取る
+subscription mapInfoUpdate (
+    $mapId: String!
+) {
+    mapInfoUpdate(mapId: $mapId)
+}

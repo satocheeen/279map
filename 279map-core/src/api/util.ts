@@ -1,7 +1,38 @@
-import { ConfigAPI, GetMapListAPI } from "tsunagumap-api";
 import { ServerInfo } from '../types/types';
-import { ServerConfig } from "279map-common";
-import { callApi } from "./api";
+import { cacheExchange, createClient, fetchExchange, subscriptionExchange } from "urql";
+import { ConfigDocument, GetMapListDocument } from "../graphql/generated/graphql";
+import { SubscriptionClient } from 'subscriptions-transport-ws';
+
+
+export function createGqlClient(serverInfo: ServerInfo, sessionid?: string) {
+    const protocol = serverInfo.ssl ? 'https' : 'http';
+    const url = `${protocol}://${serverInfo.host}/graphql`;
+
+    const wsProtocol = serverInfo.ssl ? 'wss' : 'ws';
+    const wsUrl = `${wsProtocol}://${serverInfo.host}/graphql`;
+    console.log('wsUrl', wsUrl);
+    const subscriptionClient = new SubscriptionClient(wsUrl, { reconnect: true });
+
+    const client = createClient({
+        url,
+        exchanges: [
+            cacheExchange, 
+            fetchExchange, 
+            subscriptionExchange({
+                forwardSubscription: request => subscriptionClient.request(request),
+            })
+        ],
+        fetchOptions: () => {
+            return {
+                headers: {
+                    Authorization:  serverInfo.token ? `Bearer ${serverInfo.token}` : '',
+                    sessionid: sessionid ?? '',
+                },
+            }
+        },
+    })
+    return client;
+}
 
 /**
  * ユーザがアクセス可能な地図一覧を返す
@@ -14,10 +45,11 @@ export async function getAccessableMapList(host: string, ssl: boolean, token: st
         ssl,
         token,
     } as ServerInfo;
+    const gqlClient = createGqlClient(mapServer);
 
     try {
-        const result = await callApi(mapServer, undefined, GetMapListAPI, undefined);
-        return result;
+        const result = await gqlClient.query(GetMapListDocument, {});
+        return result.data?.getMapList;
 
     } catch(e) {
         console.warn('get accessable maplist failed.', e);
@@ -36,12 +68,14 @@ export async function getAuthConfig(host: string, ssl: boolean) {
         host,
         ssl,
     } as ServerInfo;
+    const gqlClient = createGqlClient(mapServer);
     try {
-        const result = await callApi(mapServer, undefined, ConfigAPI, undefined) as ServerConfig;
-        return result;
+        const result = await gqlClient.query(ConfigDocument, {});
+        return result.data?.config
 
     } catch(e) {
         console.warn('get server config failed.', e);
-        throw new Error('get server config failed.', { cause: e});
+        return {};
+        // throw new Error('get server config failed.', { cause: e});
     }
 }

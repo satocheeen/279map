@@ -6,16 +6,16 @@ import CategorySelector from './CategorySelector';
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import { ImageRegister } from '../../common';
-import { GetSnsPreviewResult } from 'tsunagumap-api';
 import FormGroup from '../../common/form/FormGroup';
 import Input from '../../common/form/Input';
 import RadioButtons from '../../common/form/RadioButtons';
 import { useWatch } from '../../../util/useWatch';
+import { SnsPreviewResult } from '../../../graphql/generated/graphql';
 dayjs.extend(utc);
 
 type Props = {
     value: ContentAttr;
-    getSnsPreviewAPI: (url: string) => Promise<GetSnsPreviewResult>;
+    getSnsPreviewAPI: (url: string) => Promise<SnsPreviewResult>;
     onChange: (value: ContentAttr) => void;
 }
 export default function ContentInfoForm(props: Props) {

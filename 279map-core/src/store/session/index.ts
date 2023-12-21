@@ -1,70 +1,66 @@
-import { ConnectAPI, ConnectResult, ErrorType, GetMapInfoAPI, GetMapInfoResult } from 'tsunagumap-api';
-import { Auth, MapKind } from '279map-common';
-import { ApiException, callApi } from '../../api/api';
+import { Auth } from '279map-common';
 import { Extent } from "ol/extent";
 import { atom } from 'jotai';
 import { atomWithReducer, loadable, selectAtom } from 'jotai/utils';
 import { Loadable } from 'jotai/vanilla/utils/loadable';
-import { ServerInfo } from '../../types/types';
 import { atomWithCountup } from '../../util/jotaiUtility';
+import { clientAtom } from 'jotai-urql';
+import { SwitchMapKindDocument, SwitchMapKindMutation, MapKind } from '../../graphql/generated/graphql';
 
 export const instanceIdAtom = atomWithCountup('instance-');
 
-export const mapIdAtom = atom<string>('');
-
-export const serverInfoAtom = atom<ServerInfo>({
-    host: window.location.host,
-    ssl: window.location.protocol === 'https:',
+export const mapDefineAtom = atom({
+    connected: false,
+    defaultMapKind: MapKind.Real,
+    name: '',
+    options: {} as any,
+    useMaps: [] as MapKind[],
+    authLv: Auth.None,
 });
 
-export const connectReducerAtom = atomWithReducer(0, (prev) => prev+1);
-export const connectStatusAtom = atom<Promise<ConnectResult>>(async( get ) => {
-    try {
-        get(connectReducerAtom);
-
-        const mapId = get(mapIdAtom);
-        console.log('connect to', mapId);
-
-        const serverInfo = get(serverInfoAtom);
-        const json = await callApi(serverInfo, undefined, ConnectAPI, {mapId});
-
-        return json;
-
-    } catch(e) {
-        throw new ApiException({
-            type: ErrorType.IllegalError,
-            detail: e + '',
-        })
-    }
-})
-
-export const connectStatusLoadableAtom = loadable(connectStatusAtom);
+export const authLvAtom = atom<Auth>((get) => {
+    const mapDefine = get(mapDefineAtom);
+    return mapDefine.authLv;
+});
 
 // ユーザに表示指定された地図種別
 export const specifiedMapKindAtom = atom<MapKind|undefined>(undefined);
 
 export const mapDefineReducerAtom = atomWithReducer(0, (prev) => prev+1);
-const mapDefineAtom = atom<Promise<GetMapInfoResult>>(async(get) => {
+type SwitchMapKindResult = SwitchMapKindMutation['switchMapKind']
+type MapDefineType = SwitchMapKindResult & {
+    mapKind: MapKind
+}
+const currentMapKindInfoAtom = atom<Promise<MapDefineType>>(async(get) => {
     get(mapDefineReducerAtom);
+    const mapDefine = get(mapDefineAtom);
+    if (!mapDefine.connected) {
+        throw Promise;
+    }
 
-    const connectStatus = await get(connectStatusAtom);
     const specifiedMapKind = get(specifiedMapKindAtom);
-    const mapKind = specifiedMapKind ?? connectStatus.mapDefine.defaultMapKind;
+    const mapKind = specifiedMapKind ?? mapDefine.defaultMapKind;
     
-    const serverInfo = get(serverInfoAtom);
-    const sid = connectStatus.sid;
-    const res = await callApi(serverInfo, sid, GetMapInfoAPI, {
+    const gqlClient = get(clientAtom);
+    const res = await gqlClient.mutation(SwitchMapKindDocument, {
         mapKind,
     });
-    return res;
+    if (!res.data) {
+        throw res.error;
+    }
+    const data = res.data.switchMapKind;
+    return {
+        mapKind,
+        ...data
+    };
 });
-export const mapDefineLoadableAtom = loadable(mapDefineAtom);
+const mapDefineLoadableAtom = loadable(currentMapKindInfoAtom);
 
 /**
  * 地図定義情報。
  * 地図種別切り替え時、新データ取得までは切替前の情報を保持する
  */
-export const currentMapDefineAtom = selectAtom<Loadable<Promise<GetMapInfoResult>>, GetMapInfoResult|undefined>(mapDefineLoadableAtom, (current, prev) => {
+export const currentMapDefineAtom = selectAtom<Loadable<Promise<MapDefineType>>, MapDefineType|undefined>(mapDefineLoadableAtom, (current, prev) => {
     if (current?.state === 'hasData') {
         return current.data;
     } else {
@@ -88,17 +84,5 @@ export const defaultExtentAtom = atom<Extent>((get) => {
         return mapDefineLoadable.data.extent;
     } else {
         return [0,0,0,0];
-    }
-})
-
-export const authLvAtom = atom<Auth>(( get ) => {
-    const connectStatus = get(connectStatusLoadableAtom);
-    if (connectStatus.state !== 'hasData') return Auth.None;
-    switch(connectStatus.data.mapDefine.authLv) {
-        case Auth.None:
-        case Auth.Request:
-            return connectStatus.data.mapDefine.guestAuthLv;
-        default:
-            return connectStatus.data.mapDefine.authLv;
     }
 })

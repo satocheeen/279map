@@ -1,0 +1,75 @@
+type Hoge {
+    message: String!
+}
+type Target {
+    "対象アイテムのID"
+    id: DataId!
+    "アイテムの地図範囲。update時は更新後範囲"
+    wkt: String!
+}
+type Subscription {
+    test: Hoge!
+
+    """
+    地図上にアイテムが追加された場合に通知する
+    """
+    itemInsert (
+        "対象の地図ID"
+        mapId: String!
+        "対象の地図種別"
+        mapKind: MapKind!
+    ): [Target!]!
+
+    """
+    地図上のアイテムが更新された場合に通知する
+    """
+    itemUpdate (
+        "対象の地図ID"
+        mapId: String!
+        "対象の地図種別"
+        mapKind: MapKind!
+    ): [Target!]!
+
+    """
+    地図上のアイテムが削除された場合に通知する
+    """
+    itemDelete (
+        "対象の地図ID"
+        mapId: String!
+        "対象の地図種別"
+        mapKind: MapKind!
+    ): [DataId!]!
+
+    """
+    指定のアイテム配下のコンテンツに変更（登録・更新・削除）があった場合
+    """
+    childContentsUpdate (
+        itemId: DataId!
+    ): Boolean
+
+    """
+    ユーザ権限に更新があった場合
+    """
+    updateUserAuth (
+        "対象ユーザ"
+        userId: ID!
+        "対象の地図ID"
+        mapId: String!
+    ): Boolean
+
+    """
+    ユーザ一覧情報が更新された場合
+    """
+    userListUpdate (
+        "対象の地図ID"
+        mapId: String!
+    ): Boolean
+
+    """
+    地図定義に変更があった場合
+    """
+    mapInfoUpdate (
+        "対象の地図ID"
+        mapId: String!
+    ): Boolean
+}

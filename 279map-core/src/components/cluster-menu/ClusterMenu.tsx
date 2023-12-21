@@ -3,7 +3,7 @@ import { Overlay } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import styles from './ClusterMenu.module.scss';
 import useIcon from '../../store/icon/useIcon';
-import { DataId, DataSourceKindType } from '279map-common';
+import { DataId } from '279map-common';
 import { getMapKey } from '../../util/dataUtility';
 import { useMap } from '../map/useMap';
 import { BsImage } from 'react-icons/bs';
@@ -103,8 +103,8 @@ function MenuItem(props: MenuItemProp) {
         }
         if (!('icon' in item.geoProperties)) {
             // icon未指定の場合はレイヤデフォルトアイコンを設定
-            const datasource = dataSources.find(ds => ds.dataSourceId === item.id.dataSourceId);
-            const icon = datasource?.kind === DataSourceKindType.RealPointContent ? datasource.defaultIcon : undefined;
+            const datasource = dataSources.find(ds => ds.datasourceId === item.id.dataSourceId);
+            const icon = datasource?.config.__typename === 'RealPointContentConfig' ? datasource.config.defaultIcon : undefined;
             return getIconDefine(icon);
         }
         return getIconDefine(item.geoProperties.icon);
@@ -112,7 +112,7 @@ function MenuItem(props: MenuItemProp) {
     }, [getIconDefine, item, dataSources]);
 
     const hasImage = useMemo(() => {
-        return item?.contents.some(c => c.hasImage);
+        return item?.hasImageContentId.length > 0;
     }, [item]);
 
     const itemName = useMemo(() => {

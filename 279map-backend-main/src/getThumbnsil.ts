@@ -1,21 +1,18 @@
+import { DataId } from "279map-common";
 import { ConnectionPool } from ".";
 
 /**
  * 指定のページのサムネイル画像Base64を返す
  * @param pageId 
  */
-export async function getThumbnail(id: string): Promise<string> {
-    let pageId = id;
-    if (pageId.endsWith('/')) {
-        pageId = pageId.substring(0, pageId.length-1);
-    }
+export async function getThumbnail(contentId: DataId): Promise<string> {
     const con = await ConnectionPool.getConnection();
 
     try {
         const sql = `
         select thumbnail from contents pc
-        where content_page_id = ?`;
-        const [rows] = await con.execute(sql, [pageId]);
+        where content_page_id = ? and data_source_id = ?`;
+        const [rows] = await con.execute(sql, [contentId.id, contentId.dataSourceId]);
 
         if ((rows as any[]).length === 0) {
             throw 'not found';
