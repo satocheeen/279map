@@ -1,3 +1,18 @@
+# 当該ファイルでは、全体的に使用する型を定義
+# 279map-backend-commonでも、このファイルを参照して型を自動生成している。
+enum Auth {
+    None
+    Request
+    View
+    Edit
+    Admin
+}
+
+enum MapKind {
+    Real
+    Virtual
+}
+
 enum ErrorType {
     "指定の地図が存在しない場合"
     UndefinedMap
@@ -59,3 +74,50 @@ type MapDefine {
     defaultMapKind: MapKind!
     options: MapPageOptions!
 }
+
+# ------------------
+# DatasourceConfig
+# ------------------
+enum DatasourceKindType {
+    Item
+    RealPointContent
+    Content
+    Track
+}
+
+type DatasourceInfo {
+    datasourceId: String!
+    name: String!
+    visible: Boolean!
+    kind: DatasourceKindType!
+    config: DatasourceConfig!
+}
+type ItemConfig {
+    kind: DatasourceKindType!
+    layerGroup: String
+    editable: Boolean!
+    deletable: Boolean!
+}
+scalar IconKey
+type RealPointContentConfig {
+    kind: DatasourceKindType!
+    defaultIcon: IconKey
+    layerGroup: String
+    linkableContents: Boolean!
+    editable: Boolean!
+    deletable: Boolean!
+}
+type ContentConfig {
+    kind: DatasourceKindType!
+    linkableChildContents: Boolean!
+    disableUnlinkMap: Boolean
+    editable: Boolean!
+    deletable: Boolean!
+}
+type TrackConfig {
+    kind: DatasourceKindType!
+    layerGroup: String
+    editable: Boolean!
+    deletable: Boolean!
+}
+union DatasourceConfig = ItemConfig | RealPointContentConfig | ContentConfig | TrackConfig

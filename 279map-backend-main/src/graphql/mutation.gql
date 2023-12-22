@@ -1,7 +1,3 @@
-enum MapKind {
-    Real
-    Virtual
-}
 enum ParentOfContent {
     Item
     Content
@@ -43,54 +39,6 @@ type DatasourceGroup {
     visible: Boolean!
     datasources: [DatasourceInfo!]!
 }
-
-enum DatasourceKindType {
-    Item
-    RealPointContent
-    Content
-    Track
-}
-type DatasourceInfo {
-    datasourceId: String!
-    name: String!
-    visible: Boolean!
-    kind: DatasourceKindType!
-    config: DatasourceConfig!
-}
-# interface DatasourceConfig {
-#     kind: DatasourceKindType!
-#     editable: Boolean!
-#     deletable: Boolean!
-# }
-type ItemConfig {
-    kind: DatasourceKindType!
-    layerGroup: String
-    editable: Boolean!
-    deletable: Boolean!
-}
-scalar IconKey
-type RealPointContentConfig {
-    kind: DatasourceKindType!
-    defaultIcon: IconKey
-    layerGroup: String
-    linkableContents: Boolean!
-    editable: Boolean!
-    deletable: Boolean!
-}
-type ContentConfig {
-    kind: DatasourceKindType!
-    linkableChildContents: Boolean!
-    disableUnlinkMap: Boolean
-    editable: Boolean!
-    deletable: Boolean!
-}
-type TrackConfig {
-    kind: DatasourceKindType!
-    layerGroup: String
-    editable: Boolean!
-    deletable: Boolean!
-}
-union DatasourceConfig = ItemConfig | RealPointContentConfig | ContentConfig | TrackConfig
 
 type IconDefine {
     id: ID!

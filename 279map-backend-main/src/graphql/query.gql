@@ -44,13 +44,6 @@ enum ContentType {
     normal
     sns
 }
-enum Auth {
-    None
-    Request
-    View
-    Edit
-    Admin
-}
 type ContentsDefine {
     id: DataId!
     itemId: DataId!

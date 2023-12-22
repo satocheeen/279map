@@ -3,7 +3,8 @@
   "version": "0.23.7",
   "description": "279map backend common modules",
   "scripts": {
-    "rollup": "rollup -c"
+    "rollup": "rollup -c",
+    "codegen": "graphql-codegen --config codegen.ts"
   },
   "keywords": [],
   "author": "Satocheeen (https://satocheeen.com)",
@@ -19,6 +20,9 @@
   ],
   "types": "dist/index.d.ts",
   "devDependencies": {
+    "@graphql-codegen/add": "^5.0.0",
+    "@graphql-codegen/cli": "5.0.0",
+    "@graphql-codegen/typescript": "4.0.1",
     "@rollup/plugin-commonjs": "^21.0.1",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^13.0.6",
