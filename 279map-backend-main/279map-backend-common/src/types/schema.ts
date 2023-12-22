@@ -1,5 +1,4 @@
-import { MapKind, MapPageOptions } from '279map-common';
-import { DatasourceConfig, DatasourceKindType } from '../../../src/graphql/__generated__/types';
+import { DatasourceConfig, DatasourceKindType, MapKind, MapPageOptions } from '../../../src/graphql/__generated__/types';
 import { SnsOptions } from '../sns';
 
 export enum PublicRange {

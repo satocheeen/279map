@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import mysql from 'mysql2/promise';
 import { getMapInfo } from './getMapInfo';
-import { AuthMethod, DataId, MapPageOptions } from '279map-common';
+import { AuthMethod, DataId } from '279map-common';
 import { getItems } from './getItems';
 import { configure, getLogger } from "log4js";
 import { DbSetting, LogSetting } from './config';
@@ -33,7 +33,7 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { IFieldResolverOptions } from '@graphql-tools/utils';
-import { Auth, ConnectInfo, DatasourceConfig, DatasourceKindType, ErrorType, MapDefine, MapKind, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, ThumbSize } from './graphql/__generated__/types';
+import { Auth, ConnectInfo, DatasourceConfig, DatasourceKindType, ErrorType, MapDefine, MapKind, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, ThumbSize } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -270,6 +270,7 @@ const checkGraphQlAuthLv = async(operationName: string, userAuthInfo: UserAuthIn
 
 const fileSchema = loadSchemaSync(
     [
+        join(__dirname, './graphql/types.gql'),
         join(__dirname, './graphql/query.gql'),
         join(__dirname, './graphql/mutation.gql'),
         join(__dirname, './graphql/subscription.gql'),
@@ -669,7 +670,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                             return mapKindStr as MapKind;
                         }),
                         defaultMapKind: mapInfo.default_map as MapKind,
-                        options: mapInfo.options,
+                        options: mapInfo.options as MapPageOptions,
                     };
 
                     const connect: ConnectInfo = 

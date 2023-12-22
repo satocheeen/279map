@@ -1,4 +1,4 @@
-import GeoJSON, { GeoJsonObject } from 'geojson';
+import GeoJSON from 'geojson';
 
 export type Extent = number[];
 
@@ -18,19 +18,6 @@ export type ServerConfig = {
     }
 } | {
     authMethod: AuthMethod.None | AuthMethod.Original;
-}
-
-export enum Auth {
-    None = 'None',
-    Request = 'Request',    // 登録申請中
-    View = 'View',
-    Edit = 'Edit',
-    Admin = 'Admin',
-}
-
-export enum MapKind {
-    Real = 'Real',
-    Virtual = 'Virtual',
 }
 
 /**
@@ -76,41 +63,6 @@ export type DataSourceGroup = {
     visible: boolean;
     dataSources: DataSourceInfo[];
 }
-
-export interface MapPageOptions {
-    popupMode?: 'hidden' | 'minimum' | 'maximum';
-    itemLabel?: 'show' | 'hidden';
-    // 初期表示するデータソースを絞る場合に指定する
-    visibleDataSources?: ({
-        dataSourceId: string;
-    } | {
-        group: string;
-    })[];
-    guestUserAuthLevel: Auth;    // ゲストユーザの操作権限
-    newUserAuthLevel: Auth; // 新規登録ユーザに設定する権限
-    usePanels?: string[];   // 使用パネル
-    options?: string[]; // その他オプション文字列
-}
-/**
- * 地図定義情報
- */
-export type MapDefine = {
-    mapId: string;
-    name: string;
-    useMaps: MapKind[];
-    defaultMapKind: MapKind;
-    options?: MapPageOptions;
-} & (
-    {
-        // ゲストユーザの場合
-        authLv: Auth.Request | Auth.None;
-        guestAuthLv: Auth;  // ゲスト接続権限
-    } | {
-        // 登録済みユーザの場合
-        authLv: Auth.Admin | Auth.Edit | Auth.View;
-        userName: string;
-    }
-)
 
 /**
  * 地物種別
@@ -171,55 +123,6 @@ export type ItemContentInfo = {
     hasImage: boolean;
     children: ItemContentInfo[];
 }
-export type ItemDefine = {
-    id: DataId;
-    name: string;
-    geoJson: GeoJSON.Geometry;
-    geoProperties: GeoProperties;
-    lastEditedTime: string;
-    contents: ItemContentInfo[];
-    temporary?: 'registing' | 'updating';  // registing->新規登録処理中、updating->更新処理中
-}
-export type ContentsDefine = {
-    id: DataId;
-    itemId: DataId;
-    date?: string;
-    url?: string;
-    title: string;
-    overview?: string;
-    category?: string[];
-    image?: boolean;    // 画像がある場合、true
-    videoUrl?: string;  // 動画がある場合、そのURL
-    parentId?: DataId;   // 親コンテンツが存在する場合、親コンテンツのID
-    children?: ContentsDefine[];    // 子コンテンツ（SNS投稿など）
-    usingAnotherMap: boolean;   // 他の地図（もう片方のMapKindや、全く別の地図）で使用されている場合、true。（完全削除防止用）
-    anotherMapItemId?: DataId; // もう片方の地図に存在する場合、そのアイテムID
-    isSnsContent: boolean;  // trueの場合、SNS等から自動連係したコンテンツ
-
-    isEditable: boolean;
-    isDeletable: boolean;
-}
-export type CategoryDefine = {
-    name: string;
-    color: string;
-    dataSourceIds: string[];    // カテゴリが使用されているデータソースID一覧
-}
-/**
- * データソース単位のイベント情報
- */
-export type EventDefine = {
-    dataSourceId: string;
-    contentDate: {
-        date: string;       // 日付文字列 または 日時文字列
-        contentId: DataId;
-    }[];
-}
-export type IconDefine = {
-    id: string;
-    caption?: string;
-    imagePath: string;
-    useMaps: MapKind[];
-}
 
 export type UnpointContent = {
     id: DataId;
@@ -248,21 +151,4 @@ export type SnsPreviewPost = {
         url: string;
     };
     date?: string;
-}
-
-export type FilterDefine = {
-    type: 'category';
-    category: string;
-} | {
-    type: 'calendar';
-    date: string;   // YYYY-MM-DD 形式で指定
-} | {
-    type: 'keyword';
-    keyword: string;
-}
-
-export type User = {
-    id: string;
-    name: string;
-    authLv: Auth;
 }

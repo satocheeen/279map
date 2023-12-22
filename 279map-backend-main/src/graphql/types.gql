@@ -16,3 +16,46 @@ enum ErrorType {
     "その他接続エラー"
     IllegalError
 }
+
+# --------------
+# connect
+# --------------
+enum PopupMode {
+    hidden
+    minimum
+    maximum
+}
+enum ItemLabelMode {
+    show
+    hidden
+}
+
+type VisibleDataSourceDatasource {
+    dataSourceId: String
+}
+type VisibleDataSourceGroup {
+    group: String
+}
+union VisibleDataSource = VisibleDataSourceDatasource | VisibleDataSourceGroup
+
+type MapPageOptions {
+    popupMode: PopupMode
+    itemLabel: ItemLabelMode
+    "初期表示するデータソースを絞る場合に指定する"
+    visibleDataSources: [VisibleDataSource!]!
+    "ゲストユーザの操作権限"
+    guestUserAuthLevel: Auth!
+    "新規登録ユーザに設定する権限"
+    newUserAuthLevel: Auth!
+    "使用パネル"
+    usePanels: [String!]
+    "その他オプション文字列"
+    options: [String!]
+}
+
+type MapDefine {
+    name: String!
+    useMaps: [MapKind!]!
+    defaultMapKind: MapKind!
+    options: MapPageOptions!
+}

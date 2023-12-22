@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useCallback, useRef } from 'react';
-import { FilterDefine } from '../entry';
 import styles from './FilterCondition.module.scss';
 import { useWatch } from '../util/useWatch2';
 import { CategoryDefine, Condition } from '../graphql/generated/graphql';
+
+type FilterKind = keyof Required<Condition>;
 
 type Props = {
     categories: CategoryDefine[];
@@ -10,7 +11,7 @@ type Props = {
 }
 
 export default function FilterCondition(props: Props) {
-    const [ currentMode, setCurrentMode ] = useState<FilterDefine['type']>('category');
+    const [ currentMode, setCurrentMode ] = useState<FilterKind>('category');
     const [ category, setCategory ] = useState<string| undefined>();
     const onChangeCategory = useCallback((category: string | undefined) => {
         setCategory(category);
@@ -80,7 +81,7 @@ export default function FilterCondition(props: Props) {
         <>
             <div className={styles.Container}>
                 <div className={styles.TabArea}>
-                    {(['category', 'calendar', 'keyword'] as FilterDefine['type'][]).map(name => {
+                    {(['category', 'calendar', 'keyword'] as FilterKind[]).map(name => {
                     <Tab name='category' />
                         return (
                             <Tab key={name} name={name} active={currentMode===name}
@@ -92,7 +93,7 @@ export default function FilterCondition(props: Props) {
                     <div className={`${currentMode==='category' ? styles.Active : ''}`}>
                         {categoryFilter}
                     </div>
-                    <div className={`${currentMode==='calendar' ? styles.Active : ''}`}>
+                    <div className={`${currentMode==='date' ? styles.Active : ''}`}>
                         {calendarFilter}
                     </div>
                     <div className={`${currentMode==='keyword' ? styles.Active : ''}`}>
@@ -108,7 +109,7 @@ export default function FilterCondition(props: Props) {
 }
 
 type TabProps = {
-    name: FilterDefine['type'];
+    name: FilterKind;
     active?: boolean;
     onClick?: () => void;
 }
@@ -117,7 +118,7 @@ function Tab(props: TabProps) {
         switch(props.name) {
             case 'category':
                 return 'カテゴリ';
-            case 'calendar':
+            case 'date':
                 return 'カレンダー';
             case 'keyword':
                 return 'キーワード';

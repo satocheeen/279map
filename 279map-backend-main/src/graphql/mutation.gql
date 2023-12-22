@@ -18,13 +18,6 @@ input ContentsDatasourceInput {
 # --------------
 # connect
 # --------------
-scalar MapPageOptions
-type MapDefine {
-    name: String!
-    useMaps: [MapKind!]!
-    defaultMapKind: MapKind!
-    options: MapPageOptions!
-}
 type ConnectInfo {
     sid: String!
     authLv: Auth!
