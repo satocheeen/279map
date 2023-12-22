@@ -1,4 +1,3 @@
-import { DataId } from '279map-common'
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -13,7 +12,8 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
-  IconKey: { input: any; output: any; }
+  /** GeoJSON.Feature */
+  GeoJsonFeature: { input: any; output: any; }
 };
 
 export enum Auth {
@@ -26,10 +26,17 @@ export enum Auth {
 
 export type ContentConfig = {
   deletable: Scalars['Boolean']['output'];
+  /** trueの場合、当該コンテンツデータソースを地図から外すこと不可 */
   disableUnlinkMap?: Maybe<Scalars['Boolean']['output']>;
   editable: Scalars['Boolean']['output'];
   kind: DatasourceKindType;
+  /** 子コンテンツの追加が可能かどうか */
   linkableChildContents: Scalars['Boolean']['output'];
+};
+
+export type DataId = {
+  dataSourceId: Scalars['String']['output'];
+  id: Scalars['String']['output'];
 };
 
 export type DatasourceConfig = ContentConfig | ItemConfig | RealPointContentConfig | TrackConfig;
@@ -66,6 +73,44 @@ export enum ErrorType {
   Unauthorized = 'Unauthorized',
   /** 指定の地図が存在しない場合 */
   UndefinedMap = 'UndefinedMap'
+}
+
+/** 地物種別 */
+export enum FeatureType {
+  Area = 'AREA',
+  Earth = 'EARTH',
+  Forest = 'FOREST',
+  Road = 'ROAD',
+  Structure = 'STRUCTURE',
+  Track = 'TRACK'
+}
+
+export type GeoProperties = RoadProperties | StructurePropeties | TopographyProperties | TrackPropeties;
+
+/** OSM等で管理されているFeatureを特定する情報 */
+export type GeocoderId = GeocoderIdMapbox | GeocoderIdOsm;
+
+/** Mapboxで管理されているFeatureを特定する情報 */
+export type GeocoderIdMapbox = {
+  id: Scalars['String']['output'];
+  map: OsmKind;
+};
+
+/** OSMで管理されているFeatureを特定する情報 */
+export type GeocoderIdOsm = {
+  map: OsmKind;
+  osm_id: Scalars['Int']['output'];
+  osm_type: Scalars['String']['output'];
+};
+
+export type IconKey = {
+  id: Scalars['String']['output'];
+  type: IconType;
+};
+
+export enum IconType {
+  Original = 'original',
+  System = 'system'
 }
 
 export type ItemConfig = {
@@ -107,6 +152,11 @@ export type MapPageOptions = {
   visibleDataSources: Array<VisibleDataSource>;
 };
 
+export enum OsmKind {
+  Mapbox = 'mapbox',
+  Osm = 'osm'
+}
+
 export enum PopupMode {
   Hidden = 'hidden',
   Maximum = 'maximum',
@@ -114,7 +164,7 @@ export enum PopupMode {
 }
 
 export type RealPointContentConfig = {
-  defaultIcon?: Maybe<Scalars['IconKey']['output']>;
+  defaultIcon?: Maybe<IconKey>;
   deletable: Scalars['Boolean']['output'];
   editable: Scalars['Boolean']['output'];
   kind: DatasourceKindType;
@@ -122,11 +172,33 @@ export type RealPointContentConfig = {
   linkableContents: Scalars['Boolean']['output'];
 };
 
+export type RoadProperties = {
+  /** 元のline */
+  lineJson: Scalars['GeoJsonFeature']['output'];
+  /** RoadWidth.key */
+  width: Scalars['String']['output'];
+};
+
+export type StructurePropeties = {
+  icon?: Maybe<IconKey>;
+};
+
+/** Earth, Forest, Areaのプロパティ */
+export type TopographyProperties = {
+  /** 円の場合、半径 */
+  radius?: Maybe<Scalars['Float']['output']>;
+};
+
 export type TrackConfig = {
   deletable: Scalars['Boolean']['output'];
   editable: Scalars['Boolean']['output'];
   kind: DatasourceKindType;
   layerGroup?: Maybe<Scalars['String']['output']>;
+};
+
+export type TrackPropeties = {
+  maxZoom: Scalars['Float']['output'];
+  minZoom: Scalars['Float']['output'];
 };
 
 export type User = {

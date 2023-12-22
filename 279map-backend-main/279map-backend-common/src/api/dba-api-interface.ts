@@ -2,8 +2,8 @@
  * Odba container's API interface.
  */
 
-import { GeoProperties, APIDefine, ContentAttr, DataId } from "279map-common";
-import { CurrentMap } from "../types";
+import { DataId, GeoProperties } from "../graphql/__generated__/types";
+import { APIDefine, CurrentMap } from "../types";
 
 type CommonParam = {
     currentMap: CurrentMap;
@@ -32,6 +32,19 @@ export const OdbaRegistContentAPI = {
     method: 'post',
     resultType: 'none',
 } as APIDefine<OdbaRegistContentParam, void>;
+
+type ContentAttr = {
+    title: string;
+    overview: string;
+    categories: string[];
+} & ({
+    type: 'normal';
+    date?: string;
+    imageUrl?: string;
+} | {
+    type: 'sns';
+    url?: string;
+});
 
 export type OdbaRegistContentParam = CommonParam & {
     parent: {

@@ -1,5 +1,7 @@
+# ----------------------------------------------------------------------
 # 当該ファイルでは、全体的に使用する型を定義
 # 279map-backend-commonでも、このファイルを参照して型を自動生成している。
+# ----------------------------------------------------------------------
 enum Auth {
     None
     Request
@@ -11,6 +13,11 @@ enum Auth {
 enum MapKind {
     Real
     Virtual
+}
+
+type DataId {
+    id: String!
+    dataSourceId: String!
 }
 
 enum ErrorType {
@@ -104,7 +111,14 @@ type ItemConfig {
     editable: Boolean!
     deletable: Boolean!
 }
-scalar IconKey
+enum IconType {
+    system
+    original
+}
+type IconKey {
+    type: IconType!
+    id: String!
+}
 type RealPointContentConfig {
     kind: DatasourceKindType!
     defaultIcon: IconKey
@@ -115,7 +129,9 @@ type RealPointContentConfig {
 }
 type ContentConfig {
     kind: DatasourceKindType!
+    "子コンテンツの追加が可能かどうか"
     linkableChildContents: Boolean!
+    "trueの場合、当該コンテンツデータソースを地図から外すこと不可"
     disableUnlinkMap: Boolean
     editable: Boolean!
     deletable: Boolean!
@@ -127,3 +143,69 @@ type TrackConfig {
     deletable: Boolean!
 }
 union DatasourceConfig = ItemConfig | RealPointContentConfig | ContentConfig | TrackConfig
+
+# --------------------
+# GeoProperties関連
+# --------------------
+
+"地物種別"
+enum FeatureType {
+    STRUCTURE,
+    ROAD
+    EARTH
+    FOREST
+    AREA
+    TRACK
+}
+
+enum OsmKind {
+    osm
+    mapbox
+}
+
+"OSMで管理されているFeatureを特定する情報"
+type GeocoderIdOsm {
+    map: OsmKind!
+    osm_type: String!
+    osm_id: Int!
+}
+
+"Mapboxで管理されているFeatureを特定する情報"
+type GeocoderIdMapbox {
+    map: OsmKind!
+    id: String!
+}
+
+"OSM等で管理されているFeatureを特定する情報"
+union GeocoderId = GeocoderIdOsm | GeocoderIdMapbox
+
+# --------------------
+# GeoProperties
+# --------------------
+type StructurePropeties {
+    icon: IconKey
+}
+
+"GeoJSON.Feature"
+scalar GeoJsonFeature
+
+type RoadProperties {
+    "元のline"
+    lineJson: GeoJsonFeature!
+    "RoadWidth.key"
+    width: String!
+}
+
+"Earth, Forest, Areaのプロパティ"
+type TopographyProperties {
+    "円の場合、半径"
+    radius: Float
+}
+
+type TrackPropeties {
+    minZoom: Float!
+    maxZoom: Float!
+}
+
+union GeoProperties = StructurePropeties | RoadProperties | TopographyProperties | TrackPropeties
+

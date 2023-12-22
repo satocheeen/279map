@@ -8,4 +8,3 @@ export * from './auth';
 export * from './graphql/__generated__/types';
 
 export * from './utility';
-export * from '279map-common';

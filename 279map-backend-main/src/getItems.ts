@@ -1,10 +1,11 @@
-import { FeatureType, ItemContentInfo } from '279map-common';
+import { FeatureType } from '279map-common';
 import { getLogger } from 'log4js';
 import { ConnectionPool } from '.';
 import { PoolConnection } from 'mysql2/promise';
 import { CurrentMap } from '../279map-backend-common/src';
 import { ContentsTable, ItemContentLink, ItemsTable, TrackGeoJsonTable, TracksTable } from '../279map-backend-common/src/types/schema';
 import { QueryGetItemsArgs, ItemDefine, MapKind } from './graphql/__generated__/types';
+import { ItemContentInfo } from './api/getItem';
 
 const apiLogger = getLogger('api');
 

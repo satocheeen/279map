@@ -1,6 +1,6 @@
-import { APIDefine } from '279map-common';
 import axios, { AxiosResponse } from 'axios';
 import FormData from 'form-data';
+import { APIDefine } from '../types';
 
 export async function callOdbaApi<API extends APIDefine<any,any>>(api: API, param: API['param']): Promise<API['result']> {
     const url = `http://${process.env.ODBA_SERVICE_HOST}:${process.env.ODBA_SERVICE_PORT}/${api.uri}/`;

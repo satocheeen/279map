@@ -1,9 +1,9 @@
-import { APIDefine, DataId } from "279map-common";
 import { Request, Response, Express } from 'express';
 import { Logger } from "log4js";
 import { OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetLinkableContentsResult, OdbaGetUnpointDataAPI, OdbaLinkContentDatasourceToMapAPI, OdbaLinkContentDatasourceToMapParam, OdbaLinkContentToItemAPI, OdbaLinkContentToItemParam, OdbaRegistContentAPI, OdbaRegistContentParam, OdbaRegistItemAPI, OdbaRegistItemParam, OdbaRemoveContentAPI, OdbaRemoveContentParam, OdbaRemoveItemAPI, OdbaRemoveItemParam, OdbaUnlinkContentDatasourceFromMapAPI, OdbaUnlinkContentDatasourceFromMapParam, OdbaUpdateContentAPI, OdbaUpdateContentParam, OdbaUpdateItemAPI, OdbaUpdateItemParam } from "./dba-api-interface";
 import OdbaInterface from "./OdbaInterface";
-import { CurrentMap } from "../types";
+import { APIDefine, CurrentMap } from "../types";
+import { DataId } from '../graphql/__generated__/types';
 
 type OdbaAPIFuncParam<PARAM> = {
     param: PARAM;
