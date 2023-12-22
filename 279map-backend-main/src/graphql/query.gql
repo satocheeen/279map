@@ -77,11 +77,6 @@ enum ThumbSize {
     Thumbnail
     Medium
 }
-type User {
-    id: ID!
-    name: String!
-    authLv: Auth!
-}
 type ContentsDatasource {
     datasourceId: String!
     name: String!

@@ -129,6 +129,12 @@ export type TrackConfig = {
   layerGroup?: Maybe<Scalars['String']['output']>;
 };
 
+export type User = {
+  authLv: Auth;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+};
+
 export type VisibleDataSource = VisibleDataSourceDatasource | VisibleDataSourceGroup;
 
 export type VisibleDataSourceDatasource = {

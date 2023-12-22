@@ -1,5 +1,5 @@
-import { Auth, User } from "279map-common";
 import { NextFunction, Request, Response } from 'express';
+import { Auth, User } from "../graphql/__generated__/types";
 
 export type MapInfo = {
     auth_lv: Auth;

@@ -1,4 +1,4 @@
-import { MapKind } from "279map-common";
+import { MapKind } from "../graphql/__generated__/types";
 
 export type CurrentMap = {
     mapId: string;
