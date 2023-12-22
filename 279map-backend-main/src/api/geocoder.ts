@@ -1,9 +1,8 @@
-import { GeocoderId } from "279map-common";
 import axios from "axios";
 import { Geometry } from "geojson";
 import { getLogger } from "log4js";
 import { MapboxAccessToken } from "../config";
-import { GeocoderItem, GeocoderTarget, QueryGeocoderArgs, QueryGetGeocoderFeatureArgs } from "../graphql/__generated__/types";
+import { GeocoderId, GeocoderIdOsm, GeocoderItem, GeocoderTarget, OsmKind, QueryGeocoderArgs, QueryGetGeocoderFeatureArgs } from "../graphql/__generated__/types";
 
 type OSMGeocordingResult = {
     boundingbox: [number, number, number, number];
@@ -79,7 +78,7 @@ async function mapboxSearch(address: string, searchTarget: GeocoderTarget[]): Pr
     }).map((res): GeocoderItem => {
         return {
             idInfo: {
-                map: 'mapbox',
+                map: OsmKind.Mapbox,
                 id: res.id,
             },
             name: res.place_name,
@@ -110,7 +109,7 @@ async function osmSearch(address: string, searchTarget: GeocoderTarget[]): Promi
     }).map((res): GeocoderItem => {
         return {
             idInfo: {
-                map: 'osm',
+                map: OsmKind.Osm,
                 osm_type: res.osm_type,
                 osm_id: res.osm_id,
             },
@@ -132,10 +131,11 @@ export async function getGeocoderFeature(param: QueryGetGeocoderFeatureArgs): Pr
  * @param id 
  */
 async function getFeatureById(id: GeocoderId): Promise<Geometry> {
-    if (id.map === 'mapbox') {
+    if (id.map === OsmKind.Mapbox) {
         throw '現状、対応外';
     }
-    const idStr = id.osm_type[0].toUpperCase() + id.osm_id;
+    const tempId = id as GeocoderIdOsm;
+    const idStr = tempId.osm_type[0].toUpperCase() + tempId.osm_id;
     const url = 'https://nominatim.openstreetmap.org/lookup?osm_ids=' + idStr + '&format=json&polygon_geojson=1';
 
     const result = await axios({

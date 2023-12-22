@@ -1,9 +1,8 @@
 import { ConnectionPool } from '.';
-import { MapPageOptions } from '279map-common';
 import mysql from 'mysql2/promise';
 import { DataSourceTable, MapPageInfoTable } from '../279map-backend-common/src/types/schema';
 import { schema } from '../279map-backend-common/src';
-import { DatasourceKindType, DatasourceConfig, DatasourceGroup, DatasourceInfo, MapInfo, RealPointContentConfig, ContentConfig, MapKind, Auth } from './graphql/__generated__/types';
+import { DatasourceKindType, DatasourceConfig, DatasourceGroup, DatasourceInfo, MapInfo, RealPointContentConfig, ContentConfig, MapKind, Auth, MapPageOptions } from './graphql/__generated__/types';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 
 /**
@@ -192,7 +191,7 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
             const visible = !visibleDataSources ? true : visibleDataSources.some(vds => {
                 if ('group' in vds) {
                     return vds.group === layerGroup;
-                } else {
+                } else if ('dataSourceId' in vds){
                     return vds.dataSourceId === row.data_source_id;
                 }
             });
@@ -215,7 +214,7 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
             const visible = !visibleDataSources ? true : visibleDataSources.some(vds => {
                 if ('group' in vds) {
                     return vds.group === name;
-                } else {
+                } else if ('dataSourceId' in vds){
                     return datasources.some(ds => ds.datasourceId === vds.dataSourceId);
                 }
             });

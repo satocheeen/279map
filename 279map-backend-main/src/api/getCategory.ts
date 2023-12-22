@@ -1,8 +1,8 @@
 import randomColor from "randomcolor";
 import { ConnectionPool } from "..";
-import { CategoryDefine, CurrentMap } from "../../279map-backend-common/src";
+import { CurrentMap } from "../../279map-backend-common/src";
 import { getLogger } from "log4js";
-import { QueryGetCategoryArgs } from "../graphql/__generated__/types";
+import { CategoryDefine, QueryGetCategoryArgs } from "../graphql/__generated__/types";
 import { QueryResolverReturnType } from "../graphql/type_utility";
 
 const apiLogger = getLogger('api');
@@ -30,10 +30,10 @@ export async function getCategory(param: QueryGetCategoryArgs, currentMap: Curre
                     categoryMap.set(category, {
                         name: category,
                         color: '',
-                        dataSourceIds: []
+                        datasourceIds: []
                     });
                 }
-                categoryMap.get(category)?.dataSourceIds.push(row.data_source_id);
+                categoryMap.get(category)?.datasourceIds.push(row.data_source_id);
             })
         });
 
@@ -49,9 +49,9 @@ export async function getCategory(param: QueryGetCategoryArgs, currentMap: Curre
         });
 
         return categories.map(c => {
-            const { dataSourceIds, ...atr } = c;
+            const { datasourceIds, ...atr } = c;
             return {
-                datasourceIds: dataSourceIds,
+                datasourceIds,
                 ...atr,
             }
         });

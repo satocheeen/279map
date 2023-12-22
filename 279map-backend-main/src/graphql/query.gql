@@ -104,7 +104,6 @@ enum GeocoderTarget {
     Area
 }
 
-scalar GeocoderId
 type GeocoderItem {
     idInfo: GeocoderId!
     name: String!

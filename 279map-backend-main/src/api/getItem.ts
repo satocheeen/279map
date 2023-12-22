@@ -1,9 +1,8 @@
-import { DataId, ItemContentInfo } from "279map-common";
 import { getLogger } from "log4js";
 import { ConnectionPool } from "..";
 import { ItemContentLink, ItemsTable } from "../../279map-backend-common/src/types/schema";
 import { getContentsInfo, getImageContentId } from "../getItems";
-import { ItemDefine, QueryGetItemsByIdArgs } from "../graphql/__generated__/types";
+import { DataId, ItemDefine, QueryGetItemsByIdArgs } from "../graphql/__generated__/types";
 
 const apiLogger = getLogger('api');
 
@@ -75,4 +74,10 @@ export async function getItem(id: DataId): Promise<ItemDefine|undefined> {
         await con.commit();
         con.release();
     }
+}
+
+export type ItemContentInfo = {
+    id: DataId;
+    hasImage: boolean;
+    children: ItemContentInfo[];
 }

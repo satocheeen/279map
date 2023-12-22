@@ -1,6 +1,6 @@
-import { GraphQLScalarType, GraphQLInterfaceType } from "graphql";
-import { DataId } from '279map-common';
+import { GraphQLScalarType } from "graphql";
 import { Geometry } from 'geojson';
+import { DataId } from "./__generated__/types";
 
 export const DataIdScalarType = new GraphQLScalarType({
     name: 'DataId',
