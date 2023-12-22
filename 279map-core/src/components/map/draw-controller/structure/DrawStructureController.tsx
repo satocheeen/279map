@@ -10,14 +10,13 @@ import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import SearchAddress, { SearchAddressHandler } from '../../../common/SearchAddress';
 import GeoJSON from 'ol/format/GeoJSON';
 import { GeoJsonObject } from 'geojson';
-import { FeatureType, GeoProperties } from '279map-common';
 import { SystemIconDefine } from '../../../../types/types';
 import VectorLayer from 'ol/layer/Vector';
 import { useMap } from '../../useMap';
 import { currentMapKindAtom } from '../../../../store/session';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
-import { GeocoderTarget, MapKind, RegistItemDocument } from '../../../../graphql/generated/graphql';
+import { FeatureType, GeoProperties, GeocoderTarget, MapKind, RegistItemDocument } from '../../../../graphql/generated/graphql';
 
 type Props = {
     dataSourceId: string;   // 作図対象のデータソース
@@ -137,7 +136,7 @@ export default function DrawStructureController(props: Props) {
             datasourceId: props.dataSourceId,
             geometry: geoJson.geometry,
             geoProperties: Object.assign({}, geoJson.properties, {
-                featureType: FeatureType.STRUCTURE,
+                featureType: FeatureType.Structure,
                 icon: {
                     type: drawingIcon.current?.type,
                     id: drawingIcon.current?.id,

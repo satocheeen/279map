@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { DataId } from "279map-common";
 import { useAtom } from "jotai";
 import { allItemsAtom } from ".";
+import { DataId } from '../../graphql/generated/graphql';
 
 type Props = {
     id: DataId;

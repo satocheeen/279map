@@ -1,8 +1,8 @@
 import { useCallback } from "react";
-import { DataId } from "279map-common";
 import { isEqualId } from "../../util/dataUtility";
 import { filteredItemsAtom } from ".";
 import { useAtomCallback } from "jotai/utils";
+import { DataId } from "../../graphql/generated/graphql";
 
 type FilterStatus = 'Normal' | 'UnFiltered' | 'Filtered';
 

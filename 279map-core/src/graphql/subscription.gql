@@ -10,7 +10,10 @@ subscription itemInsert (
     $mapKind: MapKind!
 ) {
     itemInsert(mapId: $mapId, mapKind: $mapKind) {
-        id
+        id {
+            id
+            dataSourceId
+        }
         wkt
     }
 }
@@ -21,7 +24,10 @@ subscription itemUpdate (
     $mapKind: MapKind!
 ) {
     itemUpdate(mapId: $mapId, mapKind: $mapKind) {
-        id
+        id {
+            id
+            dataSourceId
+        }
         wkt
     }
 }
@@ -31,12 +37,15 @@ subscription itemDelete (
     $mapId: String!
     $mapKind: MapKind!
 ) {
-    itemDelete(mapId: $mapId, mapKind: $mapKind)
+    itemDelete(mapId: $mapId, mapKind: $mapKind) {
+        id
+        dataSourceId
+    }
 }
 
 # 指定のアイテム配下のコンテンツに変更（登録・更新・削除）があった場合に通知を受け取る
 subscription childContentsUpdate (
-    $itemId: DataId!
+    $itemId: DataIdInput!
 ) {
     childContentsUpdate(itemId: $itemId)
 }

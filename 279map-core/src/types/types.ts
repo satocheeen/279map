@@ -1,6 +1,6 @@
-import { ContentAttr, DataId, FeatureType, GeoProperties, IconDefine } from "279map-common";
 import { CSSProperties } from "react";
-import { Auth, CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult } from "../graphql/generated/graphql";
+import { DataId, FeatureType, GeoProperties, IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult, IconType } from "../graphql/generated/graphql";
+import { ContentAttr } from "../components/contents/types";
 
 export type OnMapLoadParam = {
     mapKind: MapKind;
@@ -100,7 +100,7 @@ export interface TsunaguMapHandler {
      * start the step of drawing a land, a green field or an area.
      * 島or緑地orエリアを作成する
      */
-    drawTopography(dataSourceId: string, featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA):void;
+    drawTopography(dataSourceId: string, featureType: FeatureType.Earth | FeatureType.Forest | FeatureType.Area):void;
 
     /**
      * start the step of drawing a road.
@@ -183,7 +183,7 @@ export type FeatureProperties = {
  * アイコン定義
  */
 export type SystemIconDefine = DefaultIconDefine & {
-    type: 'system' | 'original',
+    type: IconType,
 }
 export type DefaultIconDefine = IconDefine & {
     // 建物選択メニューで表示する際にCSS変更する場合に指定（色の微調整など）

@@ -10,7 +10,6 @@ import useTopographyStyle from '../../useTopographyStyle';
 import PromptMessageBox from '../PromptMessageBox';
 import SelectFeature from '../SelectFeature';
 import RoadWidthSelecter from './RoadWidthSelecter';
-import { FeatureType, GeoProperties } from '279map-common';
 import { FeatureLike } from 'ol/Feature';
 import { Geometry } from 'ol/geom';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
@@ -19,7 +18,7 @@ import { useMap } from '../../useMap';
 import { ConfirmResult } from '../../../common/confirm/types';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
-import { UpdateItemDocument } from '../../../../graphql/generated/graphql';
+import { FeatureType, GeoProperties, UpdateItemDocument } from '../../../../graphql/generated/graphql';
 
 type Props = {
     close: () => void;  // 作図完了時のコールバック
@@ -89,7 +88,7 @@ enum Stage {
 
         // 対象図形のソースを編集用ソースにコピー
         let editFeature: Feature;
-        if ((feature.getProperties() as GeoProperties).featureType === FeatureType.ROAD) {
+        if ((feature.getProperties() as GeoProperties).__typename === 'RoadProperties') {
             // 道の場合は、ラインに変換する
             editFeature = getOriginalLine(feature as Feature<Geometry>);
         } else {
@@ -129,7 +128,7 @@ enum Stage {
         });
 
         const geoProperties = extractGeoProperty(feature.getProperties());
-        const geoJson = geoProperties.featureType === FeatureType.ROAD ? geoProperties.lineJson : createGeoJson(feature);
+        const geoJson = geoProperties.__typename === 'RoadProperties' ? geoProperties.lineJson : createGeoJson(feature);
         const id = convertDataIdFromFeatureId(selectedFeature.current?.getId() as string);
         await gqlClient.mutation(UpdateItemDocument, {
             targets: [
@@ -148,7 +147,7 @@ enum Stage {
     }, [onClose, confirmHook, gqlClient, spinnerHook]);
 
     const onEditOkClicked = useCallback(() => {
-        if ((selectedFeature.current?.getProperties() as GeoProperties).featureType === FeatureType.ROAD) {
+        if ((selectedFeature.current?.getProperties() as GeoProperties).__typename === 'RoadProperties') {
             setStage(Stage.SELECT_ROAD_WIDTH);
         } else {
             const feature = modifySource.current?.getFeatures()[0];

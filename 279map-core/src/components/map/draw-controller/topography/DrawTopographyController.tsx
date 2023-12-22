@@ -6,16 +6,15 @@ import SelectDrawFeature, { DrawFeatureType } from './SelectDrawFeature';
 import DrawPointRadius from './DrawPointRadius';
 import { DrawAreaAddress } from './DrawAreaAddress';
 import { DrawFreeArea } from './DrawFreeArea';
-import { FeatureType, GeoProperties } from '279map-common';
 import { Geometry } from 'ol/geom';
 import { Feature } from 'ol';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
-import { RegistItemDocument } from '../../../../graphql/generated/graphql';
+import { FeatureType, GeoProperties, RegistItemDocument } from '../../../../graphql/generated/graphql';
 
 type Props = {
     dataSourceId: string;
-    drawFeatureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA;
+    drawFeatureType: FeatureType.Earth | FeatureType.Forest | FeatureType.Area;
     close: () => void;  // 作図完了時のコールバック
 }
 

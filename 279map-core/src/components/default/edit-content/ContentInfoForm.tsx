@@ -1,5 +1,4 @@
-import React, { useCallback, useState, useEffect, useMemo } from 'react';
-import { ContentAttr, SnsPreviewPost } from '279map-common';
+import React, { useCallback, useState, useMemo } from 'react';
 import SnsPreviewCard from './SnsPreviewCard';
 import styles from './ContentInfoForm.module.scss';
 import CategorySelector from './CategorySelector';
@@ -10,7 +9,8 @@ import FormGroup from '../../common/form/FormGroup';
 import Input from '../../common/form/Input';
 import RadioButtons from '../../common/form/RadioButtons';
 import { useWatch } from '../../../util/useWatch';
-import { SnsPreviewResult } from '../../../graphql/generated/graphql';
+import { SnsPreviewResult, SnsPreviewPost } from '../../../graphql/generated/graphql';
+import { ContentAttr } from '../../contents/types';
 dayjs.extend(utc);
 
 type Props = {

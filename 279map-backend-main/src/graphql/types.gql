@@ -19,6 +19,10 @@ type DataId {
     id: String!
     dataSourceId: String!
 }
+input DataIdInput {
+    id: String!
+    dataSourceId: String!
+}
 
 enum ErrorType {
     "指定の地図が存在しない場合"
@@ -165,24 +169,27 @@ enum OsmKind {
 
 "OSMで管理されているFeatureを特定する情報"
 type GeocoderIdOsm {
-    map: OsmKind!
     osm_type: String!
     osm_id: Int!
 }
 
 "Mapboxで管理されているFeatureを特定する情報"
 type GeocoderIdMapbox {
-    map: OsmKind!
     id: String!
 }
 
 "OSM等で管理されているFeatureを特定する情報"
-union GeocoderId = GeocoderIdOsm | GeocoderIdMapbox
+union GeocoderIdInfo = GeocoderIdOsm | GeocoderIdMapbox
+input GeocoderIdInput {
+    map: OsmKind!
+    info: GeocoderIdInfo!
+}
 
 # --------------------
 # GeoProperties
 # --------------------
 type StructurePropeties {
+    featureType: FeatureType!
     icon: IconKey
 }
 
@@ -190,22 +197,30 @@ type StructurePropeties {
 scalar GeoJsonFeature
 
 type RoadProperties {
+    featureType: FeatureType!
     "元のline"
     lineJson: GeoJsonFeature!
     "RoadWidth.key"
     width: String!
 }
 
-"Earth, Forest, Areaのプロパティ"
-type TopographyProperties {
-    "円の場合、半径"
-    radius: Float
+"円の場合のプロパティ（Earth, Forest, Area）"
+type CircleProperties {
+    featureType: FeatureType!
+    "半径"
+    radius: Float!
+}
+
+"OSM等で管理されているFeatureの場合のプロパティ（Area）"
+type GeocoderFeatureProperties {
+    featureType: FeatureType!
+    geocoderIdInfo: GeocoderIdInfo!
 }
 
 type TrackPropeties {
+    featureType: FeatureType!
     minZoom: Float!
     maxZoom: Float!
 }
 
-union GeoProperties = StructurePropeties | RoadProperties | TopographyProperties | TrackPropeties
-
+union GeoProperties = StructurePropeties | RoadProperties | CircleProperties | GeocoderFeatureProperties | TrackPropeties

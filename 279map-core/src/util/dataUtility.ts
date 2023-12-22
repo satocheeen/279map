@@ -1,4 +1,4 @@
-import { DataId } from "279map-common";
+import { DataId } from "../graphql/generated/graphql";
 
 export function getMapKey(id: DataId): string {
     return JSON.stringify({

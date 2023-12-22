@@ -1,7 +1,6 @@
 import { Overlay } from 'ol';
 import React, { useEffect, useMemo, useRef } from 'react';
 import styles from './LandNameOverlay.module.scss';
-import { FeatureType } from '279map-common';
 import { getMapKey, isEqualId } from '../../util/dataUtility';
 import { useMap } from './useMap';
 import { mapModeAtom, mapViewAtom } from '../../store/operation';
@@ -11,7 +10,7 @@ import { itemDataSourcesAtom } from '../../store/datasource';
 import { MapMode } from '../../types/types';
 import { geoJsonToTurfPolygon } from '../../util/MapUtility';
 import { bboxPolygon, booleanContains, centerOfMass } from '@turf/turf';
-import { DatasourceKindType, ItemDefine } from '../../graphql/generated/graphql';
+import { FeatureType, DatasourceKindType, ItemDefine } from '../../graphql/generated/graphql';
 
 // 島名を常時表示するズームLv.境界値（この値よりも小さい場合に、常時表示）
 const LandNameShowZoomLv = 8.17
@@ -47,7 +46,7 @@ export default function LandNameOverlay() {
             if (item.name.length === 0) {
                 return false;
             }
-            return item.geoProperties?.featureType === FeatureType.EARTH;
+            return item.geoProperties.featureType === FeatureType.Earth;
         });
     }, [items, mapMode]);
 

@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Button, Modal } from '../common';
-import { DataId } from '279map-common';
 import FormGroup from '../common/form/FormGroup';
 import Input from '../common/form/Input';
 import useConfirm from '../common/confirm/useConfirm';
@@ -11,7 +10,7 @@ import { currentMapKindAtom } from '../../store/session';
 import { modalSpinnerAtom } from '../common/modal/Modal';
 import { useAtomCallback } from 'jotai/utils';
 import { clientAtom } from 'jotai-urql';
-import { MapKind, UpdateItemDocument } from '../../graphql/generated/graphql';
+import { DataId, MapKind, UpdateItemDocument } from '../../graphql/generated/graphql';
 
 type Props = {
     target: DataId;

@@ -2,10 +2,10 @@ import React, { useCallback, useRef } from 'react';
 import { dialogTargetAtom, doShowClusterMenuAtom, mapModeAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
 import { MapMode } from '../../types/types';
-import { DataId, FeatureType } from '279map-common';
 import ClusterMenuController, { ClusterMenuControllerHandler } from './ClusterMenuController';
 import { useMap } from '../map/useMap';
 import { useAtomCallback } from 'jotai/utils';
+import { DataId, FeatureType } from '../../graphql/generated/graphql';
 
 export default function ClusterMenuContainer() {
     const { map } = useMap();
@@ -36,7 +36,7 @@ export default function ClusterMenuContainer() {
     return (
         <ClusterMenuController
             ref={controllerRef}
-            targets={[FeatureType.STRUCTURE, FeatureType.AREA]}
+            targets={[FeatureType.Structure, FeatureType.Area]}
             onSelect={onSelectItem} />
     );
 }

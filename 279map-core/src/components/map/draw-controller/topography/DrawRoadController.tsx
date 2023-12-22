@@ -8,11 +8,10 @@ import PromptMessageBox from '../PromptMessageBox';
 import RoadWidthSelecter from './RoadWidthSelecter';
 import { extractGeoProperty } from '../../../../util/MapUtility';
 import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
-import { FeatureType, GeoProperties } from '279map-common';
 import { useMap } from '../../useMap';
 import { clientAtom } from 'jotai-urql';
 import { useAtom } from 'jotai';
-import { RegistItemDocument } from '../../../../graphql/generated/graphql';
+import { FeatureType, GeoProperties, RegistItemDocument } from '../../../../graphql/generated/graphql';
 
 enum Stage {
     DRAWING,        // 描画
@@ -33,7 +32,7 @@ export default function DrawRoadController(props: Props) {
 
     const draw = useRef<Draw|undefined>();
     const styleHook = useTopographyStyle({
-        defaultFeatureType: FeatureType.ROAD,
+        defaultFeatureType: FeatureType.Road,
     });
     // 描画中のFeature
     const drawingFeature = useRef<OlFeature | undefined>();
@@ -91,7 +90,7 @@ export default function DrawRoadController(props: Props) {
         
         // line情報を保存する
         const geoProperties = extractGeoProperty(drawingFeature.current.getProperties());
-        const geoJson = geoProperties.featureType === FeatureType.ROAD ? geoProperties.lineJson : undefined;
+        const geoJson = geoProperties.__typename === 'RoadProperties' ? geoProperties.lineJson : undefined;
         if (!geoJson) {
             console.warn('ライン情報なし');
             return;

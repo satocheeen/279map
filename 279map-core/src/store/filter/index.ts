@@ -1,6 +1,5 @@
-import { DataId } from "279map-common";
 import { atom } from "jotai";
-import { SearchHitItem } from "../../graphql/generated/graphql";
+import { DataId, SearchHitItem } from "../../graphql/generated/graphql";
 
 export const filteredItemsAtom = atom<SearchHitItem[] | null>(null);
 

@@ -16,7 +16,6 @@ const config: CodegenConfig = {
         {
           add: {
             content: [
-              "import { DataId } from '279map-common'",
               "import { Geometry } from 'geojson'",
             ]
           }
@@ -24,7 +23,6 @@ const config: CodegenConfig = {
       ],
       config: {
         scalars: {
-          DataId: 'DataId',
           Geometry: 'Geometry',
         },
       }

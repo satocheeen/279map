@@ -3,13 +3,12 @@ import React, { useEffect, useRef, useCallback, useState } from "react"
 import SearchAddress from "../../../common/SearchAddress";
 import PromptMessageBox from "../PromptMessageBox";
 import GeoJSON from 'ol/format/GeoJSON';
-import { FeatureType } from "279map-common";
 import useTopographyStyle from "../../useTopographyStyle";
 import { Feature } from "ol";
 import { Geometry } from "ol/geom";
 import VectorSource from "ol/source/Vector";
 import { useMap } from "../../useMap";
-import { GeocoderTarget } from "../../../../graphql/generated/graphql";
+import { FeatureType, GeocoderTarget } from "../../../../graphql/generated/graphql";
 
 type Props = {
     onCancel?: () => void;
@@ -29,7 +28,7 @@ export function DrawAreaAddress(props: Props) {
     const { map } = useMap();
     const [stage, setStage] = useState(Stage.SearchAddress);
     const styleHook = useTopographyStyle({
-        defaultFeatureType: FeatureType.AREA,
+        defaultFeatureType: FeatureType.Area,
         drawing: true,
     });
     const drawingSource = useRef<VectorSource|null>(null);
@@ -55,7 +54,7 @@ export function DrawAreaAddress(props: Props) {
     const onSelectAddress = useCallback((geoJson: GeoJsonObject) => {
         const feature = new GeoJSON().readFeatures(geoJson)[0];
         feature.setProperties({
-            featureType: FeatureType.AREA,
+            featureType: FeatureType.Area,
         });
         drawingSource.current?.clear();
         drawingSource.current?.addFeature(feature);

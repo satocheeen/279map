@@ -1,4 +1,3 @@
-import { DataId, FeatureType } from '279map-common';
 import { MapBrowserEvent } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import React, { useRef, useEffect, useState, useCallback, useContext, useImperativeHandle } from 'react';
@@ -11,6 +10,7 @@ import { mapModeAtom, mapViewAtom, showingDetailItemIdAtom } from '../../store/o
 import { filteredItemIdListAtom } from '../../store/filter';
 import { useItems } from '../../store/item/useItems';
 import { useAtom } from 'jotai';
+import { DataId, FeatureType } from '../../graphql/generated/graphql';
 
 /**
  * 地図上のアイテムがクリックされた際に、

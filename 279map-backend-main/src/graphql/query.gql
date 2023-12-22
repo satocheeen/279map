@@ -24,7 +24,7 @@ type ItemDefine {
     id: DataId!
     name: String!
     geoJson: Geometry!
-    geoProperties: JSON!
+    geoProperties: GeoProperties!
     lastEditedTime: String!
     temporary: ItemTemporaryState
     hasContents: Boolean!
@@ -105,7 +105,7 @@ enum GeocoderTarget {
 }
 
 type GeocoderItem {
-    idInfo: GeocoderId!
+    idInfo: GeocoderIdInfo!
     name: String!
     geoJson: Geometry!
 }
@@ -169,7 +169,7 @@ type Query {
     search(condition: Condition!, datasourceIds: [String!]): [SearchHitItem!]!
 
     geocoder(address: String!, searchTarget: [GeocoderTarget!]!): [GeocoderItem!]!
-    getGeocoderFeature(id: GeocoderId!): Geometry!
+    getGeocoderFeature(id: GeocoderIdInput!): Geometry!
 
     getSnsPreview(url: String!): SnsPreviewResult!
 

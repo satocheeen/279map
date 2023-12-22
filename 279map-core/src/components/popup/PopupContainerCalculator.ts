@@ -1,4 +1,3 @@
-import { DataId } from "279map-common";
 import Feature from 'ol/Feature';
 import { GeolibInputCoordinates } from 'geolib/es/types';
 import { LayerType } from "../TsunaguMap/VectorLayerMap";
@@ -8,7 +7,7 @@ import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
 import { getFeatureCenter } from "../../util/MapUtility";
 import Style from "ol/style/Style";
 import { Extent } from "ol/extent";
-import { ItemDefine } from "../../graphql/generated/graphql";
+import { DataId, ItemDefine } from "../../graphql/generated/graphql";
 
 type PopupGroup = {
     mainFeature: Feature;

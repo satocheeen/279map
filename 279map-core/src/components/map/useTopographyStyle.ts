@@ -1,4 +1,3 @@
-import { FeatureType } from "279map-common";
 import { FeatureLike } from "ol/Feature";
 import { Fill, Stroke, Style } from "ol/style";
 import { useCallback } from "react";
@@ -6,7 +5,7 @@ import { colorWithAlpha } from '../../util/CommonUtility';
 import { MapStyles } from "../../util/constant-defines";
 import { currentMapKindAtom } from "../../store/session";
 import { useAtomCallback } from "jotai/utils";
-import { MapKind } from "../../graphql/generated/graphql";
+import { FeatureType, MapKind } from "../../graphql/generated/graphql";
 
 const DRAWING_COLOR = '#eebbaa'
 
@@ -52,26 +51,26 @@ export default function useTopographyStyle(props: Props) {
                     featureType = props.defaultFeatureType;
                 }
                 if (featureType === undefined) {
-                    featureType = mapKind === MapKind.Virtual ? FeatureType.EARTH : FeatureType.AREA;
+                    featureType = mapKind === MapKind.Virtual ? FeatureType.Earth : FeatureType.Area;
                     console.warn('FeatureType undefined', feature.getId(), feature.getGeometry()?.getType(), 'set', featureType);
                 }
                 let defaultColor;
                 let zIndex;
                 let alpha = 1;
                 switch(featureType) {
-                    case FeatureType.EARTH:
+                    case FeatureType.Earth:
                         defaultColor = MapStyles.Earth.color;
                         zIndex = MapStyles.Earth.zIndex;
                         break;
-                    case FeatureType.FOREST:
+                    case FeatureType.Forest:
                         defaultColor = MapStyles.Forest.color;
                         zIndex = MapStyles.Forest.zIndex;
                         break;
-                    case FeatureType.ROAD:
+                    case FeatureType.Road:
                         defaultColor = MapStyles.Road.color;
                         zIndex = MapStyles.Road.zIndex;
                         break;
-                    case FeatureType.AREA:
+                    case FeatureType.Area:
                         defaultColor = MapStyles.Area.color;
                         zIndex = MapStyles.Area.zIndex;
                         alpha = 0.3;

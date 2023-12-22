@@ -36,6 +36,16 @@ query getEvent(
     }    
 }
 
+fragment geocoderIdInfo on GeocoderIdInfo {
+    ... on GeocoderIdMapbox {
+        id
+    }
+    ... on GeocoderIdOsm {
+        osm_type
+        osm_id
+    }
+}
+
 query getItems (
     $wkt: String!
     $zoom: Float!
@@ -44,33 +54,101 @@ query getItems (
     $excludeItemIds: [String!]
 ) {
     getItems(wkt: $wkt, zoom: $zoom, datasourceId: $datasourceId, latestEditedTime: $latestEditedTime, excludeItemIds: $excludeItemIds) {
-        id
+        id {
+            id
+            dataSourceId
+        }
         name
         geoJson
-        geoProperties
+        geoProperties {
+            ... on StructurePropeties {
+                featureType
+                icon {
+                    type
+                    id
+                }
+            }
+            ... on RoadProperties {
+                featureType
+                lineJson
+                width
+            }
+            ... on CircleProperties {
+                featureType
+                radius
+            }
+            ... on GeocoderFeatureProperties {                
+                featureType
+                geocoderIdInfo {
+                    ...geocoderIdInfo
+                }
+            }
+            ... on TrackPropeties {
+                featureType
+                minZoom
+                maxZoom
+            }
+        }
         lastEditedTime
         hasContents
-        hasImageContentId
+        hasImageContentId {
+            id
+            dataSourceId
+        }
         temporary
     }
 }
 
 query getItemsById (
-    $targets: [DataId!]!
+    $targets: [DataIdInput!]!
 ) {
     getItemsById(targets: $targets) {
-        id
+        id {
+            id
+            dataSourceId
+        }
         name
         geoJson
-        geoProperties
+        geoProperties {
+            ... on StructurePropeties {
+                featureType
+                icon {
+                    type
+                    id
+                }
+            }
+            ... on RoadProperties {
+                featureType
+                lineJson
+                width
+            }
+            ... on CircleProperties {
+                featureType
+                radius
+            }
+            ... on GeocoderFeatureProperties {
+                featureType
+                geocoderIdInfo {
+                    ...geocoderIdInfo
+                }
+            }
+            ... on TrackPropeties {
+                featureType
+                minZoom
+                maxZoom
+            }
+        }
         lastEditedTime
         hasContents
-        hasImageContentId
+        hasImageContentId {
+            id
+            dataSourceId
+        }
         temporary
     }
 }
 query getContent(
-    $id: DataId!
+    $id: DataIdInput!
 ) {
     getContent(id: $id) {
         ...content
@@ -78,7 +156,7 @@ query getContent(
 }
 
 query getContents(
-    $ids: [DataId!]!
+    $ids: [DataIdInput!]!
 ) {
     getContents(ids: $ids) {
         ...content
@@ -86,7 +164,7 @@ query getContents(
 }
 
 query getContentsInItem(
-    $itemId: DataId!
+    $itemId: DataIdInput!
 ) {
     getContentsInItem(itemId: $itemId) {
         ...content
@@ -97,8 +175,14 @@ query getContentsInItem(
 }
 
 fragment content on ContentsDefine {
-    id
-    itemId
+    id {
+        id
+        dataSourceId
+    }
+    itemId {
+        id
+        dataSourceId
+    }
     date
     url
     title
@@ -106,9 +190,15 @@ fragment content on ContentsDefine {
     category
     image
     videoUrl
-    parentId
+    parentId {
+        id
+        dataSourceId
+    }
     usingAnotherMap
-    anotherMapItemId
+    anotherMapItemId {
+        id
+        dataSourceId
+    }
     isSnsContent
     isEditable
     isDeletable
@@ -120,7 +210,10 @@ query getUnpointContents(
 ) {
     getUnpointContents(datasourceId: $datasourceId, nextToken: $nextToken) {
         contents {
-            id
+            id {
+                id
+                dataSourceId
+            }
             title
             thumb
             overview
@@ -130,14 +223,14 @@ query getUnpointContents(
 }
 
 query getThumb (
-    $contentId: DataId!
+    $contentId: DataIdInput!
     $size: ThumbSize
 ) {
     getThumb(contentId: $contentId, size: $size)
 }
 
 query getImageUrl (
-    $contentId: DataId!
+    $contentId: DataIdInput!
 ) {
     getImageUrl(contentId: $contentId)
 }
@@ -147,8 +240,14 @@ query search (
     $datasourceIds: [String!]
 ) {
     search(condition: $condition, datasourceIds: $datasourceIds) {
-        id
-        hitContents
+        id {
+            id
+            dataSourceId
+        }
+        hitContents {
+            id
+            dataSourceId
+        }
     }
 }
 
@@ -157,14 +256,16 @@ query geocoder (
     $searchTarget: [GeocoderTarget!]!
 ) {
     geocoder(address: $address, searchTarget: $searchTarget) {
-        idInfo
+        idInfo {
+            ...geocoderIdInfo
+        }
         name
         geoJson
     }
 }
 
 query getGeocoderFeature (
-    $id: GeocoderId!
+    $id: GeocoderIdInput!
 ) {
     getGeocoderFeature(id: $id)
 }

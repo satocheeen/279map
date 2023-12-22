@@ -1,7 +1,7 @@
-import { SnsPreviewPost } from '279map-common';
 import dayjs from 'dayjs';
 import React, { useMemo } from 'react';
 import styles from './SnsPreviewCard.module.scss';
+import { MediaType, SnsPreviewPost } from '../../../graphql/generated/graphql';
 
 type Props = {
     post: SnsPreviewPost;
@@ -9,7 +9,7 @@ type Props = {
 
 export default function SnsPreviewCard(props: Props) {
     const imageUrl = useMemo(() => {
-        if (props.post.media?.type === 'IMAGE') {
+        if (props.post.media?.type === MediaType.Image) {
             return props.post.media.url;
         } else {
             return null;
@@ -17,7 +17,7 @@ export default function SnsPreviewCard(props: Props) {
     }, [props.post.media]);
 
     const videoUrl = useMemo(() => {
-        if (props.post.media?.type === 'VIDEO') {
+        if (props.post.media?.type === MediaType.Video) {
             return props.post.media.url;
         } else {
             return null;

@@ -17,11 +17,10 @@ import IconAnchorUnits from 'ol/style/IconAnchorUnits';
 import useIcon from '../../../../store/icon/useIcon';
 import usePointStyle from '../../usePointStyle';
 import { getDistance } from 'geolib';
-import { FeatureType } from '279map-common';
 import FormGroup from '../../../common/form/FormGroup';
 import Input from '../../../common/form/Input';
 import { useMap } from '../../useMap';
-import { GeocoderTarget } from '../../../../graphql/generated/graphql';
+import { FeatureType, GeocoderTarget } from '../../../../graphql/generated/graphql';
 
 type Props = {
     onCancel?: () => void;
@@ -50,7 +49,7 @@ export default function DrawPointRadius(props: Props) {
     const drawingSource = useRef<VectorSource|null>(null);
     const pointStyleHook = usePointStyle();
     const styleHook = useTopographyStyle({
-        defaultFeatureType: FeatureType.AREA,
+        defaultFeatureType: FeatureType.Area,
         drawing: true,
     });
     const iconHook = useIcon();

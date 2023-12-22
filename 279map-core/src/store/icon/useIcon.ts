@@ -1,7 +1,7 @@
-import { IconKey } from "279map-common";
 import { useCallback } from "react";
 import { currentDefaultIconAtom, currentMapIconDefineAtom } from ".";
 import { useAtom } from "jotai";
+import { IconKey } from "../../graphql/generated/graphql";
 
 /**
  * アイコンに関するフック

@@ -20,11 +20,10 @@ import { FeatureLike } from 'ol/Feature';
 import { Style } from 'ol/style';
 import useTopographyStyle from '../../useTopographyStyle';
 import { topographySelectStyleFunction } from '../utility';
-import { FeatureType, GeoProperties } from '279map-common';
 import { LineString, Polygon } from 'ol/geom';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
-import { UpdateItemDocument, UpdateItemInput } from '../../../../graphql/generated/graphql';
+import { GeoProperties, UpdateItemDocument, UpdateItemInput } from '../../../../graphql/generated/graphql';
 
 type Props = {
     close: () => void;  // 編集完了時のコールバック
@@ -102,7 +101,7 @@ export default function MoveItemController(props: Props) {
             const features = (mf.get('features') as Feature<Geometry>[] | undefined) ?? [mf];
             for (const feature of features) {
                 let geometry: GeoJSON.Geometry;
-                if ((feature.getProperties() as GeoProperties).featureType === FeatureType.ROAD) {
+                if ((feature.getProperties() as GeoProperties).__typename === 'RoadProperties') {
                     // 道の場合は、元のラインを射影変換する
                     const lineFeature = getOriginalLine(feature as Feature<Geometry>);
                     const id = feature.getId() as string;

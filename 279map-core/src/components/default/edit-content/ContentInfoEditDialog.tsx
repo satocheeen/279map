@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import ContentInfoForm from './ContentInfoForm';
 import styles from './ContentInfoEditDialog.module.scss';
 import { AddNewContentParam, EditContentParam } from '../../../types/types';
-import { ContentAttr } from '279map-common';
 import { Button, Modal } from '../../common';
 import useConfirm from '../../common/confirm/useConfirm';
 import Select from '../../common/form/Select';
@@ -10,6 +9,7 @@ import { ConfirmBtnPattern } from '../../common/confirm/types';
 import { modalSpinnerAtom } from '../../common/modal/Modal';
 import { useAtomCallback } from 'jotai/utils';
 import { ContentType, MutationUpdateContentArgs, ParentOfContent } from '../../../graphql/generated/graphql';
+import { ContentAttr } from '../../contents/types';
 
 type Props = {
     onClose?: () => void;

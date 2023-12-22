@@ -52,7 +52,7 @@ input UpdateItemInput {
     id: DataId!
     name: String
     geometry: Geometry
-    geoProperties: JSON
+    geoProperties: GeoProperties
 }
 
 type Mutation {
@@ -70,7 +70,7 @@ type Mutation {
         datasourceId: String!
         name: String
         geometry: Geometry!
-        geoProperties: JSON!
+        geoProperties: GeoProperties!
     ): Boolean
     
     updateItem (

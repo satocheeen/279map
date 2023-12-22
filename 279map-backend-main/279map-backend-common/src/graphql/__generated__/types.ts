@@ -24,6 +24,13 @@ export enum Auth {
   View = 'View'
 }
 
+/** 円の場合のプロパティ（Earth, Forest, Area） */
+export type CircleProperties = {
+  featureType: FeatureType;
+  /** 半径 */
+  radius: Scalars['Float']['output'];
+};
+
 export type ContentConfig = {
   deletable: Scalars['Boolean']['output'];
   /** trueの場合、当該コンテンツデータソースを地図から外すこと不可 */
@@ -37,6 +44,11 @@ export type ContentConfig = {
 export type DataId = {
   dataSourceId: Scalars['String']['output'];
   id: Scalars['String']['output'];
+};
+
+export type DataIdInput = {
+  dataSourceId: Scalars['String']['input'];
+  id: Scalars['String']['input'];
 };
 
 export type DatasourceConfig = ContentConfig | ItemConfig | RealPointContentConfig | TrackConfig;
@@ -85,20 +97,29 @@ export enum FeatureType {
   Track = 'TRACK'
 }
 
-export type GeoProperties = RoadProperties | StructurePropeties | TopographyProperties | TrackPropeties;
+export type GeoProperties = CircleProperties | GeocoderFeatureProperties | RoadProperties | StructurePropeties | TrackPropeties;
+
+/** OSM等で管理されているFeatureの場合のプロパティ（Area） */
+export type GeocoderFeatureProperties = {
+  featureType: FeatureType;
+  geocoderIdInfo: GeocoderIdInfo;
+};
 
 /** OSM等で管理されているFeatureを特定する情報 */
-export type GeocoderId = GeocoderIdMapbox | GeocoderIdOsm;
+export type GeocoderIdInfo = GeocoderIdMapbox | GeocoderIdOsm;
+
+export type GeocoderIdInput = {
+  info: GeocoderIdInfo;
+  map: OsmKind;
+};
 
 /** Mapboxで管理されているFeatureを特定する情報 */
 export type GeocoderIdMapbox = {
   id: Scalars['String']['output'];
-  map: OsmKind;
 };
 
 /** OSMで管理されているFeatureを特定する情報 */
 export type GeocoderIdOsm = {
-  map: OsmKind;
   osm_id: Scalars['Int']['output'];
   osm_type: Scalars['String']['output'];
 };
@@ -173,6 +194,7 @@ export type RealPointContentConfig = {
 };
 
 export type RoadProperties = {
+  featureType: FeatureType;
   /** 元のline */
   lineJson: Scalars['GeoJsonFeature']['output'];
   /** RoadWidth.key */
@@ -180,13 +202,8 @@ export type RoadProperties = {
 };
 
 export type StructurePropeties = {
+  featureType: FeatureType;
   icon?: Maybe<IconKey>;
-};
-
-/** Earth, Forest, Areaのプロパティ */
-export type TopographyProperties = {
-  /** 円の場合、半径 */
-  radius?: Maybe<Scalars['Float']['output']>;
 };
 
 export type TrackConfig = {
@@ -197,6 +214,7 @@ export type TrackConfig = {
 };
 
 export type TrackPropeties = {
+  featureType: FeatureType;
   maxZoom: Scalars['Float']['output'];
   minZoom: Scalars['Float']['output'];
 };

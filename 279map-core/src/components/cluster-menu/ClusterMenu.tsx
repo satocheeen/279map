@@ -3,13 +3,13 @@ import { Overlay } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import styles from './ClusterMenu.module.scss';
 import useIcon from '../../store/icon/useIcon';
-import { DataId } from '279map-common';
 import { getMapKey } from '../../util/dataUtility';
 import { useMap } from '../map/useMap';
 import { BsImage } from 'react-icons/bs';
 import { useItem } from '../../store/item/useItem';
 import { itemDataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
+import { DataId } from '../../graphql/generated/graphql';
 
 const ARROW_HEIGHT = 20;
 const ARROW_OFFSET_LEFT = 45;
@@ -105,9 +105,9 @@ function MenuItem(props: MenuItemProp) {
             // icon未指定の場合はレイヤデフォルトアイコンを設定
             const datasource = dataSources.find(ds => ds.datasourceId === item.id.dataSourceId);
             const icon = datasource?.config.__typename === 'RealPointContentConfig' ? datasource.config.defaultIcon : undefined;
-            return getIconDefine(icon);
+            return getIconDefine(icon ?? undefined);
         }
-        return getIconDefine(item.geoProperties.icon);
+        return getIconDefine(item.geoProperties.icon ?? undefined);
 
     }, [getIconDefine, item, dataSources]);
 

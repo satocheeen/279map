@@ -6,7 +6,22 @@ mutation connect (
             name
             useMaps
             defaultMapKind
-            options
+            options {
+                popupMode
+                itemLabel
+                visibleDataSources {
+                    ... on VisibleDataSourceDatasource {
+                        dataSourceId
+                    }
+                    ... on VisibleDataSourceGroup {
+                        group
+                    }
+                }
+                guestUserAuthLevel
+                newUserAuthLevel
+                usePanels
+                options
+            }
         }
         connect {
             sid
@@ -32,7 +47,10 @@ fragment datasourceInfo on DatasourceInfo {
             deletable
         }
         ... on RealPointContentConfig {
-            defaultIcon
+            defaultIcon {
+                type
+                id
+            }
             linkableContents
             layerGroup
             editable
@@ -97,7 +115,7 @@ mutation updateItem (
 }
 
 mutation removeItem (
-    $id: DataId!
+    $id: DataIdInput!
 ) {
     removeItem(
         id: $id
@@ -130,7 +148,7 @@ mutation registContent (
 }
 
 mutation updateContent (
-    $id: DataId!
+    $id: DataIdInput!
     $title: String
     $overview: String
     $categories: [String!]
@@ -152,7 +170,7 @@ mutation updateContent (
 }
 
 mutation linkContent (
-    $id: DataId!
+    $id: DataIdInput!
     $parent: ParentInput!
 ) {
     linkContent (
@@ -162,7 +180,7 @@ mutation linkContent (
 }
 
 mutation unlinkContent (
-    $id: DataId!
+    $id: DataIdInput!
     $parent: ParentInput!
 ) {
     unlinkContent (
@@ -172,7 +190,7 @@ mutation unlinkContent (
 }
 
 mutation removeContent (
-    $id: DataId!
+    $id: DataIdInput!
 ) {
     removeContent (
         id: $id

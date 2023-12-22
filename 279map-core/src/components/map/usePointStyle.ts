@@ -5,7 +5,6 @@ import { getStructureScale } from "../../util/MapUtility";
 import { SystemIconDefine } from "../../types/types";
 import useFilterStatus from "./useFilterStatus";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
-import { IconKey } from "279map-common";
 import { Geometry } from "ol/geom";
 import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
 import { useMap } from "./useMap";
@@ -16,6 +15,7 @@ import { filteredItemIdListAtom } from "../../store/filter";
 import { itemDataSourcesAtom } from "../../store/datasource";
 import { useAtom } from 'jotai';
 import { MapStyles } from "../../util/constant-defines";
+import { IconKey } from "../../graphql/generated/graphql";
 
 const STRUCTURE_SELECTED_COLOR = '#8888ff';
 
@@ -171,7 +171,7 @@ export default function usePointStyle() {
         if (!icon) {
             // icon未指定の場合はレイヤデフォルトアイコンを設定
             const datasource = dataSources.find(ds => ds.datasourceId === itemId.dataSourceId);
-            icon = datasource?.config.__typename === 'RealPointContentConfig' ? datasource.config.defaultIcon : undefined;
+            icon = datasource?.config.__typename === 'RealPointContentConfig' ? datasource.config.defaultIcon ?? undefined : undefined;
         }
         const iconDefine = getIconDefine(icon);
 

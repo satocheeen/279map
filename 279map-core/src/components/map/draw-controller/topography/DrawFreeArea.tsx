@@ -1,4 +1,3 @@
-import { FeatureType } from "279map-common";
 import { Draw } from "ol/interaction";
 import { DrawEvent } from "ol/interaction/Draw";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -8,10 +7,11 @@ import { Feature } from "ol";
 import { Geometry } from "ol/geom";
 import VectorSource from "ol/source/Vector";
 import { useMap } from "../../useMap";
+import { FeatureType } from "../../../../graphql/generated/graphql";
 
 type Props = {
     geometryType: string;
-    drawFeatureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA;
+    drawFeatureType: FeatureType.Earth | FeatureType.Forest | FeatureType.Area;
     onCancel?: () => void;
     onOk?: (feature: Feature<Geometry>) => void;
 }

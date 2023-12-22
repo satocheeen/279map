@@ -2,14 +2,13 @@ import React, { useCallback, useRef, useState } from 'react';
 import SelectStructureDialog from './SelectStructureDialog';
 import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import SelectFeature from '../SelectFeature';
-import { FeatureType } from '279map-common';
 import { SystemIconDefine } from '../../../../types/types';
 import { FeatureLike } from 'ol/Feature';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
-import { UpdateItemDocument } from '../../../../graphql/generated/graphql';
+import { FeatureType, UpdateItemDocument } from '../../../../graphql/generated/graphql';
 
 type Props = {
     close: () => void;  // 編集完了時のコールバック
@@ -53,7 +52,7 @@ export default function ChangeStructureIconController(props: Props) {
                 {
                     id,
                     geoProperties: {
-                        featureType: FeatureType.STRUCTURE,
+                        featureType: FeatureType.Structure,
                         icon: {
                             type: iconDefine.type,
                             id: iconDefine.id,

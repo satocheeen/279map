@@ -7,7 +7,6 @@ if you want to make originai UI map, you can use 279map-core.
 flowchart RL
 	subgraph frontend
 		subgraph 279map-core
-			279map-common-core["279map-common"]
 		end
 		279map-frontend -. use .-> 279map-core
 	end
@@ -20,7 +19,6 @@ flowchart RL
 		end
 
 		subgraph 279map-backend-common
-			279map-common-backend["279map-common"]
 		end
 
 		279map-backend-main <--> odba

@@ -1,11 +1,11 @@
 import React, { lazy, Suspense, useCallback, useImperativeHandle, useState } from 'react';
 import { MapMode, TsunaguMapHandler } from '../../types/types';
 import EditTopographyInfoController from './draw-controller/topography/EditTopographyInfoController';
-import { FeatureType } from '279map-common';
 import { LayerType } from '../TsunaguMap/VectorLayerMap';
 import LoadingOverlay from '../common/spinner/LoadingOverlay';
 import { mapModeAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
+import { FeatureType } from '../../graphql/generated/graphql';
 
 const DrawStructureController = lazy(() => import('./draw-controller/structure/DrawStructureController'));
 const MoveItemController = lazy(() => import('./draw-controller/structure/MoveItemController'));
@@ -26,7 +26,7 @@ type ControllerType = {
 } | {
     type: 'draw-topography';
     dataSourceId: string;
-    featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA;
+    featureType: FeatureType.Earth | FeatureType.Forest | FeatureType.Area;
 }
 export type DrawControllerHandler = Pick<TsunaguMapHandler, 
     'drawStructure'
@@ -74,7 +74,7 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
                 type: 'remove-structure',
             })
         },
-        drawTopography(dataSourceId: string, featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA) {
+        drawTopography(dataSourceId: string, featureType: FeatureType.Earth | FeatureType.Forest | FeatureType.Area) {
             setMapMode(MapMode.Drawing);
             setController({
                 type: 'draw-topography',

@@ -1,12 +1,11 @@
 import { GeoJsonObject, Point } from 'geojson';
 import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import Input from '../common/form/Input';
-import { FeatureType, GeoProperties } from '279map-common';
 import Spinner from './spinner/Spinner';
 import ListGroup from './list/ListGroup';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
-import { GeocoderDocument, GeocoderItem, GeocoderTarget } from '../../graphql/generated/graphql';
+import { FeatureType, GeoProperties, GeocoderDocument, GeocoderItem, GeocoderTarget } from '../../graphql/generated/graphql';
 
 type Props = {
     disabled?: boolean; // trueの場合、住所入力不可
@@ -119,7 +118,7 @@ function SearchAddress(props: Props, ref: React.ForwardedRef<SearchAddressHandle
                     type: 'Feature',
                     geometry: item.geoJson,
                     properties: {
-                        featureType: FeatureType.AREA,
+                        featureType: FeatureType.Area,
                         geocoderId: item.idInfo,
                     } as GeoProperties,
                 } as GeoJsonObject;

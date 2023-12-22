@@ -1,7 +1,6 @@
 import { atom } from 'jotai';
 import { currentMapDefineAtom } from '../session';
 import { DatasourceGroup, DatasourceInfo } from '../../graphql/generated/graphql';
-import { DataSourceInfo } from '279map-common';
 
 /**
  * データソース関連のRecoil

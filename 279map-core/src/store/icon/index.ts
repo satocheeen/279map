@@ -1,4 +1,4 @@
-import { MapKind } from '../../graphql/generated/graphql';
+import { IconType, MapKind } from '../../graphql/generated/graphql';
 import { SystemIconDefine, TsunaguMapProps } from '../../types/types';
 import { currentMapDefineAtom, currentMapKindAtom } from '../session';
 import defaultIcon from './pin.png'
@@ -74,6 +74,6 @@ function getDefaultIconDefine(useMaps: MapKind[]): SystemIconDefine {
         //     filter: 'opacity(0.5) drop-shadow(0 0 0 #aaa)',
         // },
         // defaultColor: '#77f',
-        type: 'system',
+        type: IconType.System,
     }
 }

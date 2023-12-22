@@ -1,14 +1,13 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { Button, Modal } from '../../common';
 import { LinkUnpointContentParam } from '../../../types/types';
-import { DataId } from '279map-common';
 import styles from './LinkUnpointContentModal.module.scss';
 import Card from '../../common/card/Card';
 import Spinner from '../../common/spinner/Spinner';
 import { getMapKey } from '../../../util/dataUtility';
 import Select from '../../common/form/Select';
 import { useWatch } from '../../../util/useWatch2';
-import { ParentOfContent, UnpointContent } from '../../../graphql/generated/graphql';
+import { DataId, ParentOfContent, UnpointContent } from '../../../graphql/generated/graphql';
 
 type Props = {
     param: LinkUnpointContentParam;
