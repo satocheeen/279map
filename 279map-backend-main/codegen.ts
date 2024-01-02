@@ -12,7 +12,7 @@ const config: CodegenConfig = {
           add: {
             content: [
               "import { Geometry } from 'geojson'",
-              "import { GeoProperties } from '../../types/common-types'",
+              "import { GeoProperties } from '../../types-common/common-types'",
             ]
           }
         },

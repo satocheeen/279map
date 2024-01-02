@@ -1,5 +1,6 @@
 /* eslint-disable */
 import { Geometry } from 'geojson'
+import { GeoProperties } from '../../types-common/common-types'
 import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -15,7 +16,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
-  GeoProperties: { input: any; output: any; }
+  GeoProperties: { input: GeoProperties; output: GeoProperties; }
   Geometry: { input: Geometry; output: Geometry; }
   JSON: { input: any; output: any; }
 };
@@ -883,14 +884,14 @@ export type GetItemsQueryVariables = Exact<{
 }>;
 
 
-export type GetItemsQuery = { __typename?: 'Query', getItems: Array<{ __typename?: 'ItemDefine', name: string, geoJson: Geometry, geoProperties: any, lastEditedTime: string, hasContents: boolean, temporary?: ItemTemporaryState | null, id: { __typename?: 'DataId', id: string, dataSourceId: string }, hasImageContentId: Array<{ __typename?: 'DataId', id: string, dataSourceId: string }> }> };
+export type GetItemsQuery = { __typename?: 'Query', getItems: Array<{ __typename?: 'ItemDefine', name: string, geoJson: Geometry, geoProperties: GeoProperties, lastEditedTime: string, hasContents: boolean, temporary?: ItemTemporaryState | null, id: { __typename?: 'DataId', id: string, dataSourceId: string }, hasImageContentId: Array<{ __typename?: 'DataId', id: string, dataSourceId: string }> }> };
 
 export type GetItemsByIdQueryVariables = Exact<{
   targets: Array<DataIdInput> | DataIdInput;
 }>;
 
 
-export type GetItemsByIdQuery = { __typename?: 'Query', getItemsById: Array<{ __typename?: 'ItemDefine', name: string, geoJson: Geometry, geoProperties: any, lastEditedTime: string, hasContents: boolean, temporary?: ItemTemporaryState | null, id: { __typename?: 'DataId', id: string, dataSourceId: string }, hasImageContentId: Array<{ __typename?: 'DataId', id: string, dataSourceId: string }> }> };
+export type GetItemsByIdQuery = { __typename?: 'Query', getItemsById: Array<{ __typename?: 'ItemDefine', name: string, geoJson: Geometry, geoProperties: GeoProperties, lastEditedTime: string, hasContents: boolean, temporary?: ItemTemporaryState | null, id: { __typename?: 'DataId', id: string, dataSourceId: string }, hasImageContentId: Array<{ __typename?: 'DataId', id: string, dataSourceId: string }> }> };
 
 export type GetContentQueryVariables = Exact<{
   id: DataIdInput;

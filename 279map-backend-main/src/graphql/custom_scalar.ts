@@ -1,7 +1,7 @@
 import { GraphQLScalarType } from "graphql";
 import { Geometry } from 'geojson';
 import { DataId } from "./__generated__/types";
-import { GeoProperties } from "../types/common-types";
+import { GeoProperties } from "../types-common/common-types";
 
 export const DataIdScalarType = new GraphQLScalarType({
     name: 'DataId',
