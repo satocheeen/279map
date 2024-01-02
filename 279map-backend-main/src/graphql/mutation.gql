@@ -4,7 +4,7 @@ enum ParentOfContent {
 }
 input ParentInput {
     type: ParentOfContent!
-    id: DataId!
+    id: DataIdInput!
 }
 input ContentsDatasourceInput {
     datasourceId: String!
@@ -49,7 +49,7 @@ type IconDefine {
 
 # ------------------------------
 input UpdateItemInput {
-    id: DataId!
+    id: DataIdInput!
     name: String
     geometry: Geometry
     geoProperties: GeoProperties
@@ -78,7 +78,7 @@ type Mutation {
     ): Boolean
 
     removeItem (
-        id: DataId!
+        id: DataIdInput!
     ): Boolean
 
     registContent (
@@ -95,7 +95,7 @@ type Mutation {
     ): Boolean
 
     updateContent (
-        id: DataId!
+        id: DataIdInput!
         title: String
         overview: String
         categories: [String!]
@@ -106,17 +106,17 @@ type Mutation {
     ): Boolean
 
     linkContent (
-        id: DataId!
+        id: DataIdInput!
         parent: ParentInput!
     ): Boolean
 
     unlinkContent (
-        id: DataId!
+        id: DataIdInput!
         parent: ParentInput!
     ): Boolean
 
     removeContent (
-        id: DataId!
+        id: DataIdInput!
     ): Boolean
 
     changeAuthLevel (

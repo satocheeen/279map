@@ -12,6 +12,7 @@ const config: CodegenConfig = {
           add: {
             content: [
               "import { Geometry } from 'geojson'",
+              "import { GeoProperties } from '../../types/common-types'",
             ]
           }
         },
@@ -20,6 +21,7 @@ const config: CodegenConfig = {
         skipTypename: true,
         scalars: {
           Geometry: 'Geometry',
+          GeoProperties: 'GeoProperties',
         },
       }
     }

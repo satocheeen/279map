@@ -96,7 +96,7 @@ mutation registItem (
     $datasourceId: String!
     $name: String
     $geometry: Geometry!
-    $geoProperties: JSON!
+    $geoProperties: GeoProperties!
 ) {
     registItem (
         datasourceId: $datasourceId,

@@ -1,6 +1,7 @@
 import { GraphQLScalarType } from "graphql";
 import { Geometry } from 'geojson';
 import { DataId } from "./__generated__/types";
+import { GeoProperties } from "../types/common-types";
 
 export const DataIdScalarType = new GraphQLScalarType({
     name: 'DataId',
@@ -34,6 +35,25 @@ export const GeometryScalarType = new GraphQLScalarType({
             return JSON.parse(value) as Geometry;
         } else if (typeof value === 'object') {
             return value as Geometry;
+        }
+        throw 'parse error';
+    },
+    // parseLiteral(value) {
+    //     return value;
+    // }
+})
+
+export const GeoPropertiesScalarType = new GraphQLScalarType({
+    name: 'Geometry',
+    description: 'GeoProperti',
+    serialize(value: any) {
+        return value;
+    },
+    parseValue(value: any) {
+        if (typeof value === 'string') {
+            return JSON.parse(value) as GeoProperties;
+        } else if (typeof value === 'object') {
+            return value as GeoProperties;
         }
         throw 'parse error';
     },

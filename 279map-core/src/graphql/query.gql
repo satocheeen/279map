@@ -60,35 +60,7 @@ query getItems (
         }
         name
         geoJson
-        geoProperties {
-            ... on StructurePropeties {
-                featureType
-                icon {
-                    type
-                    id
-                }
-            }
-            ... on RoadProperties {
-                featureType
-                lineJson
-                width
-            }
-            ... on CircleProperties {
-                featureType
-                radius
-            }
-            ... on GeocoderFeatureProperties {                
-                featureType
-                geocoderIdInfo {
-                    ...geocoderIdInfo
-                }
-            }
-            ... on TrackPropeties {
-                featureType
-                minZoom
-                maxZoom
-            }
-        }
+        geoProperties
         lastEditedTime
         hasContents
         hasImageContentId {
@@ -109,35 +81,7 @@ query getItemsById (
         }
         name
         geoJson
-        geoProperties {
-            ... on StructurePropeties {
-                featureType
-                icon {
-                    type
-                    id
-                }
-            }
-            ... on RoadProperties {
-                featureType
-                lineJson
-                width
-            }
-            ... on CircleProperties {
-                featureType
-                radius
-            }
-            ... on GeocoderFeatureProperties {
-                featureType
-                geocoderIdInfo {
-                    ...geocoderIdInfo
-                }
-            }
-            ... on TrackPropeties {
-                featureType
-                minZoom
-                maxZoom
-            }
-        }
+        geoProperties
         lastEditedTime
         hasContents
         hasImageContentId {

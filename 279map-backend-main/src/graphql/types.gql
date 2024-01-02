@@ -182,45 +182,11 @@ type GeocoderIdMapbox {
 union GeocoderIdInfo = GeocoderIdOsm | GeocoderIdMapbox
 input GeocoderIdInput {
     map: OsmKind!
-    info: GeocoderIdInfo!
+
+    "OSMの場合"
+    osm_type: String
+    osm_id: Int
+
+    "Mapboxの場合"
+    id: String
 }
-
-# --------------------
-# GeoProperties
-# --------------------
-type StructurePropeties {
-    featureType: FeatureType!
-    icon: IconKey
-}
-
-"GeoJSON.Feature"
-scalar GeoJsonFeature
-
-type RoadProperties {
-    featureType: FeatureType!
-    "元のline"
-    lineJson: GeoJsonFeature!
-    "RoadWidth.key"
-    width: String!
-}
-
-"円の場合のプロパティ（Earth, Forest, Area）"
-type CircleProperties {
-    featureType: FeatureType!
-    "半径"
-    radius: Float!
-}
-
-"OSM等で管理されているFeatureの場合のプロパティ（Area）"
-type GeocoderFeatureProperties {
-    featureType: FeatureType!
-    geocoderIdInfo: GeocoderIdInfo!
-}
-
-type TrackPropeties {
-    featureType: FeatureType!
-    minZoom: Float!
-    maxZoom: Float!
-}
-
-union GeoProperties = StructurePropeties | RoadProperties | CircleProperties | GeocoderFeatureProperties | TrackPropeties

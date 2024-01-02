@@ -3,7 +3,7 @@ type Hoge {
 }
 type Target {
     "対象アイテムのID"
-    id: DataId!
+    id: DataIdInput!
     "アイテムの地図範囲。update時は更新後範囲"
     wkt: String!
 }
@@ -44,7 +44,7 @@ type Subscription {
     指定のアイテム配下のコンテンツに変更（登録・更新・削除）があった場合
     """
     childContentsUpdate (
-        itemId: DataId!
+        itemId: DataIdInput!
     ): Boolean
 
     """

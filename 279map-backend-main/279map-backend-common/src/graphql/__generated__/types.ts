@@ -109,8 +109,12 @@ export type GeocoderFeatureProperties = {
 export type GeocoderIdInfo = GeocoderIdMapbox | GeocoderIdOsm;
 
 export type GeocoderIdInput = {
-  info: GeocoderIdInfo;
+  /** Mapboxの場合 */
+  id?: InputMaybe<Scalars['String']['input']>;
   map: OsmKind;
+  osm_id?: InputMaybe<Scalars['Int']['input']>;
+  /** OSMの場合 */
+  osm_type?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Mapboxで管理されているFeatureを特定する情報 */

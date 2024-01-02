@@ -132,8 +132,7 @@ async function getFeatureById(id: GeocoderIdInput): Promise<Geometry> {
     if (id.map === OsmKind.Mapbox) {
         throw '現状、対応外';
     }
-    const tempId = id.info as GeocoderIdOsm;
-    const idStr = tempId.osm_type[0].toUpperCase() + tempId.osm_id;
+    const idStr = (id.osm_type??'')[0].toUpperCase() + id.osm_id;
     const url = 'https://nominatim.openstreetmap.org/lookup?osm_ids=' + idStr + '&format=json&polygon_geojson=1';
 
     const result = await axios({
