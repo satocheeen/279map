@@ -3,21 +3,22 @@
  * backend-main配下のものが原本。
  * 他プロジェクトへは、npm run codegenスクリプトにてコピーされる。
  */
-import { Feature } from 'geojson';
-
 export type IconKey = {
     type: 'system' | 'original';
     id: string;
 }
 
-/** 地物種別 */
+/**
+ * 地物種別
+ * (DBに登録するので、後から増減可能なように文字列型にしている)
+ */
 export enum FeatureType {
-    AREA,
-    EARTH,
-    FOREST,
-    ROAD,
-    STRUCTURE,
-    TRACK,
+    STRUCTURE = 'STRUCTURE',
+    ROAD = 'ROAD',
+    EARTH = 'EARTH',
+    FOREST = 'FOREST',
+    AREA = 'AREA',
+    TRACK = 'TRACK',
 }
 
 /* OSM等で管理されているFeatureを特定する情報 */

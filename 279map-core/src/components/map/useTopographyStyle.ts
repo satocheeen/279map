@@ -58,6 +58,7 @@ export default function useTopographyStyle(props: Props) {
                 let defaultColor;
                 let zIndex;
                 let alpha = 1;
+                console.log('debug featureType', featureType);
                 switch(featureType) {
                     case FeatureType.EARTH:
                         defaultColor = MapStyles.Earth.color;
