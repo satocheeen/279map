@@ -12,8 +12,12 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
-  /** GeoJSON.Feature */
-  GeoJsonFeature: { input: any; output: any; }
+  DataId: { input: any; output: any; }
+  GeoProperties: { input: any; output: any; }
+  GeocoderIdInfo: { input: any; output: any; }
+  Geometry: { input: any; output: any; }
+  IconKey: { input: any; output: any; }
+  JSON: { input: any; output: any; }
 };
 
 export enum Auth {
@@ -24,13 +28,6 @@ export enum Auth {
   View = 'View'
 }
 
-/** 円の場合のプロパティ（Earth, Forest, Area） */
-export type CircleProperties = {
-  featureType: FeatureType;
-  /** 半径 */
-  radius: Scalars['Float']['output'];
-};
-
 export type ContentConfig = {
   deletable: Scalars['Boolean']['output'];
   /** trueの場合、当該コンテンツデータソースを地図から外すこと不可 */
@@ -39,16 +36,6 @@ export type ContentConfig = {
   kind: DatasourceKindType;
   /** 子コンテンツの追加が可能かどうか */
   linkableChildContents: Scalars['Boolean']['output'];
-};
-
-export type DataId = {
-  dataSourceId: Scalars['String']['output'];
-  id: Scalars['String']['output'];
-};
-
-export type DataIdInput = {
-  dataSourceId: Scalars['String']['input'];
-  id: Scalars['String']['input'];
 };
 
 export type DatasourceConfig = ContentConfig | ItemConfig | RealPointContentConfig | TrackConfig;
@@ -85,53 +72,6 @@ export enum ErrorType {
   Unauthorized = 'Unauthorized',
   /** 指定の地図が存在しない場合 */
   UndefinedMap = 'UndefinedMap'
-}
-
-/** 地物種別 */
-export enum FeatureType {
-  Area = 'AREA',
-  Earth = 'EARTH',
-  Forest = 'FOREST',
-  Road = 'ROAD',
-  Structure = 'STRUCTURE',
-  Track = 'TRACK'
-}
-
-export type GeoProperties = CircleProperties | GeocoderFeatureProperties | RoadProperties | StructurePropeties | TrackPropeties;
-
-/** OSM等で管理されているFeatureの場合のプロパティ（Area） */
-export type GeocoderFeatureProperties = {
-  featureType: FeatureType;
-  geocoderIdInfo: GeocoderIdInfo;
-};
-
-/** OSM等で管理されているFeatureを特定する情報 */
-export type GeocoderIdInfo = GeocoderIdMapbox | GeocoderIdOsm;
-
-export type GeocoderIdInput = {
-  info: GeocoderIdInfo;
-  map: OsmKind;
-};
-
-/** Mapboxで管理されているFeatureを特定する情報 */
-export type GeocoderIdMapbox = {
-  id: Scalars['String']['output'];
-};
-
-/** OSMで管理されているFeatureを特定する情報 */
-export type GeocoderIdOsm = {
-  osm_id: Scalars['Int']['output'];
-  osm_type: Scalars['String']['output'];
-};
-
-export type IconKey = {
-  id: Scalars['String']['output'];
-  type: IconType;
-};
-
-export enum IconType {
-  Original = 'original',
-  System = 'system'
 }
 
 export type ItemConfig = {
@@ -173,11 +113,6 @@ export type MapPageOptions = {
   visibleDataSources: Array<VisibleDataSource>;
 };
 
-export enum OsmKind {
-  Mapbox = 'mapbox',
-  Osm = 'osm'
-}
-
 export enum PopupMode {
   Hidden = 'hidden',
   Maximum = 'maximum',
@@ -185,7 +120,7 @@ export enum PopupMode {
 }
 
 export type RealPointContentConfig = {
-  defaultIcon?: Maybe<IconKey>;
+  defaultIcon?: Maybe<Scalars['IconKey']['output']>;
   deletable: Scalars['Boolean']['output'];
   editable: Scalars['Boolean']['output'];
   kind: DatasourceKindType;
@@ -193,30 +128,11 @@ export type RealPointContentConfig = {
   linkableContents: Scalars['Boolean']['output'];
 };
 
-export type RoadProperties = {
-  featureType: FeatureType;
-  /** 元のline */
-  lineJson: Scalars['GeoJsonFeature']['output'];
-  /** RoadWidth.key */
-  width: Scalars['String']['output'];
-};
-
-export type StructurePropeties = {
-  featureType: FeatureType;
-  icon?: Maybe<IconKey>;
-};
-
 export type TrackConfig = {
   deletable: Scalars['Boolean']['output'];
   editable: Scalars['Boolean']['output'];
   kind: DatasourceKindType;
   layerGroup?: Maybe<Scalars['String']['output']>;
-};
-
-export type TrackPropeties = {
-  featureType: FeatureType;
-  maxZoom: Scalars['Float']['output'];
-  minZoom: Scalars['Float']['output'];
 };
 
 export type User = {

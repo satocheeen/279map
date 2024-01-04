@@ -8,7 +8,8 @@ import { Feature } from "ol";
 import { Geometry } from "ol/geom";
 import VectorSource from "ol/source/Vector";
 import { useMap } from "../../useMap";
-import { FeatureType, GeocoderTarget } from "../../../../graphql/generated/graphql";
+import { GeocoderTarget } from "../../../../graphql/generated/graphql";
+import { FeatureType } from "../../../../types-common/common-types";
 
 type Props = {
     onCancel?: () => void;
@@ -28,7 +29,7 @@ export function DrawAreaAddress(props: Props) {
     const { map } = useMap();
     const [stage, setStage] = useState(Stage.SearchAddress);
     const styleHook = useTopographyStyle({
-        defaultFeatureType: FeatureType.Area,
+        defaultFeatureType: FeatureType.AREA,
         drawing: true,
     });
     const drawingSource = useRef<VectorSource|null>(null);
@@ -54,7 +55,7 @@ export function DrawAreaAddress(props: Props) {
     const onSelectAddress = useCallback((geoJson: GeoJsonObject) => {
         const feature = new GeoJSON().readFeatures(geoJson)[0];
         feature.setProperties({
-            featureType: FeatureType.Area,
+            featureType: FeatureType.AREA,
         });
         drawingSource.current?.clear();
         drawingSource.current?.addFeature(feature);

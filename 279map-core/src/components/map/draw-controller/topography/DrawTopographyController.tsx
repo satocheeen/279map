@@ -10,11 +10,12 @@ import { Geometry } from 'ol/geom';
 import { Feature } from 'ol';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
-import { FeatureType, GeoProperties, RegistItemDocument } from '../../../../graphql/generated/graphql';
+import { RegistItemDocument } from '../../../../graphql/generated/graphql';
+import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
 
 type Props = {
     dataSourceId: string;
-    drawFeatureType: FeatureType.Earth | FeatureType.Forest | FeatureType.Area;
+    drawFeatureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA;
     close: () => void;  // 作図完了時のコールバック
 }
 

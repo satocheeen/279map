@@ -23,7 +23,8 @@ import { topographySelectStyleFunction } from '../utility';
 import { LineString, Polygon } from 'ol/geom';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
-import { GeoProperties, UpdateItemDocument, UpdateItemInput } from '../../../../graphql/generated/graphql';
+import { UpdateItemDocument, UpdateItemInput } from '../../../../graphql/generated/graphql';
+import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
 
 type Props = {
     close: () => void;  // 編集完了時のコールバック
@@ -101,7 +102,7 @@ export default function MoveItemController(props: Props) {
             const features = (mf.get('features') as Feature<Geometry>[] | undefined) ?? [mf];
             for (const feature of features) {
                 let geometry: GeoJSON.Geometry;
-                if ((feature.getProperties() as GeoProperties).__typename === 'RoadProperties') {
+                if ((feature.getProperties() as GeoProperties).featureType === FeatureType.ROAD) {
                     // 道の場合は、元のラインを射影変換する
                     const lineFeature = getOriginalLine(feature as Feature<Geometry>);
                     const id = feature.getId() as string;

@@ -3,8 +3,9 @@ import { ConnectionPool } from '.';
 import { PoolConnection } from 'mysql2/promise';
 import { CurrentMap } from '../279map-backend-common/src';
 import { ContentsTable, ItemContentLink, ItemsTable, TrackGeoJsonTable, TracksTable } from '../279map-backend-common/src/types/schema';
-import { QueryGetItemsArgs, ItemDefine, MapKind, FeatureType } from './graphql/__generated__/types';
+import { QueryGetItemsArgs, ItemDefine, MapKind } from './graphql/__generated__/types';
 import { ItemContentInfo } from './api/getItem';
+import { FeatureType } from './types-common/common-types';
 
 const apiLogger = getLogger('api');
 
@@ -146,9 +147,9 @@ async function selectTrackInArea(con: PoolConnection, param: QueryGetItemsArgs, 
                 },
                 geoJson: row.geojson,
                 geoProperties: {
-                    featureType: FeatureType.Track,
-                    minZoom: row.min_zoom,
-                    maxZoom: row.max_zoom,
+                    featureType: FeatureType.TRACK,
+                    min_zoom: row.min_zoom,
+                    max_zoom: row.max_zoom,
                 },
                 name: '',
                 hasContents: false,

@@ -7,7 +7,8 @@ import FilterCondition from './FilterCondition';
 import { mapId, myMapServer } from './const';
 import AuthPanel from './AuthPanel';
 import { AuthContext } from './DriverRoot';
-import { DataId, FeatureType, Auth, CategoryDefine, Condition, DatasourceGroup, DatasourceKindType, MapKind } from '../graphql/generated/graphql';
+import { DataId, Auth, CategoryDefine, Condition, DatasourceGroup, DatasourceKindType, MapKind } from '../graphql/generated/graphql';
+import { FeatureType } from '../types-common/common-types';
 
 const props = {
     mapId,
@@ -203,12 +204,12 @@ export default function TestMap() {
                                                 <>
                                                     <button onClick={()=>mapRef.current?.drawStructure(ds.datasourceId)}>建設</button>
                                                     {mapKind === MapKind.Real ?
-                                                        <button onClick={()=>mapRef.current?.drawTopography(ds.datasourceId, FeatureType.Area)}>エリア作成</button>
+                                                        <button onClick={()=>mapRef.current?.drawTopography(ds.datasourceId, FeatureType.AREA)}>エリア作成</button>
                                                         :
                                                         <>
                                                             <button onClick={()=>mapRef.current?.drawRoad(ds.datasourceId)}>道作成</button>
-                                                            <button onClick={()=>mapRef.current?.drawTopography(ds.datasourceId, FeatureType.Earth)}>島作成</button>
-                                                            <button onClick={()=>mapRef.current?.drawTopography(ds.datasourceId, FeatureType.Forest)}>緑地作成</button>
+                                                            <button onClick={()=>mapRef.current?.drawTopography(ds.datasourceId, FeatureType.EARTH)}>島作成</button>
+                                                            <button onClick={()=>mapRef.current?.drawTopography(ds.datasourceId, FeatureType.FOREST)}>緑地作成</button>
                                                         </>
                                                     }
                                                 </>

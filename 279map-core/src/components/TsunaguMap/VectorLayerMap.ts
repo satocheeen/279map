@@ -5,7 +5,7 @@ import { Geometry } from "ol/geom";
 import { StyleFunction } from "ol/style/Style";
 import Layer from "ol/layer/Layer";
 import { getMapKey } from "../../util/dataUtility";
-import { DataId } from "../../graphql/generated/graphql";
+import { DataId } from "../../types-common/common-types";
 
 export enum LayerType {
     Point = 'Point',    // Pointa用レイヤ。（Cluster設定されている）

@@ -18,7 +18,8 @@ import useDataSource from '../../store/datasource/useDataSource';
 import { ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument } from '../../graphql/generated/graphql';
 import { updateContentAtom } from '../../store/content';
 import { clientAtom } from 'jotai-urql';
-import { DataId, MapKind } from '../../graphql/generated/graphql';
+import { MapKind } from '../../graphql/generated/graphql';
+import { DataId } from '../../types-common/common-types';
 
 /**
  * 呼び出し元とイベント連携するためのコンポーネントもどき。

@@ -3,7 +3,7 @@ import { Logger } from "log4js";
 import { OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetLinkableContentsResult, OdbaGetUnpointDataAPI, OdbaLinkContentDatasourceToMapAPI, OdbaLinkContentDatasourceToMapParam, OdbaLinkContentToItemAPI, OdbaLinkContentToItemParam, OdbaRegistContentAPI, OdbaRegistContentParam, OdbaRegistItemAPI, OdbaRegistItemParam, OdbaRemoveContentAPI, OdbaRemoveContentParam, OdbaRemoveItemAPI, OdbaRemoveItemParam, OdbaUnlinkContentDatasourceFromMapAPI, OdbaUnlinkContentDatasourceFromMapParam, OdbaUpdateContentAPI, OdbaUpdateContentParam, OdbaUpdateItemAPI, OdbaUpdateItemParam } from "./dba-api-interface";
 import OdbaInterface from "./OdbaInterface";
 import { APIDefine, CurrentMap } from "../types";
-import { DataId } from '../graphql/__generated__/types';
+import { DataId } from '../types-common/common-types';
 
 type OdbaAPIFuncParam<PARAM> = {
     param: PARAM;

@@ -5,7 +5,7 @@ import { LayerType } from '../TsunaguMap/VectorLayerMap';
 import LoadingOverlay from '../common/spinner/LoadingOverlay';
 import { mapModeAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
-import { FeatureType } from '../../graphql/generated/graphql';
+import { FeatureType } from '../../types-common/common-types';
 
 const DrawStructureController = lazy(() => import('./draw-controller/structure/DrawStructureController'));
 const MoveItemController = lazy(() => import('./draw-controller/structure/MoveItemController'));
@@ -26,7 +26,7 @@ type ControllerType = {
 } | {
     type: 'draw-topography';
     dataSourceId: string;
-    featureType: FeatureType.Earth | FeatureType.Forest | FeatureType.Area;
+    featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA;
 }
 export type DrawControllerHandler = Pick<TsunaguMapHandler, 
     'drawStructure'
@@ -74,7 +74,7 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
                 type: 'remove-structure',
             })
         },
-        drawTopography(dataSourceId: string, featureType: FeatureType.Earth | FeatureType.Forest | FeatureType.Area) {
+        drawTopography(dataSourceId: string, featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA) {
             setMapMode(MapMode.Drawing);
             setController({
                 type: 'draw-topography',

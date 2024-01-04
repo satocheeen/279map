@@ -9,7 +9,7 @@ import { BsImage } from 'react-icons/bs';
 import { useItem } from '../../store/item/useItem';
 import { itemDataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
-import { DataId } from '../../graphql/generated/graphql';
+import { DataId } from '../../types-common/common-types';
 
 const ARROW_HEIGHT = 20;
 const ARROW_OFFSET_LEFT = 45;

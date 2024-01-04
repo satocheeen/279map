@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { allItemsAtom } from ".";
 import { useAtomCallback } from 'jotai/utils';
-import { DataId } from "../../graphql/generated/graphql";
+import { DataId } from "../../types-common/common-types";
 
 /**
  * アイテム関連フック

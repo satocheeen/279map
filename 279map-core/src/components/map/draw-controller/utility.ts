@@ -2,7 +2,7 @@ import { Fill, Stroke, Style } from "ol/style";
 import { colorWithAlpha } from "../../../util/CommonUtility";
 import { MapStyles } from "../../../util/constant-defines";
 import { FeatureLike } from "ol/Feature";
-import { FeatureType } from "../../../graphql/generated/graphql";
+import { FeatureType } from "../../../types-common/common-types";
 
 export function topographySelectStyleFunction(feature: FeatureLike, resolution: number, defaultStyle: Style) {
     const featureType = feature.getProperties()['featureType'];
@@ -11,19 +11,19 @@ export function topographySelectStyleFunction(feature: FeatureLike, resolution: 
     let alpha: number;
     let zIndex: number;
     switch(featureType) {
-        case FeatureType.Forest:
+        case FeatureType.FOREST:
             strokeColor = MapStyles.Forest.selectedColor.stroke;
             fillColor = MapStyles.Forest.selectedColor.fill;
             alpha = MapStyles.Forest.selectedColor.alpha;
             zIndex = MapStyles.Forest.zIndex;
             break;
-        case FeatureType.Area:
+        case FeatureType.AREA:
             strokeColor = MapStyles.Area.selectedColor.stroke;
             fillColor = MapStyles.Area.selectedColor.fill;
             alpha = MapStyles.Area.selectedColor.alpha;
             zIndex = MapStyles.Area.zIndex;
             break;
-        case FeatureType.Road:
+        case FeatureType.ROAD:
             strokeColor = MapStyles.Road.selectedColor.stroke;
             fillColor = MapStyles.Road.selectedColor.fill;
             alpha = MapStyles.Road.selectedColor.alpha;

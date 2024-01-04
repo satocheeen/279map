@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { currentDefaultIconAtom, currentMapIconDefineAtom } from ".";
 import { useAtom } from "jotai";
-import { IconKey } from "../../graphql/generated/graphql";
+import { IconKey } from "../../types-common/common-types";
 
 /**
  * アイコンに関するフック

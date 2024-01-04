@@ -2,8 +2,8 @@
  * Odba container's API interface.
  */
 
-import { DataId, GeoProperties } from "../graphql/__generated__/types";
 import { APIDefine, CurrentMap } from "../types";
+import { DataId, GeoProperties } from "../types-common/common-types";
 
 type CommonParam = {
     currentMap: CurrentMap;
@@ -21,7 +21,7 @@ export type OdbaRegistItemParam = CommonParam & {
     dataSourceId: string;   // 登録先データソース
     name?: string;  // topography only
     geometry: GeoJSON.Geometry;
-    geoProperties: GeoProperties;  // GeoProperties
+    geoProperties: GeoProperties;
 }
 
 /**

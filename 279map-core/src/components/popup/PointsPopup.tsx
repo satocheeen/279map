@@ -11,7 +11,8 @@ import { filteredContentIdListAtom, filteredItemIdListAtom } from "../../store/f
 import { useItems } from "../../store/item/useItems";
 import { useAtom } from "jotai";
 import { useAtomCallback } from 'jotai/utils';
-import { DataId, ContentsDefine, ItemDefine } from "../../graphql/generated/graphql";
+import { ContentsDefine, ItemDefine } from "../../graphql/generated/graphql";
+import { DataId } from "../../types-common/common-types";
 
 type Props = {
     // このポップアップにて情報表示する対象アイテム

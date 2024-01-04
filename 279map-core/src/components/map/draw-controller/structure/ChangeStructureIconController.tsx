@@ -8,7 +8,8 @@ import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
-import { FeatureType, UpdateItemDocument } from '../../../../graphql/generated/graphql';
+import { UpdateItemDocument } from '../../../../graphql/generated/graphql';
+import { FeatureType } from '../../../../types-common/common-types';
 
 type Props = {
     close: () => void;  // 編集完了時のコールバック
@@ -52,7 +53,7 @@ export default function ChangeStructureIconController(props: Props) {
                 {
                     id,
                     geoProperties: {
-                        featureType: FeatureType.Structure,
+                        featureType: FeatureType.STRUCTURE,
                         icon: {
                             type: iconDefine.type,
                             id: iconDefine.id,

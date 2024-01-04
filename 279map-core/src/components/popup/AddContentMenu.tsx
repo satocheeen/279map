@@ -14,7 +14,8 @@ import { useAtom } from 'jotai';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern, ConfirmResult } from '../common/confirm/types';
 import { clientAtom } from 'jotai-urql';
-import { DataId, Auth, DatasourceConfig, GetContentDocument, GetSnsPreviewDocument, GetUnpointContentsDocument, LinkContentDocument, MutationLinkContentArgs, MutationRegistContentArgs, RegistContentDocument, UpdateItemDocument } from '../../graphql/generated/graphql';
+import { Auth, DatasourceConfig, GetContentDocument, GetSnsPreviewDocument, GetUnpointContentsDocument, LinkContentDocument, MutationLinkContentArgs, MutationRegistContentArgs, RegistContentDocument, UpdateItemDocument } from '../../graphql/generated/graphql';
+import { DataId } from '../../types-common/common-types';
 
 type Props = {
     target: {

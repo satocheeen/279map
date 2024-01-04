@@ -2,7 +2,8 @@ import { getLogger } from "log4js";
 import { ConnectionPool } from "..";
 import { ItemContentLink, ItemsTable } from "../../279map-backend-common/src/types/schema";
 import { getContentsInfo, getImageContentId } from "../getItems";
-import { DataId, ItemDefine, QueryGetItemsByIdArgs } from "../graphql/__generated__/types";
+import { ItemDefine, QueryGetItemsByIdArgs } from "../graphql/__generated__/types";
+import { DataId } from "../types-common/common-types";
 
 const apiLogger = getLogger('api');
 

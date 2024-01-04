@@ -4,7 +4,7 @@
   "description": "279map backend common modules",
   "scripts": {
     "rollup": "rollup -c",
-    "codegen": "graphql-codegen --config codegen.ts"
+    "codegen": "rimraf ./src/types-common && ncp ../src/types-common ./src/types-common && graphql-codegen --config codegen.ts"
   },
   "keywords": [],
   "author": "Satocheeen (https://satocheeen.com)",

@@ -15,8 +15,9 @@ import { allItemsAtom } from '../../store/item';
 import { useMap } from '../map/useMap';
 import { modalSpinnerAtom } from '../common/modal/Modal';
 import { clientAtom } from 'jotai-urql';
-import { DataId, Auth, ChildContentsUpdateDocument, ContentsDefine, GetContentDocument, GetContentsInItemDocument, ItemTemporaryState, MapKind } from '../../graphql/generated/graphql';
+import { Auth, ChildContentsUpdateDocument, ContentsDefine, GetContentDocument, GetContentsInItemDocument, ItemTemporaryState, MapKind } from '../../graphql/generated/graphql';
 import { Subscription } from 'wonka';
+import { DataId } from '../../types-common/common-types';
 
 export type Props = ({
     type: 'item' | 'content';

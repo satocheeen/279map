@@ -5,7 +5,7 @@ import { FeatureLike } from 'ol/Feature';
 import { colorWithAlpha } from '../../util/CommonUtility';
 import { Style } from 'ol/style';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
-import { FeatureType } from '../../graphql/generated/graphql';
+import { FeatureType } from '../../types-common/common-types';
 
 /**
  * フィルタを加味して地形Featureのスタイルを設定するフック
@@ -24,7 +24,7 @@ export default function useFilteredTopographyStyle() {
                 return defaultStyle;
             }
             const featureType = feature.getProperties()['featureType'];
-            if (featureType === FeatureType.Area) {
+            if (featureType === FeatureType.AREA) {
                 if (filterStatus === 'UnFiltered') {
                     if (filter?.unmatchView === 'hidden') {
                         return new Style();

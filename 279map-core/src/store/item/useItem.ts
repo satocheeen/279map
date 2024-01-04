@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useAtom } from "jotai";
 import { allItemsAtom } from ".";
-import { DataId } from '../../graphql/generated/graphql';
+import { DataId } from '../../types-common/common-types';
 
 type Props = {
     id: DataId;
@@ -20,7 +20,7 @@ export function useItem(props: Props) {
         const itemMap = allItems[props.id.dataSourceId] ?? {};
         return itemMap[props.id.id];
 
-    }, [ allItems ])
+    }, [ allItems, props.id ])
 
     return {
         item,

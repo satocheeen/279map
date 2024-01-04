@@ -7,7 +7,8 @@ import Spinner from '../../common/spinner/Spinner';
 import { getMapKey } from '../../../util/dataUtility';
 import Select from '../../common/form/Select';
 import { useWatch } from '../../../util/useWatch2';
-import { DataId, ParentOfContent, UnpointContent } from '../../../graphql/generated/graphql';
+import { ParentOfContent, UnpointContent } from '../../../graphql/generated/graphql';
+import { DataId } from '../../../types-common/common-types';
 
 type Props = {
     param: LinkUnpointContentParam;

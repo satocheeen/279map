@@ -47,10 +47,7 @@ fragment datasourceInfo on DatasourceInfo {
             deletable
         }
         ... on RealPointContentConfig {
-            defaultIcon {
-                type
-                id
-            }
+            defaultIcon
             linkableContents
             layerGroup
             editable
@@ -96,7 +93,7 @@ mutation registItem (
     $datasourceId: String!
     $name: String
     $geometry: Geometry!
-    $geoProperties: JSON!
+    $geoProperties: GeoProperties!
 ) {
     registItem (
         datasourceId: $datasourceId,
@@ -115,7 +112,7 @@ mutation updateItem (
 }
 
 mutation removeItem (
-    $id: DataIdInput!
+    $id: DataId!
 ) {
     removeItem(
         id: $id
@@ -148,7 +145,7 @@ mutation registContent (
 }
 
 mutation updateContent (
-    $id: DataIdInput!
+    $id: DataId!
     $title: String
     $overview: String
     $categories: [String!]
@@ -170,7 +167,7 @@ mutation updateContent (
 }
 
 mutation linkContent (
-    $id: DataIdInput!
+    $id: DataId!
     $parent: ParentInput!
 ) {
     linkContent (
@@ -180,7 +177,7 @@ mutation linkContent (
 }
 
 mutation unlinkContent (
-    $id: DataIdInput!
+    $id: DataId!
     $parent: ParentInput!
 ) {
     unlinkContent (
@@ -190,7 +187,7 @@ mutation unlinkContent (
 }
 
 mutation removeContent (
-    $id: DataIdInput!
+    $id: DataId!
 ) {
     removeContent (
         id: $id

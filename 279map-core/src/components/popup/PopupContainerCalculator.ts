@@ -7,7 +7,8 @@ import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
 import { getFeatureCenter } from "../../util/MapUtility";
 import Style from "ol/style/Style";
 import { Extent } from "ol/extent";
-import { DataId, ItemDefine } from "../../graphql/generated/graphql";
+import { ItemDefine } from "../../graphql/generated/graphql";
+import { DataId } from '../../types-common/common-types';
 
 type PopupGroup = {
     mainFeature: Feature;

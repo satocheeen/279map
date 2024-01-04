@@ -10,7 +10,8 @@ import { currentMapKindAtom } from '../../store/session';
 import { modalSpinnerAtom } from '../common/modal/Modal';
 import { useAtomCallback } from 'jotai/utils';
 import { clientAtom } from 'jotai-urql';
-import { DataId, MapKind, UpdateItemDocument } from '../../graphql/generated/graphql';
+import { MapKind, UpdateItemDocument } from '../../graphql/generated/graphql';
+import { DataId } from '../../types-common/common-types';
 
 type Props = {
     target: DataId;

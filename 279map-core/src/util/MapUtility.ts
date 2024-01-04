@@ -16,7 +16,7 @@ import VectorSource from 'ol/source/Vector';
 import { getCenter as getExtentCenter } from 'ol/extent';
 import { Cluster } from 'ol/source';
 import { circle, lineString, multiLineString, multiPolygon, polygon, buffer } from '@turf/turf';
-import { FeatureType, GeoProperties } from '../graphql/generated/graphql';
+import { FeatureType, GeoProperties } from '../types-common/common-types';
 
 /**
  * GeoJSONを元に対応するジオメトリを生成して返す
@@ -24,12 +24,12 @@ import { FeatureType, GeoProperties } from '../graphql/generated/graphql';
  */
  export function createFeatureByGeoJson(geoJson: GeoJsonObject, geoProperties?: GeoProperties): Feature {
     const feature = new GeoJSON().readFeatures(geoJson)[0];
-    if (geoProperties?.__typename === 'RoadProperties') {
+    if (geoProperties?.featureType === FeatureType.ROAD) {
         const roadWidth = RoadWidth.getValueOfKey(geoProperties.width);
         convertLineToPolygon(feature, roadWidth.distance);
         return feature;
 
-    } else if (geoProperties?.__typename === 'CircleProperties') {
+    } else if (geoProperties && 'radius' in geoProperties) {
         // 半径指定されている場合は、Circleを生成
         const coordinate = feature.getGeometry()?.getExtent() as Extent;
         const circle = new Feature({
@@ -54,7 +54,7 @@ export function getStructureScale(resolution: number): number {
 export function createGeoJson(feature: Feature): GeoJSON.Feature {
     const geoProperties = extractGeoProperty(feature.getProperties());
 
-    if (geoProperties.__typename === 'GeocoderFeatureProperties') {
+    if (geoProperties.featureType === FeatureType.AREA && 'geocoderIdInfo' in geoProperties) {
         // 住所エリアの場合は、Extentとidを登録する
         const extent = feature.getGeometry()?.getExtent();
         if (!extent) {
@@ -121,13 +121,13 @@ export function convertLineToPolygon(lineFeature: Feature<Geometry>, distance: n
  */
 export function getOriginalLine(lineFeature: Feature<Geometry>): Feature<Geometry> {
     const properties = extractGeoProperty(lineFeature.getProperties());
-    if (properties.__typename !== 'RoadProperties') {
+    if (properties.featureType !== FeatureType.ROAD) {
         console.warn('道ではない');
         return lineFeature;
     }
     const lineJson = properties.lineJson;
     lineJson.properties = {
-        featureType: FeatureType.Road,
+        featureType: FeatureType.ROAD,
         width: properties.width,
     };
     console.log('lineJson', lineJson);
@@ -143,49 +143,47 @@ export function getOriginalLine(lineFeature: Feature<Geometry>): Feature<Geometr
  */
 export function extractGeoProperty(properties: GeoJsonProperties): GeoProperties {
     const prop = properties as GeoProperties;
-    switch(prop.__typename){
-        case 'StructurePropeties':
+    switch(prop.featureType){
+        case FeatureType.STRUCTURE:
             return {
-                __typename: prop.__typename,
                 featureType: prop.featureType,
                 icon: properties?.icon,
             };
-        case 'RoadProperties':
+        case FeatureType.ROAD:
             return {
-                __typename: prop.__typename,
                 featureType: prop.featureType,
                 lineJson: properties?.lineJson,
                 width: properties?.width,
             };
-        case 'CircleProperties':
-            return {
-                __typename: prop.__typename,
-                featureType: prop.featureType,
-                radius: prop.radius,
-            };
-        case 'GeocoderFeatureProperties':
-            return {
-                __typename: prop.__typename,
-                featureType: prop.featureType,
-                geocoderIdInfo: prop.geocoderIdInfo,
+        case FeatureType.AREA:
+            if ('radius' in prop) {
+                return {
+                    featureType: prop.featureType,
+                    radius: prop.radius,
+                };
+            } else {
+                return {
+                    featureType: prop.featureType,
+                    geocoderId: properties?.geocoderId,
+                };
             }
-        case 'TrackPropeties':
+        case FeatureType.TRACK:
             return {
-                __typename: prop.__typename,
                 featureType: prop.featureType,
-                maxZoom: prop?.maxZoom,
-                minZoom: prop?.minZoom,
+                max_zoom: properties?.max_zoom,
+                min_zoom: properties?.min_zoom,
             }
         default:
             return {
                 featureType: prop.featureType,
+                radius: properties?.radius,
             };
     }
 }
 
 export function getLayerName(featureType: FeatureType) {
     switch(featureType) {
-        case FeatureType.Structure:
+        case FeatureType.STRUCTURE:
             return 'itemLayer';
         default:
             return 'topographyLayer';

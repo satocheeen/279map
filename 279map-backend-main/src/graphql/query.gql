@@ -1,7 +1,3 @@
-scalar DataId
-scalar Geometry
-scalar JSON
-
 type Auth0Config {
     domain: String!
     clientId: String!
@@ -169,7 +165,7 @@ type Query {
     search(condition: Condition!, datasourceIds: [String!]): [SearchHitItem!]!
 
     geocoder(address: String!, searchTarget: [GeocoderTarget!]!): [GeocoderItem!]!
-    getGeocoderFeature(id: GeocoderIdInput!): Geometry!
+    getGeocoderFeature(id: GeocoderIdInfo!): Geometry!
 
     getSnsPreview(url: String!): SnsPreviewResult!
 

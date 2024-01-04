@@ -15,15 +15,6 @@ enum MapKind {
     Virtual
 }
 
-type DataId {
-    id: String!
-    dataSourceId: String!
-}
-input DataIdInput {
-    id: String!
-    dataSourceId: String!
-}
-
 enum ErrorType {
     "指定の地図が存在しない場合"
     UndefinedMap
@@ -115,14 +106,6 @@ type ItemConfig {
     editable: Boolean!
     deletable: Boolean!
 }
-enum IconType {
-    system
-    original
-}
-type IconKey {
-    type: IconType!
-    id: String!
-}
 type RealPointContentConfig {
     kind: DatasourceKindType!
     defaultIcon: IconKey
@@ -148,79 +131,9 @@ type TrackConfig {
 }
 union DatasourceConfig = ItemConfig | RealPointContentConfig | ContentConfig | TrackConfig
 
-# --------------------
-# GeoProperties関連
-# --------------------
-
-"地物種別"
-enum FeatureType {
-    STRUCTURE,
-    ROAD
-    EARTH
-    FOREST
-    AREA
-    TRACK
-}
-
-enum OsmKind {
-    osm
-    mapbox
-}
-
-"OSMで管理されているFeatureを特定する情報"
-type GeocoderIdOsm {
-    osm_type: String!
-    osm_id: Int!
-}
-
-"Mapboxで管理されているFeatureを特定する情報"
-type GeocoderIdMapbox {
-    id: String!
-}
-
-"OSM等で管理されているFeatureを特定する情報"
-union GeocoderIdInfo = GeocoderIdOsm | GeocoderIdMapbox
-input GeocoderIdInput {
-    map: OsmKind!
-    info: GeocoderIdInfo!
-}
-
-# --------------------
-# GeoProperties
-# --------------------
-type StructurePropeties {
-    featureType: FeatureType!
-    icon: IconKey
-}
-
-"GeoJSON.Feature"
-scalar GeoJsonFeature
-
-type RoadProperties {
-    featureType: FeatureType!
-    "元のline"
-    lineJson: GeoJsonFeature!
-    "RoadWidth.key"
-    width: String!
-}
-
-"円の場合のプロパティ（Earth, Forest, Area）"
-type CircleProperties {
-    featureType: FeatureType!
-    "半径"
-    radius: Float!
-}
-
-"OSM等で管理されているFeatureの場合のプロパティ（Area）"
-type GeocoderFeatureProperties {
-    featureType: FeatureType!
-    geocoderIdInfo: GeocoderIdInfo!
-}
-
-type TrackPropeties {
-    featureType: FeatureType!
-    minZoom: Float!
-    maxZoom: Float!
-}
-
-union GeoProperties = StructurePropeties | RoadProperties | CircleProperties | GeocoderFeatureProperties | TrackPropeties
+scalar DataId
+scalar JSON
+scalar Geometry
+scalar IconKey
+scalar GeoProperties
+scalar GeocoderIdInfo

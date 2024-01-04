@@ -20,7 +20,8 @@ import { getDistance } from 'geolib';
 import FormGroup from '../../../common/form/FormGroup';
 import Input from '../../../common/form/Input';
 import { useMap } from '../../useMap';
-import { FeatureType, GeocoderTarget } from '../../../../graphql/generated/graphql';
+import { GeocoderTarget } from '../../../../graphql/generated/graphql';
+import { FeatureType } from '../../../../types-common/common-types';
 
 type Props = {
     onCancel?: () => void;
@@ -49,7 +50,7 @@ export default function DrawPointRadius(props: Props) {
     const drawingSource = useRef<VectorSource|null>(null);
     const pointStyleHook = usePointStyle();
     const styleHook = useTopographyStyle({
-        defaultFeatureType: FeatureType.Area,
+        defaultFeatureType: FeatureType.AREA,
         drawing: true,
     });
     const iconHook = useIcon();

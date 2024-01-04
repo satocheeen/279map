@@ -16,7 +16,8 @@ import { useMap } from '../../useMap';
 import { currentMapKindAtom } from '../../../../store/session';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
-import { FeatureType, GeoProperties, GeocoderTarget, MapKind, RegistItemDocument } from '../../../../graphql/generated/graphql';
+import { GeocoderTarget, MapKind, RegistItemDocument } from '../../../../graphql/generated/graphql';
+import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
 
 type Props = {
     dataSourceId: string;   // 作図対象のデータソース
@@ -136,7 +137,7 @@ export default function DrawStructureController(props: Props) {
             datasourceId: props.dataSourceId,
             geometry: geoJson.geometry,
             geoProperties: Object.assign({}, geoJson.properties, {
-                featureType: FeatureType.Structure,
+                featureType: FeatureType.STRUCTURE,
                 icon: {
                     type: drawingIcon.current?.type,
                     id: drawingIcon.current?.id,

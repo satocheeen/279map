@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { DataId } from '../graphql/__generated__/types';
+import { DataId } from '../types-common/common-types';
 
 export type BroadcastItemParam = {
     mapId: string;
