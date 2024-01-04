@@ -79,7 +79,9 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
         <div className={styles.TsunaguMap}>
             <OwnerContext.Provider value={ownerContextValue}>
                 <MapConnector server={props.mapServer} iconDefine={props.iconDefine} mapId={props.mapId}>
-                    <EventConnectorWithOwner ref={eventControlerRef} />
+                    <Suspense>
+                        <EventConnectorWithOwner ref={eventControlerRef} />
+                    </Suspense>
                     <TooltipContext.Provider value={tooltipContextValue}>
                         <MapController />
                         <MapChart />

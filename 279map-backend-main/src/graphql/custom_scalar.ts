@@ -43,7 +43,7 @@ export const GeometryScalarType = new GraphQLScalarType({
 })
 
 export const GeoPropertiesScalarType = new GraphQLScalarType({
-    name: 'Geometry',
+    name: 'GeoProperties',
     description: 'GeoProperties',
     serialize(value: any) {
         return value;
