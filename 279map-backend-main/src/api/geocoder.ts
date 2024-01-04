@@ -2,7 +2,8 @@ import axios from "axios";
 import { Geometry } from "geojson";
 import { getLogger } from "log4js";
 import { MapboxAccessToken } from "../config";
-import { GeocoderIdInput, GeocoderIdOsm, GeocoderItem, GeocoderTarget, OsmKind, QueryGeocoderArgs, QueryGetGeocoderFeatureArgs } from "../graphql/__generated__/types";
+import { GeocoderItem, GeocoderTarget, QueryGeocoderArgs, QueryGetGeocoderFeatureArgs } from "../graphql/__generated__/types";
+import { GeocoderIdInfo } from "../types-common/common-types";
 
 type OSMGeocordingResult = {
     boundingbox: [number, number, number, number];
@@ -78,6 +79,7 @@ async function mapboxSearch(address: string, searchTarget: GeocoderTarget[]): Pr
     }).map((res): GeocoderItem => {
         return {
             idInfo: {
+                map: 'mapbox',
                 id: res.id,
             },
             name: res.place_name,
@@ -108,6 +110,7 @@ async function osmSearch(address: string, searchTarget: GeocoderTarget[]): Promi
     }).map((res): GeocoderItem => {
         return {
             idInfo: {
+                map: 'osm',
                 osm_type: res.osm_type,
                 osm_id: res.osm_id,
             },
@@ -128,8 +131,8 @@ export async function getGeocoderFeature(param: QueryGetGeocoderFeatureArgs): Pr
  * 指定のIDに対応するGeoJsonを返す
  * @param id 
  */
-async function getFeatureById(id: GeocoderIdInput): Promise<Geometry> {
-    if (id.map === OsmKind.Mapbox) {
+async function getFeatureById(id: GeocoderIdInfo): Promise<Geometry> {
+    if (id.map === 'mapbox') {
         throw '現状、対応外';
     }
     const idStr = (id.osm_type??'')[0].toUpperCase() + id.osm_id;

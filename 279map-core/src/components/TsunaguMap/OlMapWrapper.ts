@@ -20,8 +20,9 @@ import { Pixel } from 'ol/pixel';
 import { convertDataIdFromFeatureId, getMapKey } from '../../util/dataUtility';
 import { FitOptions } from 'ol/View';
 import { Coordinate } from 'ol/coordinate';
-import { DataId, FeatureType, DatasourceGroup, DatasourceKindType, GetGeocoderFeatureDocument, ItemDefine, MapKind, OsmKind } from '../../graphql/generated/graphql';
+import { DataId, DatasourceGroup, DatasourceKindType, GetGeocoderFeatureDocument, ItemDefine, MapKind } from '../../graphql/generated/graphql';
 import { Client } from 'urql';
+import { FeatureType } from '../../types-common/common-types';
 
 export type FeatureInfo = {
     id: DataId;
@@ -220,9 +221,9 @@ export class OlMapWrapper {
      */
     _getTargetSource(item: ItemDefine): VectorSource | undefined {
         const layerInfos = this._vectorLayerMap.getLayerInfoOfTheDataSource(item.id.dataSourceId);
-        if (item.geoProperties.__typename === 'TrackPropeties') {
-            const minZoomLv = item.geoProperties.minZoom;
-            const maxZoomLv = item.geoProperties.maxZoom;
+        if (item.geoProperties.featureType === FeatureType.TRACK) {
+            const minZoomLv = item.geoProperties .min_zoom;
+            const maxZoomLv = item.geoProperties.max_zoom;
             const target = layerInfos.find(info => {
                 if (info.layerType !== LayerType.Track) {
                     return false;
@@ -232,7 +233,7 @@ export class OlMapWrapper {
             return target?.layer.getSource() ?? undefined;
         } else {
             const target = layerInfos.find(info => {
-                if (item.geoProperties.__typename === 'StructurePropeties') {
+                if (item.geoProperties.featureType === FeatureType.STRUCTURE) {
                     return info.layerType === LayerType.Point;
                 } else {
                     return info.layerType === LayerType.Topography;
@@ -251,17 +252,14 @@ export class OlMapWrapper {
         const feature = MapUtility.createFeatureByGeoJson(def.geoJson, def.geoProperties);
         feature.setId(getMapKey(def.id));
 
-        if (def.geoProperties?.__typename === 'GeocoderFeatureProperties') {
+        if (def.geoProperties?.featureType === FeatureType.AREA && ('geocoderId' in def.geoProperties && def.geoProperties.geocoderId)) {
             // Geocoderの図形の場合は、Geocoder図形呼び出して後から差し替える
 
             // 仮設定ジオメトリ（矩形）は非表示
             feature.setStyle(new Style());
 
             this._gqlClient.query(GetGeocoderFeatureDocument, {
-                id: {
-                    map: def.geoProperties.geocoderIdInfo.__typename === 'GeocoderIdOsm' ? OsmKind.Osm : OsmKind.Mapbox,
-                    info: def.geoProperties.geocoderIdInfo,
-                }
+                id: def.geoProperties.geocoderId,
             })
             .then((result => {
                 const geometry = result.data?.getGeocoderFeature;

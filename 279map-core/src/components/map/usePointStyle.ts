@@ -15,7 +15,7 @@ import { filteredItemIdListAtom } from "../../store/filter";
 import { itemDataSourcesAtom } from "../../store/datasource";
 import { useAtom } from 'jotai';
 import { MapStyles } from "../../util/constant-defines";
-import { IconKey } from "../../graphql/generated/graphql";
+import { IconKey } from "../../types-common/common-types";
 
 const STRUCTURE_SELECTED_COLOR = '#8888ff';
 

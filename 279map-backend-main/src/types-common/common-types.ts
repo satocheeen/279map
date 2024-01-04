@@ -1,31 +1,50 @@
-import { FeatureType, GeocoderIdInfo, IconKey } from "../graphql/__generated__/types"
-import { Feature } from 'geojson';
+/**
+ * システム全体で共通的に使用する型定義。
+ * backend-main配下のものが原本。
+ * 他プロジェクトへは、npm run codegenスクリプトにてコピーされる。
+ */
+export type IconKey = {
+    type: 'system' | 'original';
+    id: string;
+}
+
+/** 地物種別 */
+export enum FeatureType {
+    AREA,
+    EARTH,
+    FOREST,
+    ROAD,
+    STRUCTURE,
+    TRACK,
+}
+
+/* OSM等で管理されているFeatureを特定する情報 */
+export type GeocoderIdInfo = {
+    /* OSMで管理されているFeatureを特定する情報 */
+    map: 'osm';
+    osm_type: string;
+    osm_id: number;
+} | {
+    /* Mapboxで管理されているFeatureを特定する情報 */
+    map: 'mapbox';
+    id: string;
+}
 
 export type GeoProperties = {
-    type: 'StructurePropeties';
-    featureType: FeatureType.Structure;
-    icon: IconKey;
+    featureType: FeatureType.STRUCTURE;
+    icon?: IconKey;
 } | {
-    type: 'RoadProperties',
-    featureType: FeatureType.Road;
-    /* 元のline */
-    lineJson: Feature;
-    /* RoadWidth.key */
-    width: string;
+    featureType: FeatureType.ROAD;
+    lineJson: GeoJSON.Feature;  // 元のLine
+    width: string;  // RoadWidth.key
 } | {
-    /* 円の場合のプロパティ */
-    type: 'CircleProperties',
-    featureType: FeatureType.Earth | FeatureType.Forest | FeatureType.Area;
-    /* 半径 */
-    radius: number;
+    featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA;
+    radius?: number;
 } | {
-    type: 'GeocoderFeatureProperties',
-    /* OSM等で管理されているFeatureの場合のプロパティ */
-    featureType: FeatureType.Area;
-    geocoderIdInfo: GeocoderIdInfo;
+    featureType: FeatureType.AREA;
+    geocoderId?: GeocoderIdInfo;    // OSM等で管理されているFeatureの場合
 } | {
-    type: 'TrackPropeties';
-    featureType: FeatureType.Track;
-    minZoom: number;
-    maxZoom: number;
+    featureType: FeatureType.TRACK;
+    min_zoom: number;
+    max_zoom:  number;
 }

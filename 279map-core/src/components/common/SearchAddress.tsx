@@ -5,7 +5,8 @@ import Spinner from './spinner/Spinner';
 import ListGroup from './list/ListGroup';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
-import { FeatureType, GeoProperties, GeocoderDocument, GeocoderItem, GeocoderTarget } from '../../graphql/generated/graphql';
+import { GeocoderDocument, GeocoderItem, GeocoderTarget } from '../../graphql/generated/graphql';
+import { FeatureType, GeoProperties } from '../../types-common/common-types';
 
 type Props = {
     disabled?: boolean; // trueの場合、住所入力不可
@@ -118,7 +119,7 @@ function SearchAddress(props: Props, ref: React.ForwardedRef<SearchAddressHandle
                     type: 'Feature',
                     geometry: item.geoJson,
                     properties: {
-                        featureType: FeatureType.Area,
+                        featureType: FeatureType.AREA,
                         geocoderId: item.idInfo,
                     } as GeoProperties,
                 } as GeoJsonObject;

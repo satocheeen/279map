@@ -7,11 +7,11 @@ import { Feature } from "ol";
 import { Geometry } from "ol/geom";
 import VectorSource from "ol/source/Vector";
 import { useMap } from "../../useMap";
-import { FeatureType } from "../../../../graphql/generated/graphql";
+import { FeatureType } from "../../../../types-common/common-types";
 
 type Props = {
     geometryType: string;
-    drawFeatureType: FeatureType.Earth | FeatureType.Forest | FeatureType.Area;
+    drawFeatureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA;
     onCancel?: () => void;
     onOk?: (feature: Feature<Geometry>) => void;
 }

@@ -47,10 +47,7 @@ fragment datasourceInfo on DatasourceInfo {
             deletable
         }
         ... on RealPointContentConfig {
-            defaultIcon {
-                type
-                id
-            }
+            defaultIcon
             linkableContents
             layerGroup
             editable

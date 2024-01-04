@@ -5,7 +5,8 @@ import { MapMode } from '../../types/types';
 import ClusterMenuController, { ClusterMenuControllerHandler } from './ClusterMenuController';
 import { useMap } from '../map/useMap';
 import { useAtomCallback } from 'jotai/utils';
-import { DataId, FeatureType } from '../../graphql/generated/graphql';
+import { DataId } from '../../graphql/generated/graphql';
+import { FeatureType } from '../../types-common/common-types';
 
 export default function ClusterMenuContainer() {
     const { map } = useMap();
@@ -36,7 +37,7 @@ export default function ClusterMenuContainer() {
     return (
         <ClusterMenuController
             ref={controllerRef}
-            targets={[FeatureType.Structure, FeatureType.Area]}
+            targets={[FeatureType.STRUCTURE, FeatureType.AREA]}
             onSelect={onSelectItem} />
     );
 }

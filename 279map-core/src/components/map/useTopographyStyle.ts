@@ -5,7 +5,8 @@ import { colorWithAlpha } from '../../util/CommonUtility';
 import { MapStyles } from "../../util/constant-defines";
 import { currentMapKindAtom } from "../../store/session";
 import { useAtomCallback } from "jotai/utils";
-import { FeatureType, MapKind } from "../../graphql/generated/graphql";
+import { MapKind } from "../../graphql/generated/graphql";
+import { FeatureType } from "../../types-common/common-types";
 
 const DRAWING_COLOR = '#eebbaa'
 
@@ -51,26 +52,26 @@ export default function useTopographyStyle(props: Props) {
                     featureType = props.defaultFeatureType;
                 }
                 if (featureType === undefined) {
-                    featureType = mapKind === MapKind.Virtual ? FeatureType.Earth : FeatureType.Area;
+                    featureType = mapKind === MapKind.Virtual ? FeatureType.EARTH : FeatureType.AREA;
                     console.warn('FeatureType undefined', feature.getId(), feature.getGeometry()?.getType(), 'set', featureType);
                 }
                 let defaultColor;
                 let zIndex;
                 let alpha = 1;
                 switch(featureType) {
-                    case FeatureType.Earth:
+                    case FeatureType.EARTH:
                         defaultColor = MapStyles.Earth.color;
                         zIndex = MapStyles.Earth.zIndex;
                         break;
-                    case FeatureType.Forest:
+                    case FeatureType.FOREST:
                         defaultColor = MapStyles.Forest.color;
                         zIndex = MapStyles.Forest.zIndex;
                         break;
-                    case FeatureType.Road:
+                    case FeatureType.ROAD:
                         defaultColor = MapStyles.Road.color;
                         zIndex = MapStyles.Road.zIndex;
                         break;
-                    case FeatureType.Area:
+                    case FeatureType.AREA:
                         defaultColor = MapStyles.Area.color;
                         zIndex = MapStyles.Area.zIndex;
                         alpha = 0.3;

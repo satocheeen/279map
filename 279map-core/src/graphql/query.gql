@@ -36,16 +36,6 @@ query getEvent(
     }    
 }
 
-fragment geocoderIdInfo on GeocoderIdInfo {
-    ... on GeocoderIdMapbox {
-        id
-    }
-    ... on GeocoderIdOsm {
-        osm_type
-        osm_id
-    }
-}
-
 query getItems (
     $wkt: String!
     $zoom: Float!
@@ -200,16 +190,14 @@ query geocoder (
     $searchTarget: [GeocoderTarget!]!
 ) {
     geocoder(address: $address, searchTarget: $searchTarget) {
-        idInfo {
-            ...geocoderIdInfo
-        }
+        idInfo
         name
         geoJson
     }
 }
 
 query getGeocoderFeature (
-    $id: GeocoderIdInput!
+    $id: GeocoderIdInfo!
 ) {
     getGeocoderFeature(id: $id)
 }

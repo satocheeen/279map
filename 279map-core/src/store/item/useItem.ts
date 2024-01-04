@@ -20,7 +20,7 @@ export function useItem(props: Props) {
         const itemMap = allItems[props.id.dataSourceId] ?? {};
         return itemMap[props.id.id];
 
-    }, [ allItems ])
+    }, [ allItems, props.id ])
 
     return {
         item,

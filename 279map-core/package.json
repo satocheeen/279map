@@ -11,7 +11,6 @@
   "scripts": {
     "start": "react-scripts start",
     "rollup": "rollup -c --context window",
-    "deploy": "rimraf ./src/types-common && ncp ../279map-backend-main/src/types-common ./src/types-common",
     "codegen": "rimraf ./src/types-common && ncp ../279map-backend-main/src/types-common ./src/types-common && graphql-codegen --config codegen.ts"
   },
   "devDependencies": {

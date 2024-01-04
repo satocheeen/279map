@@ -6,7 +6,7 @@ import { convertLineToPolygon, extractGeoProperty } from '../../../../util/MapUt
 import PromptMessageBox from '../PromptMessageBox';
 import { Geometry } from 'ol/geom';
 import { useMap } from '../../useMap';
-import { FeatureType } from '../../../../graphql/generated/graphql';
+import { FeatureType } from '../../../../types-common/common-types';
 
 type Props = {
     targetRoad: Feature;
@@ -22,7 +22,7 @@ export default function RoadWidthSelecter(props: Props) {
     const { map } = useMap();
     const [width, setWidth] = useState(props.width === undefined ? RoadWidth.M : props.width);
     const styleHook = useTopographyStyle({
-        defaultFeatureType: FeatureType.Road,
+        defaultFeatureType: FeatureType.ROAD,
     });
     const widthSimulateSource = useRef<VectorSource|null>(null);
 
@@ -33,7 +33,7 @@ export default function RoadWidthSelecter(props: Props) {
 
         // 初期値幅の設定
         const properties = extractGeoProperty(props.targetRoad.getProperties());
-        if (properties.__typename === 'RoadProperties' && properties.width) {
+        if (properties.featureType === FeatureType.ROAD && properties.width) {
             const rw = RoadWidth.getValueOfKey(properties.width);
             setWidth(rw);
         }
@@ -49,7 +49,7 @@ export default function RoadWidthSelecter(props: Props) {
         // 新たな道幅で描画
         const tempFeature = props.targetRoad.clone();
         console.log('targetRoad', props.targetRoad.getProperties());
-        tempFeature.setProperties({'featureType': FeatureType.Road});
+        tempFeature.setProperties({'featureType': FeatureType.ROAD});
         tempFeature.setProperties({'width': width.key});
         console.log('tempFeature', tempFeature);
         convertLineToPolygon(tempFeature, width.distance);

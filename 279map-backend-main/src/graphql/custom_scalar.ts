@@ -1,28 +1,6 @@
 import { GraphQLScalarType } from "graphql";
 import { Geometry } from 'geojson';
-import { DataId } from "./__generated__/types";
-import { GeoProperties } from "../types-common/common-types";
-
-export const DataIdScalarType = new GraphQLScalarType({
-    name: 'DataId',
-    description: 'id of items or contents',
-    serialize(value: any) {
-        return value;
-    },
-    parseValue(value: any) {
-        if (typeof value === 'string') {
-            return JSON.parse(value) as DataId;
-        } else if (typeof value === 'object') {
-            if ('dataSourceId' in value && 'id' in value) {
-                return value;
-            }
-        }
-        throw 'parse error';
-    },
-    parseLiteral(value) {
-        return value;
-    }
-})
+import { GeoProperties, GeocoderIdInfo, IconKey } from "../types-common/common-types";
 
 export const GeometryScalarType = new GraphQLScalarType({
     name: 'Geometry',
@@ -45,7 +23,7 @@ export const GeometryScalarType = new GraphQLScalarType({
 
 export const GeoPropertiesScalarType = new GraphQLScalarType({
     name: 'Geometry',
-    description: 'GeoProperti',
+    description: 'GeoProperties',
     serialize(value: any) {
         return value;
     },
@@ -54,6 +32,44 @@ export const GeoPropertiesScalarType = new GraphQLScalarType({
             return JSON.parse(value) as GeoProperties;
         } else if (typeof value === 'object') {
             return value as GeoProperties;
+        }
+        throw 'parse error';
+    },
+    // parseLiteral(value) {
+    //     return value;
+    // }
+})
+
+export const GeocoderIdInfoScalarType = new GraphQLScalarType({
+    name: 'GeocoderIdInfo',
+    description: 'OSM等で管理されているFeatureを特定する情報',
+    serialize(value: any) {
+        return value;
+    },
+    parseValue(value: any) {
+        if (typeof value === 'string') {
+            return JSON.parse(value) as GeocoderIdInfo;
+        } else if (typeof value === 'object') {
+            return value as GeocoderIdInfo;
+        }
+        throw 'parse error';
+    },
+    // parseLiteral(value) {
+    //     return value;
+    // }
+})
+
+export const IconKeyScalarType = new GraphQLScalarType({
+    name: 'IconKey',
+    description: 'アイコンを特定する情報',
+    serialize(value: any) {
+        return value;
+    },
+    parseValue(value: any) {
+        if (typeof value === 'string') {
+            return JSON.parse(value) as IconKey;
+        } else if (typeof value === 'object') {
+            return value as IconKey;
         }
         throw 'parse error';
     },

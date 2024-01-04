@@ -1,6 +1,6 @@
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
 import { Geometry } from 'geojson'
-import { GeoProperties } from '../../types-common/common-types'
+import { GeoProperties, GeocoderIdInfo, IconKey } from '../../types-common/common-types'
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -18,7 +18,9 @@ export type Scalars = {
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
   GeoProperties: { input: GeoProperties; output: GeoProperties; }
+  GeocoderIdInfo: { input: GeocoderIdInfo; output: GeocoderIdInfo; }
   Geometry: { input: Geometry; output: Geometry; }
+  IconKey: { input: IconKey; output: IconKey; }
   JSON: { input: any; output: any; }
 };
 
@@ -161,42 +163,9 @@ export type EventDefine = {
   dates: Array<Scalars['String']['output']>;
 };
 
-/** 地物種別 */
-export enum FeatureType {
-  Area = 'AREA',
-  Earth = 'EARTH',
-  Forest = 'FOREST',
-  Road = 'ROAD',
-  Structure = 'STRUCTURE',
-  Track = 'TRACK'
-}
-
-/** OSM等で管理されているFeatureを特定する情報 */
-export type GeocoderIdInfo = GeocoderIdMapbox | GeocoderIdOsm;
-
-export type GeocoderIdInput = {
-  /** Mapboxの場合 */
-  id?: InputMaybe<Scalars['String']['input']>;
-  map: OsmKind;
-  osm_id?: InputMaybe<Scalars['Int']['input']>;
-  /** OSMの場合 */
-  osm_type?: InputMaybe<Scalars['String']['input']>;
-};
-
-/** Mapboxで管理されているFeatureを特定する情報 */
-export type GeocoderIdMapbox = {
-  id: Scalars['String']['output'];
-};
-
-/** OSMで管理されているFeatureを特定する情報 */
-export type GeocoderIdOsm = {
-  osm_id: Scalars['Int']['output'];
-  osm_type: Scalars['String']['output'];
-};
-
 export type GeocoderItem = {
   geoJson: Scalars['Geometry']['output'];
-  idInfo: GeocoderIdInfo;
+  idInfo: Scalars['GeocoderIdInfo']['output'];
   name: Scalars['String']['output'];
 };
 
@@ -220,16 +189,6 @@ export type IconDefine = {
   imagePath: Scalars['String']['output'];
   useMaps: Array<MapKind>;
 };
-
-export type IconKey = {
-  id: Scalars['String']['output'];
-  type: IconType;
-};
-
-export enum IconType {
-  Original = 'original',
-  System = 'system'
-}
 
 export type ItemConfig = {
   deletable: Scalars['Boolean']['output'];
@@ -422,11 +381,6 @@ export type NoneConfig = {
   dummy?: Maybe<Scalars['Boolean']['output']>;
 };
 
-export enum OsmKind {
-  Mapbox = 'mapbox',
-  Osm = 'osm'
-}
-
 export type ParentInput = {
   id: DataIdInput;
   type: ParentOfContent;
@@ -498,7 +452,7 @@ export type QueryGetEventArgs = {
 
 
 export type QueryGetGeocoderFeatureArgs = {
-  id: GeocoderIdInput;
+  id: Scalars['GeocoderIdInfo']['input'];
 };
 
 
@@ -544,7 +498,7 @@ export type QuerySearchArgs = {
 };
 
 export type RealPointContentConfig = {
-  defaultIcon?: Maybe<IconKey>;
+  defaultIcon?: Maybe<Scalars['IconKey']['output']>;
   deletable: Scalars['Boolean']['output'];
   editable: Scalars['Boolean']['output'];
   kind: DatasourceKindType;
@@ -633,7 +587,7 @@ export type SubscriptionUserListUpdateArgs = {
 
 export type Target = {
   /** 対象アイテムのID */
-  id: DataIdInput;
+  id: DataId;
   /** アイテムの地図範囲。update時は更新後範囲 */
   wkt: Scalars['String']['output'];
 };
@@ -750,7 +704,6 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping of union types */
 export type ResolversUnionTypes<RefType extends Record<string, unknown>> = {
   DatasourceConfig: ( ContentConfig ) | ( ItemConfig ) | ( RealPointContentConfig ) | ( TrackConfig );
-  GeocoderIdInfo: ( GeocoderIdMapbox ) | ( GeocoderIdOsm );
   ServerConfig: ( Auth0Config ) | ( NoneConfig );
   VisibleDataSource: ( VisibleDataSourceDatasource ) | ( VisibleDataSourceGroup );
 };
@@ -778,23 +731,17 @@ export type ResolversTypes = {
   DatasourceKindType: DatasourceKindType;
   ErrorType: ErrorType;
   EventDefine: ResolverTypeWrapper<EventDefine>;
-  FeatureType: FeatureType;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   GeoProperties: ResolverTypeWrapper<Scalars['GeoProperties']['output']>;
-  GeocoderIdInfo: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['GeocoderIdInfo']>;
-  GeocoderIdInput: GeocoderIdInput;
-  GeocoderIdMapbox: ResolverTypeWrapper<GeocoderIdMapbox>;
-  GeocoderIdOsm: ResolverTypeWrapper<GeocoderIdOsm>;
-  GeocoderItem: ResolverTypeWrapper<Omit<GeocoderItem, 'idInfo'> & { idInfo: ResolversTypes['GeocoderIdInfo'] }>;
+  GeocoderIdInfo: ResolverTypeWrapper<Scalars['GeocoderIdInfo']['output']>;
+  GeocoderItem: ResolverTypeWrapper<GeocoderItem>;
   GeocoderTarget: GeocoderTarget;
   Geometry: ResolverTypeWrapper<Scalars['Geometry']['output']>;
   GetUnpointContentsResult: ResolverTypeWrapper<GetUnpointContentsResult>;
   Hoge: ResolverTypeWrapper<Hoge>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   IconDefine: ResolverTypeWrapper<IconDefine>;
-  IconKey: ResolverTypeWrapper<IconKey>;
-  IconType: IconType;
-  Int: ResolverTypeWrapper<Scalars['Int']['output']>;
+  IconKey: ResolverTypeWrapper<Scalars['IconKey']['output']>;
   ItemConfig: ResolverTypeWrapper<ItemConfig>;
   ItemDefine: ResolverTypeWrapper<ItemDefine>;
   ItemLabelMode: ItemLabelMode;
@@ -809,7 +756,6 @@ export type ResolversTypes = {
   MediaType: MediaType;
   Mutation: ResolverTypeWrapper<{}>;
   NoneConfig: ResolverTypeWrapper<NoneConfig>;
-  OsmKind: OsmKind;
   ParentInput: ParentInput;
   ParentOfContent: ParentOfContent;
   PopupMode: PopupMode;
@@ -853,18 +799,14 @@ export type ResolversParentTypes = {
   EventDefine: EventDefine;
   Float: Scalars['Float']['output'];
   GeoProperties: Scalars['GeoProperties']['output'];
-  GeocoderIdInfo: ResolversUnionTypes<ResolversParentTypes>['GeocoderIdInfo'];
-  GeocoderIdInput: GeocoderIdInput;
-  GeocoderIdMapbox: GeocoderIdMapbox;
-  GeocoderIdOsm: GeocoderIdOsm;
-  GeocoderItem: Omit<GeocoderItem, 'idInfo'> & { idInfo: ResolversParentTypes['GeocoderIdInfo'] };
+  GeocoderIdInfo: Scalars['GeocoderIdInfo']['output'];
+  GeocoderItem: GeocoderItem;
   Geometry: Scalars['Geometry']['output'];
   GetUnpointContentsResult: GetUnpointContentsResult;
   Hoge: Hoge;
   ID: Scalars['ID']['output'];
   IconDefine: IconDefine;
-  IconKey: IconKey;
-  Int: Scalars['Int']['output'];
+  IconKey: Scalars['IconKey']['output'];
   ItemConfig: ItemConfig;
   ItemDefine: ItemDefine;
   JSON: Scalars['JSON']['output'];
@@ -993,20 +935,9 @@ export interface GeoPropertiesScalarConfig extends GraphQLScalarTypeConfig<Resol
   name: 'GeoProperties';
 }
 
-export type GeocoderIdInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['GeocoderIdInfo'] = ResolversParentTypes['GeocoderIdInfo']> = {
-  __resolveType: TypeResolveFn<'GeocoderIdMapbox' | 'GeocoderIdOsm', ParentType, ContextType>;
-};
-
-export type GeocoderIdMapboxResolvers<ContextType = any, ParentType extends ResolversParentTypes['GeocoderIdMapbox'] = ResolversParentTypes['GeocoderIdMapbox']> = {
-  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type GeocoderIdOsmResolvers<ContextType = any, ParentType extends ResolversParentTypes['GeocoderIdOsm'] = ResolversParentTypes['GeocoderIdOsm']> = {
-  osm_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  osm_type?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
+export interface GeocoderIdInfoScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['GeocoderIdInfo'], any> {
+  name: 'GeocoderIdInfo';
+}
 
 export type GeocoderItemResolvers<ContextType = any, ParentType extends ResolversParentTypes['GeocoderItem'] = ResolversParentTypes['GeocoderItem']> = {
   geoJson?: Resolver<ResolversTypes['Geometry'], ParentType, ContextType>;
@@ -1038,11 +969,9 @@ export type IconDefineResolvers<ContextType = any, ParentType extends ResolversP
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type IconKeyResolvers<ContextType = any, ParentType extends ResolversParentTypes['IconKey'] = ResolversParentTypes['IconKey']> = {
-  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  type?: Resolver<ResolversTypes['IconType'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
+export interface IconKeyScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['IconKey'], any> {
+  name: 'IconKey';
+}
 
 export type ItemConfigResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemConfig'] = ResolversParentTypes['ItemConfig']> = {
   deletable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -1196,7 +1125,7 @@ export type SubscriptionResolvers<ContextType = any, ParentType extends Resolver
 };
 
 export type TargetResolvers<ContextType = any, ParentType extends ResolversParentTypes['Target'] = ResolversParentTypes['Target']> = {
-  id?: Resolver<ResolversTypes['DataIdInput'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   wkt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -1252,15 +1181,13 @@ export type Resolvers<ContextType = any> = {
   DatasourceInfo?: DatasourceInfoResolvers<ContextType>;
   EventDefine?: EventDefineResolvers<ContextType>;
   GeoProperties?: GraphQLScalarType;
-  GeocoderIdInfo?: GeocoderIdInfoResolvers<ContextType>;
-  GeocoderIdMapbox?: GeocoderIdMapboxResolvers<ContextType>;
-  GeocoderIdOsm?: GeocoderIdOsmResolvers<ContextType>;
+  GeocoderIdInfo?: GraphQLScalarType;
   GeocoderItem?: GeocoderItemResolvers<ContextType>;
   Geometry?: GraphQLScalarType;
   GetUnpointContentsResult?: GetUnpointContentsResultResolvers<ContextType>;
   Hoge?: HogeResolvers<ContextType>;
   IconDefine?: IconDefineResolvers<ContextType>;
-  IconKey?: IconKeyResolvers<ContextType>;
+  IconKey?: GraphQLScalarType;
   ItemConfig?: ItemConfigResolvers<ContextType>;
   ItemDefine?: ItemDefineResolvers<ContextType>;
   JSON?: GraphQLScalarType;
