@@ -1,6 +1,19 @@
-export { Auth, MapKind } from "./graphql/generated/graphql";
+/**
+ * TsunaguMapの呼び出し元で使用されうるものをexport
+ */
+export type {
+    IconDefine, CategoryDefine, 
+    Condition, ContentsDefine, DatasourceGroup,     
+    EventDefine, GetUnpointContentsResult,
+    MapDefine, MutationLinkContentArgs, MutationRegistContentArgs, 
+    MutationUpdateContentArgs, SnsPreviewResult
+} from "./graphql/generated/graphql";
+export {
+    Auth, MapKind, DatasourceKindType,
+} from "./graphql/generated/graphql";
+
 
 export * from './components';
 export * from './types/types';
 export * from './api';
-
+export * from './types-common'

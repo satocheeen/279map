@@ -297,7 +297,6 @@ export class OlMapWrapper {
             if (!feature) {
                 continue;
             }
-            console.log('addFeature', feature);
             const geom = feature.getGeometry();
             if (!geom) {
                 continue;

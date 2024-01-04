@@ -1,14 +1,17 @@
 import React, { useState, useCallback, useMemo, useRef, useContext } from 'react';
-import { ServerInfo, TsunaguMapHandler, onDatasourceChangedParam } from '../entry';
+import type {
+    ServerInfo, TsunaguMapHandler, onDatasourceChangedParam, 
+    CategoryDefine, Condition, DatasourceGroup, 
+    DataId, OnConnectParam, OnMapLoadParam, 
+    TsunaguMapProps
+} from '../entry';
+import { Auth, MapKind, FeatureType, DatasourceKindType, getAccessableMapList } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
-import { OnConnectParam, OnMapLoadParam, TsunaguMapProps, getAccessableMapList } from '../entry';
 import styles from './TestMap.module.scss';
 import FilterCondition from './FilterCondition';
 import { mapId, myMapServer } from './const';
 import AuthPanel from './AuthPanel';
 import { AuthContext } from './DriverRoot';
-import { DataId, Auth, CategoryDefine, Condition, DatasourceGroup, DatasourceKindType, MapKind } from '../graphql/generated/graphql';
-import { FeatureType } from '../types-common/common-types';
 
 const props = {
     mapId,
