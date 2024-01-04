@@ -3,6 +3,12 @@
  * backend-main配下のものが原本。
  * 他プロジェクトへは、npm run codegenスクリプトにてコピーされる。
  */
+
+export type DataId = {
+    id: string;
+    dataSourceId: string;
+}
+
 export type IconKey = {
     type: 'system' | 'original';
     id: string;

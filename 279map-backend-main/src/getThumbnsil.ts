@@ -1,5 +1,5 @@
 import { ConnectionPool } from ".";
-import { DataId } from "./graphql/__generated__/types";
+import { DataId } from "./types-common/common-types";
 
 /**
  * 指定のページのサムネイル画像Base64を返す

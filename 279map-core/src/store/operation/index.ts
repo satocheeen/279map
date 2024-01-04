@@ -2,7 +2,7 @@ import { atom } from "jotai";
 import { MapMode } from "../../types/types";
 import { Extent } from "ol/extent";
 import { Coordinate } from "ol/coordinate";
-import { DataId } from "../../graphql/generated/graphql";
+import { DataId } from "../../types-common/common-types";
 
 // 詳細ダイアログ表示対象
 type Target = {

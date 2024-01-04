@@ -3,7 +3,8 @@ import { getAncestorItemId } from "./util/utility";
 import { PoolConnection } from 'mysql2/promise';
 import { ContentsInfo, ContentsTable, DataSourceTable, ItemContentLink } from '../279map-backend-common/src/types/schema';
 import { CurrentMap } from '../279map-backend-common/src';
-import { Auth, ContentsDefine, DataId, DatasourceConfig, MapKind } from './graphql/__generated__/types';
+import { Auth, ContentsDefine, DatasourceConfig, MapKind } from './graphql/__generated__/types';
+import { DataId } from './types-common/common-types';
 
 type GetContentsParam = ({
     itemId: DataId;

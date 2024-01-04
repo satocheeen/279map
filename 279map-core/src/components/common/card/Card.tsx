@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import styles from './Card.module.scss';
 import MyThumbnail from '../image/MyThumbnail';
-import { DataId } from '../../../graphql/generated/graphql';
+import { DataId } from '../../../types-common/common-types';
 
 type Props = {
     title: string;

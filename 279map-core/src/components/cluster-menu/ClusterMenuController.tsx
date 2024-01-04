@@ -10,8 +10,7 @@ import { mapModeAtom, mapViewAtom, showingDetailItemIdAtom } from '../../store/o
 import { filteredItemIdListAtom } from '../../store/filter';
 import { useItems } from '../../store/item/useItems';
 import { useAtom } from 'jotai';
-import { DataId } from '../../graphql/generated/graphql';
-import { FeatureType } from '../../types-common/common-types';
+import { DataId, FeatureType } from '../../types-common/common-types';
 
 /**
  * 地図上のアイテムがクリックされた際に、

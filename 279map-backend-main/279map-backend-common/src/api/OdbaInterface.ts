@@ -1,5 +1,5 @@
-import { DataId } from "../graphql/__generated__/types";
 import { CurrentMap } from "../types";
+import { DataId } from "../types-common/common-types";
 import { OdbaAPIFunc } from "./api-initializer";
 import { OdbaGetLinkableContentsResult, OdbaGetUnpointDataParam, OdbaGetUnpointDataResult, OdbaLinkContentDatasourceToMapParam, OdbaLinkContentToItemParam, OdbaRegistContentParam, OdbaRegistItemParam, OdbaRemoveContentParam, OdbaRemoveItemParam, OdbaUnlinkContentDatasourceFromMapParam, OdbaUpdateContentParam, OdbaUpdateItemParam } from "./dba-api-interface";
 

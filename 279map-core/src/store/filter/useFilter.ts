@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { isEqualId } from "../../util/dataUtility";
 import { filteredItemsAtom } from ".";
 import { useAtomCallback } from "jotai/utils";
-import { DataId } from "../../graphql/generated/graphql";
+import { DataId } from "../../types-common/common-types";
 
 type FilterStatus = 'Normal' | 'UnFiltered' | 'Filtered';
 

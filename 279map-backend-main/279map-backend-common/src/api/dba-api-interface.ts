@@ -2,9 +2,8 @@
  * Odba container's API interface.
  */
 
-import { DataId } from "../graphql/__generated__/types";
 import { APIDefine, CurrentMap } from "../types";
-import { GeoProperties } from "../types-common/common-types";
+import { DataId, GeoProperties } from "../types-common/common-types";
 
 type CommonParam = {
     currentMap: CurrentMap;

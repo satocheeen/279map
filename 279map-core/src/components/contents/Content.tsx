@@ -25,8 +25,9 @@ import { useAtomCallback } from "jotai/utils";
 import { dialogTargetAtom } from "../../store/operation";
 import { updateContentAtom } from "../../store/content";
 import { clientAtom } from "jotai-urql";
-import { DataId, Auth, ContentsDefine, GetContentDocument, GetImageUrlDocument, GetSnsPreviewDocument, MapKind, MutationUpdateContentArgs, ParentOfContent, RemoveContentDocument, UnlinkContentDocument } from "../../graphql/generated/graphql";
+import { Auth, ContentsDefine, GetContentDocument, GetImageUrlDocument, GetSnsPreviewDocument, MapKind, MutationUpdateContentArgs, ParentOfContent, RemoveContentDocument, UnlinkContentDocument } from "../../graphql/generated/graphql";
 import { ContentAttr } from "./types";
+import { DataId } from "../../types-common/common-types";
 
 type Props = {
     itemId: DataId;

@@ -6,7 +6,8 @@ import { buffer, circle, featureCollection, lineString, multiLineString, multiPo
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 import crypto from 'crypto';
 import * as geojson from 'geojson';
-import { DataId, MapKind } from '../graphql/__generated__/types';
+import { MapKind } from '../graphql/__generated__/types';
+import { DataId } from '../types-common/common-types';
 
 type Extent = number[];
 

@@ -17,6 +17,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  DataId: { input: any; output: any; }
   GeoProperties: { input: GeoProperties; output: GeoProperties; }
   GeocoderIdInfo: { input: GeocoderIdInfo; output: GeocoderIdInfo; }
   Geometry: { input: Geometry; output: Geometry; }
@@ -88,32 +89,22 @@ export type ContentsDatasourceInput = {
 };
 
 export type ContentsDefine = {
-  anotherMapItemId?: Maybe<DataId>;
+  anotherMapItemId?: Maybe<Scalars['DataId']['output']>;
   category?: Maybe<Array<Scalars['String']['output']>>;
   children?: Maybe<Array<ContentsDefine>>;
   date?: Maybe<Scalars['String']['output']>;
-  id: DataId;
+  id: Scalars['DataId']['output'];
   image: Scalars['Boolean']['output'];
   isDeletable: Scalars['Boolean']['output'];
   isEditable: Scalars['Boolean']['output'];
   isSnsContent: Scalars['Boolean']['output'];
-  itemId: DataId;
+  itemId: Scalars['DataId']['output'];
   overview?: Maybe<Scalars['String']['output']>;
-  parentId?: Maybe<DataId>;
+  parentId?: Maybe<Scalars['DataId']['output']>;
   title: Scalars['String']['output'];
   url?: Maybe<Scalars['String']['output']>;
   usingAnotherMap: Scalars['Boolean']['output'];
   videoUrl?: Maybe<Scalars['String']['output']>;
-};
-
-export type DataId = {
-  dataSourceId: Scalars['String']['output'];
-  id: Scalars['String']['output'];
-};
-
-export type DataIdInput = {
-  dataSourceId: Scalars['String']['input'];
-  id: Scalars['String']['input'];
 };
 
 export type DatasourceConfig = ContentConfig | ItemConfig | RealPointContentConfig | TrackConfig;
@@ -201,8 +192,8 @@ export type ItemDefine = {
   geoJson: Scalars['Geometry']['output'];
   geoProperties: Scalars['GeoProperties']['output'];
   hasContents: Scalars['Boolean']['output'];
-  hasImageContentId: Array<DataId>;
-  id: DataId;
+  hasImageContentId: Array<Scalars['DataId']['output']>;
+  id: Scalars['DataId']['output'];
   lastEditedTime: Scalars['String']['output'];
   name: Scalars['String']['output'];
   temporary?: Maybe<ItemTemporaryState>;
@@ -298,7 +289,7 @@ export type MutationConnectArgs = {
 
 
 export type MutationLinkContentArgs = {
-  id: DataIdInput;
+  id: Scalars['DataId']['input'];
   parent: ParentInput;
 };
 
@@ -330,12 +321,12 @@ export type MutationRegistItemArgs = {
 
 
 export type MutationRemoveContentArgs = {
-  id: DataIdInput;
+  id: Scalars['DataId']['input'];
 };
 
 
 export type MutationRemoveItemArgs = {
-  id: DataIdInput;
+  id: Scalars['DataId']['input'];
 };
 
 
@@ -351,7 +342,7 @@ export type MutationSwitchMapKindArgs = {
 
 
 export type MutationUnlinkContentArgs = {
-  id: DataIdInput;
+  id: Scalars['DataId']['input'];
   parent: ParentInput;
 };
 
@@ -364,7 +355,7 @@ export type MutationUnlinkContentsDatasourceArgs = {
 export type MutationUpdateContentArgs = {
   categories?: InputMaybe<Array<Scalars['String']['input']>>;
   date?: InputMaybe<Scalars['String']['input']>;
-  id: DataIdInput;
+  id: Scalars['DataId']['input'];
   imageUrl?: InputMaybe<Scalars['String']['input']>;
   overview?: InputMaybe<Scalars['String']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
@@ -382,7 +373,7 @@ export type NoneConfig = {
 };
 
 export type ParentInput = {
-  id: DataIdInput;
+  id: Scalars['DataId']['input'];
   type: ParentOfContent;
 };
 
@@ -432,17 +423,17 @@ export type QueryGetCategoryArgs = {
 
 
 export type QueryGetContentArgs = {
-  id: DataIdInput;
+  id: Scalars['DataId']['input'];
 };
 
 
 export type QueryGetContentsArgs = {
-  ids: Array<DataIdInput>;
+  ids: Array<Scalars['DataId']['input']>;
 };
 
 
 export type QueryGetContentsInItemArgs = {
-  itemId: DataIdInput;
+  itemId: Scalars['DataId']['input'];
 };
 
 
@@ -457,7 +448,7 @@ export type QueryGetGeocoderFeatureArgs = {
 
 
 export type QueryGetImageUrlArgs = {
-  contentId: DataIdInput;
+  contentId: Scalars['DataId']['input'];
 };
 
 
@@ -471,7 +462,7 @@ export type QueryGetItemsArgs = {
 
 
 export type QueryGetItemsByIdArgs = {
-  targets: Array<DataIdInput>;
+  targets: Array<Scalars['DataId']['input']>;
 };
 
 
@@ -481,7 +472,7 @@ export type QueryGetSnsPreviewArgs = {
 
 
 export type QueryGetThumbArgs = {
-  contentId: DataIdInput;
+  contentId: Scalars['DataId']['input'];
   size?: InputMaybe<ThumbSize>;
 };
 
@@ -507,8 +498,8 @@ export type RealPointContentConfig = {
 };
 
 export type SearchHitItem = {
-  hitContents: Array<DataId>;
-  id: DataId;
+  hitContents: Array<Scalars['DataId']['output']>;
+  id: Scalars['DataId']['output'];
 };
 
 export type ServerConfig = Auth0Config | NoneConfig;
@@ -532,7 +523,7 @@ export type Subscription = {
   /** 指定のアイテム配下のコンテンツに変更（登録・更新・削除）があった場合 */
   childContentsUpdate?: Maybe<Scalars['Boolean']['output']>;
   /** 地図上のアイテムが削除された場合に通知する */
-  itemDelete: Array<DataId>;
+  itemDelete: Array<Scalars['DataId']['output']>;
   /** 地図上にアイテムが追加された場合に通知する */
   itemInsert: Array<Target>;
   /** 地図上のアイテムが更新された場合に通知する */
@@ -548,7 +539,7 @@ export type Subscription = {
 
 
 export type SubscriptionChildContentsUpdateArgs = {
-  itemId: DataIdInput;
+  itemId: Scalars['DataId']['input'];
 };
 
 
@@ -587,7 +578,7 @@ export type SubscriptionUserListUpdateArgs = {
 
 export type Target = {
   /** 対象アイテムのID */
-  id: DataId;
+  id: Scalars['DataId']['output'];
   /** アイテムの地図範囲。update時は更新後範囲 */
   wkt: Scalars['String']['output'];
 };
@@ -605,7 +596,7 @@ export type TrackConfig = {
 };
 
 export type UnpointContent = {
-  id: DataId;
+  id: Scalars['DataId']['output'];
   overview?: Maybe<Scalars['String']['output']>;
   thumb?: Maybe<Scalars['String']['output']>;
   title: Scalars['String']['output'];
@@ -614,7 +605,7 @@ export type UnpointContent = {
 export type UpdateItemInput = {
   geoProperties?: InputMaybe<Scalars['GeoProperties']['input']>;
   geometry?: InputMaybe<Scalars['Geometry']['input']>;
-  id: DataIdInput;
+  id: Scalars['DataId']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -723,8 +714,7 @@ export type ResolversTypes = {
   ContentsDatasource: ResolverTypeWrapper<ContentsDatasource>;
   ContentsDatasourceInput: ContentsDatasourceInput;
   ContentsDefine: ResolverTypeWrapper<ContentsDefine>;
-  DataId: ResolverTypeWrapper<DataId>;
-  DataIdInput: DataIdInput;
+  DataId: ResolverTypeWrapper<Scalars['DataId']['output']>;
   DatasourceConfig: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['DatasourceConfig']>;
   DatasourceGroup: ResolverTypeWrapper<DatasourceGroup>;
   DatasourceInfo: ResolverTypeWrapper<Omit<DatasourceInfo, 'config'> & { config: ResolversTypes['DatasourceConfig'] }>;
@@ -791,8 +781,7 @@ export type ResolversParentTypes = {
   ContentsDatasource: ContentsDatasource;
   ContentsDatasourceInput: ContentsDatasourceInput;
   ContentsDefine: ContentsDefine;
-  DataId: DataId;
-  DataIdInput: DataIdInput;
+  DataId: Scalars['DataId']['output'];
   DatasourceConfig: ResolversUnionTypes<ResolversParentTypes>['DatasourceConfig'];
   DatasourceGroup: DatasourceGroup;
   DatasourceInfo: Omit<DatasourceInfo, 'config'> & { config: ResolversParentTypes['DatasourceConfig'] };
@@ -899,11 +888,9 @@ export type ContentsDefineResolvers<ContextType = any, ParentType extends Resolv
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type DataIdResolvers<ContextType = any, ParentType extends ResolversParentTypes['DataId'] = ResolversParentTypes['DataId']> = {
-  dataSourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
+export interface DataIdScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DataId'], any> {
+  name: 'DataId';
+}
 
 export type DatasourceConfigResolvers<ContextType = any, ParentType extends ResolversParentTypes['DatasourceConfig'] = ResolversParentTypes['DatasourceConfig']> = {
   __resolveType: TypeResolveFn<'ContentConfig' | 'ItemConfig' | 'RealPointContentConfig' | 'TrackConfig', ParentType, ContextType>;
@@ -1175,7 +1162,7 @@ export type Resolvers<ContextType = any> = {
   ContentConfig?: ContentConfigResolvers<ContextType>;
   ContentsDatasource?: ContentsDatasourceResolvers<ContextType>;
   ContentsDefine?: ContentsDefineResolvers<ContextType>;
-  DataId?: DataIdResolvers<ContextType>;
+  DataId?: GraphQLScalarType;
   DatasourceConfig?: DatasourceConfigResolvers<ContextType>;
   DatasourceGroup?: DatasourceGroupResolvers<ContextType>;
   DatasourceInfo?: DatasourceInfoResolvers<ContextType>;

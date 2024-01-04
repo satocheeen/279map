@@ -149,17 +149,17 @@ type Query {
         excludeItemIds: [String!]
     ): [ItemDefine!]!
 
-    getItemsById(targets: [DataIdInput!]!): [ItemDefine!]!
+    getItemsById(targets: [DataId!]!): [ItemDefine!]!
 
     getCategory(datasourceIds: [String!]): [CategoryDefine!]!
     getEvent(datasourceIds: [String!]): [EventDefine!]!
-    getContent(id: DataIdInput!): ContentsDefine!
-    getContents(ids: [DataIdInput!]!): [ContentsDefine!]!
-    getContentsInItem(itemId: DataIdInput!): [ContentsDefine!]!
+    getContent(id: DataId!): ContentsDefine!
+    getContents(ids: [DataId!]!): [ContentsDefine!]!
+    getContentsInItem(itemId: DataId!): [ContentsDefine!]!
     getUnpointContents(datasourceId: String!, nextToken: String): GetUnpointContentsResult!
 
-    getThumb(contentId: DataIdInput!, size: ThumbSize): String!
-    getImageUrl(contentId: DataIdInput!): String!
+    getThumb(contentId: DataId!, size: ThumbSize): String!
+    getImageUrl(contentId: DataId!): String!
 
     # datasourceIds => 指定されている場合、指定のデータソースのみ検索対象にする
     search(condition: Condition!, datasourceIds: [String!]): [SearchHitItem!]!

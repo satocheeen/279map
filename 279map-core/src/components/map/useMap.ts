@@ -15,10 +15,11 @@ import { geoJsonToTurfPolygon } from '../../util/MapUtility';
 import { bboxPolygon, intersect, union, booleanContains } from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 import { useItems } from '../../store/item/useItems';
-import { DataId, DatasourceKindType, GetItemsByIdDocument, GetItemsDocument } from '../../graphql/generated/graphql';
+import { DatasourceKindType, GetItemsByIdDocument, GetItemsDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import GeoJSON from 'geojson';
 import { Extent } from 'ol/extent';
+import { DataId } from '../../types-common/common-types';
 
 /**
  * 地図インスタンス管理マップ。

@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import Spinner from '../spinner/Spinner';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
-import { DataId, GetThumbDocument, ThumbSize } from '../../../graphql/generated/graphql';
+import { GetThumbDocument, ThumbSize } from '../../../graphql/generated/graphql';
+import { DataId } from '../../../types-common/common-types';
 
 type Props = {
     id: DataId; // サムネイル画像id（コンテンツID）

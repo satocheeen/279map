@@ -2,7 +2,8 @@ import { CurrentMap } from "../../279map-backend-common/src";
 import { ConnectionPool } from "..";
 import { PoolConnection } from "mysql2/promise";
 import { ItemContentLink } from "../../279map-backend-common/src/types/schema";
-import { DataId, QuerySearchArgs, SearchHitItem } from "../graphql/__generated__/types";
+import { QuerySearchArgs, SearchHitItem } from "../graphql/__generated__/types";
+import { DataId } from "../types-common/common-types";
 
 export async function search(currentMap: CurrentMap, param: QuerySearchArgs): Promise<SearchHitItem[]> {
     if (param.datasourceIds && param.datasourceIds.length === 0) {

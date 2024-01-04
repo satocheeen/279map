@@ -12,6 +12,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  DataId: { input: any; output: any; }
   GeoProperties: { input: any; output: any; }
   GeocoderIdInfo: { input: any; output: any; }
   Geometry: { input: any; output: any; }
@@ -35,16 +36,6 @@ export type ContentConfig = {
   kind: DatasourceKindType;
   /** 子コンテンツの追加が可能かどうか */
   linkableChildContents: Scalars['Boolean']['output'];
-};
-
-export type DataId = {
-  dataSourceId: Scalars['String']['output'];
-  id: Scalars['String']['output'];
-};
-
-export type DataIdInput = {
-  dataSourceId: Scalars['String']['input'];
-  id: Scalars['String']['input'];
 };
 
 export type DatasourceConfig = ContentConfig | ItemConfig | RealPointContentConfig | TrackConfig;

@@ -44,45 +44,33 @@ query getItems (
     $excludeItemIds: [String!]
 ) {
     getItems(wkt: $wkt, zoom: $zoom, datasourceId: $datasourceId, latestEditedTime: $latestEditedTime, excludeItemIds: $excludeItemIds) {
-        id {
-            id
-            dataSourceId
-        }
+        id
         name
         geoJson
         geoProperties
         lastEditedTime
         hasContents
-        hasImageContentId {
-            id
-            dataSourceId
-        }
+        hasImageContentId
         temporary
     }
 }
 
 query getItemsById (
-    $targets: [DataIdInput!]!
+    $targets: [DataId!]!
 ) {
     getItemsById(targets: $targets) {
-        id {
-            id
-            dataSourceId
-        }
+        id
         name
         geoJson
         geoProperties
         lastEditedTime
         hasContents
-        hasImageContentId {
-            id
-            dataSourceId
-        }
+        hasImageContentId
         temporary
     }
 }
 query getContent(
-    $id: DataIdInput!
+    $id: DataId!
 ) {
     getContent(id: $id) {
         ...content
@@ -90,7 +78,7 @@ query getContent(
 }
 
 query getContents(
-    $ids: [DataIdInput!]!
+    $ids: [DataId!]!
 ) {
     getContents(ids: $ids) {
         ...content
@@ -98,7 +86,7 @@ query getContents(
 }
 
 query getContentsInItem(
-    $itemId: DataIdInput!
+    $itemId: DataId!
 ) {
     getContentsInItem(itemId: $itemId) {
         ...content
@@ -109,14 +97,8 @@ query getContentsInItem(
 }
 
 fragment content on ContentsDefine {
-    id {
-        id
-        dataSourceId
-    }
-    itemId {
-        id
-        dataSourceId
-    }
+    id
+    itemId
     date
     url
     title
@@ -124,15 +106,9 @@ fragment content on ContentsDefine {
     category
     image
     videoUrl
-    parentId {
-        id
-        dataSourceId
-    }
+    parentId
     usingAnotherMap
-    anotherMapItemId {
-        id
-        dataSourceId
-    }
+    anotherMapItemId
     isSnsContent
     isEditable
     isDeletable
@@ -144,10 +120,7 @@ query getUnpointContents(
 ) {
     getUnpointContents(datasourceId: $datasourceId, nextToken: $nextToken) {
         contents {
-            id {
-                id
-                dataSourceId
-            }
+            id
             title
             thumb
             overview
@@ -157,14 +130,14 @@ query getUnpointContents(
 }
 
 query getThumb (
-    $contentId: DataIdInput!
+    $contentId: DataId!
     $size: ThumbSize
 ) {
     getThumb(contentId: $contentId, size: $size)
 }
 
 query getImageUrl (
-    $contentId: DataIdInput!
+    $contentId: DataId!
 ) {
     getImageUrl(contentId: $contentId)
 }
@@ -174,14 +147,8 @@ query search (
     $datasourceIds: [String!]
 ) {
     search(condition: $condition, datasourceIds: $datasourceIds) {
-        id {
-            id
-            dataSourceId
-        }
-        hitContents {
-            id
-            dataSourceId
-        }
+        id
+        hitContents
     }
 }
 

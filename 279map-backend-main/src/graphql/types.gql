@@ -15,15 +15,6 @@ enum MapKind {
     Virtual
 }
 
-type DataId {
-    id: String!
-    dataSourceId: String!
-}
-input DataIdInput {
-    id: String!
-    dataSourceId: String!
-}
-
 enum ErrorType {
     "指定の地図が存在しない場合"
     UndefinedMap
@@ -140,7 +131,7 @@ type TrackConfig {
 }
 union DatasourceConfig = ItemConfig | RealPointContentConfig | ContentConfig | TrackConfig
 
-# scalar DataId
+scalar DataId
 scalar JSON
 scalar Geometry
 scalar IconKey
