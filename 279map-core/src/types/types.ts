@@ -11,6 +11,7 @@ export type onDatasourceChangedParam = {
 }
 export type OnConnectParam = {
     authLv: Auth;
+    userName: string | undefined;
     mapDefine: MapDefine;
 };
 

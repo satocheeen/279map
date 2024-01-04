@@ -4,7 +4,7 @@ import { getAuthConfig } from '../api';
 import { Auth0Provider } from "@auth0/auth0-react";
 import TestMap from './TestMap';
 import { myMapServer } from './const';
-import { ServerConfig } from '../graphql/generated/graphql';
+import { ServerConfig } from '../entry';
 
 /**
  * for Development

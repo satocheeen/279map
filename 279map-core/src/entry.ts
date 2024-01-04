@@ -6,7 +6,8 @@ export type {
     Condition, ContentsDefine, DatasourceGroup,     
     EventDefine, GetUnpointContentsResult,
     MapDefine, MutationLinkContentArgs, MutationRegistContentArgs, 
-    MutationUpdateContentArgs, SnsPreviewResult
+    MutationUpdateContentArgs, SnsPreviewResult,
+    ServerConfig, MapPageOptions, DatasourceInfo,
 } from "./graphql/generated/graphql";
 export {
     Auth, MapKind, DatasourceKindType,
@@ -16,4 +17,4 @@ export {
 export * from './components';
 export * from './types/types';
 export * from './api';
-export * from './types-common'
+export * from './types-common/common-types';

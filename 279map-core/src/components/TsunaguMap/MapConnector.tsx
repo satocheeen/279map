@@ -71,6 +71,7 @@ export default function MapConnector(props: Props) {
             setConnectStatus(result.data.connect);
             const mapDefine = result.data.connect.mapDefine;
             const authLv = result.data.connect.connect.authLv;
+            const userName = result.data.connect.connect.userName ?? undefined;
             myStoreRef.current.set(mapDefineAtom, {
                 ...mapDefine,
                 authLv,
@@ -86,6 +87,7 @@ export default function MapConnector(props: Props) {
                 onConnectRef.current({
                     mapDefine: result.data.connect.mapDefine,
                     authLv,
+                    userName,
                 })
             }
 
