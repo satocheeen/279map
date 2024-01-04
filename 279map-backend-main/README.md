@@ -2,37 +2,27 @@
 This is the main server of 279map.
 
 ```mermaid
-flowchart RL
+flowchart LR
 	subgraph frontend
-		subgraph 279map-core
-			279map-common-core["279map-common"]
+		subgraph 279map-frontend
+			279map-core
 		end
-		279map-frontend -. use .-> 279map-core
 	end
 
 	subgraph backend
 		db[("279map-db")]
+		279map-backend-main
 
-		subgraph 279map-backend-main
-			api-interface["api-interface (private)"]
-		end
+		279map-backend-main <--> odba["279map-backend-odba"]
+		odba-."use".->279map-backend-common
+		279map-backend-main-."use".->279map-backend-common
 
-		subgraph 279map-common
-			279map-common-backend["279map-common"]
-		end
-
-		279map-backend-main <--> odba
-		279map-backend-main <--> db
-		odba <--> db
-		fs["fs (option)"] <--> 279map-backend-main
-		fs <--> odba
-		279map-backend-main -. use .-> 279map-common
-		odba -. use .-> 279map-common
-		fs -. use .-> 279map-common
+		db -.read.-> 279map-backend-main
+		odba -.insert.-> db
 	end
-	279map-core -.-> api-interface
+	279map-core <--> 279map-backend-main
 	original-db[("Original DB")] <--> odba
-	
+
 	style 279map-backend-main fill:#faa, stroke:#f55
 ```
 

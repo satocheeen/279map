@@ -4,35 +4,27 @@ This is used in 279map.
 if you want to make originai UI map, you can use 279map-core.
 
 ```mermaid
-flowchart RL
+flowchart LR
 	subgraph frontend
-		subgraph 279map-core
+		subgraph 279map-frontend
+			279map-core
 		end
-		279map-frontend -. use .-> 279map-core
 	end
 
 	subgraph backend
 		db[("279map-db")]
+		279map-backend-main
 
-		subgraph 279map-backend-main
-			api-interface["api-interface (private)"]
-		end
+		279map-backend-main <--> odba["279map-backend-odba"]
+		odba-."use".->279map-backend-common
+		279map-backend-main-."use".->279map-backend-common
 
-		subgraph 279map-backend-common
-		end
-
-		279map-backend-main <--> odba
-		279map-backend-main <--> db
-		odba <--> db
-		fs["fs (option)"] <--> 279map-backend-main
-		fs <--> odba
-		279map-backend-main -. use .-> 279map-backend-common
-		odba -. use .-> 279map-backend-common
-		fs -. use .-> 279map-backend-common
+		db -.read.-> 279map-backend-main
+		odba -.insert.-> db
 	end
-	279map-core -.-> api-interface
+	279map-core <--> 279map-backend-main
 	original-db[("Original DB")] <--> odba
-	
+
 	style 279map-core fill:#faa, stroke:#f55
 ```
 
