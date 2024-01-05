@@ -14,7 +14,7 @@
   "dependencies": {
     "@graphql-tools/graphql-file-loader": "^8.0.0",
     "@graphql-tools/load": "^8.0.0",
-    "@graphql-tools/schema": "^10.0.0",
+    "@graphql-tools/schema": "^10.0.2",
     "@notionhq/client": "^1.0.4",
     "@terraformer/wkt": "^2.2.0",
     "@turf/turf": "^6.5.0",
@@ -58,6 +58,7 @@
     "randomcolor": "^0.6.2",
     "sharp": "^0.30.4",
     "subscriptions-transport-ws": "^0.11.0",
+    "superagent-proxy": "^3.0.0",
     "utf-8-validate": "^5.0.10",
     "websocket-stream": "^5.5.2"
   },

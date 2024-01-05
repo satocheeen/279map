@@ -1331,6 +1331,7 @@ const apolloServer = new ApolloServer({
 
 apolloServer.start().then(() => {
     apolloServer.applyMiddleware({
+        // @ts-ignore
         app,
         path: '/graphql',
     });

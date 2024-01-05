@@ -25,6 +25,8 @@ COPY ./dev/cert.pem /etc/ssl/certs/ca-certificates.crt
 RUN update-ca-certificates
 
 COPY --from=build /home/node/app/backend/dist /var/www
+RUN mkdir /var/www/graphql
+COPY --from=build /home/node/app/backend/src/graphql/*.gql /var/www/graphql
 
 RUN mkdir /var/log/www
 RUN chmod 777 /var/log/www

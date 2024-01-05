@@ -29,6 +29,11 @@ module.exports = {
         extensions: [
             '.ts', '.js',
         ],
+        alias: {
+            // 実行時エラーの対処
+            // https://github.com/apollographql/apollo-server/issues/4637
+            graphql$: path.resolve(__dirname, './node_modules/graphql/index.js'),
+        }
     },
 	plugins: [
         new Dotenv({
