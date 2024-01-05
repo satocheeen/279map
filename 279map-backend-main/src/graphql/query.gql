@@ -34,7 +34,7 @@ type CategoryDefine {
     datasourceIds: [String!]!
 }
 type EventDefine {
-    datasourceId: String
+    datasourceId: String!
     dates: [EventDate!]!
 }
 type EventDate {

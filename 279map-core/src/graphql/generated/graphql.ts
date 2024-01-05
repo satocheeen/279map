@@ -166,7 +166,7 @@ export type EventDate = {
 
 export type EventDefine = {
   __typename?: 'EventDefine';
-  datasourceId?: Maybe<Scalars['String']['output']>;
+  datasourceId: Scalars['String']['output'];
   dates: Array<EventDate>;
 };
 
@@ -816,7 +816,7 @@ export type GetEventQueryVariables = Exact<{
 }>;
 
 
-export type GetEventQuery = { __typename?: 'Query', getEvent: Array<{ __typename?: 'EventDefine', datasourceId?: string | null, dates: Array<{ __typename?: 'EventDate', date: string, contents: Array<string> }> }> };
+export type GetEventQuery = { __typename?: 'Query', getEvent: Array<{ __typename?: 'EventDefine', datasourceId: string, dates: Array<{ __typename?: 'EventDate', date: string, contents: Array<string> }> }> };
 
 export type GetItemsQueryVariables = Exact<{
   wkt: Scalars['String']['input'];

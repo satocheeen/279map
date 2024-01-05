@@ -156,7 +156,7 @@ export type EventDate = {
 };
 
 export type EventDefine = {
-  datasourceId?: Maybe<Scalars['String']['output']>;
+  datasourceId: Scalars['String']['output'];
   dates: Array<EventDate>;
 };
 
@@ -928,7 +928,7 @@ export type EventDateResolvers<ContextType = any, ParentType extends ResolversPa
 };
 
 export type EventDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventDefine'] = ResolversParentTypes['EventDefine']> = {
-  datasourceId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  datasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   dates?: Resolver<Array<ResolversTypes['EventDate']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
