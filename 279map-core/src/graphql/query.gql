@@ -32,7 +32,10 @@ query getEvent(
 ){
     getEvent(datasourceIds: $datasourceIds) {
         datasourceId
-        dates
+        dates {
+            date
+            contents
+        }
     }    
 }
 

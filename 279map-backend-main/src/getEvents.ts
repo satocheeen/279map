@@ -1,7 +1,7 @@
 import { ConnectionPool } from ".";
 import { getLogger } from "log4js";
 import { CurrentMap } from "../279map-backend-common/src";
-import { QueryGetEventArgs } from "./graphql/__generated__/types";
+import { EventDate, QueryGetEventArgs } from "./graphql/__generated__/types";
 import { QueryResolverReturnType } from "./graphql/type_utility";
 
 const logger = getLogger('api');
@@ -21,9 +21,23 @@ export async function getEvents(param: QueryGetEventArgs, currentMap: CurrentMap
         });
         return Array.from(dataSourceMap.entries()).map((entry) => {
             const val = entry[1];
+            // 同一日のマップにまとめる key=date, val=contentId
+            const dateMap = new Map<string, string[]>();
+            val.forEach(v => {
+                if (!dateMap.has(v.date)) {
+                    dateMap.set(v.date, [])
+                }
+                dateMap.get(v.date)?.push(v.content_page_id);
+            })
+            const dates = Array.from(dateMap.entries()).map((dateInfo): EventDate => {
+                return {
+                    date: dateInfo[0],
+                    contents: dateInfo[1],
+                }
+            });
             return {
                 dataSourceId: entry[0],
-                dates: val.map(v => v.date),
+                dates,
             }
         })
 

@@ -149,9 +149,15 @@ export enum ErrorType {
   UndefinedMap = 'UndefinedMap'
 }
 
+export type EventDate = {
+  /** 当該日に紐づくコンテンツID(datasourceIdは含まない) */
+  contents: Array<Scalars['ID']['output']>;
+  date: Scalars['String']['output'];
+};
+
 export type EventDefine = {
   datasourceId?: Maybe<Scalars['String']['output']>;
-  dates: Array<Scalars['String']['output']>;
+  dates: Array<EventDate>;
 };
 
 export type GeocoderItem = {
@@ -192,6 +198,7 @@ export type ItemDefine = {
   geoJson: Scalars['Geometry']['output'];
   geoProperties: Scalars['GeoProperties']['output'];
   hasContents: Scalars['Boolean']['output'];
+  /** 画像を持つコンテンツID一覧 */
   hasImageContentId: Array<Scalars['DataId']['output']>;
   id: Scalars['DataId']['output'];
   lastEditedTime: Scalars['String']['output'];
@@ -720,6 +727,7 @@ export type ResolversTypes = {
   DatasourceInfo: ResolverTypeWrapper<Omit<DatasourceInfo, 'config'> & { config: ResolversTypes['DatasourceConfig'] }>;
   DatasourceKindType: DatasourceKindType;
   ErrorType: ErrorType;
+  EventDate: ResolverTypeWrapper<EventDate>;
   EventDefine: ResolverTypeWrapper<EventDefine>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   GeoProperties: ResolverTypeWrapper<Scalars['GeoProperties']['output']>;
@@ -785,6 +793,7 @@ export type ResolversParentTypes = {
   DatasourceConfig: ResolversUnionTypes<ResolversParentTypes>['DatasourceConfig'];
   DatasourceGroup: DatasourceGroup;
   DatasourceInfo: Omit<DatasourceInfo, 'config'> & { config: ResolversParentTypes['DatasourceConfig'] };
+  EventDate: EventDate;
   EventDefine: EventDefine;
   Float: Scalars['Float']['output'];
   GeoProperties: Scalars['GeoProperties']['output'];
@@ -912,9 +921,15 @@ export type DatasourceInfoResolvers<ContextType = any, ParentType extends Resolv
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type EventDateResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventDate'] = ResolversParentTypes['EventDate']> = {
+  contents?: Resolver<Array<ResolversTypes['ID']>, ParentType, ContextType>;
+  date?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type EventDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventDefine'] = ResolversParentTypes['EventDefine']> = {
   datasourceId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  dates?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  dates?: Resolver<Array<ResolversTypes['EventDate']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1166,6 +1181,7 @@ export type Resolvers<ContextType = any> = {
   DatasourceConfig?: DatasourceConfigResolvers<ContextType>;
   DatasourceGroup?: DatasourceGroupResolvers<ContextType>;
   DatasourceInfo?: DatasourceInfoResolvers<ContextType>;
+  EventDate?: EventDateResolvers<ContextType>;
   EventDefine?: EventDefineResolvers<ContextType>;
   GeoProperties?: GraphQLScalarType;
   GeocoderIdInfo?: GraphQLScalarType;

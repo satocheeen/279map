@@ -24,7 +24,8 @@ type ItemDefine {
     lastEditedTime: String!
     temporary: ItemTemporaryState
     hasContents: Boolean!
-    hasImageContentId: [DataId!]!  # 画像を持つコンテンツID一覧
+    "画像を持つコンテンツID一覧"
+    hasImageContentId: [DataId!]!
 }
 
 type CategoryDefine {
@@ -34,7 +35,12 @@ type CategoryDefine {
 }
 type EventDefine {
     datasourceId: String
-    dates: [String!]!
+    dates: [EventDate!]!
+}
+type EventDate {
+    date: String!
+    "当該日に紐づくコンテンツID(datasourceIdは含まない)"
+    contents: [ID!]!
 }
 enum ContentType {
     normal
