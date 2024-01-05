@@ -8,6 +8,7 @@ import del from 'rollup-plugin-delete';
 import image from '@rollup/plugin-image';
 import urlResolve from 'rollup-plugin-url-resolve';
 import { terser } from 'rollup-plugin-terser';
+import nodePolyfills from 'rollup-plugin-polyfill-node';
 
 const packageJson = require("./package.json");
 
@@ -41,6 +42,7 @@ function getPlugins(name) {
       del({ targets: name + '/*' }),
       image(),
       urlResolve(),
+      nodePolyfills(),
   ]
 }
 export default [
