@@ -14,6 +14,7 @@ const packageJson = require("./package.json");
 
 function getPlugins(name) {
   return [
+      // GraphQL化により当該プラグインが必要になった。
       nodePolyfills({
         include: ['https']
       }),

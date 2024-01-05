@@ -151,7 +151,7 @@ function useFilterListner() {
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
     useWatch(filter, async () => {
         const condition = filter?.condition;
-        if (!condition) {
+        if (!condition || Object.keys(condition).length === 0) {
             setFilteredItem(null);
             return;
         };
