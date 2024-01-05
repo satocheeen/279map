@@ -175,7 +175,7 @@ authManagementClient.initialize();
 
 const authenticateErrorProcess = (err: Error, req: Request, res: Response, next: NextFunction) => {
     // 認証エラー
-    apiLogger.warn('connect error', err);
+    apiLogger.warn('connect error', err, req.headers.authorization);
     if (err.name === 'Unauthenticated') {
         res.status(401).send({
             type: ErrorType.Unauthorized,
