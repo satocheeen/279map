@@ -1,5 +1,5 @@
 # 1. build stage
-FROM node:16.13 as build
+FROM node:18.17 as build
 
 WORKDIR /home/node/app/backend
 COPY . .
@@ -16,9 +16,9 @@ RUN npm init -y
 RUN npm install --platform=linuxmusl --arch=x64 sharp
 
 # 2. deploy stage
-FROM alpine:latest
+FROM alpine:3.18
 
-RUN apk add --no-cache nodejs
+RUN apk add --no-cache nodejs~=18
 # -- setup ca-certificates
 RUN apk add --no-cache ca-certificates
 COPY ./dev/cert.pem /etc/ssl/certs/ca-certificates.crt
