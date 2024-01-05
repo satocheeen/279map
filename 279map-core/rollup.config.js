@@ -14,6 +14,9 @@ const packageJson = require("./package.json");
 
 function getPlugins(name) {
   return [
+      nodePolyfills({
+        include: ['https']
+      }),
       terser({
         format: {
           comments: false,
@@ -42,7 +45,6 @@ function getPlugins(name) {
       del({ targets: name + '/*' }),
       image(),
       urlResolve(),
-      nodePolyfills(),
   ]
 }
 export default [
