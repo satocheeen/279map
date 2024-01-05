@@ -5,7 +5,6 @@ import dts from "rollup-plugin-dts";
 import del from 'rollup-plugin-delete';
 import strip from '@rollup/plugin-strip';
 import json from "@rollup/plugin-json";
-import nodePolyfills from 'rollup-plugin-polyfill-node';
 
 const packageJson = require("./package.json");
 
@@ -32,7 +31,6 @@ export default [
       del({ targets: 'dist/*' }),
       strip(),
       json(),
-      nodePolyfills(),
     ],
   },
   {
