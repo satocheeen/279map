@@ -36,7 +36,7 @@ export async function getEvents(param: QueryGetEventArgs, currentMap: CurrentMap
                 }
             });
             return {
-                dataSourceId: entry[0],
+                datasourceId: entry[0],
                 dates,
             }
         })
