@@ -45,7 +45,8 @@ import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { execute, subscribe } from 'graphql';
 import { ApolloServer } from 'apollo-server-express';
 import MyPubSub, { SubscriptionArgs } from './graphql/MyPubSub';
-import { AuthMethod, DataId } from './types-common/common-types';
+import { DataId } from './types-common/common-types';
+import { AuthMethod } from './types';
 
 type GraphQlContextType = {
     request: express.Request,

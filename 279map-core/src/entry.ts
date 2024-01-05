@@ -8,6 +8,7 @@ export type {
     MapDefine, MutationLinkContentArgs, MutationRegistContentArgs, 
     MutationUpdateContentArgs, SnsPreviewResult,
     ServerConfig, MapPageOptions, DatasourceInfo,
+    PopupMode,
 } from "./graphql/generated/graphql";
 export {
     Auth, MapKind, DatasourceKindType,
