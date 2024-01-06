@@ -79,6 +79,7 @@ function useMapInitializer() {
 
         const h1 = urqlClient.subscription(ItemInsertDocument, { mapId, mapKind: currentMapKind }).subscribe((val) => {
             const targets = val.data?.itemInsert;
+            console.log('subscribe itemInsert', targets);
             if (targets) {
                 // 表示中エリアの場合は最新ロードする
                 updateItems(targets);
@@ -87,6 +88,7 @@ function useMapInitializer() {
 
         const h2 = urqlClient.subscription(ItemUpdateDocument, { mapId, mapKind: currentMapKind }).subscribe((val) => {
             const targets = val.data?.itemUpdate;
+            console.log('subscribe itemUpdate', targets);
             if (targets) {
                 // 表示中エリアの場合は最新ロードする
                 updateItems(targets);
@@ -95,6 +97,7 @@ function useMapInitializer() {
 
         const h3 = urqlClient.subscription(ItemDeleteDocument, {mapId, mapKind: currentMapKind }).subscribe((val) => {
             const targets = val.data?.itemDelete;
+            console.log('subscribe itemDelete', targets);
             if (targets) {
                 // アイテム削除
                 removeItems(targets);

@@ -329,7 +329,7 @@ export function useMap() {
 
             const apiResult = await gqlClient.query(GetItemsByIdDocument, {
                 targets: updateTargets,
-            });
+            }, { requestPolicy: 'network-only' });
             const items = apiResult.data?.getItemsById ?? [];
 
             set(allItemsAtom, (currentItemMap) => {
