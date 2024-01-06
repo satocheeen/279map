@@ -272,15 +272,12 @@ export default function AddContentMenu(props: Props) {
             name: string;
             callback: () => void;
         }[];
-        console.log('editableAuthLv', editableAuthLv);
-        console.log('creatableContentDataSources', creatableContentDataSources);
         if (creatableContentDataSources.length > 0) {
             items.push({
                 name: '新規コンテンツ',
                 callback: () => onAddContent('new'),
             });
         }
-        console.log('linkableContentDataSources', linkableContentDataSources);
         if (linkableContentDataSources.length > 0) {
             items.push({
                 name: '既存コンテンツ',

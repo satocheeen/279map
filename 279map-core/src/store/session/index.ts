@@ -6,6 +6,7 @@ import { atomWithCountup } from '../../util/jotaiUtility';
 import { clientAtom } from 'jotai-urql';
 import { SwitchMapKindDocument, SwitchMapKindMutation, MapKind, Auth } from '../../graphql/generated/graphql';
 
+// TODO: MapConnnector内で管理するように変更する
 export const instanceIdAtom = atomWithCountup('instance-');
 
 export const mapDefineAtom = atom({
