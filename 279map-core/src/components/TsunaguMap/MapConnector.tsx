@@ -45,11 +45,12 @@ export default function MapConnector(props: Props) {
     const [ loading, setLoading ] = useState(true);
     const [ connectStatus, setConnectStatus ] = useState<ConnectResult|undefined>();
     const [ errorType, setErrorType ] = useState<ErrorType|undefined>();
-    const myStoreRef = useRef(createMyStore(props.iconDefine));
+    const myStoreRef = useRef<ReturnType<typeof createStore>|undefined>();
     const [ userId, setUserId ] = useState<string|undefined>();
 
     const connect = useCallback(async() => {
         try {
+            myStoreRef.current = createMyStore(props.iconDefine);
             setLoading(true);
             setConnectStatus(undefined);
             setErrorType(undefined);
@@ -106,12 +107,15 @@ export default function MapConnector(props: Props) {
     }, [props.server, props.mapId]);
 
     const disconnect = useCallback(async() => {
+        if (!myStoreRef.current) return;
         const gqlClient = myStoreRef.current.get(clientAtom);
         await gqlClient.mutation(DisconnectDocument, {});
         console.log('disconnected');
     }, []);
 
     useEffect(() => {
+        if (!myStoreRef.current) return;
+
         // IDカウントアップ
         myStoreRef.current.set(instanceIdAtom);
         const id = myStoreRef.current.get(instanceIdAtom);
@@ -140,7 +144,7 @@ export default function MapConnector(props: Props) {
     }, { immediate: true });
 
     useEffect(() => {
-        if (!userId) return;
+        if (!userId || !myStoreRef.current) return;
         const urqlClient = myStoreRef.current.get(clientAtom);
         const h = urqlClient.subscription(UpdateUserAuthDocument, { userId, mapId: props.mapId }).subscribe(() => {
             // 権限変更されたので再接続
@@ -195,7 +199,7 @@ export default function MapConnector(props: Props) {
                 return '想定外の問題が発生しました。再ロードしても問題が解決しない場合は、管理者へ問い合わせてください。';
         }
     }, [errorType]);
-
+    
 
     if (loading) {
         return <Overlay spinner message='ロード中...' />
