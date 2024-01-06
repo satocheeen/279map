@@ -12,7 +12,7 @@ const config: CodegenConfig = {
           add: {
             content: [
               "import { Geometry } from 'geojson'",
-              "import { GeoProperties, GeocoderIdInfo, IconKey } from '../../types-common/common-types'",
+              "import { DataId, GeoProperties, GeocoderIdInfo, IconKey } from '../../types-common/common-types'",
             ]
           }
         },
@@ -20,6 +20,7 @@ const config: CodegenConfig = {
       config: {
         skipTypename: true,
         scalars: {
+          DataId: 'DataId',
           Geometry: 'Geometry',
           IconKey: 'IconKey',
           GeoProperties: 'GeoProperties',

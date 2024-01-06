@@ -119,7 +119,7 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
                 // 先祖ItemIdを取得
                 const myItemId = await getAncestorItemId(con, target.contentId, currentMap);
                 if (!myItemId) {
-                    throw new Error('item not found.');
+                    throw new Error('item not found.' + JSON.stringify(target.contentId));
                 }
                 itemId = myItemId;
                 const sql = `
@@ -144,7 +144,7 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
         return allContents;
 
     } catch(e) {
-        throw 'select contents error' + e;
+        throw 'select contents error. ' + e;
 
     } finally {
         await con.commit();

@@ -427,7 +427,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     return result;
 
                 } catch(e) {    
-                    apiLogger.warn('getContent error', param, e);
+                    apiLogger.warn('getContents error', param, e);
                     throw e;
                 }
 

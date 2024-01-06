@@ -31,10 +31,10 @@ query getEvent(
     $datasourceIds: [String!]
 ){
     getEvent(datasourceIds: $datasourceIds) {
-        datasourceId
-        dates {
+        itemDatasourceId
+        contents {
+            id
             date
-            contents
         }
     }    
 }

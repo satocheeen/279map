@@ -34,13 +34,13 @@ type CategoryDefine {
     datasourceIds: [String!]!
 }
 type EventDefine {
-    datasourceId: String!
-    dates: [EventDate!]!
+    itemDatasourceId: String!
+    "日付を持つコンテンツ一覧"
+    contents: [EventContent!]!
 }
-type EventDate {
+type EventContent {
+    id: DataId!
     date: String!
-    "当該日に紐づくコンテンツID(datasourceIdは含まない)"
-    contents: [ID!]!
 }
 enum ContentType {
     normal

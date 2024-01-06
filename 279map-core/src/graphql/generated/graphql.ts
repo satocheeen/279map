@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { Geometry } from 'geojson'
-import { GeoProperties, GeocoderIdInfo, IconKey } from '../../types-common/common-types'
+import { DataId, GeoProperties, GeocoderIdInfo, IconKey } from '../../types-common/common-types'
 import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -16,7 +16,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
-  DataId: { input: any; output: any; }
+  DataId: { input: DataId; output: DataId; }
   GeoProperties: { input: GeoProperties; output: GeoProperties; }
   GeocoderIdInfo: { input: GeocoderIdInfo; output: GeocoderIdInfo; }
   Geometry: { input: Geometry; output: Geometry; }
@@ -157,17 +157,17 @@ export enum ErrorType {
   UndefinedMap = 'UndefinedMap'
 }
 
-export type EventDate = {
-  __typename?: 'EventDate';
-  /** 当該日に紐づくコンテンツID(datasourceIdは含まない) */
-  contents: Array<Scalars['ID']['output']>;
+export type EventContent = {
+  __typename?: 'EventContent';
   date: Scalars['String']['output'];
+  id: Scalars['DataId']['output'];
 };
 
 export type EventDefine = {
   __typename?: 'EventDefine';
-  datasourceId: Scalars['String']['output'];
-  dates: Array<EventDate>;
+  /** 日付を持つコンテンツ一覧 */
+  contents: Array<EventContent>;
+  itemDatasourceId: Scalars['String']['output'];
 };
 
 export type GeocoderItem = {
@@ -816,7 +816,7 @@ export type GetEventQueryVariables = Exact<{
 }>;
 
 
-export type GetEventQuery = { __typename?: 'Query', getEvent: Array<{ __typename?: 'EventDefine', datasourceId: string, dates: Array<{ __typename?: 'EventDate', date: string, contents: Array<string> }> }> };
+export type GetEventQuery = { __typename?: 'Query', getEvent: Array<{ __typename?: 'EventDefine', itemDatasourceId: string, contents: Array<{ __typename?: 'EventContent', id: DataId, date: string }> }> };
 
 export type GetItemsQueryVariables = Exact<{
   wkt: Scalars['String']['input'];
@@ -827,37 +827,37 @@ export type GetItemsQueryVariables = Exact<{
 }>;
 
 
-export type GetItemsQuery = { __typename?: 'Query', getItems: Array<{ __typename?: 'ItemDefine', id: any, name: string, geoJson: Geometry, geoProperties: GeoProperties, lastEditedTime: string, hasContents: boolean, hasImageContentId: Array<any>, temporary?: ItemTemporaryState | null }> };
+export type GetItemsQuery = { __typename?: 'Query', getItems: Array<{ __typename?: 'ItemDefine', id: DataId, name: string, geoJson: Geometry, geoProperties: GeoProperties, lastEditedTime: string, hasContents: boolean, hasImageContentId: Array<DataId>, temporary?: ItemTemporaryState | null }> };
 
 export type GetItemsByIdQueryVariables = Exact<{
   targets: Array<Scalars['DataId']['input']> | Scalars['DataId']['input'];
 }>;
 
 
-export type GetItemsByIdQuery = { __typename?: 'Query', getItemsById: Array<{ __typename?: 'ItemDefine', id: any, name: string, geoJson: Geometry, geoProperties: GeoProperties, lastEditedTime: string, hasContents: boolean, hasImageContentId: Array<any>, temporary?: ItemTemporaryState | null }> };
+export type GetItemsByIdQuery = { __typename?: 'Query', getItemsById: Array<{ __typename?: 'ItemDefine', id: DataId, name: string, geoJson: Geometry, geoProperties: GeoProperties, lastEditedTime: string, hasContents: boolean, hasImageContentId: Array<DataId>, temporary?: ItemTemporaryState | null }> };
 
 export type GetContentQueryVariables = Exact<{
   id: Scalars['DataId']['input'];
 }>;
 
 
-export type GetContentQuery = { __typename?: 'Query', getContent: { __typename?: 'ContentsDefine', id: any, itemId: any, date?: string | null, url?: string | null, title: string, overview?: string | null, category?: Array<string> | null, image: boolean, videoUrl?: string | null, parentId?: any | null, usingAnotherMap: boolean, anotherMapItemId?: any | null, isSnsContent: boolean, isEditable: boolean, isDeletable: boolean } };
+export type GetContentQuery = { __typename?: 'Query', getContent: { __typename?: 'ContentsDefine', id: DataId, itemId: DataId, date?: string | null, url?: string | null, title: string, overview?: string | null, category?: Array<string> | null, image: boolean, videoUrl?: string | null, parentId?: DataId | null, usingAnotherMap: boolean, anotherMapItemId?: DataId | null, isSnsContent: boolean, isEditable: boolean, isDeletable: boolean } };
 
 export type GetContentsQueryVariables = Exact<{
   ids: Array<Scalars['DataId']['input']> | Scalars['DataId']['input'];
 }>;
 
 
-export type GetContentsQuery = { __typename?: 'Query', getContents: Array<{ __typename?: 'ContentsDefine', id: any, itemId: any, date?: string | null, url?: string | null, title: string, overview?: string | null, category?: Array<string> | null, image: boolean, videoUrl?: string | null, parentId?: any | null, usingAnotherMap: boolean, anotherMapItemId?: any | null, isSnsContent: boolean, isEditable: boolean, isDeletable: boolean }> };
+export type GetContentsQuery = { __typename?: 'Query', getContents: Array<{ __typename?: 'ContentsDefine', id: DataId, itemId: DataId, date?: string | null, url?: string | null, title: string, overview?: string | null, category?: Array<string> | null, image: boolean, videoUrl?: string | null, parentId?: DataId | null, usingAnotherMap: boolean, anotherMapItemId?: DataId | null, isSnsContent: boolean, isEditable: boolean, isDeletable: boolean }> };
 
 export type GetContentsInItemQueryVariables = Exact<{
   itemId: Scalars['DataId']['input'];
 }>;
 
 
-export type GetContentsInItemQuery = { __typename?: 'Query', getContentsInItem: Array<{ __typename?: 'ContentsDefine', id: any, itemId: any, date?: string | null, url?: string | null, title: string, overview?: string | null, category?: Array<string> | null, image: boolean, videoUrl?: string | null, parentId?: any | null, usingAnotherMap: boolean, anotherMapItemId?: any | null, isSnsContent: boolean, isEditable: boolean, isDeletable: boolean, children?: Array<{ __typename?: 'ContentsDefine', id: any, itemId: any, date?: string | null, url?: string | null, title: string, overview?: string | null, category?: Array<string> | null, image: boolean, videoUrl?: string | null, parentId?: any | null, usingAnotherMap: boolean, anotherMapItemId?: any | null, isSnsContent: boolean, isEditable: boolean, isDeletable: boolean }> | null }> };
+export type GetContentsInItemQuery = { __typename?: 'Query', getContentsInItem: Array<{ __typename?: 'ContentsDefine', id: DataId, itemId: DataId, date?: string | null, url?: string | null, title: string, overview?: string | null, category?: Array<string> | null, image: boolean, videoUrl?: string | null, parentId?: DataId | null, usingAnotherMap: boolean, anotherMapItemId?: DataId | null, isSnsContent: boolean, isEditable: boolean, isDeletable: boolean, children?: Array<{ __typename?: 'ContentsDefine', id: DataId, itemId: DataId, date?: string | null, url?: string | null, title: string, overview?: string | null, category?: Array<string> | null, image: boolean, videoUrl?: string | null, parentId?: DataId | null, usingAnotherMap: boolean, anotherMapItemId?: DataId | null, isSnsContent: boolean, isEditable: boolean, isDeletable: boolean }> | null }> };
 
-export type ContentFragment = { __typename?: 'ContentsDefine', id: any, itemId: any, date?: string | null, url?: string | null, title: string, overview?: string | null, category?: Array<string> | null, image: boolean, videoUrl?: string | null, parentId?: any | null, usingAnotherMap: boolean, anotherMapItemId?: any | null, isSnsContent: boolean, isEditable: boolean, isDeletable: boolean };
+export type ContentFragment = { __typename?: 'ContentsDefine', id: DataId, itemId: DataId, date?: string | null, url?: string | null, title: string, overview?: string | null, category?: Array<string> | null, image: boolean, videoUrl?: string | null, parentId?: DataId | null, usingAnotherMap: boolean, anotherMapItemId?: DataId | null, isSnsContent: boolean, isEditable: boolean, isDeletable: boolean };
 
 export type GetUnpointContentsQueryVariables = Exact<{
   datasourceId: Scalars['String']['input'];
@@ -865,7 +865,7 @@ export type GetUnpointContentsQueryVariables = Exact<{
 }>;
 
 
-export type GetUnpointContentsQuery = { __typename?: 'Query', getUnpointContents: { __typename?: 'GetUnpointContentsResult', nextToken?: string | null, contents: Array<{ __typename?: 'UnpointContent', id: any, title: string, thumb?: string | null, overview?: string | null }> } };
+export type GetUnpointContentsQuery = { __typename?: 'Query', getUnpointContents: { __typename?: 'GetUnpointContentsResult', nextToken?: string | null, contents: Array<{ __typename?: 'UnpointContent', id: DataId, title: string, thumb?: string | null, overview?: string | null }> } };
 
 export type GetThumbQueryVariables = Exact<{
   contentId: Scalars['DataId']['input'];
@@ -888,7 +888,7 @@ export type SearchQueryVariables = Exact<{
 }>;
 
 
-export type SearchQuery = { __typename?: 'Query', search: Array<{ __typename?: 'SearchHitItem', id: any, hitContents: Array<any> }> };
+export type SearchQuery = { __typename?: 'Query', search: Array<{ __typename?: 'SearchHitItem', id: DataId, hitContents: Array<DataId> }> };
 
 export type GeocoderQueryVariables = Exact<{
   address: Scalars['String']['input'];
@@ -933,7 +933,7 @@ export type ItemInsertSubscriptionVariables = Exact<{
 }>;
 
 
-export type ItemInsertSubscription = { __typename?: 'Subscription', itemInsert: Array<{ __typename?: 'Target', id: any, wkt: string }> };
+export type ItemInsertSubscription = { __typename?: 'Subscription', itemInsert: Array<{ __typename?: 'Target', id: DataId, wkt: string }> };
 
 export type ItemUpdateSubscriptionVariables = Exact<{
   mapId: Scalars['String']['input'];
@@ -941,7 +941,7 @@ export type ItemUpdateSubscriptionVariables = Exact<{
 }>;
 
 
-export type ItemUpdateSubscription = { __typename?: 'Subscription', itemUpdate: Array<{ __typename?: 'Target', id: any, wkt: string }> };
+export type ItemUpdateSubscription = { __typename?: 'Subscription', itemUpdate: Array<{ __typename?: 'Target', id: DataId, wkt: string }> };
 
 export type ItemDeleteSubscriptionVariables = Exact<{
   mapId: Scalars['String']['input'];
@@ -949,7 +949,7 @@ export type ItemDeleteSubscriptionVariables = Exact<{
 }>;
 
 
-export type ItemDeleteSubscription = { __typename?: 'Subscription', itemDelete: Array<any> };
+export type ItemDeleteSubscription = { __typename?: 'Subscription', itemDelete: Array<DataId> };
 
 export type ChildContentsUpdateSubscriptionVariables = Exact<{
   itemId: Scalars['DataId']['input'];
@@ -1000,7 +1000,7 @@ export const UnlinkContentsDatasourceDocument = {"kind":"Document","definitions"
 export const ConfigDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"NoneConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dummy"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Auth0Config"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"domain"}},{"kind":"Field","name":{"kind":"Name","value":"clientId"}},{"kind":"Field","name":{"kind":"Name","value":"audience"}}]}}]}}]}}]} as unknown as DocumentNode<ConfigQuery, ConfigQueryVariables>;
 export const GetMapListDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getMapList"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getMapList"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"mapId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]} as unknown as DocumentNode<GetMapListQuery, GetMapListQueryVariables>;
 export const GetCategoryDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getCategory"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"datasourceIds"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getCategory"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"datasourceIds"},"value":{"kind":"Variable","name":{"kind":"Name","value":"datasourceIds"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"color"}},{"kind":"Field","name":{"kind":"Name","value":"datasourceIds"}}]}}]}}]} as unknown as DocumentNode<GetCategoryQuery, GetCategoryQueryVariables>;
-export const GetEventDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getEvent"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"datasourceIds"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getEvent"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"datasourceIds"},"value":{"kind":"Variable","name":{"kind":"Name","value":"datasourceIds"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"datasourceId"}},{"kind":"Field","name":{"kind":"Name","value":"dates"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"date"}},{"kind":"Field","name":{"kind":"Name","value":"contents"}}]}}]}}]}}]} as unknown as DocumentNode<GetEventQuery, GetEventQueryVariables>;
+export const GetEventDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getEvent"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"datasourceIds"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getEvent"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"datasourceIds"},"value":{"kind":"Variable","name":{"kind":"Name","value":"datasourceIds"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"itemDatasourceId"}},{"kind":"Field","name":{"kind":"Name","value":"contents"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"date"}}]}}]}}]}}]} as unknown as DocumentNode<GetEventQuery, GetEventQueryVariables>;
 export const GetItemsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getItems"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"wkt"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"zoom"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"datasourceId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"latestEditedTime"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"excludeItemIds"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getItems"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"wkt"},"value":{"kind":"Variable","name":{"kind":"Name","value":"wkt"}}},{"kind":"Argument","name":{"kind":"Name","value":"zoom"},"value":{"kind":"Variable","name":{"kind":"Name","value":"zoom"}}},{"kind":"Argument","name":{"kind":"Name","value":"datasourceId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"datasourceId"}}},{"kind":"Argument","name":{"kind":"Name","value":"latestEditedTime"},"value":{"kind":"Variable","name":{"kind":"Name","value":"latestEditedTime"}}},{"kind":"Argument","name":{"kind":"Name","value":"excludeItemIds"},"value":{"kind":"Variable","name":{"kind":"Name","value":"excludeItemIds"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"geoJson"}},{"kind":"Field","name":{"kind":"Name","value":"geoProperties"}},{"kind":"Field","name":{"kind":"Name","value":"lastEditedTime"}},{"kind":"Field","name":{"kind":"Name","value":"hasContents"}},{"kind":"Field","name":{"kind":"Name","value":"hasImageContentId"}},{"kind":"Field","name":{"kind":"Name","value":"temporary"}}]}}]}}]} as unknown as DocumentNode<GetItemsQuery, GetItemsQueryVariables>;
 export const GetItemsByIdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getItemsById"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"targets"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DataId"}}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getItemsById"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"targets"},"value":{"kind":"Variable","name":{"kind":"Name","value":"targets"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"geoJson"}},{"kind":"Field","name":{"kind":"Name","value":"geoProperties"}},{"kind":"Field","name":{"kind":"Name","value":"lastEditedTime"}},{"kind":"Field","name":{"kind":"Name","value":"hasContents"}},{"kind":"Field","name":{"kind":"Name","value":"hasImageContentId"}},{"kind":"Field","name":{"kind":"Name","value":"temporary"}}]}}]}}]} as unknown as DocumentNode<GetItemsByIdQuery, GetItemsByIdQueryVariables>;
 export const GetContentDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getContent"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DataId"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getContent"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"content"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"content"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ContentsDefine"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"itemId"}},{"kind":"Field","name":{"kind":"Name","value":"date"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"overview"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"image"}},{"kind":"Field","name":{"kind":"Name","value":"videoUrl"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"usingAnotherMap"}},{"kind":"Field","name":{"kind":"Name","value":"anotherMapItemId"}},{"kind":"Field","name":{"kind":"Name","value":"isSnsContent"}},{"kind":"Field","name":{"kind":"Name","value":"isEditable"}},{"kind":"Field","name":{"kind":"Name","value":"isDeletable"}}]}}]} as unknown as DocumentNode<GetContentQuery, GetContentQueryVariables>;

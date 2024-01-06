@@ -1,6 +1,6 @@
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
 import { Geometry } from 'geojson'
-import { GeoProperties, GeocoderIdInfo, IconKey } from '../../types-common/common-types'
+import { DataId, GeoProperties, GeocoderIdInfo, IconKey } from '../../types-common/common-types'
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -17,7 +17,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
-  DataId: { input: any; output: any; }
+  DataId: { input: DataId; output: DataId; }
   GeoProperties: { input: GeoProperties; output: GeoProperties; }
   GeocoderIdInfo: { input: GeocoderIdInfo; output: GeocoderIdInfo; }
   Geometry: { input: Geometry; output: Geometry; }
@@ -149,15 +149,15 @@ export enum ErrorType {
   UndefinedMap = 'UndefinedMap'
 }
 
-export type EventDate = {
-  /** 当該日に紐づくコンテンツID(datasourceIdは含まない) */
-  contents: Array<Scalars['ID']['output']>;
+export type EventContent = {
   date: Scalars['String']['output'];
+  id: Scalars['DataId']['output'];
 };
 
 export type EventDefine = {
-  datasourceId: Scalars['String']['output'];
-  dates: Array<EventDate>;
+  /** 日付を持つコンテンツ一覧 */
+  contents: Array<EventContent>;
+  itemDatasourceId: Scalars['String']['output'];
 };
 
 export type GeocoderItem = {
@@ -727,7 +727,7 @@ export type ResolversTypes = {
   DatasourceInfo: ResolverTypeWrapper<Omit<DatasourceInfo, 'config'> & { config: ResolversTypes['DatasourceConfig'] }>;
   DatasourceKindType: DatasourceKindType;
   ErrorType: ErrorType;
-  EventDate: ResolverTypeWrapper<EventDate>;
+  EventContent: ResolverTypeWrapper<EventContent>;
   EventDefine: ResolverTypeWrapper<EventDefine>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   GeoProperties: ResolverTypeWrapper<Scalars['GeoProperties']['output']>;
@@ -793,7 +793,7 @@ export type ResolversParentTypes = {
   DatasourceConfig: ResolversUnionTypes<ResolversParentTypes>['DatasourceConfig'];
   DatasourceGroup: DatasourceGroup;
   DatasourceInfo: Omit<DatasourceInfo, 'config'> & { config: ResolversParentTypes['DatasourceConfig'] };
-  EventDate: EventDate;
+  EventContent: EventContent;
   EventDefine: EventDefine;
   Float: Scalars['Float']['output'];
   GeoProperties: Scalars['GeoProperties']['output'];
@@ -921,15 +921,15 @@ export type DatasourceInfoResolvers<ContextType = any, ParentType extends Resolv
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type EventDateResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventDate'] = ResolversParentTypes['EventDate']> = {
-  contents?: Resolver<Array<ResolversTypes['ID']>, ParentType, ContextType>;
+export type EventContentResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventContent'] = ResolversParentTypes['EventContent']> = {
   date?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type EventDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventDefine'] = ResolversParentTypes['EventDefine']> = {
-  datasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  dates?: Resolver<Array<ResolversTypes['EventDate']>, ParentType, ContextType>;
+  contents?: Resolver<Array<ResolversTypes['EventContent']>, ParentType, ContextType>;
+  itemDatasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1181,7 +1181,7 @@ export type Resolvers<ContextType = any> = {
   DatasourceConfig?: DatasourceConfigResolvers<ContextType>;
   DatasourceGroup?: DatasourceGroupResolvers<ContextType>;
   DatasourceInfo?: DatasourceInfoResolvers<ContextType>;
-  EventDate?: EventDateResolvers<ContextType>;
+  EventContent?: EventContentResolvers<ContextType>;
   EventDefine?: EventDefineResolvers<ContextType>;
   GeoProperties?: GraphQLScalarType;
   GeocoderIdInfo?: GraphQLScalarType;
