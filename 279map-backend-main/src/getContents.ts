@@ -65,7 +65,7 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
                 id,
                 itemId,
                 title: row.title ?? '',
-                date: row.date as string,
+                date: row.date ? (row.date as Date).toLocaleDateString() : undefined,
                 category: row.category ? row.category as string[] : [],
                 image: row.thumbnail ? true : false,
                 videoUrl: contents?.videoUrl,

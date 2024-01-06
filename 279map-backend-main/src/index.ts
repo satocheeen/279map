@@ -1150,7 +1150,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         })),
                     });
 
-                    console.log('publis', ctx.currentMap.mapId)
                     pubsub.publish('mapInfoUpdate', { mapId: ctx.currentMap.mapId }, true);
 
                     return true;
@@ -1187,7 +1186,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             test: {
                 resolve: (payload) => payload,
                 subscribe: (_, args) =>  {
-                    console.log('start subscribe test');
                     return pubsub.asyncIterator('test', {});
                 }
             },
@@ -1285,7 +1283,7 @@ const apolloServer = new ApolloServer({
     context: async(ctx) => {
         const req = ctx.req as Request;
         const operationName = ctx.req.body.operationName;
-        console.log('operationName', operationName);
+        apiLogger.debug('operationName', operationName);
         if (!operationName || ['IntrospectionQuery'].includes(operationName) || authDefine[operationName as Resolvers] === Auth.None) {
             const userId = getUserIdByRequest(req);
             // @ts-ignore セッション関連情報は存在しないので
@@ -1344,16 +1342,6 @@ apolloServer.start().then(() => {
             path: '/graphql',
         }
     )
-
-    // setInterval(() => {
-    //     // TODO: test
-    //     console.log('publish TEST');
-    //     pubsub.publish('test', {
-    //         // type: 'AAA'
-    //     }, {
-    //         message: 'hogehoge'
-    //     });
-    // }, 5000);
 
     /**
      * Frontend資源へプロキシ

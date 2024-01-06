@@ -19,13 +19,11 @@ export default class MyPubSub {
      */
     asyncIterator<T extends keyof Subscription>(name: T, args: SubscriptionArgs<T>) {
         const triggerName = getTriggerName(name, args);
-        console.log('subscribe', triggerName);
         return this.#pubsub.asyncIterator(triggerName);
     }
 
     publish<T extends keyof Subscription>(name: T, args: SubscriptionArgs<T>, payload: Subscription[T]) {
         const triggerName = getTriggerName(name, args)
-        console.log('publish', triggerName);
         this.#pubsub.publish(triggerName, payload);
     }
 }
@@ -64,7 +62,6 @@ function sortObject(object: any) {
       sortedObj = object.map((item) => sortObject(item));
     } else {
       var keys = Object.keys(object);
-      // console.log(keys);
       keys.sort(function(key1, key2) {
         (key1 = key1.toLowerCase()), (key2 = key2.toLowerCase());
         if (key1 < key2) return -1;
