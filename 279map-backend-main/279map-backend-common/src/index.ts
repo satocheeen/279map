@@ -1,7 +1,7 @@
 /**
  * entry point
  */
-export * as api from './api';
+export * from './api';
 export * as sns from './sns';
 export * from './types';
 export * from './auth';

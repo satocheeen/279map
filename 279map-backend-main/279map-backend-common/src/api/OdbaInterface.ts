@@ -36,11 +36,17 @@ export default abstract class OdbaInterface {
 
     abstract getUnpointData: OdbaAPIFunc<OdbaGetUnpointDataParam, OdbaGetUnpointDataResult>;
 
-    abstract linkContentOdb: (param: OdbaLinkContentToItemParam) => Promise<void>;
+    /**
+     * 指定のコンテンツをアイテムまたは親コンテンツに紐づける。
+     * ODBの更新、キャッシュDBの更新を行う。
+     */
+    abstract linkContent: (param: OdbaLinkContentToItemParam) => Promise<void>;
 
-    abstract unlinkContentOdb: (param: OdbaLinkContentToItemParam) => Promise<void>;
-
-    abstract updateContentLinkCache: (param: UpdateContentLinkCacheParam) => Promise<void>;
+    /**
+     * 指定のコンテンツについてアイテムまたは親コンテンツとの接続を解除する。
+     * ODBの更新、キャッシュDBの更新を行う。
+     */
+    abstract unlinkContent: (param: OdbaLinkContentToItemParam) => Promise<void>;
 
     abstract getImageUrl: OdbaAPIFunc<{id: DataId}, string | undefined>;
 

@@ -42,11 +42,6 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
                     currentMap: param.param.currentMap, 
                     contentId,
                 });
-                await odba.updateContentLinkCache({
-                    currentMap: param.param.currentMap, 
-                    parent: param.param.parent,
-                    contentId,
-                })
             },
         },
         {
@@ -76,36 +71,22 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
 
                 } else if(param.param.parentContentId) {
                     // 子コンテンツを外す場合
-                    await odba.unlinkContentOdb({
+                    await odba.unlinkContent({
                         currentMap: param.param.currentMap, 
                         parent: {
                             contentId: param.param.parentContentId,
                         },
                         childContentId: param.param.id,
                     })
-                    await odba.updateContentLinkCache({
-                        currentMap: param.param.currentMap, 
-                        parent: {
-                            contentId: param.param.parentContentId,
-                        },
-                        contentId: param.param.id,
-                    });
                 } else {
                     // アイテムとの接続を切った場合
-                    await odba.unlinkContentOdb({
+                    await odba.unlinkContent({
                         currentMap: param.param.currentMap, 
                         parent: {
                             itemId: param.param.itemId,
                         },
                         childContentId: param.param.id,
                     })
-                    await odba.updateContentLinkCache({
-                        currentMap: param.param.currentMap, 
-                        parent: {
-                            itemId: param.param.itemId,
-                        },
-                        contentId: param.param.id,
-                    });
                 }
             }
         },
@@ -139,13 +120,7 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
         {
             define: OdbaLinkContentToItemAPI,
             func: async(param: OdbaAPIFuncParam<OdbaLinkContentToItemParam>): Promise<void> => {
-                await odba.linkContentOdb(param.param);
-
-                await odba.updateContentLinkCache({
-                    currentMap: param.param.currentMap, 
-                    parent: param.param.parent,
-                    contentId: param.param.childContentId,
-                })
+                await odba.linkContent(param.param);
             }
         },
         {
