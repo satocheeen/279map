@@ -104,7 +104,7 @@ export default function MapConnector(props: Props) {
             setLoading(false);
 
         }
-    }, [props.server, props.mapId]);
+    }, [props.server, props.mapId, props.iconDefine]);
 
     const disconnect = useCallback(async() => {
         if (!myStoreRef.current) return;
