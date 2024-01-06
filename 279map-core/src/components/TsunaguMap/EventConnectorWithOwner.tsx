@@ -122,7 +122,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             const imgData = await gqlClient.query(GetThumbDocument, {
                 contentId: contentId,
             });
-            return 'data:image/' +  imgData;
+            return 'data:image/' +  imgData.data?.getThumb;
         },
     
         changeVisibleLayer(target: { dataSourceId: string } | { group: string }, visible: boolean) {
