@@ -1,9 +1,11 @@
 import { PubSub } from "graphql-subscriptions";
 import { Subscription, SubscriptionResolver, SubscriptionResolvers } from "./__generated__/types";
+import { getLogger } from "log4js";
 
 type PickSubscriptionArgs<T> = T extends SubscriptionResolver<any, any, any, any, infer TArgs> ? TArgs : any;
 export type SubscriptionArgs<T extends keyof Subscription> = PickSubscriptionArgs<Required<SubscriptionResolvers>[T]>;
 
+const logger = getLogger('api');
 export default class MyPubSub {
     #pubsub: PubSub;
 
@@ -19,11 +21,13 @@ export default class MyPubSub {
      */
     asyncIterator<T extends keyof Subscription>(name: T, args: SubscriptionArgs<T>) {
         const triggerName = getTriggerName(name, args);
+        logger.debug('subscribe', triggerName);
         return this.#pubsub.asyncIterator(triggerName);
     }
 
     publish<T extends keyof Subscription>(name: T, args: SubscriptionArgs<T>, payload: Subscription[T]) {
         const triggerName = getTriggerName(name, args)
+        logger.debug('publish', triggerName, payload);
         this.#pubsub.publish(triggerName, payload);
     }
 }
