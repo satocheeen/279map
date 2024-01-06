@@ -285,7 +285,7 @@ export default function AddContentMenu(props: Props) {
             });
         }
         return items;
-    }, [editableAuthLv, onAddContent, creatableContentDataSources, linkableContentDataSources]);
+    }, [onAddContent, creatableContentDataSources, linkableContentDataSources]);
 
     const onClick = useCallback((evt?: React.MouseEvent) => {
         if (evt) evt.stopPropagation();
