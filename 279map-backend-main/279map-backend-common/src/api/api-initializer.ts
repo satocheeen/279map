@@ -35,13 +35,7 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
             define: OdbaRegistContentAPI,
             func: async(param: OdbaAPIFuncParam<OdbaRegistContentParam>): Promise<void> => {
                 // regist to original db
-                const contentId = await odba.registContentOdb(param.param);
-
-                // update cache db
-                await odba.updateContentCache({
-                    currentMap: param.param.currentMap, 
-                    contentId,
-                });
+                await odba.registContent(param.param);
             },
         },
         {
@@ -105,12 +99,8 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
         {
             define: OdbaUpdateContentAPI,
             func: async(param: OdbaAPIFuncParam<OdbaUpdateContentParam>): Promise<void> => {
-                await odba.updateContentOdb(param.param);
+                await odba.updateContent(param.param);
 
-                await odba.updateContentCache({
-                    currentMap: param.param.currentMap, 
-                    contentId: param.param.id,
-                });
             },
         },
         {

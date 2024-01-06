@@ -18,9 +18,11 @@ export default abstract class OdbaInterface {
 
     abstract updateItemCache: (_: {currentMap: CurrentMap, itemId: DataId}) => Promise<'insert' | 'update'>;
 
-    abstract registContentOdb: (param: OdbaRegistContentParam) => Promise<DataId>;
-
-    abstract updateContentCache: (_: {currentMap: CurrentMap, contentId: DataId}) => Promise<'insert' | 'update'>;
+    /**
+     * 指定のコンテンツを登録する。
+     * ODBの更新、キャッシュDBの更新を行う。
+     */
+    abstract registContent: (param: OdbaRegistContentParam) => Promise<DataId>;
 
     abstract removeItemOdb: (param: OdbaRemoveItemParam) => Promise<void>;
 
@@ -32,7 +34,11 @@ export default abstract class OdbaInterface {
 
     abstract updateItemOdb: (param: OdbaUpdateItemParam) => Promise<void>;
 
-    abstract updateContentOdb: (param: OdbaUpdateContentParam) => Promise<void>;
+    /**
+     * 指定のコンテンツを更新する。
+     * ODBの更新、キャッシュDBの更新を行う。
+     */
+    abstract updateContent: (param: OdbaUpdateContentParam) => Promise<void>;
 
     abstract getUnpointData: OdbaAPIFunc<OdbaGetUnpointDataParam, OdbaGetUnpointDataResult>;
 
