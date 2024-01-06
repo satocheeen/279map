@@ -19,6 +19,7 @@ export default class MyPubSub {
      */
     asyncIterator<T extends keyof Subscription>(name: T, args: SubscriptionArgs<T>) {
         const triggerName = getTriggerName(name, args);
+        console.log('subscribe', triggerName);
         return this.#pubsub.asyncIterator(triggerName);
     }
 
@@ -44,13 +45,42 @@ function serializeArgs(args: any) {
     }
     if (typeof args === 'object') {
         // sort key
-        const keys = Object.keys(args).sort();
-        if (keys.length === 0) return '';
-        const newObj = {} as any;
-        keys.forEach(key => {
-            newObj[key] = args[key];
-        });
+        const newObj = sortObject(args);
         return JSON.stringify(newObj);
     }
     return ''
 }
+
+// https://gist.github.com/ninapavlich/1697bcc107052f5b884a794d307845fe
+function sortObject(object: any) {
+    //Thanks > http://whitfin.io/sorting-object-recursively-node-jsjavascript/
+    if (!object) {
+      return object;
+    }
+  
+    const isArray = object instanceof Array;
+    var sortedObj = {} as any;
+    if (isArray) {
+      sortedObj = object.map((item) => sortObject(item));
+    } else {
+      var keys = Object.keys(object);
+      // console.log(keys);
+      keys.sort(function(key1, key2) {
+        (key1 = key1.toLowerCase()), (key2 = key2.toLowerCase());
+        if (key1 < key2) return -1;
+        if (key1 > key2) return 1;
+        return 0;
+      });
+  
+      for (let index in keys) {
+        const key = keys[index];
+        if (typeof object[key] == 'object') {
+          sortedObj[key] = sortObject(object[key]);
+        } else {
+          sortedObj[key] = object[key];
+        }
+      }
+    }
+  
+    return sortedObj;
+  }
