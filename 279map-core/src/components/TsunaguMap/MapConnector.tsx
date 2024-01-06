@@ -12,6 +12,7 @@ import { OwnerContext } from './TsunaguMap';
 import { Provider, createStore } from 'jotai';
 import { defaultIconDefineAtom } from '../../store/icon';
 import { createGqlClient } from '../../api';
+import { useWatch } from '../../util/useWatch2';
 
 type Props = {
     server: ServerInfo;
@@ -50,6 +51,7 @@ export default function MapConnector(props: Props) {
     const connect = useCallback(async() => {
         try {
             setLoading(true);
+            setConnectStatus(undefined);
             setErrorType(undefined);
             const gqlClient = createGqlClient(props.server);
             myStoreRef.current.set(clientAtom, gqlClient);
@@ -106,6 +108,7 @@ export default function MapConnector(props: Props) {
     const disconnect = useCallback(async() => {
         const gqlClient = myStoreRef.current.get(clientAtom);
         await gqlClient.mutation(DisconnectDocument, {});
+        console.log('disconnected');
     }, []);
 
     useEffect(() => {
@@ -119,7 +122,10 @@ export default function MapConnector(props: Props) {
         }
     }, []);
 
-    useEffect(() => {
+    useWatch([props.server, props.mapId], async() => {
+        if (connectStatus) {
+            await disconnect()
+        }
         connect()
         .then(() => {
             window.addEventListener('beforeunload', () => {
@@ -130,7 +136,8 @@ export default function MapConnector(props: Props) {
         return () => {
             disconnect();
         }
-    }, [connect, disconnect])
+
+    }, { immediate: true });
 
     useEffect(() => {
         if (!userId) return;
