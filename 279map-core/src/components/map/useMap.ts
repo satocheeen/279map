@@ -12,7 +12,7 @@ import { sleep } from '../../util/CommonUtility';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { initialLoadingAtom } from '../TsunaguMap/MapController';
 import { geoJsonToTurfPolygon } from '../../util/MapUtility';
-import { bboxPolygon, intersect, union, booleanContains, booleanOverlap, booleanWithin } from '@turf/turf';
+import { bboxPolygon, intersect, union } from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 import { useItems } from '../../store/item/useItems';
 import { DatasourceKindType, GetItemsByIdDocument, GetItemsDocument } from '../../graphql/generated/graphql';
@@ -150,7 +150,7 @@ export function useMap() {
                     const loadedPolygon = loadedItemInfo ? geoJsonToTurfPolygon(loadedItemInfo.geometry) : undefined;
                     let polygon: LoadedAreaInfo['geometry'] | undefined;
                     if (loadedPolygon) {
-                        if (booleanContains(loadedPolygon, extentPolygon)) {
+                        if (intersect(loadedPolygon, extentPolygon) !== null) {
                             // ロード済み領域の場合はロードしない
                             return;
                         }
