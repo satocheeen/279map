@@ -173,7 +173,7 @@ enum Stage {
     } else if (stage === Stage.EDITING) {
         return (
             <PromptMessageBox 
-                message={'編集完了したら、完了ボタンを押下してください。'} 
+                message={'編集完了したら、完了ボタンを押下してください。\n※ポイント削除したい場合→>Altボタンを押しながらクリック'} 
                 ok={onEditOkClicked} 
                 cancel={onClose} 
                 okname="完了" />

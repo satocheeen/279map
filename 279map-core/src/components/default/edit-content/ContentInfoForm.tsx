@@ -122,6 +122,9 @@ export default function ContentInfoForm(props: Props) {
             </FormGroup>
             {props.value.type === 'normal' ?
                 <>
+                    <FormGroup label='URL'>
+                        <Input value={props.value.url ?? ''} placeholder="" onChange={(e) => handleChange(e.target.value, 'url')} />
+                    </FormGroup>
                     <FormGroup label='画像'>
                         <ImageRegister imageUrl={props.value.imageUrl} onSelect={(evt) => handleChange(evt.imageUrl, 'imageUrl')} />
                     </FormGroup>
