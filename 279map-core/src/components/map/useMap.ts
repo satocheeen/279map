@@ -12,7 +12,7 @@ import { sleep } from '../../util/CommonUtility';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { initialLoadingAtom } from '../TsunaguMap/MapController';
 import { geoJsonToTurfPolygon } from '../../util/MapUtility';
-import { bboxPolygon, intersect, union, booleanContains } from '@turf/turf';
+import { bboxPolygon, intersect, union, booleanContains, booleanOverlap, booleanWithin } from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 import { useItems } from '../../store/item/useItems';
 import { DatasourceKindType, GetItemsByIdDocument, GetItemsDocument } from '../../graphql/generated/graphql';
@@ -319,8 +319,9 @@ export function useMap() {
                     console.log('polygon undefined');
                     return false;
                 }
-    
-                return booleanContains(loadedPolygon, polygon);
+                const isContain =  intersect(loadedPolygon, polygon) !== null;
+                return isContain;
+
             }).map((target): DataId => {
                 return target.id;
             });
