@@ -54,7 +54,7 @@ export function getStructureScale(resolution: number): number {
 export function createGeoJson(feature: Feature): GeoJSON.Feature {
     const geoProperties = extractGeoProperty(feature.getProperties());
 
-    if (geoProperties.featureType === FeatureType.AREA && 'geocoderId' in geoProperties) {
+    if (geoProperties.featureType === FeatureType.AREA && 'geocoderId' in geoProperties && geoProperties.geocoderId) {
         // 住所エリアの場合は、Extentとidを登録する
         const extent = feature.getGeometry()?.getExtent();
         if (!extent) {

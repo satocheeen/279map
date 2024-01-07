@@ -120,7 +120,7 @@ function SearchAddress(props: Props, ref: React.ForwardedRef<SearchAddressHandle
                     geometry: item.geoJson,
                     properties: {
                         featureType: FeatureType.AREA,
-                        geocoderId: item.idInfo,
+                        // geocoderId: item.idInfo,   間引いてサイズ圧縮したものを受け取るようになったので、geocoderId保存は取りやめ
                     } as GeoProperties,
                 } as GeoJsonObject;
                 props.onAddress(geoJson);

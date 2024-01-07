@@ -4,6 +4,8 @@ import { getLogger } from "log4js";
 import { MapboxAccessToken } from "../config";
 import { GeocoderItem, GeocoderTarget, QueryGeocoderArgs, QueryGetGeocoderFeatureArgs } from "../graphql/__generated__/types";
 import { GeocoderIdInfo } from "../types-common/common-types";
+import * as turf from '@turf/turf';
+import { geoJsonToTurfPolygon } from "../util/utility";
 
 type OSMGeocordingResult = {
     boundingbox: [number, number, number, number];
@@ -73,17 +75,18 @@ async function mapboxSearch(address: string, searchTarget: GeocoderTarget[]): Pr
             if(!searchTarget.includes(GeocoderTarget.Area)) {
                 return false;
             }
-            // サイズが大きいものは弾く TODO: 間引いたものを生成する
-            return JSON.stringify(feature.geometry).length < 1800;
+            return true;
         }
     }).map((res): GeocoderItem => {
+        const geoJson = simplifyGeometry(res.geometry);
+
         return {
             idInfo: {
                 map: 'mapbox',
                 id: res.id,
             },
             name: res.place_name,
-            geoJson: res.geometry,
+            geoJson,
         };
     });
     return list;
@@ -108,6 +111,7 @@ async function osmSearch(address: string, searchTarget: GeocoderTarget[]): Promi
             return searchTarget.includes(GeocoderTarget.Area);
         }
     }).map((res): GeocoderItem => {
+        const geoJson = simplifyGeometry(res.geojson as Geometry);
         return {
             idInfo: {
                 map: 'osm',
@@ -115,11 +119,31 @@ async function osmSearch(address: string, searchTarget: GeocoderTarget[]): Promi
                 osm_id: res.osm_id,
             },
             name: res.display_name,
-            geoJson: res.geojson as Geometry,
+            geoJson,
         }
     });
     return list;
 };
+
+/**
+ * ジオメトリを間引いたものを作成する
+ * @param geometry 
+ */
+function simplifyGeometry(geometry: Geometry): Geometry {
+    const turfPolygon = geoJsonToTurfPolygon(geometry);
+    if (!turfPolygon) {
+        logger.warn('can not convert to TurfPolygon', geometry);
+        return geometry;
+    }
+    let newGeometry = geometry;
+    // toleranceは0.001あたりがちょうどいいが、サイズが大きいのでNotion側の圧縮保存対応が済むまでは1800文字以内に収まる大きさにしている
+    for (let tolerance = 0.001; JSON.stringify(newGeometry).length > 1800; tolerance += 0.001) {
+        const simpleGeometry = turf.simplify(turfPolygon, { tolerance });
+        newGeometry = simpleGeometry.geometry;
+    }
+    // console.log('simplify', JSON.stringify(geometry).length, JSON.stringify(newGeometry).length);
+    return newGeometry;
+}
 
 export async function getGeocoderFeature(param: QueryGetGeocoderFeatureArgs): Promise<Geometry> {
     const result = await getFeatureById(param.id);
