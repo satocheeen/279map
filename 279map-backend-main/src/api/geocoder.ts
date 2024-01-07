@@ -68,7 +68,8 @@ async function mapboxSearch(address: string, searchTarget: GeocoderTarget[]): Pr
         url,
     });
     const resultJson = result.data as MapboxResult;
-    const list = resultJson.features.filter(feature => {
+    const list: GeocoderItem[] = [];
+    resultJson.features.filter(feature => {
         if (feature.geometry.type === 'Point') {
             return searchTarget.includes(GeocoderTarget.Point);
         } else {
@@ -77,17 +78,19 @@ async function mapboxSearch(address: string, searchTarget: GeocoderTarget[]): Pr
             }
             return true;
         }
-    }).map((res): GeocoderItem => {
+    }).forEach((res) => {
         const geoJson = simplifyGeometry(res.geometry);
 
-        return {
-            idInfo: {
-                map: 'mapbox',
-                id: res.id,
-            },
-            name: res.place_name,
-            geoJson,
-        };
+        if (geoJson) {
+            list.push({
+                idInfo: {
+                    map: 'mapbox',
+                    id: res.id,
+                },
+                name: res.place_name,
+                geoJson,
+            })
+        }
     });
     return list;
 };
@@ -101,7 +104,8 @@ async function osmSearch(address: string, searchTarget: GeocoderTarget[]): Promi
     });
     const resultJson = result.data as OSMGeocordingResult;
 
-    const list = resultJson.filter(res => {
+    const list: GeocoderItem[] = [];
+    resultJson.filter(res => {
         if (!res.geojson) {
             return false;
         }
@@ -110,16 +114,19 @@ async function osmSearch(address: string, searchTarget: GeocoderTarget[]): Promi
         } else {
             return searchTarget.includes(GeocoderTarget.Area);
         }
-    }).map((res): GeocoderItem => {
+    }).forEach((res) => {
+        // 間引く
         const geoJson = simplifyGeometry(res.geojson as Geometry);
-        return {
-            idInfo: {
-                map: 'osm',
-                osm_type: res.osm_type,
-                osm_id: res.osm_id,
-            },
-            name: res.display_name,
-            geoJson,
+        if (geoJson) {
+            list.push({
+                idInfo: {
+                    map: 'osm',
+                    osm_type: res.osm_type,
+                    osm_id: res.osm_id,
+                },
+                name: res.display_name,
+                geoJson,
+            })
         }
     });
     return list;
@@ -128,16 +135,21 @@ async function osmSearch(address: string, searchTarget: GeocoderTarget[]): Promi
 /**
  * ジオメトリを間引いたものを作成する
  * @param geometry 
+ * @return 間引いたジオメトリ。間引けない場合は、undefined
  */
-function simplifyGeometry(geometry: Geometry): Geometry {
+function simplifyGeometry(geometry: Geometry): Geometry | undefined {
     const turfPolygon = geoJsonToTurfPolygon(geometry);
     if (!turfPolygon) {
         logger.warn('can not convert to TurfPolygon', geometry);
-        return geometry;
+        return;
     }
     let newGeometry = geometry;
     // toleranceは0.001あたりがちょうどいいが、サイズが大きいのでNotion側の圧縮保存対応が済むまでは1800文字以内に収まる大きさにしている
     for (let tolerance = 0.001; JSON.stringify(newGeometry).length > 1800; tolerance += 0.001) {
+        if (tolerance > 0.005) {
+            // どれだけ値を大きくしても小さくならない場合
+            return;
+        }
         const simpleGeometry = turf.simplify(turfPolygon, { tolerance });
         newGeometry = simpleGeometry.geometry;
     }
