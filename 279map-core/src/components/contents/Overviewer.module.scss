@@ -1,6 +1,18 @@
-.Overview {
+$overview-line-height: 1.3rem;
+.Container {
     font-size: 0.9rem;
+    line-height: $overview-line-height;
+    margin-bottom: 0.5rem;
+}
+.Overview {
     overflow: hidden;
-    line-height: 1.3rem;
-    max-height: 7.8rem;
+
+    &.Close {
+        max-height: calc($overview-line-height * 5);    // 省略時に表示する行数
+    }
+}
+.Toggle {
+    margin: 0.2rem 0;
+    font-weight: bold;
+    cursor: pointer;
 }
