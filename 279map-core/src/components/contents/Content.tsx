@@ -197,18 +197,28 @@ export default function Content(props: Props) {
         if (!content) {
             return;
         }
-        const currentAttr: ContentAttr = content.url ? {
-            title: content.title,
-            overview: content.overview ?? '',
-            categories: content.category ?? [],
-            type: 'sns',
-            url: content.url,
-        } : {
+        // ひとまず、通常モードでURL入力できるようにするため、通常モードのみ対応
+        // const currentAttr: ContentAttr = content.url ? {
+        //     title: content.title,
+        //     overview: content.overview ?? '',
+        //     categories: content.category ?? [],
+        //     type: 'sns',
+        //     url: content.url,
+        // } : {
+        //     title: content.title,
+        //     overview: content.overview ?? '',
+        //     categories: content.category ?? [],
+        //     type: 'normal',
+        //     date: content.date?.toString(),
+        //     imageUrl: content.image ? '/api/getthumb?id=' + content.id : undefined,
+        // };
+        const currentAttr: ContentAttr = {
             title: content.title,
             overview: content.overview ?? '',
             categories: content.category ?? [],
             type: 'normal',
             date: content.date?.toString(),
+            url: content.url ?? undefined,
             imageUrl: content.image ? '/api/getthumb?id=' + content.id : undefined,
         };
         onEditContent({

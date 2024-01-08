@@ -111,7 +111,7 @@ export default function ContentInfoForm(props: Props) {
             <FormGroup label='カテゴリ'>
                 <CategorySelector selected={props.value.categories} onChange={onCategoryChanged} />
             </FormGroup>
-            <FormGroup label=''>
+            {/* <FormGroup label=''>
                 <RadioButtons items={[
                     { label: '通常', value: 'normal' },
                     { label: 'SNS', value: 'sns' },
@@ -119,7 +119,7 @@ export default function ContentInfoForm(props: Props) {
                 value={props.value.type}
                 onChange={(val)=>onRadioClicked(val as 'normal' | 'sns')}
                 />
-            </FormGroup>
+            </FormGroup> */}
             {props.value.type === 'normal' ?
                 <>
                     <FormGroup label='URL'>
