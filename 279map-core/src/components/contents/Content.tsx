@@ -7,7 +7,6 @@ import CategoryBadge from "../common/CategoryBadge";
 import * as CommonUtility from '../../util/CommonUtility';
 import { CgArrowsExchangeAlt } from "react-icons/cg";
 import useConfirm from "../common/confirm/useConfirm";
-import reactStringReplace from "react-string-replace";
 import PopupMenuIcon from "../popup/PopupMenuIcon";
 import AddContentMenu from "../popup/AddContentMenu";
 import Spinner from "../common/spinner/Spinner";
@@ -28,6 +27,7 @@ import { clientAtom } from "jotai-urql";
 import { Auth, ContentsDefine, GetContentDocument, GetImageUrlDocument, GetSnsPreviewDocument, MapKind, MutationUpdateContentArgs, ParentOfContent, RemoveContentDocument, UnlinkContentDocument } from "../../graphql/generated/graphql";
 import { ContentAttr } from "./types";
 import { DataId } from "../../types-common/common-types";
+import Overviewer from "./Overviewer";
 
 type Props = {
     itemId: DataId;
@@ -293,32 +293,6 @@ export default function Content(props: Props) {
 
     }, [gqlClient, props.itemId, props.parentContentId, confirm, props.content]);
 
-    const overview = useMemo(() => {
-        if (!props.content.overview) {
-            return null;
-        }
-
-        // 改行
-        let i = 0;
-        let newContent = reactStringReplace(props.content.overview, '\n', () => {
-            return <br key={'br-' + i++}/>;
-        });
-        
-        // URL文字列をリンクに変更
-        const regExp = /(https?:\/\/\S+)/g;
-        i = 0;
-        return reactStringReplace(newContent, regExp, (match) => {
-            return (
-                <a href={match} rel="noopener noreferrer" key={'a-' + i++} target="_blank">
-                    {match}
-                    <i className="icon-external-link" />
-                </a>
-            );
-        }
-        );
-
-    }, [props.content.overview]);
-
     const [authLv] = useAtom(authLvAtom);
     const editable = useMemo(() => {
         return props.content.isEditable && CommonUtility.compareAuth(authLv, Auth.Edit) >= 0
@@ -361,8 +335,8 @@ export default function Content(props: Props) {
     const body = useMemo(() => {
         return (
             <>
-                {overview &&
-                    <p className={styles.Overview}>{overview}</p>
+                {props.content.overview &&
+                    <Overviewer overview={props.content.overview} />
                 }
                 {dateStr && 
                     <span className={styles.Date}>{dateStr}</span>
@@ -387,7 +361,7 @@ export default function Content(props: Props) {
                 }
             </>
         )
-    }, [overview, dateStr, categoryTag, showProcessMessage, props.content, onImageClick]);
+    }, [dateStr, categoryTag, showProcessMessage, props.content, onImageClick]);
 
     const children = useMemo(() => {
         return props.content.children?.map(child => {
