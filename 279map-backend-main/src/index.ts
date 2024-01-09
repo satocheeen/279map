@@ -314,13 +314,19 @@ const schema = makeExecutableSchema<GraphQlContextType>({
              */
             getMapList: async(_, param, ctx): QueryResolverReturnType<'getMapList'> => {
                 apiLogger.info('[start] getmaplist');
-                const userId = ctx.userId;
-                if (userId) {
-                    await authManagementClient.getUserMapList(userId);
+                try {
+                    const userId = ctx.userId;
+                    if (userId) {
+                        await authManagementClient.getUserMapList(userId);
+                    }
+                    const list = await getMapList(userId);
+            
+                    return list;
+    
+                } catch(e) {
+                    logger.warn('getmaplist error', e, ctx.request.headers.authorization);
+                    throw e;
                 }
-                const list = await getMapList(userId);
-        
-                return list;
         
             },
             /**
@@ -693,7 +699,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     }
                 
                 } catch(e) {
-                    apiLogger.warn('connect error', e);
+                    apiLogger.warn('connect error', e, ctx.request.headers.authorization);
                     throw e;
 
                 }
