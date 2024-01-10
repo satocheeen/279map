@@ -6,6 +6,7 @@ import { getLogger } from 'log4js';
 import { AuthManagementInterface } from '../../279map-backend-common/src';
 import { Auth, User } from '../graphql/__generated__/types';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { jwtDecode } from "jwt-decode";
 
 const domain = process.env.AUTH0_DOMAIN ?? '';
 const client_id = process.env.AUTH0_BACKEND_CLIENT_ID ?? '';
@@ -25,11 +26,24 @@ const savedTokenPath = process.env.AUTH0_SAVED_TOKEN_PATH;
 export class Auth0Management extends AuthManagementInterface {
     #management: ManagementClient | undefined;
 
+    /**
+     * トークンを取得する。
+     * @returns 
+     */
     async #getToekn() {
+        // 以前取得したものがファイル保存されているならば、それを取得する
         if (savedTokenPath && existsSync(savedTokenPath)) {
             const token = await readFileSync(savedTokenPath, 'utf-8');
             if (token.length > 0) {
-                return token;
+                // 有効期限確認
+                const decoded = jwtDecode(token);
+                // 有効期限がない場合は、そのtokenを使う
+                if (!decoded.exp) return token;
+
+                if (decoded.exp * 1000 > new Date().valueOf() + 30 * 60 * 1000) {
+                    // 有効期限まで30分以上あるなら、そのまま使う
+                    return token;
+                }
             }
         }
         apiLogger.info('get new Auth0 Token for Management API');
@@ -62,6 +76,26 @@ export class Auth0Management extends AuthManagementInterface {
             token,
             domain,
         });
+
+        // tokenの有効期限切れが近づいたら、token再取得するためのチェック処理を定期実行
+        setInterval(async() => {
+            apiLogger.info('check if Auth0 Token is expired');
+            const currentToken = await this.#management?.getAccessToken();
+            if (!currentToken) return;
+
+            const decoded = jwtDecode(currentToken);
+            if (!decoded.exp) return;
+            if (decoded.exp * 1000 > new Date().valueOf() + 30 * 60 * 1000) {
+                return;
+            }
+            // 期限切れ30分を切っていたら、トークン再取得
+            const token = await this.#getToekn();
+            this.#management = new ManagementClient({
+                token,
+                domain,
+            });
+
+        }, 10 * 60 * 1000);
     }
 
     checkJwt(req: Request, res: Response, next: NextFunction): void {
