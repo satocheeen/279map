@@ -5,6 +5,7 @@ import { auth } from "express-oauth2-jwt-bearer";
 import { getLogger } from 'log4js';
 import { AuthManagementInterface } from '../../279map-backend-common/src';
 import { Auth, User } from '../graphql/__generated__/types';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 
 const domain = process.env.AUTH0_DOMAIN ?? '';
 const client_id = process.env.AUTH0_BACKEND_CLIENT_ID ?? '';
@@ -19,11 +20,19 @@ type AppMetaData = {
     maps: {[mapId: string]: MapInfo}
 }
 const apiLogger = getLogger('api');
+const savedTokenPath = process.env.AUTH0_SAVED_TOKEN_PATH;
+
 export class Auth0Management extends AuthManagementInterface {
     #management: ManagementClient | undefined;
 
-    public async initialize() {
-        // token取得
+    async #getToekn() {
+        if (savedTokenPath && existsSync(savedTokenPath)) {
+            const token = await readFileSync(savedTokenPath, 'utf-8');
+            if (token.length > 0) {
+                return token;
+            }
+        }
+        apiLogger.info('get new Auth0 Token for Management API');
         const res = await axios({
             method: 'POST',
             url: `https://${domain}/oauth/token`,
@@ -36,7 +45,19 @@ export class Auth0Management extends AuthManagementInterface {
             },
         });
         const token = res.data.access_token;
+        if (savedTokenPath) {
+            try {
+                writeFileSync(savedTokenPath, token, 'utf-8');
+            } catch(e) {
+                apiLogger.warn('failed save token to file', savedTokenPath);
+            }
+        }
+        return token;
+    }
 
+    public async initialize() {
+        // token取得
+        const token = await this.#getToekn();
         this.#management = new ManagementClient({
             token,
             domain,
