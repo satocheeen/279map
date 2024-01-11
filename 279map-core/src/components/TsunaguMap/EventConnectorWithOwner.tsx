@@ -263,6 +263,11 @@ function useEventListener() {
             }
         }, [selectedItemId, onSelect])
     , { immediate: true })
+
+    /**
+     * 表示アイテムが変化した場合に呼び出し元にイベント発火する
+     * 
+     */
 }
 
 export default React.forwardRef(EventConnectorWithOwner);

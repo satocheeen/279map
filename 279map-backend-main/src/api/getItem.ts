@@ -2,13 +2,14 @@ import { getLogger } from "log4js";
 import { ConnectionPool } from "..";
 import { ItemContentLink, ItemsTable } from "../../279map-backend-common/src/types/schema";
 import { getContentsInfo, getImageContentId } from "../getItems";
-import { ItemDefine, QueryGetItemsByIdArgs } from "../graphql/__generated__/types";
+import { QueryGetItemsByIdArgs } from "../graphql/__generated__/types";
 import { DataId } from "../types-common/common-types";
+import { ItemDefineWithoudContents } from "../types";
 
 const apiLogger = getLogger('api');
 
-export async function getItemsById(param: QueryGetItemsByIdArgs): Promise<ItemDefine[]> {
-    const list = [] as ItemDefine[];
+export async function getItemsById(param: QueryGetItemsByIdArgs): Promise<ItemDefineWithoudContents[]> {
+    const list = [] as ItemDefineWithoudContents[];
     for (const target of param.targets) {
         const item = await getItem(target);
         if (item)
@@ -17,7 +18,7 @@ export async function getItemsById(param: QueryGetItemsByIdArgs): Promise<ItemDe
     return list;
 }
 
-export async function getItem(id: DataId): Promise<ItemDefine|undefined> {
+export async function getItem(id: DataId): Promise<ItemDefineWithoudContents|undefined> {
     const con = await ConnectionPool.getConnection();
     try {
 

@@ -3,13 +3,14 @@ import { ConnectionPool } from '.';
 import { PoolConnection } from 'mysql2/promise';
 import { CurrentMap } from '../279map-backend-common/src';
 import { ContentsTable, ItemContentLink, ItemsTable, TrackGeoJsonTable, TracksTable } from '../279map-backend-common/src/types/schema';
-import { QueryGetItemsArgs, ItemDefine, MapKind } from './graphql/__generated__/types';
+import { QueryGetItemsArgs, MapKind } from './graphql/__generated__/types';
 import { ItemContentInfo } from './api/getItem';
 import { FeatureType } from './types-common/common-types';
+import { ItemDefineWithoudContents } from './types';
 
 const apiLogger = getLogger('api');
 
-export async function getItems({ param, currentMap }: {param:QueryGetItemsArgs; currentMap: CurrentMap}): Promise<ItemDefine[]> {
+export async function getItems({ param, currentMap }: {param:QueryGetItemsArgs; currentMap: CurrentMap}): Promise<ItemDefineWithoudContents[]> {
     if (!currentMap) {
         throw 'no currentMap';
     }
@@ -28,7 +29,7 @@ export async function getItems({ param, currentMap }: {param:QueryGetItemsArgs; 
         return items;
     }
 }
-export async function getItemsSub(currentMap: CurrentMap, param: QueryGetItemsArgs): Promise<ItemDefine[]> {
+export async function getItemsSub(currentMap: CurrentMap, param: QueryGetItemsArgs): Promise<ItemDefineWithoudContents[]> {
     const con = await ConnectionPool.getConnection();
     
     try {
@@ -57,7 +58,7 @@ export async function getItemsSub(currentMap: CurrentMap, param: QueryGetItemsAr
     
 }
 
-async function selectItems(con: PoolConnection, param: QueryGetItemsArgs, currentMap: CurrentMap): Promise<ItemDefine[]> {
+async function selectItems(con: PoolConnection, param: QueryGetItemsArgs, currentMap: CurrentMap): Promise<ItemDefineWithoudContents[]> {
     try {
         // 位置コンテンツ
         let sql = `
@@ -74,7 +75,7 @@ async function selectItems(con: PoolConnection, param: QueryGetItemsArgs, curren
             params.push(param.latestEditedTime);
         }
         const [rows] = await con.execute(sql, params);
-        const pointContents = [] as ItemDefine[];
+        const pointContents = [] as ItemDefineWithoudContents[];
         for(const row of rows as (ItemsTable & {geojson: any})[]) {
             const contents: ItemContentInfo[] = [];
             let lastEditedTime = row.last_edited_time;
@@ -126,7 +127,7 @@ async function selectItems(con: PoolConnection, param: QueryGetItemsArgs, curren
  * @param zoom_lv 
  * @param ext 
  */
-async function selectTrackInArea(con: PoolConnection, param: QueryGetItemsArgs, mapPageId: string): Promise<ItemDefine[]> {
+async function selectTrackInArea(con: PoolConnection, param: QueryGetItemsArgs, mapPageId: string): Promise<ItemDefineWithoudContents[]> {
     try {
         const wkt = param.wkt;// getExtentWkt(param.extent);
         const sql = `
@@ -138,7 +139,7 @@ async function selectTrackInArea(con: PoolConnection, param: QueryGetItemsArgs, 
                     WHERE map_page_id= ? AND MBRIntersects(geojson, GeomFromText(?,4326)) AND min_zoom <= ? AND ? < max_zoom AND t.data_source_id = ?`;
         const [rows] = await con.execute(sql, [mapPageId, wkt, param.zoom, param.zoom, param.datasourceId]);
         
-        const list = [] as ItemDefine[];
+        const list = [] as ItemDefineWithoudContents[];
         for (const row of (rows as (TrackGeoJsonTable & TracksTable)[])) {
             list.push({
                 id: {

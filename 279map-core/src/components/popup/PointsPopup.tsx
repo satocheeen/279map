@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState, useEffect } from "react";
 import styles from './PointsPopup.module.scss';
-import { MapMode } from "../../types/types";
+import { ItemInfo, MapMode } from "../../types/types";
 import { isEqualId } from "../../util/dataUtility";
 import MyThumbnail from "../common/image/MyThumbnail";
 import { BsThreeDots } from 'react-icons/bs';
@@ -11,7 +11,7 @@ import { filteredContentIdListAtom, filteredItemIdListAtom } from "../../store/f
 import { useItems } from "../../store/item/useItems";
 import { useAtom } from "jotai";
 import { useAtomCallback } from 'jotai/utils';
-import { ContentsDefine, ItemDefine } from "../../graphql/generated/graphql";
+import { ContentsDefine } from "../../graphql/generated/graphql";
 import { DataId } from "../../types-common/common-types";
 
 type Props = {
@@ -30,14 +30,14 @@ export default function PointsPopup(props: Props) {
     const { map } = useMap();
     const [ filteredItemIdList ] = useAtom(filteredItemIdListAtom);
     const [ filteredContentIdList ] = useAtom(filteredContentIdListAtom);
-    const [ targetItems, setTargetItems ] = useState<ItemDefine[]>([]);
+    const [ targetItems, setTargetItems ] = useState<ItemInfo[]>([]);
     const { getItem } = useItems();
 
-    const getTarget = useCallback(async(itemIds: DataId[]): Promise<ItemDefine[]> => {
+    const getTarget = useCallback(async(itemIds: DataId[]): Promise<ItemInfo[]> => {
         const items = await Promise.all(itemIds.map(itemId => {
             return getItem(itemId);
         }));
-        return items.filter(item => item!==undefined) as ItemDefine[];
+        return items.filter(item => item!==undefined) as ItemInfo[];
 
     }, [getItem]);
 

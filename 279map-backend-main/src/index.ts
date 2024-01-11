@@ -46,7 +46,7 @@ import { execute, subscribe } from 'graphql';
 import { ApolloServer } from 'apollo-server-express';
 import MyPubSub, { SubscriptionArgs } from './graphql/MyPubSub';
 import { DataId } from './types-common/common-types';
-import { AuthMethod } from './types';
+import { AuthMethod, ItemDefineWithoudContents } from './types';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -332,7 +332,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * 地図アイテム取得
              */
-            getItems: async(parent: any, param: QueryGetItemsArgs, ctx): QueryResolverReturnType<'getItems'> => {
+            getItems: async(parent: any, param: QueryGetItemsArgs, ctx): Promise<ItemDefineWithoudContents[]> => {
                 try {
                     const items = await getItems({
                         param,
@@ -354,7 +354,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * 地図アイテム取得(ID指定)
              */
-            getItemsById: async(_, param: QueryGetItemsByIdArgs, ctx): QueryResolverReturnType<'getItemsById'> => {
+            getItemsById: async(_, param: QueryGetItemsByIdArgs, ctx): Promise<ItemDefineWithoudContents[]> => {
                 try {
                     const result = await getItemsById(param);
 
@@ -1238,6 +1238,12 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
             }
         }as Record<keyof Subscription, IFieldResolverOptions<any, GraphQlContextType, any>>,
+        ItemDefine: {
+            contents: parent => {
+                console.log('parent', parent);
+                return [];
+            }
+        },
         DataId: DataIdScalarType,
         JSON: JsonScalarType,
         IconKey: IconKeyScalarType,

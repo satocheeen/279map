@@ -7,8 +7,8 @@ import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
 import { getFeatureCenter } from "../../util/MapUtility";
 import Style from "ol/style/Style";
 import { Extent } from "ol/extent";
-import { ItemDefine } from "../../graphql/generated/graphql";
 import { DataId } from '../../types-common/common-types';
+import { ItemInfo } from '../../entry';
 
 type PopupGroup = {
     mainFeature: Feature;
@@ -29,14 +29,14 @@ export type PopupGroupWithPosition = {
 export default class PopupContainerCalculator {
     _map: OlMapType;
     _extent: Extent;
-    _hasContentsItemList: ItemDefine[] = [];
+    _hasContentsItemList: ItemInfo[] = [];
 
     constructor(map: OlMapType, extent: Extent) {
         this._map = map;
         this._extent = extent;
     }
 
-    setHasContentsItemIdList(list: ItemDefine[]) {
+    setHasContentsItemIdList(list: ItemInfo[]) {
         this._hasContentsItemList = list;
     }
 

@@ -340,6 +340,7 @@ export function useMap() {
                         newItemsMap[item.id.dataSourceId] = {};
                     }
                     newItemsMap[item.id.dataSourceId][item.id.id] = item;
+
                 });
                 return newItemsMap;
             })

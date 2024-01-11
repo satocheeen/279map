@@ -26,6 +26,9 @@ type ItemDefine {
     hasContents: Boolean!
     "画像を持つコンテンツID一覧"
     hasImageContentId: [DataId!]!
+
+    "アイテムに紐づくコンテンツ一覧"
+    contents: [ContentsDefine!]!
 }
 
 type CategoryDefine {

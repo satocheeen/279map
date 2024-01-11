@@ -14,7 +14,7 @@ import { mapViewAtom } from '../../store/operation';
 import { filteredItemIdListAtom } from '../../store/filter';
 import { useAtom } from 'jotai';
 import { visibleDataSourceIdsAtom } from '../../store/datasource';
-import { ItemDefine } from '../../graphql/generated/graphql';
+import { ItemInfo } from '../../entry';
 
 function createKeyFromPopupInfo(param: PopupGroupWithPosition): string {
     if (!param) {
@@ -46,7 +46,7 @@ export default function PopupContainer() {
         const list = visibleDataSourceIds.reduce((acc, cur) => {
             const items = itemsMap[cur] ?? {};
             return acc.concat(Object.values(items));
-        }, [] as ItemDefine[])
+        }, [] as ItemInfo[])
         .filter(item => {
             if (!item.hasContents) return false;
             // フィルタが掛かっている場合は条件外のものは除外する

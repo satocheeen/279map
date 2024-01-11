@@ -1,7 +1,8 @@
 import { CSSProperties } from "react";
-import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult } from "../graphql/generated/graphql";
+import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult, ItemDefine, GetItemsQuery } from "../graphql/generated/graphql";
 import { ContentAttr } from "../components/contents/types";
 import { DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
+import { OperationResult } from "urql";
 
 export type OnMapLoadParam = {
     mapKind: MapKind;
@@ -50,6 +51,7 @@ export type TsunaguMapProps = {
     onModeChanged?: (mode: MapMode) => void;    // callback when map mode has changed.
     onCategoriesLoaded?: (categories: CategoryDefine[]) => void;    // calback when categories has loaded or has changed.
     onEventsLoaded?: (events: EventDefine[]) => void;   // callback when events has loaded or has changed.
+    onVisibleItemsChanged?: (items: ItemDefine[]) => void;
 
     // callback when kick the action to create a new content
     onAddNewContent?: (param: AddNewContentParam) => void;
@@ -247,3 +249,5 @@ export type LinkUnpointContentParam = {
     // コンテンツ紐づけAPI
     linkContentToItemAPI: (param: MutationLinkContentArgs) => Promise<void>;
 }
+
+export type ItemInfo = Required<OperationResult<GetItemsQuery>>['data']['getItems'][0];

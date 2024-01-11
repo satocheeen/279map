@@ -3,6 +3,7 @@ import { CurrentMap } from '../../279map-backend-common/src';
 import { createHash } from '../util/utility';
 import { ItemDefine, ItemTemporaryState, MapKind, MutationRegistItemArgs, UpdateItemInput } from '../graphql/__generated__/types';
 import { DataId } from '../types-common/common-types';
+import { ItemDefineWithoudContents } from '../types';
 
 type ItemInfoMap = {[dataSourceId: string]: ItemInfo[]};
 type ItemInfo = {
@@ -21,7 +22,7 @@ type ConstructorParam = {
     limit?: string;
     itemsMap?: ItemInfoMap;
 }
-type TemporaryItem = Omit<ItemDefine, 'id'|'lastEditedTime'> & {
+type TemporaryItem = Omit<ItemDefineWithoudContents, 'id'|'lastEditedTime'> & {
     currentMap: CurrentMap;
 } & ({
     type: 'regist';
@@ -122,7 +123,7 @@ export default class SessionInfo {
      * @param updateItemParam 
      * @returns 
      */
-    addTemporaryUpdateItem(currentMap: CurrentMap, currentItem: ItemDefine, updateItemParam: UpdateItemInput) {
+    addTemporaryUpdateItem(currentMap: CurrentMap, currentItem: ItemDefineWithoudContents, updateItemParam: UpdateItemInput) {
         const processId = createHash();
         this.#temporaryItemMap.set(processId, {
             type: 'update',
@@ -151,7 +152,7 @@ export default class SessionInfo {
      * @param items
      * @param currentMap 
      */
-    addTemporaryItems(items: ItemDefine[], currentMap: CurrentMap) {
+    addTemporaryItems(items: ItemDefineWithoudContents[], currentMap: CurrentMap) {
         for(const [key, item] of this.#temporaryItemMap.entries()) {
             if (item.currentMap.mapId !== currentMap.mapId || item.currentMap.mapKind !== currentMap.mapKind) {
                 continue;
@@ -192,7 +193,7 @@ export default class SessionInfo {
      * @param currentMap 
      * @param targets 
      */
-    mergeTemporaryItems(items: ItemDefine[], currentMap: CurrentMap, targets: DataId[]) {
+    mergeTemporaryItems(items: ItemDefineWithoudContents[], currentMap: CurrentMap, targets: DataId[]) {
         for(const [key, item] of this.#temporaryItemMap.entries()) {
             if (item.currentMap.mapId !== currentMap.mapId || item.currentMap.mapKind !== currentMap.mapKind) {
                 continue;

@@ -1,5 +1,5 @@
 import { atom } from 'jotai';
-import { ItemDefine } from '../../graphql/generated/graphql';
+import { ItemInfo } from '../../entry';
 
 export type LoadedItemKey = {
     datasourceId: string;
@@ -12,7 +12,7 @@ export type LoadedAreaInfo = {
 type LoadedItemMap = {[datasourceId: string]: LoadedAreaInfo};
 export const loadedItemMapAtom = atom<LoadedItemMap>({});
 
-export type ItemsMap = {[itemId: string]: ItemDefine};
+export type ItemsMap = {[itemId: string]: ItemInfo};
 type ItemsByDatasourceMap = {[dsId: string]: ItemsMap};
 export const allItemsAtom = atom({} as ItemsByDatasourceMap);
 
