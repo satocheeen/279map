@@ -57,6 +57,11 @@ query getItems (
         temporary
         contents {
             id
+            image
+            children {
+                id
+                image
+            }
         }
     }
 }
@@ -75,6 +80,11 @@ query getItemsById (
         temporary
         contents {
             id
+            image
+            children {
+                id
+                image
+            }
         }
     }
 }
