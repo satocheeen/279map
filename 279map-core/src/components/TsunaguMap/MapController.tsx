@@ -19,7 +19,7 @@ import useMyMedia from '../../util/useMyMedia';
 import { useWatch } from '../../util/useWatch2';
 import { ItemDeleteDocument, ItemInsertDocument, ItemUpdateDocument, MapInfoUpdateDocument, MapKind, TestDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
-import { ItemInfo } from '../../entry';
+import { ItemInfo } from '../../types/types';
 
 const ContentsModal = lazy(() => import('../contents/ContentsModal'));
 

@@ -14,7 +14,7 @@ import { mapViewAtom } from '../../store/operation';
 import { filteredItemIdListAtom } from '../../store/filter';
 import { useAtom } from 'jotai';
 import { visibleDataSourceIdsAtom } from '../../store/datasource';
-import { ItemInfo } from '../../entry';
+import { ItemInfo } from '../../types/types';
 
 function createKeyFromPopupInfo(param: PopupGroupWithPosition): string {
     if (!param) {

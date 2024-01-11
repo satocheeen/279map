@@ -3,6 +3,7 @@ import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, Datasource
 import { ContentAttr } from "../components/contents/types";
 import { DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
 import { OperationResult } from "urql";
+import { ItemsByDatasourceMap } from "../store/item";
 
 export type OnMapLoadParam = {
     mapKind: MapKind;
@@ -51,7 +52,7 @@ export type TsunaguMapProps = {
     onModeChanged?: (mode: MapMode) => void;    // callback when map mode has changed.
     onCategoriesLoaded?: (categories: CategoryDefine[]) => void;    // calback when categories has loaded or has changed.
     onEventsLoaded?: (events: EventDefine[]) => void;   // callback when events has loaded or has changed.
-    onVisibleItemsChanged?: (items: ItemDefine[]) => void;
+    onVisibleItemsChanged?: (items: ItemsByDatasourceMap) => void;
 
     // callback when kick the action to create a new content
     onAddNewContent?: (param: AddNewContentParam) => void;

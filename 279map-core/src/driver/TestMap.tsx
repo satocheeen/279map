@@ -298,6 +298,7 @@ export default function TestMap() {
                     onModeChanged={(val) => onCallback('onModeChanged', val)}
                     onCategoriesLoaded={onCategoriesLoaded}
                     onEventsLoaded={(val) => {console.log('onEventsLoaded', val)}}
+                    onVisibleItemsChanged={(val) => {console.log('onVisibleItemChanged', val)}}
                     // onAddNewContent={(val) => onCallback('onNewContentInfo', val)}
                     // onLinkUnpointedContent={(val) => onCallback('onLinkUnpointedContent', val)}
                     />

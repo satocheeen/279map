@@ -8,7 +8,7 @@ import { getFeatureCenter } from "../../util/MapUtility";
 import Style from "ol/style/Style";
 import { Extent } from "ol/extent";
 import { DataId } from '../../types-common/common-types';
-import { ItemInfo } from '../../entry';
+import { ItemInfo } from '../../types/types';
 
 type PopupGroup = {
     mainFeature: Feature;
