@@ -12,7 +12,7 @@ import { TsunaguMapHandler } from '../../types/types';
 import { useAtom } from 'jotai';
 import { itemDataSourceGroupsAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import { useAtomCallback } from 'jotai/utils';
-import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
+import { allItemsAtom, loadedItemMapAtom, visibleItemsAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
 import { ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument } from '../../graphql/generated/graphql';
@@ -197,7 +197,7 @@ function useMapLoadListener() {
 }
 
 function useEventListener() {
-    const { onDatasourceChanged, onCategoriesLoaded, onEventsLoaded, onModeChanged, onSelect }  = useContext(OwnerContext);
+    const { onDatasourceChanged, onCategoriesLoaded, onEventsLoaded, onModeChanged, onSelect, onVisibleItemsChanged }  = useContext(OwnerContext);
 
     /**
      * Datasource定義、表示状態が変化した場合に呼び出し元にイベント発火する
@@ -263,6 +263,19 @@ function useEventListener() {
             }
         }, [selectedItemId, onSelect])
     , { immediate: true })
+
+    /**
+     * 表示アイテムが変化した場合に呼び出し元にイベント発火する
+     */
+    const [ visibleItems ] = useAtom(visibleItemsAtom);
+    useWatch(visibleItems,
+        useCallback(() => {
+            if (onVisibleItemsChanged) {
+                onVisibleItemsChanged(visibleItems)
+            }
+        }, [onVisibleItemsChanged, visibleItems])
+    , { immediate: true })
+    
 }
 
 export default React.forwardRef(EventConnectorWithOwner);

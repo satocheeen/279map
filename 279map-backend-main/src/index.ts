@@ -32,7 +32,7 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { IFieldResolverOptions } from '@graphql-tools/utils';
-import { Auth, ConnectInfo, DatasourceConfig, DatasourceKindType, ErrorType, MapDefine, MapKind, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, ThumbSize } from './graphql/__generated__/types';
+import { Auth, ConnectInfo, ContentsDefine, DatasourceConfig, DatasourceKindType, ErrorType, MapDefine, MapKind, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, ThumbSize } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType, GeoPropertiesScalarType, GeocoderIdInfoScalarType, IconKeyScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -46,7 +46,7 @@ import { execute, subscribe } from 'graphql';
 import { ApolloServer } from 'apollo-server-express';
 import MyPubSub, { SubscriptionArgs } from './graphql/MyPubSub';
 import { DataId } from './types-common/common-types';
-import { AuthMethod } from './types';
+import { AuthMethod, ItemDefineWithoudContents } from './types';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -332,7 +332,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * 地図アイテム取得
              */
-            getItems: async(parent: any, param: QueryGetItemsArgs, ctx): QueryResolverReturnType<'getItems'> => {
+            getItems: async(parent: any, param: QueryGetItemsArgs, ctx): Promise<ItemDefineWithoudContents[]> => {
                 try {
                     const items = await getItems({
                         param,
@@ -354,7 +354,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * 地図アイテム取得(ID指定)
              */
-            getItemsById: async(_, param: QueryGetItemsByIdArgs, ctx): QueryResolverReturnType<'getItemsById'> => {
+            getItemsById: async(_, param: QueryGetItemsByIdArgs, ctx): Promise<ItemDefineWithoudContents[]> => {
                 try {
                     const result = await getItemsById(param);
 
@@ -1238,6 +1238,19 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
             }
         }as Record<keyof Subscription, IFieldResolverOptions<any, GraphQlContextType, any>>,
+        ItemDefine: {
+            contents: async(parent: ItemDefineWithoudContents, _, ctx): Promise<ContentsDefine[]> => {
+                const result = await getContents({
+                    param: [{
+                        itemId: parent.id,
+                    }],
+                    currentMap: ctx.currentMap,
+                    authLv: ctx.authLv,
+                });
+
+                return result;
+            }
+        },
         DataId: DataIdScalarType,
         JSON: JsonScalarType,
         IconKey: IconKeyScalarType,

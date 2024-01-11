@@ -17,8 +17,9 @@ import { filteredItemIdListAtom } from '../../store/filter';
 import VectorSource from 'ol/source/Vector';
 import useMyMedia from '../../util/useMyMedia';
 import { useWatch } from '../../util/useWatch2';
-import { ItemDefine, ItemDeleteDocument, ItemInsertDocument, ItemUpdateDocument, MapInfoUpdateDocument, MapKind, TestDocument } from '../../graphql/generated/graphql';
+import { ItemDeleteDocument, ItemInsertDocument, ItemUpdateDocument, MapInfoUpdateDocument, MapKind, TestDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
+import { ItemInfo } from '../../types/types';
 
 const ContentsModal = lazy(() => import('../contents/ContentsModal'));
 
@@ -163,10 +164,10 @@ function useItemUpdater() {
     const geoJsonItems = useMemo(() => {
         return Object.values(itemMap).reduce((acc, cur) => {
             return acc.concat(Object.values(cur));
-        }, [] as ItemDefine[]);
+        }, [] as ItemInfo[]);
     }, [itemMap]);
     // 追加済みアイテム
-    const prevGeoJsonItemsRef = useRef<ItemDefine[]>([]);
+    const prevGeoJsonItemsRef = useRef<ItemInfo[]>([]);
 
     useEffect(() => {
         if (!map || !initializedMapKind) return;

@@ -195,6 +195,8 @@ export type ItemConfig = {
 };
 
 export type ItemDefine = {
+  /** アイテムに紐づくコンテンツ一覧 */
+  contents: Array<ContentsDefine>;
   geoJson: Scalars['Geometry']['output'];
   geoProperties: Scalars['GeoProperties']['output'];
   hasContents: Scalars['Boolean']['output'];
@@ -984,6 +986,7 @@ export type ItemConfigResolvers<ContextType = any, ParentType extends ResolversP
 };
 
 export type ItemDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemDefine'] = ResolversParentTypes['ItemDefine']> = {
+  contents?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType>;
   geoJson?: Resolver<ResolversTypes['Geometry'], ParentType, ContextType>;
   geoProperties?: Resolver<ResolversTypes['GeoProperties'], ParentType, ContextType>;
   hasContents?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;

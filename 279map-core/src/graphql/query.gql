@@ -55,6 +55,14 @@ query getItems (
         hasContents
         hasImageContentId
         temporary
+        contents {
+            id
+            image
+            children {
+                id
+                image
+            }
+        }
     }
 }
 
@@ -70,6 +78,14 @@ query getItemsById (
         hasContents
         hasImageContentId
         temporary
+        contents {
+            id
+            image
+            children {
+                id
+                image
+            }
+        }
     }
 }
 query getContent(

@@ -15,12 +15,12 @@ import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
 import BaseEvent from 'ol/events/Event';
 import * as MapUtility from '../../util/MapUtility';
-import { FeatureProperties } from '../../types/types';
+import { FeatureProperties, ItemInfo } from '../../types/types';
 import { Pixel } from 'ol/pixel';
 import { convertDataIdFromFeatureId, getMapKey } from '../../util/dataUtility';
 import { FitOptions } from 'ol/View';
 import { Coordinate } from 'ol/coordinate';
-import { DatasourceGroup, DatasourceKindType, GetGeocoderFeatureDocument, ItemDefine, MapKind } from '../../graphql/generated/graphql';
+import { DatasourceGroup, DatasourceKindType, GetGeocoderFeatureDocument, MapKind } from '../../graphql/generated/graphql';
 import { Client } from 'urql';
 import { DataId, FeatureType } from '../../types-common/common-types';
 
@@ -219,7 +219,7 @@ export class OlMapWrapper {
      * 指定のitemが属するVectorSourceを返す
      * @param item 
      */
-    _getTargetSource(item: ItemDefine): VectorSource | undefined {
+    _getTargetSource(item: ItemInfo): VectorSource | undefined {
         const layerInfos = this._vectorLayerMap.getLayerInfoOfTheDataSource(item.id.dataSourceId);
         if (item.geoProperties.featureType === FeatureType.TRACK) {
             const minZoomLv = item.geoProperties .min_zoom;
@@ -248,7 +248,7 @@ export class OlMapWrapper {
         }
     }
 
-    _createFeatureGeometryFromItemDefine(def: ItemDefine): Feature<Geometry> | undefined {
+    _createFeatureGeometryFromItemDefine(def: ItemInfo): Feature<Geometry> | undefined {
         const feature = MapUtility.createFeatureByGeoJson(def.geoJson, def.geoProperties);
         feature.setId(getMapKey(def.id));
 
@@ -279,7 +279,7 @@ export class OlMapWrapper {
         return feature;
     }
 
-    addFeatures(defs: ItemDefine[]) {
+    addFeatures(defs: ItemInfo[]) {
         if (!this._mapKind) {
             console.warn('mapKind not found.');
             return;
@@ -326,7 +326,7 @@ export class OlMapWrapper {
         })
     }
 
-    removeFeature(item: ItemDefine) {
+    removeFeature(item: ItemInfo) {
         const source = this._getTargetSource(item);
         if (!source) {
             console.warn('対象sourceなし');
