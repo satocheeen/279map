@@ -233,9 +233,20 @@ export class OlMapWrapper {
                     })
                 });
             });
+
+            // パンニング可能範囲の制御解除
+            const view = new View({
+                projection: this._map.getView().getProjection(),
+                center: this._map.getView().getCenter(),
+                zoom: this._map.getView().getZoom(),
+                minZoom: this._map.getView().getMinZoom(),
+                maxZoom: this._map.getView().getMaxZoom(),
+                extent: undefined,
+            });
+            this._map.setView(view);
+
         }
 
-        console.log('extent', extent);
         this._map.getView().setMaxZoom(mapKind === MapKind.Virtual ? 10 : 18);
         if (extent) {
             this.fit(extent);
