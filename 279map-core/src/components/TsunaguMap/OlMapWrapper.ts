@@ -121,41 +121,66 @@ export class OlMapWrapper {
     /**
      * 地図種別に対応した初期レイヤを設定する
      */
-    initialize(mapKind: MapKind, dataSourceGroups: DatasourceGroup[], fitExtent?: Extent) {
+    initialize({mapKind, dataSourceGroups, fitExtent, isWorldMap}: {mapKind: MapKind, dataSourceGroups: DatasourceGroup[], fitExtent?: Extent, isWorldMap?: boolean}) {
         this._mapKind = mapKind;
         let extent = fitExtent;
         if (mapKind === MapKind.Real) {
-            // 都道府県レイヤ
-            const features = new GeoJSON().readFeatures(prefJson);
-            const prefSource = new VectorSource({ features });
-            if (!extent || extent.every(v => v===0)) {
-                // extent未指定の場合は、日本地図の範囲を設定
-                extent = prefSource.getExtent();
-            }
+            if (isWorldMap) {
+                // 世界地図
+                const layers = [
+                    new TileLayer({
+                        source: new OSM(),
+                        zIndex: 0,
+                        // minZoom: 10,
+                    })
+                ];
+                this._map.setLayers(layers);
 
-            const layers = [
-                new TileLayer({
-                    source: new OSM(),
-                    zIndex: 0,
-                    minZoom: 10,
-                }),
+            } else {
+                // 日本地図
                 // 都道府県レイヤ
-                new VectorLayer({
-                    source: prefSource,
-                    maxZoom: 10,
-                    zIndex: 0,
-                    style: new Style({
-                        fill: new Fill({
-                            color: '#F5F2E9',
-                        }),
-                        stroke: new Stroke({
-                            color: '#aaaaaa',
-                            width: 1,
+                const features = new GeoJSON().readFeatures(prefJson);
+                const prefSource = new VectorSource({ features });
+                if (!extent || extent.every(v => v===0)) {
+                    // extent未指定の場合は、日本地図の範囲を設定
+                    extent = prefSource.getExtent();
+                }
+
+                const layers = [
+                    new TileLayer({
+                        source: new OSM(),
+                        zIndex: 0,
+                        minZoom: 10,
+                    }),
+                    new VectorLayer({
+                        source: prefSource,
+                        maxZoom: 10,
+                        zIndex: 0,
+                        style: new Style({
+                            fill: new Fill({
+                                color: '#F5F2E9',
+                            }),
+                            stroke: new Stroke({
+                                color: '#aaaaaa',
+                                width: 1,
+                            })
                         })
                     })
-                }),
-            ];
-            this._map.setLayers(layers);
+                ];
+                this._map.setLayers(layers);
+
+                // 日本地図に収まる範囲にパンニング可能範囲を制御
+                const view = new View({
+                    projection: this._map.getView().getProjection(),
+                    center: this._map.getView().getCenter(),
+                    zoom: this._map.getView().getZoom(),
+                    minZoom: this._map.getView().getMinZoom(),
+                    maxZoom: this._map.getView().getMaxZoom(),
+                    extent: prefSource.getExtent(),
+                });
+                this._map.setView(view);
+    
+            }
 
             dataSourceGroups.forEach(group => {
                 group.datasources.forEach(ds => {
@@ -212,7 +237,9 @@ export class OlMapWrapper {
 
         console.log('extent', extent);
         this._map.getView().setMaxZoom(mapKind === MapKind.Virtual ? 10 : 18);
-        this.fit(extent);
+        if (extent) {
+            this.fit(extent);
+        }
     }
 
     /**

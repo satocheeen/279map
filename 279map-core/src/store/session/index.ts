@@ -4,7 +4,7 @@ import { atomWithReducer, loadable, selectAtom } from 'jotai/utils';
 import { Loadable } from 'jotai/vanilla/utils/loadable';
 import { atomWithCountup } from '../../util/jotaiUtility';
 import { clientAtom } from 'jotai-urql';
-import { SwitchMapKindDocument, SwitchMapKindMutation, MapKind, Auth } from '../../graphql/generated/graphql';
+import { SwitchMapKindDocument, SwitchMapKindMutation, MapKind, Auth, MapPageOptions } from '../../graphql/generated/graphql';
 
 // TODO: MapConnnector内で管理するように変更する
 export const instanceIdAtom = atomWithCountup('instance-');
@@ -13,11 +13,18 @@ export const mapDefineAtom = atom({
     connected: false,
     defaultMapKind: MapKind.Real,
     name: '',
-    options: {} as any,
+    options: {} as MapPageOptions,
     useMaps: [] as MapKind[],
     authLv: Auth.None,
 });
 
+/**
+ * 世界地図を使用するかどうか
+ */
+export const isWorldMapAtom = atom((get) => {
+    const mapDefine = get(mapDefineAtom);
+    return mapDefine.options.options?.includes('WorldMap');
+})
 export const authLvAtom = atom<Auth>((get) => {
     const mapDefine = get(mapDefineAtom);
     return mapDefine.authLv;

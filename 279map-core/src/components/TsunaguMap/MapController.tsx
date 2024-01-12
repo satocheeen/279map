@@ -1,6 +1,6 @@
 import React, { useRef, useMemo, useContext, useEffect, lazy, Suspense, useState } from 'react';
 import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
-import { currentMapDefineAtom, currentMapKindAtom, mapDefineReducerAtom } from '../../store/session';
+import { currentMapDefineAtom, currentMapKindAtom, isWorldMapAtom, mapDefineReducerAtom } from '../../store/session';
 import { atom, useAtom } from 'jotai';
 import { useItems } from '../../store/item/useItems';
 import { itemDataSourceGroupsAtom } from '../../store/datasource';
@@ -134,6 +134,7 @@ function useItemUpdater() {
     const [ , setInitialLoading ] = useAtom(initialLoadingAtom);
     const [ currentMapDefine ] = useAtom(currentMapDefineAtom);
     const [ , setDialogTarget ] = useAtom(dialogTargetAtom);
+    const [ isWorldMap ] = useAtom(isWorldMapAtom);
 
     /**
      * 地図が切り替わったら、レイヤ再配置
@@ -148,7 +149,12 @@ function useItemUpdater() {
         map.clearAllLayers();
         
         // 初期レイヤ生成
-        map.initialize(currentMapKind, itemDatasourceGroups, currentMapDefine?.extent);
+        map.initialize({
+            mapKind: currentMapKind,
+            dataSourceGroups: itemDatasourceGroups,
+            fitExtent: currentMapDefine?.extent,
+            isWorldMap,
+        });
 
         setDialogTarget(undefined);
         fitToDefaultExtent(false);
