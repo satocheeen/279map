@@ -61,6 +61,21 @@ type VisibleDataSourceGroup {
 }
 union VisibleDataSource = VisibleDataSourceDatasource | VisibleDataSourceGroup
 
+enum SortCondition {
+    "作成日時昇順"
+    CreatedAtAsc
+    "作成日時降順"
+    CreatedAtDesc
+    "更新日時昇順"
+    UpdatedAtAsc
+    "更新日時降順"
+    UpdatedAtDesc
+    "日時昇順"
+    DateAsc
+    "日時降順"
+    DateDesc
+}
+
 type MapPageOptions {
     popupMode: PopupMode
     itemLabel: ItemLabelMode
@@ -72,6 +87,8 @@ type MapPageOptions {
     newUserAuthLevel: Auth!
     "使用パネル"
     usePanels: [String!]
+    "コンテンツソート順"
+    contentsSordCondition: SortCondition
     "その他オプション文字列"
     options: [String!]
 }

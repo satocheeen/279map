@@ -243,6 +243,8 @@ export type MapListItem = {
 };
 
 export type MapPageOptions = {
+  /** コンテンツソート順 */
+  contentsSordCondition?: Maybe<SortCondition>;
   /** ゲストユーザの操作権限 */
   guestUserAuthLevel: Auth;
   itemLabel?: Maybe<ItemLabelMode>;
@@ -528,6 +530,21 @@ export enum SnsType {
   InstagramUser = 'InstagramUser'
 }
 
+export enum SortCondition {
+  /** 作成日時昇順 */
+  CreatedAtAsc = 'CreatedAtAsc',
+  /** 作成日時降順 */
+  CreatedAtDesc = 'CreatedAtDesc',
+  /** 日時昇順 */
+  DateAsc = 'DateAsc',
+  /** 日時降順 */
+  DateDesc = 'DateDesc',
+  /** 更新日時昇順 */
+  UpdatedAtAsc = 'UpdatedAtAsc',
+  /** 更新日時降順 */
+  UpdatedAtDesc = 'UpdatedAtDesc'
+}
+
 export type Subscription = {
   /** 指定のアイテム配下のコンテンツに変更（登録・更新・削除）があった場合 */
   childContentsUpdate?: Maybe<Scalars['Boolean']['output']>;
@@ -766,6 +783,7 @@ export type ResolversTypes = {
   SnsPreviewPost: ResolverTypeWrapper<SnsPreviewPost>;
   SnsPreviewResult: ResolverTypeWrapper<SnsPreviewResult>;
   SnsType: SnsType;
+  SortCondition: SortCondition;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Subscription: ResolverTypeWrapper<{}>;
   Target: ResolverTypeWrapper<Target>;
@@ -1025,6 +1043,7 @@ export type MapListItemResolvers<ContextType = any, ParentType extends Resolvers
 };
 
 export type MapPageOptionsResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapPageOptions'] = ResolversParentTypes['MapPageOptions']> = {
+  contentsSordCondition?: Resolver<Maybe<ResolversTypes['SortCondition']>, ParentType, ContextType>;
   guestUserAuthLevel?: Resolver<ResolversTypes['Auth'], ParentType, ContextType>;
   itemLabel?: Resolver<Maybe<ResolversTypes['ItemLabelMode']>, ParentType, ContextType>;
   newUserAuthLevel?: Resolver<ResolversTypes['Auth'], ParentType, ContextType>;

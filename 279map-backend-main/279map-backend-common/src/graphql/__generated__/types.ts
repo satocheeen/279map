@@ -99,6 +99,8 @@ export enum MapKind {
 }
 
 export type MapPageOptions = {
+  /** コンテンツソート順 */
+  contentsSordCondition?: Maybe<SortCondition>;
   /** ゲストユーザの操作権限 */
   guestUserAuthLevel: Auth;
   itemLabel?: Maybe<ItemLabelMode>;
@@ -127,6 +129,21 @@ export type RealPointContentConfig = {
   layerGroup?: Maybe<Scalars['String']['output']>;
   linkableContents: Scalars['Boolean']['output'];
 };
+
+export enum SortCondition {
+  /** 作成日時昇順 */
+  CreatedAtAsc = 'CreatedAtAsc',
+  /** 作成日時降順 */
+  CreatedAtDesc = 'CreatedAtDesc',
+  /** 日時昇順 */
+  DateAsc = 'DateAsc',
+  /** 日時降順 */
+  DateDesc = 'DateDesc',
+  /** 更新日時昇順 */
+  UpdatedAtAsc = 'UpdatedAtAsc',
+  /** 更新日時降順 */
+  UpdatedAtDesc = 'UpdatedAtDesc'
+}
 
 export type TrackConfig = {
   deletable: Scalars['Boolean']['output'];
