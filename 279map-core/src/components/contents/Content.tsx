@@ -192,7 +192,7 @@ export default function Content(props: Props) {
         // // 編集対象コンテンツをロード
         const getContent = await gqlClient.query(GetContentDocument, {
             id: props.content.id,
-        });
+        }, { requestPolicy: "network-only" });
         const content = getContent.data?.getContent;
         if (!content) {
             return;
