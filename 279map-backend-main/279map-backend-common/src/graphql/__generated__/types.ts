@@ -100,7 +100,7 @@ export enum MapKind {
 
 export type MapPageOptions = {
   /** コンテンツソート順 */
-  contentsSordCondition?: Maybe<SortCondition>;
+  contentsSortCondition?: Maybe<SortCondition>;
   /** ゲストユーザの操作権限 */
   guestUserAuthLevel: Auth;
   itemLabel?: Maybe<ItemLabelMode>;

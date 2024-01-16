@@ -88,7 +88,7 @@ type MapPageOptions {
     "使用パネル"
     usePanels: [String!]
     "コンテンツソート順"
-    contentsSordCondition: SortCondition
+    contentsSortCondition: SortCondition
     "その他オプション文字列"
     options: [String!]
 }

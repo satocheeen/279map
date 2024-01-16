@@ -244,7 +244,7 @@ export type MapListItem = {
 
 export type MapPageOptions = {
   /** コンテンツソート順 */
-  contentsSordCondition?: Maybe<SortCondition>;
+  contentsSortCondition?: Maybe<SortCondition>;
   /** ゲストユーザの操作権限 */
   guestUserAuthLevel: Auth;
   itemLabel?: Maybe<ItemLabelMode>;
@@ -1043,7 +1043,7 @@ export type MapListItemResolvers<ContextType = any, ParentType extends Resolvers
 };
 
 export type MapPageOptionsResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapPageOptions'] = ResolversParentTypes['MapPageOptions']> = {
-  contentsSordCondition?: Resolver<Maybe<ResolversTypes['SortCondition']>, ParentType, ContextType>;
+  contentsSortCondition?: Resolver<Maybe<ResolversTypes['SortCondition']>, ParentType, ContextType>;
   guestUserAuthLevel?: Resolver<ResolversTypes['Auth'], ParentType, ContextType>;
   itemLabel?: Resolver<Maybe<ResolversTypes['ItemLabelMode']>, ParentType, ContextType>;
   newUserAuthLevel?: Resolver<ResolversTypes['Auth'], ParentType, ContextType>;
