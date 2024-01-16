@@ -20,6 +20,7 @@ mutation connect (
                 guestUserAuthLevel
                 newUserAuthLevel
                 usePanels
+                contentsSortCondition
                 options
             }
         }

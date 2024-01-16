@@ -5,7 +5,7 @@ import AddContentMenu from '../popup/AddContentMenu';
 import styles from './ContentsModal.module.scss';
 import { getMapKey } from '../../util/dataUtility';
 import { useAtom } from 'jotai';
-import { authLvAtom, currentMapKindAtom } from '../../store/session';
+import { authLvAtom, currentMapKindAtom, mapDefineAtom } from '../../store/session';
 import { compareAuth } from '../../util/CommonUtility';
 import EditItemNameModal from './EditItemNameModal';
 import PopupMenuIcon from '../popup/PopupMenuIcon';
@@ -15,9 +15,10 @@ import { allItemsAtom } from '../../store/item';
 import { useMap } from '../map/useMap';
 import { modalSpinnerAtom } from '../common/modal/Modal';
 import { clientAtom } from 'jotai-urql';
-import { Auth, ChildContentsUpdateDocument, ContentsDefine, GetContentDocument, GetContentsInItemDocument, ItemTemporaryState, MapKind } from '../../graphql/generated/graphql';
+import { Auth, ChildContentsUpdateDocument, ContentsDefine, GetContentDocument, GetContentsInItemDocument, ItemTemporaryState, MapKind, SortCondition } from '../../graphql/generated/graphql';
 import { Subscription } from 'wonka';
 import { DataId } from '../../types-common/common-types';
+import dayjs from 'dayjs';
 
 export type Props = ({
     type: 'item' | 'content';
@@ -125,12 +126,27 @@ export default function ContentsModal(props: Props) {
 
     }, [props.id, props.type, mapKind, loadContentsInItem, updateItems, setModalSpinner, gqlClient]);
 
+    const [ mapDefine ] = useAtom(mapDefineAtom);
     const contents = useMemo((): ContentsDefine[] => {
+        const sortCondition = mapDefine.options.contentsSortCondition ?? SortCondition.CreatedAtAsc;
         return contentsList.sort((a, b) => {
-            // 日時順にソート
-            return (a.date ?? '').localeCompare(b.date ?? '');
+            // TODO: 現状、コンテンツが作成日時、更新日時を持っていないので、それらのソート処理については未対応。
+            //       後日、backend側の対応が完了してから、そちらについては実装する
+            switch(sortCondition) {
+                case SortCondition.DateAsc:
+                case SortCondition.DateDesc:
+                    {
+                        if (!a.date && !b.date) return 0;
+                        if (!a.date) return 1;
+                        if (!b.date) return -1;
+                        const aVal = dayjs(a.date).valueOf();
+                        const bVal = dayjs(b.date).valueOf();
+                        return (sortCondition === SortCondition.DateAsc ? 1 : -1) * (aVal - bVal)
+                    }
+            }
+            return 0;
         });
-    }, [contentsList])
+    }, [contentsList, mapDefine.options])
 
     const title = useMemo(() => {
         return item?.name ?? '';
