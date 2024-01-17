@@ -17,6 +17,11 @@ export type OnConnectParam = {
     mapDefine: MapDefine;
 };
 
+export type ItemContent = {
+    itemId: DataId;
+    contents: DataId[];
+}
+
 export type TsunaguMapProps = {
     mapId: string;
     mapServer: {
@@ -52,7 +57,7 @@ export type TsunaguMapProps = {
     onModeChanged?: (mode: MapMode) => void;    // callback when map mode has changed.
     onCategoriesLoaded?: (categories: CategoryDefine[]) => void;    // calback when categories has loaded or has changed.
     onEventsLoaded?: (events: EventDefine[]) => void;   // callback when events has loaded or has changed.
-    onVisibleItemsChanged?: (items: ItemsByDatasourceMap) => void;
+    onVisibleItemsChanged?: (items: ItemContent[]) => void;
 
     // callback when kick the action to create a new content
     onAddNewContent?: (param: AddNewContentParam) => void;

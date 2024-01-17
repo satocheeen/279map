@@ -1,7 +1,8 @@
 import { atom } from 'jotai';
-import { ItemInfo } from '../../types/types';
+import { ItemContent, ItemInfo } from '../../types/types';
 import { filteredItemsAtom } from '../filter';
-import { isEqualId } from '../../util/dataUtility';
+import { DataId } from '../../entry';
+import { visibleDataSourceIdsAtom } from '../datasource';
 
 export type LoadedItemKey = {
     datasourceId: string;
@@ -37,27 +38,42 @@ export const latestEditedTimeOfDatasourceAtom = atom((get) => {
     return resultMap;
 })
 
-/**
- * 現在表示状態にあるアイテム一覧を返す
- */
-export const visibleItemsAtom = atom((get) => {
+const allItemContentListAtom = atom<ItemContent[]>((get) => {
     const allItems = get(allItemsAtom);
+    const list = [] as ItemContent[];
+    Object.entries(allItems).forEach(([dsId, itemMap]) => {
+        Object.entries(itemMap).forEach(([id, item]) => {
+            const itemId: DataId = { dataSourceId: dsId, id };
+            const contents = [] as DataId[];
+            item.contents.forEach(content => {
+                contents.push(content.id);
+                content.children?.forEach(child => {
+                    contents.push(child.id);
+                })
+            })
+            list.push({
+                itemId,
+                contents,
+            })
+        })
+    })
+    return list;
+})
+
+/**
+ * 現在表示状態にあるアイテム&コンテンツ一覧を返す
+ */
+export const visibleItemsAtom = atom<ItemContent[]>((get) => {
+    const allItems = get(allItemContentListAtom);
+    const visibleDataSourceIds = get(visibleDataSourceIdsAtom);
     const filteredItems = get(filteredItemsAtom);
     if (!filteredItems) {
-        return allItems;
+        return allItems.filter(item => visibleDataSourceIds.some(vd => item.itemId.dataSourceId === vd));
     }
-    const result = {} as ItemsByDatasourceMap;
-    Object.entries(allItems).forEach(([dsId, itemMap]) => {
-        const newItemMap = {} as ItemsMap;
-        Object.entries(itemMap).forEach(([itemId, item]) => {
-            const visible = filteredItems.some(fi => isEqualId(fi.id, item.id));
-            if (visible) {
-                newItemMap[itemId] = item;
-            }
-        })
-        if (Object.values(newItemMap).length > 0) {
-            result[dsId] = newItemMap;
+    return filteredItems.map((fi): ItemContent => {
+        return {
+            itemId: fi.id,
+            contents: fi.hitContents,
         }
     })
-    return result;
 })
