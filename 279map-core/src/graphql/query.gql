@@ -168,6 +168,7 @@ query search (
     search(condition: $condition, datasourceIds: $datasourceIds) {
         id
         hitContents
+        hitItem
     }
 }
 

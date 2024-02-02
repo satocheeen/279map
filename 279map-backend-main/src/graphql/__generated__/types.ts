@@ -509,7 +509,10 @@ export type RealPointContentConfig = {
 };
 
 export type SearchHitItem = {
+  /** 当該アイテム配下の検索条件に合致するコンテンツID一覧 */
   hitContents: Array<Scalars['DataId']['output']>;
+  /** 検索条件がアイテム自体にもヒットした場合、True */
+  hitItem: Scalars['Boolean']['output'];
   id: Scalars['DataId']['output'];
 };
 
@@ -1116,6 +1119,7 @@ export type RealPointContentConfigResolvers<ContextType = any, ParentType extend
 
 export type SearchHitItemResolvers<ContextType = any, ParentType extends ResolversParentTypes['SearchHitItem'] = ResolversParentTypes['SearchHitItem']> = {
   hitContents?: Resolver<Array<ResolversTypes['DataId']>, ParentType, ContextType>;
+  hitItem?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };

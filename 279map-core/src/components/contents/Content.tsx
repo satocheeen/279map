@@ -28,12 +28,14 @@ import { Auth, ContentsDefine, GetContentDocument, GetImageUrlDocument, GetSnsPr
 import { ContentAttr } from "./types";
 import { DataId } from "../../types-common/common-types";
 import Overviewer from "./Overviewer";
+import ContentsList from "./ContentsList";
 
 type Props = {
     itemId: DataId;
     parentContentId?: DataId;
     content: ContentsDefine;
     onClick?: () => void;
+    childContentsAllshow: boolean;
 }
 /**
  * 詳細ダイアログに表示するコンテンツ。
@@ -49,14 +51,13 @@ export default function Content(props: Props) {
     const [, updateContent] = useAtom(updateContentAtom);
 
     /**
-     * 表示対象コンテンツかどうか。
-     * （フィルタが掛かっている場合に、フィルタ対象のコンテンツのみを表示する）
+     * フィルタ時にフィルタ対象外のコンテンツの場合にtrueを返す。
      */
-    const isShow = useMemo(() => {
+    const isHideContent = useMemo(() => {
         if (!filteredContentIdList) {
-            return true;
+            return false;
         }
-        return filteredContentIdList.some(target => isEqualId(target, props.content.id));
+        return !filteredContentIdList.some(target => isEqualId(target, props.content.id));
     }, [filteredContentIdList, props.content]);
 
     const urlType = useMemo(() => {
@@ -304,7 +305,7 @@ export default function Content(props: Props) {
 
     const header = useMemo(() => {
         return (
-            <div className={styles.ItemHeader}>
+            <div className={`${styles.ItemHeader} ${isHideContent ? styles.Gray : ''}`}>
                 <span className={styles.Title}>
                     {title}
                 </span>
@@ -330,7 +331,7 @@ export default function Content(props: Props) {
                 </div>
             </div>
         )
-    }, [props.content, title, onGoToAnotherMap, existAnoterMap, onDelete, onEdit, toolTipMessage, deletable, editable]);
+    }, [props.content, title, isHideContent, onGoToAnotherMap, existAnoterMap, onDelete, onEdit, toolTipMessage, deletable, editable]);
 
     const body = useMemo(() => {
         return (
@@ -363,27 +364,13 @@ export default function Content(props: Props) {
         )
     }, [dateStr, categoryTag, showProcessMessage, props.content, onImageClick]);
 
-    const children = useMemo(() => {
-        return props.content.children?.map(child => {
-            return (
-                <Content key={getMapKey(child.id)} itemId={props.itemId} parentContentId={props.content.id} content={child} />
-            )
-        })
-    }, [props.content, props.itemId]);
-
-    if (isShow) {
-        return (
-            <div className={styles.Item}>
-                {header}
-                {body}
-                {children}
-            </div>
-        )
-    } else {
-        return (
-            <>
-                {children}
-            </>
-        );
-    }
+    return (
+        <div className={styles.Item}>
+            {header}
+            {body}
+            {props.content.children &&
+                <ContentsList contents={props.content.children} allshow={props.childContentsAllshow} />
+            }
+        </div>
+    )
 }
