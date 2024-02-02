@@ -24,7 +24,7 @@ export default function HideContents(props: Props) {
                     :
                     <BsFillCaretRightFill />
                 }
-                検索条件外コンテンツ
+                検索ヒット外コンテンツ
             </div>
             {open &&
                 props.contents.map((content) => {
