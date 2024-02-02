@@ -1,11 +1,9 @@
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { Modal }  from '../common';
-import Content from './Content';
 import AddContentMenu from '../popup/AddContentMenu';
 import styles from './ContentsModal.module.scss';
-import { getMapKey } from '../../util/dataUtility';
 import { useAtom } from 'jotai';
-import { authLvAtom, currentMapKindAtom, mapDefineAtom } from '../../store/session';
+import { authLvAtom, currentMapKindAtom } from '../../store/session';
 import { compareAuth } from '../../util/CommonUtility';
 import EditItemNameModal from './EditItemNameModal';
 import PopupMenuIcon from '../popup/PopupMenuIcon';
@@ -18,7 +16,9 @@ import { clientAtom } from 'jotai-urql';
 import { Auth, ChildContentsUpdateDocument, ContentsDefine, GetContentDocument, GetContentsInItemDocument, ItemTemporaryState, MapKind, SortCondition } from '../../graphql/generated/graphql';
 import { Subscription } from 'wonka';
 import { DataId } from '../../types-common/common-types';
-import dayjs from 'dayjs';
+import ContentsList from './ContentsList';
+import { filterHittedItemIdListAtom } from '../../store/filter';
+import { isEqualId } from '../../util/dataUtility';
 
 export type Props = ({
     type: 'item' | 'content';
@@ -31,6 +31,7 @@ export default function ContentsModal(props: Props) {
     const [show, setShow] = useState(false);
     const [modalSpinner, setModalSpinner] = useAtom(modalSpinnerAtom);
     const [itemId, setItemId] = useState<DataId | undefined>();
+    const [ filterHittedItemIdList ] = useAtom(filterHittedItemIdListAtom);
 
     const [ contentsList, setContentsList ] = useState<ContentsDefine[]>([]);
 
@@ -41,6 +42,13 @@ export default function ContentsModal(props: Props) {
         return itemMap[itemId.id];
 
     }, [ allItems, itemId ]);
+
+    // フィルタ時にアイテムが条件ヒットしている場合は、配下のコンテンツは全表示
+    const isAllContentsShow = useMemo(() => {
+        if (!filterHittedItemIdList) return true;
+        if (props.type !== 'item') return true;
+        return filterHittedItemIdList.some((fi) => isEqualId(fi, props.id));
+    }, [filterHittedItemIdList, props]);
 
     const isTemporaryItem = useMemo(() => {
         if (props.type === 'content') return false;
@@ -126,28 +134,6 @@ export default function ContentsModal(props: Props) {
 
     }, [props.id, props.type, mapKind, loadContentsInItem, updateItems, setModalSpinner, gqlClient]);
 
-    const [ mapDefine ] = useAtom(mapDefineAtom);
-    const contents = useMemo((): ContentsDefine[] => {
-        const sortCondition = mapDefine.options.contentsSortCondition ?? SortCondition.CreatedAtAsc;
-        return contentsList.sort((a, b) => {
-            // TODO: 現状、コンテンツが作成日時、更新日時を持っていないので、それらのソート処理については未対応。
-            //       後日、backend側の対応が完了してから、そちらについては実装する
-            switch(sortCondition) {
-                case SortCondition.DateAsc:
-                case SortCondition.DateDesc:
-                    {
-                        if (!a.date && !b.date) return 0;
-                        if (!a.date) return 1;
-                        if (!b.date) return -1;
-                        const aVal = dayjs(a.date).valueOf();
-                        const bVal = dayjs(b.date).valueOf();
-                        return (sortCondition === SortCondition.DateAsc ? 1 : -1) * (aVal - bVal)
-                    }
-            }
-            return 0;
-        });
-    }, [contentsList, mapDefine.options])
-
     const title = useMemo(() => {
         return item?.name ?? '';
     }, [item]);
@@ -195,7 +181,7 @@ export default function ContentsModal(props: Props) {
                 </div>
             )
         }
-        if (contents.length === 0) {
+        if (contentsList.length === 0) {
             return (
                 <div className={styles.NoContentParagraph}>
                     <p>コンテンツなし</p>
@@ -206,13 +192,11 @@ export default function ContentsModal(props: Props) {
             )
         }
 
-        return contents.map((content) => {
-            return (
-                <Content key={getMapKey(content.id)} itemId={content.itemId}  content={content} />
-            )
-        })
+        return (
+            <ContentsList contents={contentsList} allshow={isAllContentsShow} />
+        );
 
-    }, [contents, props, isTemporaryItem]);
+    }, [contentsList, props, isTemporaryItem, isAllContentsShow,]);
 
     return (
         <>
@@ -226,7 +210,7 @@ export default function ContentsModal(props: Props) {
                             {title}
                         </div>
                         <div className={styles.SubMenu}>
-                            {(props.type === 'item' && contents.length > 0) &&
+                            {(props.type === 'item' && contentsList.length > 0) &&
                                 <AddContentMenu target={{itemId: props.id}} />
                             }
                             {isShowItemNameEditBtn &&

@@ -17,6 +17,18 @@ export const filteredItemIdListAtom = atom<DataId[] | undefined>(( get ) => {
 })
 
 /**
+ * アイテム自体がフィルタ条件に合致しているアイテムidを返す。
+ * フィルタ設定されていない場合は、undefined.
+ */
+export const filterHittedItemIdListAtom = atom<DataId[] | undefined>(( get ) => {
+    const filteredItems = get(filteredItemsAtom);
+    if (!filteredItems) {
+        return undefined;
+    }
+    return filteredItems.filter(fi => fi.hitItem).map(fi => fi.id);
+})
+
+/**
  * フィルタのかかっているコンテンツidを返す。
  * フィルタ設定されていない場合は、undefined.
  */
