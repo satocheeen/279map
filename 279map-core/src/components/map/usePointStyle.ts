@@ -214,7 +214,7 @@ export default function usePointStyle() {
 
         } else if (!disabledLabel) {
             // ラベル設定
-            const text = createItemNameLabel(mainFeature, resolution);
+            const text = createItemNameLabel(mainFeature, resolution, opacity);
             style.setText(text);
         }
         return style;
@@ -249,7 +249,7 @@ export default function usePointStyle() {
  * 建物名ラベルを生成して返す
  * @param feature 
  */
-function createItemNameLabel(feature: FeatureLike, resolution: number): Text {
+function createItemNameLabel(feature: FeatureLike, resolution: number, opacity: number): Text {
     // ラベル設定
     let name = (feature.getProperties().name ?? '') as string;
     if (name.length > MapStyles.Item.maxLabelLength) {
@@ -258,13 +258,15 @@ function createItemNameLabel(feature: FeatureLike, resolution: number): Text {
     }
 
     const scale = Math.min(0.002 * (1 / resolution), 1);
+    const color = '#000000' + Math.floor(255 * opacity).toString(16);
 
     const text = new Text({
         textAlign: 'center',
         textBaseline: 'middle',
         text: name,
         overflow: true,
-        backgroundFill: new Fill({ color: '#ffffffaa' }),
+        backgroundFill: new Fill({ color: '#fffa' }),
+        fill: new Fill({ color }),
         font: `${scale}rem Calibri,sans-serif`,
     });
 
