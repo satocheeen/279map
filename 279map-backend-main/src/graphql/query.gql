@@ -98,7 +98,10 @@ input Condition {
 
 type SearchHitItem {
     id: DataId!
-    hitContents: [DataId!]!  # 当該アイテム配下の検索条件に合致するコンテンツID一覧 TODO: 孫コンテンツも含める
+    "検索条件がアイテム自体にもヒットした場合、True"
+    hitItem: Boolean!
+    "当該アイテム配下の検索条件に合致するコンテンツID一覧"
+    hitContents: [DataId!]!  # TODO: 孫コンテンツも含める
 }
 
 # --------------

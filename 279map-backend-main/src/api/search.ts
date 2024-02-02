@@ -1,4 +1,4 @@
-import { CurrentMap } from "../../279map-backend-common/src";
+import { CurrentMap, schema } from "../../279map-backend-common/src";
 import { ConnectionPool } from "..";
 import { PoolConnection } from "mysql2/promise";
 import { ItemContentLink } from "../../279map-backend-common/src/types/schema";
@@ -16,7 +16,8 @@ export async function search(currentMap: CurrentMap, param: QuerySearchArgs): Pr
     try {
         await con.beginTransaction();
 
-        const hitContents: HitContent[] = []
+        const hitContents: HitContent[] = [];
+        const hitItems: DataId[] = [];
         if (param.condition.category) {
             for (const category of param.condition.category) {
                 const searchResult = await searchByCategory(con, currentMap, category, param.datasourceIds ?? undefined);
@@ -33,7 +34,11 @@ export async function search(currentMap: CurrentMap, param: QuerySearchArgs): Pr
             for (const keyword of param.condition.keyword) {
                 const searchResult = await searchByKeyword(con, currentMap, keyword, param.datasourceIds ?? undefined);
                 Array.prototype.push.apply(hitContents, searchResult);
+
+                const searchItemResult = await searchItemByKeyword(con, currentMap, keyword, param.datasourceIds ?? undefined);
+                Array.prototype.push.apply(hitItems, searchItemResult);
             }
+
         }
         // TODO: ANDで絞る
         // hitList = filterArrayByAND(hitList, searchResult, (a, b) => a.contentId.id === b.contentId.id && a.contentId.dataSourceId === b.contentId.dataSourceId);
@@ -48,7 +53,20 @@ export async function search(currentMap: CurrentMap, param: QuerySearchArgs): Pr
                 items.push({
                     id: hitRecord.itemId,
                     hitContents: [hitRecord.contentId],
+                    hitItem: false,
                 });
+            }
+        });
+        hitItems.forEach(itemId => {
+            const hitItem = items.find(item=> item.id.id === itemId.id && item.id.dataSourceId === itemId.dataSourceId);
+            if (hitItem) {
+                hitItem.hitItem = true;
+            } else {
+                items.push({
+                    id: itemId,
+                    hitContents: [],
+                    hitItem: true,
+                })
             }
         })
 
@@ -194,4 +212,33 @@ async function searchByKeyword(con: PoolConnection, currentMap: CurrentMap, keyw
         };
     });
 
+}
+
+/**
+ * 指定のキーワードを持つアイテムを返す
+ * @param con 
+ * @param currentMap 
+ * @param keyword 
+ */
+async function searchItemByKeyword(con: PoolConnection, currentMap: CurrentMap, keyword: string, dataSourceIds?: string[]): Promise<DataId[]> {
+    const sql = `
+        select * from items i 
+        inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
+        where mdl.map_page_id = ? and i.map_kind = ?
+        and name like ?
+        ${dataSourceIds ? 'and i.data_source_id in (?)' : ''}
+    `
+    const keywordParam = `%${keyword}%`;
+    const params = [currentMap.mapId, currentMap.mapKind, keywordParam] as any[];
+    if (dataSourceIds) {
+        params.push(dataSourceIds);
+    }
+    const query = con.format(sql, params);
+    const [rows] = await con.execute(query);
+    return (rows as schema.ItemsTable[]).map((item): DataId => {
+        return {
+            id: item.item_page_id,
+            dataSourceId: item.data_source_id,
+        }
+    })
 }
