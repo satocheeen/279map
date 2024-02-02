@@ -119,6 +119,10 @@ export default function TestMap() {
         });
     }, [focusItemId, focusDataSourceId]);
 
+    const handleFitAllItems = useCallback(() => {
+        mapRef.current?.fitAllItemsExtent();
+    }, []);
+
     const { token } = useContext(AuthContext);
     const mapServer = useMemo((): ServerInfo => {
         return {
@@ -281,6 +285,7 @@ export default function TestMap() {
                         <input type='text' value={focusDataSourceId} onChange={(evt) => {setFocusDataSourceId(evt.target.value)}} />
                     </label>
                     <button onClick={onFocusItem}>Focus Item</button>
+                    <button onClick={handleFitAllItems}>Fit All Item</button>
                 </div>
             </div>
             <div className={styles.Map}>

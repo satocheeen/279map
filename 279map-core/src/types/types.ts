@@ -83,6 +83,11 @@ export interface TsunaguMapHandler {
     focusItem(itemId: DataId, opts?: {zoom?: boolean}): void;
 
     /**
+     * 全アイテムが表示される範囲にフィットさせる
+     */
+    fitAllItemsExtent(): void;
+
+    /**
      * start the spte of drawing a structure (or a pin).
      * 建設または地点登録する
      */

@@ -285,10 +285,10 @@ function useFocusFilteredArea() {
     useEffect(() => {
         if (!map) return;
         if (!filteredItemIdList || filteredItemIdList.length === 0) {
-            if (prevFilteredItemIdList && prevFilteredItemIdList.length > 0) {
-                // フィルタ解除された場合、全体fit
-                fitToDefaultExtent(true);
-            }
+            // if (prevFilteredItemIdList && prevFilteredItemIdList.length > 0) {
+            //     // フィルタ解除された場合、全体fit
+            //     fitToDefaultExtent(true);
+            // }
             return;
         }
         const source = new VectorSource();

@@ -36,7 +36,7 @@ export type EventControllerHandler = Pick<TsunaguMapHandler,
 
 function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControllerHandler>) {
     const { changeMapKind } = useMapController();
-    const { focusItem } = useMap();
+    const { focusItem, fitToDefaultExtent } = useMap();
     const { updateDatasourceVisible } = useDataSource();
     const [, updateContent] = useAtom(updateContentAtom);
     const [ gqlClient ] = useAtom(clientAtom);
@@ -56,6 +56,9 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 itemId,
                 zoom: opts?.zoom,
             })
+        },
+        fitAllItemsExtent() {
+            fitToDefaultExtent(true);
         },
         async loadContentsAPI(contentIds: DataId[]): Promise<ContentsDefine[]> {
             try {
