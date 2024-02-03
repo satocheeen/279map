@@ -38,14 +38,12 @@ export default function ContentsList(props: Props) {
     const [ filteredContentIdList ] = useAtom(filteredContentIdListAtom);
     // 初期状態で表示対象のコンテンツ
     const showContents = useMemo((): ContentsDefine[] => {
-        if (props.allshow) {
-            return props.contents;
-        }
         // フィルタ時は、フィルタされているものにしぼる
-        const targets = !filteredContentIdList ? props.contents : props.contents.filter(content => {
+        const targets = (!filteredContentIdList || props.allshow) ? props.contents : props.contents.filter(content => {
             return filteredContentIdList.some(target => isEqualId(target, content.id));
         });
-        return targets.sort(comparater)
+        const list = targets.sort(comparater)
+        return list;
     }, [props.contents, filteredContentIdList, comparater, props.allshow])
 
     // 初期状態で非表示のコンテンツ（フィルタ対象外のもの）
