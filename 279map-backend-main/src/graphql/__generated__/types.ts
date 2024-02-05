@@ -51,6 +51,25 @@ export type Condition = {
   keyword?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
+export enum ConnectErrorType {
+  /** ユーザのtokenが有効切れの場合 */
+  Forbidden = 'Forbidden',
+  /** その他接続エラー */
+  IllegalError = 'IllegalError',
+  /** アクセス権限のない地図にユーザがアクセスしようとした場合 */
+  NoAuthenticate = 'NoAuthenticate',
+  /** 編集権限を持たないユーザが編集権限の必要なAPIを実行しようとした場合 */
+  OperationForbidden = 'OperationForbidden',
+  /** アクセス権限のない地図に登録申請中の場合 */
+  Requesting = 'Requesting',
+  /** セッションタイムアウト時 */
+  SessionTimeout = 'SessionTimeout',
+  /** 地図が認証必要だが、ユーザがtokenを持たない場合（＝ログインが必要な場合） */
+  Unauthorized = 'Unauthorized',
+  /** 指定の地図が存在しない場合 */
+  UndefinedMap = 'UndefinedMap'
+}
+
 export type ConnectInfo = {
   authLv: Auth;
   sid: Scalars['String']['output'];
@@ -130,23 +149,18 @@ export enum DatasourceKindType {
   Track = 'Track'
 }
 
+export type ErrorInfo = {
+  /** エラー詳細 */
+  description?: Maybe<Scalars['String']['output']>;
+  /** 特定のアイテムに紐づくエラーの場合、アイテムID */
+  itemId?: Maybe<Scalars['DataId']['output']>;
+  /** エラー種別 */
+  type: ErrorType;
+};
+
 export enum ErrorType {
-  /** ユーザのtokenが有効切れの場合 */
-  Forbidden = 'Forbidden',
-  /** その他接続エラー */
-  IllegalError = 'IllegalError',
-  /** アクセス権限のない地図にユーザがアクセスしようとした場合 */
-  NoAuthenticate = 'NoAuthenticate',
-  /** 編集権限を持たないユーザが編集権限の必要なAPIを実行しようとした場合 */
-  OperationForbidden = 'OperationForbidden',
-  /** アクセス権限のない地図に登録申請中の場合 */
-  Requesting = 'Requesting',
-  /** セッションタイムアウト時 */
-  SessionTimeout = 'SessionTimeout',
-  /** 地図が認証必要だが、ユーザがtokenを持たない場合（＝ログインが必要な場合） */
-  Unauthorized = 'Unauthorized',
-  /** 指定の地図が存在しない場合 */
-  UndefinedMap = 'UndefinedMap'
+  /** アイテム登録に失敗した場合 */
+  RegistItemFailed = 'RegistItemFailed'
 }
 
 export type EventContent = {
@@ -174,10 +188,6 @@ export enum GeocoderTarget {
 export type GetUnpointContentsResult = {
   contents: Array<UnpointContent>;
   nextToken?: Maybe<Scalars['String']['output']>;
-};
-
-export type Hoge = {
-  message: Scalars['String']['output'];
 };
 
 export type IconDefine = {
@@ -551,6 +561,11 @@ export enum SortCondition {
 export type Subscription = {
   /** 指定のアイテム配下のコンテンツに変更（登録・更新・削除）があった場合 */
   childContentsUpdate?: Maybe<Scalars['Boolean']['output']>;
+  /**
+   * ユーザが操作している地図でエラーが発生した場合にエラー内容を通知する。
+   * 突き放し実行している登録、更新処理でエラー発生した場合に通知するために用意。
+   */
+  error: ErrorInfo;
   /** 地図上のアイテムが削除された場合に通知する */
   itemDelete: Array<Scalars['DataId']['output']>;
   /** 地図上にアイテムが追加された場合に通知する */
@@ -559,7 +574,6 @@ export type Subscription = {
   itemUpdate: Array<Target>;
   /** 地図定義に変更があった場合 */
   mapInfoUpdate?: Maybe<Scalars['Boolean']['output']>;
-  test: Hoge;
   /** ユーザ権限に更新があった場合 */
   updateUserAuth?: Maybe<Scalars['Boolean']['output']>;
   /** ユーザ一覧情報が更新された場合 */
@@ -569,6 +583,11 @@ export type Subscription = {
 
 export type SubscriptionChildContentsUpdateArgs = {
   itemId: Scalars['DataId']['input'];
+};
+
+
+export type SubscriptionErrorArgs = {
+  sid: Scalars['String']['input'];
 };
 
 
@@ -736,6 +755,7 @@ export type ResolversTypes = {
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   CategoryDefine: ResolverTypeWrapper<CategoryDefine>;
   Condition: Condition;
+  ConnectErrorType: ConnectErrorType;
   ConnectInfo: ResolverTypeWrapper<ConnectInfo>;
   ConnectResult: ResolverTypeWrapper<ConnectResult>;
   ContentConfig: ResolverTypeWrapper<ContentConfig>;
@@ -748,6 +768,7 @@ export type ResolversTypes = {
   DatasourceGroup: ResolverTypeWrapper<DatasourceGroup>;
   DatasourceInfo: ResolverTypeWrapper<Omit<DatasourceInfo, 'config'> & { config: ResolversTypes['DatasourceConfig'] }>;
   DatasourceKindType: DatasourceKindType;
+  ErrorInfo: ResolverTypeWrapper<ErrorInfo>;
   ErrorType: ErrorType;
   EventContent: ResolverTypeWrapper<EventContent>;
   EventDefine: ResolverTypeWrapper<EventDefine>;
@@ -758,7 +779,6 @@ export type ResolversTypes = {
   GeocoderTarget: GeocoderTarget;
   Geometry: ResolverTypeWrapper<Scalars['Geometry']['output']>;
   GetUnpointContentsResult: ResolverTypeWrapper<GetUnpointContentsResult>;
-  Hoge: ResolverTypeWrapper<Hoge>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   IconDefine: ResolverTypeWrapper<IconDefine>;
   IconKey: ResolverTypeWrapper<Scalars['IconKey']['output']>;
@@ -816,6 +836,7 @@ export type ResolversParentTypes = {
   DatasourceConfig: ResolversUnionTypes<ResolversParentTypes>['DatasourceConfig'];
   DatasourceGroup: DatasourceGroup;
   DatasourceInfo: Omit<DatasourceInfo, 'config'> & { config: ResolversParentTypes['DatasourceConfig'] };
+  ErrorInfo: ErrorInfo;
   EventContent: EventContent;
   EventDefine: EventDefine;
   Float: Scalars['Float']['output'];
@@ -824,7 +845,6 @@ export type ResolversParentTypes = {
   GeocoderItem: GeocoderItem;
   Geometry: Scalars['Geometry']['output'];
   GetUnpointContentsResult: GetUnpointContentsResult;
-  Hoge: Hoge;
   ID: Scalars['ID']['output'];
   IconDefine: IconDefine;
   IconKey: Scalars['IconKey']['output'];
@@ -944,6 +964,13 @@ export type DatasourceInfoResolvers<ContextType = any, ParentType extends Resolv
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type ErrorInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['ErrorInfo'] = ResolversParentTypes['ErrorInfo']> = {
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  itemId?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType>;
+  type?: Resolver<ResolversTypes['ErrorType'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type EventContentResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventContent'] = ResolversParentTypes['EventContent']> = {
   date?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
@@ -978,11 +1005,6 @@ export interface GeometryScalarConfig extends GraphQLScalarTypeConfig<ResolversT
 export type GetUnpointContentsResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['GetUnpointContentsResult'] = ResolversParentTypes['GetUnpointContentsResult']> = {
   contents?: Resolver<Array<ResolversTypes['UnpointContent']>, ParentType, ContextType>;
   nextToken?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type HogeResolvers<ContextType = any, ParentType extends ResolversParentTypes['Hoge'] = ResolversParentTypes['Hoge']> = {
-  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1143,11 +1165,11 @@ export type SnsPreviewResultResolvers<ContextType = any, ParentType extends Reso
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
   childContentsUpdate?: SubscriptionResolver<Maybe<ResolversTypes['Boolean']>, "childContentsUpdate", ParentType, ContextType, RequireFields<SubscriptionChildContentsUpdateArgs, 'itemId'>>;
+  error?: SubscriptionResolver<ResolversTypes['ErrorInfo'], "error", ParentType, ContextType, RequireFields<SubscriptionErrorArgs, 'sid'>>;
   itemDelete?: SubscriptionResolver<Array<ResolversTypes['DataId']>, "itemDelete", ParentType, ContextType, RequireFields<SubscriptionItemDeleteArgs, 'mapId' | 'mapKind'>>;
   itemInsert?: SubscriptionResolver<Array<ResolversTypes['Target']>, "itemInsert", ParentType, ContextType, RequireFields<SubscriptionItemInsertArgs, 'mapId' | 'mapKind'>>;
   itemUpdate?: SubscriptionResolver<Array<ResolversTypes['Target']>, "itemUpdate", ParentType, ContextType, RequireFields<SubscriptionItemUpdateArgs, 'mapId' | 'mapKind'>>;
   mapInfoUpdate?: SubscriptionResolver<Maybe<ResolversTypes['Boolean']>, "mapInfoUpdate", ParentType, ContextType, RequireFields<SubscriptionMapInfoUpdateArgs, 'mapId'>>;
-  test?: SubscriptionResolver<ResolversTypes['Hoge'], "test", ParentType, ContextType>;
   updateUserAuth?: SubscriptionResolver<Maybe<ResolversTypes['Boolean']>, "updateUserAuth", ParentType, ContextType, RequireFields<SubscriptionUpdateUserAuthArgs, 'mapId' | 'userId'>>;
   userListUpdate?: SubscriptionResolver<Maybe<ResolversTypes['Boolean']>, "userListUpdate", ParentType, ContextType, RequireFields<SubscriptionUserListUpdateArgs, 'mapId'>>;
 };
@@ -1207,6 +1229,7 @@ export type Resolvers<ContextType = any> = {
   DatasourceConfig?: DatasourceConfigResolvers<ContextType>;
   DatasourceGroup?: DatasourceGroupResolvers<ContextType>;
   DatasourceInfo?: DatasourceInfoResolvers<ContextType>;
+  ErrorInfo?: ErrorInfoResolvers<ContextType>;
   EventContent?: EventContentResolvers<ContextType>;
   EventDefine?: EventDefineResolvers<ContextType>;
   GeoProperties?: GraphQLScalarType;
@@ -1214,7 +1237,6 @@ export type Resolvers<ContextType = any> = {
   GeocoderItem?: GeocoderItemResolvers<ContextType>;
   Geometry?: GraphQLScalarType;
   GetUnpointContentsResult?: GetUnpointContentsResultResolvers<ContextType>;
-  Hoge?: HogeResolvers<ContextType>;
   IconDefine?: IconDefineResolvers<ContextType>;
   IconKey?: GraphQLScalarType;
   ItemConfig?: ItemConfigResolvers<ContextType>;

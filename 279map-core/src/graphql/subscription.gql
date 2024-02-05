@@ -1,9 +1,3 @@
-subscription test {
-    test {
-        message
-    }
-}
-
 # 地図上にアイテムが追加された場合に通知を受け取る
 subscription itemInsert (
     $mapId: String!
@@ -61,4 +55,14 @@ subscription mapInfoUpdate (
     $mapId: String!
 ) {
     mapInfoUpdate(mapId: $mapId)
+}
+
+subscription error (
+    $sid: String!
+) {
+    error(sid: $sid) {
+        type
+        description
+        itemId
+    }
 }

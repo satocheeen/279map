@@ -15,7 +15,7 @@ enum MapKind {
     Virtual
 }
 
-enum ErrorType {
+enum ConnectErrorType {
     "指定の地図が存在しない場合"
     UndefinedMap
     "地図が認証必要だが、ユーザがtokenを持たない場合（＝ログインが必要な場合）"

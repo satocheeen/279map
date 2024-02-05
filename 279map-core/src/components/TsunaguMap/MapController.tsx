@@ -17,7 +17,7 @@ import { filteredItemIdListAtom } from '../../store/filter';
 import VectorSource from 'ol/source/Vector';
 import useMyMedia from '../../util/useMyMedia';
 import { useWatch } from '../../util/useWatch2';
-import { ItemDeleteDocument, ItemInsertDocument, ItemUpdateDocument, MapInfoUpdateDocument, MapKind, TestDocument } from '../../graphql/generated/graphql';
+import { ItemDeleteDocument, ItemInsertDocument, ItemUpdateDocument, MapInfoUpdateDocument, MapKind } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import { ItemInfo } from '../../types/types';
 
@@ -74,9 +74,6 @@ function useMapInitializer() {
     useEffect(() => {
         if (!currentMapKind) return;
         console.log('start subscribe');
-        urqlClient.subscription(TestDocument, {}).subscribe((val) => {
-            console.log('subscribe test', val);
-        })
 
         const h1 = urqlClient.subscription(ItemInsertDocument, { mapId, mapKind: currentMapKind }).subscribe((val) => {
             const targets = val.data?.itemInsert;

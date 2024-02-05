@@ -32,7 +32,7 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { IFieldResolverOptions } from '@graphql-tools/utils';
-import { Auth, ConnectInfo, ContentsDefine, DatasourceConfig, DatasourceKindType, ErrorType, MapDefine, MapKind, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, ThumbSize } from './graphql/__generated__/types';
+import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, DatasourceConfig, DatasourceKindType, ErrorType, MapDefine, MapKind, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, ThumbSize } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType, GeoPropertiesScalarType, GeocoderIdInfoScalarType, IconKeyScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -178,17 +178,17 @@ const authenticateErrorProcess = (err: Error, req: Request, res: Response, next:
     apiLogger.warn('connect error', err, req.headers.authorization);
     if (err.name === 'Unauthenticated') {
         res.status(401).send({
-            type: ErrorType.Unauthorized,
+            type: ConnectErrorType.Unauthorized,
             detail: err.message,
         });
     } else if (err.name === 'Bad Request') {
         res.status(400).send({
-            type: ErrorType.IllegalError,
+            type: ConnectErrorType.IllegalError,
             detail: err.message,
         });
     } else {
         res.status(403).send({
-            type: ErrorType.Forbidden,
+            type: ConnectErrorType.Forbidden,
             detail: err.message + err.stack,
         });
     }
@@ -203,7 +203,7 @@ const sessionCheckFunc = async(req: Request) => {
     const sessionKey = req.headers.sessionid;
     if (!sessionKey || typeof sessionKey !== 'string') {
         throw new CustomError({
-            type: ErrorType.IllegalError,
+            type: ConnectErrorType.IllegalError,
             message: 'no sessionid in headers',
         })
     }
@@ -212,7 +212,7 @@ const sessionCheckFunc = async(req: Request) => {
     const session = sessionManager.get(sessionKey);
     if (!session) {
         throw new CustomError({
-            type: ErrorType.SessionTimeout,
+            type: ConnectErrorType.SessionTimeout,
             message: 'session timeout',
         })
     }
@@ -228,7 +228,7 @@ const sessionCheckFunc = async(req: Request) => {
 const checkGraphQlAuthLv = async(operationName: string, userAuthInfo: UserAuthInfo) => {
     if (!(operationName in authDefine)) {
         throw new CustomError({
-            type: ErrorType.IllegalError,
+            type: ConnectErrorType.IllegalError,
             message: 'illegal operationName: ' + operationName,
         })
     }
@@ -262,7 +262,7 @@ const checkGraphQlAuthLv = async(operationName: string, userAuthInfo: UserAuthIn
     }();
     if (!userAuthLv || !allowAuthList.includes(userAuthLv)) {
         throw new CustomError({
-            type: ErrorType.NoAuthenticate,
+            type: ConnectErrorType.NoAuthenticate,
             message: 'user does not have authentication.'
         })
     }
@@ -638,7 +638,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     const mapInfo = await getMapInfoById(param.mapId);
                     if (mapInfo === null) {
                         throw new CustomError({
-                            type: ErrorType.UndefinedMap,
+                            type: ConnectErrorType.UndefinedMap,
                             message: 'mapId is not found : ' + param.mapId,
                         });
                     }
@@ -647,7 +647,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     if (userAccessInfo.authLv === undefined && userAccessInfo.guestAuthLv === Auth.None) {
                         // ログインが必要な地図の場合
                         throw new CustomError({
-                            type: ErrorType.Unauthorized,
+                            type: ConnectErrorType.Unauthorized,
                             message: 'need login',
                         });
                     }
@@ -655,7 +655,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     if (userAccessInfo.authLv === Auth.None && userAccessInfo.guestAuthLv === Auth.None) {
                         // 権限なしエラーを返却
                         throw new CustomError({
-                            type: ErrorType.NoAuthenticate,
+                            type: ConnectErrorType.NoAuthenticate,
                             message: 'this user does not have authentication' + userAccessInfo.userId,
                             userId: userAccessInfo.userId,
                         })
@@ -663,7 +663,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     if (userAccessInfo.authLv === Auth.Request && userAccessInfo.guestAuthLv === Auth.None) {
                         // 承認待ちエラーを返却
                         throw new CustomError({
-                            type: ErrorType.Requesting,
+                            type: ConnectErrorType.Requesting,
                             message: 'requesting',
                             userId: userAccessInfo.userId,
                         })
@@ -764,7 +764,12 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         ])
                     }).catch(e => {
                         apiLogger.warn('callOdba-registItem error', e);
-                        // TODO: フロントエンドにエラーメッセージ表示
+                        // フロントエンドにエラーメッセージ表示
+                        pubsub.publish('error', {
+                            sid: session.sid,
+                        }, {
+                            type: ErrorType.RegistItemFailed,
+                        })
 
                         // メモリから除去
                         session.removeTemporaryItem(tempID);
@@ -1112,7 +1117,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     const mapInfo = await getMapInfoById(queryMapId);
                     if (mapInfo === null) {
                         throw new CustomError({
-                            type: ErrorType.UndefinedMap,
+                            type: ConnectErrorType.UndefinedMap,
                             message: 'mapId is not found : ' + queryMapId,
                         })
                     }
@@ -1192,12 +1197,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             },
         } as MutationResolver,
         Subscription: {
-            test: {
-                resolve: (payload) => payload,
-                subscribe: (_, args) =>  {
-                    return pubsub.asyncIterator('test', {});
-                }
-            },
             itemInsert: {
                 resolve: (payload) => payload,
                 subscribe: (_, args: SubscriptionArgs<'itemInsert'>) => {
@@ -1238,6 +1237,12 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 resolve: (payload) => payload,
                 subscribe: (_, args: SubscriptionArgs<'mapInfoUpdate'>) => {
                     return pubsub.asyncIterator('mapInfoUpdate', args);
+                }
+            },
+            error: {
+                resolve: (payload) => payload,
+                subscribe: (_, args: SubscriptionArgs<'error'>) => {
+                    return pubsub.asyncIterator('error', args);
                 }
             }
         }as Record<keyof Subscription, IFieldResolverOptions<any, GraphQlContextType, any>>,
@@ -1320,7 +1325,7 @@ const apolloServer = new ApolloServer({
         const mapPageInfo = await getMapPageInfo(session.currentMap.mapId);
         if (!mapPageInfo) {
             throw new CustomError({
-                type: ErrorType.UndefinedMap,
+                type: ConnectErrorType.UndefinedMap,
                 message: 'map not found'
             })
         }
@@ -1330,7 +1335,7 @@ const apolloServer = new ApolloServer({
             // 未ログインの場合は、ゲストユーザ権限があるか確認
             if (!userAuthInfo) {
                 throw new CustomError({
-                    type: ErrorType.Unauthorized,
+                    type: ConnectErrorType.Unauthorized,
                     message: 'Unauthenticated.this map is private, please login.',
                 })
             }        
