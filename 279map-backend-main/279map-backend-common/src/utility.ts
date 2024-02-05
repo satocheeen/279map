@@ -41,7 +41,13 @@ type GetImageBase64Option = {
     fit?: 'cover' | 'contain';
 }
 
-export async function getImageBase64(url: string, option: GetImageBase64Option): Promise<ImageInfo> {
+/**
+ * 指定のURL画像をBase64に変換して返す。また、併せて、GPS情報も取得する。
+ * @param url 
+ * @param option 
+ * @returns Base64。画像取得に失敗した場合は、undefined。
+ */
+export async function getImageBase64(url: string, option: GetImageBase64Option): Promise<ImageInfo|undefined> {
     try {
         const response = (await axios({ url, responseType: "arraybuffer" }));
         const input = response.data as ArrayBuffer;
@@ -66,7 +72,6 @@ export async function getImageBase64(url: string, option: GetImageBase64Option):
                 } : undefined;
 
             } catch(e) {
-                console.warn('getImageBase64 error', url, e);
                 return;
             }
         }();
@@ -77,9 +82,6 @@ export async function getImageBase64(url: string, option: GetImageBase64Option):
         };
 
     } catch(e) {
-        console.warn('getImageBase64 error', url, e);
-        return {
-            base64: ''
-        };
+        return;
     }
 }

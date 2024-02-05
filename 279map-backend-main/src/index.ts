@@ -503,6 +503,9 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                              size: { width: 500, height: 500},
                              fit: 'cover',
                         });
+                        if (!image) {
+                            throw new Error('getImageBase64 failed');
+                        }
 
                         return image.base64;
 

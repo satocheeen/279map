@@ -73,7 +73,7 @@ export async function updateSnsContents(mapPageId: string, content_id?: string) 
                         const imageInfo = await getImageBase64(post.media.url, {
                             size: { width: 300, height: 300 },
                         });
-                        thumbnail = imageInfo.base64;
+                        thumbnail = imageInfo?.base64;
                     }
                     let index = post.text.indexOf('\n');
                     if (index > 20) {
