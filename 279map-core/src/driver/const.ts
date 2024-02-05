@@ -1,4 +1,4 @@
-export const mapId = 'test';
+export const mapId = 'sample';
 export const myToken = undefined;
 export const myMapServer = {
     host: 'localhost',

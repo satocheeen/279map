@@ -1,16 +1,35 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import Overlay from '../common/spinner/Overlay';
 import { useAtom } from 'jotai';
-import { isShowOverlayAtom, isShowSpinnerAtom, processMessageAtom } from '../common/spinner/atoms';
+import { processMessagesAtom } from '../common/spinner/useProcessMessage';
 
 /**
  * 地図の上にスピナーやメッセージをオーバーレイ表示するためのコンポーネント
  */
 export default function ProcessOverlay() {
-    const [isShowOverlay] = useAtom(isShowOverlayAtom);
-    const [isShowSpinner] = useAtom(isShowSpinnerAtom);
-    const [processMessage] = useAtom(processMessageAtom);
+    const [ processMessages ] = useAtom(processMessagesAtom);
 
+    /**
+     * オーバーレイ表示するかどうか
+     */
+    const isShowOverlay = useMemo(() => {
+        return processMessages.some(pm => pm.overlay);
+    }, [processMessages]);
+
+    /**
+     * スピナー表示するかどうか
+     */
+    const isShowSpinner = useMemo(() => {
+        return processMessages.some(pm => pm.spinner);
+    }, [processMessages]);
+
+    /**
+     * 表示するメッセージ。メッセージが存在しない場合は、undefined。
+     */
+    const processMessage = useMemo(() => {
+        return processMessages.find(pm => pm.message);
+    }, [processMessages]);
+    
     return (
         <Overlay
             spinner={isShowSpinner}
