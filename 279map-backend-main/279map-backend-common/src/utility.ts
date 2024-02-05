@@ -54,20 +54,30 @@ export async function getImageBase64(url: string, option: GetImageBase64Option):
         }).toBuffer();
     
         const base64 = buff.toString('base64');
-    
-        const tags = ExifReader.load(input);
-        const latitude = Number(tags.GPSLatitude?.description);
-        const longitude = Number(tags.GPSLongitude?.description);
+
+        const gps = function() {
+            try {
+                const tags = ExifReader.load(input);
+                const latitude = Number(tags.GPSLatitude?.description);
+                const longitude = Number(tags.GPSLongitude?.description);
+
+                return latitude && longitude ? {
+                    latitude, longitude
+                } : undefined;
+
+            } catch(e) {
+                console.warn('getImageBase64 error', url, e);
+                return;
+            }
+        }();
     
         return {
             base64: (format ? format + ';' : '') + 'base64,' + base64,
-            gps: latitude && longitude ? {
-                latitude, longitude
-            } : undefined,
+            gps,
         };
 
     } catch(e) {
-        console.warn('getImageBase64 error', url);
+        console.warn('getImageBase64 error', url, e);
         return {
             base64: ''
         };
