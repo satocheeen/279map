@@ -730,7 +730,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     return result;
 
                 } catch(e) {    
-                    apiLogger.warn(e);
+                    apiLogger.warn('switchMapKind error', e);
                     throw e;
                 }
             },

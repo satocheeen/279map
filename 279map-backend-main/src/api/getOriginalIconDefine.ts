@@ -19,8 +19,9 @@ export async function getOriginalIconDefine(currentMap: CurrentMap): Promise<Ico
         const [rows] = await con.execute(sql, [pageId]);
 
 
-        const icons = await Promise.all((rows as OriginalIconsTable[]).map(async(row): Promise<IconDefine> => {
+        const icons = await Promise.all((rows as OriginalIconsTable[]).map(async(row): Promise<IconDefine|undefined> => {
             const base64 = await getIcon({id: row.icon_page_id});
+            if (!base64) return;
             return {
                 id: row.icon_page_id,
                 caption: row.caption,
@@ -29,7 +30,7 @@ export async function getOriginalIconDefine(currentMap: CurrentMap): Promise<Ico
             }
         }));
 
-        return icons;
+        return icons.filter(icon => icon) as IconDefine[];
 
     } finally {
         await con.rollback();

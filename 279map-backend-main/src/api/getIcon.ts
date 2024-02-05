@@ -6,8 +6,9 @@ const logger = getLogger();
 /**
  * 指定のidのアイコン画像Base64を返す
  * @param pageId 
+ * @return アイコン画像Base64。存在しない場合、undefined
  */
-export async function getIcon(param: {id: string}): Promise<string> {
+export async function getIcon(param: {id: string}): Promise<string|undefined> {
     let pageId = param.id;
     if (pageId.endsWith('/')) {
         pageId = pageId.substring(0, pageId.length-1);
@@ -21,18 +22,20 @@ export async function getIcon(param: {id: string}): Promise<string> {
         const [rows] = await con.execute(sql, [pageId]);
 
         if ((rows as any[]).length === 0) {
-            throw 'not found';
+            logger.warn('base64 not found');
+            return;
         }
         const record = (rows as {base64: string}[])[0];
         if (!record.base64) {
-            throw 'not found';
+            logger.warn('base64 not found');
+            return;
         }
         return record.base64;
 
     } catch(e) {
         logger.warn(e);
         await con.rollback();
-        throw e;
+        return;
 
     } finally {
         await con.commit();
