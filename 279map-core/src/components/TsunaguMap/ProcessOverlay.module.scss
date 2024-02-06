@@ -1,0 +1,17 @@
+.ErrorContainer {
+    background-color: #fffa;
+    color: var(--black);
+
+    p {
+        margin: 0;
+    }
+
+    button {
+        background: unset;
+        border: 0;
+        text-decoration: underline;        
+        vertical-align: middle;
+        color: var(--primary-color);
+        cursor: pointer;
+    }
+}

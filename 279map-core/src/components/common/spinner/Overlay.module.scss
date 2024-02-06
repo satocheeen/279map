@@ -7,7 +7,7 @@ $spinnerSize: 36px;
 }
 
 .Message {
-    color: #555;
+    color: #fffa;
 }
 .Overlay {
     position: absolute;
@@ -36,10 +36,14 @@ $spinnerSize: 36px;
     position: absolute;
     top: 10px;
     right: 10px;
-    display: flex;
-    align-items: center;
+
+    .ProcessArea {
+        display: flex;
+        align-items: center;
+    }
 
     .Message {
+        margin: 0;
         margin-left: 10px;
     }
 }

@@ -28,6 +28,7 @@ export type TemporaryItem = {
     status: 'registing';
     item: Pick<ItemInfo, 'geoJson' | 'geoProperties'>;
     datasourceId: string;
+    error?: boolean;    // 処理失敗時にtrue
 }
 export const temporaryItemsAtom = atom<TemporaryItem[]>([]);
 
