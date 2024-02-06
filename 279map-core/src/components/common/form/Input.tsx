@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import styles from './Input.module.scss';
 
-export default function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
+type Props = React.ComponentPropsWithRef<'input'>;
+export default function Input(props: Props) {
     const className = useMemo(() => {
         // eslint-disable-next-line react/prop-types
         const originalClassName = props.className ?? '' as string;
