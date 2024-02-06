@@ -23,7 +23,10 @@ export default function InputImageUrlForm(props: Props) {
         setUrl(url);
     }, []);
 
-    const onLoad = useCallback(() => {
+    const onLoad = useCallback((evt: React.MouseEvent) => {
+        // なぜか、取込ボタンクリック後にルートパスへの遷移によるリロードが走ってしまうので、preventDefaultしてる
+        evt.preventDefault();
+
         setErrMsg('');
         const img = imageUtility.createImageForLoad({
             callback: (image: ImageInfo) => {
