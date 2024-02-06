@@ -744,65 +744,67 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 try {
                     // メモリに仮登録
                     const session = ctx.session;
-                    const tempID = session.addTemporaryRegistItem(ctx.currentMap, param);
+                    // const tempID = session.addTemporaryRegistItem(ctx.currentMap, param);
                 
                     const wkt = geojsonToWKT(param.geometry);
                     // call ODBA
-                    callOdbaApi(OdbaRegistItemAPI, {
+                    const id = await callOdbaApi(OdbaRegistItemAPI, {
                         currentMap: ctx.currentMap,
                         dataSourceId: param.datasourceId,
                         name: param.name ?? undefined,
                         geometry: param.geometry,
                         geoProperties: param.geoProperties,
-                    }).then(async(id) => {
-                        // 更新通知
-                        pubsub.publish('itemInsert', ctx.currentMap, [
-                            {
-                                id,
-                                wkt,
-                            }
-                        ])
-                    }).catch(e => {
-                        apiLogger.warn('callOdba-registItem error', e);
-                        // フロントエンドにエラーメッセージ表示
-                        pubsub.publish('error', {
-                            sid: session.sid,
-                        }, {
-                            type: ErrorType.RegistItemFailed,
-                        })
-
-                        // メモリから除去
-                        session.removeTemporaryItem(tempID);
-                        // 仮アイテム削除通知
-                        pubsub.publish('itemDelete', ctx.currentMap, [
-                            {
-                                id: tempID,
-                                dataSourceId: param.datasourceId,
-                            }                            
-                        ])
-                    }).finally(() => {
-                        // メモリから除去
-                        session.removeTemporaryItem(tempID);
-
-                        // 仮アイテム削除通知
-                        pubsub.publish('itemDelete', ctx.currentMap, [
-                            {
-                                id: tempID,
-                                dataSourceId: param.datasourceId,
-                            }
-                        ])
-                    })
-
-                    // 仮アイテム描画させるための通知
+                    });
+                    // 更新通知
                     pubsub.publish('itemInsert', ctx.currentMap, [
                         {
-                            id: {
-                                id: tempID,
-                                dataSourceId: param.datasourceId,
-                            },
+                            id,
                             wkt,
                         }
                     ])
+                    // TODO: コメントアウト部分の整理
+                    // error
+                        // apiLogger.warn('callOdba-registItem error', e);
+                        // // フロントエンドにエラーメッセージ表示
+                        // pubsub.publish('error', {
+                        //     sid: session.sid,
+                        // }, {
+                        //     type: ErrorType.RegistItemFailed,
+                        // })
+
+                        // // メモリから除去
+                        // session.removeTemporaryItem(tempID);
+                        // // 仮アイテム削除通知
+                        // pubsub.publish('itemDelete', ctx.currentMap, [
+                        //     {
+                        //         id: tempID,
+                        //         dataSourceId: param.datasourceId,
+                        //     }                            
+                        // ])
+
+                    // }).finally(() => {
+                        // // メモリから除去
+                        // session.removeTemporaryItem(tempID);
+
+                        // // 仮アイテム削除通知
+                        // pubsub.publish('itemDelete', ctx.currentMap, [
+                        //     {
+                        //         id: tempID,
+                        //         dataSourceId: param.datasourceId,
+                        //     }
+                        // ])
+                    // })
+
+                    // 仮アイテム描画させるための通知
+                    // pubsub.publish('itemInsert', ctx.currentMap, [
+                    //     {
+                    //         id: {
+                    //             id: tempID,
+                    //             dataSourceId: param.datasourceId,
+                    //         },
+                    //         wkt,
+                    //     }
+                    // ])
 
                     return true;
 

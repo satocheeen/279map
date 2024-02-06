@@ -3,6 +3,7 @@ import { ItemContent, ItemInfo } from '../../types/types';
 import { filteredItemsAtom } from '../filter';
 import { DataId } from '../../entry';
 import { visibleDataSourceIdsAtom } from '../datasource';
+import { ItemTemporaryState } from '../../graphql/generated/graphql';
 
 export type LoadedItemKey = {
     datasourceId: string;
@@ -17,7 +18,49 @@ export const loadedItemMapAtom = atom<LoadedItemMap>({});
 
 export type ItemsMap = {[itemId: string]: ItemInfo};
 export type ItemsByDatasourceMap = {[dsId: string]: ItemsMap};
-export const allItemsAtom = atom({} as ItemsByDatasourceMap);
+
+// バックエンドから取得したアイテム情報
+export const storedItemsAtom = atom({} as ItemsByDatasourceMap);
+
+// 登録・更新・削除処理中のアイテム
+export type TemporaryItem = {
+    tempId: string;     // 一次処理中ID
+    status: 'registing';
+    item: Pick<ItemInfo, 'geoJson' | 'geoProperties'>;
+    datasourceId: string;
+}
+export const temporaryItemsAtom = atom<TemporaryItem[]>([]);
+
+export const allItemsAtom = atom<ItemsByDatasourceMap>((get) => {
+    const storedItems = get(storedItemsAtom);
+    const temporaryItems = get(temporaryItemsAtom);
+
+    const result = structuredClone(storedItems);
+    temporaryItems.forEach(tempItem => {
+        if (tempItem.status === 'registing') {
+            const item: ItemInfo = {
+                id: {
+                    id: tempItem.tempId,
+                    dataSourceId: tempItem.datasourceId,
+                },
+                geoJson: tempItem.item.geoJson,
+                geoProperties: tempItem.item.geoProperties,
+                name: '',
+                contents: [],
+                hasContents: false,
+                hasImageContentId: [],
+                lastEditedTime: '',
+                temporary: ItemTemporaryState.Registing,
+            }
+            if (!result[tempItem.datasourceId]) {
+                result[tempItem.datasourceId] = {};
+            }
+            result[tempItem.datasourceId][tempItem.tempId] = item;
+        }
+    })
+
+    return result;
+});
 
 /**
  * データソース単位の取得済みアイテムの最終更新日時

@@ -1,5 +1,5 @@
 import React, { useRef, useMemo, useContext, useEffect, lazy, Suspense, useState } from 'react';
-import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
+import { allItemsAtom, loadedItemMapAtom, storedItemsAtom } from '../../store/item';
 import { currentMapDefineAtom, currentMapKindAtom, isWorldMapAtom, mapDefineReducerAtom } from '../../store/session';
 import { atom, useAtom } from 'jotai';
 import { useItems } from '../../store/item/useItems';
@@ -120,7 +120,8 @@ export const initialLoadingAtom = atom(false);
  */
 function useItemUpdater() {
     const { map, fitToDefaultExtent } = useMap();
-    const [ itemMap, setItemMap ] = useAtom(allItemsAtom);
+    const [ , setStoredItems ] = useAtom(storedItemsAtom);
+    const [ itemMap ] = useAtom(allItemsAtom);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
     const [ itemDatasourceGroups ] = useAtom(itemDataSourceGroupsAtom);
@@ -140,7 +141,7 @@ function useItemUpdater() {
         if (!map || !currentMapKind) return;
         if (initializedMapKind ===  currentMapKind) return;
 
-        setItemMap({});
+        setStoredItems({});
 
         // 現在のレイヤ、データソースを削除
         map.clearAllLayers();

@@ -18,6 +18,7 @@ import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
 import { GeocoderTarget, MapKind, RegistItemDocument } from '../../../../graphql/generated/graphql';
 import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
+import useTemporaryItem from '../../../../store/item/useTemporaryItem';
 
 type Props = {
     dataSourceId: string;   // 作図対象のデータソース
@@ -119,36 +120,52 @@ export default function DrawStructureController(props: Props) {
     }, [startDrawing]);
 
     const [ gqlClient ] = useAtom(clientAtom);
+    const { addTemporaryItem, removeTemporaryItem } = useTemporaryItem();
 
-    const registFeatureFunc = useCallback(async() => {
+    const registFeatureFunc = useCallback(() => {
         if (!drawingFeature.current) {
             console.warn('描画アイテムなし');
             return;
         }
         setStage(Stage.REGISTING);
         const h = spinner.showProcessMessage({
-            overlay: true,
+            overlay: false,
             spinner: true,
             message: '登録中...'
         });
         const geoJson = createGeoJson(drawingFeature.current);
 
-        await gqlClient.mutation(RegistItemDocument, {
+        const geoProperties = Object.assign({}, geoJson.properties, {
+            featureType: FeatureType.STRUCTURE,
+            icon: {
+                type: drawingIcon.current?.type,
+                id: drawingIcon.current?.id,
+            },
+        } as GeoProperties);
+
+        // 登録完了までの仮アイテム登録
+        const tempId = addTemporaryItem({
+            datasourceId: props.dataSourceId,
+            item: {
+                geoJson: geoJson.geometry,
+                geoProperties,
+            },
+            status: 'registing',
+        });
+        gqlClient.mutation(RegistItemDocument, {
             datasourceId: props.dataSourceId,
             geometry: geoJson.geometry,
-            geoProperties: Object.assign({}, geoJson.properties, {
-                featureType: FeatureType.STRUCTURE,
-                icon: {
-                    type: drawingIcon.current?.type,
-                    id: drawingIcon.current?.id,
-                },
-            } as GeoProperties),
-        });
+            geoProperties,
+        })
+        .then(() => {
+            // 仮アイテム削除
+            removeTemporaryItem(tempId);
+            spinner.hideProcessMessage(h);
+        })
     
-        spinner.hideProcessMessage(h);
         props.close();
 
-    }, [gqlClient, props, spinner]);
+    }, [gqlClient, props, spinner, addTemporaryItem, removeTemporaryItem]);
 
     const onSelectAddress= useCallback((address: GeoJsonObject) => {
         if (!map) return;

@@ -12,7 +12,7 @@ import { TsunaguMapHandler } from '../../types/types';
 import { useAtom } from 'jotai';
 import { itemDataSourceGroupsAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import { useAtomCallback } from 'jotai/utils';
-import { allItemsAtom, loadedItemMapAtom, visibleItemsAtom } from '../../store/item';
+import { loadedItemMapAtom, storedItemsAtom, visibleItemsAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
 import { ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument } from '../../graphql/generated/graphql';
@@ -181,7 +181,7 @@ function useMapLoadListener() {
 
     const resetItems = useAtomCallback(
         useCallback(async(get, set) => {
-            set(allItemsAtom, {});
+            set(storedItemsAtom, {});
             set(loadedItemMapAtom, {});
         }, [])
     );

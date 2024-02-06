@@ -29,7 +29,7 @@ import { FeatureType, GeoProperties } from '../types-common/common-types';
         convertLineToPolygon(feature, roadWidth.distance);
         return feature;
 
-    } else if (geoProperties && 'radius' in geoProperties) {
+    } else if (geoProperties && 'radius' in geoProperties && geoProperties.radius) {
         // 半径指定されている場合は、Circleを生成
         const coordinate = feature.getGeometry()?.getExtent() as Extent;
         const circle = new Feature({

@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { allItemsAtom } from ".";
+import { allItemsAtom, storedItemsAtom } from ".";
 import { useAtomCallback } from 'jotai/utils';
 import { DataId } from "../../types-common/common-types";
 
@@ -13,7 +13,7 @@ export function useItems() {
         useCallback(async(get, set, target: DataId[]) => {
             if (target.length === 0) return;
 
-            set(allItemsAtom, (currentItemMap) => {
+            set(storedItemsAtom, (currentItemMap) => {
                 const newItemsMap = Object.assign({}, currentItemMap);
                 target.forEach(def => {
                     delete newItemsMap[def.dataSourceId][def.id];
