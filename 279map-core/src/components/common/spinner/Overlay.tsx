@@ -15,7 +15,7 @@ export default function Overlay(props: Props) {
             <div className={styles.ProcessArea}>
                 {props.spinner &&
                     <div className={styles.GraphSpinner}>
-                        <Spinner size='normal' />
+                        <Spinner size={props.minimum ? 'small' : 'normal'} />
                     </div>
                 }
                 {props.message &&

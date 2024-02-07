@@ -39,6 +39,8 @@ export default function useFilterStatus() {
                 return isEqualId(process.item.id, id)
             } else if (process.status === 'updating') {
                 return process.items.some(item => isEqualId(item.id, id));
+            } else {
+                return isEqualId(process.itemId, id)
             }
         })?.error) {
             return ERROR_COLOR;
@@ -73,9 +75,11 @@ export default function useFilterStatus() {
         if (itemProcesses.some(process => {
             if (process.status === 'registing') {
                 return isEqualId(process.item.id, id)
-            }
+            } else if (process.status === 'deleting') {
+                return isEqualId(process.itemId, id)
+            }            
         })) {
-            // 新規登録中アイテム
+            // 新規登録中アイテム or 削除処理中アイテム（エラー時）
             return 0.3;
         }
         const filterStatus = getFilterStatus(feature);

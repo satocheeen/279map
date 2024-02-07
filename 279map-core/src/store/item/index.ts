@@ -32,6 +32,9 @@ export type ItemProcessType = {
 } | {
     status: 'updating';
     items: UpdateItemInput[];
+} | {
+    status: 'deleting';
+    itemId: DataId;
 })
 export const itemProcessesAtom = atom<ItemProcessType[]>([]);
 
@@ -65,6 +68,11 @@ export const allItemsAtom = atom<ItemsByDatasourceMap>((get) => {
                     temporary: ItemTemporaryState.Updateing,
                 });
             })
+        } else if (itemProcess.status === 'deleting') {
+            // エラー時は半透明表示するので残す
+            if (!itemProcess.error) {
+                delete result[itemProcess.itemId.dataSourceId][itemProcess.itemId.id];
+            }
         }
     })
 

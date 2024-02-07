@@ -9,6 +9,7 @@ import { ConfirmResult } from '../../../common/confirm/types';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
 import { RemoveItemDocument } from '../../../../graphql/generated/graphql';
+import useItemProcess from '../../../../store/item/useItemProcess';
 
 type Props = {
     target: LayerType;
@@ -22,8 +23,7 @@ type Props = {
  */
 export default function RemoveFeatureController(props: Props) {
     const confirmHook = useConfirm();
-    const spinnerHook = useProcessMessage();
-    const [ gqlClient ] = useAtom(clientAtom);
+    const { removeItem } = useItemProcess();
 
     const onRemoveOkClicked = useCallback(async(feature: FeatureLike) => {
         // 確認メッセージ
@@ -34,22 +34,12 @@ export default function RemoveFeatureController(props: Props) {
             return;
         }
 
-        const h = spinnerHook.showProcessMessage({
-            overlay: true,
-            spinner: true,
-            message: '削除中...'
-        });
-
         const dataId = convertDataIdFromFeatureId(feature.getId() as string);
         // DB更新
-        await gqlClient.mutation(RemoveItemDocument, {
-            id: dataId,
-        });
-
-        spinnerHook.hideProcessMessage(h);
+        removeItem(dataId);
 
         props.close();
-    }, [props, confirmHook, gqlClient, spinnerHook]);
+    }, [props, confirmHook, removeItem]);
 
     const onCancel = useCallback(() => {
         props.close();

@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { ItemProcessType, itemProcessesAtom } from ".";
 import { ItemInfo } from "../../types/types";
 import { clientAtom } from "jotai-urql";
-import { RegistItemDocument, UpdateItemsDocument, UpdateItemInput } from "../../graphql/generated/graphql";
+import { RegistItemDocument, UpdateItemsDocument, UpdateItemInput, RemoveItemDocument } from "../../graphql/generated/graphql";
 import { DataId } from "../../entry";
 import { isEqualId } from "../../util/dataUtility";
 
@@ -49,7 +49,7 @@ export default function useItemProcess() {
             set(itemProcessesAtom, (cur) => {
                 return cur.map(cur => {
                     if (cur.processId !== processId) return cur;
-                    if (cur.status === 'registing') return cur;
+                    if (cur.status !== 'updating') return cur;
                     const newItems = cur.items.filter(item => !targets.some(target => isEqualId(target, item.id)));
                     return Object.assign({}, cur, { items: newItems });
                 });
@@ -167,6 +167,43 @@ export default function useItemProcess() {
         }, [_addItemProcess, _removeItemProcess, _setErrorWithTemporaryItem, _removeTemporaryItems])
     )
 
+    const removeItem = useAtomCallback(
+        useCallback(async(get, set, target: DataId) => {
+            // ID付与
+            const processId = `process-${++temporaryCount}`;
+
+            // 登録完了までの仮アイテム登録
+            _addItemProcess({
+                processId,
+                status: 'deleting',
+                itemId: target,
+            });
+
+            const gqlClient = get(clientAtom);
+            let retryFlag = false;
+            do {
+                retryFlag = false;
+                const result = await gqlClient.mutation(RemoveItemDocument, {
+                    id: target,
+                });
+                if (result.error) {
+                    // エラー時
+                    _setErrorWithTemporaryItem(processId, true);
+                    // キャンセル or リトライ の指示待ち
+                    retryFlag = await waitFor(processId);
+                    _setErrorWithTemporaryItem(processId, false);
+                }
+        
+            } while(retryFlag);
+
+            // 仮アイテム削除（WebSocket経由で削除情報を取得するまでのタイムラグがあるので間をおいて実行）
+            setTimeout(() => {
+                _removeItemProcess(processId);
+            }, 500)
+
+        }, [_addItemProcess, _removeItemProcess, _setErrorWithTemporaryItem])
+    )
+
     /**
      * 指定のリトライ待ち処理についてリトライorキャンセルを指定する
      * @param retry リトライの場合、true。キャンセルの場合、false。
@@ -184,6 +221,7 @@ export default function useItemProcess() {
     return {
         registItem,
         updateItems,
+        removeItem,
         continueProcess,
     }
 }

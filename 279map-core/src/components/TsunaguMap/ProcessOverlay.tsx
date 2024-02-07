@@ -45,6 +45,10 @@ export default function ProcessOverlay() {
         if (itemProcesses.some(temp => temp.status === 'updating')) {
             return '更新中...';
         }
+        if (itemProcesses.some(temp => temp.status === 'deleting')) {
+            return '削除中...';
+        }
+
         return processMessages.find(pm => pm.message)?.message;
     }, [processMessages, itemProcesses]);
     
