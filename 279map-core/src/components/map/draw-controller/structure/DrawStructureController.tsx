@@ -6,7 +6,6 @@ import VectorSource from 'ol/source/Vector';
 import { createGeoJson } from '../../../../util/MapUtility';
 import usePointStyle from '../../usePointStyle';
 import PromptMessageBox from '../PromptMessageBox';
-import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import SearchAddress, { SearchAddressHandler } from '../../../common/SearchAddress';
 import GeoJSON from 'ol/format/GeoJSON';
 import { GeoJsonObject } from 'geojson';
@@ -39,7 +38,6 @@ export default function DrawStructureController(props: Props) {
     const draw = useRef<null | Draw>(null);
     const drawingFeature = useRef<Feature | undefined>(undefined);  // 描画中のFeature
 
-    const spinner = useProcessMessage();
     const { map } = useMap();
     const pointStyleHook = usePointStyle();
 
