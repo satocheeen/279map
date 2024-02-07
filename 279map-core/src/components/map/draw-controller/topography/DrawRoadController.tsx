@@ -7,7 +7,6 @@ import useTopographyStyle from '../../useTopographyStyle';
 import PromptMessageBox from '../PromptMessageBox';
 import RoadWidthSelecter from './RoadWidthSelecter';
 import { extractGeoProperty } from '../../../../util/MapUtility';
-import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import { useMap } from '../../useMap';
 import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
 import useItemProcess from '../../../../store/item/useItemProcess';
@@ -35,7 +34,6 @@ export default function DrawRoadController(props: Props) {
     });
     // 描画中のFeature
     const drawingFeature = useRef<OlFeature | undefined>();
-    const spinnerHook = useProcessMessage();
     const drawingSource = useRef<VectorSource|null>(null);
 
     /**

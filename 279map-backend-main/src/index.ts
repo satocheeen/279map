@@ -339,9 +339,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         currentMap: ctx.currentMap,
                     });
         
-                    // 仮登録中の情報を付与して返す
-                    ctx.session.addTemporaryItems(items, ctx.currentMap);
-        
                     // apiLogger.debug('result', result);
         
                     return items;
@@ -357,9 +354,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             getItemsById: async(_, param: QueryGetItemsByIdArgs, ctx): Promise<ItemDefineWithoudContents[]> => {
                 try {
                     const result = await getItemsById(param);
-
-                    // 仮登録中の情報を付与して返す
-                    ctx.session.mergeTemporaryItems(result, ctx.currentMap, param.targets);
 
                     return result;
 
