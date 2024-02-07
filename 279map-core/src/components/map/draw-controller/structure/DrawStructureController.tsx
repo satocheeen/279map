@@ -139,10 +139,8 @@ export default function DrawStructureController(props: Props) {
         // 登録処理開始
         registItem({
             datasourceId: props.dataSourceId,
-            item: {
-                geoJson: geoJson.geometry,
-                geoProperties,
-            },
+            geoJson: geoJson.geometry,
+            geoProperties,
         });
 
         props.close();

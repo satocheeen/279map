@@ -3,7 +3,7 @@ import { ItemContent, ItemInfo } from '../../types/types';
 import { filteredItemsAtom } from '../filter';
 import { DataId } from '../../entry';
 import { visibleDataSourceIdsAtom } from '../datasource';
-import { ItemTemporaryState } from '../../graphql/generated/graphql';
+import { ItemTemporaryState, UpdateItemInput } from '../../graphql/generated/graphql';
 
 export type LoadedItemKey = {
     datasourceId: string;
@@ -24,10 +24,14 @@ export const storedItemsAtom = atom({} as ItemsByDatasourceMap);
 
 // 登録・更新・削除処理中のアイテム
 export type TemporaryItem = {
-    tempId: string;     // 一次処理中ID
+    processId: string;     // 処理ID
     status: 'registing';
-    item: Pick<ItemInfo, 'geoJson' | 'geoProperties'>;
-    datasourceId: string;
+    item: Pick<ItemInfo, 'id' | 'geoJson' | 'geoProperties'>;
+    error?: boolean;    // 処理失敗時にtrue
+} | {
+    processId: string;     // 処理ID
+    status: 'updating';
+    item: UpdateItemInput;
     error?: boolean;    // 処理失敗時にtrue
 }
 export const temporaryItemsAtom = atom<TemporaryItem[]>([]);
@@ -40,10 +44,7 @@ export const allItemsAtom = atom<ItemsByDatasourceMap>((get) => {
     temporaryItems.forEach(tempItem => {
         if (tempItem.status === 'registing') {
             const item: ItemInfo = {
-                id: {
-                    id: tempItem.tempId,
-                    dataSourceId: tempItem.datasourceId,
-                },
+                id: tempItem.item.id,
                 geoJson: tempItem.item.geoJson,
                 geoProperties: tempItem.item.geoProperties,
                 name: '',
@@ -53,10 +54,10 @@ export const allItemsAtom = atom<ItemsByDatasourceMap>((get) => {
                 lastEditedTime: '',
                 temporary: ItemTemporaryState.Registing,
             }
-            if (!result[tempItem.datasourceId]) {
-                result[tempItem.datasourceId] = {};
+            if (!result[tempItem.item.id.dataSourceId]) {
+                result[tempItem.item.id.dataSourceId] = {};
             }
-            result[tempItem.datasourceId][tempItem.tempId] = item;
+            result[tempItem.item.id.dataSourceId][tempItem.item.id.id] = item;
         }
     })
 

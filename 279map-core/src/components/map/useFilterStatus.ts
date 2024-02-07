@@ -34,7 +34,7 @@ export default function useFilterStatus() {
         const id = convertDataIdFromFeatureId(feature.getId() as string);
 
         // エラー状態のものはエラー色表示
-        if (temporaryItems.find(item => item.datasourceId === id.dataSourceId && item.tempId === id.id)?.error) {
+        if (temporaryItems.find(item => isEqualId(item.item.id, id))?.error) {
             return ERROR_COLOR;
         }
 
@@ -64,7 +64,7 @@ export default function useFilterStatus() {
     const { filter } = useContext(OwnerContext);
     const getOpacity = useCallback((feature: FeatureLike): number => {
         const id = convertDataIdFromFeatureId(feature.getId() as string);
-        if (temporaryItems.some(item => item.datasourceId === id.dataSourceId && item.tempId === id.id)) {
+        if (temporaryItems.some(item => isEqualId(item.item.id, id))) {
             // 登録中アイテム
             return 0.3;
         }

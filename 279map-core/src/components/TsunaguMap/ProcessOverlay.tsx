@@ -55,7 +55,7 @@ export default function ProcessOverlay() {
     if (registingErrorItem) {
         return (
             <Overlay minimum>
-                <RegistingErrorComponent tempId={registingErrorItem.tempId} />
+                <RegistingErrorComponent tempId={registingErrorItem.processId} />
             </Overlay>
 
         )

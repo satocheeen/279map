@@ -108,7 +108,7 @@ function ClusterMenuController(props: Props, ref: React.ForwardedRef<ClusterMenu
 
         // 登録更新処理中のものは除去する
         pointIds = pointIds.filter(id => {
-            return !temporaryItemsRef.current.some(tempItem => tempItem.datasourceId === id.id.dataSourceId && tempItem.tempId === id.id.id);
+            return !temporaryItemsRef.current.some(tempItem => isEqualId(tempItem.item.id, id.id));
         })
 
         // フィルタ時はフィルタ対象外のものに絞る

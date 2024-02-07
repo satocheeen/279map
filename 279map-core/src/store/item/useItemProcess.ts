@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { TemporaryItem, temporaryItemsAtom } from ".";
 import { ItemInfo } from "../../types/types";
 import { clientAtom } from "jotai-urql";
-import { RegistItemDocument } from "../../graphql/generated/graphql";
+import { RegistItemDocument, UpdateItemInput } from "../../graphql/generated/graphql";
 
 /**
  * 登録・更新・削除処理を担うカスタムフック
@@ -11,8 +11,9 @@ import { RegistItemDocument } from "../../graphql/generated/graphql";
 let temporaryCount = 0;
 
 type RegistItemParam = {
-    item: Pick<ItemInfo, 'geoJson' | 'geoProperties'>;
     datasourceId: string;
+    geoJson: ItemInfo['geoJson'];
+    geoProperties: ItemInfo['geoProperties'];
 }
 
 export default function useItemProcess() {
@@ -20,9 +21,9 @@ export default function useItemProcess() {
      * 一時アイテムを追加する
      */
     const addTemporaryItem = useAtomCallback(
-        useCallback((get, set, tempId: string,  temporaryItem: Omit<TemporaryItem, 'tempId'>) => {
+        useCallback((get, set, temporaryItem: TemporaryItem) => {
             set(temporaryItemsAtom, (cur) => {
-                return cur.concat(Object.assign({}, temporaryItem, { tempId }));
+                return cur.concat(temporaryItem);
             })
         }, [])
     )
@@ -31,9 +32,9 @@ export default function useItemProcess() {
      * 一時アイテムを削除する
      */
     const removeTemporaryItem = useAtomCallback(
-        useCallback((get, set, tempId: string) => {
+        useCallback((get, set, processId: string) => {
             set(temporaryItemsAtom, (cur) => {
-                return cur.filter(cur => cur.tempId !== tempId);
+                return cur.filter(cur => cur.processId !== processId);
             })
         }, [])
     )
@@ -45,7 +46,7 @@ export default function useItemProcess() {
         useCallback((get, set, processId: string, errorFlag: boolean) => {
             set(temporaryItemsAtom, (cur) => {
                 return cur.map(item => {
-                    if (item.tempId === processId) {
+                    if (item.processId === processId) {
                         const newObj = structuredClone(item);
                         newObj.error = errorFlag;
                         return newObj;
@@ -66,9 +67,16 @@ export default function useItemProcess() {
             const processId = `process-${++temporaryCount}`;
 
             // 登録完了までの仮アイテム登録
-            addTemporaryItem(processId, {
-                datasourceId: item.datasourceId,
-                item: item.item,
+            addTemporaryItem({
+                processId,
+                item: {
+                    id: {
+                        id: processId,
+                        dataSourceId: item.datasourceId,
+                    },
+                    geoJson: item.geoJson,
+                    geoProperties: item.geoProperties,
+                },
                 status: 'registing',
             });
 
@@ -78,8 +86,8 @@ export default function useItemProcess() {
                 retryFlag = false;
                 const result = await gqlClient.mutation(RegistItemDocument, {
                     datasourceId: item.datasourceId,
-                    geometry: item.item.geoJson,
-                    geoProperties: item.item.geoProperties,
+                    geometry: item.geoJson,
+                    geoProperties: item.geoProperties,
                 });
                 if (result.error) {
                     // エラー時
@@ -96,6 +104,12 @@ export default function useItemProcess() {
             removeTemporaryItem(processId);
 
         }, [addTemporaryItem, removeTemporaryItem, setErrorWithTemporaryItem])
+    )
+
+    const updateItem = useAtomCallback(
+        useCallback((get, set, param: UpdateItemInput[]) => {
+
+        }, [])
     )
 
     /**
