@@ -1,10 +1,13 @@
 import { FeatureLike } from 'ol/Feature';
-import { useCallback } from 'react';
+import { useCallback, useContext } from 'react';
 import { useFilter } from '../../store/filter/useFilter';
 import { convertDataIdFromFeatureId, isEqualId } from '../../util/dataUtility';
 import { showingDetailItemIdAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
+import { temporaryItemsAtom } from '../../store/item';
+import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 
+const ERROR_COLOR = '#ff8888';
 const FORCE_COLOR = '#8888ff';
 
 /**
@@ -12,7 +15,8 @@ const FORCE_COLOR = '#8888ff';
  */
 export default function useFilterStatus() {
     const { getFilterStatusOfTheItem } = useFilter();
-    const [selectedItemId] = useAtom(showingDetailItemIdAtom);
+    const [ selectedItemId ] = useAtom(showingDetailItemIdAtom);
+    const [ temporaryItems ] = useAtom(temporaryItemsAtom);
 
     /**
      * 指定の地物のフィルタ状態を返す
@@ -27,8 +31,14 @@ export default function useFilterStatus() {
      * @return 強調表示色。強調しない場合は、undefined。
      */
     const getForceColor = useCallback((feature: FeatureLike): string | undefined => {
-        // 選択されているものは強調表示
         const id = convertDataIdFromFeatureId(feature.getId() as string);
+
+        // エラー状態のものはエラー色表示
+        if (temporaryItems.find(item => item.datasourceId === id.dataSourceId && item.tempId === id.id)?.error) {
+            return ERROR_COLOR;
+        }
+
+        // 選択されているものは強調表示
         if (selectedItemId && isEqualId(selectedItemId, id)) {
             return FORCE_COLOR;
         }
@@ -49,10 +59,30 @@ export default function useFilterStatus() {
         //     return FORCE_COLOR;
         // }
 
-    }, [getFilterStatus, selectedItemId]);
+    }, [getFilterStatus, selectedItemId, temporaryItems]);
+
+    const { filter } = useContext(OwnerContext);
+    const getOpacity = useCallback((feature: FeatureLike): number => {
+        const id = convertDataIdFromFeatureId(feature.getId() as string);
+        if (temporaryItems.some(item => item.datasourceId === id.dataSourceId && item.tempId === id.id)) {
+            // 登録中アイテム
+            return 0.3;
+        }
+        const filterStatus = getFilterStatus(feature);
+        if (filterStatus === 'UnFiltered') {
+            if (filter?.unmatchView === 'hidden') {
+                return 0;
+            } else {
+                return 0.3;
+            }
+        }
+        return 1;
+
+    }, [filter, getFilterStatus, temporaryItems]);
 
     return {
         getFilterStatus,
         getForceColor,
+        getOpacity,
     }
 }

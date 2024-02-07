@@ -1,10 +1,9 @@
-import { useCallback, useContext } from "react";
+import { useCallback } from "react";
 import Feature, { FeatureLike } from "ol/Feature";
 import { Fill, Icon, Style, Text } from 'ol/style';
 import { getStructureScale } from "../../util/MapUtility";
 import { SystemIconDefine } from "../../types/types";
 import useFilterStatus from "./useFilterStatus";
-import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 import { Geometry } from "ol/geom";
 import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
 import { useMap } from "./useMap";
@@ -25,10 +24,9 @@ const STRUCTURE_SELECTED_COLOR = '#8888ff';
  * @returns 
  */
 export default function usePointStyle() {
-    const { getForceColor, getFilterStatus } = useFilterStatus();
+    const { getForceColor, getOpacity } = useFilterStatus();
     const [ filteredItemIdList ] = useAtom(filteredItemIdListAtom);
     const { disabledLabel } = useMapOptions();
-    const { filter } = useContext(OwnerContext);
     const { getIconDefine } = useIcon();
     const { map } = useMap();
     const [ selectedItemId ] = useAtom(showingDetailItemIdAtom);
@@ -186,13 +184,11 @@ export default function usePointStyle() {
         } else {
             // -- フィルタ状態に応じて色設定
             color = getForceColor(mainFeature);
-            const filterStatus = getFilterStatus(mainFeature);
-            if (filterStatus === 'UnFiltered') {
-                if (filter?.unmatchView === 'hidden') {
-                    visible = false;
-                } else {
-                    opacity = 0.3;
-                }
+            const tempOpacity = getOpacity(mainFeature);
+            if (tempOpacity === 0) {
+                visible = false;
+            } else {
+                opacity = tempOpacity;
             }
         }
 
@@ -219,7 +215,7 @@ export default function usePointStyle() {
         }
         return style;
 
-    }, [dataSources, disabledLabel, _createStyle, getFilterStatus, getForceColor, _analysisFeatures, getIconDefine, filter]);
+    }, [getOpacity, dataSources, disabledLabel, _createStyle, getForceColor, _analysisFeatures, getIconDefine]);
 
     /**
      * the style function for ordinaly.

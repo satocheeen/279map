@@ -6,7 +6,7 @@ import { temporaryItemsAtom } from '../../store/item';
 import { TfiTarget } from "react-icons/tfi";
 import styles from './ProcessOverlay.module.scss';
 import Tooltip from '../common/tooltip/Tooltip';
-import useTemporaryItem from '../../store/item/useTemporaryItem';
+import useItemProcess from '../../store/item/useItemProcess';
 
 /**
  * 地図の上にスピナーやメッセージをオーバーレイ表示するためのコンポーネント
@@ -80,7 +80,7 @@ type RegistingErrorComponentProps = {
 }
 function RegistingErrorComponent(props: RegistingErrorComponentProps) {
     const id = useId();
-    const { continueProcess } = useTemporaryItem();
+    const { continueProcess } = useItemProcess();
 
     const handleContinue = useCallback((retry: boolean) => {
         continueProcess(props.tempId, retry);

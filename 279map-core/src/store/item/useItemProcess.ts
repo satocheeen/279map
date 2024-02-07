@@ -1,7 +1,7 @@
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { TemporaryItem, temporaryItemsAtom } from ".";
-import { ItemInfo } from "../../entry";
+import { ItemInfo } from "../../types/types";
 import { clientAtom } from "jotai-urql";
 import { RegistItemDocument } from "../../graphql/generated/graphql";
 
@@ -15,7 +15,7 @@ type RegistItemParam = {
     datasourceId: string;
 }
 
-export default function useTemporaryItem() {
+export default function useItemProcess() {
     /**
      * 一時アイテムを追加する
      */

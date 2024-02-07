@@ -17,7 +17,7 @@ import { currentMapKindAtom } from '../../../../store/session';
 import { useAtom } from 'jotai';
 import { GeocoderTarget, MapKind } from '../../../../graphql/generated/graphql';
 import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
-import useTemporaryItem from '../../../../store/item/useTemporaryItem';
+import useItemProcess from '../../../../store/item/useItemProcess';
 
 type Props = {
     dataSourceId: string;   // 作図対象のデータソース
@@ -118,7 +118,7 @@ export default function DrawStructureController(props: Props) {
         startDrawing();
     }, [startDrawing]);
 
-    const { registItem } = useTemporaryItem();
+    const { registItem } = useItemProcess();
 
     const registFeatureFunc = useCallback(() => {
         if (!drawingFeature.current) {
