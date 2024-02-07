@@ -9,18 +9,21 @@ import { FeatureType } from '../../types-common/common-types';
 import ol_color from 'ol/color';
 
 /**
- * フィルタを加味して地形Featureのスタイルを設定するフック
+ * 地物ごとの状態を加味して地形Featureのスタイルを設定するフック
+ * <加味する状態>
+ * - フィルタ
+ * - 選択状態
+ * - 登録処理中状態
  */
-export default function useFilteredTopographyStyle() {
+export default function useTopographyStyleWithState() {
     const { getForceColor, getFilterStatus, getOpacity } = useFilterStatus();
-    const { getStyleFunction } = useTopographyStyle({
-    });
+    const { getStyleFunction } = useTopographyStyle({});
     const { filter } = useContext(OwnerContext);
 
     const topographyStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style => {
         const color = getForceColor(feature);
-        const filterStatus = getFilterStatus(feature);
         const opacity = getOpacity(feature);
+        const filterStatus = getFilterStatus(feature);
         const func = getStyleFunction((feature, resolution, defaultStyle) => {
             if (!color && opacity === 1 && filterStatus === 'Normal') {
                 return defaultStyle;
@@ -47,10 +50,6 @@ export default function useFilteredTopographyStyle() {
             } else {
                 if (color) {
                     defaultStyle.getStroke().setColor(color);
-                    if (opacity === 1) {
-                        // 選択中の場合
-                        defaultStyle.getStroke().setWidth(3);
-                    }
                 }
             }
             // set opacity

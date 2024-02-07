@@ -35,8 +35,8 @@ export class RoadWidth {
 }
 
 type Props = {
-    defaultFeatureType?: FeatureType;
-    drawing?: boolean;  // 描画中用のスタイルか
+    defaultFeatureType?: FeatureType;   // featureのpropertiesにfeatureType未指定の場合に設定するFeatureType
+    drawing?: boolean;  // trueの場合、描画中用のスタイルを生成する
 }
 /**
  * 地形スタイルを生成するためのクラス

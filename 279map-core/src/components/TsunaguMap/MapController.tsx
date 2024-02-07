@@ -11,7 +11,7 @@ import { usePrevious } from '../../util/usePrevious';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { isEqualId } from '../../util/dataUtility';
 import usePointStyle from '../map/usePointStyle';
-import useFilteredTopographyStyle from '../map/useFilteredTopographyStyle';
+import useTopographyStyleWithState from '../map/useTopographyStyleWithState';
 import useTrackStyle from '../map/useTrackStyle';
 import { filteredItemIdListAtom } from '../../store/filter';
 import VectorSource from 'ol/source/Vector';
@@ -217,7 +217,7 @@ function useMapStyleUpdater() {
     }, [map, pointStyleFunction])
 
     // -- コンテンツ（地形）レイヤ
-    const { topographyStyleFunction } = useFilteredTopographyStyle();
+    const { topographyStyleFunction } = useTopographyStyleWithState();
     useEffect(() => {
         if (!map) return;
 
