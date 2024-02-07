@@ -61,7 +61,7 @@ export async function getItem(id: DataId): Promise<ItemDefineWithoudContents|und
                 dataSourceId: row.data_source_id,
             },
             name,
-            geoJson: row.geojson,
+            geometry: row.geojson,
             geoProperties: row.geo_properties ? JSON.parse(row.geo_properties) : undefined,
             hasContents: contents.length > 0,
             hasImageContentId: getImageContentId(contents),

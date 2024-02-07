@@ -3,7 +3,9 @@ import { useCallback } from "react";
 import { ItemProcessType, itemProcessesAtom } from ".";
 import { ItemInfo } from "../../types/types";
 import { clientAtom } from "jotai-urql";
-import { RegistItemDocument, UpdateItemDocument, UpdateItemInput } from "../../graphql/generated/graphql";
+import { RegistItemDocument, UpdateItemsDocument, UpdateItemInput } from "../../graphql/generated/graphql";
+import { DataId } from "../../entry";
+import { isEqualId } from "../../util/dataUtility";
 
 /**
  * 登録・更新・削除処理を担うカスタムフック
@@ -12,7 +14,7 @@ let temporaryCount = 0;
 
 type RegistItemParam = {
     datasourceId: string;
-    geoJson: ItemInfo['geoJson'];
+    geometry: ItemInfo['geometry'];
     geoProperties: ItemInfo['geoProperties'];
 }
 
@@ -36,6 +38,23 @@ export default function useItemProcess() {
             set(itemProcessesAtom, (cur) => {
                 return cur.filter(cur => cur.processId !== processId);
             })
+        }, [])
+    )
+
+    /**
+     * 指定のプロセスの指定の仮アイテムを削除する
+     */
+    const _removeTemporaryItems = useAtomCallback(
+        useCallback((get, set, processId: string, targets: DataId[]) => {
+            set(itemProcessesAtom, (cur) => {
+                return cur.map(cur => {
+                    if (cur.processId !== processId) return cur;
+                    if (cur.status === 'registing') return cur;
+                    const newItems = cur.items.filter(item => !targets.some(target => isEqualId(target, item.id)));
+                    return Object.assign({}, cur, { items: newItems });
+                });
+            })
+
         }, [])
     )
 
@@ -74,7 +93,7 @@ export default function useItemProcess() {
                         id: processId,
                         dataSourceId: item.datasourceId,
                     },
-                    geoJson: item.geoJson,
+                    geometry: item.geometry,
                     geoProperties: item.geoProperties,
                 },
                 status: 'registing',
@@ -86,7 +105,7 @@ export default function useItemProcess() {
                 retryFlag = false;
                 const result = await gqlClient.mutation(RegistItemDocument, {
                     datasourceId: item.datasourceId,
-                    geometry: item.geoJson,
+                    geometry: item.geometry,
                     geoProperties: item.geoProperties,
                 });
                 if (result.error) {
@@ -122,12 +141,15 @@ export default function useItemProcess() {
             let retryFlag = false;
             do {
                 retryFlag = false;
-                const result = await gqlClient.mutation(UpdateItemDocument, {
+                const result = await gqlClient.mutation(UpdateItemsDocument, {
                     targets: items,
                 });
-                if (result.error) {
+                if (result.error || result.data?.updateItems.error) {
                     // エラー時
-                    console.warn('updateItem failed', result.error.message);
+                    if (result.data?.updateItems.error) {
+                        // 一部エラー時は、成功したアイテムは仮アイテムから削除する
+                        _removeTemporaryItems(processId, result.data.updateItems.success);
+                    }
                     _setErrorWithTemporaryItem(processId, true);
                     // キャンセル or リトライ の指示待ち
                     retryFlag = await waitFor(processId);
@@ -136,9 +158,13 @@ export default function useItemProcess() {
         
             } while(retryFlag);
 
-            // 仮アイテム削除
-            _removeItemProcess(processId);
-        }, [_addItemProcess, _removeItemProcess, _setErrorWithTemporaryItem])
+            // 仮アイテム削除（WebSocket経由で更新後アイテムを取得するまでのタイムラグがあるので間をおいて実行）
+            setTimeout(() => {
+                _removeItemProcess(processId);
+            }, 500)
+
+
+        }, [_addItemProcess, _removeItemProcess, _setErrorWithTemporaryItem, _removeTemporaryItems])
     )
 
     /**

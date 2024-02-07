@@ -28,7 +28,7 @@ export type ItemProcessType = {
     error?: boolean;    // 処理失敗時にtrue
 } & ({
     status: 'registing';
-    item: Pick<ItemInfo, 'id' | 'geoJson' | 'geoProperties'>;
+    item: Pick<ItemInfo, 'id' | 'geometry' | 'geoProperties'>;
 } | {
     status: 'updating';
     items: UpdateItemInput[];
@@ -37,15 +37,15 @@ export const itemProcessesAtom = atom<ItemProcessType[]>([]);
 
 export const allItemsAtom = atom<ItemsByDatasourceMap>((get) => {
     const storedItems = get(storedItemsAtom);
-    const temporaryItems = get(itemProcessesAtom);
+    const itemProcesses = get(itemProcessesAtom);
 
     const result = structuredClone(storedItems);
-    temporaryItems.forEach(tempItem => {
-        if (tempItem.status === 'registing') {
+    itemProcesses.forEach(itemProcess => {
+        if (itemProcess.status === 'registing') {
             const item: ItemInfo = {
-                id: tempItem.item.id,
-                geoJson: tempItem.item.geoJson,
-                geoProperties: tempItem.item.geoProperties,
+                id: itemProcess.item.id,
+                geometry: itemProcess.item.geometry,
+                geoProperties: itemProcess.item.geoProperties,
                 name: '',
                 contents: [],
                 hasContents: false,
@@ -53,10 +53,18 @@ export const allItemsAtom = atom<ItemsByDatasourceMap>((get) => {
                 lastEditedTime: '',
                 temporary: ItemTemporaryState.Registing,
             }
-            if (!result[tempItem.item.id.dataSourceId]) {
-                result[tempItem.item.id.dataSourceId] = {};
+            if (!result[itemProcess.item.id.dataSourceId]) {
+                result[itemProcess.item.id.dataSourceId] = {};
             }
-            result[tempItem.item.id.dataSourceId][tempItem.item.id.id] = item;
+            result[itemProcess.item.id.dataSourceId][itemProcess.item.id.id] = item;
+
+        } else if (itemProcess.status === 'updating') {
+            itemProcess.items.forEach(tempItem => {
+                Object.assign(result[tempItem.id.dataSourceId][tempItem.id.id], tempItem, {
+                    lastEditedTime: '',
+                    temporary: ItemTemporaryState.Updateing,
+                });
+            })
         }
     })
 

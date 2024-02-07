@@ -18,7 +18,7 @@ import { useMap } from '../../useMap';
 import { ConfirmResult } from '../../../common/confirm/types';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
-import { UpdateItemDocument } from '../../../../graphql/generated/graphql';
+import { UpdateItemsDocument } from '../../../../graphql/generated/graphql';
 import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
 
 type Props = {
@@ -131,7 +131,7 @@ enum Stage {
         const geoProperties = extractGeoProperty(feature.getProperties());
         const geoJson = geoProperties.featureType === FeatureType.ROAD ? geoProperties.lineJson : createGeoJson(feature);
         const id = convertDataIdFromFeatureId(selectedFeature.current?.getId() as string);
-        await gqlClient.mutation(UpdateItemDocument, {
+        await gqlClient.mutation(UpdateItemsDocument, {
             targets: [
                 {
                     id,

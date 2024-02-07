@@ -55,6 +55,10 @@ input UpdateItemInput {
     geoProperties: GeoProperties
 }
 
+type UpdateItemsResult {
+    success: [DataId!]!
+    error: [DataId!]
+}
 type Mutation {
     connect (
         mapId: String!
@@ -73,9 +77,9 @@ type Mutation {
         geoProperties: GeoProperties!
     ): Boolean
     
-    updateItem (
+    updateItems (
         targets: [UpdateItemInput!]!
-    ): Boolean
+    ): UpdateItemsResult!
 
     removeItem (
         id: DataId!

@@ -8,7 +8,7 @@ import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
-import { UpdateItemDocument } from '../../../../graphql/generated/graphql';
+import { UpdateItemsDocument } from '../../../../graphql/generated/graphql';
 import { FeatureType } from '../../../../types-common/common-types';
 
 type Props = {
@@ -48,7 +48,7 @@ export default function ChangeStructureIconController(props: Props) {
 
         // update DB
         const id = convertDataIdFromFeatureId(selectedFeature.current.getId() as string);
-        await gqlClient.mutation(UpdateItemDocument, {
+        await gqlClient.mutation(UpdateItemsDocument, {
             targets: [
                 {
                     id,

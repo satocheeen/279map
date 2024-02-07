@@ -73,11 +73,9 @@ export default function useFilterStatus() {
         if (itemProcesses.some(process => {
             if (process.status === 'registing') {
                 return isEqualId(process.item.id, id)
-            } else if (process.status === 'updating') {
-                return process.items.some(item => isEqualId(item.id, id));
             }
         })) {
-            // 登録中アイテム
+            // 新規登録中アイテム
             return 0.3;
         }
         const filterStatus = getFilterStatus(feature);

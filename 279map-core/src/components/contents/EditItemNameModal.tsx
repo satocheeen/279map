@@ -10,7 +10,7 @@ import { currentMapKindAtom } from '../../store/session';
 import { modalSpinnerAtom } from '../common/modal/Modal';
 import { useAtomCallback } from 'jotai/utils';
 import { clientAtom } from 'jotai-urql';
-import { MapKind, UpdateItemDocument } from '../../graphql/generated/graphql';
+import { MapKind, UpdateItemsDocument } from '../../graphql/generated/graphql';
 import { DataId } from '../../types-common/common-types';
 
 type Props = {
@@ -32,7 +32,7 @@ export default function EditItemNameModal(props: Props) {
         useCallback(async(get, set) => {
             set(modalSpinnerAtom, true);
             try {
-                await gqlClient.mutation(UpdateItemDocument, {
+                await gqlClient.mutation(UpdateItemsDocument, {
                     targets: [
                         {
                             id: props.target,

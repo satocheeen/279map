@@ -9,7 +9,7 @@ import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useItems } from '../../../../store/item/useItems';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
-import { UpdateItemDocument } from '../../../../graphql/generated/graphql';
+import { UpdateItemsDocument } from '../../../../graphql/generated/graphql';
 
 type Props = {
     close: () => void;  // 作図完了時のコールバック
@@ -51,7 +51,7 @@ export default function EditTopographyInfoController(props: Props) {
 
         const id = convertDataIdFromFeatureId(selectedFeatureId.current as string);
         // update DB
-        await gqlClient.mutation(UpdateItemDocument, {
+        await gqlClient.mutation(UpdateItemsDocument, {
             targets: [
                 {
                     id,

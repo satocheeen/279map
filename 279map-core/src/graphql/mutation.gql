@@ -104,12 +104,15 @@ mutation registItem (
     )
 }
 
-mutation updateItem (
+mutation updateItems (
     $targets: [UpdateItemInput!]!
 ) {
-    updateItem (
+    updateItems (
         targets: $targets
-    )
+    ) {
+        success
+        error
+    }
 }
 
 mutation removeItem (

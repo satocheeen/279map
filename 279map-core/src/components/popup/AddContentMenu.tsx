@@ -14,7 +14,7 @@ import { useAtom } from 'jotai';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern, ConfirmResult } from '../common/confirm/types';
 import { clientAtom } from 'jotai-urql';
-import { Auth, DatasourceConfig, GetContentDocument, GetSnsPreviewDocument, GetUnpointContentsDocument, LinkContentDocument, MutationLinkContentArgs, MutationRegistContentArgs, RegistContentDocument, UpdateItemDocument } from '../../graphql/generated/graphql';
+import { Auth, DatasourceConfig, GetContentDocument, GetSnsPreviewDocument, GetUnpointContentsDocument, LinkContentDocument, MutationLinkContentArgs, MutationRegistContentArgs, RegistContentDocument, UpdateItemsDocument } from '../../graphql/generated/graphql';
 import { DataId } from '../../types-common/common-types';
 
 type Props = {
@@ -175,7 +175,7 @@ export default function AddContentMenu(props: Props) {
             name = param.contentTitle;
         }
 
-        await gqlClient.mutation(UpdateItemDocument, {
+        await gqlClient.mutation(UpdateItemsDocument, {
             targets: [
                 {
                     id: item.id,

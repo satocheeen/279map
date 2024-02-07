@@ -287,7 +287,7 @@ export class OlMapWrapper {
     }
 
     _createFeatureGeometryFromItemDefine(def: ItemInfo): Feature<Geometry> | undefined {
-        const feature = MapUtility.createFeatureByGeoJson(def.geoJson, def.geoProperties);
+        const feature = MapUtility.createFeatureByGeoJson(def.geometry, def.geoProperties);
         feature.setId(getMapKey(def.id));
 
         if (def.geoProperties?.featureType === FeatureType.AREA && ('geocoderId' in def.geoProperties && def.geoProperties.geocoderId)) {

@@ -106,13 +106,11 @@ function ClusterMenuController(props: Props, ref: React.ForwardedRef<ClusterMenu
             pointIds = pointIds.filter((_, i) => filterResults[i]);
         }
 
-        // 登録更新処理中のものは選択不可能なので除去する
+        // 新規登録処理中のものはid不明なので選択不可能なので除去する
         pointIds = pointIds.filter(id => {
             return !itemProcessesRef.current.some(process => {
                 if (process.status === 'registing') {
                     return isEqualId(process.item.id, id.id);
-                } else if (process.status === 'updating') {
-                    return process.items.some(item => isEqualId(item.id, id.id));
                 }
             });
         })

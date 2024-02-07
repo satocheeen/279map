@@ -114,8 +114,8 @@ export function useMap() {
             const extentPolygon = bboxPolygon(extent as [number,number,number,number]);
             return Object.values(itemMap).filter(item => {
                 let hit: boolean = false;
-                if (item.geoJson.type === 'GeometryCollection') {
-                    hit = item.geoJson.geometries.some(g => {
+                if (item.geometry.type === 'GeometryCollection') {
+                    hit = item.geometry.geometries.some(g => {
                         const polygon = geoJsonToTurfPolygon(g);
                         if (!polygon) return false;
                         const result = intersect(extentPolygon, polygon);

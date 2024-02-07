@@ -175,7 +175,7 @@ export type EventDefine = {
 };
 
 export type GeocoderItem = {
-  geoJson: Scalars['Geometry']['output'];
+  geometry: Scalars['Geometry']['output'];
   idInfo: Scalars['GeocoderIdInfo']['output'];
   name: Scalars['String']['output'];
 };
@@ -207,8 +207,8 @@ export type ItemConfig = {
 export type ItemDefine = {
   /** アイテムに紐づくコンテンツ一覧 */
   contents: Array<ContentsDefine>;
-  geoJson: Scalars['Geometry']['output'];
   geoProperties: Scalars['GeoProperties']['output'];
+  geometry: Scalars['Geometry']['output'];
   hasContents: Scalars['Boolean']['output'];
   /** 画像を持つコンテンツID一覧 */
   hasImageContentId: Array<Scalars['DataId']['output']>;
@@ -294,7 +294,7 @@ export type Mutation = {
   unlinkContent?: Maybe<Scalars['Boolean']['output']>;
   unlinkContentsDatasource?: Maybe<Scalars['Boolean']['output']>;
   updateContent?: Maybe<Scalars['Boolean']['output']>;
-  updateItem?: Maybe<Scalars['Boolean']['output']>;
+  updateItems: UpdateItemsResult;
 };
 
 
@@ -385,7 +385,7 @@ export type MutationUpdateContentArgs = {
 };
 
 
-export type MutationUpdateItemArgs = {
+export type MutationUpdateItemsArgs = {
   targets: Array<UpdateItemInput>;
 };
 
@@ -657,6 +657,11 @@ export type UpdateItemInput = {
   name?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type UpdateItemsResult = {
+  error?: Maybe<Array<Scalars['DataId']['output']>>;
+  success: Array<Scalars['DataId']['output']>;
+};
+
 export type User = {
   authLv: Auth;
   id: Scalars['ID']['output'];
@@ -814,6 +819,7 @@ export type ResolversTypes = {
   TrackConfig: ResolverTypeWrapper<TrackConfig>;
   UnpointContent: ResolverTypeWrapper<UnpointContent>;
   UpdateItemInput: UpdateItemInput;
+  UpdateItemsResult: ResolverTypeWrapper<UpdateItemsResult>;
   User: ResolverTypeWrapper<User>;
   VisibleDataSource: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['VisibleDataSource']>;
   VisibleDataSourceDatasource: ResolverTypeWrapper<VisibleDataSourceDatasource>;
@@ -871,6 +877,7 @@ export type ResolversParentTypes = {
   TrackConfig: TrackConfig;
   UnpointContent: UnpointContent;
   UpdateItemInput: UpdateItemInput;
+  UpdateItemsResult: UpdateItemsResult;
   User: User;
   VisibleDataSource: ResolversUnionTypes<ResolversParentTypes>['VisibleDataSource'];
   VisibleDataSourceDatasource: VisibleDataSourceDatasource;
@@ -992,7 +999,7 @@ export interface GeocoderIdInfoScalarConfig extends GraphQLScalarTypeConfig<Reso
 }
 
 export type GeocoderItemResolvers<ContextType = any, ParentType extends ResolversParentTypes['GeocoderItem'] = ResolversParentTypes['GeocoderItem']> = {
-  geoJson?: Resolver<ResolversTypes['Geometry'], ParentType, ContextType>;
+  geometry?: Resolver<ResolversTypes['Geometry'], ParentType, ContextType>;
   idInfo?: Resolver<ResolversTypes['GeocoderIdInfo'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -1030,8 +1037,8 @@ export type ItemConfigResolvers<ContextType = any, ParentType extends ResolversP
 
 export type ItemDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemDefine'] = ResolversParentTypes['ItemDefine']> = {
   contents?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType>;
-  geoJson?: Resolver<ResolversTypes['Geometry'], ParentType, ContextType>;
   geoProperties?: Resolver<ResolversTypes['GeoProperties'], ParentType, ContextType>;
+  geometry?: Resolver<ResolversTypes['Geometry'], ParentType, ContextType>;
   hasContents?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   hasImageContentId?: Resolver<Array<ResolversTypes['DataId']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
@@ -1100,7 +1107,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   unlinkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkContentArgs, 'id' | 'parent'>>;
   unlinkContentsDatasource?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkContentsDatasourceArgs, 'contentsDatasourceIds'>>;
   updateContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateContentArgs, 'id' | 'type'>>;
-  updateItem?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateItemArgs, 'targets'>>;
+  updateItems?: Resolver<ResolversTypes['UpdateItemsResult'], ParentType, ContextType, RequireFields<MutationUpdateItemsArgs, 'targets'>>;
 };
 
 export type NoneConfigResolvers<ContextType = any, ParentType extends ResolversParentTypes['NoneConfig'] = ResolversParentTypes['NoneConfig']> = {
@@ -1196,6 +1203,12 @@ export type UnpointContentResolvers<ContextType = any, ParentType extends Resolv
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type UpdateItemsResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['UpdateItemsResult'] = ResolversParentTypes['UpdateItemsResult']> = {
+  error?: Resolver<Maybe<Array<ResolversTypes['DataId']>>, ParentType, ContextType>;
+  success?: Resolver<Array<ResolversTypes['DataId']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type UserResolvers<ContextType = any, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
   authLv?: Resolver<ResolversTypes['Auth'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -1259,6 +1272,7 @@ export type Resolvers<ContextType = any> = {
   Target?: TargetResolvers<ContextType>;
   TrackConfig?: TrackConfigResolvers<ContextType>;
   UnpointContent?: UnpointContentResolvers<ContextType>;
+  UpdateItemsResult?: UpdateItemsResultResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
   VisibleDataSource?: VisibleDataSourceResolvers<ContextType>;
   VisibleDataSourceDatasource?: VisibleDataSourceDatasourceResolvers<ContextType>;
