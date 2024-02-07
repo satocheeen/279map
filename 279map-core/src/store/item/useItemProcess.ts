@@ -119,8 +119,10 @@ export default function useItemProcess() {
         
             } while(retryFlag);
 
-            // 仮アイテム削除
-            _removeItemProcess(processId);
+            // 仮アイテム削除（WebSocket経由で新規アイテムを取得するまでのタイムラグがあるので間をおいて実行）
+            setTimeout(() => {
+                _removeItemProcess(processId);
+            }, 500)
 
         }, [_addItemProcess, _removeItemProcess, _setErrorWithTemporaryItem])
     )

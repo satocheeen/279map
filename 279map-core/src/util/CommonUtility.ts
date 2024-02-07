@@ -18,7 +18,7 @@ export function getUrlType(url: string): UrlType {
     return UrlType.Other;
 }
 
-export function colorWithAlpha(color: string, alpha: number) {
+export function colorWithAlpha(color: string | olColor.Color, alpha: number) {
     const [r, g, b] = Array.from(olColor.asArray(color));
     return olColor.asString([r, g, b, alpha]);
 }

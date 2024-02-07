@@ -9,10 +9,8 @@ import RoadWidthSelecter from './RoadWidthSelecter';
 import { extractGeoProperty } from '../../../../util/MapUtility';
 import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import { useMap } from '../../useMap';
-import { clientAtom } from 'jotai-urql';
-import { useAtom } from 'jotai';
-import { RegistItemDocument } from '../../../../graphql/generated/graphql';
 import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
+import useItemProcess from '../../../../store/item/useItemProcess';
 
 enum Stage {
     DRAWING,        // 描画
@@ -82,7 +80,7 @@ export default function DrawRoadController(props: Props) {
     }, [props]);
     
 
-    const [ gqlClient ] = useAtom(clientAtom);
+    const { registItem } = useItemProcess();
     const registFeatureFunc = useCallback(async() => {
         if (!drawingFeature.current) {
             console.warn('描画図形なし（想定外）');
@@ -98,21 +96,14 @@ export default function DrawRoadController(props: Props) {
         }
 
         // DB登録
-        const h = spinnerHook.showProcessMessage({
-            overlay: true,
-            spinner: true,
-            message: '登録中...'
-        });
-        console.log('geoJson', geoJson);
-        await gqlClient.mutation(RegistItemDocument, {
+        registItem({
             datasourceId: props.dataSourceId,
             geometry: geoJson.geometry,
             geoProperties: geoJson.properties as GeoProperties,
         });
-        spinnerHook.hideProcessMessage(h);
 
         props.close();
-    }, [props, spinnerHook, gqlClient]);
+    }, [props, registItem]);
 
     const onWidthSelected = useCallback(async(feature: Feature) => {
         drawingFeature.current = feature;
