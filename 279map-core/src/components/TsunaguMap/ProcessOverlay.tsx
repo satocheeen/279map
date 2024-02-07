@@ -1,11 +1,9 @@
-import React, { useCallback, useId, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import Overlay from '../common/spinner/Overlay';
 import { useAtom } from 'jotai';
 import { processMessagesAtom } from '../common/spinner/useProcessMessage';
 import { temporaryItemsAtom } from '../../store/item';
-import { TfiTarget } from "react-icons/tfi";
 import styles from './ProcessOverlay.module.scss';
-import Tooltip from '../common/tooltip/Tooltip';
 import useItemProcess from '../../store/item/useItemProcess';
 
 /**
@@ -79,7 +77,6 @@ type RegistingErrorComponentProps = {
     tempId: string; // 対象アイテム
 }
 function RegistingErrorComponent(props: RegistingErrorComponentProps) {
-    const id = useId();
     const { continueProcess } = useItemProcess();
 
     const handleContinue = useCallback((retry: boolean) => {
@@ -89,11 +86,6 @@ function RegistingErrorComponent(props: RegistingErrorComponentProps) {
     return (
         <div className={styles.ErrorContainer}>
             <p>登録に失敗しました。</p>
-            <button>
-                <TfiTarget id={id} />
-                <Tooltip anchorId={id} content='対象確認' place="bottom" />
-            </button>
-
             <button onClick={()=>handleContinue(true)}>リトライ</button>
             <button onClick={()=>handleContinue(false)}>キャンセル</button>
         </div>
