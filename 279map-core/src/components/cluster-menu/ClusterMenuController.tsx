@@ -11,7 +11,7 @@ import { filteredItemIdListAtom } from '../../store/filter';
 import { useItems } from '../../store/item/useItems';
 import { useAtom } from 'jotai';
 import { DataId, FeatureType } from '../../types-common/common-types';
-import { temporaryItemsAtom } from '../../store/item';
+import { itemProcessesAtom } from '../../store/item';
 import { useWatch } from '../../util/useWatch2';
 
 /**
@@ -75,10 +75,10 @@ function ClusterMenuController(props: Props, ref: React.ForwardedRef<ClusterMenu
     }, [selectedItemId]);
 
     const { getItem } = useItems();
-    const [ temporaryItems] = useAtom(temporaryItemsAtom);
-    const temporaryItemsRef = useRef(temporaryItems);
-    useWatch(temporaryItems, () => {
-        temporaryItemsRef.current = temporaryItems;
+    const [ itemProcesses ] = useAtom(itemProcessesAtom);
+    const itemProcessesRef = useRef(itemProcesses);
+    useWatch(itemProcesses, () => {
+        itemProcessesRef.current = itemProcesses;
     })
     /**
      * get the selectable features.
@@ -106,9 +106,15 @@ function ClusterMenuController(props: Props, ref: React.ForwardedRef<ClusterMenu
             pointIds = pointIds.filter((_, i) => filterResults[i]);
         }
 
-        // 登録更新処理中のものは除去する
+        // 登録更新処理中のものは選択不可能なので除去する
         pointIds = pointIds.filter(id => {
-            return !temporaryItemsRef.current.some(tempItem => isEqualId(tempItem.item.id, id.id));
+            return !itemProcessesRef.current.some(process => {
+                if (process.status === 'registing') {
+                    return isEqualId(process.item.id, id.id);
+                } else if (process.status === 'updating') {
+                    return process.items.some(item => isEqualId(item.id, id.id));
+                }
+            });
         })
 
         // フィルタ時はフィルタ対象外のものに絞る

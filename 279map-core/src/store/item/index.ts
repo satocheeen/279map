@@ -23,22 +23,21 @@ export type ItemsByDatasourceMap = {[dsId: string]: ItemsMap};
 export const storedItemsAtom = atom({} as ItemsByDatasourceMap);
 
 // 登録・更新・削除処理中のアイテム
-export type TemporaryItem = {
+export type ItemProcessType = {
     processId: string;     // 処理ID
+    error?: boolean;    // 処理失敗時にtrue
+} & ({
     status: 'registing';
     item: Pick<ItemInfo, 'id' | 'geoJson' | 'geoProperties'>;
-    error?: boolean;    // 処理失敗時にtrue
 } | {
-    processId: string;     // 処理ID
     status: 'updating';
-    item: UpdateItemInput;
-    error?: boolean;    // 処理失敗時にtrue
-}
-export const temporaryItemsAtom = atom<TemporaryItem[]>([]);
+    items: UpdateItemInput[];
+})
+export const itemProcessesAtom = atom<ItemProcessType[]>([]);
 
 export const allItemsAtom = atom<ItemsByDatasourceMap>((get) => {
     const storedItems = get(storedItemsAtom);
-    const temporaryItems = get(temporaryItemsAtom);
+    const temporaryItems = get(itemProcessesAtom);
 
     const result = structuredClone(storedItems);
     temporaryItems.forEach(tempItem => {

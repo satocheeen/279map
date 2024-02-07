@@ -2,7 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import Overlay from '../common/spinner/Overlay';
 import { useAtom } from 'jotai';
 import { processMessagesAtom } from '../common/spinner/useProcessMessage';
-import { temporaryItemsAtom } from '../../store/item';
+import { ItemProcessType, itemProcessesAtom } from '../../store/item';
 import styles from './ProcessOverlay.module.scss';
 import useItemProcess from '../../store/item/useItemProcess';
 
@@ -11,21 +11,14 @@ import useItemProcess from '../../store/item/useItemProcess';
  */
 export default function ProcessOverlay() {
     const [ processMessages ] = useAtom(processMessagesAtom);
-    const [ temporaryItems ] = useAtom(temporaryItemsAtom);
+    const [ itemProcesses ] = useAtom(itemProcessesAtom);
 
     /**
-     * 登録処理中アイテムがあるか
+     * 処理失敗プロセス
      */
-    const isRegisting = useMemo(() => {
-        return temporaryItems.some(temp => temp.status === 'registing');
-    }, [temporaryItems]);
-
-    /**
-     * 登録処理失敗アイテム
-     */
-    const registingErrorItem = useMemo(() => {
-        return temporaryItems.find(temp => temp.error);
-    }, [temporaryItems])
+    const errorProcesses = useMemo(() => {
+        return itemProcesses.filter(temp => temp.error);
+    }, [itemProcesses])
 
     /**
      * オーバーレイ表示するかどうか
@@ -38,28 +31,35 @@ export default function ProcessOverlay() {
      * スピナー表示するかどうか
      */
     const isShowSpinner = useMemo(() => {
-        if (isRegisting) return true;
+        if (itemProcesses.length > 0) return true;
         return processMessages.some(pm => pm.spinner);
-    }, [processMessages, isRegisting]);
+    }, [processMessages, itemProcesses]);
 
     /**
      * 表示するメッセージ。メッセージが存在しない場合は、undefined。
      */
     const processMessage = useMemo(() => {
-        if (isRegisting) {
-            return '登録中...'
+        if (itemProcesses.some(temp => temp.status === 'registing')) {
+            return '登録中...';
+        }
+        if (itemProcesses.some(temp => temp.status === 'updating')) {
+            return '更新中...';
         }
         return processMessages.find(pm => pm.message)?.message;
-    }, [processMessages, isRegisting]);
+    }, [processMessages, itemProcesses]);
     
-    if (registingErrorItem) {
+    if (errorProcesses.length > 0) {
         return (
             <Overlay minimum>
-                <RegistingErrorComponent tempId={registingErrorItem.processId} />
+                <>
+                {errorProcesses.map(errorProcess => (
+                    <RegistingErrorComponent key={errorProcess.processId} process={errorProcess} />
+                ))}
+                </>
             </Overlay>
-
         )
     }
+
     return (
         <Overlay
             spinner={isShowSpinner}
@@ -74,18 +74,27 @@ export default function ProcessOverlay() {
  * リトライするかどうかを選択させるためのコンポーネント
  */
 type RegistingErrorComponentProps = {
-    tempId: string; // 対象アイテム
+    process: ItemProcessType; // 対象プロセス
 }
 function RegistingErrorComponent(props: RegistingErrorComponentProps) {
     const { continueProcess } = useItemProcess();
 
     const handleContinue = useCallback((retry: boolean) => {
-        continueProcess(props.tempId, retry);
-    }, [continueProcess, props.tempId]);
+        continueProcess(props.process.processId, retry);
+    }, [continueProcess, props.process]);
+
+    const processName = useMemo(() => {
+        switch(props.process.status) {
+            case 'registing':
+                return '登録';
+            case 'updating':
+                return '更新';
+        }
+    }, [props.process]);
 
     return (
         <div className={styles.ErrorContainer}>
-            <p>登録に失敗しました。</p>
+            <p>{processName}に失敗しました。</p>
             <button onClick={()=>handleContinue(true)}>リトライ</button>
             <button onClick={()=>handleContinue(false)}>キャンセル</button>
         </div>

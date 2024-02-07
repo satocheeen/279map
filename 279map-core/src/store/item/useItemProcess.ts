@@ -1,9 +1,9 @@
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
-import { TemporaryItem, temporaryItemsAtom } from ".";
+import { ItemProcessType, itemProcessesAtom } from ".";
 import { ItemInfo } from "../../types/types";
 import { clientAtom } from "jotai-urql";
-import { RegistItemDocument, UpdateItemInput } from "../../graphql/generated/graphql";
+import { RegistItemDocument, UpdateItemDocument, UpdateItemInput } from "../../graphql/generated/graphql";
 
 /**
  * 登録・更新・削除処理を担うカスタムフック
@@ -18,22 +18,22 @@ type RegistItemParam = {
 
 export default function useItemProcess() {
     /**
-     * 一時アイテムを追加する
+     * プロセス追加
      */
-    const addTemporaryItem = useAtomCallback(
-        useCallback((get, set, temporaryItem: TemporaryItem) => {
-            set(temporaryItemsAtom, (cur) => {
+    const _addItemProcess = useAtomCallback(
+        useCallback((get, set, temporaryItem: ItemProcessType) => {
+            set(itemProcessesAtom, (cur) => {
                 return cur.concat(temporaryItem);
             })
         }, [])
     )
 
     /**
-     * 一時アイテムを削除する
+     * プロセス削除
      */
-    const removeTemporaryItem = useAtomCallback(
+    const _removeItemProcess = useAtomCallback(
         useCallback((get, set, processId: string) => {
-            set(temporaryItemsAtom, (cur) => {
+            set(itemProcessesAtom, (cur) => {
                 return cur.filter(cur => cur.processId !== processId);
             })
         }, [])
@@ -42,9 +42,9 @@ export default function useItemProcess() {
     /**
      * 指定のプロセスについてエラーフラグを更新する
      */
-    const setErrorWithTemporaryItem = useAtomCallback(
+    const _setErrorWithTemporaryItem = useAtomCallback(
         useCallback((get, set, processId: string, errorFlag: boolean) => {
-            set(temporaryItemsAtom, (cur) => {
+            set(itemProcessesAtom, (cur) => {
                 return cur.map(item => {
                     if (item.processId === processId) {
                         const newObj = structuredClone(item);
@@ -67,7 +67,7 @@ export default function useItemProcess() {
             const processId = `process-${++temporaryCount}`;
 
             // 登録完了までの仮アイテム登録
-            addTemporaryItem({
+            _addItemProcess({
                 processId,
                 item: {
                     id: {
@@ -92,24 +92,53 @@ export default function useItemProcess() {
                 if (result.error) {
                     // エラー時
                     console.warn('registItem failed', result.error.message);
-                    setErrorWithTemporaryItem(processId, true);
+                    _setErrorWithTemporaryItem(processId, true);
                     // キャンセル or リトライ の指示待ち
                     retryFlag = await waitFor(processId);
-                    setErrorWithTemporaryItem(processId, false);
+                    _setErrorWithTemporaryItem(processId, false);
                 }
         
             } while(retryFlag);
 
             // 仮アイテム削除
-            removeTemporaryItem(processId);
+            _removeItemProcess(processId);
 
-        }, [addTemporaryItem, removeTemporaryItem, setErrorWithTemporaryItem])
+        }, [_addItemProcess, _removeItemProcess, _setErrorWithTemporaryItem])
     )
 
-    const updateItem = useAtomCallback(
-        useCallback((get, set, param: UpdateItemInput[]) => {
+    const updateItems = useAtomCallback(
+        useCallback(async(get, set, items: UpdateItemInput[]) => {
+            // ID付与
+            const processId = `process-${++temporaryCount}`;
 
-        }, [])
+            // 登録完了までの仮アイテム登録
+            _addItemProcess({
+                processId,
+                items,
+                status: 'updating',
+            });
+
+            const gqlClient = get(clientAtom);
+            let retryFlag = false;
+            do {
+                retryFlag = false;
+                const result = await gqlClient.mutation(UpdateItemDocument, {
+                    targets: items,
+                });
+                if (result.error) {
+                    // エラー時
+                    console.warn('updateItem failed', result.error.message);
+                    _setErrorWithTemporaryItem(processId, true);
+                    // キャンセル or リトライ の指示待ち
+                    retryFlag = await waitFor(processId);
+                    _setErrorWithTemporaryItem(processId, false);
+                }
+        
+            } while(retryFlag);
+
+            // 仮アイテム削除
+            _removeItemProcess(processId);
+        }, [_addItemProcess, _removeItemProcess, _setErrorWithTemporaryItem])
     )
 
     /**
@@ -128,6 +157,7 @@ export default function useItemProcess() {
 
     return {
         registItem,
+        updateItems,
         continueProcess,
     }
 }
