@@ -4,7 +4,6 @@ import VectorSource from 'ol/source/Vector';
 import { Stroke, Style } from 'ol/style';
 import React, { useEffect, useCallback, useRef, useState } from 'react';
 import useConfirm from '../../../common/confirm/useConfirm';
-import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import { createGeoJson, extractGeoProperty, getOriginalLine } from '../../../../util/MapUtility';
 import useTopographyStyle from '../../useTopographyStyle';
 import PromptMessageBox from '../PromptMessageBox';
@@ -38,7 +37,6 @@ enum Stage {
     const selectedFeature = useRef<FeatureLike>();
     const styleHook = useTopographyStyle({});
     const confirmHook = useConfirm();
-    const spinnerHook = useProcessMessage();
     const modifySource = useRef<VectorSource|null>();
     const modify = useRef<Modify>();
 
