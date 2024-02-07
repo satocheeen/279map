@@ -6,8 +6,6 @@ import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
 import { Button } from '../common';
-import { compareAuth } from '../../util/CommonUtility';
-import { authLvAtom } from '../../store/session';
 import { useItems } from '../../store/item/useItems';
 import { contentDataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
@@ -36,7 +34,6 @@ export default function AddContentMenu(props: Props) {
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
     const [ gqlClient ] = useAtom(clientAtom);
     const [ dataSources ] = useAtom(contentDataSourcesAtom);
-    const [ authLv ] = useAtom(authLvAtom);
     const { getItem } = useItems();
 
     const item = useMemo(() => {
