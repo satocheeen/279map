@@ -12,7 +12,7 @@ import { useAtom } from 'jotai';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern, ConfirmResult } from '../common/confirm/types';
 import { clientAtom } from 'jotai-urql';
-import { DatasourceConfig, GetContentDocument, GetSnsPreviewDocument, GetUnpointContentsDocument, LinkContentDocument, MutationLinkContentArgs, MutationRegistContentArgs, RegistContentDocument, UpdateItemsDocument } from '../../graphql/generated/graphql';
+import { DatasourceConfig, GetContentDocument, GetSnsPreviewDocument, GetUnpointContentsDocument, LinkContentDocument, MutationLinkContentArgs, MutationRegistContentArgs, RegistContentDocument } from '../../graphql/generated/graphql';
 import { DataId } from '../../types-common/common-types';
 import useItemProcess from '../../store/item/useItemProcess';
 
