@@ -11,6 +11,8 @@ import { filteredItemIdListAtom } from '../../store/filter';
 import { useItems } from '../../store/item/useItems';
 import { useAtom } from 'jotai';
 import { DataId, FeatureType } from '../../types-common/common-types';
+import { temporaryItemsAtom } from '../../store/item';
+import { useWatch } from '../../util/useWatch2';
 
 /**
  * 地図上のアイテムがクリックされた際に、
@@ -73,6 +75,11 @@ function ClusterMenuController(props: Props, ref: React.ForwardedRef<ClusterMenu
     }, [selectedItemId]);
 
     const { getItem } = useItems();
+    const [ temporaryItems] = useAtom(temporaryItemsAtom);
+    const temporaryItemsRef = useRef(temporaryItems);
+    useWatch(temporaryItems, () => {
+        temporaryItemsRef.current = temporaryItems;
+    })
     /**
      * get the selectable features.
      * クリック位置付近に存在する選択可能な地物を返す
@@ -98,6 +105,11 @@ function ClusterMenuController(props: Props, ref: React.ForwardedRef<ClusterMenu
             }));
             pointIds = pointIds.filter((_, i) => filterResults[i]);
         }
+
+        // 登録更新処理中のものは除去する
+        pointIds = pointIds.filter(id => {
+            return !temporaryItemsRef.current.some(tempItem => tempItem.datasourceId === id.id.dataSourceId && tempItem.tempId === id.id.id);
+        })
 
         // フィルタ時はフィルタ対象外のものに絞る
         if (filteredItemIdListRef.current) {
