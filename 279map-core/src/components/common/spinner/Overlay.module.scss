@@ -1,6 +1,8 @@
 // Overlay
 $spinnerSize: 36px;
 .GraphSpinner {
+    display: flex;
+    align-items: center;
     z-index: 10;
     height: $spinnerSize;
     text-align: center;
@@ -34,7 +36,7 @@ $spinnerSize: 36px;
 // ユーザ操作を邪魔しないタイプ
 .MinOverlay {
     position: absolute;
-    top: 10px;
+    bottom: 5px;
     right: 10px;
 
     .ProcessArea {

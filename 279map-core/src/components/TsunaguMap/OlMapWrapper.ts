@@ -31,7 +31,7 @@ export type FeatureInfo = {
 
 type Device = 'pc' | 'sp';
 
-const pcControls = olControl.defaults({attribution: true});
+const pcControls = olControl.defaults({attribution: true, zoom: false});
 const spControls = olControl.defaults({attribution: true, zoom: false});
 
 /**

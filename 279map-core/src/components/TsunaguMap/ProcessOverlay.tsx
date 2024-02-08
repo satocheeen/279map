@@ -98,7 +98,7 @@ function RegistingErrorComponent(props: RegistingErrorComponentProps) {
 
     return (
         <div className={styles.ErrorContainer}>
-            <p>{processName}に失敗しました。</p>
+            <p>{processName}に失敗しました</p>
             <button onClick={()=>handleContinue(true)}>リトライ</button>
             <button onClick={()=>handleContinue(false)}>キャンセル</button>
         </div>
