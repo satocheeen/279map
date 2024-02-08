@@ -1,15 +1,22 @@
-type Hoge {
-    message: String!
-}
 type Target {
     "対象アイテムのID"
     id: DataId!
     "アイテムの地図範囲。update時は更新後範囲"
     wkt: String!
 }
+enum ErrorType {
+    "アイテム登録に失敗した場合"
+    RegistItemFailed
+}
+type ErrorInfo {
+    "エラー種別"
+    type: ErrorType!
+    "エラー詳細"
+    description: String
+    "特定のアイテムに紐づくエラーの場合、アイテムID"
+    itemId: DataId
+}
 type Subscription {
-    test: Hoge!
-
     """
     地図上にアイテムが追加された場合に通知する
     """
@@ -72,4 +79,13 @@ type Subscription {
         "対象の地図ID"
         mapId: String!
     ): Boolean
+
+    """
+    ユーザが操作している地図でエラーが発生した場合にエラー内容を通知する。
+    突き放し実行している登録、更新処理でエラー発生した場合に通知するために用意。
+    """
+    error (
+        "対象セッションID"
+        sid: String!
+    ): ErrorInfo!
 }

@@ -19,7 +19,7 @@ enum ItemTemporaryState {
 type ItemDefine {
     id: DataId!
     name: String!
-    geoJson: Geometry!
+    geometry: Geometry!
     geoProperties: GeoProperties!
     lastEditedTime: String!
     temporary: ItemTemporaryState
@@ -115,7 +115,7 @@ enum GeocoderTarget {
 type GeocoderItem {
     idInfo: GeocoderIdInfo!
     name: String!
-    geoJson: Geometry!
+    geometry: Geometry!
 }
 
 # --------------

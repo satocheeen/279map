@@ -1,15 +1,12 @@
 import { FeatureLike } from 'ol/Feature';
 import React, { useCallback, useRef, useState } from 'react';
 import Input from '../../../common/form/Input';
-import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import PromptMessageBox from '../PromptMessageBox';
 import SelectFeature from '../SelectFeature';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useItems } from '../../../../store/item/useItems';
-import { useAtom } from 'jotai';
-import { clientAtom } from 'jotai-urql';
-import { UpdateItemDocument } from '../../../../graphql/generated/graphql';
+import useItemProcess from '../../../../store/item/useItemProcess';
 
 type Props = {
     close: () => void;  // 作図完了時のコールバック
@@ -22,7 +19,6 @@ export default function EditTopographyInfoController(props: Props) {
     const [stage, setStage] = useState(Stage.SELECTING_FEATURE);
     const selectedFeatureId = useRef<string>();
     const [name, setName] = useState('');
-    const { showProcessMessage, hideProcessMessage } = useProcessMessage();
     const { getItem } = useItems();
 
     const onSelectFeature = useCallback(async(feature: FeatureLike) => {
@@ -40,30 +36,20 @@ export default function EditTopographyInfoController(props: Props) {
         props.close();
     }, [props]);
 
-    const [ gqlClient ] = useAtom(clientAtom);
+    const { updateItems } = useItemProcess();
 
     const onInputOk = useCallback(async() => {
-        const h = showProcessMessage({
-            overlay: true,
-            spinner: true,
-            message: '更新中...'
-        });
-
         const id = convertDataIdFromFeatureId(selectedFeatureId.current as string);
         // update DB
-        await gqlClient.mutation(UpdateItemDocument, {
-            targets: [
-                {
-                    id,
-                    name,
-                }
-            ]
-        });
-
-        hideProcessMessage(h);
+        updateItems([
+            {
+                id,
+                name,
+            }
+        ])
         props.close();
 
-    }, [gqlClient, showProcessMessage, hideProcessMessage, name, props]);
+    }, [updateItems, name, props]);
 
     switch(stage) {
         case Stage.SELECTING_FEATURE:

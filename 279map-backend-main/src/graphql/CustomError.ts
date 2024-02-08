@@ -1,8 +1,8 @@
 import { GraphQLError } from 'graphql';
-import { ErrorType } from './__generated__/types';
+import { ConnectErrorType } from './__generated__/types';
 
 type Param = {
-    type: ErrorType;
+    type: ConnectErrorType;
     message: string;
     userId?: string;
 }

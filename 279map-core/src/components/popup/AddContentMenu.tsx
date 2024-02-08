@@ -6,16 +6,15 @@ import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import PopupMenuIcon from './PopupMenuIcon';
 import styles from './AddContentMenu.module.scss';
 import { Button } from '../common';
-import { compareAuth } from '../../util/CommonUtility';
-import { authLvAtom } from '../../store/session';
 import { useItems } from '../../store/item/useItems';
 import { contentDataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern, ConfirmResult } from '../common/confirm/types';
 import { clientAtom } from 'jotai-urql';
-import { Auth, DatasourceConfig, GetContentDocument, GetSnsPreviewDocument, GetUnpointContentsDocument, LinkContentDocument, MutationLinkContentArgs, MutationRegistContentArgs, RegistContentDocument, UpdateItemDocument } from '../../graphql/generated/graphql';
+import { DatasourceConfig, GetContentDocument, GetSnsPreviewDocument, GetUnpointContentsDocument, LinkContentDocument, MutationLinkContentArgs, MutationRegistContentArgs, RegistContentDocument } from '../../graphql/generated/graphql';
 import { DataId } from '../../types-common/common-types';
+import useItemProcess from '../../store/item/useItemProcess';
 
 type Props = {
     target: {
@@ -35,7 +34,6 @@ export default function AddContentMenu(props: Props) {
     const [ isShowSubMenu, setShowSubMenu] = useState(false);
     const [ gqlClient ] = useAtom(clientAtom);
     const [ dataSources ] = useAtom(contentDataSourcesAtom);
-    const [ authLv ] = useAtom(authLvAtom);
     const { getItem } = useItems();
 
     const item = useMemo(() => {
@@ -46,10 +44,6 @@ export default function AddContentMenu(props: Props) {
         }
 
     }, [props.target, getItem]);
-
-    const editableAuthLv = useMemo(() => {
-        return compareAuth(authLv, Auth.Edit) >= 0;
-    }, [authLv]);
 
     /**
      * 追加可能なコンテンツ定義を返す
@@ -150,6 +144,8 @@ export default function AddContentMenu(props: Props) {
         type: 'title';
         contentTitle: string;
     }
+
+    const { updateItems } = useItemProcess();
     const registItemNameByContentsName = useCallback(async(param: FuncParam) => {
         if (item?.name.length !== 0) return;
 
@@ -175,16 +171,14 @@ export default function AddContentMenu(props: Props) {
             name = param.contentTitle;
         }
 
-        await gqlClient.mutation(UpdateItemDocument, {
-            targets: [
-                {
-                    id: item.id,
-                    name,
-                }
-            ]
-        });
+        updateItems([
+            {
+                id: item.id,
+                name,
+            }
+        ])
 
-    }, [item, confirm, gqlClient]);
+    }, [item, confirm, gqlClient, updateItems]);
 
     const onAddContent = useCallback((val: 'new' | 'unpoint') => {
         setShowSubMenu(false);
@@ -194,7 +188,10 @@ export default function AddContentMenu(props: Props) {
                 dataSources: creatableContentDataSources,
                 registContentAPI: async(param: MutationRegistContentArgs) => {
                     try {
-                        await gqlClient.mutation(RegistContentDocument, param)
+                        const result = await gqlClient.mutation(RegistContentDocument, param)
+                        if (result.error) {
+                            throw new Error('regist content error: ' + result.error.message);
+                        }
                         // 必要に応じてアイテム名設定
                         registItemNameByContentsName({
                             type: 'title',

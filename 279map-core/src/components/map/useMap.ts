@@ -3,7 +3,7 @@ import { OlMapWrapper } from '../TsunaguMap/OlMapWrapper';
 import { atom, useAtom } from 'jotai';
 import { useAtomCallback, atomWithReducer } from 'jotai/utils';
 import { currentMapKindAtom, defaultExtentAtom, instanceIdAtom } from '../../store/session';
-import { LoadedAreaInfo, LoadedItemKey, allItemsAtom, latestEditedTimeOfDatasourceAtom, loadedItemMapAtom } from '../../store/item';
+import { LoadedAreaInfo, LoadedItemKey, allItemsAtom, latestEditedTimeOfDatasourceAtom, loadedItemMapAtom, storedItemsAtom } from '../../store/item';
 import { itemDataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import useMyMedia from '../../util/useMyMedia';
 import Feature from "ol/Feature";
@@ -114,8 +114,8 @@ export function useMap() {
             const extentPolygon = bboxPolygon(extent as [number,number,number,number]);
             return Object.values(itemMap).filter(item => {
                 let hit: boolean = false;
-                if (item.geoJson.type === 'GeometryCollection') {
-                    hit = item.geoJson.geometries.some(g => {
+                if (item.geometry.type === 'GeometryCollection') {
+                    hit = item.geometry.geometries.some(g => {
                         const polygon = geoJsonToTurfPolygon(g);
                         if (!polygon) return false;
                         const result = intersect(extentPolygon, polygon);
@@ -198,7 +198,7 @@ export function useMap() {
                     return items.length > 0;
                 });
                 if (hasItem) {
-                    set(allItemsAtom, (currentItemMap) => {
+                    set(storedItemsAtom, (currentItemMap) => {
                         const newItemsMap = structuredClone(currentItemMap);
                         apiResults.forEach(apiResult => {
                             const items = apiResult.data?.getItems ?? [];
@@ -333,7 +333,7 @@ export function useMap() {
             }, { requestPolicy: 'network-only' });
             const items = apiResult.data?.getItemsById ?? [];
 
-            set(allItemsAtom, (currentItemMap) => {
+            set(storedItemsAtom, (currentItemMap) => {
                 const newItemsMap = structuredClone(currentItemMap);
                 items.forEach(item => {
                     if (!newItemsMap[item.id.dataSourceId]) {

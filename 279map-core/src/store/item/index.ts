@@ -3,6 +3,7 @@ import { ItemContent, ItemInfo } from '../../types/types';
 import { filteredItemsAtom } from '../filter';
 import { DataId } from '../../entry';
 import { visibleDataSourceIdsAtom } from '../datasource';
+import { ItemTemporaryState, UpdateItemInput } from '../../graphql/generated/graphql';
 
 export type LoadedItemKey = {
     datasourceId: string;
@@ -17,7 +18,66 @@ export const loadedItemMapAtom = atom<LoadedItemMap>({});
 
 export type ItemsMap = {[itemId: string]: ItemInfo};
 export type ItemsByDatasourceMap = {[dsId: string]: ItemsMap};
-export const allItemsAtom = atom({} as ItemsByDatasourceMap);
+
+// バックエンドから取得したアイテム情報
+export const storedItemsAtom = atom({} as ItemsByDatasourceMap);
+
+// 登録・更新・削除処理中のアイテム
+export type ItemProcessType = {
+    processId: string;     // 処理ID
+    error?: boolean;    // 処理失敗時にtrue
+} & ({
+    status: 'registing';
+    item: Pick<ItemInfo, 'id' | 'geometry' | 'geoProperties'>;
+} | {
+    status: 'updating';
+    items: UpdateItemInput[];
+} | {
+    status: 'deleting';
+    itemId: DataId;
+})
+export const itemProcessesAtom = atom<ItemProcessType[]>([]);
+
+export const allItemsAtom = atom<ItemsByDatasourceMap>((get) => {
+    const storedItems = get(storedItemsAtom);
+    const itemProcesses = get(itemProcessesAtom);
+
+    const result = structuredClone(storedItems);
+    itemProcesses.forEach(itemProcess => {
+        if (itemProcess.status === 'registing') {
+            const item: ItemInfo = {
+                id: itemProcess.item.id,
+                geometry: itemProcess.item.geometry,
+                geoProperties: itemProcess.item.geoProperties,
+                name: '',
+                contents: [],
+                hasContents: false,
+                hasImageContentId: [],
+                lastEditedTime: '',
+                temporary: ItemTemporaryState.Registing,
+            }
+            if (!result[itemProcess.item.id.dataSourceId]) {
+                result[itemProcess.item.id.dataSourceId] = {};
+            }
+            result[itemProcess.item.id.dataSourceId][itemProcess.item.id.id] = item;
+
+        } else if (itemProcess.status === 'updating') {
+            itemProcess.items.forEach(tempItem => {
+                Object.assign(result[tempItem.id.dataSourceId][tempItem.id.id], tempItem, {
+                    lastEditedTime: '',
+                    temporary: ItemTemporaryState.Updateing,
+                });
+            })
+        } else if (itemProcess.status === 'deleting') {
+            // エラー時は半透明表示するので残す
+            if (!itemProcess.error) {
+                delete result[itemProcess.itemId.dataSourceId][itemProcess.itemId.id];
+            }
+        }
+    })
+
+    return result;
+});
 
 /**
  * データソース単位の取得済みアイテムの最終更新日時

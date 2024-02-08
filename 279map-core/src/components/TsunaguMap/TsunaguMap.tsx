@@ -108,8 +108,8 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
                             }
                         </Suspense>
                     </TooltipContext.Provider>
+                    <ProcessOverlay />
                 </MapConnector>
-                <ProcessOverlay />
             </OwnerContext.Provider>
         </div>
     );

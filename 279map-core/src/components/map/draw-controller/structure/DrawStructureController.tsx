@@ -6,7 +6,6 @@ import VectorSource from 'ol/source/Vector';
 import { createGeoJson } from '../../../../util/MapUtility';
 import usePointStyle from '../../usePointStyle';
 import PromptMessageBox from '../PromptMessageBox';
-import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import SearchAddress, { SearchAddressHandler } from '../../../common/SearchAddress';
 import GeoJSON from 'ol/format/GeoJSON';
 import { GeoJsonObject } from 'geojson';
@@ -15,9 +14,9 @@ import VectorLayer from 'ol/layer/Vector';
 import { useMap } from '../../useMap';
 import { currentMapKindAtom } from '../../../../store/session';
 import { useAtom } from 'jotai';
-import { clientAtom } from 'jotai-urql';
-import { GeocoderTarget, MapKind, RegistItemDocument } from '../../../../graphql/generated/graphql';
+import { GeocoderTarget, MapKind } from '../../../../graphql/generated/graphql';
 import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
+import useItemProcess from '../../../../store/item/useItemProcess';
 
 type Props = {
     dataSourceId: string;   // 作図対象のデータソース
@@ -39,7 +38,6 @@ export default function DrawStructureController(props: Props) {
     const draw = useRef<null | Draw>(null);
     const drawingFeature = useRef<Feature | undefined>(undefined);  // 描画中のFeature
 
-    const spinner = useProcessMessage();
     const { map } = useMap();
     const pointStyleHook = usePointStyle();
 
@@ -118,37 +116,34 @@ export default function DrawStructureController(props: Props) {
         startDrawing();
     }, [startDrawing]);
 
-    const [ gqlClient ] = useAtom(clientAtom);
+    const { registItem } = useItemProcess();
 
-    const registFeatureFunc = useCallback(async() => {
+    const registFeatureFunc = useCallback(() => {
         if (!drawingFeature.current) {
             console.warn('描画アイテムなし');
             return;
         }
         setStage(Stage.REGISTING);
-        const h = spinner.showProcessMessage({
-            overlay: true,
-            spinner: true,
-            message: '登録中...'
-        });
         const geoJson = createGeoJson(drawingFeature.current);
 
-        await gqlClient.mutation(RegistItemDocument, {
+        const geoProperties = Object.assign({}, geoJson.properties, {
+            featureType: FeatureType.STRUCTURE,
+            icon: {
+                type: drawingIcon.current?.type,
+                id: drawingIcon.current?.id,
+            },
+        } as GeoProperties);
+
+        // 登録処理開始
+        registItem({
             datasourceId: props.dataSourceId,
             geometry: geoJson.geometry,
-            geoProperties: Object.assign({}, geoJson.properties, {
-                featureType: FeatureType.STRUCTURE,
-                icon: {
-                    type: drawingIcon.current?.type,
-                    id: drawingIcon.current?.id,
-                },
-            } as GeoProperties),
+            geoProperties,
         });
-    
-        spinner.hideProcessMessage(h);
+
         props.close();
 
-    }, [gqlClient, props, spinner]);
+    }, [props, registItem]);
 
     const onSelectAddress= useCallback((address: GeoJsonObject) => {
         if (!map) return;

@@ -2,16 +2,12 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { Button, Modal } from '../common';
 import FormGroup from '../common/form/FormGroup';
 import Input from '../common/form/Input';
-import useConfirm from '../common/confirm/useConfirm';
-import { ConfirmBtnPattern } from '../common/confirm/types';
 import { useItems } from '../../store/item/useItems';
 import { useAtom } from 'jotai';
 import { currentMapKindAtom } from '../../store/session';
-import { modalSpinnerAtom } from '../common/modal/Modal';
-import { useAtomCallback } from 'jotai/utils';
-import { clientAtom } from 'jotai-urql';
-import { MapKind, UpdateItemDocument } from '../../graphql/generated/graphql';
+import { MapKind } from '../../graphql/generated/graphql';
 import { DataId } from '../../types-common/common-types';
+import useItemProcess from '../../store/item/useItemProcess';
 
 type Props = {
     target: DataId;
@@ -20,40 +16,20 @@ type Props = {
 
 export default function EditItemNameModal(props: Props) {
     const { getItem } = useItems();
-    // const itemMap = useRecoilValue(itemMapState);
     const [title, setTitle] = useState<string>(
         getItem(props.target)?.name ?? ''
     )
 
-    const [ gqlClient ] = useAtom(clientAtom);
-    // const [registing, setRegisting] = useAtom(modalSpinnerAtom);
-    const { confirm } = useConfirm();
-    const onOk = useAtomCallback(
-        useCallback(async(get, set) => {
-            set(modalSpinnerAtom, true);
-            try {
-                await gqlClient.mutation(UpdateItemDocument, {
-                    targets: [
-                        {
-                            id: props.target,
-                            name: title,
-                        }
-                    ]
-                });
-        
-                props.onClose();
-
-            } catch(e) {
-                confirm({
-                    message: '登録処理に失敗しました。再度実行しても問題が解決しない場合は、管理者へご連絡ください。',
-                    btnPattern: ConfirmBtnPattern.OkOnly,
-                })
-            } finally {
-                set(modalSpinnerAtom, false);
-
+    const { updateItems } = useItemProcess();
+    const onOk = useCallback(async() => {
+        updateItems([
+            {
+                id: props.target,
+                name: title,
             }
-        }, [gqlClient, props, title, confirm])
-    );
+        ])
+        props.onClose();
+    }, [props, title, updateItems]);
 
     const [ mapKind ] = useAtom(currentMapKindAtom);
     const label = useMemo(() => {

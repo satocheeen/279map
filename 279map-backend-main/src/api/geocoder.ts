@@ -79,16 +79,16 @@ async function mapboxSearch(address: string, searchTarget: GeocoderTarget[]): Pr
             return true;
         }
     }).forEach((res) => {
-        const geoJson = simplifyGeometry(res.geometry);
+        const geometry = simplifyGeometry(res.geometry);
 
-        if (geoJson) {
+        if (geometry) {
             list.push({
                 idInfo: {
                     map: 'mapbox',
                     id: res.id,
                 },
                 name: res.place_name,
-                geoJson,
+                geometry,
             })
         }
     });
@@ -116,8 +116,8 @@ async function osmSearch(address: string, searchTarget: GeocoderTarget[]): Promi
         }
     }).forEach((res) => {
         // 間引く
-        const geoJson = simplifyGeometry(res.geojson as Geometry);
-        if (geoJson) {
+        const geometry = simplifyGeometry(res.geojson as Geometry);
+        if (geometry) {
             list.push({
                 idInfo: {
                     map: 'osm',
@@ -125,7 +125,7 @@ async function osmSearch(address: string, searchTarget: GeocoderTarget[]): Promi
                     osm_id: res.osm_id,
                 },
                 name: res.display_name,
-                geoJson,
+                geometry,
             })
         }
     });

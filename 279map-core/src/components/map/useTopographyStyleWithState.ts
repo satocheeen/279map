@@ -6,21 +6,26 @@ import { colorWithAlpha } from '../../util/CommonUtility';
 import { Style } from 'ol/style';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import { FeatureType } from '../../types-common/common-types';
+import ol_color from 'ol/color';
 
 /**
- * フィルタを加味して地形Featureのスタイルを設定するフック
+ * 地物ごとの状態を加味して地形Featureのスタイルを設定するフック
+ * <加味する状態>
+ * - フィルタ
+ * - 選択状態
+ * - 登録処理中状態
  */
-export default function useFilteredTopographyStyle() {
-    const { getForceColor, getFilterStatus } = useFilterStatus();
-    const { getStyleFunction } = useTopographyStyle({
-    });
+export default function useTopographyStyleWithState() {
+    const { getForceColor, getFilterStatus, getOpacity } = useFilterStatus();
+    const { getStyleFunction } = useTopographyStyle({});
     const { filter } = useContext(OwnerContext);
 
     const topographyStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style => {
         const color = getForceColor(feature);
+        const opacity = getOpacity(feature);
         const filterStatus = getFilterStatus(feature);
         const func = getStyleFunction((feature, resolution, defaultStyle) => {
-            if (!color && filterStatus === 'Normal') {
+            if (!color && opacity === 1 && filterStatus === 'Normal') {
                 return defaultStyle;
             }
             const featureType = feature.getProperties()['featureType'];
@@ -45,16 +50,21 @@ export default function useFilteredTopographyStyle() {
             } else {
                 if (color) {
                     defaultStyle.getStroke().setColor(color);
-                    defaultStyle.getStroke().setWidth(3);
                 }
             }
+            // set opacity
+            if (opacity !== 1) {
+                const currentColor = defaultStyle.getFill().getColor() as ol_color.Color;
+                defaultStyle.getFill().setColor(colorWithAlpha(color ?? currentColor, opacity))
+            }
+
             return defaultStyle;
         });
         const style = func(feature, resolution);
         // TODO: 島名表示
         return style;
 
-    }, [getStyleFunction, getFilterStatus, getForceColor, filter]);
+    }, [getStyleFunction, getFilterStatus, getForceColor, filter, getOpacity]);
 
     return {
         topographyStyleFunction,

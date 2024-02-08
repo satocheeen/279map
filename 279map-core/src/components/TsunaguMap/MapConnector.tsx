@@ -7,12 +7,13 @@ import styles from './MapConnector.module.scss';
 import { useAtom } from 'jotai';
 import { ServerInfo, TsunaguMapProps } from '../../types/types';
 import { clientAtom } from 'jotai-urql';
-import { Auth, ConnectDocument, ConnectResult, DisconnectDocument, ErrorType, RequestDocument, UpdateUserAuthDocument } from '../../graphql/generated/graphql';
+import { Auth, ConnectDocument, ConnectErrorType, ConnectResult, DisconnectDocument, ErrorDocument, ErrorType, RequestDocument, UpdateUserAuthDocument } from '../../graphql/generated/graphql';
 import { OwnerContext } from './TsunaguMap';
 import { Provider, createStore } from 'jotai';
 import { defaultIconDefineAtom } from '../../store/icon';
 import { createGqlClient } from '../../api';
 import { useWatch } from '../../util/useWatch2';
+import { Subscription } from 'wonka';
 
 type Props = {
     server: ServerInfo;
@@ -44,16 +45,17 @@ export default function MapConnector(props: Props) {
     
     const [ loading, setLoading ] = useState(true);
     const [ connectStatus, setConnectStatus ] = useState<ConnectResult|undefined>();
-    const [ errorType, setErrorType ] = useState<ErrorType|undefined>();
+    const [ connectErrorType, setConnectErrorType ] = useState<ConnectErrorType|undefined>();
     const myStoreRef = useRef<ReturnType<typeof createStore>|undefined>();
     const [ userId, setUserId ] = useState<string|undefined>();
+    const errorHandlerRef = useRef<Subscription>();
 
     const connect = useCallback(async() => {
         try {
             myStoreRef.current = createMyStore(props.iconDefine);
             setLoading(true);
             setConnectStatus(undefined);
-            setErrorType(undefined);
+            setConnectErrorType(undefined);
             const gqlClient = createGqlClient(props.server);
             myStoreRef.current.set(clientAtom, gqlClient);
             console.log('connect to', props.mapId, props.server.token);
@@ -62,12 +64,12 @@ export default function MapConnector(props: Props) {
             if (!result.data) {
                 if (result.error?.graphQLErrors[0]) {
                     const errorExtensions = result.error.graphQLErrors[0].extensions;
-                    const errorType = errorExtensions.type as ErrorType;
+                    const errorType = errorExtensions.type as ConnectErrorType;
                     const userId = errorExtensions.userId as string | undefined;
-                    setErrorType(errorType);
+                    setConnectErrorType(errorType);
                     setUserId(userId);
                 } else {
-                    setErrorType(ErrorType.IllegalError);
+                    setConnectErrorType(ConnectErrorType.IllegalError);
                 }
                 return;
             }
@@ -85,6 +87,13 @@ export default function MapConnector(props: Props) {
             const urqlClient = createGqlClient(props.server, sessionid);
             myStoreRef.current.set(clientAtom, urqlClient);
             console.log('connected');
+            // TODO:エラー受付処理
+            if (errorHandlerRef.current) {
+                errorHandlerRef.current.unsubscribe();
+            }
+            errorHandlerRef.current = urqlClient.subscription(ErrorDocument, { sid: sessionid }).subscribe((errorInfo) => {
+                console.log('catch error', errorInfo.data?.error);
+            })
 
             if (onConnectRef.current) {
                 onConnectRef.current({
@@ -98,7 +107,7 @@ export default function MapConnector(props: Props) {
 
         } catch(e) {
             console.warn(e);
-            setErrorType(ErrorType.IllegalError);
+            setConnectErrorType(ConnectErrorType.IllegalError);
 
         } finally {
             setLoading(false);
@@ -107,6 +116,10 @@ export default function MapConnector(props: Props) {
     }, [props.server, props.mapId, props.iconDefine]);
 
     const disconnect = useCallback(async() => {
+        if (errorHandlerRef.current) {
+            errorHandlerRef.current.unsubscribe();
+            errorHandlerRef.current = undefined;
+        }
         if (!myStoreRef.current) return;
         const gqlClient = myStoreRef.current.get(clientAtom);
         await gqlClient.mutation(DisconnectDocument, {});
@@ -182,33 +195,33 @@ export default function MapConnector(props: Props) {
     }, [guestMode, connectStatus, props.server]);
 
     const errorMessage = useMemo(() => {
-        switch(errorType) {
-            case ErrorType.UndefinedMap:
+        switch(connectErrorType) {
+            case ConnectErrorType.UndefinedMap:
                 return '指定の地図は存在しません';
-            case ErrorType.Unauthorized:
+            case ConnectErrorType.Unauthorized:
                 return 'この地図を表示するには、ログインが必要です';
-            case ErrorType.Forbidden:
+            case ConnectErrorType.Forbidden:
                 return '認証期限が切れている可能性があります。再ログインを試してください。問題が解決しない場合は、管理者へ問い合わせてください。';
-            case ErrorType.NoAuthenticate:
+            case ConnectErrorType.NoAuthenticate:
                 return 'この地図に入るには管理者の承認が必要です';
-            case ErrorType.Requesting:
+            case ConnectErrorType.Requesting:
                 return '管理者からの承認待ちです';
-            case ErrorType.SessionTimeout:
+            case ConnectErrorType.SessionTimeout:
                 return 'しばらく操作されなかったため、セッション接続が切れました。再ロードしてください。';
             default:
                 return '想定外の問題が発生しました。再ロードしても問題が解決しない場合は、管理者へ問い合わせてください。';
         }
-    }, [errorType]);
+    }, [connectErrorType]);
     
 
     if (loading) {
         return <Overlay spinner message='ロード中...' />
     }
 
-    if (errorType) {
+    if (connectErrorType) {
         return (
             <Overlay message={errorMessage}>
-                {errorType === ErrorType.NoAuthenticate &&
+                {connectErrorType === ConnectErrorType.NoAuthenticate &&
                     <RequestComponet />
                 }
             </Overlay>

@@ -1,7 +1,8 @@
 import { useCallback } from "react";
-import { processMessagesAtom } from "./atoms";
-import { useAtom } from "jotai";
-import { ProcessMessageType } from "./types";
+import { atom, useAtom } from "jotai";
+import { ProcessMessageType, ProcessMessageWithID } from "./types";
+
+export const processMessagesAtom = atom<ProcessMessageWithID[]>([]);
 
 let processCnt = 0
 export function useProcessMessage() {

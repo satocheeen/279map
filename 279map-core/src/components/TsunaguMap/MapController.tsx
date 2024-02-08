@@ -1,5 +1,5 @@
 import React, { useRef, useMemo, useContext, useEffect, lazy, Suspense, useState } from 'react';
-import { allItemsAtom, loadedItemMapAtom } from '../../store/item';
+import { allItemsAtom, loadedItemMapAtom, storedItemsAtom } from '../../store/item';
 import { currentMapDefineAtom, currentMapKindAtom, isWorldMapAtom, mapDefineReducerAtom } from '../../store/session';
 import { atom, useAtom } from 'jotai';
 import { useItems } from '../../store/item/useItems';
@@ -11,13 +11,13 @@ import { usePrevious } from '../../util/usePrevious';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { isEqualId } from '../../util/dataUtility';
 import usePointStyle from '../map/usePointStyle';
-import useFilteredTopographyStyle from '../map/useFilteredTopographyStyle';
+import useTopographyStyleWithState from '../map/useTopographyStyleWithState';
 import useTrackStyle from '../map/useTrackStyle';
 import { filteredItemIdListAtom } from '../../store/filter';
 import VectorSource from 'ol/source/Vector';
 import useMyMedia from '../../util/useMyMedia';
 import { useWatch } from '../../util/useWatch2';
-import { ItemDeleteDocument, ItemInsertDocument, ItemUpdateDocument, MapInfoUpdateDocument, MapKind, TestDocument } from '../../graphql/generated/graphql';
+import { ItemDeleteDocument, ItemInsertDocument, ItemUpdateDocument, MapInfoUpdateDocument, MapKind } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import { ItemInfo } from '../../types/types';
 
@@ -74,9 +74,6 @@ function useMapInitializer() {
     useEffect(() => {
         if (!currentMapKind) return;
         console.log('start subscribe');
-        urqlClient.subscription(TestDocument, {}).subscribe((val) => {
-            console.log('subscribe test', val);
-        })
 
         const h1 = urqlClient.subscription(ItemInsertDocument, { mapId, mapKind: currentMapKind }).subscribe((val) => {
             const targets = val.data?.itemInsert;
@@ -123,7 +120,8 @@ export const initialLoadingAtom = atom(false);
  */
 function useItemUpdater() {
     const { map, fitToDefaultExtent } = useMap();
-    const [ itemMap, setItemMap ] = useAtom(allItemsAtom);
+    const [ , setStoredItems ] = useAtom(storedItemsAtom);
+    const [ itemMap ] = useAtom(allItemsAtom);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
     const [ itemDatasourceGroups ] = useAtom(itemDataSourceGroupsAtom);
@@ -143,7 +141,7 @@ function useItemUpdater() {
         if (!map || !currentMapKind) return;
         if (initializedMapKind ===  currentMapKind) return;
 
-        setItemMap({});
+        setStoredItems({});
 
         // 現在のレイヤ、データソースを削除
         map.clearAllLayers();
@@ -219,7 +217,7 @@ function useMapStyleUpdater() {
     }, [map, pointStyleFunction])
 
     // -- コンテンツ（地形）レイヤ
-    const { topographyStyleFunction } = useFilteredTopographyStyle();
+    const { topographyStyleFunction } = useTopographyStyleWithState();
     useEffect(() => {
         if (!map) return;
 

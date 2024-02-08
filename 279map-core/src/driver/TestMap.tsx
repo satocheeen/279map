@@ -24,6 +24,11 @@ const props = {
             id: 'house',
             imagePath: './icon/house.png',
             useMaps: [MapKind.Virtual],
+        },
+        {
+            id: 'house2',
+            imagePath: './icon/house2.png',
+            useMaps: [MapKind.Virtual],
         }
     ]
 } as TsunaguMapProps;

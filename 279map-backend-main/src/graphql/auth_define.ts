@@ -24,7 +24,7 @@ export const authDefine: AuthLvDefine = {
     getImageUrl: Auth.View,
     
     registItem: Auth.Edit,
-    updateItem: Auth.Edit,
+    updateItems: Auth.Edit,
     removeItem: Auth.Edit,
 
     registContent: Auth.Edit,

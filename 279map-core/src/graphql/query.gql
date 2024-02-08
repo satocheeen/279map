@@ -49,7 +49,7 @@ query getItems (
     getItems(wkt: $wkt, zoom: $zoom, datasourceId: $datasourceId, latestEditedTime: $latestEditedTime, excludeItemIds: $excludeItemIds) {
         id
         name
-        geoJson
+        geometry
         geoProperties
         lastEditedTime
         hasContents
@@ -72,7 +72,7 @@ query getItemsById (
     getItemsById(targets: $targets) {
         id
         name
-        geoJson
+        geometry
         geoProperties
         lastEditedTime
         hasContents
@@ -179,7 +179,7 @@ query geocoder (
     geocoder(address: $address, searchTarget: $searchTarget) {
         idInfo
         name
-        geoJson
+        geometry
     }
 }
 

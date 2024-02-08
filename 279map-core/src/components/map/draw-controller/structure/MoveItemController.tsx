@@ -23,8 +23,9 @@ import { topographySelectStyleFunction } from '../utility';
 import { LineString, Polygon } from 'ol/geom';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
-import { UpdateItemDocument, UpdateItemInput } from '../../../../graphql/generated/graphql';
+import { UpdateItemInput } from '../../../../graphql/generated/graphql';
 import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
+import useItemProcess from '../../../../store/item/useItemProcess';
 
 type Props = {
     close: () => void;  // 編集完了時のコールバック
@@ -90,12 +91,9 @@ export default function MoveItemController(props: Props) {
         })
     }, [])
 
+    const { updateItems } = useItemProcess();
     const onFinishClicked = async() => {
-        const h = spinnerHook.showProcessMessage({
-            overlay: true,
-            spinner: true,
-            message: '更新中...'
-        });
+        // DB更新用にデータ加工
         const targets = [] as UpdateItemInput[];
         for (const mf of movedFeatureCollection.getArray()) {
             const mfGeoJson = createGeoJson(mf);
@@ -118,7 +116,6 @@ export default function MoveItemController(props: Props) {
                     geometry = mfGeoJson.geometry;
                 }
 
-                // DB更新
                 const id = convertDataIdFromFeatureId(feature.getId() as string);
                 targets.push({
                     id,
@@ -126,10 +123,7 @@ export default function MoveItemController(props: Props) {
                 })
             }
         }
-        await gqlClient.mutation(UpdateItemDocument, {
-            targets
-        });
-        spinnerHook.hideProcessMessage(h);
+        updateItems(targets);
         props.close();
     }
 

@@ -1,15 +1,12 @@
 import React, { useCallback, useRef, useState } from 'react';
 import SelectStructureDialog from './SelectStructureDialog';
-import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import SelectFeature from '../SelectFeature';
 import { SystemIconDefine } from '../../../../types/types';
 import { FeatureLike } from 'ol/Feature';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
-import { useAtom } from 'jotai';
-import { clientAtom } from 'jotai-urql';
-import { UpdateItemDocument } from '../../../../graphql/generated/graphql';
 import { FeatureType } from '../../../../types-common/common-types';
+import useItemProcess from '../../../../store/item/useItemProcess';
 
 type Props = {
     close: () => void;  // 編集完了時のコールバック
@@ -22,7 +19,6 @@ enum Stage {
 
 export default function ChangeStructureIconController(props: Props) {
     const selectedFeature = useRef<FeatureLike>();
-    const spinnerHook = useProcessMessage();
     const [stage, setStage] = useState(Stage.SELECTING_TARGET);
 
     const onCancel = useCallback(() => {
@@ -34,38 +30,30 @@ export default function ChangeStructureIconController(props: Props) {
         setStage(Stage.SELECTING_STRUCTURE);
     }, []);
 
-    const [ gqlClient ] = useAtom(clientAtom);
+    const { updateItems } = useItemProcess();
     const onSelectedStructure = useCallback(async(iconDefine: SystemIconDefine) => {
         if (!selectedFeature.current) {
             console.warn('選択アイテムなし');
             return;
         }
-        const h = spinnerHook.showProcessMessage({
-            overlay: true,
-            spinner: true,
-            message: '更新中...'
-        });
 
         // update DB
         const id = convertDataIdFromFeatureId(selectedFeature.current.getId() as string);
-        await gqlClient.mutation(UpdateItemDocument, {
-            targets: [
-                {
-                    id,
-                    geoProperties: {
-                        featureType: FeatureType.STRUCTURE,
-                        icon: {
-                            type: iconDefine.type,
-                            id: iconDefine.id,
-                        },
+        updateItems([
+            {
+                id,
+                geoProperties: {
+                    featureType: FeatureType.STRUCTURE,
+                    icon: {
+                        type: iconDefine.type,
+                        id: iconDefine.id,
                     },
-                }
-            ]
-        });
+                },
+            }
+        ])
 
-        spinnerHook.hideProcessMessage(h);
         props.close();
-    }, [selectedFeature, gqlClient, spinnerHook, props]);
+    }, [selectedFeature, props, updateItems]);
 
     if (stage === Stage.SELECTING_TARGET) {
         return (

@@ -1,17 +1,14 @@
 import React, { useCallback, useState } from 'react';
 import * as MapUtility from '../../../../util/MapUtility';
 import PromptMessageBox from '../PromptMessageBox';
-import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import SelectDrawFeature, { DrawFeatureType } from './SelectDrawFeature';
 import DrawPointRadius from './DrawPointRadius';
 import { DrawAreaAddress } from './DrawAreaAddress';
 import { DrawFreeArea } from './DrawFreeArea';
 import { Geometry } from 'ol/geom';
 import { Feature } from 'ol';
-import { useAtom } from 'jotai';
-import { clientAtom } from 'jotai-urql';
-import { RegistItemDocument } from '../../../../graphql/generated/graphql';
 import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
+import useItemProcess from '../../../../store/item/useItemProcess';
 
 type Props = {
     dataSourceId: string;
@@ -39,16 +36,9 @@ export default function DrawTopographyController(props: Props) {
 
     const [geometryType, setGeometryType] = useState('Polygon');
 
-    const spinner = useProcessMessage();
-    const [ gqlClient ] = useAtom(clientAtom);
+    const { registItem } = useItemProcess();
 
     const registFeatureFunc = useCallback(async(feature: Feature<Geometry>) => {
-        const h = spinner.showProcessMessage({
-            overlay: true,
-            spinner: true,
-            message: '登録中...'
-        });
-
         // DB登録
         // const feature = map.getDrawingLayer().getSource()?.getFeatures()[0];
         if (!feature) {
@@ -56,7 +46,7 @@ export default function DrawTopographyController(props: Props) {
         } else {
             const geoJson = MapUtility.createGeoJson(feature);
 
-            await gqlClient.mutation(RegistItemDocument, {
+            registItem({
                 datasourceId: props.dataSourceId,
                 geometry: geoJson.geometry,
                 geoProperties: Object.assign({}, geoJson.properties, {
@@ -65,9 +55,8 @@ export default function DrawTopographyController(props: Props) {
             });
         }
 
-        spinner.hideProcessMessage(h);
         props.close();
-    }, [spinner, props, gqlClient]);
+    }, [props, registItem]);
 
     // 描画図形選択後
     const onSelectDrawFeatureType = useCallback((selected: DrawFeatureType) => {

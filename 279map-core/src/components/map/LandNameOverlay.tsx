@@ -56,7 +56,7 @@ export default function LandNameOverlay() {
         // 表示範囲内の地物に絞る
         return namedEarth.filter(item => {
             const extentPolygon = bboxPolygon(mapView.extent as [number,number,number,number]);
-            const itemPolygon = geoJsonToTurfPolygon(item.geoJson);
+            const itemPolygon = geoJsonToTurfPolygon(item.geometry);
             if (!itemPolygon) return false;
             return booleanContains(extentPolygon, itemPolygon);
         });
@@ -87,7 +87,7 @@ export default function LandNameOverlay() {
                 className: styles.LandnameOverlayContainer,
             });
 
-            const itemPolygon = geoJsonToTurfPolygon(item.geoJson);
+            const itemPolygon = geoJsonToTurfPolygon(item.geometry);
             const center = centerOfMass(itemPolygon);
             overlay.setPosition(center.geometry.coordinates);
             map?.addOverlay(overlay);            

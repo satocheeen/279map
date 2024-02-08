@@ -112,12 +112,12 @@ function SearchAddress(props: Props, ref: React.ForwardedRef<SearchAddressHandle
 
     const onSelectCandidate = useCallback((item: GeocoderItem) => {
         if (props.onAddress) {
-            if (item.geoJson.type === 'Point') {
-                props.onAddress(item.geoJson);
+            if (item.geometry.type === 'Point') {
+                props.onAddress(item.geometry);
             } else {
                 const geoJson = {
                     type: 'Feature',
-                    geometry: item.geoJson,
+                    geometry: item.geometry,
                     properties: {
                         featureType: FeatureType.AREA,
                         // geocoderId: item.idInfo,   間引いてサイズ圧縮したものを受け取るようになったので、geocoderId保存は取りやめ
