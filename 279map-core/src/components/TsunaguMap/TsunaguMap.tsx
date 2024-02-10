@@ -15,6 +15,7 @@ import DrawController, { DrawControllerHandler } from '../map/DrawController';
 import ClusterMenuContainer from '../cluster-menu/ClusterMenuContainer';
 import ContentsSettingController from '../admin/contents-setting/ContentsSettingController';
 import UserListController from '../admin/user-list/UserListController';
+import SelectItemController, { SelectItemControllerHandler } from '../map/draw-controller/SelectItemController';
 
 const DefaultComponents = lazy(() => import('../default/DefaultComponents'));
 
@@ -65,11 +66,13 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
 
     const eventControlerRef = useRef<EventControllerHandler>(null);
     const drawControllerRef = useRef<DrawControllerHandler>(null);
+    const selectItemControllerRef = useRef<SelectItemControllerHandler>(null);
     const contentsSettingControlerRef = useRef<Pick<TsunaguMapHandler, 'showContentsSetting'>>(null);
     const userListControlerRef = useRef<Pick<TsunaguMapHandler, 'showUserList'>>(null);
     useImperativeHandle(ref, () => {
         return Object.assign({}, 
             drawControllerRef.current,
+            selectItemControllerRef.current,
             eventControlerRef.current,
             contentsSettingControlerRef.current,
             userListControlerRef.current);
@@ -91,6 +94,7 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
 
                         {/* 外部からの操作指示を受けて特定の動作をするコントローラー群 */}
                         <DrawController ref={drawControllerRef} />
+                        <SelectItemController ref={selectItemControllerRef} />
                         <ContentsSettingController ref={contentsSettingControlerRef} />
                         <UserListController ref={userListControlerRef} />
 

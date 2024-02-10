@@ -161,6 +161,13 @@ export interface TsunaguMapHandler {
     changeVisibleLayer(target: { dataSourceId: string } | { group: string }, visible: boolean): void;
 
     /**
+     * 地図上からアイテムを選択させる
+     * @param targets 指定している場合、指定されているFeatureTypeのアイテムのみ選択可能
+     * @return 選択された地図アイテム。キャンセルされた場合は、undefined。
+     */
+    selectItem(targets?: FeatureType[]): Promise<DataId|undefined>;
+
+    /**
      * ユーザ一覧表示（管理者用コマンド）
      */
     showUserList(): void;

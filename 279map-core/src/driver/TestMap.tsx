@@ -97,6 +97,11 @@ export default function TestMap() {
         mapRef.current?.switchMapKind(mapKind);
     }, []);
 
+    const handleSelectItem = useCallback(async() => {
+        const result = await mapRef.current?.selectItem();
+        console.log('select item', result);
+    }, []);
+
     // callbacks
     const onSelect = useCallback((id: DataId) => {
         console.log('onSelect', id, cnt);
@@ -291,6 +296,7 @@ export default function TestMap() {
                     </label>
                     <button onClick={onFocusItem}>Focus Item</button>
                     <button onClick={handleFitAllItems}>Fit All Item</button>
+                    <button onClick={handleSelectItem}>Select Item</button>
                 </div>
             </div>
             <div className={styles.Map}>
