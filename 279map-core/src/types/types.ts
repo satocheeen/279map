@@ -1,12 +1,14 @@
 import { CSSProperties } from "react";
-import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult, ItemDefine, GetItemsQuery } from "../graphql/generated/graphql";
+import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult, ItemDefine, GetItemsQuery, DatasourceInfo } from "../graphql/generated/graphql";
 import { ContentAttr } from "../components/contents/types";
 import { DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
 import { OperationResult } from "urql";
-import { ItemsByDatasourceMap } from "../store/item";
 
 export type OnMapLoadParam = {
     mapKind: MapKind;
+    // 当該地図で使用可能なデータソース一覧
+    itemDatasourceGroups: DatasourceGroup[];
+    contentDataSources: DatasourceInfo[];
 }
 export type onDatasourceChangedParam = {
     datasourceGroups: DatasourceGroup[];

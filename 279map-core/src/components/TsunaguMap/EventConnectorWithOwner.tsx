@@ -4,7 +4,7 @@ import { OwnerContext } from './TsunaguMap';
 import { categoriesAtom } from '../../store/category';
 import { eventsAtom } from '../../store/event';
 import { dialogTargetAtom, mapModeAtom, showingDetailItemIdAtom } from '../../store/operation';
-import { currentMapKindAtom } from '../../store/session';
+import { currentMapDefineAtom, currentMapKindAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
@@ -15,7 +15,7 @@ import { useAtomCallback } from 'jotai/utils';
 import { loadedItemMapAtom, storedItemsAtom, visibleItemsAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument } from '../../graphql/generated/graphql';
+import { ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument, DatasourceInfo } from '../../graphql/generated/graphql';
 import { updateContentAtom } from '../../store/content';
 import { clientAtom } from 'jotai-urql';
 import { MapKind } from '../../graphql/generated/graphql';
@@ -187,14 +187,19 @@ function useMapLoadListener() {
     );
 
     useWatch(currentMapKind,
-        useCallback(() => {
-            if (onMapLoad && currentMapKind) {
-                onMapLoad({
-                    mapKind: currentMapKind,
-                })
-                resetItems();
-            }
-        }, [currentMapKind, onMapLoad, resetItems])
+        useAtomCallback(
+            useCallback((get) => {
+                const mapDefine = get(currentMapDefineAtom);
+                if (onMapLoad && currentMapKind) {
+                    onMapLoad({
+                        mapKind: currentMapKind,
+                        contentDataSources: (mapDefine?.contentDataSources ?? []) as DatasourceInfo[],
+                        itemDatasourceGroups: (mapDefine?.itemDataSourceGroups ?? []) as DatasourceGroup[],
+                    })
+                    resetItems();
+                }
+            }, [currentMapKind, onMapLoad, resetItems])
+        )
     , { immediate: true })
 
 }
