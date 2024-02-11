@@ -928,7 +928,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                             logger.warn('not found extent', id);
                         } else {
                             pubsub.publish('childContentsUpdate', { itemId: id }, true);
-
+                            pubsub.publish('itemUpdate', ctx.currentMap, [ { id, wkt } ]);
                         }
                     }
 
@@ -961,7 +961,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                             logger.warn('not found extent', id);
                         } else {
                             pubsub.publish('childContentsUpdate', { itemId: id }, true);
-
+                            pubsub.publish('itemUpdate', ctx.currentMap, [ { id, wkt } ]);
                         }
                     }
 
