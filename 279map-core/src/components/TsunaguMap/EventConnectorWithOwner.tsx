@@ -15,7 +15,7 @@ import { useAtomCallback } from 'jotai/utils';
 import { loadedItemMapAtom, storedItemsAtom, visibleItemsAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument, DatasourceInfo } from '../../graphql/generated/graphql';
+import { ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument, DatasourceInfo, ParentOfContent } from '../../graphql/generated/graphql';
 import { updateContentAtom } from '../../store/content';
 import { clientAtom } from 'jotai-urql';
 import { MapKind } from '../../graphql/generated/graphql';
@@ -89,8 +89,14 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         async updateContentAPI(param: MutationUpdateContentArgs) {
             await updateContent(param);
         },
-        async linkContentToItemAPI(param: MutationLinkContentArgs) {
-            await gqlClient.mutation(LinkContentDocument, param);
+        async linkContentToItemAPI(param: Parameters<TsunaguMapHandler['linkContentToItemAPI']>[0]) {
+            await gqlClient.mutation(LinkContentDocument, {
+                id: param.id,
+                parent: {
+                    type: param.parent.type === 'item' ? ParentOfContent.Item : ParentOfContent.Content,
+                    id: param.parent.id,
+                }
+            });
         },
     
         async getSnsPreviewAPI(url: string) {

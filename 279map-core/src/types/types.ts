@@ -1,5 +1,5 @@
 import { CSSProperties } from "react";
-import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult, ItemDefine, GetItemsQuery, DatasourceInfo } from "../graphql/generated/graphql";
+import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult, GetItemsQuery, DatasourceInfo } from "../graphql/generated/graphql";
 import { ContentAttr } from "../components/contents/types";
 import { DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
 import { OperationResult } from "urql";
@@ -147,7 +147,17 @@ export interface TsunaguMapHandler {
 
     updateContentAPI(param: MutationUpdateContentArgs): Promise<void>;
 
-    linkContentToItemAPI(param: MutationLinkContentArgs): Promise<void>;
+    /**
+     * 指定のコンテンツを指定のアイテムまたはコンテンツに子供として紐づける
+     * @param param 
+     */
+    linkContentToItemAPI(param: {
+        id: DataId;
+        parent: {
+            type: 'item' | 'content';
+            id: DataId;
+        }
+    }): Promise<void>;
 
     getSnsPreviewAPI(url: string): Promise<SnsPreviewResult>;
 
