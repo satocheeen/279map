@@ -90,13 +90,16 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             await updateContent(param);
         },
         async linkContentToItemAPI(param: Parameters<TsunaguMapHandler['linkContentToItemAPI']>[0]) {
-            await gqlClient.mutation(LinkContentDocument, {
+            const result = await gqlClient.mutation(LinkContentDocument, {
                 id: param.id,
                 parent: {
                     type: param.parent.type === 'item' ? ParentOfContent.Item : ParentOfContent.Content,
                     id: param.parent.id,
                 }
             });
+            if (result.error) {
+                throw new Error(result.error.message);
+            }
         },
     
         async getSnsPreviewAPI(url: string) {
