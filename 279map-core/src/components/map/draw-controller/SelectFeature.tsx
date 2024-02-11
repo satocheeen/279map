@@ -2,6 +2,7 @@ import { Feature, MapBrowserEvent } from 'ol';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PromptMessageBox from './PromptMessageBox';
 import Select, { SelectEvent } from 'ol/interaction/Select';
+import { never } from 'ol/events/condition'
 import { click } from 'ol/events/condition';
 import { FeatureLike } from 'ol/Feature';
 import useTopographyStyle from '../useTopographyStyle';
@@ -15,9 +16,12 @@ import { convertDataIdFromFeatureId } from '../../../util/dataUtility';
 import { useItems } from '../../../store/item/useItems';
 import { topographySelectStyleFunction } from './utility';
 import { MapKind } from '../../../graphql/generated/graphql';
+import { FeatureType, GeoProperties } from "../../../types-common/common-types";
+import { Style } from 'ol/style';
 
 type Props = {
-    targetType: LayerType;
+    featureType?: FeatureType[];
+    // targetType: LayerType;
     message?: string;
     onOk: (feature: Feature) => void;
     onCancel: () => void;
@@ -38,32 +42,70 @@ export default function SelectFeature(props: Props) {
 
     const targetLayers = useMemo((): LayerInfo[] => {
         if (!map) return [];
-        const layers = map.getLayersOfTheType(props.targetType);
+        const targetLayers = props.featureType ? props.featureType.reduce((acc, cur) => {
+            const layerType = function() {
+                switch(cur) {
+                    case FeatureType.AREA:
+                    case FeatureType.EARTH:
+                    case FeatureType.FOREST:
+                    case FeatureType.ROAD:
+                        return LayerType.Topography;
+                    case FeatureType.STRUCTURE:
+                        return LayerType.Point;
+                    case FeatureType.TRACK:
+                        return LayerType.Track;
+                }
+            }();
+            if (!acc.includes(layerType)) {
+                return [...acc, layerType];
+            } else {
+                return acc;
+            }
+        }, [] as LayerType[]) ?? []
+        : [LayerType.Point, LayerType.Topography, LayerType.Track];
+        const layers = targetLayers.reduce((acc, cur) => {
+            const mylayers = map.getLayersOfTheType(cur);
+            return [...acc, ...mylayers];
+        }, [] as LayerInfo[]);
+
         // 編集可能なレイヤに絞って返す
         return layers.filter(l => l.editable);
-    }, [props.targetType, map]);
+    }, [props.featureType, map]);
 
     // 初期化
     useEffect(() => {
         if (!map) return;
-        const styleFunction = function(){
-            if (props.targetType === LayerType.Topography) {
-                return  topographyStyleHook.getStyleFunction(topographySelectStyleFunction);
-            } else {
-                return selectedStyleFunction;
-            }
-        }();
         select.current = new Select({
             condition: click,
+            toggleCondition: never,     // Shiftを押しながらの複数選択禁止
             layers: targetLayers.map(l => l.layer),
-            style: styleFunction,
-            filter: (feature) => {
-                if (props.targetType !== LayerType.Point) {
-                    return true;
+            style: (feature: FeatureLike, resolution: number): Style => {
+                if (feature.get('features')) {
+                    // Cluster(Point)の場合
+                    return selectedStyleFunction(feature, resolution);
+
+                } else {
+                    // TODO: 軌跡は別スタイルにする
+                    return  topographyStyleHook.getStyleFunction(topographySelectStyleFunction)(feature, resolution);
+
                 }
-                const features = feature.get('features') as FeatureLike[];
-                // 複数重なっているものは選択不可
-                return features.length === 1;
+            },
+            filter: (feature) => {
+                if (!props.featureType) return true;
+                if (feature.get('features')) {
+                    // Cluster(Point)の場合
+                    if (!props.featureType.includes(FeatureType.STRUCTURE)) {
+                        return false;
+                    }
+                    const features = feature.get('features') as FeatureLike[];
+                    // 複数重なっているものは選択不可 TODO: 重畳選択を表示して選択させるようにする
+                    return features.length === 1;
+
+                } else {
+                    // その他
+                    const featureType = (feature.getProperties() as GeoProperties).featureType;
+                    return props.featureType.includes(featureType);
+                }
             },
         });
         select.current.on('select', (evt: SelectEvent) => {
@@ -71,11 +113,13 @@ export default function SelectFeature(props: Props) {
                 setSelectedFeature(undefined);
                 return;
             }
-            if (props.targetType === LayerType.Point) {
-                const features = evt.selected[0].get('features') as Feature[];
+            const feature = evt.selected[0];
+            if (feature.get('features')) {
+                // Cluster(Point)の場合
+                const features = feature.get('features') as Feature[];
                 setSelectedFeature(features[0]);
-            } else{
-                setSelectedFeature(evt.selected[0]);
+            } else {
+                setSelectedFeature(feature);
             }
         });
         map.addInteraction(select.current);
@@ -108,23 +152,25 @@ export default function SelectFeature(props: Props) {
 
     const [ errorMessage, setErrorMessage ] = useState<string|undefined>();
     const message= useMemo(() => {
-        let name: string;
-        if (props.targetType === LayerType.Point) {
-            if (mapKind === MapKind.Real) {
-                name = '地点';
-            } else {
-                name = '建物';
+        const name = !props.featureType ? 'アイテム' : props.featureType.map(ft => {
+            switch(ft) {
+                case FeatureType.AREA:
+                    return 'エリア';
+                case FeatureType.EARTH:
+                    return '土地';
+                case FeatureType.FOREST:
+                    return '緑地';
+                case FeatureType.ROAD:
+                    return '道';
+                case FeatureType.STRUCTURE:
+                    return mapKind === MapKind.Real ? '地点' : '建物';
+                case FeatureType.TRACK:
+                    return '軌跡';
             }
-        } else {
-            if (mapKind === MapKind.Real) {
-                name = 'エリア';
-            } else {
-                name = '地形';
-            }
-        }
+        }).join(',');
         const message = props.message ? props.message : `対象の${name}を選択して、OKボタンを押下してください。`;
         return message + (errorMessage ? '\n' + errorMessage : '');
-    }, [props.message, props.targetType, mapKind, errorMessage]);
+    }, [props.message, props.featureType, mapKind, errorMessage]);
 
     const { getItem } = useItems();
 

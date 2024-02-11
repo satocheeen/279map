@@ -3,7 +3,6 @@ import SelectStructureDialog from './SelectStructureDialog';
 import SelectFeature from '../SelectFeature';
 import { SystemIconDefine } from '../../../../types/types';
 import { FeatureLike } from 'ol/Feature';
-import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { FeatureType } from '../../../../types-common/common-types';
 import useItemProcess from '../../../../store/item/useItemProcess';
@@ -59,12 +58,8 @@ export default function ChangeStructureIconController(props: Props) {
         return (
             <SelectFeature
                 message='改築する建物を選択して、OKボタンを押下してください。'
-                targetType={LayerType.Point}
+                featureType={[FeatureType.STRUCTURE]}
                 onOk={onSelectFeature} onCancel={onCancel} />
-        //    <PromptMessageBox
-        //         message='改築する建物を選択して、OKボタンを押下してください。'
-        //         ok={onSelectFeature} cancel={onCancel}
-        //         okdisabled={selectedFeature === undefined} />
         );
     } else {
         return (

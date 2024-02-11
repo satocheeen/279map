@@ -2,17 +2,13 @@ import React, { useCallback } from 'react';
 import { FeatureLike } from 'ol/Feature';
 import useConfirm from '../../../common/confirm/useConfirm';
 import SelectFeature from '../SelectFeature';
-import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
-import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { ConfirmResult } from '../../../common/confirm/types';
-import { useAtom } from 'jotai';
-import { clientAtom } from 'jotai-urql';
-import { RemoveItemDocument } from '../../../../graphql/generated/graphql';
 import useItemProcess from '../../../../store/item/useItemProcess';
+import { FeatureType } from '../../../../types-common/common-types';
 
 type Props = {
-    target: LayerType;
+    target: FeatureType[];
     close: () => void;  // 作図完了時のコールバック
 }
 
@@ -47,7 +43,7 @@ export default function RemoveFeatureController(props: Props) {
 
     return (
         <SelectFeature
-            targetType={props.target}
+            featureType={props.target}
             onOk={onRemoveOkClicked} onCancel={onCancel} />
     );
 }

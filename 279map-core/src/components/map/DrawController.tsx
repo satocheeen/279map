@@ -1,11 +1,12 @@
-import React, { lazy, Suspense, useCallback, useImperativeHandle, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useImperativeHandle, useMemo, useState } from 'react';
 import { MapMode, TsunaguMapHandler } from '../../types/types';
 import EditTopographyInfoController from './draw-controller/topography/EditTopographyInfoController';
-import { LayerType } from '../TsunaguMap/VectorLayerMap';
 import LoadingOverlay from '../common/spinner/LoadingOverlay';
 import { mapModeAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
 import { FeatureType } from '../../types-common/common-types';
+import { currentMapKindAtom } from '../../store/session';
+import { MapKind } from '../../entry';
 
 const DrawStructureController = lazy(() => import('./draw-controller/structure/DrawStructureController'));
 const MoveItemController = lazy(() => import('./draw-controller/structure/MoveItemController'));
@@ -109,6 +110,16 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
         },
     }));
 
+    const [ mapKind ] = useAtom(currentMapKindAtom);
+    const topographyFeatureType = useMemo(() => {
+        if (mapKind === MapKind.Real) {
+            return [FeatureType.AREA];
+        } else {
+            return [FeatureType.EARTH, FeatureType.FOREST, FeatureType.ROAD];
+        }
+
+    }, [mapKind]);
+
     if (!controller) {
         return null;
     }
@@ -136,7 +147,7 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
         case 'remove-structure':
             return (
                 <Suspense fallback={<LoadingOverlay />}>
-                    <RemoveFeatureController target={LayerType.Point} close={terminate} />
+                    <RemoveFeatureController target={[FeatureType.STRUCTURE]} close={terminate} />
                 </Suspense>
             )
         case 'draw-topography':
@@ -166,7 +177,7 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
         case 'remove-topography':
             return (
                 <Suspense fallback={<LoadingOverlay />}>
-                    <RemoveFeatureController target={LayerType.Topography} close={terminate} />
+                    <RemoveFeatureController target={topographyFeatureType} close={terminate} />
                 </Suspense>
             )
     }

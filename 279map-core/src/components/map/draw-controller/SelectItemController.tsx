@@ -1,8 +1,7 @@
 import React, { Suspense, useCallback, useImperativeHandle, useState } from 'react';
-import { DataId, MapMode, TsunaguMapHandler } from '../../../entry';
+import { DataId, FeatureType, MapMode, TsunaguMapHandler } from '../../../entry';
 import LoadingOverlay from '../../common/spinner/LoadingOverlay';
 import SelectFeature from './SelectFeature';
-import { LayerType } from '../../TsunaguMap/VectorLayerMap';
 import { Feature } from 'ol';
 import { convertDataIdFromFeatureId } from '../../../util/dataUtility';
 import { mapModeAtom } from '../../../store/operation';
@@ -21,11 +20,13 @@ let resolveCallback = null as null | ((value: DataId | undefined) => void);
 function SelectItemController({}: Props, ref: React.ForwardedRef<SelectItemControllerHandler>) {
     const [ , setMapMode] = useAtom(mapModeAtom);
     const [ show, setShow ] = useState(false);
+    const [ targets, setTargets ] = useState<FeatureType[] | undefined>();
 
     useImperativeHandle(ref, () => ({
         selectItem(targets) {
             setShow(true);
             setMapMode(MapMode.Drawing);
+            setTargets(targets);
             return new Promise<DataId|undefined>((resolve) => {
                 resolveCallback = resolve;
             })
@@ -38,7 +39,7 @@ function SelectItemController({}: Props, ref: React.ForwardedRef<SelectItemContr
         if (resolveCallback) {
             resolveCallback(undefined);
         }
-    }, []);
+    }, [setMapMode]);
 
     const handleSelect = useCallback((feature: Feature) => {
         setShow(false);
@@ -48,13 +49,13 @@ function SelectItemController({}: Props, ref: React.ForwardedRef<SelectItemContr
         if (resolveCallback) {
             resolveCallback(id);
         }
-    }, [])
+    }, [setMapMode])
 
     if (!show) return null;
     return (
         <Suspense fallback={<LoadingOverlay />}>
             <SelectFeature
-                targetType={LayerType.Point}
+                featureType={targets}
                 onOk={handleSelect} onCancel={handleCancel} />
         </Suspense>
     );

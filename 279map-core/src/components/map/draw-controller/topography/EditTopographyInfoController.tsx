@@ -1,5 +1,5 @@
 import { FeatureLike } from 'ol/Feature';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import Input from '../../../common/form/Input';
 import PromptMessageBox from '../PromptMessageBox';
 import SelectFeature from '../SelectFeature';
@@ -7,6 +7,9 @@ import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useItems } from '../../../../store/item/useItems';
 import useItemProcess from '../../../../store/item/useItemProcess';
+import { FeatureType, MapKind } from '../../../../entry';
+import { useAtom } from 'jotai';
+import { currentMapKindAtom } from '../../../../store/session';
 
 type Props = {
     close: () => void;  // 作図完了時のコールバック
@@ -20,6 +23,7 @@ export default function EditTopographyInfoController(props: Props) {
     const selectedFeatureId = useRef<string>();
     const [name, setName] = useState('');
     const { getItem } = useItems();
+    const [ mapKind ] = useAtom(currentMapKindAtom);
 
     const onSelectFeature = useCallback(async(feature: FeatureLike) => {
         const id = feature.getId() as string;
@@ -51,11 +55,20 @@ export default function EditTopographyInfoController(props: Props) {
 
     }, [updateItems, name, props]);
 
+    const featureType = useMemo(() => {
+        if (mapKind === MapKind.Real) {
+            return [FeatureType.AREA];
+        } else {
+            return [FeatureType.EARTH, FeatureType.FOREST, FeatureType.ROAD];
+        }
+
+    }, [mapKind]);
+
     switch(stage) {
         case Stage.SELECTING_FEATURE:
             return (
                 <SelectFeature
-                targetType={LayerType.Topography}
+                featureType={featureType}
                 onOk={onSelectFeature} onCancel={onClose} />
             );
         case Stage.INPUT_NAME:

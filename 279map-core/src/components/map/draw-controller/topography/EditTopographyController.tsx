@@ -2,7 +2,7 @@ import { Feature } from 'ol';
 import { Modify } from 'ol/interaction';
 import VectorSource from 'ol/source/Vector';
 import { Stroke, Style } from 'ol/style';
-import React, { useEffect, useCallback, useRef, useState } from 'react';
+import React, { useEffect, useCallback, useRef, useState, useMemo } from 'react';
 import useConfirm from '../../../common/confirm/useConfirm';
 import { createGeoJson, extractGeoProperty, getOriginalLine } from '../../../../util/MapUtility';
 import useTopographyStyle from '../../useTopographyStyle';
@@ -11,12 +11,14 @@ import SelectFeature from '../SelectFeature';
 import RoadWidthSelecter from './RoadWidthSelecter';
 import { FeatureLike } from 'ol/Feature';
 import { Geometry } from 'ol/geom';
-import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useMap } from '../../useMap';
 import { ConfirmResult } from '../../../common/confirm/types';
 import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
 import useItemProcess from '../../../../store/item/useItemProcess';
+import { currentMapKindAtom } from '../../../../store/session';
+import { useAtom } from 'jotai';
+import { MapKind } from '../../../../entry';
 
 type Props = {
     close: () => void;  // 作図完了時のコールバック
@@ -39,6 +41,7 @@ enum Stage {
     const confirmHook = useConfirm();
     const modifySource = useRef<VectorSource|null>();
     const modify = useRef<Modify>();
+    const [ mapKind ] = useAtom(currentMapKindAtom);
 
     /**
      * 初期化
@@ -150,10 +153,19 @@ enum Stage {
         onSave(feature);
     }, [onSave]);
 
+    const featureType = useMemo(() => {
+        if (mapKind === MapKind.Real) {
+            return [FeatureType.AREA];
+        } else {
+            return [FeatureType.EARTH, FeatureType.FOREST, FeatureType.ROAD];
+        }
+
+    }, [mapKind]);
+
     if (stage === Stage.SELECTING_FEATURE) {
         return (
             <SelectFeature
-            targetType={LayerType.Topography}
+            featureType={featureType}
             onOk={onSelectFeature} onCancel={onClose} />
         )
     } else if (stage === Stage.EDITING) {
