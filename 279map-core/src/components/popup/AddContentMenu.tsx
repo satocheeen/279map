@@ -186,7 +186,7 @@ export default function AddContentMenu(props: Props) {
             onAddNewContent({
                 parent: props.target,
                 dataSources: creatableContentDataSources,
-                registContentAPI: async(param: MutationRegistContentArgs) => {
+                registContent: async(param: MutationRegistContentArgs) => {
                     try {
                         const result = await gqlClient.mutation(RegistContentDocument, param)
                         if (result.error) {
@@ -198,7 +198,7 @@ export default function AddContentMenu(props: Props) {
                             contentTitle: param.title,
                         });
                     } catch(e) {
-                        throw new Error('registContentAPI failed.' + e);
+                        throw new Error('registContent failed.' + e);
                     }
                 },
                 getSnsPreviewAPI: async(url: string) => {

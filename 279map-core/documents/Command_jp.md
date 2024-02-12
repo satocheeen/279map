@@ -64,7 +64,7 @@
 ## editTopographyInfo
 土地情報編集操作を起動します。
 
-## loadContentsAPI
+## loadContents
 指定のコンテンツ情報を取得します。
 | Name | Type | Description |
 | ---- | ---- | ---- |
@@ -80,13 +80,13 @@
 | type | 'item' \| 'content' | 表示対象 |
 | id | DataId | アイテムID または コンテンツID |
 
-## registContentAPI
+## registContent
 新規コンテンツを登録します。
 | Name | Type | Description |
 | ---- | ---- | ---- |
 | param | RegistContentParam | 登録するコンテンツ情報 |
 
-## updateContentAPI
+## updateContent
 指定のコンテンツを更新します。
 | Name | Type | Description |
 | ---- | ---- | ---- |

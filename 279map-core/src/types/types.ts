@@ -1,5 +1,5 @@
 import { CSSProperties } from "react";
-import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult, GetItemsQuery, DatasourceInfo } from "../graphql/generated/graphql";
+import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult, GetItemsQuery, DatasourceInfo, ItemDefine } from "../graphql/generated/graphql";
 import { ContentAttr } from "../components/contents/types";
 import { DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
 import { OperationResult } from "urql";
@@ -54,7 +54,13 @@ export type TsunaguMapProps = {
     onConnect?: (param: OnConnectParam) => void;
     onMapLoad?: (param: OnMapLoadParam) => void;
     onDatasourceChanged?: (param: onDatasourceChangedParam) => void;
-    onSelect?: (targets: DataId) => void; // callback when item is selected
+
+    /**
+     * 地図上で建物orピンが選択された場合のコールバック
+     * @param target 選択されたアイテム情報
+     */
+    onSelect?: (target: Pick<ItemDefine, 'id' | 'name' | 'lastEditedTime'>) => void;
+
     onClick?: (targets: DataId[]) => void; // callback when an items are clicked.  if set this callback, cluster menu don't be shown.
     onModeChanged?: (mode: MapMode) => void;    // callback when map mode has changed.
     onCategoriesLoaded?: (categories: CategoryDefine[]) => void;    // calback when categories has loaded or has changed.
@@ -139,13 +145,19 @@ export interface TsunaguMapHandler {
 
     editTopographyInfo(): void;
 
-    loadContentsAPI(contentIds: DataId[]): Promise<ContentsDefine[]>;
+    /**
+     * 指定のアイテム配下のコンテンツを取得する
+     * @param itemId 
+     */
+    loadContentsInItem(itemId: DataId): Promise<ContentsDefine[]>;
+
+    loadContents(contentIds: DataId[]): Promise<ContentsDefine[]>;
 
     showDetailDialog(param: {type: 'item' | 'content'; id: DataId}): void;
 
-    registContentAPI(param: MutationRegistContentArgs): Promise<void>;
+    registContent(param: MutationRegistContentArgs): Promise<void>;
 
-    updateContentAPI(param: MutationUpdateContentArgs): Promise<void>;
+    updateContent(param: MutationUpdateContentArgs): Promise<void>;
 
     /**
      * 指定のコンテンツを指定のアイテムまたはコンテンツに子供として紐づける
@@ -248,7 +260,7 @@ export type AddNewContentParam = {
         name: string;
     }[];
     getSnsPreviewAPI: (url: string) => Promise<SnsPreviewResult>;
-    registContentAPI: (param: MutationRegistContentArgs) => Promise<void>;
+    registContent: (param: MutationRegistContentArgs) => Promise<void>;
 }
 /**
  * 地図上でコンテンツ編集が選択された場合のコールバック
@@ -257,7 +269,7 @@ export type EditContentParam = {
     contentId: DataId;
     currentAttr: ContentAttr;
     getSnsPreviewAPI: (url: string) => Promise<SnsPreviewResult>;
-    updateContentAPI: (param: MutationUpdateContentArgs) => Promise<void>;
+    updateContent: (param: MutationUpdateContentArgs) => Promise<void>;
 }
 /**
  * 地図上で新規コンテンツ追加→未配置コンテンツが選択された場合に、コールバック関数に渡される情報

@@ -60,7 +60,7 @@ export default function ContentInfoEditDialog(props: Props) {
                 if (props.type === 'new') {
                     // 新規登録
                     const { type, ...attr } = attrValue;
-                    await props.param.registContentAPI({
+                    await props.param.registContent({
                         parent: 'itemId' in props.param.parent ? {
                             type: ParentOfContent.Item,
                             id: props.param.parent.itemId,
@@ -82,7 +82,7 @@ export default function ContentInfoEditDialog(props: Props) {
                         // TODO:
                         apiParam.imageUrl = (apiParam.imageUrl === '/api/getthumb?id=' + props.param.contentId) ? undefined : apiParam.imageUrl;
                     }
-                    await props.param.updateContentAPI(apiParam);
+                    await props.param.updateContent(apiParam);
                 }
 
                 if (props.onClose) {

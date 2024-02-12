@@ -41,8 +41,8 @@ You can operate the map or access map's API by the command hook which is returne
 | logout ||| logout. if the showing map is private, redirect to login page. |
 | switchMapKind | 'Real' \| 'Virtual' | | switch map kind |
 | focusItem | itemId: string | | focus item on the map |
-| registContentAPI | RegistContentParam | | regist a new content |
-| updateContentAPI | UpdateContentParam | | update the content |
+| registContent | RegistContentParam | | regist a new content |
+| updateContent | UpdateContentParam | | update the content |
 | linkContentToItemAPI | LinkContentToItemParam | | link the content to the item |
 | getSnsPreviewAPI | url: string | sns info | get sns preview info |
 

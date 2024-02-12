@@ -15,11 +15,12 @@ import { useAtomCallback } from 'jotai/utils';
 import { loadedItemMapAtom, storedItemsAtom, visibleItemsAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument, DatasourceInfo, ParentOfContent } from '../../graphql/generated/graphql';
+import { ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument, DatasourceInfo, ParentOfContent, GetContentsInItemDocument } from '../../graphql/generated/graphql';
 import { updateContentAtom } from '../../store/content';
 import { clientAtom } from 'jotai-urql';
 import { MapKind } from '../../graphql/generated/graphql';
 import { DataId } from '../../types-common/common-types';
+import { useItems } from '../../store/item/useItems';
 
 /**
  * 呼び出し元とイベント連携するためのコンポーネントもどき。
@@ -28,9 +29,9 @@ import { DataId } from '../../types-common/common-types';
  * - ref経由での操作を実行
  */
 export type EventControllerHandler = Pick<TsunaguMapHandler, 
-    'switchMapKind' | 'focusItem' | 'loadContentsAPI'
-    | 'showDetailDialog' | 'registContentAPI'
-    | 'updateContentAPI' | 'linkContentToItemAPI'
+    'switchMapKind' | 'focusItem' | 'loadContents' | 'loadContentsInItem'
+    | 'showDetailDialog' | 'registContent'
+    | 'updateContent' | 'linkContentToItemAPI'
     | 'getSnsPreviewAPI' | 'getUnpointDataAPI'
     | 'getThumbnail' | 'changeVisibleLayer'>
 
@@ -60,33 +61,51 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         fitAllItemsExtent() {
             fitToDefaultExtent(true);
         },
-        async loadContentsAPI(contentIds: DataId[]): Promise<ContentsDefine[]> {
+        async loadContents(contentIds: DataId[]): Promise<ContentsDefine[]> {
             try {
-                const getContents = await gqlClient.query(GetContentsDocument, {
+                const result = await gqlClient.query(GetContentsDocument, {
                     ids: contentIds,
                 }, {
                     requestPolicy: 'network-only'
                 });
-                return getContents.data?.getContents ?? [];
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+                return result.data?.getContents ?? [];
 
             } catch(err) {
-                throw new Error('registContentAPI failed.' + err);
+                throw err;
             }
         },
-
+        async loadContentsInItem(itemId) {
+            try {
+                const result = await gqlClient.query(GetContentsInItemDocument, {
+                    itemId: itemId,
+                }, {
+                    requestPolicy: 'network-only',
+                });
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+                return result.data?.getContentsInItem ?? [];
+        
+            } catch(err) {
+                throw err;
+            }
+        },
         showDetailDialog(param: {type: 'item' | 'content'; id: DataId}) {
             showDetailDialog(param);
         },
         
-        async registContentAPI(param: MutationRegistContentArgs) {
+        async registContent(param: MutationRegistContentArgs) {
             try {
                 await gqlClient.mutation(RegistContentDocument, param);
 
             } catch(e) {
-                throw new Error('registContentAPI failed.' + e);
+                throw new Error('registContent failed.' + e);
             }
         },
-        async updateContentAPI(param: MutationUpdateContentArgs) {
+        async updateContent(param: MutationUpdateContentArgs) {
             await updateContent(param);
         },
         async linkContentToItemAPI(param: Parameters<TsunaguMapHandler['linkContentToItemAPI']>[0]) {
@@ -273,12 +292,18 @@ function useEventListener() {
      * 選択アイテムが変化した場合に呼び出し元にイベント発火する
      */
     const [selectedItemId] = useAtom(showingDetailItemIdAtom);
+    const { getItem } = useItems();
     useWatch(selectedItemId,
         useCallback(() => {
             if (onSelect && selectedItemId) {
-                onSelect(selectedItemId);
+                const item = getItem(selectedItemId);
+                onSelect({
+                    id: item.id,
+                    name: item.name,
+                    lastEditedTime: item.lastEditedTime,
+                });
             }
-        }, [selectedItemId, onSelect])
+        }, [selectedItemId, onSelect, getItem])
     , { immediate: true })
 
     /**

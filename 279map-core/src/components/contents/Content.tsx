@@ -235,7 +235,7 @@ export default function Content(props: Props) {
     
                 return res.data.getSnsPreview;
             },
-            updateContentAPI: async(param: MutationUpdateContentArgs) => {
+            updateContent: async(param: MutationUpdateContentArgs) => {
                 await updateContent(param);
         
             },
