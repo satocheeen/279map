@@ -4,7 +4,7 @@ import { OwnerContext } from './TsunaguMap';
 import { categoriesAtom } from '../../store/category';
 import { eventsAtom } from '../../store/event';
 import { dialogTargetAtom, mapModeAtom, showingDetailItemIdAtom } from '../../store/operation';
-import { currentMapDefineAtom, currentMapKindAtom } from '../../store/session';
+import { currentMapDefineAtom, currentMapKindAtom, mapDefineAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
@@ -15,13 +15,15 @@ import { useAtomCallback } from 'jotai/utils';
 import { loadedItemMapAtom, storedItemsAtom, visibleItemsAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument, DatasourceInfo, ParentOfContent, GetContentsInItemDocument } from '../../graphql/generated/graphql';
+import { ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument, DatasourceInfo, ParentOfContent, GetContentsInItemDocument, SortCondition } from '../../graphql/generated/graphql';
 import { updateContentAtom } from '../../store/content';
 import { clientAtom } from 'jotai-urql';
 import { MapKind } from '../../graphql/generated/graphql';
 import { DataId } from '../../types-common/common-types';
 import { useItems } from '../../store/item/useItems';
 import useConfirm from '../common/confirm/useConfirm';
+import { ConfirmBtnPattern } from '../common/confirm/types';
+import dayjs from 'dayjs';
 
 /**
  * 呼び出し元とイベント連携するためのコンポーネントもどき。
@@ -47,12 +49,35 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
     const [ visibleDataSourceIds ] = useAtom(visibleDataSourceIdsAtom);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
     const { confirm } = useConfirm();
+    const [ mapDefine ] = useAtom(mapDefineAtom);
 
     const showDetailDialog = useAtomCallback(
         useCallback((get, set, param: {type: 'item' | 'content'; id: DataId}) => {
             set(dialogTargetAtom, param);
         }, [])
     );
+
+    /**
+     * コンテンツ用comparator
+     */
+    const contentsComparator = useCallback((a: ContentsDefine, b: ContentsDefine) => {
+        const sortCondition = mapDefine?.options.contentsSortCondition ?? SortCondition.CreatedAtAsc;
+        // TODO: 現状、コンテンツが作成日時、更新日時を持っていないので、それらのソート処理については未対応。
+        //       後日、backend側の対応が完了してから、そちらについては実装する
+        switch(sortCondition) {
+            case SortCondition.DateAsc:
+            case SortCondition.DateDesc:
+                {
+                    if (!a.date && !b.date) return 0;
+                    if (!a.date) return 1;
+                    if (!b.date) return -1;
+                    const aVal = dayjs(a.date).valueOf();
+                    const bVal = dayjs(b.date).valueOf();
+                    return (sortCondition === SortCondition.DateAsc ? 1 : -1) * (aVal - bVal)
+                }
+        }
+        return 0;
+    }, [mapDefine]);
 
     useImperativeHandle(ref, () => ({
         switchMapKind(mapKind: MapKind) {
@@ -90,6 +115,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 if (hitItems.length === 0) {
                     confirm({
                         message: '該当するものが見つかりませんでした',
+                        btnPattern: ConfirmBtnPattern.OkOnly,
                     })
                     setFilteredItem(null);
                     return [];
@@ -124,7 +150,8 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 if (result.error) {
                     throw new Error(result.error.message);
                 }
-                return result.data?.getContents ?? [];
+                const list = result.data?.getContents ?? [];
+                return list.sort(contentsComparator);
 
             } catch(err) {
                 throw err;
@@ -140,7 +167,8 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 if (result.error) {
                     throw new Error(result.error.message);
                 }
-                return result.data?.getContentsInItem ?? [];
+                const list = result.data?.getContentsInItem ?? [];
+                return list.sort(contentsComparator);
         
             } catch(err) {
                 throw err;
