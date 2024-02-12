@@ -18,7 +18,7 @@ import ol_color from 'ol/color';
 export default function useTopographyStyleWithState() {
     const { getForceColor, getFilterStatus, getOpacity } = useFilterStatus();
     const { getStyleFunction } = useTopographyStyle({});
-    const { filter } = useContext(OwnerContext);
+    const { filterUnmatchView } = useContext(OwnerContext);
 
     const topographyStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style => {
         const color = getForceColor(feature);
@@ -31,7 +31,7 @@ export default function useTopographyStyleWithState() {
             const featureType = feature.getProperties()['featureType'];
             if (featureType === FeatureType.AREA) {
                 if (filterStatus === 'UnFiltered') {
-                    if (filter?.unmatchView === 'hidden') {
+                    if (filterUnmatchView === 'hidden') {
                         return new Style();
                     }
                     const defaultStrokeColor = defaultStyle.getStroke().getColor();
@@ -64,7 +64,7 @@ export default function useTopographyStyleWithState() {
         // TODO: 島名表示
         return style;
 
-    }, [getStyleFunction, getFilterStatus, getForceColor, filter, getOpacity]);
+    }, [getStyleFunction, getFilterStatus, getForceColor, filterUnmatchView, getOpacity]);
 
     return {
         topographyStyleFunction,

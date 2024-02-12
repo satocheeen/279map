@@ -3,7 +3,8 @@ import type {
     ServerInfo, TsunaguMapHandler, onDatasourceChangedParam, 
     CategoryDefine, Condition, DatasourceGroup, 
     DataId, OnConnectParam, OnMapLoadParam, 
-    TsunaguMapProps
+    TsunaguMapProps,
+    ItemType
 } from '../entry';
 import { Auth, MapKind, FeatureType, DatasourceKindType, getAccessableMapList } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
@@ -50,15 +51,15 @@ export default function TestMap() {
         setCategories(categories);
     }, []);
 
-    const [ filterCondition, setFilterCondition ] = useState<Condition|undefined>();
+    // const [ filterCondition, setFilterCondition ] = useState<Condition|undefined>();
     const [ filterUnmatchView, setFilterUnmatchView ] = useState<'hidden'|'translucent'>('hidden');
-    const filter = useMemo((): TsunaguMapProps['filter'] => {
-        if (!filterCondition) return;
-        return {
-            condition: filterCondition,
-            unmatchView: filterUnmatchView,
-        }
-    }, [filterCondition, filterUnmatchView]);
+    // const filter = useMemo((): TsunaguMapProps['filter'] => {
+    //     if (!filterCondition) return;
+    //     return {
+    //         condition: filterCondition,
+    //         unmatchView: filterUnmatchView,
+    //     }
+    // }, [filterCondition, filterUnmatchView]);
 
     // switch mapKind
     const [ mapKind, setMapKind ] = useState(MapKind.Real);
@@ -102,9 +103,18 @@ export default function TestMap() {
         console.log('select item', result);
     }, []);
 
+    const handleFilter = useCallback(async(condition?: Condition) => {
+        if (!condition) {
+            mapRef.current?.clearFilter();
+            return;
+        };
+        const result = await mapRef.current?.filter(condition);
+        console.log('filtered', result);
+    }, []);
+
     // callbacks
-    const onSelect = useCallback((id: DataId) => {
-        console.log('onSelect', id, cnt);
+    const onSelect = useCallback((item: ItemType) => {
+        console.log('onSelect', item, cnt);
         setCnt(cnt + 1);
     }, [cnt]);
 
@@ -252,7 +262,8 @@ export default function TestMap() {
                                     onChange={() => setFilterUnmatchView('translucent')} />
                         </label>
                     </div>
-                    <FilterCondition categories={categories} onChange={(filter) => setFilterCondition(filter)} />
+                    <FilterCondition categories={categories}
+                        onChange={(filter) => handleFilter(filter)} />
                 </div>
                 {authLv !== Auth.View &&
                 <>
@@ -305,7 +316,7 @@ export default function TestMap() {
                     popupMode={popupMode}
                     disabledLabel={disabledLabel}
                     disabledContentDialog={disabledContentDialog}
-                    filter={filter}
+                    filterUnmatchView={filterUnmatchView}
                     onConnect={onConnect}
                     onMapLoad={onMapLoad}
                     onDatasourceChanged={onDataSourceChanged}

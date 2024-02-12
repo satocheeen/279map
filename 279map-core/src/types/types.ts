@@ -1,5 +1,5 @@
 import { CSSProperties } from "react";
-import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult, GetItemsQuery, DatasourceInfo, ItemDefine, ThumbSize } from "../graphql/generated/graphql";
+import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult, GetItemsQuery, DatasourceInfo, ItemDefine, ThumbSize, SearchHitItem } from "../graphql/generated/graphql";
 import { ContentAttr } from "../components/contents/types";
 import { DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
 import { OperationResult } from "urql";
@@ -24,6 +24,8 @@ export type ItemContent = {
     contents: DataId[];
 }
 
+export type ItemType = Pick<ItemDefine, 'id' | 'name' | 'lastEditedTime'>;
+
 export type TsunaguMapProps = {
     mapId: string;
     mapServer: {
@@ -46,11 +48,13 @@ export type TsunaguMapProps = {
     disabledLabel?: boolean; // when true, the item's label hidden.
     disabledContentDialog?: boolean;    // when true, the content dialog didn't show even if you click a item.
 
-    filter?: {
-        condition: Condition;
-        unmatchView: 'hidden' | 'translucent';  // how view the items unmatched with conditions
-    }
-
+    /**
+     * フィルタ時にフィルタ対象外の建物やピンをどう表示するか
+     * hidden => 非表示
+     * translucent => 半透明 default
+     */
+    filterUnmatchView?: 'hidden' | 'translucent';
+    
     onConnect?: (param: OnConnectParam) => void;
     onMapLoad?: (param: OnMapLoadParam) => void;
     onDatasourceChanged?: (param: onDatasourceChangedParam) => void;
@@ -59,7 +63,7 @@ export type TsunaguMapProps = {
      * 地図上で建物orピンが選択された場合のコールバック
      * @param target 選択されたアイテム情報
      */
-    onSelect?: (target: Pick<ItemDefine, 'id' | 'name' | 'lastEditedTime'>) => void;
+    onSelect?: (target: ItemType) => void;
 
     onClick?: (targets: DataId[]) => void; // callback when an items are clicked.  if set this callback, cluster menu don't be shown.
     onModeChanged?: (mode: MapMode) => void;    // callback when map mode has changed.
@@ -74,6 +78,8 @@ export type TsunaguMapProps = {
     // callback when kick the action to link a content with an item or a content
     onLinkUnpointedContent?: (param: LinkUnpointContentParam) => void;
 }
+
+export type FilterHitItem = Omit<SearchHitItem, '__typename'>;
 
 export interface TsunaguMapHandler {
     /**
@@ -94,6 +100,16 @@ export interface TsunaguMapHandler {
      * 全アイテムが表示される範囲にフィットさせる
      */
     fitAllItemsExtent(): void;
+
+    /**
+     * 指定の条件でフィルタする
+     * @param condition フィルタ条件
+     */
+    filter(condition: Condition): Promise<FilterHitItem[]>;
+    /**
+     * フィルタ解除する
+     */
+    clearFilter(): void;
 
     /**
      * start the spte of drawing a structure (or a pin).

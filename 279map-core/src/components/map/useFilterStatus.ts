@@ -6,6 +6,7 @@ import { showingDetailItemIdAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
 import { itemProcessesAtom } from '../../store/item';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
+import { FeatureType, GeoProperties } from '../../entry';
 
 const ERROR_COLOR = '#ff8888';
 const FORCE_COLOR = '#8888ff';
@@ -69,7 +70,7 @@ export default function useFilterStatus() {
 
     }, [getFilterStatus, selectedItemId, itemProcesses]);
 
-    const { filter } = useContext(OwnerContext);
+    const { filterUnmatchView } = useContext(OwnerContext);
     const getOpacity = useCallback((feature: FeatureLike): number => {
         const id = convertDataIdFromFeatureId(feature.getId() as string);
         if (itemProcesses.some(process => {
@@ -82,9 +83,16 @@ export default function useFilterStatus() {
             // 新規登録中アイテム or 削除処理中アイテム（エラー時）
             return 0.3;
         }
+
+        // フィルタ時、フィルタ対象外はopacity設定
+        const featureType = (feature.getProperties() as GeoProperties).featureType;
+        if (![FeatureType.STRUCTURE, FeatureType.TRACK].includes(featureType)) {
+            // 土地などは透過しない
+            return 1;
+        }
         const filterStatus = getFilterStatus(feature);
         if (filterStatus === 'UnFiltered') {
-            if (filter?.unmatchView === 'hidden') {
+            if (filterUnmatchView === 'hidden') {
                 return 0;
             } else {
                 return 0.3;
@@ -92,7 +100,7 @@ export default function useFilterStatus() {
         }
         return 1;
 
-    }, [filter, getFilterStatus, itemProcesses]);
+    }, [filterUnmatchView, getFilterStatus, itemProcesses]);
 
     return {
         getFilterStatus,

@@ -21,6 +21,7 @@ import { clientAtom } from 'jotai-urql';
 import { MapKind } from '../../graphql/generated/graphql';
 import { DataId } from '../../types-common/common-types';
 import { useItems } from '../../store/item/useItems';
+import useConfirm from '../common/confirm/useConfirm';
 
 /**
  * 呼び出し元とイベント連携するためのコンポーネントもどき。
@@ -30,6 +31,7 @@ import { useItems } from '../../store/item/useItems';
  */
 export type EventControllerHandler = Pick<TsunaguMapHandler, 
     'switchMapKind' | 'focusItem' | 'loadContents' | 'loadContentsInItem' | 'loadContentImage'
+    | 'filter' | 'clearFilter'
     | 'showDetailDialog' | 'registContent'
     | 'updateContent' | 'linkContentToItemAPI'
     | 'getSnsPreviewAPI' | 'getUnpointDataAPI'
@@ -41,6 +43,10 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
     const { updateDatasourceVisible } = useDataSource();
     const [, updateContent] = useAtom(updateContentAtom);
     const [ gqlClient ] = useAtom(clientAtom);
+    const [ , setFilteredItem ] = useAtom(filteredItemsAtom);
+    const [ visibleDataSourceIds ] = useAtom(visibleDataSourceIdsAtom);
+    const { showProcessMessage, hideProcessMessage } = useProcessMessage();
+    const { confirm } = useConfirm();
 
     const showDetailDialog = useAtomCallback(
         useCallback((get, set, param: {type: 'item' | 'content'; id: DataId}) => {
@@ -60,6 +66,53 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         },
         fitAllItemsExtent() {
             fitToDefaultExtent(true);
+        },
+        async filter(condition) {            
+            if (Object.keys(condition).length === 0) {
+                // 条件未指定
+                setFilteredItem(null);
+                return [];
+            };
+    
+            const h = showProcessMessage({
+                overlay: true,
+                spinner: true,
+            });
+            try {
+                const result = await gqlClient.query(SearchDocument, {
+                    condition,
+                    datasourceIds: visibleDataSourceIds,
+                });
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+                const hitItems = result.data?.search ?? [];
+                if (hitItems.length === 0) {
+                    confirm({
+                        message: '該当するものが見つかりませんでした',
+                    })
+                    setFilteredItem(null);
+                    return [];
+                }
+                setFilteredItem(hitItems);
+                return hitItems.map(hit => (
+                    {
+                        id: hit.id,
+                        hitItem: hit.hitItem,
+                        hitContents: hit.hitContents,
+                    }
+                ));
+    
+            } catch(e) {
+                throw e;
+
+            } finally {
+                hideProcessMessage(h);
+
+            }
+        },
+        clearFilter() {
+            setFilteredItem(null);
         },
         async loadContents(contentIds: DataId[]): Promise<ContentsDefine[]> {
             try {
@@ -99,8 +152,10 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                     contentId,
                     size,
                 });
-                const base64 = result.data?.getThumb;
-                if (!base64) return '';
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+                const base64 = result.data?.getThumb ?? '';
                 return 'data:image/' + base64;
                             
             } catch(err) {
@@ -179,39 +234,10 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                                                         
     }));
 
-    useFilterListner();
     useMapLoadListener();
     useEventListener();
 
     return null;
-}
-
-function useFilterListner() {
-    const { filter } = useContext(OwnerContext);
-
-    // 検索
-    const [ , setFilteredItem ] = useAtom(filteredItemsAtom);
-    const [ gqlClient ] = useAtom(clientAtom);
-    const [ visibleDataSourceIds ] = useAtom(visibleDataSourceIdsAtom);
-    const { showProcessMessage, hideProcessMessage } = useProcessMessage();
-    useWatch(filter, async () => {
-        const condition = filter?.condition;
-        if (!condition || Object.keys(condition).length === 0) {
-            setFilteredItem(null);
-            return;
-        };
-
-        const h = showProcessMessage({
-            overlay: true,
-            spinner: true,
-        });
-        const result = await gqlClient.query(SearchDocument, {
-            condition,
-            datasourceIds: visibleDataSourceIds,
-        });
-        setFilteredItem(result.data?.search ?? null);
-        hideProcessMessage(h);
-    })
 }
 
 /**
