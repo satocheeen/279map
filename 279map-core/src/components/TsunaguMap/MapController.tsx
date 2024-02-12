@@ -37,7 +37,7 @@ export default function MapController() {
 
     return (
         <>
-            <ItemSelectListener />
+            {/* <ItemSelectListener /> */}
         </>
     )
 }
