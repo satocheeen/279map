@@ -29,7 +29,7 @@ import { useItems } from '../../store/item/useItems';
  * - ref経由での操作を実行
  */
 export type EventControllerHandler = Pick<TsunaguMapHandler, 
-    'switchMapKind' | 'focusItem' | 'loadContents' | 'loadContentsInItem'
+    'switchMapKind' | 'focusItem' | 'loadContents' | 'loadContentsInItem' | 'loadContentImage'
     | 'showDetailDialog' | 'registContent'
     | 'updateContent' | 'linkContentToItemAPI'
     | 'getSnsPreviewAPI' | 'getUnpointDataAPI'
@@ -89,6 +89,20 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 }
                 return result.data?.getContentsInItem ?? [];
         
+            } catch(err) {
+                throw err;
+            }
+        },
+        async loadContentImage({contentId, size}) {
+            try {
+                const result = await gqlClient.query(GetThumbDocument, {
+                    contentId,
+                    size,
+                });
+                const base64 = result.data?.getThumb;
+                if (!base64) return '';
+                return 'data:image/' + base64;
+                            
             } catch(err) {
                 throw err;
             }

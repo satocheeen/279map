@@ -1,5 +1,5 @@
 import { CSSProperties } from "react";
-import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult, GetItemsQuery, DatasourceInfo, ItemDefine } from "../graphql/generated/graphql";
+import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult, GetItemsQuery, DatasourceInfo, ItemDefine, ThumbSize } from "../graphql/generated/graphql";
 import { ContentAttr } from "../components/contents/types";
 import { DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
 import { OperationResult } from "urql";
@@ -152,6 +152,13 @@ export interface TsunaguMapHandler {
     loadContentsInItem(itemId: DataId): Promise<ContentsDefine[]>;
 
     loadContents(contentIds: DataId[]): Promise<ContentsDefine[]>;
+
+    /**
+     * 指定のコンテンツの画像データ(Base64)を取得する
+     * @param contentId
+     * @param size 取得サイズ
+     */
+    loadContentImage(param: {contentId: DataId, size: ThumbSize}): Promise<string>;
 
     showDetailDialog(param: {type: 'item' | 'content'; id: DataId}): void;
 
