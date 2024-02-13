@@ -98,8 +98,8 @@ export default function TestMap() {
         mapRef.current?.switchMapKind(mapKind);
     }, []);
 
-    const handleSelectItem = useCallback(async() => {
-        const result = await mapRef.current?.selectItem();
+    const handleSelectItemByUser = useCallback(async() => {
+        const result = await mapRef.current?.selectItemByUser();
         console.log('select item', result);
     }, []);
 
@@ -113,8 +113,8 @@ export default function TestMap() {
     }, []);
 
     // callbacks
-    const onSelect = useCallback((item: ItemType) => {
-        console.log('onSelect', item, cnt);
+    const handleSelectChange = useCallback((item: ItemType|undefined) => {
+        console.log('onSelectChange', item, cnt);
         setCnt(cnt + 1);
     }, [cnt]);
 
@@ -307,7 +307,7 @@ export default function TestMap() {
                     </label>
                     <button onClick={onFocusItem}>Focus Item</button>
                     <button onClick={handleFitAllItems}>Fit All Item</button>
-                    <button onClick={handleSelectItem}>Select Item</button>
+                    <button onClick={handleSelectItemByUser}>Select Item</button>
                 </div>
             </div>
             <div className={styles.Map}>
@@ -320,7 +320,7 @@ export default function TestMap() {
                     onConnect={onConnect}
                     onMapLoad={onMapLoad}
                     onDatasourceChanged={onDataSourceChanged}
-                    onSelect={onSelect}
+                    onSelectChange={handleSelectChange}
                     // onClick={(val) => onCallback('onClick', val)}
                     onModeChanged={(val) => onCallback('onModeChanged', val)}
                     onCategoriesLoaded={onCategoriesLoaded}

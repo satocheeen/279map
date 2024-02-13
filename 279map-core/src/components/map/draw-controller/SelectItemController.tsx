@@ -13,7 +13,7 @@ import { useAtom } from 'jotai';
 type Props = {
 }
 
-export type SelectItemControllerHandler = Pick<TsunaguMapHandler, 'selectItem'>;
+export type SelectItemControllerHandler = Pick<TsunaguMapHandler, 'selectItemByUser'>;
 
 let resolveCallback = null as null | ((value: DataId | undefined) => void);
 
@@ -23,7 +23,7 @@ function SelectItemController({}: Props, ref: React.ForwardedRef<SelectItemContr
     const [ targets, setTargets ] = useState<FeatureType[] | undefined>();
 
     useImperativeHandle(ref, () => ({
-        selectItem(targets) {
+        selectItemByUser(targets) {
             setShow(true);
             setMapMode(MapMode.Drawing);
             setTargets(targets);

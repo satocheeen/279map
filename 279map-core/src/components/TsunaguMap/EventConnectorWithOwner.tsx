@@ -301,7 +301,7 @@ function useMapLoadListener() {
 }
 
 function useEventListener() {
-    const { onDatasourceChanged, onCategoriesLoaded, onEventsLoaded, onModeChanged, onSelect, onVisibleItemsChanged }  = useContext(OwnerContext);
+    const { onDatasourceChanged, onCategoriesLoaded, onEventsLoaded, onModeChanged, onSelectChange, onVisibleItemsChanged }  = useContext(OwnerContext);
 
     /**
      * Datasource定義、表示状態が変化した場合に呼び出し元にイベント発火する
@@ -363,15 +363,18 @@ function useEventListener() {
     const { getItem } = useItems();
     useWatch(selectedItemId,
         useCallback(() => {
-            if (onSelect && selectedItemId) {
+            if (!onSelectChange) return;
+            if (selectedItemId) {
                 const item = getItem(selectedItemId);
-                onSelect({
+                onSelectChange({
                     id: item.id,
                     name: item.name,
                     lastEditedTime: item.lastEditedTime,
                 });
+            } else {
+                onSelectChange(null);
             }
-        }, [selectedItemId, onSelect, getItem])
+        }, [selectedItemId, onSelectChange, getItem])
     , { immediate: true })
 
     /**

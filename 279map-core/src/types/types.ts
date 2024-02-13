@@ -60,10 +60,10 @@ export type TsunaguMapProps = {
     onDatasourceChanged?: (param: onDatasourceChangedParam) => void;
 
     /**
-     * 地図上で建物orピンが選択された場合のコールバック
-     * @param target 選択されたアイテム情報
+     * 地図上で建物orピンの選択状態が変更された場合のコールバック
+     * @param target null
      */
-    onSelect?: (target: ItemType) => void;
+    onSelectChange?: (target: ItemType | null) => void;
 
     onClick?: (targets: DataId[]) => void; // callback when an items are clicked.  if set this callback, cluster menu don't be shown.
     onModeChanged?: (mode: MapMode) => void;    // callback when map mode has changed.
@@ -206,11 +206,17 @@ export interface TsunaguMapHandler {
     changeVisibleLayer(target: { dataSourceId: string } | { group: string }, visible: boolean): void;
 
     /**
-     * 地図上からアイテムを選択させる
+     * 地図上の指定のアイテムを選択状態にする
+     * @param id 
+     */
+    selectItem(id: DataId): void;
+
+    /**
+     * ユーザに地図上からアイテムを選択させる
      * @param targets 指定している場合、指定されているFeatureTypeのアイテムのみ選択可能
      * @return 選択された地図アイテム。キャンセルされた場合は、undefined。
      */
-    selectItem(targets?: FeatureType[]): Promise<DataId|undefined>;
+    selectItemByUser(targets?: FeatureType[]): Promise<DataId|undefined>;
 
     /**
      * ユーザ一覧表示（管理者用コマンド）
