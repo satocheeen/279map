@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { dialogTargetAtom, doShowClusterMenuAtom, mapModeAtom } from '../../store/operation';
+import { selectItemIdAtom, doShowClusterMenuAtom, mapModeAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
 import { MapMode } from '../../types/types';
 import ClusterMenuController, { ClusterMenuControllerHandler } from './ClusterMenuController';
@@ -16,12 +16,9 @@ export default function ClusterMenuContainer() {
     const onSelectItem = useAtomCallback(
         useCallback((get, set, feature: DataId | undefined) => {
             if (!feature) {
-                set(dialogTargetAtom, undefined);
+                set(selectItemIdAtom, null);
             } else {
-                set(dialogTargetAtom, {
-                    type: 'item',
-                    id: feature
-                });
+                set(selectItemIdAtom, feature);
             }
         }, [])
     );

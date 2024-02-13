@@ -1,11 +1,10 @@
-import React, { useRef, useMemo, useContext, useEffect, lazy, Suspense, useState } from 'react';
+import React, { useRef, useMemo, useContext, useEffect, useState } from 'react';
 import { allItemsAtom, loadedItemMapAtom, storedItemsAtom } from '../../store/item';
 import { currentMapDefineAtom, currentMapKindAtom, isWorldMapAtom, mapDefineReducerAtom } from '../../store/session';
 import { atom, useAtom } from 'jotai';
 import { useItems } from '../../store/item/useItems';
 import { itemDataSourceGroupsAtom } from '../../store/datasource';
 import { useMap } from '../map/useMap';
-import { dialogTargetAtom } from '../../store/operation';
 import { OwnerContext } from './TsunaguMap';
 import { usePrevious } from '../../util/usePrevious';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
@@ -20,8 +19,7 @@ import { useWatch } from '../../util/useWatch2';
 import { ItemDeleteDocument, ItemInsertDocument, ItemUpdateDocument, MapInfoUpdateDocument, MapKind } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import { ItemInfo } from '../../types/types';
-
-const ContentsModal = lazy(() => import('../contents/ContentsModal'));
+import { selectItemIdAtom } from '../../store/operation';
 
 /**
  * Jotaiの変更検知して、地図に対して特定のイベントを実行するコンポーネントもどき
@@ -131,7 +129,7 @@ function useItemUpdater() {
     const [ , setLoadedItemMap] = useAtom(loadedItemMapAtom);
     const [ , setInitialLoading ] = useAtom(initialLoadingAtom);
     const [ currentMapDefine ] = useAtom(currentMapDefineAtom);
-    const [ , setDialogTarget ] = useAtom(dialogTargetAtom);
+    const [ , setSelectItemId ] = useAtom(selectItemIdAtom);
     const [ isWorldMap ] = useAtom(isWorldMapAtom);
 
     /**
@@ -154,7 +152,7 @@ function useItemUpdater() {
             isWorldMap,
         });
 
-        setDialogTarget(undefined);
+        setSelectItemId(null);
         fitToDefaultExtent(false);
         setInitializedMapKind(currentMapKind);
         prevGeoJsonItemsRef.current = [];
@@ -247,28 +245,6 @@ function useLayerVisibleChanger() {
         map?.updateLayerVisible(itemDatasources);
 
     }, [itemDatasources, map]);
-
-}
-
-/**
- * アイテム選択を検知して、詳細ダイアログ表示
- */
-function ItemSelectListener() {
-    const { disabledContentDialog } = useContext(OwnerContext);
-    const [ dialogTarget, setDialogTarget ] = useAtom(dialogTargetAtom);
-
-    if (disabledContentDialog) {
-        return null;
-    }
-
-    if (!dialogTarget) {
-        return null;
-    }
-    return (
-        <Suspense>
-            <ContentsModal {...dialogTarget} onClose={() => setDialogTarget(undefined)} />
-        </Suspense>
-    )
 
 }
 

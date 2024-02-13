@@ -8,7 +8,7 @@ import { Geometry } from "ol/geom";
 import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
 import { useMap } from "./useMap";
 import { useMapOptions } from "../../util/useMapOptions";
-import { showingDetailItemIdAtom } from "../../store/operation";
+import { selectItemIdAtom } from "../../store/operation";
 import useIcon from "../../store/icon/useIcon";
 import { filteredItemIdListAtom } from "../../store/filter";
 import { itemDataSourcesAtom } from "../../store/datasource";
@@ -29,7 +29,7 @@ export default function usePointStyle() {
     const { disabledLabel } = useMapOptions();
     const { getIconDefine } = useIcon();
     const { map } = useMap();
-    const [ selectedItemId ] = useAtom(showingDetailItemIdAtom);
+    const [ selectedItemId ] = useAtom(selectItemIdAtom);
 
     const getZindex = useCallback((feature: Feature<Geometry>): number => {
         if (!map) return 0;

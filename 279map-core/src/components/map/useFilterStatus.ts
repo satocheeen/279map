@@ -2,7 +2,7 @@ import { FeatureLike } from 'ol/Feature';
 import { useCallback, useContext } from 'react';
 import { useFilter } from '../../store/filter/useFilter';
 import { convertDataIdFromFeatureId, isEqualId } from '../../util/dataUtility';
-import { showingDetailItemIdAtom } from '../../store/operation';
+import { selectItemIdAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
 import { itemProcessesAtom } from '../../store/item';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
@@ -16,7 +16,7 @@ const FORCE_COLOR = '#8888ff';
  */
 export default function useFilterStatus() {
     const { getFilterStatusOfTheItem } = useFilter();
-    const [ selectedItemId ] = useAtom(showingDetailItemIdAtom);
+    const [ selectedItemId ] = useAtom(selectItemIdAtom);
     const [ itemProcesses ] = useAtom(itemProcessesAtom);
 
     /**

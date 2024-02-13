@@ -21,7 +21,7 @@ import { categoriesAtom } from "../../store/category";
 import { ConfirmBtnPattern, ConfirmResult } from "../common/confirm/types";
 import { useMapController } from "../../store/useMapController";
 import { useAtomCallback } from "jotai/utils";
-import { dialogTargetAtom } from "../../store/operation";
+import { selectItemIdAtom } from "../../store/operation";
 import { updateContentAtom } from "../../store/content";
 import { clientAtom } from "jotai-urql";
 import { Auth, ContentsDefine, GetContentDocument, GetImageUrlDocument, GetSnsPreviewDocument, MapKind, MutationUpdateContentArgs, ParentOfContent, RemoveContentDocument, UnlinkContentDocument } from "../../graphql/generated/graphql";
@@ -160,10 +160,7 @@ export default function Content(props: Props) {
                     itemId: props.content.anotherMapItemId,
                 }
             );
-            set(dialogTargetAtom, {
-                type: 'item',
-                id: props.content.anotherMapItemId,
-            })
+            set(selectItemIdAtom, props.content.anotherMapItemId);
         }, [mapKind, props.content.anotherMapItemId, changeMapKind, focusItem])
     );
 

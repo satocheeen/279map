@@ -6,7 +6,7 @@ import MyThumbnail from "../common/image/MyThumbnail";
 import { BsThreeDots } from 'react-icons/bs';
 import { useMapOptions } from "../../util/useMapOptions";
 import { useMap } from "../map/useMap";
-import { dialogTargetAtom, doShowClusterMenuAtom, mapModeAtom } from "../../store/operation";
+import { selectItemIdAtom, doShowClusterMenuAtom, mapModeAtom } from "../../store/operation";
 import { filteredContentIdListAtom, filteredItemIdListAtom } from "../../store/filter";
 import { useItems } from "../../store/item/useItems";
 import { useAtom } from "jotai";
@@ -91,10 +91,7 @@ export default function PointsPopup(props: Props) {
     const onClick = useAtomCallback(
         useCallback((get, set, evt: React.MouseEvent) => {
             if (props.itemIds.length === 1) {
-                set(dialogTargetAtom, {
-                        type: 'item',
-                        id: props.itemIds[0],
-                    });
+                set(selectItemIdAtom, props.itemIds[0]);
                 return;
             }
             // 対象が２つ以上ある場合は、重畳選択メニューを表示

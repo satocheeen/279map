@@ -113,7 +113,7 @@ export default function TestMap() {
     }, []);
 
     // callbacks
-    const handleSelectChange = useCallback((item: ItemType|undefined) => {
+    const handleSelectChange = useCallback((item: ItemType|null) => {
         console.log('onSelectChange', item, cnt);
         setCnt(cnt + 1);
     }, [cnt]);
@@ -179,6 +179,14 @@ export default function TestMap() {
         mapRef.current?.changeVisibleLayer({
             group,
         }, visible);
+    }, []);
+
+    const selectItem = useCallback((id: DataId) => {
+        mapRef.current?.selectItem(id);
+    }, []);
+
+    const unselectItem = useCallback(() => {
+        mapRef.current?.selectItem(null);
     }, []);
 
     return (
@@ -308,6 +316,7 @@ export default function TestMap() {
                     <button onClick={onFocusItem}>Focus Item</button>
                     <button onClick={handleFitAllItems}>Fit All Item</button>
                     <button onClick={handleSelectItemByUser}>Select Item</button>
+                    <button onClick={unselectItem}>UnSelect Item</button>
                 </div>
             </div>
             <div className={styles.Map}>

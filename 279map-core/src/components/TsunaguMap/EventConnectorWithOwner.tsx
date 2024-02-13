@@ -3,7 +3,7 @@ import { useWatch } from '../../util/useWatch2';
 import { OwnerContext } from './TsunaguMap';
 import { categoriesAtom } from '../../store/category';
 import { eventsAtom } from '../../store/event';
-import { dialogTargetAtom, mapModeAtom, showingDetailItemIdAtom } from '../../store/operation';
+import { mapModeAtom, selectItemIdAtom } from '../../store/operation';
 import { currentMapDefineAtom, currentMapKindAtom, mapDefineAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
@@ -34,10 +34,11 @@ import dayjs from 'dayjs';
 export type EventControllerHandler = Pick<TsunaguMapHandler, 
     'switchMapKind' | 'focusItem' | 'loadContents' | 'loadContentsInItem' | 'loadContentImage'
     | 'filter' | 'clearFilter'
-    | 'showDetailDialog' | 'registContent'
+    | 'registContent'
     | 'updateContent' | 'linkContentToItemAPI'
     | 'getSnsPreviewAPI' | 'getUnpointDataAPI'
-    | 'getThumbnail' | 'changeVisibleLayer'>
+    | 'getThumbnail' | 'changeVisibleLayer'
+    | 'selectItem'>
 
 function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControllerHandler>) {
     const { changeMapKind } = useMapController();
@@ -50,12 +51,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
     const { confirm } = useConfirm();
     const [ mapDefine ] = useAtom(mapDefineAtom);
-
-    const showDetailDialog = useAtomCallback(
-        useCallback((get, set, param: {type: 'item' | 'content'; id: DataId}) => {
-            set(dialogTargetAtom, param);
-        }, [])
-    );
+    const [ , setSelectItemId ] = useAtom(selectItemIdAtom);
 
     /**
      * コンテンツ用comparator
@@ -190,9 +186,6 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 throw err;
             }
         },
-        showDetailDialog(param: {type: 'item' | 'content'; id: DataId}) {
-            showDetailDialog(param);
-        },
         
         async registContent(param: MutationRegistContentArgs) {
             try {
@@ -259,7 +252,10 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 visible,
             });
         },
-                                                        
+        
+        selectItem(id) {
+            setSelectItemId(id);
+        },
     }));
 
     useMapLoadListener();
@@ -359,7 +355,7 @@ function useEventListener() {
     /**
      * 選択アイテムが変化した場合に呼び出し元にイベント発火する
      */
-    const [selectedItemId] = useAtom(showingDetailItemIdAtom);
+    const [selectedItemId] = useAtom(selectItemIdAtom);
     const { getItem } = useItems();
     useWatch(selectedItemId,
         useCallback(() => {

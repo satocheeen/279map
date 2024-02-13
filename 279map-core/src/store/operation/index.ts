@@ -4,24 +4,10 @@ import { Extent } from "ol/extent";
 import { Coordinate } from "ol/coordinate";
 import { DataId } from "../../types-common/common-types";
 
-// 詳細ダイアログ表示対象
-type Target = {
-    type: 'item' | 'content';
-    id: DataId;
-}
-export const dialogTargetAtom = atom<Target|undefined>(undefined);
-
-// 詳細表示中アイテムID
-export const showingDetailItemIdAtom = atom<DataId|null>((get) => {
-    const dialogTarget = get(dialogTargetAtom);
-    if (!dialogTarget) return null;
-    if (dialogTarget.type === 'item') {
-        return dialogTarget.id;
-    } else {
-        return null;
-    }
-});
-
+/**
+ * 選択中アイテムID
+ */
+export const selectItemIdAtom = atom<DataId|null>(null);
 
 export const mapModeAtom = atom(
     MapMode.Normal,
@@ -32,7 +18,7 @@ export const mapModeAtom = atom(
         }
         set(mapModeAtom, update);
         // 地図モード変更時は、選択状態解除する
-        set(dialogTargetAtom, undefined);
+        set(selectItemIdAtom, null);
     }
 );
 

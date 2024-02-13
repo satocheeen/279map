@@ -207,9 +207,9 @@ export interface TsunaguMapHandler {
 
     /**
      * 地図上の指定のアイテムを選択状態にする
-     * @param id 
+     * @param id 選択状態にするアイテム。nullの場合、選択状態解除する
      */
-    selectItem(id: DataId): void;
+    selectItem(id: DataId|null): void;
 
     /**
      * ユーザに地図上からアイテムを選択させる

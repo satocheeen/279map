@@ -6,7 +6,7 @@ import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import { usePrevious } from '../../util/usePrevious';
 import { isEqualId } from '../../util/dataUtility';
 import { useMap } from '../map/useMap';
-import { mapModeAtom, mapViewAtom, showingDetailItemIdAtom } from '../../store/operation';
+import { mapModeAtom, mapViewAtom, selectItemIdAtom } from '../../store/operation';
 import { filteredItemIdListAtom } from '../../store/filter';
 import { useItems } from '../../store/item/useItems';
 import { useAtom } from 'jotai';
@@ -67,7 +67,7 @@ function ClusterMenuController(props: Props, ref: React.ForwardedRef<ClusterMenu
         setClusterMenuInfo(null);
     }, [mapView, prevMapView]);
 
-    const [selectedItemId] = useAtom(showingDetailItemIdAtom);
+    const [selectedItemId] = useAtom(selectItemIdAtom);
     useEffect(() => {
         if (selectedItemId) {
             setClusterMenuInfo(null);
