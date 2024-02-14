@@ -178,6 +178,9 @@ export interface TsunaguMapHandler {
 
     showDetailDialog(param: {type: 'item' | 'content'; id: DataId}): void;
 
+    /**
+     * コンテンツを新規登録する
+     */
     registContent(param: {
         datasourceId: string,
         parent: {
@@ -192,6 +195,9 @@ export interface TsunaguMapHandler {
         url?: string;
     }): Promise<void>;
 
+    /**
+     * コンテンツを更新する
+     */
     updateContent(param: {
         id: DataId,
         title?: string,
@@ -203,10 +209,29 @@ export interface TsunaguMapHandler {
     }): Promise<void>;
 
     /**
+     * コンテンツを削除する
+     */
+    removeContent(param: {
+        id: DataId,
+    }): Promise<void>;
+
+    /**
      * 指定のコンテンツを指定のアイテムまたはコンテンツに子供として紐づける
      * @param param 
      */
-    linkContentToItemAPI(param: {
+    linkContent(param: {
+        id: DataId;
+        parent: {
+            type: 'item' | 'content';
+            id: DataId;
+        }
+    }): Promise<void>;
+
+    /**
+     * 指定のコンテンツについて、指定のアイテムまたはコンテンツとの紐づけを解除する
+     * @param param 
+     */
+    unlinkContent(param: {
         id: DataId;
         parent: {
             type: 'item' | 'content';

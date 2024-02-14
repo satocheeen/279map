@@ -15,7 +15,7 @@ import { useAtomCallback } from 'jotai/utils';
 import { loadedItemMapAtom, storedItemsAtom, visibleItemsAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument, DatasourceInfo, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument } from '../../graphql/generated/graphql';
+import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument, DatasourceInfo, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import { MapKind } from '../../graphql/generated/graphql';
 import { DataId } from '../../types-common/common-types';
@@ -33,8 +33,8 @@ import dayjs from 'dayjs';
 export type EventControllerHandler = Pick<TsunaguMapHandler, 
     'switchMapKind' | 'focusItem' | 'loadContents' | 'loadContentsInItem' | 'loadContentImage'
     | 'filter' | 'clearFilter'
-    | 'registContent'
-    | 'updateContent' | 'linkContentToItemAPI'
+    | 'registContent' | 'updateContent' | 'removeContent'
+    | 'linkContent' | 'unlinkContent'
     | 'getSnsPreviewAPI' | 'getUnpointDataAPI'
     | 'getThumbnail' | 'changeVisibleLayer'
     | 'selectItem'>
@@ -224,7 +224,15 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 throw new Error(result.error.message);
             }
         },
-        async linkContentToItemAPI(param: Parameters<TsunaguMapHandler['linkContentToItemAPI']>[0]) {
+        async removeContent(param) {
+            const result = await gqlClient.mutation(RemoveContentDocument, {
+                id: param.id,
+            });
+            if (result.error) {
+                throw new Error(result.error.message);
+            }
+        },
+        async linkContent(param: Parameters<TsunaguMapHandler['linkContent']>[0]) {
             const result = await gqlClient.mutation(LinkContentDocument, {
                 id: param.id,
                 parent: {
@@ -236,7 +244,18 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 throw new Error(result.error.message);
             }
         },
-    
+        async unlinkContent(param) {
+            const result = await gqlClient.mutation(UnlinkContentDocument, {
+                id: param.id,
+                parent: {
+                    type: param.parent.type === 'content' ? ParentOfContent.Content : ParentOfContent.Item,
+                    id: param.parent.id,
+                }
+            });
+            if (result.error) {
+                throw new Error(result.error.message);
+            }
+        },
         async getSnsPreviewAPI(url: string) {
             const res = await gqlClient.query(GetSnsPreviewDocument, {
                 url,
