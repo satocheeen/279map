@@ -22,7 +22,6 @@ import { ConfirmBtnPattern, ConfirmResult } from "../common/confirm/types";
 import { useMapController } from "../../store/useMapController";
 import { useAtomCallback } from "jotai/utils";
 import { selectItemIdAtom } from "../../store/operation";
-import { updateContentAtom } from "../../store/content";
 import { clientAtom } from "jotai-urql";
 import { Auth, ContentsDefine, GetContentDocument, GetImageUrlDocument, GetSnsPreviewDocument, MapKind, MutationUpdateContentArgs, ParentOfContent, RemoveContentDocument, UnlinkContentDocument } from "../../graphql/generated/graphql";
 import { ContentAttr } from "./types";
@@ -48,7 +47,6 @@ export default function Content(props: Props) {
     const [ filteredContentIdList ] = useAtom(filteredContentIdListAtom);
     const { onEditContent }  = useContext(OwnerContext);
     const { focusItem } = useMap();
-    const [, updateContent] = useAtom(updateContentAtom);
 
     /**
      * フィルタ時にフィルタ対象外のコンテンツの場合にtrueを返す。
@@ -233,11 +231,11 @@ export default function Content(props: Props) {
                 return res.data.getSnsPreview;
             },
             updateContent: async(param: MutationUpdateContentArgs) => {
-                await updateContent(param);
+                // await updateContent(param);
         
             },
         })
-    }, [props.content, onEditContent, updateContent, gqlClient]);
+    }, [props.content, onEditContent, gqlClient]);
 
     const onDelete = useCallback(async() => {
         const result = await confirm({

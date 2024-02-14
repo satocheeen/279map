@@ -15,8 +15,7 @@ import { useAtomCallback } from 'jotai/utils';
 import { loadedItemMapAtom, storedItemsAtom, visibleItemsAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument, DatasourceInfo, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType } from '../../graphql/generated/graphql';
-import { updateContentAtom } from '../../store/content';
+import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument, DatasourceInfo, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import { MapKind } from '../../graphql/generated/graphql';
 import { DataId } from '../../types-common/common-types';
@@ -44,7 +43,6 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
     const { changeMapKind } = useMapController();
     const { focusItem, fitToDefaultExtent } = useMap();
     const { updateDatasourceVisible } = useDataSource();
-    const [, updateContent] = useAtom(updateContentAtom);
     const [ gqlClient ] = useAtom(clientAtom);
     const [ , setFilteredItem ] = useAtom(filteredItemsAtom);
     const [ visibleDataSourceIds ] = useAtom(visibleDataSourceIdsAtom);
@@ -189,7 +187,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         
         async registContent(param) {
             try {
-                await gqlClient.mutation(RegistContentDocument, {
+                const result = await gqlClient.mutation(RegistContentDocument, {
                     datasourceId: param.datasourceId,
                     parent: {
                         type: param.parent.type === 'item' ? ParentOfContent.Item : ParentOfContent.Content,
@@ -203,13 +201,28 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                     imageUrl: param.imageUrl,
                     url: param.url,
                 });
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
 
             } catch(e) {
                 throw new Error('registContent failed.' + e);
             }
         },
-        async updateContent(param: MutationUpdateContentArgs) {
-            await updateContent(param);
+        async updateContent(param) {
+            const result = await gqlClient.mutation(UpdateContentDocument, {
+                id: param.id,
+                type: ContentType.Normal,
+                title: param.title,
+                overview: param.overview,
+                categories: param.categories,
+                date: param.date,
+                imageUrl: param.imageUrl,
+                url: param.url,
+            });
+            if (result.error) {
+                throw new Error(result.error.message);
+            }
         },
         async linkContentToItemAPI(param: Parameters<TsunaguMapHandler['linkContentToItemAPI']>[0]) {
             const result = await gqlClient.mutation(LinkContentDocument, {

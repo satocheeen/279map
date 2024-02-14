@@ -192,7 +192,15 @@ export interface TsunaguMapHandler {
         url?: string;
     }): Promise<void>;
 
-    updateContent(param: MutationUpdateContentArgs): Promise<void>;
+    updateContent(param: {
+        id: DataId,
+        title?: string,
+        overview?: string;
+        categories?: string[],
+        date?: string;
+        imageUrl?: string;
+        url?: string;
+    }): Promise<void>;
 
     /**
      * 指定のコンテンツを指定のアイテムまたはコンテンツに子供として紐づける
