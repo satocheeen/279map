@@ -178,7 +178,19 @@ export interface TsunaguMapHandler {
 
     showDetailDialog(param: {type: 'item' | 'content'; id: DataId}): void;
 
-    registContent(param: MutationRegistContentArgs): Promise<void>;
+    registContent(param: {
+        datasourceId: string,
+        parent: {
+            type: 'item' | 'content',
+            id: DataId,
+        },
+        title: string,
+        overview: string;
+        categories: string[],
+        date?: string;
+        imageUrl?: string;
+        url?: string;
+    }): Promise<void>;
 
     updateContent(param: MutationUpdateContentArgs): Promise<void>;
 

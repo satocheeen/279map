@@ -15,7 +15,7 @@ import { useAtomCallback } from 'jotai/utils';
 import { loadedItemMapAtom, storedItemsAtom, visibleItemsAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument, DatasourceInfo, ParentOfContent, GetContentsInItemDocument, SortCondition } from '../../graphql/generated/graphql';
+import { ContentsDefine, GetContentsDocument, MutationUpdateContentArgs, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument, DatasourceInfo, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType } from '../../graphql/generated/graphql';
 import { updateContentAtom } from '../../store/content';
 import { clientAtom } from 'jotai-urql';
 import { MapKind } from '../../graphql/generated/graphql';
@@ -187,9 +187,22 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             }
         },
         
-        async registContent(param: MutationRegistContentArgs) {
+        async registContent(param) {
             try {
-                await gqlClient.mutation(RegistContentDocument, param);
+                await gqlClient.mutation(RegistContentDocument, {
+                    datasourceId: param.datasourceId,
+                    parent: {
+                        type: param.parent.type === 'item' ? ParentOfContent.Item : ParentOfContent.Content,
+                        id: param.parent.id,
+                    },
+                    title: param.title,
+                    overview: param.overview,
+                    categories: param.categories,
+                    type: ContentType.Normal,
+                    date: param.date,
+                    imageUrl: param.imageUrl,
+                    url: param.url,
+                });
 
             } catch(e) {
                 throw new Error('registContent failed.' + e);
