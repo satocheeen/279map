@@ -135,7 +135,8 @@ export default function TestMap() {
             dataSourceId: focusDataSourceId,
             id: focusItemId,
         }, {
-            zoom: false,
+            zoom: true,
+            select: true,
         });
     }, [focusItemId, focusDataSourceId]);
 

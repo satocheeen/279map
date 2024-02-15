@@ -20,6 +20,7 @@ import { clientAtom } from 'jotai-urql';
 import GeoJSON from 'geojson';
 import { Extent } from 'ol/extent';
 import { DataId } from '../../types-common/common-types';
+import { selectItemIdAtom } from '../../store/operation';
 
 /**
  * 地図インスタンス管理マップ。
@@ -371,7 +372,7 @@ export function useMap() {
      * 指定のitemにfitさせる
      */
     const focusItem = useAtomCallback(
-        useCallback(async(get, set, param: {itemId: DataId; zoom?: boolean}) => {
+        useCallback(async(get, set, param: {itemId: DataId; zoom?: boolean, select?: boolean}) => {
             if (!map) {
                 return;
             }
@@ -399,10 +400,13 @@ export function useMap() {
     
             const ext = itemFeature.getGeometry()?.getExtent();
             if (!ext) return;
-            map.fit(ext, {
+            await map.fit(ext, {
                 animation: true,
                 zoom: param.zoom,
             });
+            if (param.select) {
+                set(selectItemIdAtom, param.itemId);
+            }
     
         }, [map])
     )

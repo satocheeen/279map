@@ -384,29 +384,32 @@ export class OlMapWrapper {
      * the map view fit on the extent
      * @param ext fit area
      */
-    fit(ext: Extent, opt?: {animation?: boolean, zoom?: boolean}) {
-        const maxZoom = (opt?.zoom === undefined || opt.zoom) ? undefined : this._map.getView().getZoom();
-        const options: FitOptions = {
-            padding: [50, 50, 50, 50],
-            duration: opt?.animation ? 500 : undefined,
-            maxZoom,
-            callback: () => {
-                // 連続実行制御
-                this._fitting = false;
-                if (this._fitReserve) {
-                    this._map.getView().fit(this._fitReserve.ext, this._fitReserve.options);
-                    this._fitReserve = undefined;
+    async fit(ext: Extent, opt?: {animation?: boolean, zoom?: boolean}) {
+        return new Promise<void>((resolve) => {
+            const maxZoom = (opt?.zoom === undefined || opt.zoom) ? undefined : this._map.getView().getZoom();
+            const options: FitOptions = {
+                padding: [50, 50, 50, 50],
+                duration: opt?.animation ? 500 : undefined,
+                maxZoom,
+                callback: () => {
+                    // 連続実行制御
+                    this._fitting = false;
+                    if (this._fitReserve) {
+                        this._map.getView().fit(this._fitReserve.ext, this._fitReserve.options);
+                        this._fitReserve = undefined;
+                    }
+                    resolve();
                 }
+            };
+            if (this._fitting) {
+                // 連続fitすると固まるので、fit処理中は待つ
+                this._fitReserve = {ext, options};
+                this._map.getView().cancelAnimations();
+            } else {
+                this._fitting = true;
+                this._map.getView().fit(ext, options);
             }
-        };
-        if (this._fitting) {
-            // 連続fitすると固まるので、fit処理中は待つ
-            this._fitReserve = {ext, options};
-            this._map.getView().cancelAnimations();
-        } else {
-            this._fitting = true;
-            this._map.getView().fit(ext, options);
-        }
+        })
     }
 
     createDrawingLayer(style?: StyleFunction | Style): VectorLayer<VectorSource> {

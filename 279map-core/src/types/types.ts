@@ -93,8 +93,10 @@ export interface TsunaguMapHandler {
      * 指定のアイテムにフォーカスする
      * @param itemId フォーカス対象のアイテムid
      * @param opts フォーカスする際のオプション
+     *              zoom: trueの場合、フォーカスしたアイテムにズームする
+     *              select: trueの場合、フォーカス後に対象アイテムを選択状態にする
      */
-    focusItem(itemId: DataId, opts?: {zoom?: boolean}): void;
+    focusItem(itemId: DataId, opts?: {zoom?: boolean, select?: boolean}): Promise<void>;
 
     /**
      * 全アイテムが表示される範囲にフィットさせる
