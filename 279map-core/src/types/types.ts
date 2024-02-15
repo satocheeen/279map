@@ -1,6 +1,5 @@
 import { CSSProperties } from "react";
 import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult, GetItemsQuery, DatasourceInfo, ItemDefine, ThumbSize, SearchHitItem } from "../graphql/generated/graphql";
-import { ContentAttr } from "../components/contents/types";
 import { DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
 import { OperationResult } from "urql";
 
@@ -77,13 +76,6 @@ export type TsunaguMapProps = {
      * @returns 
      */
     onLoadedItemsChanged?: (items: ItemType[]) => void;
-
-    // callback when kick the action to create a new content
-    onAddNewContent?: (param: AddNewContentParam) => void;
-    // callback when kick the action to edit a content
-    onEditContent?: (param: EditContentParam) => void;
-    // callback when kick the action to link a content with an item or a content
-    onLinkUnpointedContent?: (param: LinkUnpointContentParam) => void;
 }
 
 export type FilterHitItem = Omit<SearchHitItem, '__typename'>;
@@ -343,52 +335,6 @@ export type NewContentInfoParam = {
         contentId: DataId;
     }
     mode: 'manual' | 'select-unpoint';
-}
-/**
- * 地図上で新規コンテンツ追加が選択された場合のコールバック
- */
-export type AddNewContentParam = {
-    parent: {
-        itemId: DataId;
-    } | {
-        contentId: DataId;
-    }
-    // コンテンツデータソース一覧
-    dataSources: {
-        dataSourceId: string;
-        name: string;
-    }[];
-    getSnsPreviewAPI: (url: string) => Promise<SnsPreviewResult>;
-    registContent: (param: MutationRegistContentArgs) => Promise<void>;
-}
-/**
- * 地図上でコンテンツ編集が選択された場合のコールバック
- */
-export type EditContentParam = {
-    contentId: DataId;
-    currentAttr: ContentAttr;
-    getSnsPreviewAPI: (url: string) => Promise<SnsPreviewResult>;
-    updateContent: (param: MutationUpdateContentArgs) => Promise<void>;
-}
-/**
- * 地図上で新規コンテンツ追加→未配置コンテンツが選択された場合に、コールバック関数に渡される情報
- */
-export type LinkUnpointContentParam = {
-    // 未配置コンテンツの紐づけ先
-    parent: {
-        itemId: DataId; // コンテンツをアイテム直下に紐づける場合
-    } | {
-        contentId: DataId;  // 子コンテンツとして紐づける場合
-    }
-    // コンテンツデータソース一覧
-    dataSources: {
-        dataSourceId: string;
-        name: string;
-    }[];
-    // 未配置コンテンツ情報取得API
-    getUnpointDataAPI: (dataSourceId: string, nextToken?: string) => Promise<GetUnpointContentsResult>;
-    // コンテンツ紐づけAPI
-    linkContentToItemAPI: (param: MutationLinkContentArgs) => Promise<void>;
 }
 
 export type ItemInfo = Required<OperationResult<GetItemsQuery>>['data']['getItems'][0];

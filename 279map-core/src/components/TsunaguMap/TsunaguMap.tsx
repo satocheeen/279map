@@ -1,9 +1,9 @@
-import React, { Suspense, useImperativeHandle, useState, useMemo, useRef, useEffect, lazy } from 'react';
+import React, { Suspense, useImperativeHandle, useState, useMemo, useRef } from 'react';
 import styles from './TsunaguMap.module.scss';
 import './TsunaguMap.scss';
 import ConfirmDialog from '../common/confirm/ConfirmDialog';
 import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
-import { AddNewContentParam, EditContentParam, LinkUnpointContentParam, TsunaguMapHandler, TsunaguMapProps } from '../../types/types';
+import { TsunaguMapHandler, TsunaguMapProps } from '../../types/types';
 import EventConnectorWithOwner, { EventControllerHandler } from './EventConnectorWithOwner';
 import MapConnector from './MapConnector';
 import ProcessOverlay from './ProcessOverlay';
@@ -17,16 +17,11 @@ import ContentsSettingController from '../admin/contents-setting/ContentsSetting
 import UserListController from '../admin/user-list/UserListController';
 import SelectItemController, { SelectItemControllerHandler } from '../map/draw-controller/SelectItemController';
 
-const DefaultComponents = lazy(() => import('../default/DefaultComponents'));
-
 type SomeRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
-type OwnerContextType = Omit<SomeRequired<TsunaguMapProps, 'onAddNewContent'|'onEditContent'|'onLinkUnpointedContent'>, 'mapServer'>;
+type OwnerContextType = Omit<TsunaguMapProps, 'mapServer'>;
 
 export const OwnerContext = React.createContext<OwnerContextType>({
     mapId: '',
-    onAddNewContent: () => {},
-    onEditContent: () => {},
-    onLinkUnpointedContent: () => {},
 });
 
 function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHandler>) {
@@ -46,21 +41,9 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
         setShowIdMap: setShowTooltipId,
     } as TooltipContextValue;
 
-    // デフォルトコンテンツ登録ダイアログ表示時に値セット
-    const [ defaultNewContentParam, setDefaultNewContentParam ] = useState<AddNewContentParam|undefined>();
-
-    // デフォルトコンテンツ編集ダイアログ表示時に値セット
-    const [ defaultEditContentParam, setDefaultEditContentParam ] = useState<EditContentParam|undefined>();
-
-    // デフォルト未配置コンテンツ登録ダイアログ表示時に値セット
-    const [ defaultLinkUnpointedContentParam, setDefaultLinkUnpointedContentParam ] = useState<LinkUnpointContentParam|undefined>();
-
     const ownerContextValue = useMemo((): OwnerContextType => {
         return {
             ...props,
-            onAddNewContent: props.onAddNewContent ?? function(param: AddNewContentParam){setDefaultNewContentParam(param)},
-            onEditContent: props.onEditContent ?? function(param: EditContentParam){setDefaultEditContentParam(param)},
-            onLinkUnpointedContent: props.onLinkUnpointedContent ?? function(param: LinkUnpointContentParam){setDefaultLinkUnpointedContentParam(param)},
         }
     }, [props]);
 
@@ -100,17 +83,6 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
 
                         <ConfirmDialog />
 
-                        <Suspense>
-                            {defaultLinkUnpointedContentParam &&
-                                <DefaultComponents linkUnpointedContentParam={defaultLinkUnpointedContentParam} onClose={()=>{setDefaultLinkUnpointedContentParam(undefined)}} />
-                            }
-                            {defaultNewContentParam &&
-                                <DefaultComponents newContentParam={defaultNewContentParam} onClose={()=>{setDefaultNewContentParam(undefined)}} />
-                            }
-                            {defaultEditContentParam &&
-                                <DefaultComponents editContentParam={defaultEditContentParam} onClose={()=>{setDefaultEditContentParam(undefined)}} />
-                            }
-                        </Suspense>
                     </TooltipContext.Provider>
                     <ProcessOverlay />
                 </MapConnector>
