@@ -15,7 +15,7 @@ import { useAtomCallback } from 'jotai/utils';
 import { loadedItemMapAtom, storedItemsAtom, visibleItemsAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument, DatasourceInfo, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument } from '../../graphql/generated/graphql';
+import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument, DatasourceInfo, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument, UpdateItemsDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import { MapKind } from '../../graphql/generated/graphql';
 import { DataId } from '../../types-common/common-types';
@@ -23,6 +23,7 @@ import { useItems } from '../../store/item/useItems';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern } from '../common/confirm/types';
 import dayjs from 'dayjs';
+import useItemProcess from '../../store/item/useItemProcess';
 
 /**
  * 呼び出し元とイベント連携するためのコンポーネントもどき。
@@ -33,6 +34,7 @@ import dayjs from 'dayjs';
 export type EventControllerHandler = Pick<TsunaguMapHandler, 
     'switchMapKind' | 'focusItem' | 'loadContents' | 'loadContentsInItem' | 'loadContentImage'
     | 'filter' | 'clearFilter'
+    | 'updateItem'
     | 'registContent' | 'updateContent' | 'removeContent'
     | 'linkContent' | 'unlinkContent'
     | 'getSnsPreviewAPI' | 'getUnpointDataAPI'
@@ -72,6 +74,8 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         }
         return 0;
     }, [mapDefine]);
+
+    const { updateItems } = useItemProcess();
 
     useImperativeHandle(ref, () => ({
         switchMapKind: changeMapKind,
@@ -183,7 +187,26 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 throw err;
             }
         },
-        
+        async updateItem(itemId, param, opt) {
+            if (opt?.backend) {
+                return updateItems([
+                    {
+                        id: itemId,
+                        name: param.name,
+                    }
+                ])
+            } else {
+                const result = await gqlClient.query(UpdateItemsDocument, {
+                    targets: {
+                        id: itemId,
+                        name: param.name,
+                    }
+                })
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+            }
+        },
         async registContent(param) {
             try {
                 const result = await gqlClient.mutation(RegistContentDocument, {

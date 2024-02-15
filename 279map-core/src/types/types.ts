@@ -181,6 +181,22 @@ export interface TsunaguMapHandler {
     showDetailDialog(param: {type: 'item' | 'content'; id: DataId}): void;
 
     /**
+     * アイテム情報を更新する
+     * @param itemId 対象アイテムID
+     * @param param 更新する情報
+     * @param opt オプション
+     *          backend: trueの場合、裏で非同期で実行し、処理失敗した場合には地図上にエラーメッセージとリトライボタンが表示される
+     */
+    updateItem(itemId: DataId,
+        param: {
+            name?: string;
+        },
+        opt?: {
+            backend?: boolean;
+        }
+    ): Promise<void>,
+
+    /**
      * コンテンツを新規登録する
      */
     registContent(param: {
