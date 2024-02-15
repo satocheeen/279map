@@ -74,9 +74,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
     }, [mapDefine]);
 
     useImperativeHandle(ref, () => ({
-        switchMapKind(mapKind: MapKind) {
-            changeMapKind(mapKind);
-        },
+        switchMapKind: changeMapKind,
         focusItem(itemId: DataId, opts?: {zoom?: boolean}) {
             focusItem({
                 itemId,

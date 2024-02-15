@@ -84,9 +84,9 @@ export type FilterHitItem = Omit<SearchHitItem, '__typename'>;
 export interface TsunaguMapHandler {
     /**
      * switch the map kind
-     * 表示する地図種別の切り替え
+     * 表示する地図種別の切り替え。切り替え完了したら復帰。
      */
-    switchMapKind(mapKind: MapKind): void;
+    switchMapKind(mapKind: MapKind): Promise<void>;
 
     /**
      * focus the item
