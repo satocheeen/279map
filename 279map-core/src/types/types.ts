@@ -337,4 +337,6 @@ export type NewContentInfoParam = {
     mode: 'manual' | 'select-unpoint';
 }
 
-export type ItemInfo = Required<OperationResult<GetItemsQuery>>['data']['getItems'][0];
+export type ItemInfo = Required<OperationResult<GetItemsQuery>>['data']['getItems'][0] & {
+    temporary?: 'registing' | 'updating';
+};

@@ -12,17 +12,12 @@ type NoneConfig {
 }
 union ServerConfig = Auth0Config | NoneConfig
 
-enum ItemTemporaryState {
-    Registing
-    Updateing
-}
 type ItemDefine {
     id: DataId!
     name: String!
     geometry: Geometry!
     geoProperties: GeoProperties!
     lastEditedTime: String!
-    temporary: ItemTemporaryState
     hasContents: Boolean!
     "画像を持つコンテンツID一覧"
     hasImageContentId: [DataId!]!

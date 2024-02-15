@@ -215,17 +215,11 @@ export type ItemDefine = {
   id: Scalars['DataId']['output'];
   lastEditedTime: Scalars['String']['output'];
   name: Scalars['String']['output'];
-  temporary?: Maybe<ItemTemporaryState>;
 };
 
 export enum ItemLabelMode {
   Hidden = 'hidden',
   Show = 'show'
-}
-
-export enum ItemTemporaryState {
-  Registing = 'Registing',
-  Updateing = 'Updateing'
 }
 
 export type MapDefine = {
@@ -790,7 +784,6 @@ export type ResolversTypes = {
   ItemConfig: ResolverTypeWrapper<ItemConfig>;
   ItemDefine: ResolverTypeWrapper<ItemDefine>;
   ItemLabelMode: ItemLabelMode;
-  ItemTemporaryState: ItemTemporaryState;
   JSON: ResolverTypeWrapper<Scalars['JSON']['output']>;
   MapDefine: ResolverTypeWrapper<MapDefine>;
   MapInfo: ResolverTypeWrapper<MapInfo>;
@@ -1044,7 +1037,6 @@ export type ItemDefineResolvers<ContextType = any, ParentType extends ResolversP
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   lastEditedTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  temporary?: Resolver<Maybe<ResolversTypes['ItemTemporaryState']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

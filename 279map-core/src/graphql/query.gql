@@ -54,7 +54,6 @@ query getItems (
         lastEditedTime
         hasContents
         hasImageContentId
-        temporary
         contents {
             id
             image
@@ -77,7 +76,6 @@ query getItemsById (
         lastEditedTime
         hasContents
         hasImageContentId
-        temporary
         contents {
             id
             image

@@ -3,7 +3,7 @@ import { ItemContent, ItemInfo } from '../../types/types';
 import { filteredItemsAtom } from '../filter';
 import { DataId } from '../../entry';
 import { visibleDataSourceIdsAtom } from '../datasource';
-import { ItemTemporaryState, UpdateItemInput } from '../../graphql/generated/graphql';
+import { UpdateItemInput } from '../../graphql/generated/graphql';
 
 export type LoadedItemKey = {
     datasourceId: string;
@@ -54,7 +54,7 @@ export const allItemsAtom = atom<ItemsByDatasourceMap>((get) => {
                 hasContents: false,
                 hasImageContentId: [],
                 lastEditedTime: '',
-                temporary: ItemTemporaryState.Registing,
+                temporary: 'registing',
             }
             if (!result[itemProcess.item.id.dataSourceId]) {
                 result[itemProcess.item.id.dataSourceId] = {};
@@ -65,7 +65,7 @@ export const allItemsAtom = atom<ItemsByDatasourceMap>((get) => {
             itemProcess.items.forEach(tempItem => {
                 Object.assign(result[tempItem.id.dataSourceId][tempItem.id.id], tempItem, {
                     lastEditedTime: '',
-                    temporary: ItemTemporaryState.Updateing,
+                    temporary: 'updating',
                 });
             })
         } else if (itemProcess.status === 'deleting') {
