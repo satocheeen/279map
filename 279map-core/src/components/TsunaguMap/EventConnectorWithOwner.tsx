@@ -196,7 +196,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                     }
                 ])
             } else {
-                const result = await gqlClient.query(UpdateItemsDocument, {
+                const result = await gqlClient.mutation(UpdateItemsDocument, {
                     targets: {
                         id: itemId,
                         name: param.name,
