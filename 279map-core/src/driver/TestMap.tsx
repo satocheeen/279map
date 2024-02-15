@@ -113,7 +113,7 @@ export default function TestMap() {
     }, []);
 
     // callbacks
-    const handleSelectChange = useCallback((item: ItemType|null) => {
+    const handleSelectChange = useCallback((item: DataId|null) => {
         console.log('onSelectChange', item, cnt);
         setCnt(cnt + 1);
     }, [cnt]);
@@ -331,6 +331,7 @@ export default function TestMap() {
                     onMapLoad={onMapLoad}
                     onDatasourceChanged={onDataSourceChanged}
                     onSelectChange={handleSelectChange}
+                    onLoadedItemsChanged={(val)=>{console.log('onLoadedItemsChanged', val)}}
                     // onClick={(val) => onCallback('onClick', val)}
                     onModeChanged={(val) => onCallback('onModeChanged', val)}
                     onCategoriesLoaded={onCategoriesLoaded}

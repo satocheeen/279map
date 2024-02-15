@@ -8,11 +8,11 @@ import { currentMapDefineAtom, currentMapKindAtom, mapDefineAtom } from '../../s
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { TsunaguMapHandler } from '../../types/types';
+import { ItemType, TsunaguMapHandler } from '../../types/types';
 import { useAtom } from 'jotai';
 import { itemDataSourceGroupsAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import { useAtomCallback } from 'jotai/utils';
-import { loadedItemMapAtom, storedItemsAtom, visibleItemsAtom } from '../../store/item';
+import { allItemsAtom, loadedItemMapAtom, storedItemsAtom, visibleItemsAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
 import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument, DatasourceInfo, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument, UpdateItemsDocument } from '../../graphql/generated/graphql';
@@ -364,7 +364,7 @@ function useMapLoadListener() {
 }
 
 function useEventListener() {
-    const { onDatasourceChanged, onCategoriesLoaded, onEventsLoaded, onModeChanged, onSelectChange, onVisibleItemsChanged }  = useContext(OwnerContext);
+    const { onLoadedItemsChanged, onDatasourceChanged, onCategoriesLoaded, onEventsLoaded, onModeChanged, onSelectChange, onVisibleItemsChanged }  = useContext(OwnerContext);
 
     /**
      * Datasource定義、表示状態が変化した場合に呼び出し元にイベント発火する
@@ -419,6 +419,25 @@ function useEventListener() {
         }, [mapMode, onModeChanged])
     , { immediate: true })
 
+    const [ allItems ] = useAtom(allItemsAtom);
+    useWatch(allItems,
+        useCallback(() => {
+            if (onLoadedItemsChanged) {
+                const items: ItemType[] = [];
+                Object.values(allItems).forEach(itemMap => {
+                    Object.values(itemMap).forEach(item => {
+                        items.push({
+                            id: item.id,
+                            name: item.name,
+                            lastEditedTime: item.lastEditedTime,
+                        })
+                    })
+                })
+                onLoadedItemsChanged(items);
+            }
+        }, [onLoadedItemsChanged, allItems])
+    , { immediate: true })
+
     /**
      * 選択アイテムが変化した場合に呼び出し元にイベント発火する
      */
@@ -429,11 +448,7 @@ function useEventListener() {
             if (!onSelectChange) return;
             if (selectedItemId) {
                 const item = getItem(selectedItemId);
-                onSelectChange({
-                    id: item.id,
-                    name: item.name,
-                    lastEditedTime: item.lastEditedTime,
-                });
+                onSelectChange(item.id);
             } else {
                 onSelectChange(null);
             }
