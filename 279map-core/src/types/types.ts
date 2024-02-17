@@ -178,8 +178,6 @@ export interface TsunaguMapHandler {
      */
     loadContentImage(param: {contentId: DataId, size: ThumbSize, refresh?: boolean}): Promise<string>;
 
-    showDetailDialog(param: {type: 'item' | 'content'; id: DataId}): void;
-
     /**
      * アイテム情報を更新する
      * @param itemId 対象アイテムID
