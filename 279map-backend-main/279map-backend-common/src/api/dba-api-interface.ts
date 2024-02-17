@@ -112,7 +112,9 @@ export const OdbaUpdateContentAPI = {
 
 export type OdbaUpdateContentParam = CommonParam & {
     id: DataId;
-} & Partial<ContentAttr>;
+} & Partial<ContentAttr> & {
+    deleteImage?: boolean;  // trueの場合、画像削除する
+};
 
 /**
  * get unpoint data

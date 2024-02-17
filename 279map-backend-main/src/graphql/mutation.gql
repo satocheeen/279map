@@ -106,6 +106,7 @@ type Mutation {
         type: ContentType!
         date: String
         imageUrl: String
+        deleteImage: Boolean
         url: String
     ): Boolean
 

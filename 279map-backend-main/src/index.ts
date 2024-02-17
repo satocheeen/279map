@@ -878,6 +878,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         categories: param.categories ?? undefined,
                         date: param.date ?? undefined,
                         imageUrl: param.imageUrl ?? undefined,
+                        deleteImage: param.deleteImage ?? undefined,
                         overview: param.overview ?? undefined,
                         title: param.title ?? undefined,
                         type: param.type,

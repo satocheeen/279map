@@ -370,6 +370,7 @@ export type MutationUnlinkContentsDatasourceArgs = {
 export type MutationUpdateContentArgs = {
   categories?: InputMaybe<Array<Scalars['String']['input']>>;
   date?: InputMaybe<Scalars['String']['input']>;
+  deleteImage?: InputMaybe<Scalars['Boolean']['input']>;
   id: Scalars['DataId']['input'];
   imageUrl?: InputMaybe<Scalars['String']['input']>;
   overview?: InputMaybe<Scalars['String']['input']>;
