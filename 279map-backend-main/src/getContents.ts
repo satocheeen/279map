@@ -5,6 +5,7 @@ import { ContentsInfo, ContentsTable, DataSourceTable, ItemContentLink } from '.
 import { CurrentMap } from '../279map-backend-common/src';
 import { Auth, ContentsDefine, DatasourceConfig, MapKind } from './graphql/__generated__/types';
 import { DataId } from './types-common/common-types';
+import dayjs from 'dayjs';
 
 type GetContentsParam = ({
     itemId: DataId;
@@ -61,11 +62,22 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
         
             }();
 
+            // 現状、時刻ありなしを区別できないので、ひとまず00:00を「時刻なし」と判定
+            const date = function() {
+                if (!row.date) return;
+                const dj = dayjs(row.date);
+                if (dj.format('HH:mm') === '00:00') {
+                    return dj.format('YYYY-MM-DD');
+                } else {
+                    return dj.format('YYYY-MM-DD HH:mm');
+                }
+            }();
+
             return {
                 id,
                 itemId,
                 title: row.title ?? '',
-                date: row.date ? (row.date as Date).toLocaleDateString() : undefined,
+                date,
                 category: row.category ? row.category as string[] : [],
                 image: row.thumbnail ? true : false,
                 videoUrl: contents?.videoUrl,
