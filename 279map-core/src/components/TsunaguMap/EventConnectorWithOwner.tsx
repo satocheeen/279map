@@ -224,6 +224,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 categories: param.categories,
                 date: param.date,
                 imageUrl: param.imageUrl,
+                deleteImage: param.deleteImage,
                 url: param.url,
             });
             if (result.error) {

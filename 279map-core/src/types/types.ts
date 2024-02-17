@@ -222,8 +222,9 @@ export interface TsunaguMapHandler {
         overview?: string;
         categories?: string[],
         date?: string;
-        imageUrl?: string;
         url?: string;
+        imageUrl?: string;
+        deleteImage?: boolean;
     }): Promise<void>;
 
     /**

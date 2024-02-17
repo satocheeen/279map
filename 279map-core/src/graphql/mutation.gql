@@ -156,6 +156,7 @@ mutation updateContent (
     $type: ContentType!
     $date: String
     $imageUrl: String
+    $deleteImage: Boolean
     $url: String
 ) {
     updateContent(
@@ -166,6 +167,7 @@ mutation updateContent (
         type: $type
         date: $date
         imageUrl: $imageUrl
+        deleteImage: $deleteImage
         url: $url
     )
 }
