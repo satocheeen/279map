@@ -38,7 +38,7 @@ export type EventControllerHandler = Pick<TsunaguMapHandler,
     | 'registContent' | 'updateContent' | 'removeContent'
     | 'linkContent' | 'unlinkContent'
     | 'getSnsPreviewAPI' | 'getUnpointDataAPI'
-    | 'getThumbnail' | 'changeVisibleLayer'
+    | 'changeVisibleLayer'
     | 'selectItem'>
 
 function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControllerHandler>) {
@@ -171,22 +171,6 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 throw err;
             }
         },
-        async loadContentImage({contentId, size}) {
-            try {
-                const result = await gqlClient.query(GetThumbDocument, {
-                    contentId,
-                    size,
-                });
-                if (result.error) {
-                    throw new Error(result.error.message);
-                }
-                const base64 = result.data?.getThumb ?? '';
-                return 'data:image/' + base64;
-                            
-            } catch(err) {
-                throw err;
-            }
-        },
         async updateItem(itemId, param, opt) {
             if (opt?.backend) {
                 return updateItems([
@@ -304,13 +288,25 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         },
     
         /**
-         * 指定のコンテンツのサムネイル画像（Blob）を取得する
+         * 指定のコンテンツの画像（Blob）を取得する
          */
-        async getThumbnail(contentId: DataId) {
-            const imgData = await gqlClient.query(GetThumbDocument, {
-                contentId: contentId,
-            });
-            return 'data:image/' +  imgData.data?.getThumb;
+        async loadContentImage({contentId, size, refresh}) {
+            try {
+                const result = await gqlClient.query(GetThumbDocument, {
+                    contentId,
+                    size,
+                }, {
+                    requestPolicy: refresh ? 'network-only' : undefined,
+                });
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+                const base64 = result.data?.getThumb ?? '';
+                return 'data:image/' + base64;
+                            
+            } catch(err) {
+                throw err;
+            }
         },
     
         changeVisibleLayer(target: { dataSourceId: string } | { group: string }, visible: boolean) {

@@ -174,8 +174,9 @@ export interface TsunaguMapHandler {
      * 指定のコンテンツの画像データ(Base64)を取得する
      * @param contentId
      * @param size 取得サイズ
+     * @param refresh trueの場合、キャッシュを用いずに最新ロードする
      */
-    loadContentImage(param: {contentId: DataId, size: ThumbSize}): Promise<string>;
+    loadContentImage(param: {contentId: DataId, size: ThumbSize, refresh?: boolean}): Promise<string>;
 
     showDetailDialog(param: {type: 'item' | 'content'; id: DataId}): void;
 
@@ -259,11 +260,6 @@ export interface TsunaguMapHandler {
     getSnsPreviewAPI(url: string): Promise<SnsPreviewResult>;
 
     getUnpointDataAPI(dataSourceId: string, nextToken?: string): Promise<GetUnpointContentsResult>;
-
-    /**
-     * 指定のコンテンツのサムネイル画像（Blob）を取得する
-     */
-    getThumbnail(contentId: DataId): Promise<string>;
 
     changeVisibleLayer(target: { dataSourceId: string } | { group: string }, visible: boolean): void;
 
