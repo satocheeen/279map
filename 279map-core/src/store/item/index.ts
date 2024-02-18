@@ -1,9 +1,10 @@
 import { atom } from 'jotai';
-import { ItemContent, ItemInfo } from '../../types/types';
+import { ItemType, ItemInfo } from '../../types/types';
 import { filteredItemsAtom } from '../filter';
 import { DataId } from '../../entry';
 import { visibleDataSourceIdsAtom } from '../datasource';
 import { UpdateItemInput } from '../../graphql/generated/graphql';
+import { isEqualId } from '../../util/dataUtility';
 
 export type LoadedItemKey = {
     datasourceId: string;
@@ -98,9 +99,13 @@ export const latestEditedTimeOfDatasourceAtom = atom((get) => {
     return resultMap;
 })
 
-const allItemContentListAtom = atom<ItemContent[]>((get) => {
+/**
+ * ロード済みのアイテム一覧
+ */
+export const allItemContentListAtom = atom<ItemType[]>((get) => {
     const allItems = get(allItemsAtom);
-    const list = [] as ItemContent[];
+    const filteredItems = get(filteredItemsAtom);
+    const list = [] as ItemType[];
     Object.entries(allItems).forEach(([dsId, itemMap]) => {
         Object.entries(itemMap).forEach(([id, item]) => {
             const itemId: DataId = { dataSourceId: dsId, id };
@@ -111,8 +116,12 @@ const allItemContentListAtom = atom<ItemContent[]>((get) => {
                     contents.push(child.id);
                 })
             })
+            const visible = !filteredItems ? true : filteredItems.some(fi => isEqualId(fi.id, itemId));
             list.push({
-                itemId,
+                id: itemId,
+                name: item.name,
+                lastEditedTime: item.lastEditedTime,
+                visible,
                 contents,
             })
         })
@@ -120,20 +129,20 @@ const allItemContentListAtom = atom<ItemContent[]>((get) => {
     return list;
 })
 
-/**
- * 現在表示状態にあるアイテム&コンテンツ一覧を返す
- */
-export const visibleItemsAtom = atom<ItemContent[]>((get) => {
-    const allItems = get(allItemContentListAtom);
-    const visibleDataSourceIds = get(visibleDataSourceIdsAtom);
-    const filteredItems = get(filteredItemsAtom);
-    if (!filteredItems) {
-        return allItems.filter(item => visibleDataSourceIds.some(vd => item.itemId.dataSourceId === vd));
-    }
-    return filteredItems.map((fi): ItemContent => {
-        return {
-            itemId: fi.id,
-            contents: fi.hitContents,
-        }
-    })
-})
+// /**
+//  * 現在表示状態にあるアイテム&コンテンツ一覧を返す
+//  */
+// export const visibleItemsAtom = atom<ItemContent[]>((get) => {
+//     const allItems = get(allItemContentListAtom);
+//     const visibleDataSourceIds = get(visibleDataSourceIdsAtom);
+//     const filteredItems = get(filteredItemsAtom);
+//     if (!filteredItems) {
+//         return allItems.filter(item => visibleDataSourceIds.some(vd => item.itemId.dataSourceId === vd));
+//     }
+//     return filteredItems.map((fi): ItemContent => {
+//         return {
+//             itemId: fi.id,
+//             contents: fi.hitContents,
+//         }
+//     })
+// })

@@ -18,12 +18,13 @@ export type OnConnectParam = {
     mapDefine: MapDefine;
 };
 
-export type ItemContent = {
-    itemId: DataId;
+export type ItemType = {
+    id: DataId;
+    name: string;
     contents: DataId[];
+    lastEditedTime: string;
+    visible: boolean;   // フィルタ時に透過or非表示になっている場合はfalse
 }
-
-export type ItemType = Pick<ItemDefine, 'id' | 'name' | 'lastEditedTime'>;
 
 export type TsunaguMapProps = {
     mapId: string;
@@ -81,7 +82,6 @@ export type TsunaguMapProps = {
     onModeChanged?: (mode: MapMode) => void;    // callback when map mode has changed.
     onCategoriesLoaded?: (categories: CategoryDefine[]) => void;    // calback when categories has loaded or has changed.
     onEventsLoaded?: (events: EventDefine[]) => void;   // callback when events has loaded or has changed.
-    onVisibleItemsChanged?: (items: ItemContent[]) => void;
 
     /**
      * ロードされているアイテム情報に変更があった場合のコールバック

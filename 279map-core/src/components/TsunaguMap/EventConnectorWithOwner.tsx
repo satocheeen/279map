@@ -8,16 +8,15 @@ import { currentMapDefineAtom, currentMapKindAtom, mapDefineAtom } from '../../s
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { ItemType, TsunaguMapHandler } from '../../types/types';
+import { TsunaguMapHandler } from '../../types/types';
 import { useAtom } from 'jotai';
 import { itemDataSourceGroupsAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import { useAtomCallback } from 'jotai/utils';
-import { allItemsAtom, loadedItemMapAtom, storedItemsAtom, visibleItemsAtom } from '../../store/item';
+import { allItemContentListAtom, loadedItemMapAtom, storedItemsAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, MutationLinkContentArgs, LinkContentDocument, MutationRegistContentArgs, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument, DatasourceInfo, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument, UpdateItemsDocument } from '../../graphql/generated/graphql';
+import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, LinkContentDocument, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument, DatasourceInfo, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument, UpdateItemsDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
-import { MapKind } from '../../graphql/generated/graphql';
 import { DataId } from '../../types-common/common-types';
 import { useItems } from '../../store/item/useItems';
 import useConfirm from '../common/confirm/useConfirm';
@@ -361,7 +360,7 @@ function useMapLoadListener() {
 }
 
 function useEventListener() {
-    const { onLoadedItemsChanged, onDatasourceChanged, onCategoriesLoaded, onEventsLoaded, onModeChanged, onSelectChange, onVisibleItemsChanged }  = useContext(OwnerContext);
+    const { onLoadedItemsChanged, onDatasourceChanged, onCategoriesLoaded, onEventsLoaded, onModeChanged, onSelectChange }  = useContext(OwnerContext);
 
     /**
      * Datasource定義、表示状態が変化した場合に呼び出し元にイベント発火する
@@ -416,21 +415,11 @@ function useEventListener() {
         }, [mapMode, onModeChanged])
     , { immediate: true })
 
-    const [ allItems ] = useAtom(allItemsAtom);
+    const [ allItems ] = useAtom(allItemContentListAtom);
     useWatch(allItems,
         useCallback(() => {
             if (onLoadedItemsChanged) {
-                const items: ItemType[] = [];
-                Object.values(allItems).forEach(itemMap => {
-                    Object.values(itemMap).forEach(item => {
-                        items.push({
-                            id: item.id,
-                            name: item.name,
-                            lastEditedTime: item.lastEditedTime,
-                        })
-                    })
-                })
-                onLoadedItemsChanged(items);
+                onLoadedItemsChanged(allItems);
             }
         }, [onLoadedItemsChanged, allItems])
     , { immediate: true })
@@ -452,18 +441,6 @@ function useEventListener() {
         }, [selectedItemId, onSelectChange, getItem])
     , { immediate: true })
 
-    /**
-     * 表示アイテムが変化した場合に呼び出し元にイベント発火する
-     */
-    const [ visibleItems ] = useAtom(visibleItemsAtom);
-    useWatch(visibleItems,
-        useCallback(() => {
-            if (onVisibleItemsChanged) {
-                onVisibleItemsChanged(visibleItems)
-            }
-        }, [onVisibleItemsChanged, visibleItems])
-    , { immediate: true })
-    
 }
 
 export default React.forwardRef(EventConnectorWithOwner);
