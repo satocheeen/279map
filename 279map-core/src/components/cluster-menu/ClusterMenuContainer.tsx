@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useContext, useRef } from 'react';
 import { selectItemIdAtom, doShowClusterMenuAtom, mapModeAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
 import { MapMode } from '../../types/types';
@@ -6,12 +6,14 @@ import ClusterMenuController, { ClusterMenuControllerHandler } from './ClusterMe
 import { useMap } from '../map/useMap';
 import { useAtomCallback } from 'jotai/utils';
 import { DataId, FeatureType } from '../../types-common/common-types';
+import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 
 export default function ClusterMenuContainer() {
     const { map } = useMap();
     const [ mapMode ] = useAtom(mapModeAtom);
     const controllerRef = useRef<ClusterMenuControllerHandler>(null);
     const [ doShowClusterMenu, setDoShowClusterMenu ] = useAtom(doShowClusterMenuAtom);
+    const { onItemClick } = useContext(OwnerContext);
 
     const onSelectItem = useAtomCallback(
         useCallback((get, set, feature: DataId | undefined) => {
@@ -20,7 +22,10 @@ export default function ClusterMenuContainer() {
             } else {
                 set(selectItemIdAtom, feature);
             }
-        }, [])
+            if (feature && onItemClick) {
+                onItemClick(feature);
+            }
+        }, [onItemClick])
     );
 
     if (doShowClusterMenu && controllerRef.current) {

@@ -36,7 +36,7 @@ export type ClusterMenuControllerHandler = {
 function ClusterMenuController(props: Props, ref: React.ForwardedRef<ClusterMenuControllerHandler>) {
     const { map } = useMap();
     const [clusterMenuInfo, setClusterMenuInfo] = useState<ClusterMenuTarget|null>(null);
-    const { onClick } = useContext(OwnerContext);
+    const { onClusterItemClick } = useContext(OwnerContext);
     const [mapMode] = useAtom(mapModeAtom);
 
     const [filteredItemIdList] = useAtom(filteredItemIdListAtom);
@@ -144,16 +144,16 @@ function ClusterMenuController(props: Props, ref: React.ForwardedRef<ClusterMenu
             // 対象が複数存在する場合は、重畳選択メニューを表示
             if (pointIds.length === 1) {
                 props.onSelect(pointIds[0].id);
-            } else if (!onClick) {
+            } else if (!onClusterItemClick) {
                 // onClick指定時は、重畳選択メニューは表示しない
                 setClusterMenuInfo({
                     position: evt.coordinate,
                     targets: pointIds.map(p=>p.id),
                 });
             }
-            if (onClick) {
+            if (onClusterItemClick) {
                 // onClick指定時は、クリックされたアイテムのID一覧を返す（重畳選択メニューは表示しない）
-                onClick(pointIds.map(p=>p.id));
+                onClusterItemClick(pointIds.map(p=>p.id));
             }
 
         };
@@ -177,7 +177,7 @@ function ClusterMenuController(props: Props, ref: React.ForwardedRef<ClusterMenu
             map.un('pointermove', pointerMoveFunc);
         }
 
-    }, [props, getSelectableFeatures, onClick, map]);
+    }, [props, getSelectableFeatures, onClusterItemClick, map]);
 
     /**
      * 重畳選択メニュー選択時のコールバック

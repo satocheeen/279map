@@ -153,18 +153,6 @@ export default function TestMap() {
         }
     }, [token]);
 
-    const getThumbnail = useCallback(async() => {
-        if (!mapRef.current) {
-            console.warn('commandHook undefined');
-            return;
-        }
-        const img = await mapRef.current?.getThumbnail({
-            dataSourceId: '8ab78092-80f3-4ed7-82f4-ed5df3e01c1b',
-            id: '00c94264-07f5-4d56-adec-7cac9a326c7e',
-        });
-        console.log('thumb', img);
-    }, []);
-
     const getAccessableMapListFunc = useCallback(async() => {
         const result = await getAccessableMapList(mapServer.host, mapServer.ssl, mapServer.token);
         console.log('getAccessableMapList', result);
@@ -301,7 +289,6 @@ export default function TestMap() {
                     <button onClick={() => mapRef.current?.showUserList()}>ユーザ一覧</button>
                     <button onClick={() => mapRef.current?.showContentsSetting()}>コンテンツ設定</button>
                     <button onClick={callGetSnsPreview}>GetSNS</button>
-                    <button onClick={getThumbnail}>GetThumbnail</button>
                     <button onClick={getAccessableMapListFunc}>GetAccessableMapList</button>
                 </div>
 
@@ -332,7 +319,7 @@ export default function TestMap() {
                     onDatasourceChanged={onDataSourceChanged}
                     onSelectChange={handleSelectChange}
                     onLoadedItemsChanged={(val)=>{console.log('onLoadedItemsChanged', val)}}
-                    // onClick={(val) => onCallback('onClick', val)}
+                    onItemClick={(val) => onCallback('onClick', val)}
                     onModeChanged={(val) => onCallback('onModeChanged', val)}
                     onCategoriesLoaded={onCategoriesLoaded}
                     onEventsLoaded={(val) => {console.log('onEventsLoaded', val)}}

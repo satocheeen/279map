@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState, useEffect } from "react";
+import React, { useCallback, useMemo, useState, useEffect, useContext } from "react";
 import styles from './PointsPopup.module.scss';
 import { ItemInfo, MapMode } from "../../types/types";
 import { isEqualId } from "../../util/dataUtility";
@@ -13,6 +13,7 @@ import { useAtom } from "jotai";
 import { useAtomCallback } from 'jotai/utils';
 import { ContentsDefine } from "../../graphql/generated/graphql";
 import { DataId } from "../../types-common/common-types";
+import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 
 type Props = {
     // このポップアップにて情報表示する対象アイテム
@@ -88,10 +89,15 @@ export default function PointsPopup(props: Props) {
 
     }, [target, filteredContentIdList, popupMode]);
 
+    const { onItemClick } = useContext(OwnerContext);
     const onClick = useAtomCallback(
         useCallback((get, set, evt: React.MouseEvent) => {
             if (props.itemIds.length === 1) {
-                set(selectItemIdAtom, props.itemIds[0]);
+                const itemId = props.itemIds[0];
+                set(selectItemIdAtom, itemId);
+                if (onItemClick) {
+                    onItemClick(itemId)
+                }
                 return;
             }
             // 対象が２つ以上ある場合は、重畳選択メニューを表示
@@ -103,7 +109,7 @@ export default function PointsPopup(props: Props) {
                     targets: props.itemIds,
                 })
             }
-        }, [props.itemIds, map])
+        }, [props.itemIds, map, onItemClick])
     );
 
     const sizeClassName = useMemo(() => {

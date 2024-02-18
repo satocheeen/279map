@@ -60,11 +60,24 @@ export type TsunaguMapProps = {
 
     /**
      * 地図上で建物orピンの選択状態が変更された場合のコールバック
-     * @param target null
+     * @param target 選択状態になったアイテムのID。選択解除された場合、null。
      */
     onSelectChange?: (target: DataId | null) => void;
 
-    onClick?: (targets: DataId[]) => void; // callback when an items are clicked.  if set this callback, cluster menu don't be shown.
+    /**
+     * 地図上の建物orピンがクリックされた場合のコールバック
+     * @param target 
+     */
+    onItemClick?: (target: DataId) => void;
+
+    /**
+     * 重なっているアイテムがクリックされた場合のコールバック。
+     * このコールバックを指定している場合、重畳選択メニューは表示しない
+     * @param targets 
+     * @returns 
+     */
+    onClusterItemClick?: (targets: DataId[]) => void;
+
     onModeChanged?: (mode: MapMode) => void;    // callback when map mode has changed.
     onCategoriesLoaded?: (categories: CategoryDefine[]) => void;    // calback when categories has loaded or has changed.
     onEventsLoaded?: (events: EventDefine[]) => void;   // callback when events has loaded or has changed.
