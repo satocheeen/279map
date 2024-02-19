@@ -21,9 +21,13 @@ export type OnConnectParam = {
 export type ItemType = {
     id: DataId;
     name: string;
-    contents: DataId[];
     lastEditedTime: string;
-    visible: boolean;   // フィルタ時に透過or非表示になっている場合はfalse
+    filterHit?: boolean;   // フィルタ時にフィルタ条件に該当した場合、true
+    contents: {
+        id: DataId
+        filterHit?: boolean;   // フィルタ時にフィルタ条件に該当した場合、true
+    }[];
+
 }
 
 export type TsunaguMapProps = {
@@ -118,8 +122,10 @@ export interface TsunaguMapHandler {
     /**
      * 指定の条件でフィルタする
      * @param condition フィルタ条件
+     * @result フィルタ完了したら、true。条件に該当するものがない場合は、フィルタ実行せずfalseを返す。
      */
-    filter(condition: Condition): Promise<FilterHitItem[]>;
+    filter(condition: Condition): Promise<boolean>;
+
     /**
      * フィルタ解除する
      */

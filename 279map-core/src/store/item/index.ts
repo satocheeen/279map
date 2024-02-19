@@ -109,19 +109,25 @@ export const allItemContentListAtom = atom<ItemType[]>((get) => {
     Object.entries(allItems).forEach(([dsId, itemMap]) => {
         Object.entries(itemMap).forEach(([id, item]) => {
             const itemId: DataId = { dataSourceId: dsId, id };
-            const contents = [] as DataId[];
-            item.contents.forEach(content => {
-                contents.push(content.id);
-                content.children?.forEach(child => {
-                    contents.push(child.id);
-                })
+            const filterdItemInfo = !filteredItems ? undefined : filteredItems.find(fi => isEqualId(fi.id, itemId));
+
+            const belongContents = item.contents.reduce((acc, cur) => {
+                const childrenIds = cur.children?.map(child => child.id) ?? [];
+                return [...acc, cur.id, ...childrenIds];
+            }, [] as DataId[]);
+            const contents = [] as ItemType['contents'];
+            belongContents.forEach(contentId => {
+                const hit = filterdItemInfo?.hitContents.some(hc => isEqualId(hc, contentId));
+                contents.push({
+                    id: contentId,
+                    filterHit: hit,
+                });
             })
-            const visible = !filteredItems ? true : filteredItems.some(fi => isEqualId(fi.id, itemId));
             list.push({
                 id: itemId,
                 name: item.name,
                 lastEditedTime: item.lastEditedTime,
-                visible,
+                filterHit: filterdItemInfo?.hitItem,
                 contents,
             })
         })

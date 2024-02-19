@@ -92,7 +92,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             if (Object.keys(condition).length === 0) {
                 // 条件未指定
                 setFilteredItem(null);
-                return [];
+                return false;
             };
     
             const h = showProcessMessage({
@@ -114,16 +114,10 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                         btnPattern: ConfirmBtnPattern.OkOnly,
                     })
                     setFilteredItem(null);
-                    return [];
+                    return false;
                 }
                 setFilteredItem(hitItems);
-                return hitItems.map(hit => (
-                    {
-                        id: hit.id,
-                        hitItem: hit.hitItem,
-                        hitContents: hit.hitContents,
-                    }
-                ));
+                return true;
     
             } catch(e) {
                 throw e;
