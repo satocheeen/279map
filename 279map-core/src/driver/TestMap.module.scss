@@ -1,45 +1,66 @@
+.Container {
+    width: 100vw;
+    height: 100vh;
+    display: grid;
+    grid-template-columns: 20rem 1fr;
+    grid-template-rows: 10rem  1fr 10rem;
+}
+.Map {
+    grid-column: 2 / 3;
+    grid-row: 2 / 3;
+}
+.VerticalArea {
+    grid-column: 1 / 2;
+    grid-row: 2 / 4;
+}
+.ConsoleArea {
+    grid-column: 2 / 3;
+    grid-row: 3 / 4;
+
+    textarea {
+        width: 100%;
+        height: calc(100% - 5px);
+        line-height: 1.5rem;
+    }
+}
+
 .Form {
-    height: 10rem;
+    grid-column: 1 / 3;
+    grid-row: 1 / 2;
+
+
+    // height: 10rem;
     display: flex;
     flex-direction: row;
     // position: fixed;
     z-index: 10;
     background-color: rgba(#eff, .8);
     overflow-y: scroll;
-    .Col {
-        display: flex;
-        flex-direction: column;
-        overflow: auto;
-        
-        margin-left: 20px;
-        margin-right: 20px;
-
-        min-width: 7rem;
-        // max-width: 15rem;
-
-        .Row {
-            display: flex;
-            flex-direction: row;
-        }
-
-        .PropName {
-            font-weight: bold;
-        }
-        label {
-            display: block;
-            // margin-left: 1rem;
-        }
-    }
-}
-.Map {
-    height: calc(100vh - 10rem);
-    // height: 100vh;
-    width: 100vw;
-    z-index: 1;
-    // position: absolute;
-    // top: 0;
-    // left: 0;
 }
 label.Child {
     margin-left: 1rem;
+}
+.Col {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    
+    margin-left: 20px;
+    margin-right: 20px;
+
+    min-width: 7rem;
+    // max-width: 15rem;
+
+    .Row {
+        display: flex;
+        flex-direction: row;
+    }
+
+    .PropName {
+        font-weight: bold;
+    }
+    label {
+        display: block;
+        // margin-left: 1rem;
+    }
 }

@@ -1,19 +1,25 @@
 import React, { useState, useCallback, useMemo, useRef, useContext } from 'react';
 import type {
     ServerInfo, TsunaguMapHandler, onDatasourceChangedParam, 
-    CategoryDefine, Condition, DatasourceGroup, 
+    CategoryDefine, DatasourceGroup, 
     DataId, OnConnectParam, OnMapLoadParam, 
     TsunaguMapProps,
-    ItemType
 } from '../entry';
 import { Auth, MapKind, FeatureType, DatasourceKindType, getAccessableMapList } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
 import styles from './TestMap.module.scss';
-import FilterCondition from './FilterCondition';
 import { mapId, myMapServer } from './const';
 import AuthPanel from './AuthPanel';
 import { AuthContext } from './DriverRoot';
+import FilterTest from './filter/FilterTest';
 
+export const DriverContext = React.createContext({
+    getMap: () => null as TsunaguMapHandler | null,
+    addConsole: (...text: any) => {},
+    categories: [] as CategoryDefine[],
+    filterUnmatchView: 'hidden' as TsunaguMapProps['filterUnmatchView'],
+    setFilterUnmatchView: (val: TsunaguMapProps['filterUnmatchView']) => {},
+})
 const props = {
     mapId,
     iconDefine: [
@@ -37,6 +43,33 @@ const props = {
 const defaultPopupMode: TsunaguMapProps['popupMode'] = 'maximum';
 export default function TestMap() {
     const mapRef = useRef<TsunaguMapHandler>(null);
+
+    const [ consoleText, setConsoleText ] = useState('');
+    const consoleRef = useRef<HTMLTextAreaElement>(null);
+    const [ consoleCnt, setConsoleCnt ] = useState(1);
+    const addConsole = useCallback((...args: any[]) => {
+        const id = `[console-${consoleCnt}]`;
+        setConsoleCnt(cur => cur + 1);
+        const text = id + args.map(arg => {
+            if (Array.isArray(arg) || typeof arg === 'object') {
+                const str = JSON.stringify(arg);
+                if (str.length > 50) {
+                    return str.substring(0, 50) + '...';
+                } else {
+                    return str;
+                }
+            } else {
+                return arg;
+            }
+        }).join(', ');
+        setConsoleText((cur) => cur + (cur.length > 0 ?'\n' : '') + text);
+        console.log(id, ...args);
+        setTimeout(() => {
+            if (consoleRef.current)
+                consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
+        }, 100)
+    }, [consoleCnt]);
+
     const [ cnt, setCnt ] = useState(0);
     const [ categories, setCategories ] = useState<CategoryDefine[]>([]);
     const [ authLv, setAuthLv ] = useState(Auth.None);
@@ -48,18 +81,11 @@ export default function TestMap() {
     }, [cnt]);
 
     const onCategoriesLoaded = useCallback((categories: CategoryDefine[]) => {
+        addConsole('setCategories', categories);
         setCategories(categories);
-    }, []);
+    }, [addConsole]);
 
-    // const [ filterCondition, setFilterCondition ] = useState<Condition|undefined>();
-    const [ filterUnmatchView, setFilterUnmatchView ] = useState<'hidden'|'translucent'>('hidden');
-    // const filter = useMemo((): TsunaguMapProps['filter'] => {
-    //     if (!filterCondition) return;
-    //     return {
-    //         condition: filterCondition,
-    //         unmatchView: filterUnmatchView,
-    //     }
-    // }, [filterCondition, filterUnmatchView]);
+    const [ filterUnmatchView, setFilterUnmatchView ] = useState<'hidden'|'translucent'|undefined>('hidden');
 
     // switch mapKind
     const [ mapKind, setMapKind ] = useState(MapKind.Real);
@@ -101,15 +127,6 @@ export default function TestMap() {
     const handleSelectItemByUser = useCallback(async() => {
         const result = await mapRef.current?.selectItemByUser();
         console.log('select item', result);
-    }, []);
-
-    const handleFilter = useCallback(async(condition?: Condition) => {
-        if (!condition) {
-            mapRef.current?.clearFilter();
-            return;
-        };
-        const result = await mapRef.current?.filter(condition);
-        console.log('filtered', result);
     }, []);
 
     // callbacks
@@ -179,7 +196,7 @@ export default function TestMap() {
     }, []);
 
     return (
-        <>
+        <div className={styles.Container}>
             <div className={styles.Form}>
                 <div className={styles.Col}>
                     <AuthPanel />
@@ -245,23 +262,6 @@ export default function TestMap() {
                         )
                     })}
                 </div>
-                <div className={styles.Col}>
-                    <div className={styles.Row}>
-                        <div className={styles.PropName}>フィルタ</div>
-                        <label>
-                            非表示
-                            <input type="radio" checked={filterUnmatchView==='hidden'}
-                                    onChange={() => setFilterUnmatchView('hidden')} />
-                        </label>
-                        <label>
-                            不透明
-                            <input type="radio" checked={filterUnmatchView==='translucent'}
-                                    onChange={() => setFilterUnmatchView('translucent')} />
-                        </label>
-                    </div>
-                    <FilterCondition categories={categories}
-                        onChange={(filter) => handleFilter(filter)} />
-                </div>
                 {authLv !== Auth.View &&
                 <>
                     <div className={styles.Col}>
@@ -318,17 +318,36 @@ export default function TestMap() {
                     onMapLoad={onMapLoad}
                     onDatasourceChanged={onDataSourceChanged}
                     onSelectChange={handleSelectChange}
-                    onLoadedItemsChanged={(val)=>{console.log('onLoadedItemsChanged', val)}}
+                    onLoadedItemsChanged={(val)=>{addConsole('onLoadedItemsChanged', val)}}
                     onItemClick={(val) => onCallback('onClick', val)}
                     onModeChanged={(val) => onCallback('onModeChanged', val)}
                     onCategoriesLoaded={onCategoriesLoaded}
                     onEventsLoaded={(val) => {console.log('onEventsLoaded', val)}}
-                    onVisibleItemsChanged={(val) => {console.log('onVisibleItemChanged', val)}}
                     // onAddNewContent={(val) => onCallback('onNewContentInfo', val)}
                     // onLinkUnpointedContent={(val) => onCallback('onLinkUnpointedContent', val)}
                     />
             </div>
-        </>
+
+            <DriverContext.Provider
+                value={{
+                    getMap: () => {
+                        return mapRef.current
+                    },
+                    addConsole,
+                    categories,
+                    filterUnmatchView,
+                    setFilterUnmatchView,
+                }}
+            >
+                <div className={styles.VerticalArea}>
+                    <FilterTest />
+                </div>
+            </DriverContext.Provider>
+
+            <div className={styles.ConsoleArea}>
+                <textarea ref={consoleRef} value={consoleText} readOnly />
+            </div>
+        </div>
     );
 }
 

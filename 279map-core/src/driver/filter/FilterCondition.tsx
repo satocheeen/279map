@@ -1,16 +1,17 @@
-import React, { useState, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useContext } from 'react';
 import styles from './FilterCondition.module.scss';
-import { useWatch } from '../util/useWatch2';
-import { CategoryDefine, Condition } from '../graphql/generated/graphql';
+import { useWatch } from '../../util/useWatch2';
+import { Condition } from '../../graphql/generated/graphql';
+import { DriverContext } from '../TestMap';
 
 type FilterKind = keyof Required<Condition>;
 
 type Props = {
-    categories: CategoryDefine[];
     onChange: (filter: Condition | undefined) => void;
 }
 
 export default function FilterCondition(props: Props) {
+    const { categories } = useContext(DriverContext);
     const [ currentMode, setCurrentMode ] = useState<FilterKind>('category');
     const [ category, setCategory ] = useState<string| undefined>();
     const onChangeCategory = useCallback((category: string | undefined) => {
@@ -43,7 +44,7 @@ export default function FilterCondition(props: Props) {
                     なし
                     <input type="radio" checked={category===undefined} onChange={() => onChangeCategory(undefined)} />
                 </label>
-                {props.categories.map(c => {
+                {categories.map(c => {
                     return (
                         <label key={c.name}>
                             {c.name}
@@ -53,7 +54,7 @@ export default function FilterCondition(props: Props) {
                 })}
             </div>
         )
-    }, [props.categories, category, onChangeCategory]);
+    }, [categories, category, onChangeCategory]);
 
     const calendarFilter = useMemo(() => {
         return (
