@@ -23,7 +23,6 @@ export interface OdbaConnection {
 }
 export type DataSourceTable = {
     data_source_id: string;
-    name: string;
     kind: DatasourceKindType;
 
     // 登録時はstring, 取得時はDatasourceConfig
@@ -37,8 +36,12 @@ export type DataSourceTable = {
 export type MapDataSourceLinkTable = {
     map_page_id: string;
     data_source_id: string;
-    order_num: number;
+    datasource_name: string;
+    config: string | MapDataSourceLinkConfig;
     last_edited_time: string;
+}
+export type MapDataSourceLinkConfig = {
+    order_num: number;
 }
 export type TracksTable = {
     track_page_id: string;
@@ -62,7 +65,6 @@ export type TrackGeoJsonTable = {
 export type ItemsTable = {
     item_page_id: string;
     data_source_id: string;
-    map_kind: MapKind;
     name: string | null;
     location: {x: number; y: number;};   // Geometry
     geo_properties: string;       // GeoPropertiesのJSON文字列

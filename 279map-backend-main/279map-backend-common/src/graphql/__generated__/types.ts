@@ -50,7 +50,8 @@ export type DatasourceInfo = {
 
 export enum DatasourceKindType {
   Content = 'Content',
-  Item = 'Item',
+  VirtualItem = 'VirtualItem',
+  RealItem = 'RealItem',
   RealPointContent = 'RealPointContent',
   Track = 'Track'
 }

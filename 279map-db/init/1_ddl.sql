@@ -19,8 +19,7 @@ CREATE TABLE `map_page_info` (
 
 CREATE TABLE `data_source` (
   `data_source_id` varchar(100) NOT NULL,
-  `name` varchar(100) NOT NULL,
-  `kind` enum('Item','RealPointContent','Content','Track') NOT NULL,
+  `kind` enum('VirtualItem','RealItem','RealPointContent','Content','Track') NOT NULL,
   `config` json NOT NULL,
   `odba_connection` json NOT NULL COMMENT '原本DB関連の任意情報',
   `last_edited_time` varchar(100) NOT NULL,
@@ -33,7 +32,8 @@ CREATE TABLE `data_source` (
 CREATE TABLE `map_datasource_link` (
   `map_page_id` varchar(100) NOT NULL,
   `data_source_id` varchar(100) NOT NULL,
-  `order_num` tinyint(3) unsigned DEFAULT NULL,
+  `datasource_name` varchar(100) NOT NULL,
+  `config` json NOT NULL,
   `last_edited_time` varchar(100) NOT NULL,
   PRIMARY KEY (`map_page_id`,`data_source_id`),
   KEY `map_datasource_link_FK_1` (`data_source_id`),
@@ -70,7 +70,6 @@ CREATE TABLE `contents` (
 CREATE TABLE `items` (
   `item_page_id` varchar(100) NOT NULL,
   `data_source_id` varchar(100) NOT NULL,
-  `map_kind` enum('Real','Virtual') NOT NULL,
   `location` geometry NOT NULL,
   `geo_properties` text,
   `name` varchar(100) DEFAULT NULL,
