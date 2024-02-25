@@ -1,6 +1,6 @@
 import { ConnectionPool } from '.';
 import mysql from 'mysql2/promise';
-import { DataSourceTable, MapPageInfoTable } from '../279map-backend-common/src/types/schema';
+import { DataSourceTable, MapDataSourceLinkTable, MapPageInfoTable } from '../279map-backend-common/src/types/schema';
 import { schema } from '../279map-backend-common/src';
 import { DatasourceKindType, DatasourceConfig, DatasourceGroup, DatasourceInfo, MapInfo, RealPointContentConfig, ContentConfig, MapKind, Auth, MapPageOptions } from './graphql/__generated__/types';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
@@ -174,12 +174,12 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
         const [rows] = await con.execute(query);
 
         const dataSourceGroupMap = new Map<string, DatasourceInfo[]>();
-        (rows as DataSourceTable[]).forEach((row) => {
+        (rows as (DataSourceTable & MapDataSourceLinkTable)[]).forEach((row) => {
             const config = row.config as DatasourceConfig;
             if (row.kind === DatasourceKindType.Content) {
                 return;
             }
-            if (mapKind === MapKind.Virtual && row.kind !== DatasourceKindType.Item) {
+            if (mapKind === MapKind.Virtual && row.kind !== DatasourceKindType.VirtualItem) {
                 // 村マップの場合は、RealPointContentやTrackは返さない
                 return;
             }
@@ -198,7 +198,7 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
             const infos = dataSourceGroupMap.get(group) as DatasourceInfo[];
             infos.push({
                 datasourceId: row.data_source_id,
-                name: row.name,
+                name: row.datasource_name,
                 kind: row.kind,
                 visible,
                 config,
@@ -252,7 +252,7 @@ async function getContentDataSources(mapId: string, mapKind: MapKind, authLv: Au
         order by order_num`;
 
         const [rows] = await con.execute(sql, [mapId]);
-        return (rows as schema.DataSourceTable[]).map((rec): DatasourceInfo => {{
+        return (rows as (schema.DataSourceTable & schema.MapDataSourceLinkTable)[]).map((rec): DatasourceInfo => {{
             const config = rec.config as DatasourceConfig;
             if (authLv === Auth.None || authLv === Auth.View) {
                 config.deletable = false;
@@ -266,7 +266,7 @@ async function getContentDataSources(mapId: string, mapKind: MapKind, authLv: Au
             }
             return {
                 datasourceId: rec.data_source_id,
-                name: rec.name,
+                name: rec.datasource_name,
                 visible: true,
                 kind: rec.kind,
                 config,

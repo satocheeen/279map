@@ -1199,8 +1199,9 @@ const schema = makeExecutableSchema<GraphQlContextType>({
         DatasourceConfig: {
             __resolveType: (obj: DatasourceConfig) => {
                 switch(obj.kind) {
-                    case DatasourceKindType.Item:
-                        return 'ItemConfig';
+                    case DatasourceKindType.VirtualItem:
+                    case DatasourceKindType.RealItem:
+                            return 'ItemConfig';
                     case DatasourceKindType.RealPointContent:
                         return 'RealPointContentConfig';
                     case DatasourceKindType.Content:

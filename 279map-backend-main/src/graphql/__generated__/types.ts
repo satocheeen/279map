@@ -144,9 +144,10 @@ export type DatasourceInfo = {
 
 export enum DatasourceKindType {
   Content = 'Content',
-  Item = 'Item',
+  RealItem = 'RealItem',
   RealPointContent = 'RealPointContent',
-  Track = 'Track'
+  Track = 'Track',
+  VirtualItem = 'VirtualItem'
 }
 
 export type ErrorInfo = {

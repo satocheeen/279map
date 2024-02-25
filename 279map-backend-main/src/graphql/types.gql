@@ -104,7 +104,8 @@ type MapDefine {
 # DatasourceConfig
 # ------------------
 enum DatasourceKindType {
-    Item
+    VirtualItem
+    RealItem
     RealPointContent
     Content
     Track

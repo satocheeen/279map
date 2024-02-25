@@ -28,6 +28,25 @@ export enum Auth {
   View = 'View'
 }
 
+export enum ConnectErrorType {
+  /** ユーザのtokenが有効切れの場合 */
+  Forbidden = 'Forbidden',
+  /** その他接続エラー */
+  IllegalError = 'IllegalError',
+  /** アクセス権限のない地図にユーザがアクセスしようとした場合 */
+  NoAuthenticate = 'NoAuthenticate',
+  /** 編集権限を持たないユーザが編集権限の必要なAPIを実行しようとした場合 */
+  OperationForbidden = 'OperationForbidden',
+  /** アクセス権限のない地図に登録申請中の場合 */
+  Requesting = 'Requesting',
+  /** セッションタイムアウト時 */
+  SessionTimeout = 'SessionTimeout',
+  /** 地図が認証必要だが、ユーザがtokenを持たない場合（＝ログインが必要な場合） */
+  Unauthorized = 'Unauthorized',
+  /** 指定の地図が存在しない場合 */
+  UndefinedMap = 'UndefinedMap'
+}
+
 export type ContentConfig = {
   deletable: Scalars['Boolean']['output'];
   /** trueの場合、当該コンテンツデータソースを地図から外すこと不可 */
@@ -50,29 +69,10 @@ export type DatasourceInfo = {
 
 export enum DatasourceKindType {
   Content = 'Content',
-  VirtualItem = 'VirtualItem',
   RealItem = 'RealItem',
   RealPointContent = 'RealPointContent',
-  Track = 'Track'
-}
-
-export enum ErrorType {
-  /** ユーザのtokenが有効切れの場合 */
-  Forbidden = 'Forbidden',
-  /** その他接続エラー */
-  IllegalError = 'IllegalError',
-  /** アクセス権限のない地図にユーザがアクセスしようとした場合 */
-  NoAuthenticate = 'NoAuthenticate',
-  /** 編集権限を持たないユーザが編集権限の必要なAPIを実行しようとした場合 */
-  OperationForbidden = 'OperationForbidden',
-  /** アクセス権限のない地図に登録申請中の場合 */
-  Requesting = 'Requesting',
-  /** セッションタイムアウト時 */
-  SessionTimeout = 'SessionTimeout',
-  /** 地図が認証必要だが、ユーザがtokenを持たない場合（＝ログインが必要な場合） */
-  Unauthorized = 'Unauthorized',
-  /** 指定の地図が存在しない場合 */
-  UndefinedMap = 'UndefinedMap'
+  Track = 'Track',
+  VirtualItem = 'VirtualItem'
 }
 
 export type ItemConfig = {
