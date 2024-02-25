@@ -17,6 +17,7 @@ export type Scalars = {
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
   DataId: { input: DataId; output: DataId; }
+  DatasourceConfig: { input: any; output: any; }
   GeoProperties: { input: GeoProperties; output: GeoProperties; }
   GeocoderIdInfo: { input: GeocoderIdInfo; output: GeocoderIdInfo; }
   Geometry: { input: Geometry; output: Geometry; }
@@ -85,17 +86,6 @@ export type ConnectResult = {
   mapDefine: MapDefine;
 };
 
-export type ContentConfig = {
-  __typename?: 'ContentConfig';
-  deletable: Scalars['Boolean']['output'];
-  /** trueの場合、当該コンテンツデータソースを地図から外すこと不可 */
-  disableUnlinkMap?: Maybe<Scalars['Boolean']['output']>;
-  editable: Scalars['Boolean']['output'];
-  kind: DatasourceKindType;
-  /** 子コンテンツの追加が可能かどうか */
-  linkableChildContents: Scalars['Boolean']['output'];
-};
-
 export enum ContentType {
   Normal = 'normal',
   Sns = 'sns'
@@ -132,8 +122,6 @@ export type ContentsDefine = {
   videoUrl?: Maybe<Scalars['String']['output']>;
 };
 
-export type DatasourceConfig = ContentConfig | ItemConfig | RealPointContentConfig | TrackConfig;
-
 export type DatasourceGroup = {
   __typename?: 'DatasourceGroup';
   datasources: Array<DatasourceInfo>;
@@ -143,19 +131,11 @@ export type DatasourceGroup = {
 
 export type DatasourceInfo = {
   __typename?: 'DatasourceInfo';
-  config: DatasourceConfig;
+  config: Scalars['DatasourceConfig']['output'];
   datasourceId: Scalars['String']['output'];
-  kind: DatasourceKindType;
   name: Scalars['String']['output'];
   visible: Scalars['Boolean']['output'];
 };
-
-export enum DatasourceKindType {
-  Content = 'Content',
-  Item = 'Item',
-  RealPointContent = 'RealPointContent',
-  Track = 'Track'
-}
 
 export type ErrorInfo = {
   __typename?: 'ErrorInfo';
@@ -209,14 +189,6 @@ export type IconDefine = {
   id: Scalars['ID']['output'];
   imagePath: Scalars['String']['output'];
   useMaps: Array<MapKind>;
-};
-
-export type ItemConfig = {
-  __typename?: 'ItemConfig';
-  deletable: Scalars['Boolean']['output'];
-  editable: Scalars['Boolean']['output'];
-  kind: DatasourceKindType;
-  layerGroup?: Maybe<Scalars['String']['output']>;
 };
 
 export type ItemDefine = {
@@ -528,16 +500,6 @@ export type QuerySearchArgs = {
   datasourceIds?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
-export type RealPointContentConfig = {
-  __typename?: 'RealPointContentConfig';
-  defaultIcon?: Maybe<Scalars['IconKey']['output']>;
-  deletable: Scalars['Boolean']['output'];
-  editable: Scalars['Boolean']['output'];
-  kind: DatasourceKindType;
-  layerGroup?: Maybe<Scalars['String']['output']>;
-  linkableContents: Scalars['Boolean']['output'];
-};
-
 export type SearchHitItem = {
   __typename?: 'SearchHitItem';
   /** 当該アイテム配下の検索条件に合致するコンテンツID一覧 */
@@ -661,14 +623,6 @@ export enum ThumbSize {
   Thumbnail = 'Thumbnail'
 }
 
-export type TrackConfig = {
-  __typename?: 'TrackConfig';
-  deletable: Scalars['Boolean']['output'];
-  editable: Scalars['Boolean']['output'];
-  kind: DatasourceKindType;
-  layerGroup?: Maybe<Scalars['String']['output']>;
-};
-
 export type UnpointContent = {
   __typename?: 'UnpointContent';
   id: Scalars['DataId']['output'];
@@ -721,14 +675,14 @@ export type DisconnectMutationVariables = Exact<{ [key: string]: never; }>;
 
 export type DisconnectMutation = { __typename?: 'Mutation', disconnect?: boolean | null };
 
-export type DatasourceInfoFragment = { __typename?: 'DatasourceInfo', datasourceId: string, name: string, visible: boolean, kind: DatasourceKindType, config: { __typename?: 'ContentConfig', linkableChildContents: boolean, disableUnlinkMap?: boolean | null, editable: boolean, deletable: boolean } | { __typename?: 'ItemConfig', layerGroup?: string | null, editable: boolean, deletable: boolean } | { __typename?: 'RealPointContentConfig', defaultIcon?: IconKey | null, linkableContents: boolean, layerGroup?: string | null, editable: boolean, deletable: boolean } | { __typename?: 'TrackConfig' } };
+export type DatasourceInfoFragment = { __typename?: 'DatasourceInfo', datasourceId: string, name: string, visible: boolean, config: any };
 
 export type SwitchMapKindMutationVariables = Exact<{
   mapKind: MapKind;
 }>;
 
 
-export type SwitchMapKindMutation = { __typename?: 'Mutation', switchMapKind: { __typename?: 'MapInfo', extent: Array<number>, itemDataSourceGroups: Array<{ __typename?: 'DatasourceGroup', name?: string | null, visible: boolean, datasources: Array<{ __typename?: 'DatasourceInfo', datasourceId: string, name: string, visible: boolean, kind: DatasourceKindType, config: { __typename?: 'ContentConfig', linkableChildContents: boolean, disableUnlinkMap?: boolean | null, editable: boolean, deletable: boolean } | { __typename?: 'ItemConfig', layerGroup?: string | null, editable: boolean, deletable: boolean } | { __typename?: 'RealPointContentConfig', defaultIcon?: IconKey | null, linkableContents: boolean, layerGroup?: string | null, editable: boolean, deletable: boolean } | { __typename?: 'TrackConfig' } }> }>, contentDataSources: Array<{ __typename?: 'DatasourceInfo', datasourceId: string, name: string, visible: boolean, kind: DatasourceKindType, config: { __typename?: 'ContentConfig', linkableChildContents: boolean, disableUnlinkMap?: boolean | null, editable: boolean, deletable: boolean } | { __typename?: 'ItemConfig', layerGroup?: string | null, editable: boolean, deletable: boolean } | { __typename?: 'RealPointContentConfig', defaultIcon?: IconKey | null, linkableContents: boolean, layerGroup?: string | null, editable: boolean, deletable: boolean } | { __typename?: 'TrackConfig' } }>, originalIcons: Array<{ __typename?: 'IconDefine', id: string, caption?: string | null, imagePath: string, useMaps: Array<MapKind> }> } };
+export type SwitchMapKindMutation = { __typename?: 'Mutation', switchMapKind: { __typename?: 'MapInfo', extent: Array<number>, itemDataSourceGroups: Array<{ __typename?: 'DatasourceGroup', name?: string | null, visible: boolean, datasources: Array<{ __typename?: 'DatasourceInfo', datasourceId: string, name: string, visible: boolean, config: any }> }>, contentDataSources: Array<{ __typename?: 'DatasourceInfo', datasourceId: string, name: string, visible: boolean, config: any }>, originalIcons: Array<{ __typename?: 'IconDefine', id: string, caption?: string | null, imagePath: string, useMaps: Array<MapKind> }> } };
 
 export type RegistItemMutationVariables = Exact<{
   datasourceId: Scalars['String']['input'];
@@ -1025,11 +979,11 @@ export type ErrorSubscriptionVariables = Exact<{
 
 export type ErrorSubscription = { __typename?: 'Subscription', error: { __typename?: 'ErrorInfo', type: ErrorType, description?: string | null, itemId?: DataId | null } };
 
-export const DatasourceInfoFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"datasourceInfo"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"DatasourceInfo"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"datasourceId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"visible"}},{"kind":"Field","name":{"kind":"Name","value":"kind"}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ItemConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"layerGroup"}},{"kind":"Field","name":{"kind":"Name","value":"editable"}},{"kind":"Field","name":{"kind":"Name","value":"deletable"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RealPointContentConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"defaultIcon"}},{"kind":"Field","name":{"kind":"Name","value":"linkableContents"}},{"kind":"Field","name":{"kind":"Name","value":"layerGroup"}},{"kind":"Field","name":{"kind":"Name","value":"editable"}},{"kind":"Field","name":{"kind":"Name","value":"deletable"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ContentConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"linkableChildContents"}},{"kind":"Field","name":{"kind":"Name","value":"disableUnlinkMap"}},{"kind":"Field","name":{"kind":"Name","value":"editable"}},{"kind":"Field","name":{"kind":"Name","value":"deletable"}}]}}]}}]}}]} as unknown as DocumentNode<DatasourceInfoFragment, unknown>;
+export const DatasourceInfoFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"datasourceInfo"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"DatasourceInfo"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"datasourceId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"visible"}},{"kind":"Field","name":{"kind":"Name","value":"config"}}]}}]} as unknown as DocumentNode<DatasourceInfoFragment, unknown>;
 export const ContentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"content"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ContentsDefine"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"itemId"}},{"kind":"Field","name":{"kind":"Name","value":"date"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"overview"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"image"}},{"kind":"Field","name":{"kind":"Name","value":"videoUrl"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"usingAnotherMap"}},{"kind":"Field","name":{"kind":"Name","value":"anotherMapItemId"}},{"kind":"Field","name":{"kind":"Name","value":"isSnsContent"}},{"kind":"Field","name":{"kind":"Name","value":"isEditable"}},{"kind":"Field","name":{"kind":"Name","value":"isDeletable"}}]}}]} as unknown as DocumentNode<ContentFragment, unknown>;
 export const ConnectDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"connect"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"mapId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connect"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"mapId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"mapId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"mapDefine"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"useMaps"}},{"kind":"Field","name":{"kind":"Name","value":"defaultMapKind"}},{"kind":"Field","name":{"kind":"Name","value":"options"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"popupMode"}},{"kind":"Field","name":{"kind":"Name","value":"itemLabel"}},{"kind":"Field","name":{"kind":"Name","value":"visibleDataSources"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"VisibleDataSourceDatasource"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dataSourceId"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"VisibleDataSourceGroup"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"group"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"guestUserAuthLevel"}},{"kind":"Field","name":{"kind":"Name","value":"newUserAuthLevel"}},{"kind":"Field","name":{"kind":"Name","value":"usePanels"}},{"kind":"Field","name":{"kind":"Name","value":"contentsSortCondition"}},{"kind":"Field","name":{"kind":"Name","value":"options"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"connect"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sid"}},{"kind":"Field","name":{"kind":"Name","value":"authLv"}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"userName"}}]}}]}}]}}]} as unknown as DocumentNode<ConnectMutation, ConnectMutationVariables>;
 export const DisconnectDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"disconnect"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"disconnect"}}]}}]} as unknown as DocumentNode<DisconnectMutation, DisconnectMutationVariables>;
-export const SwitchMapKindDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"switchMapKind"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"mapKind"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"MapKind"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"switchMapKind"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"mapKind"},"value":{"kind":"Variable","name":{"kind":"Name","value":"mapKind"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"extent"}},{"kind":"Field","name":{"kind":"Name","value":"itemDataSourceGroups"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"visible"}},{"kind":"Field","name":{"kind":"Name","value":"datasources"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"datasourceInfo"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"contentDataSources"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"datasourceInfo"}}]}},{"kind":"Field","name":{"kind":"Name","value":"originalIcons"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"caption"}},{"kind":"Field","name":{"kind":"Name","value":"imagePath"}},{"kind":"Field","name":{"kind":"Name","value":"useMaps"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"datasourceInfo"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"DatasourceInfo"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"datasourceId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"visible"}},{"kind":"Field","name":{"kind":"Name","value":"kind"}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ItemConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"layerGroup"}},{"kind":"Field","name":{"kind":"Name","value":"editable"}},{"kind":"Field","name":{"kind":"Name","value":"deletable"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RealPointContentConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"defaultIcon"}},{"kind":"Field","name":{"kind":"Name","value":"linkableContents"}},{"kind":"Field","name":{"kind":"Name","value":"layerGroup"}},{"kind":"Field","name":{"kind":"Name","value":"editable"}},{"kind":"Field","name":{"kind":"Name","value":"deletable"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ContentConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"linkableChildContents"}},{"kind":"Field","name":{"kind":"Name","value":"disableUnlinkMap"}},{"kind":"Field","name":{"kind":"Name","value":"editable"}},{"kind":"Field","name":{"kind":"Name","value":"deletable"}}]}}]}}]}}]} as unknown as DocumentNode<SwitchMapKindMutation, SwitchMapKindMutationVariables>;
+export const SwitchMapKindDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"switchMapKind"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"mapKind"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"MapKind"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"switchMapKind"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"mapKind"},"value":{"kind":"Variable","name":{"kind":"Name","value":"mapKind"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"extent"}},{"kind":"Field","name":{"kind":"Name","value":"itemDataSourceGroups"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"visible"}},{"kind":"Field","name":{"kind":"Name","value":"datasources"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"datasourceInfo"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"contentDataSources"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"datasourceInfo"}}]}},{"kind":"Field","name":{"kind":"Name","value":"originalIcons"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"caption"}},{"kind":"Field","name":{"kind":"Name","value":"imagePath"}},{"kind":"Field","name":{"kind":"Name","value":"useMaps"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"datasourceInfo"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"DatasourceInfo"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"datasourceId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"visible"}},{"kind":"Field","name":{"kind":"Name","value":"config"}}]}}]} as unknown as DocumentNode<SwitchMapKindMutation, SwitchMapKindMutationVariables>;
 export const RegistItemDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"registItem"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"datasourceId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"geometry"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Geometry"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"geoProperties"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"GeoProperties"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"registItem"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"datasourceId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"datasourceId"}}},{"kind":"Argument","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}},{"kind":"Argument","name":{"kind":"Name","value":"geometry"},"value":{"kind":"Variable","name":{"kind":"Name","value":"geometry"}}},{"kind":"Argument","name":{"kind":"Name","value":"geoProperties"},"value":{"kind":"Variable","name":{"kind":"Name","value":"geoProperties"}}}]}]}}]} as unknown as DocumentNode<RegistItemMutation, RegistItemMutationVariables>;
 export const UpdateItemsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"updateItems"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"targets"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateItemInput"}}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateItems"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"targets"},"value":{"kind":"Variable","name":{"kind":"Name","value":"targets"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]} as unknown as DocumentNode<UpdateItemsMutation, UpdateItemsMutationVariables>;
 export const RemoveItemDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"removeItem"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DataId"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"removeItem"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}]}}]} as unknown as DocumentNode<RemoveItemMutation, RemoveItemMutationVariables>;

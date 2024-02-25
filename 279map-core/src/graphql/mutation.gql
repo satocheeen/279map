@@ -40,29 +40,7 @@ fragment datasourceInfo on DatasourceInfo {
     datasourceId
     name
     visible
-    kind
-    config {
-        ... on ItemConfig {
-            layerGroup
-            editable
-            deletable
-        }
-        ... on RealPointContentConfig {
-            defaultIcon
-            linkableContents
-            layerGroup
-            editable
-            deletable
-        }
-
-        ... on ContentConfig {
-            linkableChildContents
-            disableUnlinkMap
-            editable
-            deletable
-        }
-
-    }
+    config
 }
 mutation switchMapKind (
     $mapKind: MapKind!

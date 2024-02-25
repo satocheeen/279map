@@ -1,5 +1,6 @@
-import { MapPageOptions, DatasourceConfig, DatasourceKindType, MapKind } from '../graphql/__generated__/types';
+import { MapPageOptions, MapKind } from '../graphql/__generated__/types';
 import { SnsOptions } from '../sns';
+import { DatasourceConfig, DatasourceKindType } from '../types-common/common-types';
 
 export enum PublicRange {
     Public = 'Public',

@@ -1,6 +1,6 @@
 import { GraphQLScalarType } from "graphql";
 import { Geometry } from 'geojson';
-import { DataId, GeoProperties, GeocoderIdInfo, IconKey } from "../types-common/common-types";
+import { DataId, DatasourceConfig, GeoProperties, GeocoderIdInfo, IconKey } from "../types-common/common-types";
 
 export const DataIdScalarType = new GraphQLScalarType({
     name: 'DataId',
@@ -13,6 +13,27 @@ export const DataIdScalarType = new GraphQLScalarType({
             return JSON.parse(value) as DataId;
         } else if (typeof value === 'object') {
             if ('dataSourceId' in value && 'id' in value) {
+                return value;
+            }
+        }
+        throw 'parse error';
+    },
+    parseLiteral(value) {
+        return value;
+    }
+})
+
+export const DatasourceConfigScalarType = new GraphQLScalarType({
+    name: 'DatasourceConfig',
+    description: 'データソース種別ごとの設定情報',
+    serialize(value: any) {
+        return value;
+    },
+    parseValue(value: any) {
+        if (typeof value === 'string') {
+            return JSON.parse(value) as DatasourceConfig;
+        } else if (typeof value === 'object') {
+            if ('kind' in value) {
                 return value;
             }
         }

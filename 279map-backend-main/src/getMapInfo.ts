@@ -2,8 +2,9 @@ import { ConnectionPool } from '.';
 import mysql from 'mysql2/promise';
 import { DataSourceTable, MapDataSourceLinkTable, MapPageInfoTable } from '../279map-backend-common/src/types/schema';
 import { schema } from '../279map-backend-common/src';
-import { DatasourceKindType, DatasourceConfig, DatasourceGroup, DatasourceInfo, MapInfo, RealPointContentConfig, ContentConfig, MapKind, Auth, MapPageOptions } from './graphql/__generated__/types';
+import { DatasourceGroup, DatasourceInfo, MapInfo, MapKind, Auth, MapPageOptions } from './graphql/__generated__/types';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
+import { DatasourceConfig, DatasourceKindType } from './types-common/common-types';
 
 /**
  * 指定の地図データページ配下のコンテンツ情報を返す
@@ -75,10 +76,11 @@ async function getExtent(mapPageId: string, mapKind: MapKind): Promise<[number,n
             select MAX(ST_X(location)) as max_x, MAX(ST_Y(location)) as max_y, MIN(ST_X(location)) as min_x, MIN(ST_Y(location)) as min_y from items i
             inner join data_source ds on ds.data_source_id = i.data_source_id 
             inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
-            where map_page_id = ? and i.map_kind = ? 
+            where map_page_id = ? and ds.kind in (? )
             `;
             // execute引数でパラメタを渡すと、なぜかエラーになるので、クエリを作成してから投げている
-            const query = mysql.format(sql, [mapPageId, mapKind]);
+            const dsKind = mapKind === MapKind.Real ? [DatasourceKindType.RealItem, DatasourceKindType.RealPointContent] : [DatasourceKindType.VirtualItem];
+            const query = mysql.format(sql, [mapPageId, dsKind]);
             const [rows] = await con.execute(query);
             // const [rows] = await con.execute(sql, [mapPageId, kinds]);
             if((rows as any[]).length === 0) {
@@ -102,9 +104,10 @@ async function getExtent(mapPageId: string, mapKind: MapKind): Promise<[number,n
             from items i
             inner join data_source ds on ds.data_source_id = i.data_source_id 
             inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
-            where map_page_id = ? and i.map_kind = ? 
+            where map_page_id = ? and ds.kind in (?)
             `;
-            const query = mysql.format(sql, [mapPageId, mapKind]);
+            const dsKind = mapKind === MapKind.Real ? [DatasourceKindType.RealItem, DatasourceKindType.RealPointContent] : [DatasourceKindType.VirtualItem];
+            const query = mysql.format(sql, [mapPageId, dsKind]);
             const [rows] = await con.execute(query);
             // const [rows] = await con.execute(sql, [mapPageId, kinds]);
             if((rows as any[]).length === 0) {
@@ -167,8 +170,7 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
 
         const sql = `select * from data_source ds
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
-        where map_page_id =?
-        order by order_num`;
+        where map_page_id =?`;
         // execute引数でパラメタを渡すと、なぜかエラーになるので、クエリを作成してから投げている
         const query = mysql.format(sql, [mapId]);
         const [rows] = await con.execute(query);
@@ -199,7 +201,6 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
             infos.push({
                 datasourceId: row.data_source_id,
                 name: row.datasource_name,
-                kind: row.kind,
                 visible,
                 config,
             })
@@ -246,29 +247,29 @@ async function getContentDataSources(mapId: string, mapKind: MapKind, authLv: Au
     try {
         // 村マップの場合は、PointContentも対象
         const whereExt = (mapKind === MapKind.Virtual ? `ds.kind in ('Content', 'RealPointContent')` : `ds.kind = 'Content'`);
-        const sql = `select ds.* from data_source ds
+        const sql = `select ds.*, mdl.* from data_source ds
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
-        where map_page_id =? and ${whereExt}
-        order by order_num`;
+        where map_page_id =? and ${whereExt}`;
 
         const [rows] = await con.execute(sql, [mapId]);
         return (rows as (schema.DataSourceTable & schema.MapDataSourceLinkTable)[]).map((rec): DatasourceInfo => {{
             const config = rec.config as DatasourceConfig;
             if (authLv === Auth.None || authLv === Auth.View) {
-                config.deletable = false;
-                config.editable = false;
-                if (rec.kind === DatasourceKindType.RealPointContent) {
-                    (config as RealPointContentConfig).linkableContents = false;
+                if ('deletable' in config) {
+                    config.deletable = false;
+                    config.editable = false;
                 }
-                if (rec.kind === DatasourceKindType.Content) {
-                    (config as ContentConfig).linkableChildContents = false;
+                if (config.kind === DatasourceKindType.RealPointContent) {
+                    config.linkableChildContents = false;
+                }
+                if (config.kind === DatasourceKindType.Content) {
+                    config.linkableChildContents = false;
                 }
             }
             return {
                 datasourceId: rec.data_source_id,
                 name: rec.datasource_name,
                 visible: true,
-                kind: rec.kind,
                 config,
             }
         }})

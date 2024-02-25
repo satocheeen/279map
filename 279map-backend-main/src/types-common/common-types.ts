@@ -57,3 +57,35 @@ export type GeoProperties = {
     min_zoom: number;
     max_zoom:  number;
 }
+
+/**
+ * データソース種別ごとの設定情報
+ */
+export enum DatasourceKindType {
+    VirtualItem,
+    RealItem,
+    RealPointContent,
+    Track,
+    Content,
+}
+export type DatasourceConfig = {
+    // 現実世界地図用の作図レイヤ or 軌跡レイヤ
+    kind: DatasourceKindType.RealItem | DatasourceKindType.Track;
+    layerGroup: string;
+} | {
+    // 村マップの作図レイヤ
+    kind: DatasourceKindType.VirtualItem;
+} | {
+    // 現実世界地図用の位置コンテンツレイヤ
+    kind: DatasourceKindType.RealPointContent;
+    layerGroup: string;
+    defaultIcon: IconKey;
+    linkableChildContents: boolean; // trueの場合、子コンテンツの追加が可能
+    editable: boolean;
+    deletable: boolean;
+} | {
+    kind: DatasourceKindType.Content;
+    linkableChildContents: boolean; // trueの場合、子コンテンツの追加が可能
+    editable: boolean;
+    deletable: boolean;
+}

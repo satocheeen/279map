@@ -103,53 +103,15 @@ type MapDefine {
 # ------------------
 # DatasourceConfig
 # ------------------
-enum DatasourceKindType {
-    VirtualItem
-    RealItem
-    RealPointContent
-    Content
-    Track
-}
-
 type DatasourceInfo {
     datasourceId: String!
     name: String!
     visible: Boolean!
-    kind: DatasourceKindType!
     config: DatasourceConfig!
 }
-type ItemConfig {
-    kind: DatasourceKindType!
-    layerGroup: String
-    editable: Boolean!
-    deletable: Boolean!
-}
-type RealPointContentConfig {
-    kind: DatasourceKindType!
-    defaultIcon: IconKey
-    layerGroup: String
-    linkableContents: Boolean!
-    editable: Boolean!
-    deletable: Boolean!
-}
-type ContentConfig {
-    kind: DatasourceKindType!
-    "子コンテンツの追加が可能かどうか"
-    linkableChildContents: Boolean!
-    "trueの場合、当該コンテンツデータソースを地図から外すこと不可"
-    disableUnlinkMap: Boolean
-    editable: Boolean!
-    deletable: Boolean!
-}
-type TrackConfig {
-    kind: DatasourceKindType!
-    layerGroup: String
-    editable: Boolean!
-    deletable: Boolean!
-}
-union DatasourceConfig = ItemConfig | RealPointContentConfig | ContentConfig | TrackConfig
 
 scalar DataId
+scalar DatasourceConfig
 scalar JSON
 scalar Geometry
 scalar IconKey

@@ -10,7 +10,7 @@ export type {
     ServerConfig, MapPageOptions, DatasourceInfo,
 } from "./graphql/generated/graphql";
 export {
-    Auth, MapKind, DatasourceKindType, PopupMode, SortCondition, ThumbSize
+    Auth, MapKind, PopupMode, SortCondition, ThumbSize
 } from "./graphql/generated/graphql";
 
 

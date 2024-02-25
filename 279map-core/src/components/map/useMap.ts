@@ -15,11 +15,11 @@ import { geoJsonToTurfPolygon } from '../../util/MapUtility';
 import { bboxPolygon, intersect, union } from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 import { useItems } from '../../store/item/useItems';
-import { DatasourceKindType, GetItemsByIdDocument, GetItemsDocument } from '../../graphql/generated/graphql';
+import { GetItemsByIdDocument, GetItemsDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import GeoJSON from 'geojson';
 import { Extent } from 'ol/extent';
-import { DataId } from '../../types-common/common-types';
+import { DataId, DatasourceKindType } from '../../types-common/common-types';
 import { selectItemIdAtom } from '../../store/operation';
 
 /**
@@ -89,7 +89,7 @@ export function useMap() {
             const dsInfo = datasources.find(ds => ds.datasourceId === datasourceId);
             const key: LoadedItemKey = {
                 datasourceId,
-                zoom: dsInfo?.kind === DatasourceKindType.Track ? zoom : undefined,
+                zoom: dsInfo?.config.kind === DatasourceKindType.Track ? zoom : undefined,
             }
             return key;
         }, [])        
@@ -102,7 +102,7 @@ export function useMap() {
         useCallback((get, set, datasourceId: string, extent: Extent) => {
             const datasources = get(itemDataSourcesAtom);
             const dsInfo = datasources.find(ds => ds.datasourceId === datasourceId);
-            if (dsInfo?.kind !== DatasourceKindType.Track) {
+            if (dsInfo?.config.kind !== DatasourceKindType.Track) {
                 // Track以外は関係なし
                 return undefined;
             }

@@ -32,10 +32,10 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { IFieldResolverOptions } from '@graphql-tools/utils';
-import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, DatasourceConfig, DatasourceKindType, ErrorType, MapDefine, MapKind, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemsArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, ThumbSize } from './graphql/__generated__/types';
+import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapKind, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemsArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, ThumbSize } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
-import { DataIdScalarType, GeoPropertiesScalarType, GeocoderIdInfoScalarType, IconKeyScalarType, JsonScalarType } from './graphql/custom_scalar';
+import { DataIdScalarType, DatasourceConfigScalarType, GeoPropertiesScalarType, GeocoderIdInfoScalarType, IconKeyScalarType, JsonScalarType } from './graphql/custom_scalar';
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { CustomError } from './graphql/CustomError';
 import { getLinkedItemIdList } from './api/apiUtility';
@@ -1196,21 +1196,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
             }
         },
-        DatasourceConfig: {
-            __resolveType: (obj: DatasourceConfig) => {
-                switch(obj.kind) {
-                    case DatasourceKindType.VirtualItem:
-                    case DatasourceKindType.RealItem:
-                            return 'ItemConfig';
-                    case DatasourceKindType.RealPointContent:
-                        return 'RealPointContentConfig';
-                    case DatasourceKindType.Content:
-                        return 'ContentConfig';
-                    case DatasourceKindType.Track:
-                        return 'TrackConfig';
-                }
-            }
-        },
+        DatasourceConfig: DatasourceConfigScalarType,
         VisibleDataSource: {
             __resolveType: (obj: any) => {
                 if ('dataSourceId' in obj) {

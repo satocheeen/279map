@@ -2,9 +2,9 @@ import { ConnectionPool } from '.';
 import { getAncestorItemId } from "./util/utility";
 import { PoolConnection } from 'mysql2/promise';
 import { ContentsInfo, ContentsTable, DataSourceTable, ItemContentLink } from '../279map-backend-common/src/types/schema';
-import { CurrentMap } from '../279map-backend-common/src';
-import { Auth, ContentsDefine, DatasourceConfig, MapKind } from './graphql/__generated__/types';
-import { DataId } from './types-common/common-types';
+import { CurrentMap, DatasourceConfig } from '../279map-backend-common/src';
+import { Auth, ContentsDefine, MapKind } from './graphql/__generated__/types';
+import { DatasourceKindType, DataId } from './types-common/common-types';
 import dayjs from 'dayjs';
 
 type GetContentsParam = ({
@@ -44,7 +44,8 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
                 // SNSコンテンツは編集不可
                 if (isSnsContent) return false;
         
-                return (row.config as DatasourceConfig).editable ?? false;
+                const config = (row.config as DatasourceConfig);
+                return 'editable' in config ? config.editable : false;
             }();
 
             const isDeletable = function() {
@@ -58,7 +59,8 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
                 if (isSnsContent) return false;
 
                 // readonlyは削除不可
-                return (row.config as DatasourceConfig).deletable ?? false;
+                const config = (row.config as DatasourceConfig);
+                return 'deletable' in config ? config.deletable : false;
         
             }();
 
@@ -176,12 +178,14 @@ async function getAnotherMapKindItemsUsingTheContent(con: PoolConnection, conten
     const sql = `
     select icl.* from item_content_link icl 
     inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id 
+    inner join data_source ds on ds.data_source_id = i.data_source_id 
     inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
     where icl.content_page_id = ? and icl.content_datasource_id  = ?
-    and mdl.map_page_id = ? and i.map_kind = ?
+    and mdl.map_page_id = ? and ds.kind in (?)
     `;
-    const anotherMapKind = currentMap.mapKind === MapKind.Virtual ? MapKind.Real : MapKind.Virtual;
-    const [rows] = await con.execute(sql, [contentId.id, contentId.dataSourceId, currentMap.mapId, anotherMapKind]);
+    const anotherMapKind = currentMap.mapKind === MapKind.Virtual ? [DatasourceKindType.RealItem, DatasourceKindType.RealPointContent] : [DatasourceKindType.VirtualItem];
+    const query = con.format(sql, [contentId.id, contentId.dataSourceId, currentMap.mapId, anotherMapKind]);
+    const [rows] = await con.execute(query);
 
     return (rows as ItemContentLink[]).map((row): DataId => {
         return {

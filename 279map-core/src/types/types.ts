@@ -95,8 +95,6 @@ export type TsunaguMapProps = {
     onLoadedItemsChanged?: (items: ItemType[]) => void;
 }
 
-export type FilterHitItem = Omit<SearchHitItem, '__typename'>;
-
 export interface TsunaguMapHandler {
     /**
      * switch the map kind

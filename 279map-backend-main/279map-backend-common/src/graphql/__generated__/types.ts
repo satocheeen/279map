@@ -13,6 +13,7 @@ export type Scalars = {
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
   DataId: { input: any; output: any; }
+  DatasourceConfig: { input: any; output: any; }
   GeoProperties: { input: any; output: any; }
   GeocoderIdInfo: { input: any; output: any; }
   Geometry: { input: any; output: any; }
@@ -47,39 +48,11 @@ export enum ConnectErrorType {
   UndefinedMap = 'UndefinedMap'
 }
 
-export type ContentConfig = {
-  deletable: Scalars['Boolean']['output'];
-  /** trueの場合、当該コンテンツデータソースを地図から外すこと不可 */
-  disableUnlinkMap?: Maybe<Scalars['Boolean']['output']>;
-  editable: Scalars['Boolean']['output'];
-  kind: DatasourceKindType;
-  /** 子コンテンツの追加が可能かどうか */
-  linkableChildContents: Scalars['Boolean']['output'];
-};
-
-export type DatasourceConfig = ContentConfig | ItemConfig | RealPointContentConfig | TrackConfig;
-
 export type DatasourceInfo = {
-  config: DatasourceConfig;
+  config: Scalars['DatasourceConfig']['output'];
   datasourceId: Scalars['String']['output'];
-  kind: DatasourceKindType;
   name: Scalars['String']['output'];
   visible: Scalars['Boolean']['output'];
-};
-
-export enum DatasourceKindType {
-  Content = 'Content',
-  RealItem = 'RealItem',
-  RealPointContent = 'RealPointContent',
-  Track = 'Track',
-  VirtualItem = 'VirtualItem'
-}
-
-export type ItemConfig = {
-  deletable: Scalars['Boolean']['output'];
-  editable: Scalars['Boolean']['output'];
-  kind: DatasourceKindType;
-  layerGroup?: Maybe<Scalars['String']['output']>;
 };
 
 export enum ItemLabelMode {
@@ -122,15 +95,6 @@ export enum PopupMode {
   Minimum = 'minimum'
 }
 
-export type RealPointContentConfig = {
-  defaultIcon?: Maybe<Scalars['IconKey']['output']>;
-  deletable: Scalars['Boolean']['output'];
-  editable: Scalars['Boolean']['output'];
-  kind: DatasourceKindType;
-  layerGroup?: Maybe<Scalars['String']['output']>;
-  linkableContents: Scalars['Boolean']['output'];
-};
-
 export enum SortCondition {
   /** 作成日時昇順 */
   CreatedAtAsc = 'CreatedAtAsc',
@@ -145,13 +109,6 @@ export enum SortCondition {
   /** 更新日時降順 */
   UpdatedAtDesc = 'UpdatedAtDesc'
 }
-
-export type TrackConfig = {
-  deletable: Scalars['Boolean']['output'];
-  editable: Scalars['Boolean']['output'];
-  kind: DatasourceKindType;
-  layerGroup?: Maybe<Scalars['String']['output']>;
-};
 
 export type User = {
   authLv: Auth;

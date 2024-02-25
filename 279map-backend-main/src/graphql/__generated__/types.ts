@@ -18,6 +18,7 @@ export type Scalars = {
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
   DataId: { input: DataId; output: DataId; }
+  DatasourceConfig: { input: any; output: any; }
   GeoProperties: { input: GeoProperties; output: GeoProperties; }
   GeocoderIdInfo: { input: GeocoderIdInfo; output: GeocoderIdInfo; }
   Geometry: { input: Geometry; output: Geometry; }
@@ -82,16 +83,6 @@ export type ConnectResult = {
   mapDefine: MapDefine;
 };
 
-export type ContentConfig = {
-  deletable: Scalars['Boolean']['output'];
-  /** trueの場合、当該コンテンツデータソースを地図から外すこと不可 */
-  disableUnlinkMap?: Maybe<Scalars['Boolean']['output']>;
-  editable: Scalars['Boolean']['output'];
-  kind: DatasourceKindType;
-  /** 子コンテンツの追加が可能かどうか */
-  linkableChildContents: Scalars['Boolean']['output'];
-};
-
 export enum ContentType {
   Normal = 'normal',
   Sns = 'sns'
@@ -126,8 +117,6 @@ export type ContentsDefine = {
   videoUrl?: Maybe<Scalars['String']['output']>;
 };
 
-export type DatasourceConfig = ContentConfig | ItemConfig | RealPointContentConfig | TrackConfig;
-
 export type DatasourceGroup = {
   datasources: Array<DatasourceInfo>;
   name?: Maybe<Scalars['String']['output']>;
@@ -135,20 +124,11 @@ export type DatasourceGroup = {
 };
 
 export type DatasourceInfo = {
-  config: DatasourceConfig;
+  config: Scalars['DatasourceConfig']['output'];
   datasourceId: Scalars['String']['output'];
-  kind: DatasourceKindType;
   name: Scalars['String']['output'];
   visible: Scalars['Boolean']['output'];
 };
-
-export enum DatasourceKindType {
-  Content = 'Content',
-  RealItem = 'RealItem',
-  RealPointContent = 'RealPointContent',
-  Track = 'Track',
-  VirtualItem = 'VirtualItem'
-}
 
 export type ErrorInfo = {
   /** エラー詳細 */
@@ -196,13 +176,6 @@ export type IconDefine = {
   id: Scalars['ID']['output'];
   imagePath: Scalars['String']['output'];
   useMaps: Array<MapKind>;
-};
-
-export type ItemConfig = {
-  deletable: Scalars['Boolean']['output'];
-  editable: Scalars['Boolean']['output'];
-  kind: DatasourceKindType;
-  layerGroup?: Maybe<Scalars['String']['output']>;
 };
 
 export type ItemDefine = {
@@ -505,15 +478,6 @@ export type QuerySearchArgs = {
   datasourceIds?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
-export type RealPointContentConfig = {
-  defaultIcon?: Maybe<Scalars['IconKey']['output']>;
-  deletable: Scalars['Boolean']['output'];
-  editable: Scalars['Boolean']['output'];
-  kind: DatasourceKindType;
-  layerGroup?: Maybe<Scalars['String']['output']>;
-  linkableContents: Scalars['Boolean']['output'];
-};
-
 export type SearchHitItem = {
   /** 当該アイテム配下の検索条件に合致するコンテンツID一覧 */
   hitContents: Array<Scalars['DataId']['output']>;
@@ -632,13 +596,6 @@ export enum ThumbSize {
   Thumbnail = 'Thumbnail'
 }
 
-export type TrackConfig = {
-  deletable: Scalars['Boolean']['output'];
-  editable: Scalars['Boolean']['output'];
-  kind: DatasourceKindType;
-  layerGroup?: Maybe<Scalars['String']['output']>;
-};
-
 export type UnpointContent = {
   id: Scalars['DataId']['output'];
   overview?: Maybe<Scalars['String']['output']>;
@@ -743,7 +700,6 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping of union types */
 export type ResolversUnionTypes<RefType extends Record<string, unknown>> = {
-  DatasourceConfig: ( ContentConfig ) | ( ItemConfig ) | ( RealPointContentConfig ) | ( TrackConfig );
   ServerConfig: ( Auth0Config ) | ( NoneConfig );
   VisibleDataSource: ( VisibleDataSourceDatasource ) | ( VisibleDataSourceGroup );
 };
@@ -759,16 +715,14 @@ export type ResolversTypes = {
   ConnectErrorType: ConnectErrorType;
   ConnectInfo: ResolverTypeWrapper<ConnectInfo>;
   ConnectResult: ResolverTypeWrapper<ConnectResult>;
-  ContentConfig: ResolverTypeWrapper<ContentConfig>;
   ContentType: ContentType;
   ContentsDatasource: ResolverTypeWrapper<ContentsDatasource>;
   ContentsDatasourceInput: ContentsDatasourceInput;
   ContentsDefine: ResolverTypeWrapper<ContentsDefine>;
   DataId: ResolverTypeWrapper<Scalars['DataId']['output']>;
-  DatasourceConfig: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['DatasourceConfig']>;
+  DatasourceConfig: ResolverTypeWrapper<Scalars['DatasourceConfig']['output']>;
   DatasourceGroup: ResolverTypeWrapper<DatasourceGroup>;
-  DatasourceInfo: ResolverTypeWrapper<Omit<DatasourceInfo, 'config'> & { config: ResolversTypes['DatasourceConfig'] }>;
-  DatasourceKindType: DatasourceKindType;
+  DatasourceInfo: ResolverTypeWrapper<DatasourceInfo>;
   ErrorInfo: ResolverTypeWrapper<ErrorInfo>;
   ErrorType: ErrorType;
   EventContent: ResolverTypeWrapper<EventContent>;
@@ -783,7 +737,6 @@ export type ResolversTypes = {
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   IconDefine: ResolverTypeWrapper<IconDefine>;
   IconKey: ResolverTypeWrapper<Scalars['IconKey']['output']>;
-  ItemConfig: ResolverTypeWrapper<ItemConfig>;
   ItemDefine: ResolverTypeWrapper<ItemDefine>;
   ItemLabelMode: ItemLabelMode;
   JSON: ResolverTypeWrapper<Scalars['JSON']['output']>;
@@ -800,7 +753,6 @@ export type ResolversTypes = {
   ParentOfContent: ParentOfContent;
   PopupMode: PopupMode;
   Query: ResolverTypeWrapper<{}>;
-  RealPointContentConfig: ResolverTypeWrapper<RealPointContentConfig>;
   SearchHitItem: ResolverTypeWrapper<SearchHitItem>;
   ServerConfig: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['ServerConfig']>;
   SnsPreviewPost: ResolverTypeWrapper<SnsPreviewPost>;
@@ -811,7 +763,6 @@ export type ResolversTypes = {
   Subscription: ResolverTypeWrapper<{}>;
   Target: ResolverTypeWrapper<Target>;
   ThumbSize: ThumbSize;
-  TrackConfig: ResolverTypeWrapper<TrackConfig>;
   UnpointContent: ResolverTypeWrapper<UnpointContent>;
   UpdateItemInput: UpdateItemInput;
   UpdateItemsResult: ResolverTypeWrapper<UpdateItemsResult>;
@@ -829,14 +780,13 @@ export type ResolversParentTypes = {
   Condition: Condition;
   ConnectInfo: ConnectInfo;
   ConnectResult: ConnectResult;
-  ContentConfig: ContentConfig;
   ContentsDatasource: ContentsDatasource;
   ContentsDatasourceInput: ContentsDatasourceInput;
   ContentsDefine: ContentsDefine;
   DataId: Scalars['DataId']['output'];
-  DatasourceConfig: ResolversUnionTypes<ResolversParentTypes>['DatasourceConfig'];
+  DatasourceConfig: Scalars['DatasourceConfig']['output'];
   DatasourceGroup: DatasourceGroup;
-  DatasourceInfo: Omit<DatasourceInfo, 'config'> & { config: ResolversParentTypes['DatasourceConfig'] };
+  DatasourceInfo: DatasourceInfo;
   ErrorInfo: ErrorInfo;
   EventContent: EventContent;
   EventDefine: EventDefine;
@@ -849,7 +799,6 @@ export type ResolversParentTypes = {
   ID: Scalars['ID']['output'];
   IconDefine: IconDefine;
   IconKey: Scalars['IconKey']['output'];
-  ItemConfig: ItemConfig;
   ItemDefine: ItemDefine;
   JSON: Scalars['JSON']['output'];
   MapDefine: MapDefine;
@@ -861,7 +810,6 @@ export type ResolversParentTypes = {
   NoneConfig: NoneConfig;
   ParentInput: ParentInput;
   Query: {};
-  RealPointContentConfig: RealPointContentConfig;
   SearchHitItem: SearchHitItem;
   ServerConfig: ResolversUnionTypes<ResolversParentTypes>['ServerConfig'];
   SnsPreviewPost: SnsPreviewPost;
@@ -869,7 +817,6 @@ export type ResolversParentTypes = {
   String: Scalars['String']['output'];
   Subscription: {};
   Target: Target;
-  TrackConfig: TrackConfig;
   UnpointContent: UnpointContent;
   UpdateItemInput: UpdateItemInput;
   UpdateItemsResult: UpdateItemsResult;
@@ -907,15 +854,6 @@ export type ConnectResultResolvers<ContextType = any, ParentType extends Resolve
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type ContentConfigResolvers<ContextType = any, ParentType extends ResolversParentTypes['ContentConfig'] = ResolversParentTypes['ContentConfig']> = {
-  deletable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  disableUnlinkMap?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  editable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  kind?: Resolver<ResolversTypes['DatasourceKindType'], ParentType, ContextType>;
-  linkableChildContents?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export type ContentsDatasourceResolvers<ContextType = any, ParentType extends ResolversParentTypes['ContentsDatasource'] = ResolversParentTypes['ContentsDatasource']> = {
   datasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -946,9 +884,9 @@ export interface DataIdScalarConfig extends GraphQLScalarTypeConfig<ResolversTyp
   name: 'DataId';
 }
 
-export type DatasourceConfigResolvers<ContextType = any, ParentType extends ResolversParentTypes['DatasourceConfig'] = ResolversParentTypes['DatasourceConfig']> = {
-  __resolveType: TypeResolveFn<'ContentConfig' | 'ItemConfig' | 'RealPointContentConfig' | 'TrackConfig', ParentType, ContextType>;
-};
+export interface DatasourceConfigScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DatasourceConfig'], any> {
+  name: 'DatasourceConfig';
+}
 
 export type DatasourceGroupResolvers<ContextType = any, ParentType extends ResolversParentTypes['DatasourceGroup'] = ResolversParentTypes['DatasourceGroup']> = {
   datasources?: Resolver<Array<ResolversTypes['DatasourceInfo']>, ParentType, ContextType>;
@@ -960,7 +898,6 @@ export type DatasourceGroupResolvers<ContextType = any, ParentType extends Resol
 export type DatasourceInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['DatasourceInfo'] = ResolversParentTypes['DatasourceInfo']> = {
   config?: Resolver<ResolversTypes['DatasourceConfig'], ParentType, ContextType>;
   datasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  kind?: Resolver<ResolversTypes['DatasourceKindType'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   visible?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -1021,14 +958,6 @@ export type IconDefineResolvers<ContextType = any, ParentType extends ResolversP
 export interface IconKeyScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['IconKey'], any> {
   name: 'IconKey';
 }
-
-export type ItemConfigResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemConfig'] = ResolversParentTypes['ItemConfig']> = {
-  deletable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  editable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  kind?: Resolver<ResolversTypes['DatasourceKindType'], ParentType, ContextType>;
-  layerGroup?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
 
 export type ItemDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemDefine'] = ResolversParentTypes['ItemDefine']> = {
   contents?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType>;
@@ -1130,16 +1059,6 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   search?: Resolver<Array<ResolversTypes['SearchHitItem']>, ParentType, ContextType, RequireFields<QuerySearchArgs, 'condition'>>;
 };
 
-export type RealPointContentConfigResolvers<ContextType = any, ParentType extends ResolversParentTypes['RealPointContentConfig'] = ResolversParentTypes['RealPointContentConfig']> = {
-  defaultIcon?: Resolver<Maybe<ResolversTypes['IconKey']>, ParentType, ContextType>;
-  deletable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  editable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  kind?: Resolver<ResolversTypes['DatasourceKindType'], ParentType, ContextType>;
-  layerGroup?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  linkableContents?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export type SearchHitItemResolvers<ContextType = any, ParentType extends ResolversParentTypes['SearchHitItem'] = ResolversParentTypes['SearchHitItem']> = {
   hitContents?: Resolver<Array<ResolversTypes['DataId']>, ParentType, ContextType>;
   hitItem?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -1178,14 +1097,6 @@ export type SubscriptionResolvers<ContextType = any, ParentType extends Resolver
 export type TargetResolvers<ContextType = any, ParentType extends ResolversParentTypes['Target'] = ResolversParentTypes['Target']> = {
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   wkt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type TrackConfigResolvers<ContextType = any, ParentType extends ResolversParentTypes['TrackConfig'] = ResolversParentTypes['TrackConfig']> = {
-  deletable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  editable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  kind?: Resolver<ResolversTypes['DatasourceKindType'], ParentType, ContextType>;
-  layerGroup?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1229,11 +1140,10 @@ export type Resolvers<ContextType = any> = {
   CategoryDefine?: CategoryDefineResolvers<ContextType>;
   ConnectInfo?: ConnectInfoResolvers<ContextType>;
   ConnectResult?: ConnectResultResolvers<ContextType>;
-  ContentConfig?: ContentConfigResolvers<ContextType>;
   ContentsDatasource?: ContentsDatasourceResolvers<ContextType>;
   ContentsDefine?: ContentsDefineResolvers<ContextType>;
   DataId?: GraphQLScalarType;
-  DatasourceConfig?: DatasourceConfigResolvers<ContextType>;
+  DatasourceConfig?: GraphQLScalarType;
   DatasourceGroup?: DatasourceGroupResolvers<ContextType>;
   DatasourceInfo?: DatasourceInfoResolvers<ContextType>;
   ErrorInfo?: ErrorInfoResolvers<ContextType>;
@@ -1246,7 +1156,6 @@ export type Resolvers<ContextType = any> = {
   GetUnpointContentsResult?: GetUnpointContentsResultResolvers<ContextType>;
   IconDefine?: IconDefineResolvers<ContextType>;
   IconKey?: GraphQLScalarType;
-  ItemConfig?: ItemConfigResolvers<ContextType>;
   ItemDefine?: ItemDefineResolvers<ContextType>;
   JSON?: GraphQLScalarType;
   MapDefine?: MapDefineResolvers<ContextType>;
@@ -1257,14 +1166,12 @@ export type Resolvers<ContextType = any> = {
   Mutation?: MutationResolvers<ContextType>;
   NoneConfig?: NoneConfigResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
-  RealPointContentConfig?: RealPointContentConfigResolvers<ContextType>;
   SearchHitItem?: SearchHitItemResolvers<ContextType>;
   ServerConfig?: ServerConfigResolvers<ContextType>;
   SnsPreviewPost?: SnsPreviewPostResolvers<ContextType>;
   SnsPreviewResult?: SnsPreviewResultResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
   Target?: TargetResolvers<ContextType>;
-  TrackConfig?: TrackConfigResolvers<ContextType>;
   UnpointContent?: UnpointContentResolvers<ContextType>;
   UpdateItemsResult?: UpdateItemsResultResolvers<ContextType>;
   User?: UserResolvers<ContextType>;

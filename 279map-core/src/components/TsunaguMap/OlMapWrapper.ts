@@ -20,9 +20,9 @@ import { Pixel } from 'ol/pixel';
 import { convertDataIdFromFeatureId, getMapKey } from '../../util/dataUtility';
 import { FitOptions } from 'ol/View';
 import { Coordinate } from 'ol/coordinate';
-import { DatasourceGroup, DatasourceKindType, GetGeocoderFeatureDocument, MapKind } from '../../graphql/generated/graphql';
+import { DatasourceGroup, GetGeocoderFeatureDocument, MapKind } from '../../graphql/generated/graphql';
 import { Client } from 'urql';
-import { DataId, FeatureType } from '../../types-common/common-types';
+import { DataId, DatasourceKindType, FeatureType } from '../../types-common/common-types';
 
 export type FeatureInfo = {
     id: DataId;
@@ -184,7 +184,7 @@ export class OlMapWrapper {
 
             dataSourceGroups.forEach(group => {
                 group.datasources.forEach(ds => {
-                    if (ds.kind === DatasourceKindType.Track) {
+                    if (ds.config.kind === DatasourceKindType.Track) {
                         [[1, 8], [8, 13], [13, 21]].forEach(zoomLv => {
                             const layerDefine: LayerDefine = {
                                 dataSourceId: ds.datasourceId,
@@ -199,7 +199,7 @@ export class OlMapWrapper {
                             this.addLayer(layerDefine, ds.visible);
                         })
     
-                    } else if (ds.kind === DatasourceKindType.Item || ds.kind === DatasourceKindType.RealPointContent) {
+                    } else if ([DatasourceKindType.RealItem, DatasourceKindType.RealPointContent].includes(ds.config.kind)) {
                         [LayerType.Point, LayerType.Topography].forEach(layerType => {
                             const layerDefine: LayerDefine = {
                                 dataSourceId: ds.datasourceId,
@@ -219,7 +219,7 @@ export class OlMapWrapper {
             extent ??= [0, 0, 2, 2];
             dataSourceGroups.forEach(group => {
                 group.datasources.forEach(ds => {
-                    if (ds.kind !== DatasourceKindType.Item) {
+                    if (ds.config.kind !== DatasourceKindType.VirtualItem) {
                         return;
                     }
                     [LayerType.Point, LayerType.Topography].forEach(layerType => {
