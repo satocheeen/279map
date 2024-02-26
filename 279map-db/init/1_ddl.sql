@@ -33,6 +33,8 @@ CREATE TABLE `map_datasource_link` (
   `map_page_id` varchar(100) NOT NULL,
   `data_source_id` varchar(100) NOT NULL,
   `datasource_name` varchar(100) NOT NULL,
+  `group_name` varchar(100) DEFAULT NULL,
+  `order_num` tinyint(3) unsigned DEFAULT NULL,
   `config` json NOT NULL,
   `last_edited_time` varchar(100) NOT NULL,
   PRIMARY KEY (`map_page_id`,`data_source_id`),
