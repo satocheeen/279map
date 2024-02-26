@@ -38,6 +38,8 @@ export type MapDataSourceLinkTable = {
     map_page_id: string;
     data_source_id: string;
     datasource_name: string;
+    group_name?: string;
+    order_num?: number;
     config: string | MapDataSourceLinkConfig;
     last_edited_time: string;
 }
