@@ -71,15 +71,13 @@ export enum DatasourceKindType {
 export type DatasourceConfig = {
     // 現実世界地図用の作図レイヤ or 軌跡レイヤ
     kind: DatasourceKindType.RealItem | DatasourceKindType.Track;
-    layerGroup: string;
 } | {
     // 村マップの作図レイヤ
     kind: DatasourceKindType.VirtualItem;
 } | {
     // 現実世界地図用の位置コンテンツレイヤ
     kind: DatasourceKindType.RealPointContent;
-    layerGroup: string;
-    defaultIcon: IconKey;
+    defaultIcon?: IconKey;
     linkableChildContents: boolean; // trueの場合、子コンテンツの追加が可能
     editable: boolean;
     deletable: boolean;
