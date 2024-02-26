@@ -35,7 +35,7 @@ CREATE TABLE `map_datasource_link` (
   `datasource_name` varchar(100) NOT NULL,
   `group_name` varchar(100) DEFAULT NULL,
   `order_num` tinyint(3) unsigned DEFAULT NULL,
-  `config` json NOT NULL,
+  `mdl_config` json NOT NULL COMMENT '地図単位で指定するデータソースに関する任意情報',
   `last_edited_time` varchar(100) NOT NULL,
   PRIMARY KEY (`map_page_id`,`data_source_id`),
   KEY `map_datasource_link_FK_1` (`data_source_id`),

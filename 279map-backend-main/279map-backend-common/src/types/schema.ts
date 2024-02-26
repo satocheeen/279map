@@ -40,7 +40,7 @@ export type MapDataSourceLinkTable = {
     datasource_name: string;
     group_name?: string;
     order_num?: number;
-    config: string | MapDataSourceLinkConfig;
+    mdl_config: string | MapDataSourceLinkConfig;
     last_edited_time: string;
 }
 /**
