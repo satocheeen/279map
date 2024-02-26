@@ -38,7 +38,7 @@ type ItemDatasourceInfo {
     datasourceId: String!
     name: String!
     groupName: String
-    visible: Boolean!
+    initialVisible: Boolean!
     config: DatasourceConfig!
 }
 type ContentDatasourceInfo {

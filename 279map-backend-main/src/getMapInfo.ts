@@ -1,8 +1,8 @@
 import { ConnectionPool } from '.';
 import mysql from 'mysql2/promise';
-import { DataSourceTable, MapDataSourceLinkTable, MapPageInfoTable } from '../279map-backend-common/src/types/schema';
+import { DataSourceTable, MapDataSourceLinkConfig, MapDataSourceLinkTable, MapPageInfoTable } from '../279map-backend-common/src/types/schema';
 import { schema } from '../279map-backend-common/src';
-import { DatasourceGroup, DatasourceInfo, MapInfo, MapKind, Auth, MapPageOptions } from './graphql/__generated__/types';
+import { ItemDatasourceInfo, ContentDatasourceInfo, MapInfo, MapKind, Auth, MapPageOptions } from './graphql/__generated__/types';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import { DatasourceConfig, DatasourceKindType } from './types-common/common-types';
 
@@ -22,8 +22,8 @@ export async function getMapInfo(mapId: string, mapKind: MapKind, authLv: Auth):
     const extent = await getExtent(mapPageInfo.map_page_id, targetMapKind);
 
     // DataSourceを取得
-    const itemDataSourceGroups = await getItemDataSourceGroups(mapPageInfo.map_page_id, targetMapKind);
-    const contentDataSources = await getContentDataSources(mapPageInfo.map_page_id, targetMapKind, authLv);
+    const itemDataSources = await getItemDataSourceGroups(mapPageInfo.map_page_id, targetMapKind);
+    const contentDataSources = await getContentDataSources(mapPageInfo.map_page_id, targetMapKind);
 
     // オリジナルアイコン定義を取得
     const originalIcons = await getOriginalIconDefine({
@@ -33,7 +33,7 @@ export async function getMapInfo(mapId: string, mapKind: MapKind, authLv: Auth):
 
     return {
         extent,
-        itemDataSourceGroups,
+        itemDataSources,
         contentDataSources,
         originalIcons,
     }
@@ -153,7 +153,7 @@ async function getExtent(mapPageId: string, mapKind: MapKind): Promise<[number,n
  * @param mapId 
  * @param mapKind 
  */
-async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise<DatasourceGroup[]> {
+async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise<ItemDatasourceInfo[]> {
     const con = await ConnectionPool.getConnection();
 
     try {
@@ -170,64 +170,25 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
 
         const sql = `select * from data_source ds
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
-        where map_page_id =?`;
-        // execute引数でパラメタを渡すと、なぜかエラーになるので、クエリを作成してから投げている
-        const query = mysql.format(sql, [mapId]);
+        where map_page_id =? and kind in (?)
+        order by order_num`;
+        // execute引数では配列パラメタを渡すと、なぜかエラーになるので、クエリを作成してから投げている
+        const kinds = mapKind === MapKind.Real ? [DatasourceKindType.RealItem, DatasourceKindType.RealPointContent, DatasourceKindType.Track] : [DatasourceKindType.VirtualItem];
+        const query = mysql.format(sql, [mapId, kinds]);
         const [rows] = await con.execute(query);
 
-        const dataSourceGroupMap = new Map<string, DatasourceInfo[]>();
-        (rows as (DataSourceTable & MapDataSourceLinkTable)[]).forEach((row) => {
+        return (rows as (DataSourceTable & MapDataSourceLinkTable)[]).map((row): ItemDatasourceInfo => {
             const config = row.config as DatasourceConfig;
-            if (row.kind === DatasourceKindType.Content) {
-                return;
-            }
-            if (mapKind === MapKind.Virtual && row.kind !== DatasourceKindType.VirtualItem) {
-                // 村マップの場合は、RealPointContentやTrackは返さない
-                return;
-            }
-            const layerGroup = ('layerGroup' in config ? config.layerGroup : undefined);
-            const group = layerGroup ?? '';
-            if(!dataSourceGroupMap.has(group)) {
-                dataSourceGroupMap.set(group, []);
-            }
-            const visible = !visibleDataSources ? true : visibleDataSources.some(vds => {
-                if ('group' in vds) {
-                    return vds.group === layerGroup;
-                } else if ('dataSourceId' in vds){
-                    return vds.dataSourceId === row.data_source_id;
-                }
-            });
-            const infos = dataSourceGroupMap.get(group) as DatasourceInfo[];
-            infos.push({
+            const mdlConfig = row.mdl_config as MapDataSourceLinkConfig;
+            
+            return {
                 datasourceId: row.data_source_id,
                 name: row.datasource_name,
-                visible,
+                initialVisible: mdlConfig.initialVisible ?? true,
                 config,
-            })
+            }
 
         });
-
-        const result: DatasourceGroup[] = [];
-        for(const entry of dataSourceGroupMap.entries()) {
-            const name = entry[0].length === 0 ? undefined : entry[0];
-            const datasources = entry[1];
-
-            const visible = !visibleDataSources ? true : visibleDataSources.some(vds => {
-                if ('group' in vds) {
-                    return vds.group === name;
-                } else if ('dataSourceId' in vds){
-                    return datasources.some(ds => ds.datasourceId === vds.dataSourceId);
-                }
-            });
-
-            result.push({
-                name,
-                datasources,
-                visible,
-            });
-        }
-
-        return result;
 
     } finally {
         await con.commit();
@@ -241,35 +202,23 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
  * @param mapId 
  * @param mapKind 
  */
-async function getContentDataSources(mapId: string, mapKind: MapKind, authLv: Auth): Promise<DatasourceInfo[]> {
+async function getContentDataSources(mapId: string, mapKind: MapKind): Promise<ContentDatasourceInfo[]> {
     const con = await ConnectionPool.getConnection();
 
     try {
-        // 村マップの場合は、PointContentも対象
-        const whereExt = (mapKind === MapKind.Virtual ? `ds.kind in ('Content', 'RealPointContent')` : `ds.kind = 'Content'`);
-        const sql = `select ds.*, mdl.* from data_source ds
+        const sql = `select * from data_source ds
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
-        where map_page_id =? and ${whereExt}`;
+        where map_page_id =? and kind in (?)`;
 
-        const [rows] = await con.execute(sql, [mapId]);
-        return (rows as (schema.DataSourceTable & schema.MapDataSourceLinkTable)[]).map((rec): DatasourceInfo => {{
+        const kinds = mapKind === MapKind.Real ? [DatasourceKindType.Content] : [DatasourceKindType.Content, DatasourceKindType.RealPointContent];
+        const query = mysql.format(sql, [mapId, kinds]);
+        const [rows] = await con.execute(query);
+
+        return (rows as (schema.DataSourceTable & schema.MapDataSourceLinkTable)[]).map((rec): ContentDatasourceInfo => {{
             const config = rec.config as DatasourceConfig;
-            if (authLv === Auth.None || authLv === Auth.View) {
-                if ('deletable' in config) {
-                    config.deletable = false;
-                    config.editable = false;
-                }
-                if (config.kind === DatasourceKindType.RealPointContent) {
-                    config.linkableChildContents = false;
-                }
-                if (config.kind === DatasourceKindType.Content) {
-                    config.linkableChildContents = false;
-                }
-            }
             return {
                 datasourceId: rec.data_source_id,
                 name: rec.datasource_name,
-                visible: true,
                 config,
             }
         }})

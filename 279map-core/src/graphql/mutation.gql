@@ -36,12 +36,6 @@ mutation disconnect {
     disconnect
 }
 
-fragment datasourceInfo on DatasourceInfo {
-    datasourceId
-    name
-    visible
-    config
-}
 mutation switchMapKind (
     $mapKind: MapKind!
 ) {
@@ -49,15 +43,17 @@ mutation switchMapKind (
         mapKind: $mapKind
     ) {
         extent
-        itemDataSourceGroups {
+        itemDataSources {
+            datasourceId
             name
-            visible
-            datasources {
-                ...datasourceInfo
-            }
+            groupName
+            initialVisible
+            config
         }
         contentDataSources {
-            ...datasourceInfo
+            datasourceId
+            name
+            config
         }
         originalIcons {
             id

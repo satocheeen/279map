@@ -1,6 +1,6 @@
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
 import { Geometry } from 'geojson'
-import { DataId, GeoProperties, GeocoderIdInfo, IconKey } from '../../types-common/common-types'
+import { DataId, GeoProperties, GeocoderIdInfo, IconKey, DatasourceConfig } from '../../types-common/common-types'
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -175,8 +175,8 @@ export type ItemDatasourceInfo = {
   config: Scalars['DatasourceConfig']['output'];
   datasourceId: Scalars['String']['output'];
   groupName?: Maybe<Scalars['String']['output']>;
+  initialVisible: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
-  visible: Scalars['Boolean']['output'];
 };
 
 export type ItemDefine = {
@@ -956,8 +956,8 @@ export type ItemDatasourceInfoResolvers<ContextType = any, ParentType extends Re
   config?: Resolver<ResolversTypes['DatasourceConfig'], ParentType, ContextType>;
   datasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   groupName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  initialVisible?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  visible?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
