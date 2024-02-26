@@ -62,11 +62,11 @@ export type GeoProperties = {
  * データソース種別ごとの設定情報
  */
 export enum DatasourceKindType {
-    VirtualItem,
-    RealItem,
-    RealPointContent,
-    Track,
-    Content,
+    VirtualItem = 'VirtualItem',
+    RealItem = 'RealItem',
+    RealPointContent = 'RealPointContent',
+    Track = 'Track',
+    Content = 'Content',
 }
 export type DatasourceConfig = {
     // 現実世界地図用の作図レイヤ or 軌跡レイヤ
