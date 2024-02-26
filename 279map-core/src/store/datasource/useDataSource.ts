@@ -37,7 +37,7 @@ export default function useDataSource() {
 
                 }
                 set(dataSourceVisibleAtom, current => {
-                    return Object.assign(current, newMap);
+                    return Object.assign({}, current, newMap);
                 })
             } else {
                 const ds = param.target.dataSourceId;

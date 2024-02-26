@@ -184,6 +184,7 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
             return {
                 datasourceId: row.data_source_id,
                 name: row.datasource_name,
+                groupName: row.group_name,
                 initialVisible: mdlConfig.initialVisible ?? true,
                 config,
             }
