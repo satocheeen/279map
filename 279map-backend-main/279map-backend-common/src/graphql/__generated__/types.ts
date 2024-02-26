@@ -48,13 +48,6 @@ export enum ConnectErrorType {
   UndefinedMap = 'UndefinedMap'
 }
 
-export type DatasourceInfo = {
-  config: Scalars['DatasourceConfig']['output'];
-  datasourceId: Scalars['String']['output'];
-  name: Scalars['String']['output'];
-  visible: Scalars['Boolean']['output'];
-};
-
 export enum ItemLabelMode {
   Hidden = 'hidden',
   Show = 'show'

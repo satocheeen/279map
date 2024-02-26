@@ -100,16 +100,6 @@ type MapDefine {
     options: MapPageOptions!
 }
 
-# ------------------
-# DatasourceConfig
-# ------------------
-type DatasourceInfo {
-    datasourceId: String!
-    name: String!
-    visible: Boolean!
-    config: DatasourceConfig!
-}
-
 scalar DataId
 scalar DatasourceConfig
 scalar JSON

@@ -43,8 +43,11 @@ export type MapDataSourceLinkTable = {
     config: string | MapDataSourceLinkConfig;
     last_edited_time: string;
 }
+/**
+ * TODO: コンテンツのカラム定義等を格納
+ */
 export type MapDataSourceLinkConfig = {
-    order_num: number;
+    initialVisible?: boolean;    // 初期表示状態（Itemの場合のみ設定）
 }
 export type TracksTable = {
     track_page_id: string;

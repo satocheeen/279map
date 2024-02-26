@@ -30,14 +30,21 @@ type ConnectResult {
 # --------------
 type MapInfo {
     extent: [Float!]!
-    itemDataSourceGroups: [DatasourceGroup!]!
-    contentDataSources: [DatasourceInfo!]!
+    itemDataSources: [ItemDatasourceInfo!]!
+    contentDataSources: [ContentDatasourceInfo!]!
     originalIcons: [IconDefine!]!
 }
-type DatasourceGroup {
-    name: String
+type ItemDatasourceInfo {
+    datasourceId: String!
+    name: String!
+    groupName: String
     visible: Boolean!
-    datasources: [DatasourceInfo!]!
+    config: DatasourceConfig!
+}
+type ContentDatasourceInfo {
+    datasourceId: String!
+    name: String!
+    config: DatasourceConfig!
 }
 
 type IconDefine {
