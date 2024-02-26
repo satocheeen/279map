@@ -2,6 +2,7 @@ import { CSSProperties } from "react";
 import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult, GetItemsQuery, ThumbSize } from "../graphql/generated/graphql";
 import { DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
 import { OperationResult } from "urql";
+import { ItemDatasourceVisibleList } from "../store/datasource";
 
 export type OnMapLoadParam = {
     mapKind: MapKind;
@@ -9,9 +10,7 @@ export type OnMapLoadParam = {
     itemDatasources: ItemDatasourceInfo[];
     contentDatasources: ContentDatasourceInfo[];
 }
-// export type onDatasourceChangedParam = {
-//     datasourcs: DatasourceGroup[];
-// }
+
 export type OnConnectParam = {
     authLv: Auth;
     userName: string | undefined;
@@ -61,7 +60,7 @@ export type TsunaguMapProps = {
     
     onConnect?: (param: OnConnectParam) => void;
     onMapLoad?: (param: OnMapLoadParam) => void;
-    // onDatasourceChanged?: (param: onDatasourceChangedParam) => void;
+    onItemDatasourcesVisibleChanged?: (param: ItemDatasourceVisibleList) => void;
 
     /**
      * 地図上で建物orピンの選択状態が変更された場合のコールバック

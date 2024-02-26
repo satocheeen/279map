@@ -1,22 +1,30 @@
 import React, { useState, useCallback, useMemo, useRef, useContext } from 'react';
 import type {
-    ServerInfo, TsunaguMapHandler, onDatasourceChangedParam, 
-    CategoryDefine, DatasourceGroup, 
+    ServerInfo, TsunaguMapHandler,  
+    CategoryDefine, ItemDatasourceInfo, 
     DataId, OnConnectParam, OnMapLoadParam, 
     TsunaguMapProps,
+    ContentDatasourceInfo,
 } from '../entry';
-import { Auth, MapKind, FeatureType, DatasourceKindType, getAccessableMapList } from '../entry';
+import { Auth, MapKind, getAccessableMapList } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
 import styles from './TestMap.module.scss';
 import { mapId, myMapServer } from './const';
 import AuthPanel from './AuthPanel';
 import { AuthContext } from './DriverRoot';
 import FilterTest from './filter/FilterTest';
+import DatasourceDriver from './datasources/DatasourceDriver';
+import { ItemDatasourceVisibleList } from '../store/datasource';
 
 export const DriverContext = React.createContext({
     getMap: () => null as TsunaguMapHandler | null,
     addConsole: (...text: any) => {},
     categories: [] as CategoryDefine[],
+    itemDatasources: [] as ItemDatasourceInfo[],
+    itemDatasourcesVisibleList: [] as ItemDatasourceVisibleList,
+    authLv: Auth.None as Auth,
+    mapKind: MapKind.Real,
+
     filterUnmatchView: 'hidden' as TsunaguMapProps['filterUnmatchView'],
     setFilterUnmatchView: (val: TsunaguMapProps['filterUnmatchView']) => {},
 })
@@ -97,28 +105,21 @@ export default function TestMap() {
 
     const [ disabledContentDialog, setDisableContentDialog ] = useState(false);
 
-    const [ dataSourceGroups, setDataSourceGroups] = useState<DatasourceGroup[]>([]);
-
-    const featureDataSourceGroups = useMemo(() => {
-        return dataSourceGroups.map((group): DatasourceGroup => {
-            const datasources = group.datasources.filter(ds => {
-                return ds.kind !== DatasourceKindType.Content;
-            });
-            return Object.assign({}, group, {
-                datasources,
-            });
-        });
-    }, [dataSourceGroups]);
+    const [ itemDatasources, setItemDatasources] = useState<ItemDatasourceInfo[]>([]);
+    const [ contentDatasources, setContentDatasources] = useState<ContentDatasourceInfo[]>([]);
 
     const onMapLoad = useCallback((param: OnMapLoadParam) => {
-        console.log('onMapLoad', param);
+        addConsole('onMapLoad', param);
         setMapKind(param.mapKind);
-    }, []);
+        setItemDatasources(param.itemDatasources);
+        setContentDatasources(param.contentDatasources);
+    }, [addConsole]);
 
-    const onDataSourceChanged = useCallback((param: onDatasourceChangedParam) => {
-        console.log('onDataSourceChanged', param.datasourceGroups)
-        setDataSourceGroups(param.datasourceGroups);
-    }, []);
+    const [ itemDatasourcesVisibleList, setItemDatasourceVisibleList ] = useState<ItemDatasourceVisibleList>([]);
+    const handleItemDataSourceVisibleChanged = useCallback((param: ItemDatasourceVisibleList) => {
+        addConsole('onItemDatasourcesVisibleChanged', param)
+        setItemDatasourceVisibleList(param);
+    }, [addConsole]);
 
     const switchMapKind = useCallback((mapKind: MapKind) => {
         mapRef.current?.switchMapKind(mapKind);
@@ -225,43 +226,6 @@ export default function TestMap() {
                         items={[{ label: 'enabled', value: true }, { label: 'disabled', value: false }]}
                         onChange={setDisableContentDialog} />
                 </div>
-                <div className={styles.Col}>
-                    <div className={styles.PropName}>データソース</div>
-                    {featureDataSourceGroups.map(group => {
-                        return (
-                            <div key={group.name ?? 'none'}>
-                                {group.name &&
-                                    <label>
-                                        <input type="checkbox" checked={group.visible} onChange={(evt) => changeVisibleLayerGroup(group.name ?? '', evt.target.checked)} />
-                                        {group.name}
-                                    </label>
-                                }
-                                {group.datasources.map(ds => {
-                                    return (
-                                        <label key={ds.datasourceId} className={`${group.name ? styles.Child : ''}`}>
-                                            <input type="checkbox" checked={ds.visible} onChange={(evt) => changeVisibleLayerDataSource(ds.datasourceId, evt.target.checked)} />
-                                            {ds.name}
-                                            {(authLv !== Auth.View) &&
-                                                <>
-                                                    <button onClick={()=>mapRef.current?.drawStructure(ds.datasourceId)}>建設</button>
-                                                    {mapKind === MapKind.Real ?
-                                                        <button onClick={()=>mapRef.current?.drawTopography(ds.datasourceId, FeatureType.AREA)}>エリア作成</button>
-                                                        :
-                                                        <>
-                                                            <button onClick={()=>mapRef.current?.drawRoad(ds.datasourceId)}>道作成</button>
-                                                            <button onClick={()=>mapRef.current?.drawTopography(ds.datasourceId, FeatureType.EARTH)}>島作成</button>
-                                                            <button onClick={()=>mapRef.current?.drawTopography(ds.datasourceId, FeatureType.FOREST)}>緑地作成</button>
-                                                        </>
-                                                    }
-                                                </>
-                                            }
-                                        </label>
-                                    )
-                                })}
-                            </div>
-                        )
-                    })}
-                </div>
                 {authLv !== Auth.View &&
                 <>
                     <div className={styles.Col}>
@@ -316,7 +280,7 @@ export default function TestMap() {
                     filterUnmatchView={filterUnmatchView}
                     onConnect={onConnect}
                     onMapLoad={onMapLoad}
-                    onDatasourceChanged={onDataSourceChanged}
+                    onItemDatasourcesVisibleChanged={handleItemDataSourceVisibleChanged}
                     onSelectChange={handleSelectChange}
                     onLoadedItemsChanged={(val)=>{addConsole('onLoadedItemsChanged', val)}}
                     onItemClick={(val) => onCallback('onClick', val)}
@@ -335,11 +299,16 @@ export default function TestMap() {
                     },
                     addConsole,
                     categories,
+                    itemDatasources,
+                    itemDatasourcesVisibleList,
+                    authLv,
+                    mapKind,
                     filterUnmatchView,
                     setFilterUnmatchView,
                 }}
             >
                 <div className={styles.VerticalArea}>
+                    <DatasourceDriver />
                     <FilterTest />
                 </div>
             </DriverContext.Provider>

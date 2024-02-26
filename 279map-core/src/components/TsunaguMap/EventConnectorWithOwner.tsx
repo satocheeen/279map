@@ -10,7 +10,7 @@ import { useMap } from '../map/useMap';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { TsunaguMapHandler } from '../../types/types';
 import { useAtom } from 'jotai';
-import { visibleDataSourceIdsAtom } from '../../store/datasource';
+import { itemDatasourcesWithVisibleAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import { useAtomCallback } from 'jotai/utils';
 import { allItemContentListAtom, loadedItemMapAtom, storedItemsAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
@@ -354,22 +354,20 @@ function useMapLoadListener() {
 }
 
 function useEventListener() {
-    const { onLoadedItemsChanged, onCategoriesLoaded, onEventsLoaded, onModeChanged, onSelectChange }  = useContext(OwnerContext);
+    const { onItemDatasourcesVisibleChanged, onLoadedItemsChanged, onCategoriesLoaded, onEventsLoaded, onModeChanged, onSelectChange }  = useContext(OwnerContext);
 
-    // /**
-    //  * Datasource定義、表示状態が変化した場合に呼び出し元にイベント発火する
-    //  */
-    // const [ itemDataSources ] = useAtom(itemDataSourceGroupsAtom);
-    // useWatch(itemDataSources,
-    //     useCallback(() => {
-    //         if (onDatasourceChanged) {
-    //             onDatasourceChanged({
-    //                 datasourceGroups: itemDataSources,
-    //             })
-    //         }
+    /**
+     * Datasource定義、表示状態が変化した場合に呼び出し元にイベント発火する
+     */
+    const [ visibleList ] = useAtom(itemDatasourcesWithVisibleAtom);
+    useWatch(visibleList,
+        useCallback(() => {
+            if (onItemDatasourcesVisibleChanged) {
+                onItemDatasourcesVisibleChanged(visibleList)
+            }
 
-    //     }, [itemDataSources, onDatasourceChanged])
-    // , { immediate: true })
+        }, [onItemDatasourcesVisibleChanged, visibleList])
+    , { immediate: true })
 
     /**
      * カテゴリロード時に呼び出し元にイベント発火する

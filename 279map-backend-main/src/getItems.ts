@@ -66,10 +66,10 @@ async function selectItems(con: PoolConnection, param: QueryGetItemsArgs, curren
         from items i
         inner join data_source ds on ds.data_source_id = i.data_source_id 
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
-        where map_page_id = ? and i.map_kind = ? and i.data_source_id = ?
+        where map_page_id = ? and i.data_source_id = ?
         and ST_Intersects(location, ST_GeomFromText(?,4326))
         `;
-        const params = [currentMap.mapId, currentMap.mapKind, param.datasourceId, param.wkt];
+        const params = [currentMap.mapId, param.datasourceId, param.wkt];
         if (param.latestEditedTime) {
             sql += ' and i.last_edited_time > ?';
             params.push(param.latestEditedTime);

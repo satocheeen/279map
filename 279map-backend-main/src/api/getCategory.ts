@@ -82,14 +82,14 @@ async function getAllCategories(currentMap: CurrentMap, dataSourceIds?: string[]
         inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
         inner join item_content_link icl on icl.content_page_id = c.content_page_id and icl.content_datasource_id = c.data_source_id 
         inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id
-        where category is not null and mdl.map_page_id = ? and i.map_kind = ?
+        where category is not null and mdl.map_page_id = ? 
         ${dataSourceIds ? 'and i.data_source_id in (?)' : ''}
         union distinct 
         select distinct icl.item_datasource_id as data_source_id, c.category from contents c 
         inner join item_content_link icl on icl.content_page_id = c.content_page_id and icl.content_datasource_id = c.data_source_id 
         inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id
         inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
-        where category is not null and mdl.map_page_id = ? and i.map_kind = ?
+        where category is not null and mdl.map_page_id = ? 
         ${dataSourceIds ? 'and i.data_source_id in (?)' : ''}
         `;
     
