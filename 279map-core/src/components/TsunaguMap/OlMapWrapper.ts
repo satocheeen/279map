@@ -20,7 +20,7 @@ import { Pixel } from 'ol/pixel';
 import { convertDataIdFromFeatureId, getMapKey } from '../../util/dataUtility';
 import { FitOptions } from 'ol/View';
 import { Coordinate } from 'ol/coordinate';
-import { DatasourceGroup, GetGeocoderFeatureDocument, MapKind } from '../../graphql/generated/graphql';
+import { GetGeocoderFeatureDocument, ItemDatasourceInfo, MapKind } from '../../graphql/generated/graphql';
 import { Client } from 'urql';
 import { DataId, DatasourceKindType, FeatureType } from '../../types-common/common-types';
 
@@ -28,6 +28,10 @@ export type FeatureInfo = {
     id: DataId;
     feature: Feature<Geometry>;
 }
+export type UpdateLayerVisibleParam = {
+    datasourceId: string;
+    visible: boolean;
+}[];
 
 type Device = 'pc' | 'sp';
 
@@ -121,7 +125,7 @@ export class OlMapWrapper {
     /**
      * 地図種別に対応した初期レイヤを設定する
      */
-    initialize({mapKind, dataSourceGroups, fitExtent, isWorldMap}: {mapKind: MapKind, dataSourceGroups: DatasourceGroup[], fitExtent?: Extent, isWorldMap?: boolean}) {
+    initialize({mapKind, itemDataSources, fitExtent, isWorldMap}: {mapKind: MapKind, itemDataSources: ItemDatasourceInfo[], fitExtent?: Extent, isWorldMap?: boolean}) {
         this._mapKind = mapKind;
         let extent = fitExtent;
         if (mapKind === MapKind.Real) {
@@ -182,56 +186,49 @@ export class OlMapWrapper {
     
             }
 
-            dataSourceGroups.forEach(group => {
-                group.datasources.forEach(ds => {
-                    if (ds.config.kind === DatasourceKindType.Track) {
-                        [[1, 8], [8, 13], [13, 21]].forEach(zoomLv => {
-                            const layerDefine: LayerDefine = {
-                                dataSourceId: ds.datasourceId,
-                                group: group.name ?? '',
-                                editable: ds.config.editable ?? false,
-                                layerType: LayerType.Track,
-                                zoomLv: {
-                                    min: zoomLv[0],
-                                    max: zoomLv[1],
-                                }
-                            };
-                            this.addLayer(layerDefine, ds.visible);
-                        })
-    
-                    } else if ([DatasourceKindType.RealItem, DatasourceKindType.RealPointContent].includes(ds.config.kind)) {
-                        [LayerType.Point, LayerType.Topography].forEach(layerType => {
-                            const layerDefine: LayerDefine = {
-                                dataSourceId: ds.datasourceId,
-                                group: group.name ?? '',
-                                editable: ds.config.editable ?? false,
-                                layerType: layerType as LayerType.Point| LayerType.Topography,
-                            };
-                            this.addLayer(layerDefine, ds.visible);
-                        })
-                    }
-    
-                })
+            itemDataSources.forEach(ds => {
+                if (ds.config.kind === DatasourceKindType.Track) {
+                    [[1, 8], [8, 13], [13, 21]].forEach(zoomLv => {
+                        const layerDefine: LayerDefine = {
+                            dataSourceId: ds.datasourceId,
+                            editable: ds.config.editable ?? false,
+                            layerType: LayerType.Track,
+                            zoomLv: {
+                                min: zoomLv[0],
+                                max: zoomLv[1],
+                            }
+                        };
+                        this.addLayer(layerDefine, ds.initialVisible);
+                    })
+
+                } else if ([DatasourceKindType.RealItem, DatasourceKindType.RealPointContent].includes(ds.config.kind)) {
+                    [LayerType.Point, LayerType.Topography].forEach(layerType => {
+                        const layerDefine: LayerDefine = {
+                            dataSourceId: ds.datasourceId,
+                            editable: ds.config.editable ?? false,
+                            layerType: layerType as LayerType.Point| LayerType.Topography,
+                        };
+                        this.addLayer(layerDefine, ds.initialVisible);
+                    })
+                }
+
             })
 
         } else {
             // 村マップ
             extent ??= [0, 0, 2, 2];
-            dataSourceGroups.forEach(group => {
-                group.datasources.forEach(ds => {
-                    if (ds.config.kind !== DatasourceKindType.VirtualItem) {
-                        return;
-                    }
-                    [LayerType.Point, LayerType.Topography].forEach(layerType => {
-                        const layerDefine: LayerDefine = {
-                            dataSourceId: ds.datasourceId,
-                            group: group.name ?? '',
-                            editable: ds.config.editable ?? false,
-                            layerType: layerType as LayerType.Point| LayerType.Topography,
-                        };
-                        this.addLayer(layerDefine, ds.visible);
-                    })
-                });
+            itemDataSources.forEach(ds => {
+                if (ds.config.kind !== DatasourceKindType.VirtualItem) {
+                    return;
+                }
+                [LayerType.Point, LayerType.Topography].forEach(layerType => {
+                    const layerDefine: LayerDefine = {
+                        dataSourceId: ds.datasourceId,
+                        editable: ds.config.editable ?? false,
+                        layerType: layerType as LayerType.Point| LayerType.Topography,
+                    };
+                    this.addLayer(layerDefine, ds.initialVisible);
+                })
             });
 
             // パンニング可能範囲の制御解除
@@ -637,37 +634,17 @@ export class OlMapWrapper {
     }
 
     /**
-     * dataSourceGroupsに定義された設定で、レイヤの表示非表示を切り替える
-     * @param target 
-     * @param visible 
+     * レイヤの表示非表示を切り替える
+     * @param targets 表示非表示を切り替えるデータソースIDと、切り替え後の表示非表示
      */
-    updateLayerVisible(dataSourceGroups: DatasourceGroup[]) {
-        let hiddenToShowFlag = false;   // 非表示レイヤが表示に切り替わるケースがあるか
-        const changeVisible = (target: { dataSourceId: string } | { group: string }, visible: boolean) => {
-            let layerInfos: LayerInfo[];
-            if ('dataSourceId' in target) {
-                layerInfos = this._vectorLayerMap.getLayerInfoOfTheDataSource(target.dataSourceId);
-            } else {
-                layerInfos = this._vectorLayerMap.getLayerInfoOfTheGroup(target.group);
-            }
+    updateLayerVisible(targets: UpdateLayerVisibleParam) {
+        targets.forEach(target => {
+            const layerInfos = this._vectorLayerMap.getLayerInfoOfTheDataSource(target.datasourceId);
             layerInfos.forEach(layerInfo => {
                 const currentVisible = layerInfo.layer.getVisible();
-                if (!currentVisible && visible) {
-                    hiddenToShowFlag = true;
+                if (currentVisible !== target.visible) {
+                    layerInfo.layer.setVisible(target.visible);
                 }
-                layerInfo.layer.setVisible(visible);
-            });
-        }
-        dataSourceGroups.forEach(group => {
-            changeVisible({
-                group: group.name ?? '',
-            }, group.visible);
-            if (!group.visible) return;
-
-            group.datasources.forEach(ds => {
-                changeVisible({
-                    dataSourceId: ds.datasourceId,
-                }, ds.visible);
             });
         })
     }

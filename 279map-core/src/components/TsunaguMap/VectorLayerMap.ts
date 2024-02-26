@@ -15,7 +15,7 @@ export enum LayerType {
 
 export type LayerDefine = {
     dataSourceId: string;
-    group: string;
+    // group: string;
     editable: boolean;
 } & (
     {
@@ -143,20 +143,20 @@ export class VectorLayerMap {
         return list;
     }
 
-    /**
-     * 指定のグループに属するLayerInfoを返す
-     * @param dataSourceId 
-     * @return レイヤInfo配列
-     */
-    getLayerInfoOfTheGroup(group: string) {
-        const list = [] as LayerInfo[];
-        this._layerMap.forEach(layerInfo => {
-            if (layerInfo.group === group) {
-                list.push(layerInfo);
-            }
-        });
-        return list;
-    }
+    // /**
+    //  * 指定のグループに属するLayerInfoを返す
+    //  * @param dataSourceId 
+    //  * @return レイヤInfo配列
+    //  */
+    // getLayerInfoOfTheGroup(group: string) {
+    //     const list = [] as LayerInfo[];
+    //     this._layerMap.forEach(layerInfo => {
+    //         if (layerInfo.group === group) {
+    //             list.push(layerInfo);
+    //         }
+    //     });
+    //     return list;
+    // }
 
     /**
      * 指定のデータソースIDのLayerTypeを返す

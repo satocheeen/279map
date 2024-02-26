@@ -3,11 +3,11 @@
  */
 export type {
     IconDefine, CategoryDefine, 
-    Condition, ContentsDefine, DatasourceGroup,     
+    Condition, ContentsDefine,     
     EventDefine, GetUnpointContentsResult,
     MapDefine, MutationLinkContentArgs, MutationRegistContentArgs, 
     MutationUpdateContentArgs, SnsPreviewResult,
-    ServerConfig, MapPageOptions, DatasourceInfo,
+    ServerConfig, MapPageOptions, ItemDatasourceInfo, ContentDatasourceInfo
 } from "./graphql/generated/graphql";
 export {
     Auth, MapKind, PopupMode, SortCondition, ThumbSize

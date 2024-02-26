@@ -1,17 +1,17 @@
 import { CSSProperties } from "react";
-import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, DatasourceGroup, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult, GetItemsQuery, DatasourceInfo, ItemDefine, ThumbSize, SearchHitItem } from "../graphql/generated/graphql";
+import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult, GetItemsQuery, ThumbSize } from "../graphql/generated/graphql";
 import { DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
 import { OperationResult } from "urql";
 
 export type OnMapLoadParam = {
     mapKind: MapKind;
     // 当該地図で使用可能なデータソース一覧
-    itemDatasourceGroups: DatasourceGroup[];
-    contentDataSources: DatasourceInfo[];
+    itemDatasources: ItemDatasourceInfo[];
+    contentDatasources: ContentDatasourceInfo[];
 }
-export type onDatasourceChangedParam = {
-    datasourceGroups: DatasourceGroup[];
-}
+// export type onDatasourceChangedParam = {
+//     datasourcs: DatasourceGroup[];
+// }
 export type OnConnectParam = {
     authLv: Auth;
     userName: string | undefined;
@@ -61,7 +61,7 @@ export type TsunaguMapProps = {
     
     onConnect?: (param: OnConnectParam) => void;
     onMapLoad?: (param: OnMapLoadParam) => void;
-    onDatasourceChanged?: (param: onDatasourceChangedParam) => void;
+    // onDatasourceChanged?: (param: onDatasourceChangedParam) => void;
 
     /**
      * 地図上で建物orピンの選択状態が変更された場合のコールバック

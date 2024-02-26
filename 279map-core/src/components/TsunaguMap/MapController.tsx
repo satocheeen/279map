@@ -3,7 +3,6 @@ import { allItemsAtom, loadedItemMapAtom, storedItemsAtom } from '../../store/it
 import { currentMapDefineAtom, currentMapKindAtom, isWorldMapAtom, mapDefineReducerAtom } from '../../store/session';
 import { atom, useAtom } from 'jotai';
 import { useItems } from '../../store/item/useItems';
-import { itemDataSourceGroupsAtom } from '../../store/datasource';
 import { useMap } from '../map/useMap';
 import { OwnerContext } from './TsunaguMap';
 import { usePrevious } from '../../util/usePrevious';
@@ -20,6 +19,8 @@ import { ItemDeleteDocument, ItemInsertDocument, ItemUpdateDocument, MapInfoUpda
 import { clientAtom } from 'jotai-urql';
 import { ItemInfo } from '../../types/types';
 import { selectItemIdAtom } from '../../store/operation';
+import { dataSourceVisibleAtom, itemDataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
+import { UpdateLayerVisibleParam } from './OlMapWrapper';
 
 /**
  * Jotaiの変更検知して、地図に対して特定のイベントを実行するコンポーネントもどき
@@ -122,7 +123,7 @@ function useItemUpdater() {
     const [ itemMap ] = useAtom(allItemsAtom);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
-    const [ itemDatasourceGroups ] = useAtom(itemDataSourceGroupsAtom);
+    const [ itemDatasources ] = useAtom(itemDataSourcesAtom);
     const [ currentMapKind ] = useAtom(currentMapKindAtom);
     // 地図初期化済みの地図種別
     const [ initializedMapKind, setInitializedMapKind ] = useState<MapKind|undefined>();
@@ -147,7 +148,7 @@ function useItemUpdater() {
         // 初期レイヤ生成
         map.initialize({
             mapKind: currentMapKind,
-            dataSourceGroups: itemDatasourceGroups,
+            itemDataSources: itemDatasources,
             fitExtent: currentMapDefine?.extent,
             isWorldMap,
         });
@@ -235,16 +236,26 @@ function useMapStyleUpdater() {
 }
 
 /**
- * データソース情報の変更検知して、レイヤの表示・非表示切り替え
+ * データソースの表示情報変更検知して、レイヤの表示・非表示切り替え
  */
 function useLayerVisibleChanger() {
-    const [ itemDatasources ] = useAtom(itemDataSourceGroupsAtom);
+    const [ dsVisibleInfo ] = useAtom(dataSourceVisibleAtom);
     const { map } = useMap();
 
-    useEffect(() => {
-        map?.updateLayerVisible(itemDatasources);
-
-    }, [itemDatasources, map]);
+    useWatch(dsVisibleInfo, (oldVal, newVal) => {
+        // 表示情報に変更のあったレイヤを判定
+        const changes: UpdateLayerVisibleParam = Object.entries(newVal).filter(([dsId, visible]) => {
+            const oldVisible = oldVal[dsId];
+            if (!oldVisible) return true;
+            return oldVisible !== visible;
+        }).map(([dsId, visible]) => {
+            return {
+                datasourceId: dsId,
+                visible,
+            }
+        });
+        map?.updateLayerVisible(changes);
+    })
 
 }
 

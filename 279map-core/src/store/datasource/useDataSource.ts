@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { dataSourceVisibleState } from '.';
+import { dataSourceVisibleAtom } from '.';
 import { useAtom } from 'jotai';
 
 type DataSourceVisibleParam = {
@@ -15,7 +15,7 @@ type DataSourceVisibleParam = {
  * @returns 
  */
 export default function useDataSource() {
-    const [_, setDataSourceVisible] = useAtom(dataSourceVisibleState);
+    const [_, setDataSourceVisible] = useAtom(dataSourceVisibleAtom);
 
     const updateDatasourceVisible = useCallback((param: DataSourceVisibleParam) => {
         if ('group' in param.target) {

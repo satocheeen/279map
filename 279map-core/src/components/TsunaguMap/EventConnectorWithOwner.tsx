@@ -10,12 +10,12 @@ import { useMap } from '../map/useMap';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { TsunaguMapHandler } from '../../types/types';
 import { useAtom } from 'jotai';
-import { itemDataSourceGroupsAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
+import { visibleDataSourceIdsAtom } from '../../store/datasource';
 import { useAtomCallback } from 'jotai/utils';
 import { allItemContentListAtom, loadedItemMapAtom, storedItemsAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, LinkContentDocument, RegistContentDocument, SearchDocument, DatasourceGroup, GetThumbDocument, GetSnsPreviewDocument, DatasourceInfo, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument, UpdateItemsDocument } from '../../graphql/generated/graphql';
+import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, LinkContentDocument, RegistContentDocument, SearchDocument, GetThumbDocument, GetSnsPreviewDocument, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument, UpdateItemsDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import { DataId } from '../../types-common/common-types';
 import { useItems } from '../../store/item/useItems';
@@ -342,8 +342,8 @@ function useMapLoadListener() {
                 if (onMapLoad && currentMapKind) {
                     onMapLoad({
                         mapKind: currentMapKind,
-                        contentDataSources: (mapDefine?.contentDataSources ?? []) as DatasourceInfo[],
-                        itemDatasourceGroups: (mapDefine?.itemDataSourceGroups ?? []) as DatasourceGroup[],
+                        contentDatasources: (mapDefine?.contentDataSources ?? []),
+                        itemDatasources: (mapDefine?.itemDataSources ?? []),
                     })
                     resetItems();
                 }
@@ -354,22 +354,22 @@ function useMapLoadListener() {
 }
 
 function useEventListener() {
-    const { onLoadedItemsChanged, onDatasourceChanged, onCategoriesLoaded, onEventsLoaded, onModeChanged, onSelectChange }  = useContext(OwnerContext);
+    const { onLoadedItemsChanged, onCategoriesLoaded, onEventsLoaded, onModeChanged, onSelectChange }  = useContext(OwnerContext);
 
-    /**
-     * Datasource定義、表示状態が変化した場合に呼び出し元にイベント発火する
-     */
-    const [ itemDataSources ] = useAtom(itemDataSourceGroupsAtom);
-    useWatch(itemDataSources,
-        useCallback(() => {
-            if (onDatasourceChanged) {
-                onDatasourceChanged({
-                    datasourceGroups: itemDataSources,
-                })
-            }
+    // /**
+    //  * Datasource定義、表示状態が変化した場合に呼び出し元にイベント発火する
+    //  */
+    // const [ itemDataSources ] = useAtom(itemDataSourceGroupsAtom);
+    // useWatch(itemDataSources,
+    //     useCallback(() => {
+    //         if (onDatasourceChanged) {
+    //             onDatasourceChanged({
+    //                 datasourceGroups: itemDataSources,
+    //             })
+    //         }
 
-        }, [itemDataSources, onDatasourceChanged])
-    , { immediate: true })
+    //     }, [itemDataSources, onDatasourceChanged])
+    // , { immediate: true })
 
     /**
      * カテゴリロード時に呼び出し元にイベント発火する

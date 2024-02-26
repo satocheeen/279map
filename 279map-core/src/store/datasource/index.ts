@@ -1,53 +1,25 @@
 import { atom } from 'jotai';
 import { currentMapDefineAtom } from '../session';
-import { DatasourceGroup, DatasourceInfo } from '../../graphql/generated/graphql';
 
 /**
  * データソース関連のRecoil
  */
 
-type DatasourceVisibleInfo = {
-    group: {[group: string]: boolean};
-    datasource: {[id: string]: boolean};
-}
-/**
- * データソースの表示・非表示情報
- */
-export const dataSourceVisibleState = atom<DatasourceVisibleInfo>({
-    group: {},
-    datasource: {},
-})
+// レイヤ表示情報 key=データソースid
+type ItemLayerVisibleInfo = {[id: string]: boolean};
 
 /**
- * アイテムデータソースグループ（表示情報付き）
+ * データソースの表示・非表示情報（ユーザから明示的に指定されたものを格納）
  */
-export const itemDataSourceGroupsAtom = atom((get) => {
-    const mapDefine = get(currentMapDefineAtom);
-    if (!mapDefine) return [];
-    const dataSourceVisibleInfo = get(dataSourceVisibleState);
-
-    return mapDefine.itemDataSourceGroups.map(group => {
-        const groupVisible = dataSourceVisibleInfo.group[group.name ?? ''] ?? group.visible;
-        const newValue = Object.assign({}, group);
-        newValue.visible = groupVisible;
-        newValue.datasources = newValue.datasources.map(ds => {
-            const dsVisible = dataSourceVisibleInfo.datasource[ds.datasourceId] ?? ds.visible;
-            const newDs = Object.assign({}, ds);
-            newDs.visible = dsVisible;
-            return newDs;
-        });
-        return newValue;
-    }) as DatasourceGroup[];
-})
+export const dataSourceVisibleAtom = atom<ItemLayerVisibleInfo>({});
 
 /**
  * データソースグループをデータソースにばらしたもの
  */
 export const itemDataSourcesAtom = atom((get) => {
-    const dataSourceGroups = get(itemDataSourceGroupsAtom);
-    return dataSourceGroups.reduce((acc, cur) => {
-        return acc.concat(cur.datasources as DatasourceInfo[]);
-    }, [] as DatasourceInfo[]);
+    const mapDefine = get(currentMapDefineAtom);
+    if (!mapDefine) return [];
+    return mapDefine.itemDataSources;
 })
 
 /**
@@ -60,14 +32,11 @@ export const contentDataSourcesAtom = atom((get) => {
 })
 
 export const visibleDataSourceIdsAtom = atom((get) => {
-    const dataSourceGroups = get(itemDataSourceGroupsAtom);
-    const idList = [] as string[];
-    dataSourceGroups.forEach(group => {
-        if (!group.visible) return;
-        group.datasources.forEach(ds => {
-            if (!ds.visible) return;
-            idList.push(ds.datasourceId);
-        })
-    });
-    return idList;
+    const dataSources = get(itemDataSourcesAtom);
+    const visibleInfo = get(dataSourceVisibleAtom);
+    return dataSources.filter(ds => {
+        const visible = visibleInfo[ds.datasourceId];
+        if (visible !== undefined) return visible;
+        return ds.initialVisible;
+    }).map(ds => ds.datasourceId);
 })
