@@ -94,8 +94,8 @@ async function getAllCategories(currentMap: CurrentMap, dataSourceIds?: string[]
         `;
     
         const params = dataSourceIds ?
-                            [currentMap.mapId, currentMap.mapKind, dataSourceIds, currentMap.mapId, currentMap.mapKind, dataSourceIds]
-                             : [currentMap.mapId, currentMap.mapKind, currentMap.mapId, currentMap.mapKind];
+                            [currentMap.mapId, dataSourceIds, currentMap.mapId, dataSourceIds]
+                             : [currentMap.mapId, currentMap.mapId, currentMap.mapKind];
         const query = con.format(sql, params);
         const [rows] = await con.execute(query);
 
