@@ -1,29 +1,24 @@
 import React, { useCallback, useContext, useRef } from 'react';
 import styles from '../TestMap.module.scss';
 import { DriverContext } from '../TestMap';
+import { DataId } from '../../entry';
 
 type Props = {
 }
 
 export default function LinkContentDriver(props: Props) {
     const { getMap, addConsole } = useContext(DriverContext);
-    const contentDsIdRef = useRef<HTMLInputElement>(null);
     const contentIdRef = useRef<HTMLInputElement>(null);
-    const itemDsIdRef = useRef<HTMLInputElement>(null);
     const itemIdRef = useRef<HTMLInputElement>(null);
 
-    const handleExecute = useCallback(async() => {
+    const handleLink = useCallback(async() => {
+        const contentId = JSON.parse(contentIdRef.current?.value ?? '') as DataId;
+        const itemId = JSON.parse(itemIdRef.current?.value ?? '') as DataId;
         const res = await getMap()?.linkContent({
-            id: {
-                dataSourceId: contentDsIdRef.current?.value ?? '',
-                id: contentIdRef.current?.value ?? '',
-            },
+            id: contentId,
             parent: {
                 type: 'item',
-                id: {
-                    dataSourceId: itemDsIdRef.current?.value ?? '',
-                    id: itemIdRef.current?.value ?? '',
-                }
+                id: itemId,
             }
         });
 
@@ -31,32 +26,38 @@ export default function LinkContentDriver(props: Props) {
 
     }, [getMap, addConsole])
 
+    const handleUnLink = useCallback(async() => {
+        const contentId = JSON.parse(contentIdRef.current?.value ?? '') as DataId;
+        const itemId = JSON.parse(itemIdRef.current?.value ?? '') as DataId;
+        try {
+            const res = await getMap()?.unlinkContent({
+                id: contentId,
+                parent: {
+                    type: 'item',
+                    id: itemId,
+                }
+            });
+    
+            addConsole('unlinkContent result', res);
+    
+        } catch(e) {
+            addConsole('unlinkContent error', e);
+
+        }
+
+    }, [getMap, addConsole])
+
     return (
         <div className={styles.Col}>
-            <div className={styles.PropName}>コンテンツ割当て</div>
+            <div className={styles.PropName}>コンテンツ割当て/解除</div>
+            対象コンテンツID(JSON)
+            <input type='text' ref={contentIdRef} />
+            割当先アイテムID(JSON)
+            <input type='text' ref={itemIdRef} />
             <div>
-                対象コンテンツ
-                <label>
-                    ID
-                    <input type='text' ref={contentIdRef} />
-                </label>
-                <label>
-                    datasourceID
-                    <input type='text' ref={contentDsIdRef} />
-                </label>
+                <button onClick={handleLink}>割当て</button>
+                <button onClick={handleUnLink}>解除</button>
             </div>
-            <div>
-                割当先アイテム
-                <label>
-                    ID
-                    <input type='text' ref={itemIdRef} />
-                </label>
-                <label>
-                    datasourceID
-                    <input type='text' ref={itemDsIdRef} />
-                </label>
-            </div>
-            <button onClick={handleExecute}>実行</button>
         </div>
     );
 }

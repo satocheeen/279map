@@ -5,6 +5,7 @@ import type {
     DataId, OnConnectParam, OnMapLoadParam, 
     TsunaguMapProps,
     ContentDatasourceInfo,
+    ItemType,
 } from '../entry';
 import { Auth, MapKind, getAccessableMapList } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
@@ -17,6 +18,7 @@ import DatasourceDriver from './datasources/DatasourceDriver';
 import { ItemDatasourceVisibleList } from '../store/datasource';
 import GetUnlinkedContentDriver from './get-unpoint-content/GetUnpointContentDriver';
 import LinkContentDriver from './linkcontent/LinkContentDriver';
+import ItemController from './item-controller/ItemContriller';
 
 export const DriverContext = React.createContext({
     getMap: () => null as TsunaguMapHandler | null,
@@ -27,6 +29,7 @@ export const DriverContext = React.createContext({
     contentDatasources: [] as ContentDatasourceInfo[],
     authLv: Auth.None as Auth,
     mapKind: MapKind.Real,
+    loadedItems: [] as ItemType[],
 
     filterUnmatchView: 'hidden' as TsunaguMapProps['filterUnmatchView'],
     setFilterUnmatchView: (val: TsunaguMapProps['filterUnmatchView']) => {},
@@ -106,6 +109,7 @@ export default function TestMap() {
 
     const [ itemDatasources, setItemDatasources] = useState<ItemDatasourceInfo[]>([]);
     const [ contentDatasources, setContentDatasources] = useState<ContentDatasourceInfo[]>([]);
+    const [ loadedItems, setLoadedItems ] = useState<ItemType[]>([]);
 
     const onMapLoad = useCallback((param: OnMapLoadParam) => {
         addConsole('onMapLoad', param);
@@ -145,18 +149,6 @@ export default function TestMap() {
         console.log('result', result);
     }, []);
 
-    const [ focusItemId, setFocusItemId ] = useState('');
-    const [ focusDataSourceId, setFocusDataSourceId ] = useState('');
-    const onFocusItem = useCallback(() => {
-        mapRef.current?.focusItem({
-            dataSourceId: focusDataSourceId,
-            id: focusItemId,
-        }, {
-            zoom: true,
-            select: true,
-        });
-    }, [focusItemId, focusDataSourceId]);
-
     const handleFitAllItems = useCallback(() => {
         mapRef.current?.fitAllItemsExtent();
     }, []);
@@ -175,6 +167,11 @@ export default function TestMap() {
         console.log('getAccessableMapList', result);
     }, [mapServer]);
 
+    const handleLoadedItemChanged = useCallback((val: ItemType[]) => {
+        addConsole('onLoadedItemCanged', val);
+        setLoadedItems(val);
+    }, [addConsole])
+
     const selectItem = useCallback((id: DataId) => {
         mapRef.current?.selectItem(id);
     }, []);
@@ -185,11 +182,7 @@ export default function TestMap() {
 
     return (
         <div className={styles.Container}>
-            <div className={styles.Form}>
-                <div className={styles.Col}>
-                    <AuthPanel />
-                </div>
-
+            {/* <div className={styles.HorizontalArea}>
                 <div className={styles.Col}>
                     <div className={styles.Row}>
                         <div className={styles.PropName}>地図種別</div>
@@ -244,20 +237,11 @@ export default function TestMap() {
                 </div>
 
                 <div className={styles.Col}>
-                    <label>
-                        itemId
-                        <input type='text' value={focusItemId} onChange={(evt)=>{setFocusItemId(evt.target.value)}} />
-                    </label>
-                    <label>
-                        DataSourceId
-                        <input type='text' value={focusDataSourceId} onChange={(evt) => {setFocusDataSourceId(evt.target.value)}} />
-                    </label>
-                    <button onClick={onFocusItem}>Focus Item</button>
                     <button onClick={handleFitAllItems}>Fit All Item</button>
                     <button onClick={handleSelectItemByUser}>Select Item</button>
                     <button onClick={unselectItem}>UnSelect Item</button>
                 </div>
-            </div>
+            </div> */}
             <div className={styles.Map}>
                 <TsunaguMap ref={mapRef} {...props}
                     mapServer={mapServer}
@@ -269,7 +253,7 @@ export default function TestMap() {
                     onMapLoad={onMapLoad}
                     onItemDatasourcesVisibleChanged={handleItemDataSourceVisibleChanged}
                     onSelectChange={handleSelectChange}
-                    onLoadedItemsChanged={(val)=>{addConsole('onLoadedItemsChanged', val)}}
+                    onLoadedItemsChanged={handleLoadedItemChanged}
                     onItemClick={(val) => onCallback('onClick', val)}
                     onModeChanged={(val) => onCallback('onModeChanged', val)}
                     onCategoriesLoaded={onCategoriesLoaded}
@@ -291,10 +275,15 @@ export default function TestMap() {
                     contentDatasources,
                     authLv,
                     mapKind,
+                    loadedItems,
                     filterUnmatchView,
                     setFilterUnmatchView,
                 }}
             >
+                <div className={styles.HorizontalArea}>
+                    <AuthPanel />
+                    <ItemController />
+                </div>
                 <div className={styles.VerticalArea}>
                     <DatasourceDriver />
                     <FilterTest />
