@@ -2,7 +2,6 @@ import { CSSProperties } from "react";
 import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult, GetItemsQuery, ThumbSize } from "../graphql/generated/graphql";
 import { DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
 import { OperationResult } from "urql";
-import { ItemDatasourceVisibleList } from "../store/datasource";
 
 export type OnMapLoadParam = {
     mapKind: MapKind;
@@ -28,6 +27,19 @@ export type ItemType = {
     }[];
 
 }
+
+export type DatasourceVisible = {
+    type: 'datasource';
+    datasourceId: string;
+    visible: boolean;
+}
+export type DatasourceVisibleGroup = {
+    type: 'group';
+    groupName: string;
+    visible: boolean;
+    datasources: DatasourceVisible[];
+}
+export type ItemDatasourceVisibleList = (DatasourceVisibleGroup|DatasourceVisible)[];
 
 export type TsunaguMapProps = {
     mapId: string;

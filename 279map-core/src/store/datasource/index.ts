@@ -1,5 +1,6 @@
 import { atom } from 'jotai';
 import { currentMapDefineAtom } from '../session';
+import { DatasourceVisible, DatasourceVisibleGroup, ItemDatasourceVisibleList } from '../../types/types';
 
 /**
  * データソース関連のRecoil
@@ -21,19 +22,6 @@ export const itemDataSourcesAtom = atom((get) => {
     if (!mapDefine) return [];
     return mapDefine.itemDataSources;
 })
-
-type DatasourceVisible = {
-    type: 'datasource';
-    datasourceId: string;
-    visible: boolean;
-}
-type DatasourceVisibleGroup = {
-    type: 'group';
-    groupName: string;
-    visible: boolean;
-    datasources: DatasourceVisible[];
-}
-export type ItemDatasourceVisibleList = (DatasourceVisibleGroup|DatasourceVisible)[];
 
 /**
  * アイテムデータソースの表示情報一覧
