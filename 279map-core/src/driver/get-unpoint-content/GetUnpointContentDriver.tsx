@@ -13,7 +13,7 @@ export default function GetUnlinkedContentDriver(props: Props) {
         if (res) {
             setResult(JSON.stringify(res.contents, undefined, 2))
         }
-    }, [])
+    }, [getMap])
 
     return (
         <div className={styles.Col}>

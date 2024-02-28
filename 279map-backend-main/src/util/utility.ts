@@ -34,59 +34,6 @@ export function convertBase64ToBinary(base64: string) {
     };
 }
 
-/**
- * 指定のコンテンツを保持する指定の地図内のアイテム情報を返す
- * @param content 
- * @param mapPageId 
- * @param mapKind 
- * @returns 
- */
-export async function getBelongingItem(con: PoolConnection, content: ContentsTable, mapPageId: string, mapKind: MapKind): Promise<ItemsTable[]|null> {
-    const items = await getItemHasTheContent(con, content.content_page_id, mapPageId, mapKind);
-    if (items.length > 0) {
-        return items;
-    }
-    if (!content.parent_id || !content.parent_datasource_id) {
-        return null;
-    }
-    const parent = await getContent({
-        id: content.parent_id,
-        dataSourceId: content.parent_datasource_id
-    });
-    if (!parent) {
-        return null;
-    }
-    return await getBelongingItem(con, parent, mapPageId, mapKind);
-}
-
-/**
- * 指定のコンテンツと繋がっているアイテムを返す
- * @param con 
- * @param content_page_id 
- * @param mapPageId 
- * @param mapKind 
- * @returns 
- */
-async function getItemHasTheContent(con: PoolConnection, content_page_id: string, mapPageId: string, mapKind: MapKind): Promise<ItemsTable[]> {
-    try {
-        const sql = `
-        select i.* from items i
-        inner join data_source ds on ds.data_source_id = i.data_source_id 
-        inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id
-        inner join item_content_link icl on icl.item_page_id = i.item_page_id 
-        where icl.content_page_id = ? and mdl.map_page_id = ? and i.map_kind = ?
-        `;
-        const query = mysql.format(sql, [content_page_id, mapPageId, mapKind]);
-        const [rows] = await con.execute(query);
-        // const [rows] = await con.execute(sql, [content_page_id, mapPageId, kind]);
-        return (rows as ItemsTable[]);
-
-    } catch(e) {
-        throw 'getItemHasTheContent' + e;
-
-    }
-}
-
 export async function getContent(content_id: DataId): Promise<ContentsTable|null> {
     const con = await ConnectionPool.getConnection();
     try {

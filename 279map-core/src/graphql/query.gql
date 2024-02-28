@@ -115,7 +115,6 @@ query getContentsInItem(
 
 fragment content on ContentsDefine {
     id
-    itemId
     date
     url
     title

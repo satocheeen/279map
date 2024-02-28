@@ -886,17 +886,18 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     });
             
                     // 更新通知
-                    const target = (await getContents({
-                        param: [
-                            {
-                                contentId: param.id,
-                            }
-                        ],
-                        currentMap: ctx.currentMap,
-                        authLv: ctx.authLv,
-                    }))[0];
+                    // TODO: 当該コンテンツを子孫に持つアイテムIDを取得
+                    // const target = (await getContents({
+                    //     param: [
+                    //         {
+                    //             contentId: param.id,
+                    //         }
+                    //     ],
+                    //     currentMap: ctx.currentMap,
+                    //     authLv: ctx.authLv,
+                    // }))[0];
 
-                    pubsub.publish('childContentsUpdate', { itemId: target.itemId }, true);
+                    // pubsub.publish('childContentsUpdate', { itemId: target.itemId }, true);
                 
                     return true;
 

@@ -1,5 +1,4 @@
 import { ConnectionPool } from '.';
-import { getAncestorItemId } from "./util/utility";
 import { PoolConnection } from 'mysql2/promise';
 import { ContentsInfo, ContentsTable, DataSourceTable, ItemContentLink } from '../279map-backend-common/src/types/schema';
 import { CurrentMap, DatasourceConfig } from '../279map-backend-common/src';
@@ -23,7 +22,7 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
     try {
         const allContents = [] as ContentsDefine[];
 
-        const convertRecord = async(row: ContentsDatasourceRecord, itemId: DataId): Promise<ContentsDefine> => {
+        const convertRecord = async(row: ContentsDatasourceRecord): Promise<ContentsDefine> => {
             const contents = row.contents ? row.contents as ContentsInfo: undefined;
             let isSnsContent = false;
             if (row.supplement) {
@@ -77,7 +76,6 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
 
             return {
                 id,
-                itemId,
                 title: row.title ?? '',
                 date,
                 category: row.category ? row.category as string[] : [],
@@ -96,7 +94,7 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
                 isDeletable,
             };
         }
-        const getChildren = async(parent: ContentsDatasourceRecord, itemId: DataId): Promise<ContentsDefine[]> => {
+        const getChildren = async(parent: ContentsDatasourceRecord): Promise<ContentsDefine[]> => {
             const getChildrenQuery = `
                 select c.*, ds.* from contents c
                 inner join data_source ds on ds.data_source_id = c.data_source_id
@@ -105,19 +103,17 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
             const [rows] = await con.execute(getChildrenQuery, [parent.content_page_id, parent.data_source_id]);
             const children = [] as ContentsDefine[];
             for (const row of rows as ContentsDatasourceRecord[]) {
-                const content = await convertRecord(row, itemId);
-                content.children = await getChildren(row, itemId);
+                const content = await convertRecord(row);
+                content.children = await getChildren(row);
                 children.push(content);
             }
             return children;
         }
         for (const target of param) {
             let myRows: ContentsDatasourceRecord[];
-            let itemId: DataId;
             if ('itemId' in target) {
                 // itemの子コンテンツを取得
 
-                itemId = target.itemId;
                 const sql = `
                 select c.*, ds.* from contents c 
                 inner join data_source ds on ds.data_source_id = c.data_source_id
@@ -130,12 +126,6 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
             } else {
                 // contentId指定の場合
 
-                // 先祖ItemIdを取得
-                const myItemId = await getAncestorItemId(con, target.contentId, currentMap);
-                if (!myItemId) {
-                    throw new Error('item not found.' + JSON.stringify(target.contentId));
-                }
-                itemId = myItemId;
                 const sql = `
                 select c.*, ds.* from contents c
                 inner join data_source ds on ds.data_source_id = c.data_source_id
@@ -147,9 +137,9 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
             }
 
             for (const row of myRows) {
-                const content = await convertRecord(row, itemId);
+                const content = await convertRecord(row);
                 // 子孫コンテンツを取得
-                content.children = await getChildren(row, itemId);
+                content.children = await getChildren(row);
                 allContents.push(content);
 
             }

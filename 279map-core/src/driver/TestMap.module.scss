@@ -58,11 +58,11 @@
         flex-direction: row;
     }
 
-    .PropName {
-        font-weight: bold;
-    }
     label {
         display: block;
         // margin-left: 1rem;
     }
+}
+.PropName {
+    font-weight: bold;
 }

@@ -114,7 +114,6 @@ export type ContentsDefine = {
   isDeletable: Scalars['Boolean']['output'];
   isEditable: Scalars['Boolean']['output'];
   isSnsContent: Scalars['Boolean']['output'];
-  itemId: Scalars['DataId']['output'];
   overview?: Maybe<Scalars['String']['output']>;
   parentId?: Maybe<Scalars['DataId']['output']>;
   title: Scalars['String']['output'];
@@ -878,7 +877,6 @@ export type ContentsDefineResolvers<ContextType = any, ParentType extends Resolv
   isDeletable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   isEditable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   isSnsContent?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  itemId?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   overview?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   parentId?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
