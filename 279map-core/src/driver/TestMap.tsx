@@ -15,6 +15,7 @@ import { AuthContext } from './DriverRoot';
 import FilterTest from './filter/FilterTest';
 import DatasourceDriver from './datasources/DatasourceDriver';
 import { ItemDatasourceVisibleList } from '../store/datasource';
+import GetUnlinkedContentDriver from './get-unpoint-content/GetUnpointContentDriver';
 
 export const DriverContext = React.createContext({
     getMap: () => null as TsunaguMapHandler | null,
@@ -22,6 +23,7 @@ export const DriverContext = React.createContext({
     categories: [] as CategoryDefine[],
     itemDatasources: [] as ItemDatasourceInfo[],
     itemDatasourcesVisibleList: [] as ItemDatasourceVisibleList,
+    contentDatasources: [] as ContentDatasourceInfo[],
     authLv: Auth.None as Auth,
     mapKind: MapKind.Real,
 
@@ -61,11 +63,7 @@ export default function TestMap() {
         const text = id + args.map(arg => {
             if (Array.isArray(arg) || typeof arg === 'object') {
                 const str = JSON.stringify(arg);
-                if (str.length > 50) {
-                    return str.substring(0, 50) + '...';
-                } else {
-                    return str;
-                }
+                return str;
             } else {
                 return arg;
             }
@@ -137,8 +135,8 @@ export default function TestMap() {
     }, [cnt]);
 
     const onCallback = useCallback((msg: string, param: any) => {
-        console.log(msg, param);
-    }, []);
+        addConsole(msg, param);
+    }, [addConsole]);
 
     const callGetSnsPreview = useCallback(async() => {
         if(!mapRef.current) return;
@@ -175,18 +173,6 @@ export default function TestMap() {
         const result = await getAccessableMapList(mapServer.host, mapServer.ssl, mapServer.token);
         console.log('getAccessableMapList', result);
     }, [mapServer]);
-
-    const changeVisibleLayerDataSource = useCallback((dataSourceId: string, visible: boolean) => {
-        mapRef.current?.changeVisibleLayer({
-            dataSourceId,
-        }, visible);
-    }, []);
-
-    const changeVisibleLayerGroup = useCallback((group: string, visible: boolean) => {
-        mapRef.current?.changeVisibleLayer({
-            group,
-        }, visible);
-    }, []);
 
     const selectItem = useCallback((id: DataId) => {
         mapRef.current?.selectItem(id);
@@ -301,6 +287,7 @@ export default function TestMap() {
                     categories,
                     itemDatasources,
                     itemDatasourcesVisibleList,
+                    contentDatasources,
                     authLv,
                     mapKind,
                     filterUnmatchView,
@@ -310,6 +297,7 @@ export default function TestMap() {
                 <div className={styles.VerticalArea}>
                     <DatasourceDriver />
                     <FilterTest />
+                    <GetUnlinkedContentDriver />
                 </div>
             </DriverContext.Provider>
 
