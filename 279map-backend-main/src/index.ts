@@ -9,7 +9,7 @@ import { getContents } from './getContents';
 import { getEvents } from './getEvents';
 import proxy from 'express-http-proxy';
 import http from 'http';
-import { getItemWkt } from './util/utility';
+import { getAncestorItemId, getItemWkt } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
 import { getSnsPreview } from './api/getSnsPreview';
@@ -886,18 +886,12 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     });
             
                     // 更新通知
-                    // TODO: 当該コンテンツを子孫に持つアイテムIDを取得
-                    // const target = (await getContents({
-                    //     param: [
-                    //         {
-                    //             contentId: param.id,
-                    //         }
-                    //     ],
-                    //     currentMap: ctx.currentMap,
-                    //     authLv: ctx.authLv,
-                    // }))[0];
+                    // - 当該コンテンツを子孫に持つアイテムIDを取得
+                    const itemId = await getAncestorItemId(param.id);
 
-                    // pubsub.publish('childContentsUpdate', { itemId: target.itemId }, true);
+                    if (itemId) {
+                        pubsub.publish('childContentsUpdate', { itemId }, true);
+                    }
                 
                     return true;
 

@@ -8,6 +8,7 @@ import crypto from 'crypto';
 import * as geojson from 'geojson';
 import { MapKind } from '../graphql/__generated__/types';
 import { DataId } from '../types-common/common-types';
+import { schema } from '../../279map-backend-common/dist';
 
 type Extent = number[];
 
@@ -56,18 +57,16 @@ export async function getContent(content_id: DataId): Promise<ContentsTable|null
  * 指定のコンテンツの祖先にいるアイテムIDを返す
  * @param contentId 
  */
-export async function getAncestorItemId(con: PoolConnection | undefined, contentId: DataId, currentMap: CurrentMap): Promise<DataId | undefined> {
-    const myCon = con ?? await ConnectionPool.getConnection();
+export async function getAncestorItemId(contentId: DataId): Promise<DataId | undefined> {
+    const myCon = await ConnectionPool.getConnection();
 
     try {
         const sql = `
-        select * from items i
-        inner join item_content_link icl on icl.item_page_id = i.item_page_id  and icl.item_datasource_id = i.data_source_id 
-        inner join map_datasource_link mdl on mdl.data_source_id = icl.item_datasource_id 
-        where mdl.map_page_id = ? and i.map_kind = ? and icl.content_page_id = ? and icl.content_datasource_id = ?
+        select * from item_content_link icl 
+        where content_page_id = ? and content_datasource_id = ?
         `;
-        const [rows] = await myCon.execute(sql, [currentMap.mapId, currentMap.mapKind, contentId.id, contentId.dataSourceId]);
-        if ((rows as ItemsTable[]).length > 0) {
+        const [rows] = await myCon.execute(sql, [contentId.id, contentId.dataSourceId]);
+        if ((rows as schema.ItemContentLink[]).length > 0) {
             const record = (rows as ItemsTable[])[0];
             return {
                 id: record.item_page_id,
@@ -86,19 +85,16 @@ export async function getAncestorItemId(con: PoolConnection | undefined, content
             return;
         }
         const ancestor = await getAncestorItemId(
-            myCon,
             {
                 id: contentRecord.parent_id,
                 dataSourceId: contentRecord.data_source_id,
-            },
-            currentMap);
+            }
+        );
         return ancestor;
     
     } finally {
-        if (!con) {
-            await myCon.commit();
-            myCon.release();
-        }
+        await myCon.commit();
+        myCon.release();
     }
 
 }
