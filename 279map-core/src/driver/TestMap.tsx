@@ -16,6 +16,7 @@ import FilterTest from './filter/FilterTest';
 import DatasourceDriver from './datasources/DatasourceDriver';
 import { ItemDatasourceVisibleList } from '../store/datasource';
 import GetUnlinkedContentDriver from './get-unpoint-content/GetUnpointContentDriver';
+import LinkContentDriver from './linkcontent/LinkContentDriver';
 
 export const DriverContext = React.createContext({
     getMap: () => null as TsunaguMapHandler | null,
@@ -298,6 +299,7 @@ export default function TestMap() {
                     <DatasourceDriver />
                     <FilterTest />
                     <GetUnlinkedContentDriver />
+                    <LinkContentDriver />
                 </div>
             </DriverContext.Provider>
 
