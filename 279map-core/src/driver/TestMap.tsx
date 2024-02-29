@@ -6,6 +6,7 @@ import type {
     TsunaguMapProps,
     ContentDatasourceInfo,
     ItemType,
+    ItemDatasourceVisibleList,
 } from '../entry';
 import { Auth, MapKind, getAccessableMapList } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
@@ -15,10 +16,10 @@ import AuthPanel from './AuthPanel';
 import { AuthContext } from './DriverRoot';
 import FilterTest from './filter/FilterTest';
 import DatasourceDriver from './datasources/DatasourceDriver';
-import { ItemDatasourceVisibleList } from '../store/datasource';
 import GetUnlinkedContentDriver from './get-unpoint-content/GetUnpointContentDriver';
 import LinkContentDriver from './linkcontent/LinkContentDriver';
 import ItemController from './item-controller/ItemContriller';
+import SwitchMapKindDriver from './switch-mapkind/SwitchMapKindDriver';
 
 export const DriverContext = React.createContext({
     getMap: () => null as TsunaguMapHandler | null,
@@ -184,17 +185,6 @@ export default function TestMap() {
         <div className={styles.Container}>
             {/* <div className={styles.HorizontalArea}>
                 <div className={styles.Col}>
-                    <div className={styles.Row}>
-                        <div className={styles.PropName}>地図種別</div>
-                        <label>
-                            日本地図
-                            <input type="radio" checked={mapKind===MapKind.Real} onChange={() => switchMapKind(MapKind.Real)} />
-                        </label>
-                        <label>
-                            村マップ
-                            <input type="radio" checked={mapKind===MapKind.Virtual} onChange={() => switchMapKind(MapKind.Virtual)} />
-                        </label>
-                    </div>
                     <PropRadio name='Popup'
                         items={[{ label: 'hidden', value: 'hidden' }, {label: 'minimum', value: 'minimum' }, { label: 'maximum', value: 'maximum' }]}
                         default={defaultPopupMode}
@@ -282,6 +272,7 @@ export default function TestMap() {
             >
                 <div className={styles.HorizontalArea}>
                     <AuthPanel />
+                    <SwitchMapKindDriver />
                     <ItemController />
                 </div>
                 <div className={styles.VerticalArea}>
