@@ -21,6 +21,7 @@ const config: CodegenConfig = {
         skipTypename: true,
         scalars: {
           DataId: 'DataId',
+          DatasourceConfig: 'DatasourceConfig',
           Geometry: 'Geometry',
           IconKey: 'IconKey',
           GeoProperties: 'GeoProperties',

@@ -191,7 +191,7 @@ export class OlMapWrapper {
                     [[1, 8], [8, 13], [13, 21]].forEach(zoomLv => {
                         const layerDefine: LayerDefine = {
                             dataSourceId: ds.datasourceId,
-                            editable: ds.config.editable ?? false,
+                            editable: false,
                             layerType: LayerType.Track,
                             zoomLv: {
                                 min: zoomLv[0],
@@ -201,11 +201,22 @@ export class OlMapWrapper {
                         this.addLayer(layerDefine, ds.initialVisible);
                     })
 
-                } else if ([DatasourceKindType.RealItem, DatasourceKindType.RealPointContent].includes(ds.config.kind)) {
+                } else if (ds.config.kind === DatasourceKindType.RealItem) {
                     [LayerType.Point, LayerType.Topography].forEach(layerType => {
                         const layerDefine: LayerDefine = {
                             dataSourceId: ds.datasourceId,
-                            editable: ds.config.editable ?? false,
+                            editable: true,
+                            layerType: layerType as LayerType.Point| LayerType.Topography,
+                        };
+                        this.addLayer(layerDefine, ds.initialVisible);
+                    })
+
+                } else if (ds.config.kind === DatasourceKindType.RealPointContent) {
+                    const editable = ds.config.editable;
+                    [LayerType.Point, LayerType.Topography].forEach(layerType => {
+                        const layerDefine: LayerDefine = {
+                            dataSourceId: ds.datasourceId,
+                            editable,
                             layerType: layerType as LayerType.Point| LayerType.Topography,
                         };
                         this.addLayer(layerDefine, ds.initialVisible);
@@ -224,7 +235,7 @@ export class OlMapWrapper {
                 [LayerType.Point, LayerType.Topography].forEach(layerType => {
                     const layerDefine: LayerDefine = {
                         dataSourceId: ds.datasourceId,
-                        editable: ds.config.editable ?? false,
+                        editable: true,
                         layerType: layerType as LayerType.Point| LayerType.Topography,
                     };
                     this.addLayer(layerDefine, ds.initialVisible);

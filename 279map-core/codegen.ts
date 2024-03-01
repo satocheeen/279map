@@ -25,6 +25,7 @@ const config: CodegenConfig = {
       config: {
         scalars: {
           DataId: 'DataId',
+          DatasourceConfig: 'DatasourceConfig',
           Geometry: 'Geometry',
           IconKey: 'IconKey',
           GeoProperties: 'GeoProperties',

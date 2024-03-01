@@ -14,7 +14,7 @@ import { filteredItemIdListAtom } from "../../store/filter";
 import { itemDataSourcesAtom } from "../../store/datasource";
 import { useAtom } from 'jotai';
 import { MapStyles } from "../../util/constant-defines";
-import { IconKey } from "../../types-common/common-types";
+import { DatasourceKindType, IconKey } from "../../types-common/common-types";
 
 const STRUCTURE_SELECTED_COLOR = '#8888ff';
 
@@ -169,7 +169,9 @@ export default function usePointStyle() {
         if (!icon) {
             // icon未指定の場合はレイヤデフォルトアイコンを設定
             const datasource = dataSources.find(ds => ds.datasourceId === itemId.dataSourceId);
-            icon = datasource?.config.__typename === 'RealPointContentConfig' ? datasource.config.defaultIcon ?? undefined : undefined;
+            if (datasource?.config.kind === DatasourceKindType.RealPointContent) {
+                icon = datasource.config.defaultIcon;
+            }
         }
         const iconDefine = getIconDefine(icon);
 

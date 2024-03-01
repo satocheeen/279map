@@ -10,6 +10,7 @@ import ListGroup from '../../common/list/ListGroup';
 import styles from './CurrentContentsListPage.module.scss';
 import { clientAtom } from 'jotai-urql';
 import { UnlinkContentsDatasourceDocument } from '../../../graphql/generated/graphql';
+import { DatasourceKindType } from '../../../entry';
 
 type Props = {
 }
@@ -46,7 +47,7 @@ export default function CurrentContentsListPage(props: Props) {
                                     {ds.name}
                                 </span>
                                 <span className={styles.IconArea}>
-                                    {!(ds.config.__typename === 'ContentConfig' && ds.config.disableUnlinkMap) &&
+                                    {(ds.config.kind === DatasourceKindType.Content && ds.config.deletable) &&
                                         <PopupMenuIcon onClick={()=>handleDelete(ds.datasourceId)}>
                                             <MdDelete />
                                         </PopupMenuIcon>
