@@ -1,4 +1,4 @@
-import { CurrentMap, schema } from "../../279map-backend-common/src";
+import { CurrentMap, DatasourceKindType, MapKind, schema } from "../../279map-backend-common/src";
 import { ConnectionPool } from "..";
 import { PoolConnection } from "mysql2/promise";
 import { ItemContentLink } from "../../279map-backend-common/src/types/schema";
@@ -100,14 +100,17 @@ async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, cat
         select icl.* from item_content_link icl 
         inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id 
         inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
+        inner join data_source ds on ds.data_source_id = i.data_source_id
         where icl.content_page_id = c.content_page_id and icl.content_datasource_id  = c.data_source_id
-        and mdl.map_page_id = ? and i.map_kind = ?
+        and mdl.map_page_id = ?
+        and ds.kind in (?)
         and JSON_CONTAINS(c.category, ?) > 0
         ${dataSourceIds ? 'and i.data_source_id in (?)' : ''}
     )
     `;
     const categoryParam = `["${category}"]`;
-    const params = [currentMap.mapId, currentMap.mapKind, categoryParam] as any[];
+    const dsKind = currentMap.mapKind === MapKind.Virtual ? [DatasourceKindType.VirtualItem] : [DatasourceKindType.RealItem, DatasourceKindType.RealPointContent];
+    const params = [currentMap.mapId, dsKind, categoryParam] as any[];
     if (dataSourceIds) {
         params.push(dataSourceIds);
     }
@@ -140,15 +143,18 @@ async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: s
     where exists (
         select icl.* from item_content_link icl 
         inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id 
+        inner join data_source ds on ds.data_source_id = i.data_source_id
         inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
         where icl.content_page_id = c.content_page_id and icl.content_datasource_id  = c.data_source_id
-        and mdl.map_page_id = ? and i.map_kind = ?
+        and mdl.map_page_id = ?
+        and ds.kind in (?)
         and DATE_FORMAT(date,'%Y-%m-%d') = ?
         ${dataSourceIds ? 'and i.data_source_id in (?)' : ''}
     )
     `;
 
-    const params = [currentMap.mapId, currentMap.mapKind, date] as any[];
+    const dsKind = currentMap.mapKind === MapKind.Virtual ? [DatasourceKindType.VirtualItem] : [DatasourceKindType.RealItem, DatasourceKindType.RealPointContent];
+    const params = [currentMap.mapId, dsKind, date] as any[];
     if (dataSourceIds) {
         params.push(dataSourceIds);
     }
@@ -183,16 +189,19 @@ async function searchByKeyword(con: PoolConnection, currentMap: CurrentMap, keyw
     where exists (
         select icl.* from item_content_link icl 
         inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id 
+        inner join data_source ds on ds.data_source_id = i.data_source_id
         inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
         where icl.content_page_id = c.content_page_id and icl.content_datasource_id  = c.data_source_id
-            and mdl.map_page_id = ? and i.map_kind = ?
-        and (JSON_SEARCH(c.contents, 'one', ?) is not null or c.title like ?)
-        ${dataSourceIds ? 'and i.data_source_id in (?)' : ''}
+            and mdl.map_page_id = ?
+            and ds.kind in (?)
+            and (JSON_SEARCH(c.contents, 'one', ?) is not null or c.title like ?)
+            ${dataSourceIds ? 'and i.data_source_id in (?)' : ''}
     )
     `;
 
     const keywordParam = `%${keyword}%`;
-    const params = [currentMap.mapId, currentMap.mapKind, keywordParam, keywordParam] as any[];
+    const dsKind = currentMap.mapKind === MapKind.Virtual ? [DatasourceKindType.VirtualItem] : [DatasourceKindType.RealItem, DatasourceKindType.RealPointContent];
+    const params = [currentMap.mapId, dsKind, keywordParam, keywordParam] as any[];
     if (dataSourceIds) {
         params.push(dataSourceIds);
     }
@@ -223,13 +232,16 @@ async function searchByKeyword(con: PoolConnection, currentMap: CurrentMap, keyw
 async function searchItemByKeyword(con: PoolConnection, currentMap: CurrentMap, keyword: string, dataSourceIds?: string[]): Promise<DataId[]> {
     const sql = `
         select * from items i 
+        inner join data_source ds on ds.data_source_id = i.data_source_id
         inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
-        where mdl.map_page_id = ? and i.map_kind = ?
+        where mdl.map_page_id = ?
+        and ds.kind in (?)
         and name like ?
         ${dataSourceIds ? 'and i.data_source_id in (?)' : ''}
     `
     const keywordParam = `%${keyword}%`;
-    const params = [currentMap.mapId, currentMap.mapKind, keywordParam] as any[];
+    const dsKind = currentMap.mapKind === MapKind.Virtual ? [DatasourceKindType.VirtualItem] : [DatasourceKindType.RealItem, DatasourceKindType.RealPointContent];
+    const params = [currentMap.mapId, dsKind, keywordParam] as any[];
     if (dataSourceIds) {
         params.push(dataSourceIds);
     }
