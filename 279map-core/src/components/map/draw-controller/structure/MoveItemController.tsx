@@ -54,7 +54,7 @@ export default function MoveItemController(props: Props) {
         }()
     );
 
-    const selectStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style => {
+    const selectStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style | Style[] => {
         if (feature.get('features')) {
             return pointStyleHook.selectedStyleFunction(feature, resolution);
         } else {

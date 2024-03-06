@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import Feature, { FeatureLike } from "ol/Feature";
-import { Fill, Icon, Style, Text } from 'ol/style';
+import { Circle, Fill, Icon, Style, Text } from 'ol/style';
 import { getStructureScale } from "../../util/MapUtility";
 import { SystemIconDefine } from "../../types/types";
 import useFilterStatus from "./useFilterStatus";
@@ -60,7 +60,7 @@ export default function usePointStyle() {
         // 地図上でY座標が下のものほど手前に表示するようにする
         const zIndex = getZindex(param.feature);
 
-        return new Style({
+        const style1 =  new Style({
             image: new Icon({
                 anchor: [0.5, 1],
                 anchorXUnits: 'fraction', //IconAnchorUnits.FRACTION,
@@ -72,6 +72,18 @@ export default function usePointStyle() {
             }),
             zIndex,
         });
+        const style2 =  new Style({
+            image : new Circle({
+                radius : 20,
+                fill: new Fill({
+                    color: '#ffffff',
+               }),
+               displacement: [0, 85],
+               scale,
+            }),
+            zIndex,
+        });
+        return [style1, style2]
     }, [getZindex]);
 
     /**
@@ -161,7 +173,7 @@ export default function usePointStyle() {
     }, [filteredItemIdList, selectedItemId]);
 
     const [ dataSources ] = useAtom(itemDataSourcesAtom);
-    const _createPointStyle = useCallback((feature: Feature<Geometry>, resolution: number, forceColor?: string): Style => {
+    const _createPointStyle = useCallback((feature: Feature<Geometry>, resolution: number, forceColor?: string): Style | Style[] => {
         const { mainFeature, showFeaturesLength } = _analysisFeatures(feature);
 
         let icon = mainFeature.getProperties().icon as IconKey | undefined;
@@ -208,12 +220,22 @@ export default function usePointStyle() {
 
         if (showFeaturesLength > 1) {
             // 複数アイテムがまとまっている場合、まとまっている数を表示
-            setClusterLabel(style, showFeaturesLength);
+            if (Array.isArray(style)) {
+                setClusterLabel(style[0], showFeaturesLength);
+
+            } else {
+                setClusterLabel(style, showFeaturesLength);
+
+            }
 
         } else if (!disabledLabel) {
             // ラベル設定
             const text = createItemNameLabel(mainFeature, resolution, opacity);
-            style.setText(text);
+            if (Array.isArray(style)) {
+                style[0].setText(text);
+            } else {
+                style.setText(text);
+            }
         }
         return style;
 
@@ -223,14 +245,14 @@ export default function usePointStyle() {
      * the style function for ordinaly.
      * 通常時に使用するスタイル
      */
-    const pointStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style => {
+    const pointStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style | Style[] => {
         const style = _createPointStyle(feature as Feature<Geometry>, resolution);
 
         return style;
 
     }, [_createPointStyle]);
 
-    const selectedStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style => {
+    const selectedStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style | Style[] => {
         const style = _createPointStyle(feature as Feature<Geometry>, resolution, STRUCTURE_SELECTED_COLOR);
 
         return style;
