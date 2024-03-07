@@ -15,10 +15,10 @@ import { itemDataSourcesAtom } from "../../store/datasource";
 import { useAtom } from 'jotai';
 import { MapStyles } from "../../util/constant-defines";
 import { DatasourceKindType, IconKey } from "../../types-common/common-types";
-import defaultIcon from '../../store/icon/map-marker.svg';
 import { useAtomCallback } from "jotai/utils";
 import { currentMapKindAtom } from "../../store/session";
 import { MapKind } from "../../entry";
+import { currentDefaultIconAtom } from "../../store/icon";
 
 const STRUCTURE_SELECTED_COLOR = '#8888ff';
 
@@ -73,8 +73,8 @@ export default function usePointStyle() {
                         anchor: [0.5, 1],
                         anchorXUnits: 'fraction', //IconAnchorUnits.FRACTION,
                         anchorYUnits: 'fraction', //IconAnchorUnits.FRACTION,
-                        src: param.iconDefine.imagePath,
-                        color: param.color ?? param.iconDefine.defaultColor,
+                        src: param.iconDefine?.imagePath,
+                        color: param.color,
                         opacity: param.opacity,
                         scale,
                     }),
@@ -83,13 +83,14 @@ export default function usePointStyle() {
 
             } else {
                 // ピン
+                const pinIconDefine = get(currentDefaultIconAtom);
                 const style1 =  new Style({
                     image: new Icon({
                         anchor: [0.5, 1],
                         anchorXUnits: 'fraction', //IconAnchorUnits.FRACTION,
                         anchorYUnits: 'fraction', //IconAnchorUnits.FRACTION,
-                        src: defaultIcon,
-                        color: '#271AA8', // param.color ?? param.iconDefine.defaultColor,
+                        src: pinIconDefine.imagePath,
+                        color: pinIconDefine.defaultColor,
                         opacity: param.opacity,
                         scale,
                     }),
@@ -98,7 +99,7 @@ export default function usePointStyle() {
                 // 白丸
                 const style2 =  new Style({
                     image : new Circle({
-                        radius : 30, // 20,
+                        radius: param.iconDefine.isSystemIcon ? 20 : 30,
                         fill: new Fill({
                                 color: '#ffffff',
                         }),
@@ -107,6 +108,9 @@ export default function usePointStyle() {
                     }),
                     zIndex,
                 });
+                if (param.iconDefine.id === 'default') {
+                    return [style1, style2];
+                }
                 // 画像
                 const style3 =  new Style({
                     image: new Icon({

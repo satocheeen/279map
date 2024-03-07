@@ -76,7 +76,6 @@ export default function DrawPointRadius(props: Props) {
                         anchorXUnits: IconAnchorUnits.FRACTION,
                         anchorYUnits: IconAnchorUnits.FRACTION,
                         src: iconDefine.imagePath,
-                        color: iconDefine.defaultColor,
                         opacity: 1,
                         scale,
                     }),

@@ -2,7 +2,9 @@ import { MapKind } from '../../graphql/generated/graphql';
 import { SystemIconDefine, TsunaguMapProps } from '../../types/types';
 import { currentMapDefineAtom, currentMapKindAtom } from '../session';
 // import defaultIcon from './pin.png'
-import defaultIcon from './map-marker.svg'
+import defaultIconReal from './map-marker.svg';
+import defaultIconRealForMenu from './map-marker-formenu.svg';
+import defaultIconVirtual from './house.png';
 import { atom } from 'jotai';
 
 /**
@@ -26,28 +28,17 @@ const originalIconDefineAtom = atom((get) => {
 
 export const defaultIconDefineAtom = atom<Required<TsunaguMapProps>['iconDefine']>([]);
 
-const iconDefineAtom = atom<SystemIconDefine[]>((get) => {
-    const defaultIconDefine = get(defaultIconDefineAtom);
-    const originalIconDefine = get(originalIconDefineAtom);
-    const list = defaultIconDefine.map(def => {
-        if (def.id === 'default') {
-            return getDefaultIconDefine(def.useMaps);
-        }
-        return Object.assign({
-            type: 'system',
-        } as SystemIconDefine, def);
-    });
-    Array.prototype.push.apply(list, originalIconDefine);
-    return list;        
-})
-
 /**
  * アイコン未指定の場合に設定するアイコン
  */
 export const currentDefaultIconAtom = atom<SystemIconDefine>((get) => {
-    // とりあえず冒頭のアイコン
     const currentMapIconDefine = get(currentMapIconDefineAtom);
-    return currentMapIconDefine[0];
+    const icon = currentMapIconDefine.find(def => def.id === 'default');
+    if (!icon) {
+        console.warn('想定外エラー. default icon not find.');
+        return currentMapIconDefine[0];
+    }
+    return icon;
 })
 
 /**
@@ -56,25 +47,35 @@ export const currentDefaultIconAtom = atom<SystemIconDefine>((get) => {
 export const currentMapIconDefineAtom = atom<SystemIconDefine[]>((get) => {
     const currentMapKind = get(currentMapKindAtom); 
     if (!currentMapKind) return [];
-    
-    const iconDefine = get(iconDefineAtom);
-    const list = iconDefine.filter(def => def.useMaps.indexOf(currentMapKind) !== -1);
-    if (list.length > 0) {
-        return list;
-    }
-    const defaultIconDefine = getDefaultIconDefine([currentMapKind]);
-    return [defaultIconDefine];
-})
 
-function getDefaultIconDefine(useMaps: MapKind[]): SystemIconDefine {
-    return {
-        id: 'default',
-        imagePath: defaultIcon,
-        useMaps,
-        // menuViewCustomCss: {
-        //     filter: 'opacity(0.5) drop-shadow(0 0 0 #aaa)',
-        // },
-        defaultColor: '#271AA8',
-        type: 'system',
+    const defaultIconDefine = get(defaultIconDefineAtom);
+    const originalIconDefine = get(originalIconDefineAtom);
+
+    const allIconDefines = defaultIconDefine.map(def => {
+        return Object.assign({
+            type: 'system',
+        } as SystemIconDefine, def);
+    });
+    Array.prototype.push.apply(allIconDefines, originalIconDefine);
+    
+    const list = allIconDefines.filter(def => def.useMaps.indexOf(currentMapKind) !== -1);
+    // defaultアイコンが外部から与えられていない場合は、設定する
+    const hasDefulat = list.some(def => def.id === 'default');
+    if (!hasDefulat) {
+        const defaultIcon: SystemIconDefine = currentMapKind === MapKind.Real ? {
+            id: 'default',
+            type: 'system',
+            imagePath: defaultIconReal,
+            defaultColor: '#271AA8',
+            imagePathForMenu: defaultIconRealForMenu,
+            isSystemIcon: true,
+        } : {
+            id: 'default',
+            type: 'system',
+            imagePath: defaultIconVirtual,
+        }
+        return [defaultIcon, ...list];
     }
-}
+
+    return list;
+})
