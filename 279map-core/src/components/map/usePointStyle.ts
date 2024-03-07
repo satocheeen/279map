@@ -15,6 +15,10 @@ import { itemDataSourcesAtom } from "../../store/datasource";
 import { useAtom } from 'jotai';
 import { MapStyles } from "../../util/constant-defines";
 import { DatasourceKindType, IconKey } from "../../types-common/common-types";
+import defaultIcon from '../../store/icon/map-marker.svg';
+import { useAtomCallback } from "jotai/utils";
+import { currentMapKindAtom } from "../../store/session";
+import { MapKind } from "../../entry";
 
 const STRUCTURE_SELECTED_COLOR = '#8888ff';
 
@@ -50,41 +54,78 @@ export default function usePointStyle() {
         return zIndex;
     }, [map]);
 
-    const _createStyle = useCallback((param: {iconDefine: SystemIconDefine; feature: Feature<Geometry>; resolution: number; color?: string; opacity?: number}) => {
-        const type = param.feature.getGeometry()?.getType();
-        if (type !== 'Point') {
-            console.warn('geometry type is not point', param.feature);
-            return new Style();
-        }
-        const scale = getStructureScale(param.resolution);
-        // 地図上でY座標が下のものほど手前に表示するようにする
-        const zIndex = getZindex(param.feature);
+    const _createStyle = useAtomCallback(
+        useCallback((get, set, param: {iconDefine: SystemIconDefine; feature: Feature<Geometry>; resolution: number; color?: string; opacity?: number}) => {
+            const type = param.feature.getGeometry()?.getType();
+            if (type !== 'Point') {
+                console.warn('geometry type is not point', param.feature);
+                return new Style();
+            }
+            const scale = getStructureScale(param.resolution);
+            // 地図上でY座標が下のものほど手前に表示するようにする
+            const zIndex = getZindex(param.feature);
 
-        const style1 =  new Style({
-            image: new Icon({
-                anchor: [0.5, 1],
-                anchorXUnits: 'fraction', //IconAnchorUnits.FRACTION,
-                anchorYUnits: 'fraction', //IconAnchorUnits.FRACTION,
-                src: param.iconDefine.imagePath,
-                color: param.color ?? param.iconDefine.defaultColor,
-                opacity: param.opacity,
-                scale,
-            }),
-            zIndex,
-        });
-        const style2 =  new Style({
-            image : new Circle({
-                radius : 20,
-                fill: new Fill({
-                    color: '#ffffff',
-               }),
-               displacement: [0, 85],
-               scale,
-            }),
-            zIndex,
-        });
-        return [style1, style2]
-    }, [getZindex]);
+            const mapKind = get(currentMapKindAtom);
+
+            if (mapKind === MapKind.Virtual) {
+                return new Style({
+                    image: new Icon({
+                        anchor: [0.5, 1],
+                        anchorXUnits: 'fraction', //IconAnchorUnits.FRACTION,
+                        anchorYUnits: 'fraction', //IconAnchorUnits.FRACTION,
+                        src: param.iconDefine.imagePath,
+                        color: param.color ?? param.iconDefine.defaultColor,
+                        opacity: param.opacity,
+                        scale,
+                    }),
+                    zIndex,
+                });
+
+            } else {
+                // ピン
+                const style1 =  new Style({
+                    image: new Icon({
+                        anchor: [0.5, 1],
+                        anchorXUnits: 'fraction', //IconAnchorUnits.FRACTION,
+                        anchorYUnits: 'fraction', //IconAnchorUnits.FRACTION,
+                        src: defaultIcon,
+                        color: '#271AA8', // param.color ?? param.iconDefine.defaultColor,
+                        opacity: param.opacity,
+                        scale,
+                    }),
+                    zIndex,
+                });
+                // 白丸
+                const style2 =  new Style({
+                    image : new Circle({
+                        radius : 30, // 20,
+                        fill: new Fill({
+                                color: '#ffffff',
+                        }),
+                        displacement: [0, 85],
+                        scale,
+                    }),
+                    zIndex,
+                });
+                // 画像
+                const style3 =  new Style({
+                    image: new Icon({
+                        anchor: [0.5, 1],
+                        anchorXUnits: 'fraction', //IconAnchorUnits.FRACTION,
+                        anchorYUnits: 'fraction', //IconAnchorUnits.FRACTION,
+                        src: param.iconDefine.imagePath,
+                        opacity: param.opacity,
+                        scale: scale * 0.3,
+                        displacement: [0, 210],
+                    }),
+                    zIndex,
+                });
+                return [style1, style2, style3]
+
+            }
+
+        }, [getZindex])
+    )
 
     /**
      * the style function for drawing.
