@@ -108,7 +108,7 @@ export default function usePointStyle() {
                         fill: new Fill({
                                 color: param.color ?? '#ffffff',
                         }),
-                        displacement: [0, 85],
+                        displacement: [0, 84],
                         scale,
                     }),
                     zIndex,
