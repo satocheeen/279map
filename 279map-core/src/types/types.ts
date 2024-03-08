@@ -56,7 +56,6 @@ export type TsunaguMapProps = {
      */
     popupMode?: 'hidden' | 'minimum' | 'maximum';
     disabledLabel?: boolean; // when true, the item's label hidden.
-    disabledContentDialog?: boolean;    // when true, the content dialog didn't show even if you click a item.
 
     /**
      * フィルタ時にフィルタ対象外の建物やピンをどう表示するか

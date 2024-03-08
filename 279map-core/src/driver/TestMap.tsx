@@ -20,6 +20,7 @@ import GetUnlinkedContentDriver from './get-unpoint-content/GetUnpointContentDri
 import LinkContentDriver from './linkcontent/LinkContentDriver';
 import ItemController from './item-controller/ItemContriller';
 import SwitchMapKindDriver from './switch-mapkind/SwitchMapKindDriver';
+import BasicSettingDriver from './basic-settings/BasicSettingDriver';
 
 export const DriverContext = React.createContext({
     getMap: () => null as TsunaguMapHandler | null,
@@ -34,6 +35,9 @@ export const DriverContext = React.createContext({
 
     filterUnmatchView: 'hidden' as TsunaguMapProps['filterUnmatchView'],
     setFilterUnmatchView: (val: TsunaguMapProps['filterUnmatchView']) => {},
+
+    setPopupMode: (val: TsunaguMapProps['popupMode']) => {},
+    setDisableLabel: (val: boolean) => {},
 })
 const props = {
     mapId,
@@ -57,7 +61,6 @@ const props = {
     ]
 } as TsunaguMapProps;
 
-const defaultPopupMode: TsunaguMapProps['popupMode'] = 'maximum';
 export default function TestMap() {
     const mapRef = useRef<TsunaguMapHandler>(null);
 
@@ -104,11 +107,9 @@ export default function TestMap() {
     const [ mapKind, setMapKind ] = useState(MapKind.Real);
 
     // switch popup
-    const [ popupMode, setPopupMode ] = useState<TsunaguMapProps['popupMode']>(defaultPopupMode);
+    const [ popupMode, setPopupMode ] = useState<TsunaguMapProps['popupMode']>('maximum');
 
     const [ disabledLabel, setDisableLabel ] = useState(false);
-
-    const [ disabledContentDialog, setDisableContentDialog ] = useState(false);
 
     const [ itemDatasources, setItemDatasources] = useState<ItemDatasourceInfo[]>([]);
     const [ contentDatasources, setContentDatasources] = useState<ContentDatasourceInfo[]>([]);
@@ -126,15 +127,6 @@ export default function TestMap() {
         addConsole('onItemDatasourcesVisibleChanged', param)
         setItemDatasourceVisibleList(param);
     }, [addConsole]);
-
-    const switchMapKind = useCallback((mapKind: MapKind) => {
-        mapRef.current?.switchMapKind(mapKind);
-    }, []);
-
-    const handleSelectItemByUser = useCallback(async() => {
-        const result = await mapRef.current?.selectItemByUser();
-        console.log('select item', result);
-    }, []);
 
     // callbacks
     const handleSelectChange = useCallback((item: DataId|null) => {
@@ -239,7 +231,6 @@ export default function TestMap() {
                     mapServer={mapServer}
                     popupMode={popupMode}
                     disabledLabel={disabledLabel}
-                    disabledContentDialog={disabledContentDialog}
                     filterUnmatchView={filterUnmatchView}
                     onConnect={onConnect}
                     onMapLoad={onMapLoad}
@@ -270,11 +261,15 @@ export default function TestMap() {
                     loadedItems,
                     filterUnmatchView,
                     setFilterUnmatchView,
+                    setPopupMode,
+                    setDisableLabel,
                 }}
             >
                 <div className={styles.HorizontalArea}>
                     <AuthPanel />
                     <SwitchMapKindDriver />
+                    <BasicSettingDriver />
+ 
                     <ItemController />
                 </div>
                 <div className={styles.VerticalArea}>
@@ -292,33 +287,3 @@ export default function TestMap() {
     );
 }
 
-type PropRadioProps<T> = {
-    name: string;
-    onChange: (val: T) => void;
-    items: {
-        label: string;
-        value: T;
-    }[];
-    default?: T;
-}
-function PropRadio<T>(props: PropRadioProps<T>) {
-    const [ value, setValue ] = useState<T>(props.default ?? props.items[0].value);
-    const onChange = useCallback((val: T) => {
-        setValue(val);
-        props.onChange(val);
-    }, [props]);
-
-    return (
-        <div className={styles.Row}>
-            <span className={styles.PropName}>{props.name}</span>
-            {props.items.map((item, index) => {
-                return (
-                    <label key={index}>
-                        <input type="radio" checked={item.value === value} onChange={() => onChange(item.value)} />
-                        {item.label}
-                    </label>
-                );
-            })}
-        </div>
-    )
-}
