@@ -72,10 +72,12 @@ export default function SelectStructureDialog(props: Props) {
             if (def.imagePath === selectedDefine?.imagePath) {
                 className += " " + styles.active;
             }
-            return <li className={className} key={def.imagePath}
-                onClick={()=>onSelect(def)}>
-                <img src={def.imagePath} alt={def.id} style={def.menuViewCustomCss} />
-            </li>
+            return (
+                <li className={className} key={def.imagePath}
+                    onClick={()=>onSelect(def)}>
+                        <img src={def.imagePathForMenu ?? def.imagePath} alt={def.id} />
+                </li>
+            )
         });
         return (
             <ul className={styles.listGroup}>

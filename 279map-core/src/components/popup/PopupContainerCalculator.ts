@@ -201,8 +201,9 @@ export default class PopupContainerCalculator {
 
         if (feature.getGeometry()?.getType() === 'Point') {
             // 建物orピンの場合、アイコンの上部にポップアップを表示する
-            const style = pointStyleFunction(feature, this._map.currentResolution) as Style;
-            const image = style.getImage();
+            const style = pointStyleFunction(feature, this._map.currentResolution);
+            if (!style) return;
+            const image = Array.isArray(style) ? style[0].getImage() : style.getImage();
             const pixel = this._map.getPixelFromCoordinate([itemPosition.longitude, itemPosition.latitude]);
             const imageSize = image?.getSize();
             if (!imageSize || imageSize.length < 2 || !pixel || pixel.length < 2) {

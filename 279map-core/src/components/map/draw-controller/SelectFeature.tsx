@@ -79,7 +79,7 @@ export default function SelectFeature(props: Props) {
             condition: click,
             toggleCondition: never,     // Shiftを押しながらの複数選択禁止
             layers: targetLayers.map(l => l.layer),
-            style: (feature: FeatureLike, resolution: number): Style => {
+            style: (feature: FeatureLike, resolution: number): Style | Style[] => {
                 if (feature.get('features')) {
                     // Cluster(Point)の場合
                     return selectedStyleFunction(feature, resolution);

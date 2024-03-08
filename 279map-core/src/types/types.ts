@@ -1,5 +1,4 @@
-import { CSSProperties } from "react";
-import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, MutationLinkContentArgs, MutationRegistContentArgs, MutationUpdateContentArgs, SnsPreviewResult, GetItemsQuery, ThumbSize } from "../graphql/generated/graphql";
+import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, SnsPreviewResult, GetItemsQuery, ThumbSize } from "../graphql/generated/graphql";
 import { DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
 import { OperationResult } from "urql";
 
@@ -48,11 +47,7 @@ export type TsunaguMapProps = {
         ssl: boolean;   // SSL通信の場合、true
         token?: string;
     };
-    iconDefine?: (DefaultIconDefine | {
-        // デフォルトアイコンを指定する場合に使用
-        id: 'default';
-        useMaps: MapKind[];
-    })[];
+    iconDefine?: IconDefine[];
     /**
      * ポップアップ表示モード
      * - hidden: ポップアップ表示しない
@@ -340,15 +335,14 @@ export type FeatureProperties = {
 } & GeoProperties;
 
 /**
- * アイコン定義
+ * 現在の地図で使用可能なアイコン定義
  */
-export type SystemIconDefine = DefaultIconDefine & {
+export type SystemIconDefine = Omit<IconDefine, 'useMaps'> & {
     type: IconKey['type'],
-}
-export type DefaultIconDefine = IconDefine & {
-    // 建物選択メニューで表示する際にCSS変更する場合に指定（色の微調整など）
-    menuViewCustomCss?: CSSProperties;
-    defaultColor?: string;
+    defaultColor?: string;  // デフォルト塗りつぶし色（ピン画像などでの使用を想定）
+    imagePathForMenu?: string;  // 建設メニューや重畳選択メニューに表示するアイコン画像を異なるものにする場合に指定。（白色のSVG画像などを用いる場合を想定）
+
+    isSystemIcon?: boolean; // システムデフォルトのアイコンの場合、true。（ピンの上に白丸を置く関係でひとまず設定）
 }
 
 export type NewContentInfoParam = {

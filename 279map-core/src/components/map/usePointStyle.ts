@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import Feature, { FeatureLike } from "ol/Feature";
-import { Fill, Icon, Style, Text } from 'ol/style';
+import { Circle, Fill, Icon, Style, Text } from 'ol/style';
 import { getStructureScale } from "../../util/MapUtility";
 import { SystemIconDefine } from "../../types/types";
 import useFilterStatus from "./useFilterStatus";
@@ -15,6 +15,10 @@ import { itemDataSourcesAtom } from "../../store/datasource";
 import { useAtom } from 'jotai';
 import { MapStyles } from "../../util/constant-defines";
 import { DatasourceKindType, IconKey } from "../../types-common/common-types";
+import { useAtomCallback } from "jotai/utils";
+import { currentMapKindAtom } from "../../store/session";
+import { MapKind } from "../../entry";
+import { currentDefaultIconAtom } from "../../store/icon";
 
 const STRUCTURE_SELECTED_COLOR = '#8888ff';
 
@@ -50,29 +54,87 @@ export default function usePointStyle() {
         return zIndex;
     }, [map]);
 
-    const _createStyle = useCallback((param: {iconDefine: SystemIconDefine; feature: Feature<Geometry>; resolution: number; color?: string; opacity?: number}) => {
-        const type = param.feature.getGeometry()?.getType();
-        if (type !== 'Point') {
-            console.warn('geometry type is not point', param.feature);
-            return new Style();
-        }
-        const scale = getStructureScale(param.resolution);
-        // 地図上でY座標が下のものほど手前に表示するようにする
-        const zIndex = getZindex(param.feature);
+    const _createStyle = useAtomCallback(
+        useCallback((get, set, param: {iconDefine: SystemIconDefine; feature: Feature<Geometry>; resolution: number; color?: string; opacity?: number}) => {
+            const type = param.feature.getGeometry()?.getType();
+            if (type !== 'Point') {
+                console.warn('geometry type is not point', param.feature);
+                return new Style();
+            }
+            const scale = getStructureScale(param.resolution);
+            // 地図上でY座標が下のものほど手前に表示するようにする
+            const zIndex = getZindex(param.feature);
 
-        return new Style({
-            image: new Icon({
-                anchor: [0.5, 1],
-                anchorXUnits: 'fraction', //IconAnchorUnits.FRACTION,
-                anchorYUnits: 'fraction', //IconAnchorUnits.FRACTION,
-                src: param.iconDefine.imagePath,
-                color: param.color ?? param.iconDefine.defaultColor,
-                opacity: param.opacity,
-                scale,
-            }),
-            zIndex,
-        });
-    }, [getZindex]);
+            const mapKind = get(currentMapKindAtom);
+
+            if (mapKind === MapKind.Virtual) {
+                return new Style({
+                    image: new Icon({
+                        anchor: [0.5, 1],
+                        anchorXUnits: 'fraction', //IconAnchorUnits.FRACTION,
+                        anchorYUnits: 'fraction', //IconAnchorUnits.FRACTION,
+                        src: param.iconDefine?.imagePath,
+                        color: param.color,
+                        opacity: param.opacity,
+                        scale,
+                    }),
+                    zIndex,
+                });
+
+            } else {
+                // ピン
+                const pinIconDefine = get(currentDefaultIconAtom);
+                const pinColor = function() {
+                    if (!param.color) return pinIconDefine.defaultColor;
+                    if (!pinIconDefine.defaultColor) return param.color;
+                    return multipleColor(pinIconDefine.defaultColor, param.color);
+                }();
+                const style1 =  new Style({
+                    image: new Icon({
+                        anchor: [0.5, 1],
+                        anchorXUnits: 'fraction', //IconAnchorUnits.FRACTION,
+                        anchorYUnits: 'fraction', //IconAnchorUnits.FRACTION,
+                        src: pinIconDefine.imagePath,
+                        color: pinColor,
+                        opacity: param.opacity,
+                        scale,
+                    }),
+                    zIndex,
+                });
+                // 白丸
+                const style2 =  new Style({
+                    image : new Circle({
+                        radius: param.iconDefine.isSystemIcon ? 20 : 30,
+                        fill: new Fill({
+                                color: param.color ?? '#ffffff',
+                        }),
+                        displacement: [0, 84],
+                        scale,
+                    }),
+                    zIndex,
+                });
+                if (param.iconDefine.id === 'default') {
+                    return [style1, style2];
+                }
+                // 画像
+                const style3 =  new Style({
+                    image: new Icon({
+                        anchor: [0.5, 1],
+                        anchorXUnits: 'fraction', //IconAnchorUnits.FRACTION,
+                        anchorYUnits: 'fraction', //IconAnchorUnits.FRACTION,
+                        src: param.iconDefine.imagePath,
+                        opacity: param.opacity,
+                        scale: scale * 0.3,
+                        displacement: [0, 210],
+                    }),
+                    zIndex,
+                });
+                return [style1, style2, style3]
+
+            }
+
+        }, [getZindex])
+    )
 
     /**
      * the style function for drawing.
@@ -161,7 +223,7 @@ export default function usePointStyle() {
     }, [filteredItemIdList, selectedItemId]);
 
     const [ dataSources ] = useAtom(itemDataSourcesAtom);
-    const _createPointStyle = useCallback((feature: Feature<Geometry>, resolution: number, forceColor?: string): Style => {
+    const _createPointStyle = useCallback((feature: Feature<Geometry>, resolution: number, forceColor?: string): Style | Style[] => {
         const { mainFeature, showFeaturesLength } = _analysisFeatures(feature);
 
         let icon = mainFeature.getProperties().icon as IconKey | undefined;
@@ -208,12 +270,22 @@ export default function usePointStyle() {
 
         if (showFeaturesLength > 1) {
             // 複数アイテムがまとまっている場合、まとまっている数を表示
-            setClusterLabel(style, showFeaturesLength);
+            if (Array.isArray(style)) {
+                setClusterLabel(style[0], showFeaturesLength);
+
+            } else {
+                setClusterLabel(style, showFeaturesLength);
+
+            }
 
         } else if (!disabledLabel) {
             // ラベル設定
             const text = createItemNameLabel(mainFeature, resolution, opacity);
-            style.setText(text);
+            if (Array.isArray(style)) {
+                style[0].setText(text);
+            } else {
+                style.setText(text);
+            }
         }
         return style;
 
@@ -223,14 +295,14 @@ export default function usePointStyle() {
      * the style function for ordinaly.
      * 通常時に使用するスタイル
      */
-    const pointStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style => {
+    const pointStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style | Style[] => {
         const style = _createPointStyle(feature as Feature<Geometry>, resolution);
 
         return style;
 
     }, [_createPointStyle]);
 
-    const selectedStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style => {
+    const selectedStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style | Style[] => {
         const style = _createPointStyle(feature as Feature<Geometry>, resolution, STRUCTURE_SELECTED_COLOR);
 
         return style;
@@ -302,4 +374,36 @@ function setClusterLabel(style: Style, size: number) {
         scale: 1.2,
     });
     style.setText(text);
+}
+
+function paraseRgb(hexColor: string) {
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+    
+    return {r, g, b}
+}
+
+function decimalToHex(decimalValue: number) {
+    // 255を超える場合は255に丸める
+    const clampedValue = Math.min(decimalValue, 255);
+    // 16進数に変換して返す
+    return clampedValue.toString(16).padStart(2, '0');
+}
+
+function multipleColor(color1: string, color2: string) {
+    const rgb1 = paraseRgb(color1);
+    const rgb2 = paraseRgb(color2);
+
+    // 乗算した色を計算
+    const newColor = {
+        r: Math.min(Math.round(rgb1.r * rgb2.r / 255), 255),
+        g: Math.min(Math.round(rgb1.g * rgb2.g / 255), 255),
+        b: Math.min(Math.round(rgb1.b * rgb2.b / 255), 255)
+    };
+
+    const redHex = decimalToHex(newColor.r);
+    const greenHex = decimalToHex(newColor.g);
+    const blueHex = decimalToHex(newColor.b);
+    return `#${redHex}${greenHex}${blueHex}`;
 }

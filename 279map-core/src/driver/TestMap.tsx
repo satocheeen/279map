@@ -38,10 +38,12 @@ export const DriverContext = React.createContext({
 const props = {
     mapId,
     iconDefine: [
-        {
-            id: 'default',
-            useMaps: [MapKind.Real],
-        },
+        // id=default指定すると、defaultアイコンを差し替えられる
+        // {
+        //     id: 'default',
+        //     imagePath: './icon/icon0066_ss.png',
+        //     useMaps: [MapKind.Real],
+        // },
         {
             id: 'house',
             imagePath: './icon/house.png',
