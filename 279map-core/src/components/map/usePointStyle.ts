@@ -84,13 +84,18 @@ export default function usePointStyle() {
             } else {
                 // ピン
                 const pinIconDefine = get(currentDefaultIconAtom);
+                const pinColor = function() {
+                    if (!param.color) return pinIconDefine.defaultColor;
+                    if (!pinIconDefine.defaultColor) return param.color;
+                    return multipleColor(pinIconDefine.defaultColor, param.color);
+                }();
                 const style1 =  new Style({
                     image: new Icon({
                         anchor: [0.5, 1],
                         anchorXUnits: 'fraction', //IconAnchorUnits.FRACTION,
                         anchorYUnits: 'fraction', //IconAnchorUnits.FRACTION,
                         src: pinIconDefine.imagePath,
-                        color: pinIconDefine.defaultColor,
+                        color: pinColor,
                         opacity: param.opacity,
                         scale,
                     }),
@@ -101,7 +106,7 @@ export default function usePointStyle() {
                     image : new Circle({
                         radius: param.iconDefine.isSystemIcon ? 20 : 30,
                         fill: new Fill({
-                                color: '#ffffff',
+                                color: param.color ?? '#ffffff',
                         }),
                         displacement: [0, 85],
                         scale,
@@ -369,4 +374,36 @@ function setClusterLabel(style: Style, size: number) {
         scale: 1.2,
     });
     style.setText(text);
+}
+
+function paraseRgb(hexColor: string) {
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+    
+    return {r, g, b}
+}
+
+function decimalToHex(decimalValue: number) {
+    // 255を超える場合は255に丸める
+    const clampedValue = Math.min(decimalValue, 255);
+    // 16進数に変換して返す
+    return clampedValue.toString(16).padStart(2, '0');
+}
+
+function multipleColor(color1: string, color2: string) {
+    const rgb1 = paraseRgb(color1);
+    const rgb2 = paraseRgb(color2);
+
+    // 乗算した色を計算
+    const newColor = {
+        r: Math.min(Math.round(rgb1.r * rgb2.r / 255), 255),
+        g: Math.min(Math.round(rgb1.g * rgb2.g / 255), 255),
+        b: Math.min(Math.round(rgb1.b * rgb2.b / 255), 255)
+    };
+
+    const redHex = decimalToHex(newColor.r);
+    const greenHex = decimalToHex(newColor.g);
+    const blueHex = decimalToHex(newColor.b);
+    return `#${redHex}${greenHex}${blueHex}`;
 }
