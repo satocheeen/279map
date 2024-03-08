@@ -125,7 +125,7 @@ export default function usePointStyle() {
                         src: param.iconDefine.imagePath,
                         opacity: param.opacity,
                         scale: scale * 0.3,
-                        displacement: [0, 210],
+                        displacement: [0, 186],
                     }),
                     zIndex,
                 });
