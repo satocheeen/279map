@@ -117,7 +117,7 @@ export class OlMapWrapper {
             // 最大Zoom時は、まとめない
             this._vectorLayerMap.setClusterDistance(0, 0);
         } else {
-            const structureScale = MapUtility.getStructureScale(resolution);
+            const structureScale = MapUtility.getStructureScale(resolution, this._mapKind);
             this._vectorLayerMap.setClusterDistance(80 * structureScale, 20 * structureScale);
         }
     }

@@ -20,7 +20,7 @@ import { getDistance } from 'geolib';
 import FormGroup from '../../../common/form/FormGroup';
 import Input from '../../../common/form/Input';
 import { useMap } from '../../useMap';
-import { GeocoderTarget } from '../../../../graphql/generated/graphql';
+import { GeocoderTarget, MapKind } from '../../../../graphql/generated/graphql';
 import { FeatureType } from '../../../../types-common/common-types';
 
 type Props = {
@@ -69,7 +69,7 @@ export default function DrawPointRadius(props: Props) {
             if (type === 'Point') {
                 const iconDefine = iconHook.getIconDefine();
 
-                const scale = getStructureScale(resolution);
+                const scale = getStructureScale(resolution, MapKind.Real);
                 return new Style({
                     image: new Icon({
                         anchor: [0.5, 1],

@@ -61,11 +61,12 @@ export default function usePointStyle() {
                 console.warn('geometry type is not point', param.feature);
                 return new Style();
             }
-            const scale = getStructureScale(param.resolution);
+            const mapKind = get(currentMapKindAtom);
+
+            const scale = getStructureScale(param.resolution, mapKind);
             // 地図上でY座標が下のものほど手前に表示するようにする
             const zIndex = getZindex(param.feature);
 
-            const mapKind = get(currentMapKindAtom);
 
             if (mapKind === MapKind.Virtual) {
                 return new Style({
@@ -104,7 +105,7 @@ export default function usePointStyle() {
                 // 白丸
                 const style2 =  new Style({
                     image : new Circle({
-                        radius: param.iconDefine.isSystemIcon ? 20 : 30,
+                        radius: param.iconDefine.isSystemIcon ? 16 : 30,
                         fill: new Fill({
                                 color: param.color ?? '#ffffff',
                         }),

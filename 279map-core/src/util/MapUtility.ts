@@ -17,6 +17,7 @@ import { getCenter as getExtentCenter } from 'ol/extent';
 import { Cluster } from 'ol/source';
 import { circle, lineString, multiLineString, multiPolygon, polygon, buffer } from '@turf/turf';
 import { FeatureType, GeoProperties } from '../types-common/common-types';
+import { MapKind } from '../graphql/generated/graphql';
 
 /**
  * GeoJSONを元に対応するジオメトリを生成して返す
@@ -46,8 +47,10 @@ import { FeatureType, GeoProperties } from '../types-common/common-types';
  * @param resolution 
  * @returns 
  */
-export function getStructureScale(resolution: number): number {
-    const scale = Math.min(0.001 * (1 / resolution), 1);
+export function getStructureScale(resolution: number, mapKind: MapKind|undefined): number {
+    // 世界地図のピンは小さめ
+    const scale = Math.min(0.001 * (1 / resolution), 1) * (mapKind === MapKind.Virtual ? 1 : 0.7);
+    if (mapKind === MapKind.Real && scale < 0.1) return 0.1;
     return scale;
 }
 
