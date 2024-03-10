@@ -9,7 +9,7 @@ import { getContents } from './getContents';
 import { getEvents } from './getEvents';
 import proxy from 'express-http-proxy';
 import http from 'http';
-import { getAncestorItemId, getItemWkt } from './util/utility';
+import { getAncestorItemId, getDatasourceRecord, getItemWkt } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
 import { getSnsPreview } from './api/getSnsPreview';
@@ -45,7 +45,7 @@ import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { execute, subscribe } from 'graphql';
 import { ApolloServer } from 'apollo-server-express';
 import MyPubSub, { SubscriptionArgs } from './graphql/MyPubSub';
-import { DataId } from './types-common/common-types';
+import { DataId, DatasourceKindType } from './types-common/common-types';
 import { AuthMethod, ItemDefineWithoudContents } from './types';
 
 type GraphQlContextType = {
@@ -936,10 +936,16 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
             },
             /**
-             * コンテンツ削除
+             * コンテンツ紐づけ解除
              */
             unlinkContent: async(parent: any, param: MutationUnlinkContentArgs, ctx): MutationResolverReturnType<'unlinkContent'> => {
                 try {
+                    // アイテムと一体になったコンテンツは紐づけ解除不可
+                    const datasource = await getDatasourceRecord(param.id.dataSourceId);
+                    if (datasource.kind === DatasourceKindType.RealPointContent && param.id.id === param.parent.id.id && param.id.dataSourceId === param.parent.id.dataSourceId) {
+                        throw new Error('this content can not unlink with the item because this is same record.');
+                    }
+
                     // TODO: 親がコンテンツの場合の考慮（ODBA側のインタフェース対応後）
                     // call ODBA
                     await callOdbaApi(OdbaUnlinkContentAPI, {
@@ -972,6 +978,11 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             },
             removeContent: async(parent: any, param: MutationRemoveContentArgs, ctx): MutationResolverReturnType<'removeContent'> => {
                 try {
+                    // データソース種別がRealPointContentの場合は、受け付けない（removeItemでのみ削除可能）
+                    const datasource = await getDatasourceRecord(param.id.dataSourceId);
+                    if (datasource.kind !== DatasourceKindType.Content) {
+                        throw new Error('the content can not remove.');
+                    }
 
                     // call ODBA
                     await callOdbaApi(OdbaRemoveContentAPI, {

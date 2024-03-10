@@ -218,3 +218,20 @@ export function geoJsonToTurfFeatureCollection(geoJsons: (geojson.Geometry | geo
     })
     return list;
 }
+
+export async function getDatasourceRecord(datasourceId: string): Promise<schema.DataSourceTable> {
+    const con = await ConnectionPool.getConnection();
+
+    try {
+        const sql = 'select * from data_source where data_source_id = ?';
+        const [rows] = await con.execute(sql, [datasourceId]);
+        if ((rows as []).length === 0) {
+            throw new Error('data_source not find. ->' + datasourceId);
+        }
+        return (rows as schema.DataSourceTable[])[0];
+
+    } finally {
+        await con.commit();
+        con.release();
+    }
+}
