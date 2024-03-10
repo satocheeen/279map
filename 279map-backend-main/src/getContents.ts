@@ -5,6 +5,7 @@ import { CurrentMap, DatasourceConfig } from '../279map-backend-common/src';
 import { Auth, ContentsDefine, MapKind } from './graphql/__generated__/types';
 import { DatasourceKindType, DataId } from './types-common/common-types';
 import dayjs from 'dayjs';
+import { isEqualId } from './util/utility';
 
 type GetContentsParam = ({
     itemId: DataId;
@@ -22,7 +23,7 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
     try {
         const allContents = [] as ContentsDefine[];
 
-        const convertRecord = async(row: ContentsDatasourceRecord): Promise<ContentsDefine> => {
+        const convertRecord = async(row: ContentsDatasourceRecord, itemId?: DataId): Promise<ContentsDefine> => {
             const contents = row.contents ? row.contents as ContentsInfo: undefined;
             let isSnsContent = false;
             if (row.supplement) {
@@ -51,6 +52,12 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
                 if (authLv === Auth.None || authLv === Auth.View) {
                     return false;
                 }
+
+                // アイテムと対になっているコンテンツは削除不可
+                if (row.kind === DatasourceKindType.RealPointContent && itemId && isEqualId(itemId, { id: row.content_page_id, dataSourceId: row.data_source_id})) {
+                    return false;
+                }
+
                 // 別の地図で使用されている場合は削除不可にする
                 if (usingAnotherMap) return false;
         
@@ -137,7 +144,7 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
             }
 
             for (const row of myRows) {
-                const content = await convertRecord(row);
+                const content = await convertRecord(row, 'itemId' in target ? target.itemId : undefined);
                 // 子孫コンテンツを取得
                 content.children = await getChildren(row);
                 allContents.push(content);

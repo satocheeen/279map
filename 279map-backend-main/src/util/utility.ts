@@ -235,3 +235,7 @@ export async function getDatasourceRecord(datasourceId: string): Promise<schema.
         con.release();
     }
 }
+
+export function isEqualId(id1: DataId, id2: DataId): boolean {
+    return id1.id === id2.id && id1.dataSourceId === id2.dataSourceId;
+}
