@@ -1,6 +1,6 @@
 import { Request, Response, Express } from 'express';
 import { Logger } from "log4js";
-import { OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetLinkableContentsResult, OdbaGetUnpointDataAPI, OdbaLinkContentDatasourceToMapAPI, OdbaLinkContentDatasourceToMapParam, OdbaLinkContentToItemAPI, OdbaLinkContentToItemParam, OdbaRegistContentAPI, OdbaRegistContentParam, OdbaRegistItemAPI, OdbaRegistItemParam, OdbaRemoveContentAPI, OdbaRemoveContentParam, OdbaRemoveItemAPI, OdbaRemoveItemParam, OdbaUnlinkContentDatasourceFromMapAPI, OdbaUnlinkContentDatasourceFromMapParam, OdbaUpdateContentAPI, OdbaUpdateContentParam, OdbaUpdateItemAPI, OdbaUpdateItemParam } from "./dba-api-interface";
+import { OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetLinkableContentsResult, OdbaGetUnpointDataAPI, OdbaLinkContentDatasourceToMapAPI, OdbaLinkContentDatasourceToMapParam, OdbaLinkContentToItemAPI, OdbaLinkContentToItemParam, OdbaRegistContentAPI, OdbaRegistContentParam, OdbaRegistItemAPI, OdbaRegistItemParam, OdbaRemoveContentAPI, OdbaRemoveContentParam, OdbaRemoveItemAPI, OdbaRemoveItemParam, OdbaUnlinkContentAPI, OdbaUnlinkContentDatasourceFromMapAPI, OdbaUnlinkContentDatasourceFromMapParam, OdbaUnlinkContentParam, OdbaUpdateContentAPI, OdbaUpdateContentParam, OdbaUpdateItemAPI, OdbaUpdateItemParam } from "./dba-api-interface";
 import OdbaInterface from "./OdbaInterface";
 import { APIDefine, CurrentMap } from "../types";
 import { DataId } from '../types-common/common-types';
@@ -52,32 +52,35 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
         {
             define: OdbaRemoveContentAPI,
             func: async(param: OdbaAPIFuncParam<OdbaRemoveContentParam>): Promise<void> => {
-
-                if (param.param.mode === 'alldelete') {
-                    await odba.removeContentOdb({
-                        currentMap: param.param.currentMap, 
-                        contentId: param.param.id,
-                    });
-                    await odba.removeContentCache({
-                        currentMap: param.param.currentMap, 
-                        contentId: param.param.id,
-                    });
-
-                } else if(param.param.parentContentId) {
-                    // 子コンテンツを外す場合
+                await odba.removeContentOdb({
+                    currentMap: param.param.currentMap, 
+                    contentId: param.param.id,
+                });
+                await odba.removeContentCache({
+                    currentMap: param.param.currentMap, 
+                    contentId: param.param.id,
+                });
+            }
+        },
+        {
+            define: OdbaUnlinkContentAPI,
+            func: async(param: OdbaAPIFuncParam<OdbaUnlinkContentParam>): Promise<void> => {
+                if (param.param.parent.type === 'content') {
+                    // 子コンテンツとの接続を切る場合
                     await odba.unlinkContent({
                         currentMap: param.param.currentMap, 
                         parent: {
-                            contentId: param.param.parentContentId,
+                            contentId: param.param.parent.contentId,
                         },
                         childContentId: param.param.id,
                     })
+
                 } else {
                     // アイテムとの接続を切った場合
                     await odba.unlinkContent({
                         currentMap: param.param.currentMap, 
                         parent: {
-                            itemId: param.param.itemId,
+                            itemId: param.param.parent.itemId,
                         },
                         childContentId: param.param.id,
                     })

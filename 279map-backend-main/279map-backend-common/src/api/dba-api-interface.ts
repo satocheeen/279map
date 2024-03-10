@@ -81,10 +81,25 @@ export const OdbaRemoveContentAPI = {
 
 export type OdbaRemoveContentParam = CommonParam & {
     id: DataId;
-    itemId: DataId;
-    parentContentId?: DataId;
-    mode: 'unlink' | 'alldelete';   // コンテンツデータ自体は残す場合、unlink。コンテンツデータごと削除する場合、alldelete。
 }
+
+export const OdbaUnlinkContentAPI = {
+    uri: 'unlink-content',
+    method: 'post',
+    resultType: 'none',
+} as APIDefine<OdbaUnlinkContentParam, void>;
+
+export type OdbaUnlinkContentParam = CommonParam & {
+    id: DataId;
+    parent: {
+        type: 'item';
+        itemId: DataId;
+    } | {
+        type: 'content';
+        contentId: DataId;
+    }
+}
+
 /**
  * update item
  */
