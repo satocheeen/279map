@@ -19,7 +19,7 @@ export async function getLinkedItemIdList(contentId: DataId): Promise<Result[]> 
         const sql = `
         select * from item_content_link icl 
         inner join items i on i.item_page_id = icl.item_page_id  and i.data_source_id = icl.item_datasource_id 
-        inner join data_sources ds on ds.data_source_id = i.data_source_id
+        inner join data_source ds on ds.data_source_id = i.data_source_id
         inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id
         where icl.content_page_id = ? and icl.content_datasource_id = ?
         `;

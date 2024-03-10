@@ -24,7 +24,7 @@ import { Auth0Management } from './auth/Auth0Management';
 import { OriginalAuthManagement } from './auth/OriginalAuthManagement';
 import { NoneAuthManagement } from './auth/NoneAuthManagement';
 import { CurrentMap, getImageBase64, sleep } from '../279map-backend-common/src';
-import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUnpointDataAPI, OdbaLinkContentDatasourceToMapAPI, OdbaLinkContentToItemAPI, OdbaRegistContentAPI, OdbaRegistItemAPI, OdbaRemoveContentAPI, OdbaRemoveItemAPI, OdbaUnlinkContentDatasourceFromMapAPI, OdbaUpdateContentAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
+import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUnpointDataAPI, OdbaLinkContentDatasourceToMapAPI, OdbaLinkContentToItemAPI, OdbaRegistContentAPI, OdbaRegistItemAPI, OdbaRemoveContentAPI, OdbaRemoveItemAPI, OdbaUnlinkContentAPI, OdbaUnlinkContentDatasourceFromMapAPI, OdbaUpdateContentAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
 import SessionManager from './session/SessionManager';
 import { geojsonToWKT } from '@terraformer/wkt';
 import { getItemsById } from './api/getItem';
@@ -942,11 +942,13 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 try {
                     // TODO: 親がコンテンツの場合の考慮（ODBA側のインタフェース対応後）
                     // call ODBA
-                    await callOdbaApi(OdbaRemoveContentAPI, {
+                    await callOdbaApi(OdbaUnlinkContentAPI, {
                         currentMap: ctx.currentMap,
                         id: param.id,
-                        itemId: param.parent.id,
-                        mode: 'unlink',
+                        parent: {
+                            type: 'item',
+                            itemId: param.parent.id,
+                        }
                     });
             
                     // 更新通知
@@ -970,22 +972,16 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             },
             removeContent: async(parent: any, param: MutationRemoveContentArgs, ctx): MutationResolverReturnType<'removeContent'> => {
                 try {
-                    // 属するitem一覧を取得
-                    const items = await getLinkedItemIdList(param.id);
 
-                    // TODO: ODBA側のインタフェース対応
                     // call ODBA
                     await callOdbaApi(OdbaRemoveContentAPI, {
                         currentMap: ctx.currentMap,
                         id: param.id,
-                        itemId: {
-                            dataSourceId: '',
-                            id: '',
-                        },
-                        mode: 'alldelete',
                     });
             
                     // 更新通知(完了は待たずに復帰する)
+                    // 属するitem一覧を取得
+                    const items = await getLinkedItemIdList(param.id);
                     Promise.all(items.map(async(item) => {
                         const wkt = await getItemWkt(item.itemId);
                         if (!wkt) {
