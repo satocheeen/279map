@@ -72,7 +72,10 @@ export const allItemsAtom = atom<ItemsByDatasourceMap>((get) => {
         } else if (itemProcess.status === 'deleting') {
             // エラー時は半透明表示するので残す
             if (!itemProcess.error) {
-                delete result[itemProcess.itemId.dataSourceId][itemProcess.itemId.id];
+                // 削除中に地図切り替えをしている場合は存在しないので
+                if (result[itemProcess.itemId.dataSourceId] && result[itemProcess.itemId.dataSourceId][itemProcess.itemId.id]) {
+                    delete result[itemProcess.itemId.dataSourceId][itemProcess.itemId.id];
+                }
             }
         }
     })

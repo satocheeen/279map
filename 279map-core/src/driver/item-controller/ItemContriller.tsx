@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useContext, useMemo, useState } from 'react';
 import { DriverContext } from '../TestMap';
 import styles from '../TestMap.module.scss';
 import { DataId } from '../../entry';
@@ -50,6 +50,14 @@ export default function ItemController(props: Props) {
         }
     }, [itemId, getMap, addConsole]);
 
+    const handleRemoveItem = useCallback(() => {
+        try {
+            getMap()?.removeStructure();
+        } catch(e) {
+            addConsole('removeStructure failed.', e);
+        }
+    }, [getMap])
+
     return (
         <div>
             <div className={styles.PropName}>アイテム情報表示</div>
@@ -65,6 +73,7 @@ export default function ItemController(props: Props) {
                 <div>
                     <button onClick={handleFocusItem}>Focus Item</button>
                     <button onClick={handleLoadContents}>Load Contents</button>
+                    <button onClick={handleRemoveItem}>Remove Item</button>
                 </div>
             </div>
         </div>
