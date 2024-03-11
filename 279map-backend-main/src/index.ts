@@ -972,13 +972,17 @@ app.post(`/api/${GetUnpointDataAPI.uri}`,
             const param = req.body as GetUnpointDataParam;
 
             // 現在の地図上に紐づけ可能なデータソースか確認
-            const checkOk = await checkLinkableDatasource(req.currentMap, param.dataSourceId);
-            if (!checkOk) {
-                res.send({
-                    contents: [],
-                })
-                return;
-            }
+            // 2024/3/11 紐づけ可能なはずのものがはじかれてしまう問題を検出。以下理由より、単純にコメントアウトで対処。
+            //           ・念のためのチェック処理であること
+            //           ・最新mainブランチでは大きく作り替えられている処理で、もう存在しない
+            // const checkOk = await checkLinkableDatasource(req.currentMap, param.dataSourceId);
+            // console.log('checkOk', checkOk, param.dataSourceId);
+            // if (!checkOk) {
+            //     res.send({
+            //         contents: [],
+            //     })
+            //     return;
+            // }
 
             // call ODBA
             const result = await callOdbaApi(OdbaGetUnpointDataAPI, {
