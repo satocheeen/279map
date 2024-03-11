@@ -56,7 +56,7 @@ export default function ItemController(props: Props) {
         } catch(e) {
             addConsole('removeStructure failed.', e);
         }
-    }, [getMap])
+    }, [getMap, addConsole])
 
     return (
         <div>
