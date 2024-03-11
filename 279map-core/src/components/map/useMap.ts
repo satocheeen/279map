@@ -178,14 +178,9 @@ export function useMap() {
                         latestEditedTime,
                         datasourceId: target.datasourceId,
                         excludeItemIds,
+                    }, {
+                        requestPolicy: 'network-only',  // 地図切り替えを繰り返した際にキャッシュが使われると、新たに追加・削除したものが反映されないため。
                     });
-                    // return callApi(GetItemsAPI, {
-                    //     wkt,
-                    //     zoom,
-                    //     latestEditedTime,
-                    //     dataSourceId: target.datasourceId,
-                    //     excludeItemIds,
-                    // });
                 }));
                 
                 // TODO: 地図が切り替えられていたら何もしない
