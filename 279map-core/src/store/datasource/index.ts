@@ -62,7 +62,8 @@ export const itemDatasourcesWithVisibleAtom = atom<ItemDatasourceVisibleList>((g
     }, [] as string[]);
 
     const groups = groupNames.map((groupName): DatasourceVisibleGroup => {
-        const datasources = itemDatasourceVisibleList.filter(ds => ds.groupName === groupName);
+        const datasources = itemDatasourceVisibleList
+                                .filter(ds => ds.groupName === groupName);
         const visible = datasources.every(ds => ds.visible);
         return {
             type: 'group',
@@ -75,7 +76,31 @@ export const itemDatasourcesWithVisibleAtom = atom<ItemDatasourceVisibleList>((g
     // グループにならないもの
     const noGroupDsList = itemDatasourceVisibleList.filter(ds => !ds.groupName);
 
-    return [...groups, ...noGroupDsList];
+    const list = [...groups, ...noGroupDsList];
+
+    // ソート
+    const listWithOrder = list.map(item => {
+        const order = function() {
+            if (item.type === 'group') {
+                // groupの場合は、最も若いindex
+                const orderList = item.datasources.map(ds => {
+                    const index = itemDatasourceVisibleList.findIndex(iv => iv.datasourceId === ds.datasourceId);
+                    return index;
+                });
+                return Math.min(...orderList);
+            } else {
+                return itemDatasourceVisibleList.findIndex(iv => iv.datasourceId === item.datasourceId);
+            }
+        }();
+        return Object.assign({}, item, { order });
+    });
+    return listWithOrder
+        .sort((a, b) => a.order - b.order)
+        .map(item => {
+            const newItem = JSON.parse(JSON.stringify(item));
+            delete newItem.order;
+            return newItem;
+        });
 })
 
 /**
