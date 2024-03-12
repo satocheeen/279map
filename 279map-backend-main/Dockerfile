@@ -13,10 +13,10 @@ RUN npm run build
 
 WORKDIR /home/node/app/backend/dist
 RUN npm init -y
-RUN npm install --platform=linuxmusl --arch=x64 sharp
+RUN npm install --platform=linuxmusl --arch=x64 sharp@0.31.2
 
 # 2. deploy stage
-FROM alpine:latest
+FROM alpine:3.18
 
 RUN apk add --no-cache nodejs
 # -- setup ca-certificates
