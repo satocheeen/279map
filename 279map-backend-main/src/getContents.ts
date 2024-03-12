@@ -64,8 +64,10 @@ export async function getContents({ param, currentMap }: {param: GetContentsPara
                     id: row.parent_id,
                     dataSourceId: row.parent_datasource_id,
                 } : undefined,
-                usingAnotherMap,
-                anotherMapItemId: anotherMapItemIds.length > 0 ? anotherMapItemIds[0] : undefined,  // 複数存在する場合は１つだけ返す
+                // usingAnotherMap,
+                // anotherMapItemId: anotherMapItemIds.length > 0 ? anotherMapItemIds[0] : undefined,  // 複数存在する場合は１つだけ返す
+                // おたからマップ用対応。なぜか、マイマップからおたからマップに切り替わってしまうので、無条件にfalseを設定。
+                usingAnotherMap: false,
                 isSnsContent,
                 isEditable,
                 isDeletable,
