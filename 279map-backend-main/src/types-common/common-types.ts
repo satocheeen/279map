@@ -86,4 +86,16 @@ export type DatasourceConfig = {
     linkableChildContents: boolean; // trueの場合、子コンテンツの追加が可能
     editable: boolean;
     deletable: boolean;
+    fields: MdlConfigField[];   // map_datasource_linkのmdl_config内に格納されている情報
+}
+
+export interface MdlConfig {
+    type: string;
+    fields: MdlConfigField[];
+}
+export type MdlConfigField = {
+    type: 'title' | 'url' | 'image'
+} | {
+    type: 'date' | 'text' | 'category' | 'number';
+    name: string;
 }

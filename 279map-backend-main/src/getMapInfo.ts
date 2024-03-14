@@ -4,7 +4,7 @@ import { DataSourceTable, MapDataSourceLinkConfig, MapDataSourceLinkTable, MapPa
 import { schema } from '../279map-backend-common/src';
 import { ItemDatasourceInfo, ContentDatasourceInfo, MapInfo, MapKind, Auth, MapPageOptions } from './graphql/__generated__/types';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
-import { DatasourceConfig, DatasourceKindType } from './types-common/common-types';
+import { DatasourceConfig, DatasourceKindType, MdlConfig, MdlConfigField } from './types-common/common-types';
 
 /**
  * 指定の地図データページ配下のコンテンツ情報を返す
@@ -216,7 +216,16 @@ async function getContentDataSources(mapId: string, mapKind: MapKind): Promise<C
         const [rows] = await con.execute(query);
 
         return (rows as (schema.DataSourceTable & schema.MapDataSourceLinkTable)[]).map((rec): ContentDatasourceInfo => {{
-            const config = rec.config as DatasourceConfig;
+            const fields = (rec.mdl_config as MdlConfig).fields
+                            .filter(f => 'name' in f)
+                            .map((f): MdlConfigField => {
+                                return {
+                                    type: f.type,
+                                    // @ts-ignore
+                                    name: f.name,
+                                }
+                            });
+            const config = Object.assign(rec.config, { fields }) as DatasourceConfig;
             return {
                 datasourceId: rec.data_source_id,
                 name: rec.datasource_name,
