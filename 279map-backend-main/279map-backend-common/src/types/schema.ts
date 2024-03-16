@@ -47,16 +47,14 @@ export type MapDataSourceLinkTable = {
  * コンテンツのカラム定義等を格納
  */
 export type MapDataSourceLinkConfig = {
-    type: string;   // データソース種別（Notionなど）
-} & (
-    {
-        kind: DatasourceKindType.RealItem | DatasourceKindType.RealPointContent;
-        initialVisible: boolean;    // 初期表示状態（Itemの場合のみ設定）
-    } | {
-        kind: DatasourceKindType.Content;
-        fields: ContentFieldDefine[];
-    }
-)
+    kind: DatasourceKindType.RealItem | DatasourceKindType.RealPointContent;
+    initialVisible: boolean;    // 初期表示状態（Itemの場合のみ設定）
+} | {
+    kind: DatasourceKindType.Content;
+    fields: ContentFieldDefine[];
+} | {
+    kind: DatasourceKindType.VirtualItem | DatasourceKindType.Track;
+}
 
 export type TracksTable = {
     track_page_id: string;
