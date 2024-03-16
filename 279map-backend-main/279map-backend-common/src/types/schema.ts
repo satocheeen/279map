@@ -49,7 +49,7 @@ export type MapDataSourceLinkTable = {
  * コンテンツのカラム定義等を格納
  */
 export type MapDataSourceLinkConfig = {
-    kind: DatasourceKindType.RealItem;
+    kind: DatasourceKindType.RealItem | DatasourceKindType.Track;
     initialVisible: boolean;    // 初期表示状態
 } | {
     kind: DatasourceKindType.Content;
@@ -59,7 +59,7 @@ export type MapDataSourceLinkConfig = {
     initialVisible: boolean;    // 初期表示状態
     fields: ContentFieldDefine[];
 } | {
-    kind: DatasourceKindType.VirtualItem | DatasourceKindType.Track;
+    kind: DatasourceKindType.VirtualItem;
 }
 
 export type TracksTable = {
