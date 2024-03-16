@@ -1,9 +1,9 @@
 import { ConnectionPool } from '.';
 import { PoolConnection } from 'mysql2/promise';
-import { ContentsInfo, ContentsTable, DataSourceTable, ItemContentLink } from '../279map-backend-common/src/types/schema';
+import { ContentsTable, DataSourceTable, ItemContentLink } from '../279map-backend-common/src/types/schema';
 import { CurrentMap, DatasourceConfig } from '../279map-backend-common/src';
 import { Auth, ContentsDefine, MapKind } from './graphql/__generated__/types';
-import { DatasourceKindType, DataId } from './types-common/common-types';
+import { DatasourceKindType, DataId, ContentValueMap } from './types-common/common-types';
 import dayjs from 'dayjs';
 import { isEqualId } from './util/utility';
 
@@ -24,7 +24,7 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
         const allContents = [] as ContentsDefine[];
 
         const convertRecord = async(row: ContentsDatasourceRecord, itemId?: DataId): Promise<ContentsDefine> => {
-            const contents = row.contents ? row.contents as ContentsInfo: undefined;
+            // const contents = row.contents ? row.contents as ContentsInfo: undefined;
             let isSnsContent = false;
             if (row.supplement) {
                 // SNSコンテンツの場合
@@ -81,15 +81,18 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
                 }
             }();
 
+            const values = row.contents as ContentValueMap;
+
             return {
                 id,
                 title: row.title ?? '',
                 date,
                 category: row.category ? row.category as string[] : [],
                 image: row.thumbnail ? true : false,
-                videoUrl: contents?.videoUrl,
-                overview: contents?.content,
-                url: contents?.url,
+                // videoUrl: contents?.videoUrl,
+                // overview: contents?.content,
+                values,
+                // url: contents?.url,
                 parentId: (row.parent_id && row.parent_datasource_id) ? {
                     id: row.parent_id,
                     dataSourceId: row.parent_datasource_id,

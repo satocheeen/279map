@@ -95,3 +95,14 @@ export type ContentFieldDefine = {
     type: 'date' | 'text' | 'category' | 'number';
     name: string;
 }
+
+export type ContentValueMap = {[key: string]: any};
+// export type ContentFieldValue = {
+//     type: 'date';
+//     date: string;
+// } | {
+//     type: 'text';
+//     text: string;
+// } | {
+//     type: 'category';
+// }

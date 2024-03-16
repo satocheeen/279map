@@ -95,3 +95,11 @@ export type ContentFieldDefine = {
     type: 'date' | 'text' | 'category' | 'number';
     name: string;
 }
+
+export type ContentField = {
+    type: 'date';
+    date: string;
+} | {
+    type: 'text';
+    text: string;
+}

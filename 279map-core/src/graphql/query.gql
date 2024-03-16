@@ -115,14 +115,11 @@ query getContentsInItem(
 
 fragment content on ContentsDefine {
     id
-    date
     url
     title
-    overview
-    category
     image
-    videoUrl
     parentId
+    values
     usingAnotherMap
     anotherMapItemId
     isSnsContent

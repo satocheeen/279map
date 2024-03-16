@@ -107,3 +107,4 @@ scalar Geometry
 scalar IconKey
 scalar GeoProperties
 scalar GeocoderIdInfo
+scalar ContentValueMap

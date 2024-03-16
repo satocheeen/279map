@@ -49,11 +49,10 @@ type ContentsDefine {
     date: String
     url: String
     title: String!
-    overview: String
     category: [String!]
     image: Boolean!
-    videoUrl: String
     parentId: DataId
+    values: ContentValueMap!
     children: [ContentsDefine!]
     usingAnotherMap: Boolean!
     anotherMapItemId: DataId

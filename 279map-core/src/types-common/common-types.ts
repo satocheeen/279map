@@ -68,12 +68,13 @@ export enum DatasourceKindType {
     Track = 'Track',
     Content = 'Content',
 }
+
+/**
+ * Datasourceに関する情報
+ */
 export type DatasourceConfig = {
-    // 現実世界地図用の作図レイヤ or 軌跡レイヤ
-    kind: DatasourceKindType.RealItem | DatasourceKindType.Track;
-} | {
-    // 村マップの作図レイヤ
-    kind: DatasourceKindType.VirtualItem;
+    // 現実世界地図用の作図レイヤ or 軌跡レイヤ or 村マップの作図レイヤ
+    kind: DatasourceKindType.RealItem | DatasourceKindType.Track | DatasourceKindType.VirtualItem;
 } | {
     // 現実世界地図用の位置コンテンツレイヤ
     kind: DatasourceKindType.RealPointContent;
@@ -86,4 +87,22 @@ export type DatasourceConfig = {
     linkableChildContents: boolean; // trueの場合、子コンテンツの追加が可能
     editable: boolean;
     deletable: boolean;
+    fields: ContentFieldDefine[];   // map_datasource_linkのmdl_config内に格納されている情報
 }
+export type ContentFieldDefine = {
+    type: 'title' | 'url' | 'image'
+} | {
+    type: 'date' | 'text' | 'category' | 'number';
+    name: string;
+}
+
+export type ContentValueMap = {[key: string]: any};
+// export type ContentFieldValue = {
+//     type: 'date';
+//     date: string;
+// } | {
+//     type: 'text';
+//     text: string;
+// } | {
+//     type: 'category';
+// }

@@ -1,6 +1,6 @@
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
 import { Geometry } from 'geojson'
-import { DataId, GeoProperties, GeocoderIdInfo, IconKey, DatasourceConfig } from '../../types-common/common-types'
+import { DataId, GeoProperties, GeocoderIdInfo, IconKey, DatasourceConfig, ContentValueMap } from '../../types-common/common-types'
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -17,6 +17,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  ContentValueMap: { input: ContentValueMap; output: ContentValueMap; }
   DataId: { input: DataId; output: DataId; }
   DatasourceConfig: { input: DatasourceConfig; output: DatasourceConfig; }
   GeoProperties: { input: GeoProperties; output: GeoProperties; }
@@ -114,12 +115,11 @@ export type ContentsDefine = {
   isDeletable: Scalars['Boolean']['output'];
   isEditable: Scalars['Boolean']['output'];
   isSnsContent: Scalars['Boolean']['output'];
-  overview?: Maybe<Scalars['String']['output']>;
   parentId?: Maybe<Scalars['DataId']['output']>;
   title: Scalars['String']['output'];
   url?: Maybe<Scalars['String']['output']>;
   usingAnotherMap: Scalars['Boolean']['output'];
-  videoUrl?: Maybe<Scalars['String']['output']>;
+  values: Scalars['ContentValueMap']['output'];
 };
 
 export type ErrorInfo = {
@@ -717,6 +717,7 @@ export type ResolversTypes = {
   ConnectResult: ResolverTypeWrapper<ConnectResult>;
   ContentDatasourceInfo: ResolverTypeWrapper<ContentDatasourceInfo>;
   ContentType: ContentType;
+  ContentValueMap: ResolverTypeWrapper<Scalars['ContentValueMap']['output']>;
   ContentsDatasource: ResolverTypeWrapper<ContentsDatasource>;
   ContentsDatasourceInput: ContentsDatasourceInput;
   ContentsDefine: ResolverTypeWrapper<ContentsDefine>;
@@ -781,6 +782,7 @@ export type ResolversParentTypes = {
   ConnectInfo: ConnectInfo;
   ConnectResult: ConnectResult;
   ContentDatasourceInfo: ContentDatasourceInfo;
+  ContentValueMap: Scalars['ContentValueMap']['output'];
   ContentsDatasource: ContentsDatasource;
   ContentsDatasourceInput: ContentsDatasourceInput;
   ContentsDefine: ContentsDefine;
@@ -861,6 +863,10 @@ export type ContentDatasourceInfoResolvers<ContextType = any, ParentType extends
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export interface ContentValueMapScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['ContentValueMap'], any> {
+  name: 'ContentValueMap';
+}
+
 export type ContentsDatasourceResolvers<ContextType = any, ParentType extends ResolversParentTypes['ContentsDatasource'] = ResolversParentTypes['ContentsDatasource']> = {
   datasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -877,12 +883,11 @@ export type ContentsDefineResolvers<ContextType = any, ParentType extends Resolv
   isDeletable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   isEditable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   isSnsContent?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  overview?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   parentId?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   usingAnotherMap?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  videoUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  values?: Resolver<ResolversTypes['ContentValueMap'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1141,6 +1146,7 @@ export type Resolvers<ContextType = any> = {
   ConnectInfo?: ConnectInfoResolvers<ContextType>;
   ConnectResult?: ConnectResultResolvers<ContextType>;
   ContentDatasourceInfo?: ContentDatasourceInfoResolvers<ContextType>;
+  ContentValueMap?: GraphQLScalarType;
   ContentsDatasource?: ContentsDatasourceResolvers<ContextType>;
   ContentsDefine?: ContentsDefineResolvers<ContextType>;
   DataId?: GraphQLScalarType;

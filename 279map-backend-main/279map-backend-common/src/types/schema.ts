@@ -95,7 +95,7 @@ export type ContentsTable = {
     parent_id?: string;         // 親コンテンツID
     parent_datasource_id?: string;         // 親コンテンツデータソースID
     title?: string;
-    contents?: string | ContentsInfo;   // 登録時はstring。取得時はContentsInfo
+    contents?: string | object;   // 登録時はstring。取得時はobject
     thumbnail?: string;
     category?: string | string[];   // 登録時はstring。取得時はCategory文字配列
     date?: Date | string;   // 登録時はDate。取得時はstring
@@ -108,14 +108,6 @@ export type ItemContentLink = {
     content_page_id: string;
     content_datasource_id: string;
     last_edited_time: string;
-}
-/**
- * conteentsテーブル内のcontentsカラムを構成する情報
- */
- export type ContentsInfo = {
-    content?: string;
-    url?: string;
-    videoUrl?: string;
 }
 
 export type OriginalIconsTable = {
