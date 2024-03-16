@@ -87,13 +87,15 @@ export type DatasourceConfig = {
     linkableChildContents: boolean; // trueの場合、子コンテンツの追加が可能
     editable: boolean;
     deletable: boolean;
-    fields: ContentFieldDefine[];   // map_datasource_linkのmdl_config内に格納されている情報
+    fields: ContentFieldDefine[];
 }
+
 export type ContentFieldDefine = {
-    type: 'title' | 'url' | 'image'
-} | {
+//     type: 'title' | 'url' | 'image'
+// } | {
+    key: string;
     type: 'date' | 'text' | 'category' | 'number';
-    name: string;
+    label: string;
 }
 
 export type ContentValueMap = {[key: string]: any};
