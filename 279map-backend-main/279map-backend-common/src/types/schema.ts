@@ -49,10 +49,14 @@ export type MapDataSourceLinkTable = {
  * コンテンツのカラム定義等を格納
  */
 export type MapDataSourceLinkConfig = {
-    kind: DatasourceKindType.RealItem | DatasourceKindType.RealPointContent;
-    initialVisible: boolean;    // 初期表示状態（Itemの場合のみ設定）
+    kind: DatasourceKindType.RealItem;
+    initialVisible: boolean;    // 初期表示状態
 } | {
     kind: DatasourceKindType.Content;
+    fields: ContentFieldDefine[];
+} | {
+    kind: DatasourceKindType.RealPointContent;
+    initialVisible: boolean;    // 初期表示状態
     fields: ContentFieldDefine[];
 } | {
     kind: DatasourceKindType.VirtualItem | DatasourceKindType.Track;
