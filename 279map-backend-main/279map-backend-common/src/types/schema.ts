@@ -1,6 +1,6 @@
 import { MapPageOptions, MapKind } from '../graphql/__generated__/types';
 import { SnsOptions } from '../sns';
-import { DatasourceConfig, DatasourceKindType } from '../types-common/common-types';
+import { ContentFieldDefine, DatasourceConfig, DatasourceKindType } from '../types-common/common-types';
 
 export enum PublicRange {
     Public = 'Public',
@@ -26,7 +26,7 @@ export type DataSourceTable = {
     data_source_id: string;
     kind: DatasourceKindType;
 
-    // 登録時はstring, 取得時はDatasourceConfig
+    // 登録時はstring, 取得時はDatasourceConfig(Contentの場合、fieldsは格納対象外)
     config: string | DatasourceConfig;
 
     // ODBAで使用するための接続関連情報
@@ -44,11 +44,20 @@ export type MapDataSourceLinkTable = {
     last_edited_time: string;
 }
 /**
- * TODO: コンテンツのカラム定義等を格納
+ * コンテンツのカラム定義等を格納
  */
 export type MapDataSourceLinkConfig = {
-    initialVisible?: boolean;    // 初期表示状態（Itemの場合のみ設定）
-}
+    type: string;   // データソース種別（Notionなど）
+} & (
+    {
+        kind: DatasourceKindType.RealItem | DatasourceKindType.RealPointContent;
+        initialVisible: boolean;    // 初期表示状態（Itemの場合のみ設定）
+    } | {
+        kind: DatasourceKindType.Content;
+        fields: ContentFieldDefine[];
+    }
+)
+
 export type TracksTable = {
     track_page_id: string;
     data_source_id: string;

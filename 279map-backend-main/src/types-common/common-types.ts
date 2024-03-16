@@ -68,6 +68,10 @@ export enum DatasourceKindType {
     Track = 'Track',
     Content = 'Content',
 }
+
+/**
+ * Datasourceに関する情報
+ */
 export type DatasourceConfig = {
     // 現実世界地図用の作図レイヤ or 軌跡レイヤ
     kind: DatasourceKindType.RealItem | DatasourceKindType.Track;
@@ -86,14 +90,9 @@ export type DatasourceConfig = {
     linkableChildContents: boolean; // trueの場合、子コンテンツの追加が可能
     editable: boolean;
     deletable: boolean;
-    fields: MdlConfigField[];   // map_datasource_linkのmdl_config内に格納されている情報
+    fields: ContentFieldDefine[];   // map_datasource_linkのmdl_config内に格納されている情報
 }
-
-export interface MdlConfig {
-    type: string;
-    fields: MdlConfigField[];
-}
-export type MdlConfigField = {
+export type ContentFieldDefine = {
     type: 'title' | 'url' | 'image'
 } | {
     type: 'date' | 'text' | 'category' | 'number';
