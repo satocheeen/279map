@@ -1,6 +1,6 @@
 import { MapPageOptions, MapKind } from '../graphql/__generated__/types';
 import { SnsOptions } from '../sns';
-import { ContentFieldDefine, DatasourceConfig, DatasourceKindType } from '../types-common/common-types';
+import { ContentFieldDefine, DatasourceConfig, DatasourceKindType, IconKey } from '../types-common/common-types';
 
 export enum PublicRange {
     Public = 'Public',
@@ -27,13 +27,15 @@ export type DataSourceTable = {
     kind: DatasourceKindType;
 
     // 登録時はstring, 取得時はDatasourceConfig(Contentの場合、fieldsは格納対象外)
-    config: string | DatasourceConfig;
+    config: string | DatasourceTblConfig;
 
     // ODBAで使用するための接続関連情報
     odba_connection: string | OdbaConnection;  // 登録時はstring、取得時はDataSourceConnection
 
     last_edited_time: string;
 }
+export type DatasourceTblConfig = Omit<Extract<DatasourceConfig, { kind: DatasourceKindType.Content }>, 'fields'> | Extract<DatasourceConfig, { kind: DatasourceKindType.RealPointContent }> | {};
+
 export type MapDataSourceLinkTable = {
     map_page_id: string;
     data_source_id: string;

@@ -73,11 +73,8 @@ export enum DatasourceKindType {
  * Datasourceに関する情報
  */
 export type DatasourceConfig = {
-    // 現実世界地図用の作図レイヤ or 軌跡レイヤ
-    kind: DatasourceKindType.RealItem | DatasourceKindType.Track;
-} | {
-    // 村マップの作図レイヤ
-    kind: DatasourceKindType.VirtualItem;
+    // 現実世界地図用の作図レイヤ or 軌跡レイヤ or 村マップの作図レイヤ
+    kind: DatasourceKindType.RealItem | DatasourceKindType.Track | DatasourceKindType.VirtualItem;
 } | {
     // 現実世界地図用の位置コンテンツレイヤ
     kind: DatasourceKindType.RealPointContent;
