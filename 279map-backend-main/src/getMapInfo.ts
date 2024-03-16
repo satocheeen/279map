@@ -1,10 +1,9 @@
 import { ConnectionPool } from '.';
 import mysql from 'mysql2/promise';
 import { DataSourceTable, MapDataSourceLinkConfig, MapDataSourceLinkTable, MapPageInfoTable } from '../279map-backend-common/src/types/schema';
-import { schema } from '../279map-backend-common/src';
 import { ItemDatasourceInfo, ContentDatasourceInfo, MapInfo, MapKind, Auth, MapPageOptions } from './graphql/__generated__/types';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
-import { DatasourceConfig, DatasourceKindType, MdlConfig, MdlConfigField } from './types-common/common-types';
+import { ContentFieldDefine, DatasourceConfig, DatasourceKindType } from './types-common/common-types';
 
 /**
  * 指定の地図データページ配下のコンテンツ情報を返す
@@ -185,7 +184,7 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
                 datasourceId: row.data_source_id,
                 name: row.datasource_name,
                 groupName: row.group_name,
-                initialVisible: mdlConfig.initialVisible ?? true,
+                initialVisible: 'initialVisible' in mdlConfig ? mdlConfig.initialVisible ?? true : true,
                 config,
             }
 
@@ -215,10 +214,12 @@ async function getContentDataSources(mapId: string, mapKind: MapKind): Promise<C
         const query = mysql.format(sql, [mapId, kinds]);
         const [rows] = await con.execute(query);
 
-        return (rows as (schema.DataSourceTable & schema.MapDataSourceLinkTable)[]).map((rec): ContentDatasourceInfo => {{
-            const fields = (rec.mdl_config as MdlConfig).fields
+        return (rows as (DataSourceTable & MapDataSourceLinkTable)[]).map((rec): ContentDatasourceInfo => {{
+            const mdlConfig = rec.mdl_config as MapDataSourceLinkConfig;
+            const fieldDef = mdlConfig.kind === DatasourceKindType.Content ? mdlConfig.fields : [];
+            const fields = fieldDef
                             .filter(f => 'name' in f)
-                            .map((f): MdlConfigField => {
+                            .map((f): ContentFieldDefine => {
                                 return {
                                     type: f.type,
                                     // @ts-ignore

@@ -1,7 +1,7 @@
-import { CurrentMap, DatasourceKindType, MapKind, schema } from "../../279map-backend-common/src";
+import { CurrentMap, DatasourceKindType, MapKind } from "../../279map-backend-common/src";
 import { ConnectionPool } from "..";
 import { PoolConnection } from "mysql2/promise";
-import { ItemContentLink } from "../../279map-backend-common/src/types/schema";
+import { ItemContentLink, ItemsTable } from "../../279map-backend-common/src/types/schema";
 import { QuerySearchArgs, SearchHitItem } from "../graphql/__generated__/types";
 import { DataId } from "../types-common/common-types";
 
@@ -247,7 +247,7 @@ async function searchItemByKeyword(con: PoolConnection, currentMap: CurrentMap, 
     }
     const query = con.format(sql, params);
     const [rows] = await con.execute(query);
-    return (rows as schema.ItemsTable[]).map((item): DataId => {
+    return (rows as ItemsTable[]).map((item): DataId => {
         return {
             id: item.item_page_id,
             dataSourceId: item.data_source_id,
