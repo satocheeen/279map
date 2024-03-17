@@ -24,7 +24,6 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
         const allContents = [] as ContentsDefine[];
 
         const convertRecord = async(row: ContentsDatasourceRecord, itemId?: DataId): Promise<ContentsDefine> => {
-            // const contents = row.contents ? row.contents as ContentsInfo: undefined;
             let isSnsContent = false;
             if (row.supplement) {
                 // SNSコンテンツの場合

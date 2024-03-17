@@ -1,7 +1,7 @@
 import { getLogger } from "log4js";
 import { ConnectionPool } from "..";
 import { SnsOptions, getSnsPostGetter } from "../../279map-backend-common/src/sns";
-import { ContentsInfo, ContentsTable } from "../../279map-backend-common/src/types/schema";
+import { ContentsTable } from "../../279map-backend-common/src/types/schema";
 import { getImageBase64 } from "../../279map-backend-common/src";
 
 const logger = getLogger();
@@ -82,7 +82,7 @@ export async function updateSnsContents(mapPageId: string, content_id?: string) 
 
                     // タイトル（冒頭行 or 冒頭20文字）
                     let title: string;
-                    const contents = {} as ContentsInfo;
+                    const contents = {} as any;
                     if (index !== -1) {
                         title = post.text.substring(0, index);
                         contents.content = post.text.substring(index + 1);
