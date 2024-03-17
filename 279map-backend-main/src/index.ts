@@ -482,12 +482,13 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * サムネイル画像取得
              */
-            getThumb: async(_, param: QueryGetThumbArgs): QueryResolverReturnType<'getThumb'> => {
+            getThumb: async(_, param: QueryGetThumbArgs, ctx): QueryResolverReturnType<'getThumb'> => {
 
                 try {
                     if (param.size === ThumbSize.Medium) {
                         // オリジナル画像を縮小する
                         const url = await callOdbaApi(OdbaGetImageUrlAPI, {
+                            currentMap: ctx.currentMap,
                             id: param.contentId,
                         });
                         if (!url) {
@@ -522,6 +523,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 try {
                     // call odba
                     const result = await callOdbaApi(OdbaGetImageUrlAPI, {
+                        currentMap: ctx.currentMap,
                         id: param.contentId,
                     });
                     return result ?? '';

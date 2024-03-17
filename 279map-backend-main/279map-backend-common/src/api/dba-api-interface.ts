@@ -177,7 +177,10 @@ export const OdbaGetImageUrlAPI = {
     uri: 'get-imageurl',
     method: 'post',
     resultType: 'string',
-} as APIDefine<{id: DataId}, string|undefined>;
+} as APIDefine<OdbaGetImageUrlParam, string|undefined>;
+type OdbaGetImageUrlParam = CommonParam & {
+    id: DataId;
+}
 
 export const OdbaGetLinkableContentsAPI = {
     uri: 'get-linkable-contents',
