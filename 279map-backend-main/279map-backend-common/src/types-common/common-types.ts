@@ -91,20 +91,12 @@ export type DatasourceConfig = {
 }
 
 export type ContentFieldDefine = {
-//     type: 'title' | 'url' | 'image'
-// } | {
     key: string;
-    type: 'date' | 'text' | 'category' | 'number';
+    type: 'title' | 'url';
+} | {
+    key: string;
+    type: 'date' | 'text' | 'category' | 'number' | 'image';
     label: string;
 }
 
 export type ContentValueMap = {[key: string]: any};
-// export type ContentFieldValue = {
-//     type: 'date';
-//     date: string;
-// } | {
-//     type: 'text';
-//     text: string;
-// } | {
-//     type: 'category';
-// }

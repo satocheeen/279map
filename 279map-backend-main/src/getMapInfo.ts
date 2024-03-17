@@ -217,16 +217,7 @@ async function getContentDataSources(mapId: string, mapKind: MapKind): Promise<C
         return (rows as (DataSourceTable & MapDataSourceLinkTable)[]).map((rec): ContentDatasourceInfo => {{
             const mdlConfig = rec.mdl_config as MapDataSourceLinkConfig;
             const fieldDef = mdlConfig.kind === DatasourceKindType.Content ? mdlConfig.fields : [];
-            const fields = fieldDef
-                            .filter(f => 'label' in f)
-                            .map((f): ContentFieldDefine => {
-                                return {
-                                    key: f.key,
-                                    type: f.type,
-                                    label: f.label,
-                                }
-                            });
-            const config = Object.assign(rec.config, { fields }) as DatasourceConfig;
+            const config = Object.assign(rec.config, { fields: fieldDef }) as DatasourceConfig;
             return {
                 datasourceId: rec.data_source_id,
                 name: rec.datasource_name,
