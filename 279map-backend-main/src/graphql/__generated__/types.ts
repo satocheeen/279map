@@ -107,7 +107,6 @@ export type ContentsDatasourceInput = {
 
 export type ContentsDefine = {
   anotherMapItemId?: Maybe<Scalars['DataId']['output']>;
-  category?: Maybe<Array<Scalars['String']['output']>>;
   children?: Maybe<Array<ContentsDefine>>;
   date?: Maybe<Scalars['String']['output']>;
   id: Scalars['DataId']['output'];
@@ -875,7 +874,6 @@ export type ContentsDatasourceResolvers<ContextType = any, ParentType extends Re
 
 export type ContentsDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['ContentsDefine'] = ResolversParentTypes['ContentsDefine']> = {
   anotherMapItemId?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType>;
-  category?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   children?: Resolver<Maybe<Array<ResolversTypes['ContentsDefine']>>, ParentType, ContextType>;
   date?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;

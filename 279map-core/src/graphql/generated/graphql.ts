@@ -113,7 +113,6 @@ export type ContentsDatasourceInput = {
 export type ContentsDefine = {
   __typename?: 'ContentsDefine';
   anotherMapItemId?: Maybe<Scalars['DataId']['output']>;
-  category?: Maybe<Array<Scalars['String']['output']>>;
   children?: Maybe<Array<ContentsDefine>>;
   date?: Maybe<Scalars['String']['output']>;
   id: Scalars['DataId']['output'];

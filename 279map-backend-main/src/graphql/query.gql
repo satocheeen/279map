@@ -49,7 +49,6 @@ type ContentsDefine {
     date: String
     url: String
     title: String!
-    category: [String!]
     image: Boolean!
     parentId: DataId
     values: ContentValueMap!

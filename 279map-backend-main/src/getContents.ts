@@ -87,7 +87,6 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
                 id,
                 title: row.title ?? '',
                 date,
-                category: row.category ? row.category as string[] : [],
                 image: row.thumbnail ? true : false,
                 // videoUrl: contents?.videoUrl,
                 // overview: contents?.content,
