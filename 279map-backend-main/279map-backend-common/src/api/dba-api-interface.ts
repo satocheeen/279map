@@ -178,7 +178,7 @@ export const OdbaGetImageUrlAPI = {
     method: 'post',
     resultType: 'string',
 } as APIDefine<OdbaGetImageUrlParam, string|undefined>;
-type OdbaGetImageUrlParam = CommonParam & {
+export type OdbaGetImageUrlParam = CommonParam & {
     id: DataId;
 }
 

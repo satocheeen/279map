@@ -1,7 +1,7 @@
 import { CurrentMap } from "../types";
 import { DataId } from "../types-common/common-types";
 import { OdbaAPIFunc } from "./api-initializer";
-import { OdbaGetLinkableContentsResult, OdbaGetUnpointDataParam, OdbaGetUnpointDataResult, OdbaLinkContentDatasourceToMapParam, OdbaLinkContentToItemParam, OdbaRegistContentParam, OdbaRegistItemParam, OdbaRemoveContentParam, OdbaRemoveItemParam, OdbaUnlinkContentDatasourceFromMapParam, OdbaUpdateContentParam, OdbaUpdateItemParam } from "./dba-api-interface";
+import { OdbaGetImageUrlParam, OdbaGetLinkableContentsResult, OdbaGetUnpointDataParam, OdbaGetUnpointDataResult, OdbaLinkContentDatasourceToMapParam, OdbaLinkContentToItemParam, OdbaRegistContentParam, OdbaRegistItemParam, OdbaRemoveContentParam, OdbaRemoveItemParam, OdbaUnlinkContentDatasourceFromMapParam, OdbaUpdateContentParam, OdbaUpdateItemParam } from "./dba-api-interface";
 
 export type UpdateContentLinkCacheParam = {
     currentMap: CurrentMap;
@@ -54,7 +54,7 @@ export default abstract class OdbaInterface {
      */
     abstract unlinkContent: (param: OdbaLinkContentToItemParam) => Promise<void>;
 
-    abstract getImageUrl: OdbaAPIFunc<{id: DataId}, string | undefined>;
+    abstract getImageUrl: (param: OdbaGetImageUrlParam) => Promise<string | undefined>;
 
     abstract getLinkableContents: (currentMap: CurrentMap) => Promise<OdbaGetLinkableContentsResult>;
 
