@@ -92,7 +92,7 @@ export type DatasourceConfig = {
 
 export type ContentFieldDefine = {
     key: string;
-    type: 'title' | 'url';
+    type: 'title' | 'url' | 'latitude' | 'longitude' | 'address';
 } | {
     key: string;
     type: 'date' | 'text' | 'category' | 'number' | 'image';
