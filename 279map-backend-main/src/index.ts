@@ -1200,7 +1200,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
             }
         },
-        DatasourceConfig: DatasourceConfigScalarType,
         VisibleDataSource: {
             __resolveType: (obj: any) => {
                 if ('dataSourceId' in obj) {

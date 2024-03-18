@@ -70,25 +70,28 @@ export enum DatasourceKindType {
 }
 
 /**
- * Datasourceに関する情報
+ * アイテムDatasourceに関する情報
  */
-export type DatasourceConfig = {
-    // 現実世界地図用の作図レイヤ or 軌跡レイヤ or 村マップの作図レイヤ
-    kind: DatasourceKindType.RealItem | DatasourceKindType.Track | DatasourceKindType.VirtualItem;
-} | {
-    // 現実世界地図用の位置コンテンツレイヤ
-    kind: DatasourceKindType.RealPointContent;
-    defaultIcon?: IconKey;
-    linkableChildContents: boolean; // trueの場合、子コンテンツの追加が可能
-    editable: boolean;
-    deletable: boolean;
-} | {
-    kind: DatasourceKindType.Content;
+export type ItemDatasourceConfig = {
+    kind: DatasourceKindType.RealItem | DatasourceKindType.RealPointContent | DatasourceKindType.Track | DatasourceKindType.VirtualItem;
+}
+/**
+ * コンテンツDatasourceに関する情報
+ */
+export type ContentDatasourceConfig = {
     linkableChildContents: boolean; // trueの場合、子コンテンツの追加が可能
     editable: boolean;
     deletable: boolean;
     fields: ContentFieldDefine[];
-}
+} & (
+    {
+        // 現実世界地図用の位置コンテンツレイヤ
+        kind: DatasourceKindType.RealPointContent;
+        defaultIcon?: IconKey;
+    } | {
+        kind: DatasourceKindType.Content;
+    }
+)
 
 export type ContentFieldDefine = {
     key: string;

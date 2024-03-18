@@ -1,11 +1,12 @@
 import { ConnectionPool } from '.';
 import { PoolConnection } from 'mysql2/promise';
 import { ContentsTable, DataSourceTable, ItemContentLink } from '../279map-backend-common/src/types/schema';
-import { CurrentMap, DatasourceConfig } from '../279map-backend-common/src';
+import { CurrentMap } from '../279map-backend-common/src';
 import { Auth, ContentsDefine, MapKind } from './graphql/__generated__/types';
 import { DatasourceKindType, DataId, ContentValueMap } from './types-common/common-types';
 import dayjs from 'dayjs';
 import { isEqualId } from './util/utility';
+import { DatasourceTblConfig } from '../279map-backend-common/dist';
 
 type GetContentsParam = ({
     itemId: DataId;
@@ -43,7 +44,7 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
                 // SNSコンテンツは編集不可
                 if (isSnsContent) return false;
         
-                const config = (row.config as DatasourceConfig);
+                const config = (row.config as DatasourceTblConfig);
                 return 'editable' in config ? config.editable : false;
             }();
 
@@ -64,7 +65,7 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
                 if (isSnsContent) return false;
 
                 // readonlyは削除不可
-                const config = (row.config as DatasourceConfig);
+                const config = (row.config as DatasourceTblConfig);
                 return 'deletable' in config ? config.deletable : false;
         
             }();

@@ -1,7 +1,7 @@
 import { ConnectionPool } from "..";
 import { CurrentMap } from "../../279map-backend-common/src";
 import { DataSourceTable } from "../../279map-backend-common/src/types/schema";
-import { DatasourceConfig, DatasourceKindType } from "../types-common/common-types";
+import { ContentDatasourceConfig, DatasourceKindType } from "../types-common/common-types";
 
 /**
  * ODBAのGetUnpontDataAPIを呼び出す前のチェック処理
@@ -35,7 +35,7 @@ async function getLinkableDataSources(currentMap: CurrentMap, dataSourceId: stri
 
         // 指定のデータソースを紐づけ可能にしているデータソースに絞る
         return (rows as DataSourceTable[]).filter(row => {
-            const config = (row.config as DatasourceConfig);
+            const config = (row.config as ContentDatasourceConfig);
             switch(config.kind) {
                 case DatasourceKindType.VirtualItem:
                 case DatasourceKindType.RealItem:

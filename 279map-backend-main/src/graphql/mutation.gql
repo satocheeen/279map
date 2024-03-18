@@ -39,12 +39,12 @@ type ItemDatasourceInfo {
     name: String!
     groupName: String
     initialVisible: Boolean!
-    config: DatasourceConfig!
+    config: ItemDatasourceConfig!
 }
 type ContentDatasourceInfo {
     datasourceId: String!
     name: String!
-    config: DatasourceConfig!
+    config: ContentDatasourceConfig!
 }
 
 type IconDefine {

@@ -1,6 +1,6 @@
 import { MapPageOptions, MapKind } from '../graphql/__generated__/types';
 import { SnsOptions } from '../sns';
-import { ContentFieldDefine, DatasourceConfig, DatasourceKindType, IconKey } from '../types-common/common-types';
+import { ContentDatasourceConfig, ContentFieldDefine, DatasourceKindType } from '../types-common/common-types';
 
 export enum PublicRange {
     Public = 'Public',
@@ -34,7 +34,7 @@ export type DataSourceTable = {
 
     last_edited_time: string;
 }
-export type DatasourceTblConfig = Omit<Extract<DatasourceConfig, { kind: DatasourceKindType.Content }>, 'fields'> | Extract<DatasourceConfig, { kind: DatasourceKindType.RealPointContent }> | {};
+export type DatasourceTblConfig = Omit<ContentDatasourceConfig, 'fields'> | {};
 
 export type MapDataSourceLinkTable = {
     map_page_id: string;

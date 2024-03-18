@@ -101,7 +101,8 @@ type MapDefine {
 }
 
 scalar DataId
-scalar DatasourceConfig
+scalar ItemDatasourceConfig
+scalar ContentDatasourceConfig
 scalar JSON
 scalar Geometry
 scalar IconKey

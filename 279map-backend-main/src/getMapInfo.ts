@@ -3,7 +3,7 @@ import mysql from 'mysql2/promise';
 import { DataSourceTable, MapDataSourceLinkConfig, MapDataSourceLinkTable, MapPageInfoTable } from '../279map-backend-common/src/types/schema';
 import { ItemDatasourceInfo, ContentDatasourceInfo, MapInfo, MapKind, Auth, MapPageOptions } from './graphql/__generated__/types';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
-import { ContentFieldDefine, DatasourceConfig, DatasourceKindType } from './types-common/common-types';
+import { ContentDatasourceConfig, DatasourceKindType, ItemDatasourceConfig } from './types-common/common-types';
 
 /**
  * 指定の地図データページ配下のコンテンツ情報を返す
@@ -177,7 +177,7 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
         const [rows] = await con.execute(query);
 
         return (rows as (DataSourceTable & MapDataSourceLinkTable)[]).map((row): ItemDatasourceInfo => {
-            const config = row.config as DatasourceConfig;
+            const config = row.config as ItemDatasourceConfig;
             const mdlConfig = row.mdl_config as MapDataSourceLinkConfig;
             
             return {
@@ -210,14 +210,14 @@ async function getContentDataSources(mapId: string, mapKind: MapKind): Promise<C
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
         where map_page_id =? and kind in (?)`;
 
-        const kinds = mapKind === MapKind.Real ? [DatasourceKindType.Content] : [DatasourceKindType.Content, DatasourceKindType.RealPointContent];
+        const kinds = [DatasourceKindType.Content, DatasourceKindType.RealPointContent];
         const query = mysql.format(sql, [mapId, kinds]);
         const [rows] = await con.execute(query);
 
         return (rows as (DataSourceTable & MapDataSourceLinkTable)[]).map((rec): ContentDatasourceInfo => {{
             const mdlConfig = rec.mdl_config as MapDataSourceLinkConfig;
-            const fieldDef = mdlConfig.kind === DatasourceKindType.Content ? mdlConfig.fields : [];
-            const config = Object.assign(rec.config, { fields: fieldDef }) as DatasourceConfig;
+            const fieldDef = 'fields' in mdlConfig ? mdlConfig.fields : [];
+            const config = Object.assign(rec.config, { fields: fieldDef }) as ContentDatasourceConfig;
             return {
                 datasourceId: rec.data_source_id,
                 name: rec.datasource_name,
