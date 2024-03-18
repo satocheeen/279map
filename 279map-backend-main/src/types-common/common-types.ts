@@ -73,25 +73,21 @@ export enum DatasourceKindType {
  * アイテムDatasourceに関する情報
  */
 export type ItemDatasourceConfig = {
-    kind: DatasourceKindType.RealItem | DatasourceKindType.RealPointContent | DatasourceKindType.Track | DatasourceKindType.VirtualItem;
+    kind: DatasourceKindType.RealItem | DatasourceKindType.Track | DatasourceKindType.VirtualItem;
+} | {
+    kind: DatasourceKindType.RealPointContent;
+    defaultIcon?: IconKey;
 }
 /**
  * コンテンツDatasourceに関する情報
  */
 export type ContentDatasourceConfig = {
+    kind: DatasourceKindType.Content | DatasourceKindType.RealPointContent;
     linkableChildContents: boolean; // trueの場合、子コンテンツの追加が可能
     editable: boolean;
     deletable: boolean;
     fields: ContentFieldDefine[];
-} & (
-    {
-        // 現実世界地図用の位置コンテンツレイヤ
-        kind: DatasourceKindType.RealPointContent;
-        defaultIcon?: IconKey;
-    } | {
-        kind: DatasourceKindType.Content;
-    }
-)
+}
 
 export type ContentFieldDefine = {
     key: string;

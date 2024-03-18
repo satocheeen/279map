@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { Geometry } from 'geojson'
-import { DataId, GeoProperties, GeocoderIdInfo, IconKey, DatasourceConfig } from '../../types-common/common-types'
+import { DataId, GeoProperties, GeocoderIdInfo, IconKey, ItemDatasourceConfig, ContentDatasourceConfig, ContentValueMap } from '../../types-common/common-types'
 import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -16,13 +16,14 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
-  ContentValueMap: { input: any; output: any; }
+  ContentDatasourceConfig: { input: ContentDatasourceConfig; output: ContentDatasourceConfig; }
+  ContentValueMap: { input: ContentValueMap; output: ContentValueMap; }
   DataId: { input: DataId; output: DataId; }
-  DatasourceConfig: { input: DatasourceConfig; output: DatasourceConfig; }
   GeoProperties: { input: GeoProperties; output: GeoProperties; }
   GeocoderIdInfo: { input: GeocoderIdInfo; output: GeocoderIdInfo; }
   Geometry: { input: Geometry; output: Geometry; }
   IconKey: { input: IconKey; output: IconKey; }
+  ItemDatasourceConfig: { input: ItemDatasourceConfig; output: ItemDatasourceConfig; }
   JSON: { input: any; output: any; }
 };
 
@@ -89,7 +90,7 @@ export type ConnectResult = {
 
 export type ContentDatasourceInfo = {
   __typename?: 'ContentDatasourceInfo';
-  config: Scalars['DatasourceConfig']['output'];
+  config: Scalars['ContentDatasourceConfig']['output'];
   datasourceId: Scalars['String']['output'];
   name: Scalars['String']['output'];
 };
@@ -183,7 +184,7 @@ export type IconDefine = {
 
 export type ItemDatasourceInfo = {
   __typename?: 'ItemDatasourceInfo';
-  config: Scalars['DatasourceConfig']['output'];
+  config: Scalars['ItemDatasourceConfig']['output'];
   datasourceId: Scalars['String']['output'];
   groupName?: Maybe<Scalars['String']['output']>;
   initialVisible: Scalars['Boolean']['output'];
@@ -679,7 +680,7 @@ export type SwitchMapKindMutationVariables = Exact<{
 }>;
 
 
-export type SwitchMapKindMutation = { __typename?: 'Mutation', switchMapKind: { __typename?: 'MapInfo', extent: Array<number>, itemDataSources: Array<{ __typename?: 'ItemDatasourceInfo', datasourceId: string, name: string, groupName?: string | null, initialVisible: boolean, config: DatasourceConfig }>, contentDataSources: Array<{ __typename?: 'ContentDatasourceInfo', datasourceId: string, name: string, config: DatasourceConfig }>, originalIcons: Array<{ __typename?: 'IconDefine', id: string, caption?: string | null, imagePath: string, useMaps: Array<MapKind> }> } };
+export type SwitchMapKindMutation = { __typename?: 'Mutation', switchMapKind: { __typename?: 'MapInfo', extent: Array<number>, itemDataSources: Array<{ __typename?: 'ItemDatasourceInfo', datasourceId: string, name: string, groupName?: string | null, initialVisible: boolean, config: ItemDatasourceConfig }>, contentDataSources: Array<{ __typename?: 'ContentDatasourceInfo', datasourceId: string, name: string, config: ContentDatasourceConfig }>, originalIcons: Array<{ __typename?: 'IconDefine', id: string, caption?: string | null, imagePath: string, useMaps: Array<MapKind> }> } };
 
 export type RegistItemMutationVariables = Exact<{
   datasourceId: Scalars['String']['input'];
@@ -835,23 +836,23 @@ export type GetContentQueryVariables = Exact<{
 }>;
 
 
-export type GetContentQuery = { __typename?: 'Query', getContent: { __typename?: 'ContentsDefine', id: DataId, url?: string | null, title: string, image: boolean, parentId?: DataId | null, values: any, usingAnotherMap: boolean, anotherMapItemId?: DataId | null, isSnsContent: boolean, isEditable: boolean, isDeletable: boolean } };
+export type GetContentQuery = { __typename?: 'Query', getContent: { __typename?: 'ContentsDefine', id: DataId, url?: string | null, title: string, image: boolean, parentId?: DataId | null, values: ContentValueMap, usingAnotherMap: boolean, anotherMapItemId?: DataId | null, isSnsContent: boolean, isEditable: boolean, isDeletable: boolean } };
 
 export type GetContentsQueryVariables = Exact<{
   ids: Array<Scalars['DataId']['input']> | Scalars['DataId']['input'];
 }>;
 
 
-export type GetContentsQuery = { __typename?: 'Query', getContents: Array<{ __typename?: 'ContentsDefine', id: DataId, url?: string | null, title: string, image: boolean, parentId?: DataId | null, values: any, usingAnotherMap: boolean, anotherMapItemId?: DataId | null, isSnsContent: boolean, isEditable: boolean, isDeletable: boolean }> };
+export type GetContentsQuery = { __typename?: 'Query', getContents: Array<{ __typename?: 'ContentsDefine', id: DataId, url?: string | null, title: string, image: boolean, parentId?: DataId | null, values: ContentValueMap, usingAnotherMap: boolean, anotherMapItemId?: DataId | null, isSnsContent: boolean, isEditable: boolean, isDeletable: boolean }> };
 
 export type GetContentsInItemQueryVariables = Exact<{
   itemId: Scalars['DataId']['input'];
 }>;
 
 
-export type GetContentsInItemQuery = { __typename?: 'Query', getContentsInItem: Array<{ __typename?: 'ContentsDefine', id: DataId, url?: string | null, title: string, image: boolean, parentId?: DataId | null, values: any, usingAnotherMap: boolean, anotherMapItemId?: DataId | null, isSnsContent: boolean, isEditable: boolean, isDeletable: boolean, children?: Array<{ __typename?: 'ContentsDefine', id: DataId, url?: string | null, title: string, image: boolean, parentId?: DataId | null, values: any, usingAnotherMap: boolean, anotherMapItemId?: DataId | null, isSnsContent: boolean, isEditable: boolean, isDeletable: boolean }> | null }> };
+export type GetContentsInItemQuery = { __typename?: 'Query', getContentsInItem: Array<{ __typename?: 'ContentsDefine', id: DataId, url?: string | null, title: string, image: boolean, parentId?: DataId | null, values: ContentValueMap, usingAnotherMap: boolean, anotherMapItemId?: DataId | null, isSnsContent: boolean, isEditable: boolean, isDeletable: boolean, children?: Array<{ __typename?: 'ContentsDefine', id: DataId, url?: string | null, title: string, image: boolean, parentId?: DataId | null, values: ContentValueMap, usingAnotherMap: boolean, anotherMapItemId?: DataId | null, isSnsContent: boolean, isEditable: boolean, isDeletable: boolean }> | null }> };
 
-export type ContentFragment = { __typename?: 'ContentsDefine', id: DataId, url?: string | null, title: string, image: boolean, parentId?: DataId | null, values: any, usingAnotherMap: boolean, anotherMapItemId?: DataId | null, isSnsContent: boolean, isEditable: boolean, isDeletable: boolean };
+export type ContentFragment = { __typename?: 'ContentsDefine', id: DataId, url?: string | null, title: string, image: boolean, parentId?: DataId | null, values: ContentValueMap, usingAnotherMap: boolean, anotherMapItemId?: DataId | null, isSnsContent: boolean, isEditable: boolean, isDeletable: boolean };
 
 export type GetUnpointContentsQueryVariables = Exact<{
   datasourceId: Scalars['String']['input'];
