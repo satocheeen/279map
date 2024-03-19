@@ -8,15 +8,39 @@ import { ContentValueMap, DataId } from '../../entry';
 type Props = {
 }
 
+/**
+ * コンテンツ登録・更新ドライバ
+ */
 export default function RegistContentDriver(props: Props) {
     const { contentDatasources, getMap, addConsole } = useContext(DriverContext);
     const editableDatasources = useMemo(() => {
         return contentDatasources.filter(ds => ds.config.editable);
     }, [contentDatasources]);
 
+    const [ mode, setMode ] = useState<'new'|'update'>('new');
     const [ values, setValues ] = useState<ContentValueMap>({});
     const [ targetDsId, setTargetDsId ] = useState<string|undefined>();
+    const [ targetContentIdText, setTargetContentIdText ] = useState('');
     const [ targetItemIdText, setTargetItemIdText ] = useState('');
+
+    const targetContentId = useMemo(() => {
+        try {
+            const id = JSON.parse(targetContentIdText) as DataId;
+            if (!id.dataSourceId || !id.id) return;
+            return id;
+        } catch(e) {
+            return;
+        }
+
+    }, [targetContentIdText]);
+
+    useWatch([targetContentId, mode], () => {
+        console.log('targetContentId', targetContentId);
+        if (mode === 'update' && targetContentId) {
+            setTargetDsId(targetContentId.dataSourceId);
+        }
+    })
+
     const targetItemId = useMemo(() => {
         try {
             const id = JSON.parse(targetItemIdText) as DataId;
@@ -41,21 +65,6 @@ export default function RegistContentDriver(props: Props) {
     }, [contentDatasources, targetDsId]);
 
     useWatch(fields, () => {
-        // const newValue = fields.reduce((acc, cur) => {
-        //     const val = function() {
-        //         switch(cur.type) {
-        //             case 'number':
-        //                 return 0;
-        //             default:
-        //                 return '';
-        //         }
-        //     }();
-        //     Object.assign(acc, {
-        //         [cur.key]: val,
-        //     })
-        //     return acc;
-        // }, {});
-        // setValues(newValue);
         setValues({});
 
     }, {immediate: true })
@@ -78,10 +87,14 @@ export default function RegistContentDriver(props: Props) {
     }, [fields]);
 
     const disabled = useMemo(() => {
-        if (!targetItemId) return true;
-        if (!targetDsId) return true;
+        if (mode === 'new') {
+            if (!targetItemId) return true;
+            if (!targetDsId) return true;
+        } else {
+            if (!targetContentId) return true;
+        }
         return false;
-    }, [targetItemId, targetDsId]);
+    }, [targetItemId, targetDsId, targetContentId, mode]);
 
     const handleRegist = useCallback(async() => {
         if (!targetDsId) return;
@@ -104,12 +117,54 @@ export default function RegistContentDriver(props: Props) {
         addConsole('registContent', result);
     }, [addConsole, fields, getMap, targetDsId, targetItemId, values]);
 
+    const handleUpdate = useCallback(async() => {
+        if (!targetContentId) return;
+
+        const titleField = fields.find(f => f.type === 'title');
+        const title = titleField ? values[titleField.key] : undefined;
+        const imageField = fields.find(f => f.type === 'image');
+        const imageUrl = imageField ? values[imageField.key] : undefined;
+        const result = await getMap()?.updateContent({
+            id: targetContentId,
+            title,
+            values,
+        })
+        addConsole('updateContent', result);
+
+    }, [addConsole, fields, getMap, targetContentId, values])
+
     return (
-        <div className={styles.Col}>
-            <div className={styles.PropName}>コンテンツ登録</div>
+        <div className={`${myStyles.Container}`}>
+            <div className={styles.PropName}>コンテンツ登録・更新</div>
+            <div>
+                <label>
+                    <input type='radio' name='mode' checked={mode==='new'} onClick={()=>setMode('new')}></input>
+                    新規
+                </label>
+                <label className={myStyles.TargetID}>
+                    対象ItemID(JSON)
+                    <input type='text' disabled={mode==='update'}
+                        value={targetItemIdText} onChange={evt=>setTargetItemIdText(evt.target.value)} />
+                </label>
+            </div>
+            <div>
+                <label>
+                    <input type='radio' name='mode' checked={mode==='update'} onClick={()=>setMode('update')}></input>
+                    更新
+                </label>
+                <label className={myStyles.TargetID}>
+                    ContentID(JSON)
+                    <input type='text' disabled={mode==='new'}
+                        value={targetContentIdText} onChange={evt=>setTargetContentIdText(evt.target.value)}
+                    />
+                </label>
+            </div>
             <label>
                 対象
-                <select onChange={(evt) => handleChangeDatasource(evt.target.value)}>
+                <select onChange={(evt) => handleChangeDatasource(evt.target.value)}
+                    disabled={mode==='update'}
+                    value={targetDsId}
+                >
                     {contentDatasources.map(ds => (
                         <option key={ds.datasourceId} value={ds.datasourceId}>{ds.name}</option>
                     ))}
@@ -142,11 +197,11 @@ export default function RegistContentDriver(props: Props) {
                 })}
             </table>
             <textarea rows={5} readOnly value={JSON.stringify(values)} />
-            <label>
-                対象ItemID(JSON)
-                <input type='text' value={targetItemIdText} onChange={evt=>setTargetItemIdText(evt.target.value)} />
-            </label>
-            <button disabled={disabled} onClick={handleRegist}>登録</button>
+            {mode === 'new' ?
+                <button disabled={disabled} onClick={handleRegist}>登録</button>
+                :
+                <button disabled={disabled} onClick={handleUpdate}>更新</button>
+            }
         </div>
     );
 }

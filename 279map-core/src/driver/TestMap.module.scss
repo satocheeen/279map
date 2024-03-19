@@ -18,6 +18,13 @@
     gap: 1rem;
 
     overflow-y: scroll;
+
+    > * {
+        margin-left: 20px;
+        margin-right: 20px;
+    
+        min-width: 7rem;
+    }
 }
 .ConsoleArea {
     grid-column: 2 / 3;
