@@ -3,7 +3,7 @@
  */
 
 import { APIDefine, CurrentMap } from "../types";
-import { DataId, GeoProperties } from "../types-common/common-types";
+import { ContentValueMap, DataId, GeoProperties } from "../types-common/common-types";
 
 type CommonParam = {
     currentMap: CurrentMap;
@@ -35,13 +35,10 @@ export const OdbaRegistContentAPI = {
 
 type ContentAttr = {
     title: string;
-    overview: string;
-    categories: string[];
 } & ({
     type: 'normal';
-    date?: string;
+    values: ContentValueMap;
     imageUrl?: string;
-    url?: string;
 } | {
     type: 'sns';
     url?: string;
