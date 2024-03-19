@@ -193,12 +193,9 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                         id: param.parent.id,
                     },
                     title: param.title,
-                    overview: param.overview,
-                    categories: param.categories,
+                    values: param.values,
                     type: ContentType.Normal,
-                    date: param.date,
                     imageUrl: param.imageUrl,
-                    url: param.url,
                 });
                 if (result.error) {
                     throw new Error(result.error.message);
@@ -213,12 +210,9 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 id: param.id,
                 type: ContentType.Normal,
                 title: param.title,
-                overview: param.overview,
-                categories: param.categories,
-                date: param.date,
+                values: param.values,
                 imageUrl: param.imageUrl,
                 deleteImage: param.deleteImage,
-                url: param.url,
             });
             if (result.error) {
                 throw new Error(result.error.message);

@@ -102,47 +102,35 @@ mutation registContent (
     $datasourceId: String!
 
     $title: String!
-    $overview: String
-    $categories: [String!]
+    $values: ContentValueMap!
     $type: ContentType!
-    $date: String
     $imageUrl: String
-    $url: String
 ) {
     registContent(
         parent: $parent
         datasourceId: $datasourceId
         title: $title
-        overview: $overview
-        categories: $categories
+        values: $values
         type: $type
-        date: $date
         imageUrl: $imageUrl
-        url: $url
     )
 }
 
 mutation updateContent (
     $id: DataId!
     $title: String
-    $overview: String
-    $categories: [String!]
+    $values: ContentValueMap!
     $type: ContentType!
-    $date: String
     $imageUrl: String
     $deleteImage: Boolean
-    $url: String
 ) {
     updateContent(
         id: $id
         title: $title
-        overview: $overview
-        categories: $categories
+        values: $values
         type: $type
-        date: $date
         imageUrl: $imageUrl
         deleteImage: $deleteImage
-        url: $url
     )
 }
 

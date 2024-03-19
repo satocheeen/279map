@@ -1,5 +1,5 @@
 import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, SnsPreviewResult, GetItemsQuery, ThumbSize } from "../graphql/generated/graphql";
-import { DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
+import { ContentValueMap, DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
 import { OperationResult } from "urql";
 
 export type OnMapLoadParam = {
@@ -226,11 +226,8 @@ export interface TsunaguMapHandler {
             id: DataId,
         },
         title: string,
-        overview: string;
-        categories: string[],
-        date?: string;
+        values: ContentValueMap,
         imageUrl?: string;
-        url?: string;
     }): Promise<void>;
 
     /**
@@ -239,10 +236,7 @@ export interface TsunaguMapHandler {
     updateContent(param: {
         id: DataId,
         title?: string,
-        overview?: string;
-        categories?: string[],
-        date?: string;
-        url?: string;
+        values: ContentValueMap,
         imageUrl?: string;
         deleteImage?: boolean;
     }): Promise<void>;

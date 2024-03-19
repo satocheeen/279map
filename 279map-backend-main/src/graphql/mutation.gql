@@ -97,24 +97,18 @@ type Mutation {
         datasourceId: String!
 
         title: String!
-        overview: String
-        categories: [String!]
+        values: ContentValueMap!
         type: ContentType!
-        date: String
         imageUrl: String
-        url: String
     ): Boolean
 
     updateContent (
         id: DataId!
         title: String
-        overview: String
-        categories: [String!]
+        values: ContentValueMap!
         type: ContentType!
-        date: String
         imageUrl: String
         deleteImage: Boolean
-        url: String
     ): Boolean
 
     linkContent (
