@@ -79,7 +79,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 }
         }
         return 0;
-    }, [mapDefine]);
+    }, [mapDefine, contentDatasources]);
 
     const { updateItems } = useItemProcess();
 
