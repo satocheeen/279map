@@ -109,15 +109,12 @@ export type ContentsDatasourceInput = {
 export type ContentsDefine = {
   anotherMapItemId?: Maybe<Scalars['DataId']['output']>;
   children?: Maybe<Array<ContentsDefine>>;
-  date?: Maybe<Scalars['String']['output']>;
   id: Scalars['DataId']['output'];
   image: Scalars['Boolean']['output'];
   isDeletable: Scalars['Boolean']['output'];
   isEditable: Scalars['Boolean']['output'];
   isSnsContent: Scalars['Boolean']['output'];
   parentId?: Maybe<Scalars['DataId']['output']>;
-  title: Scalars['String']['output'];
-  url?: Maybe<Scalars['String']['output']>;
   usingAnotherMap: Scalars['Boolean']['output'];
   values: Scalars['ContentValueMap']['output'];
 };
@@ -869,15 +866,12 @@ export type ContentsDatasourceResolvers<ContextType = any, ParentType extends Re
 export type ContentsDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['ContentsDefine'] = ResolversParentTypes['ContentsDefine']> = {
   anotherMapItemId?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType>;
   children?: Resolver<Maybe<Array<ResolversTypes['ContentsDefine']>>, ParentType, ContextType>;
-  date?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   image?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   isDeletable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   isEditable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   isSnsContent?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   parentId?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType>;
-  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   usingAnotherMap?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   values?: Resolver<ResolversTypes['ContentValueMap'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;

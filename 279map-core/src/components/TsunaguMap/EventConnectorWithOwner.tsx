@@ -1,4 +1,4 @@
-import React, { useContext, useCallback, useImperativeHandle } from 'react';
+import React, { useContext, useCallback, useImperativeHandle, useMemo } from 'react';
 import { useWatch } from '../../util/useWatch2';
 import { OwnerContext } from './TsunaguMap';
 import { categoriesAtom } from '../../store/category';
@@ -10,7 +10,7 @@ import { useMap } from '../map/useMap';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { TsunaguMapHandler } from '../../types/types';
 import { useAtom } from 'jotai';
-import { itemDatasourcesWithVisibleAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
+import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import { useAtomCallback } from 'jotai/utils';
 import { allItemContentListAtom, loadedItemMapAtom, storedItemsAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
@@ -51,23 +51,30 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
     const { confirm } = useConfirm();
     const [ mapDefine ] = useAtom(mapDefineAtom);
     const [ , setSelectItemId ] = useAtom(selectItemIdAtom);
+    const [ contentDatasources ] = useAtom(contentDataSourcesAtom);
 
     /**
      * コンテンツ用comparator
      */
     const contentsComparator = useCallback((a: ContentsDefine, b: ContentsDefine) => {
         const sortCondition = mapDefine?.options.contentsSortCondition ?? SortCondition.CreatedAtAsc;
-        // TODO: 現状、コンテンツが作成日時、更新日時を持っていないので、それらのソート処理については未対応。
-        //       後日、backend側の対応が完了してから、そちらについては実装する
         switch(sortCondition) {
             case SortCondition.DateAsc:
             case SortCondition.DateDesc:
                 {
-                    if (!a.date && !b.date) return 0;
-                    if (!a.date) return 1;
-                    if (!b.date) return -1;
-                    const aVal = dayjs(a.date).valueOf();
-                    const bVal = dayjs(b.date).valueOf();
+                    const aDateField = contentDatasources
+                                        .find(c => c.datasourceId === a.id.dataSourceId)?.config.fields
+                                        .find(f => f.type === 'date');
+                    const bDateField = contentDatasources
+                        .find(c => c.datasourceId === b.id.dataSourceId)?.config.fields
+                        .find(f => f.type === 'date');
+                    const aDate = aDateField ? a.values[aDateField.key] : undefined;
+                    const bDate = bDateField ? b.values[bDateField.key] : undefined;
+                    if (!aDate && !bDate) return 0;
+                    if (!aDate) return 1;
+                    if (!bDate) return -1;
+                    const aVal = dayjs(aDate).valueOf();
+                    const bVal = dayjs(bDate).valueOf();
                     return (sortCondition === SortCondition.DateAsc ? 1 : -1) * (aVal - bVal)
                 }
         }

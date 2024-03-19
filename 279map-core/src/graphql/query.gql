@@ -115,8 +115,6 @@ query getContentsInItem(
 
 fragment content on ContentsDefine {
     id
-    url
-    title
     image
     parentId
     values

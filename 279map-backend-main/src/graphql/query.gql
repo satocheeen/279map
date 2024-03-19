@@ -46,9 +46,6 @@ enum ContentType {
 }
 type ContentsDefine {
     id: DataId!
-    date: String
-    url: String
-    title: String!
     image: Boolean!
     parentId: DataId
     values: ContentValueMap!

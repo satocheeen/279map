@@ -85,13 +85,8 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
 
             return {
                 id,
-                title: row.title ?? '',
-                date,
                 image: row.thumbnail ? true : false,
-                // videoUrl: contents?.videoUrl,
-                // overview: contents?.content,
                 values,
-                // url: contents?.url,
                 parentId: (row.parent_id && row.parent_datasource_id) ? {
                     id: row.parent_id,
                     dataSourceId: row.parent_datasource_id,
