@@ -95,20 +95,12 @@ type Mutation {
     registContent (
         parent: ParentInput!
         datasourceId: String!
-
-        title: String!
         values: ContentValueMap!
-        type: ContentType!
-        imageUrl: String
     ): Boolean
 
     updateContent (
         id: DataId!
-        title: String
         values: ContentValueMap!
-        type: ContentType!
-        imageUrl: String
-        deleteImage: Boolean
     ): Boolean
 
     linkContent (

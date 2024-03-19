@@ -840,14 +840,8 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                             contentId: parent.id,
                         },
                         contentDataSourceId: datasourceId,
-                        // categories: param.categories ?? [],
-                        // date: param.date ?? undefined,
-                        imageUrl: param.imageUrl ?? undefined,
-                        // overview: param.overview ?? '',
-                        title: param.title,
                         type: 'normal',
                         values: param.values,
-                        // url: param.url ?? undefined,
                     });
             
                     // TODO: OdbaRegistContentAPIの戻り値をcontentIdにして、それを元にgetContentsしてitemIdを取得するように変更する
@@ -878,15 +872,8 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     await callOdbaApi(OdbaUpdateContentAPI, {
                         currentMap: ctx.currentMap,
                         id: param.id,
-                        // categories: param.categories ?? undefined,
-                        // date: param.date ?? undefined,
-                        imageUrl: param.imageUrl ?? undefined,
-                        deleteImage: param.deleteImage ?? undefined,
-                        // overview: param.overview ?? undefined,
-                        title: param.title ?? undefined,
                         type: 'normal',
                         values: param.values,
-                        // url: param.url ?? undefined,
                     });
             
                     // 更新通知

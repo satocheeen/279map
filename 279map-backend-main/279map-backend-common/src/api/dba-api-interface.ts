@@ -34,15 +34,13 @@ export const OdbaRegistContentAPI = {
 } as APIDefine<OdbaRegistContentParam, void>;
 
 type ContentAttr = {
-    title: string;
-} & ({
     type: 'normal';
     values: ContentValueMap;
-    imageUrl?: string;
 } | {
     type: 'sns';
-    url?: string;
-});
+    title: string;
+    url: string;
+};
 
 export type OdbaRegistContentParam = CommonParam & {
     parent: {
@@ -124,9 +122,7 @@ export const OdbaUpdateContentAPI = {
 
 export type OdbaUpdateContentParam = CommonParam & {
     id: DataId;
-} & Partial<ContentAttr> & {
-    deleteImage?: boolean;  // trueの場合、画像削除する
-};
+} & ContentAttr;
 
 /**
  * get unpoint data
