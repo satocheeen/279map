@@ -100,8 +100,6 @@ export default function RegistContentDriver(props: Props) {
         if (!targetDsId) return;
         if (!targetItemId) return;
 
-        const titleField = fields.find(f => f.type === 'title');
-        const title = titleField ? values[titleField.key] : '';
         const imageField = fields.find(f => f.type === 'image');
         const imageUrl = imageField ? values[imageField.key] : undefined;
         const result = await getMap()?.registContent({
@@ -110,9 +108,7 @@ export default function RegistContentDriver(props: Props) {
                 type: 'item',
                 id: targetItemId,
             },
-            title,
             values,
-            imageUrl,
         });
         addConsole('registContent', result);
     }, [addConsole, fields, getMap, targetDsId, targetItemId, values]);
@@ -120,13 +116,10 @@ export default function RegistContentDriver(props: Props) {
     const handleUpdate = useCallback(async() => {
         if (!targetContentId) return;
 
-        const titleField = fields.find(f => f.type === 'title');
-        const title = titleField ? values[titleField.key] : undefined;
         const imageField = fields.find(f => f.type === 'image');
         const imageUrl = imageField ? values[imageField.key] : undefined;
         const result = await getMap()?.updateContent({
             id: targetContentId,
-            title,
             values,
         })
         addConsole('updateContent', result);
@@ -191,6 +184,12 @@ export default function RegistContentDriver(props: Props) {
                             <td className={myStyles.Label}>{'label' in field ? field.label : ''}</td>
                             <td>
                                 <input type={type} value={values[field.key]??''} onChange={(evt)=>handleChangeValue(field.key, evt.target.value)} />
+                                {(field.type === 'image' && mode==='update') &&
+                                    <label>
+                                        <input type='checkbox' checked={values[field.key] === null} onChange={(evt)=>handleChangeValue(field.key, evt.target.checked ? null : undefined )}/>
+                                        削除
+                                    </label>
+                                }
                             </td>
                         </tr>
                     )

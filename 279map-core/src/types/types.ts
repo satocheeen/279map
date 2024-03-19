@@ -225,9 +225,7 @@ export interface TsunaguMapHandler {
             type: 'item' | 'content',
             id: DataId,
         },
-        title: string,
         values: ContentValueMap,
-        imageUrl?: string;
     }): Promise<void>;
 
     /**
@@ -235,10 +233,7 @@ export interface TsunaguMapHandler {
      */
     updateContent(param: {
         id: DataId,
-        title?: string,
         values: ContentValueMap,
-        imageUrl?: string;
-        deleteImage?: boolean;
     }): Promise<void>;
 
     /**

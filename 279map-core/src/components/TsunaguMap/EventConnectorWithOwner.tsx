@@ -192,10 +192,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                         type: param.parent.type === 'item' ? ParentOfContent.Item : ParentOfContent.Content,
                         id: param.parent.id,
                     },
-                    title: param.title,
                     values: param.values,
-                    type: ContentType.Normal,
-                    imageUrl: param.imageUrl,
                 });
                 if (result.error) {
                     throw new Error(result.error.message);
@@ -209,10 +206,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             const result = await gqlClient.mutation(UpdateContentDocument, {
                 id: param.id,
                 type: ContentType.Normal,
-                title: param.title,
                 values: param.values,
-                imageUrl: param.imageUrl,
-                deleteImage: param.deleteImage,
             });
             if (result.error) {
                 throw new Error(result.error.message);
