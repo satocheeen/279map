@@ -1,7 +1,7 @@
 import { ConnectionPool } from "..";
 import { CurrentMap } from "../../279map-backend-common/src";
-import { DataSourceTable } from "../../279map-backend-common/src/types/schema";
-import { ContentDatasourceConfig, DatasourceKindType } from "../types-common/common-types";
+import { DataSourceTable, DatasourceTblConfig } from "../../279map-backend-common/src/types/schema";
+import { DatasourceKindType } from "../types-common/common-types";
 
 /**
  * ODBAのGetUnpontDataAPIを呼び出す前のチェック処理
@@ -34,19 +34,20 @@ async function getLinkableDataSources(currentMap: CurrentMap, dataSourceId: stri
         const [rows] = await con.query(sql, [currentMap.mapId]);
 
         // 指定のデータソースを紐づけ可能にしているデータソースに絞る
-        return (rows as DataSourceTable[]).filter(row => {
-            const config = (row.config as ContentDatasourceConfig);
-            switch(config.kind) {
-                case DatasourceKindType.VirtualItem:
-                case DatasourceKindType.RealItem:
-                    return true;
-                case DatasourceKindType.RealPointContent:
-                case DatasourceKindType.Content:
-                    return config.linkableChildContents;
-                default:
-                    return false;
-            }
-        })
+        return (rows as DataSourceTable[]);
+        // .filter(row => {
+        //     const config = (row.config as DatasourceTblConfig);
+        //     switch(config.kind) {
+        //         case DatasourceKindType.VirtualItem:
+        //         case DatasourceKindType.RealItem:
+        //             return true;
+        //         case DatasourceKindType.RealPointContent:
+        //         case DatasourceKindType.Content:
+        //             return config.linkableChildContents;
+        //         default:
+        //             return false;
+        //     }
+        // })
 
     } finally {
         await con.commit();
