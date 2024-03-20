@@ -9,9 +9,27 @@ const config: CodegenConfig = {
     "src/graphql/__generated__/types.ts": {
       plugins: [
         "typescript", 
+        {
+          add: {
+            content: [
+              "import { Geometry } from 'geojson'",
+              "import { DataId, GeoProperties, GeocoderIdInfo, IconKey, ItemDatasourceConfig, ContentDatasourceConfig, ContentValueMap } from '../../types-common/common-types'",
+            ]
+          }
+        },
       ],
       config: {
         skipTypename: true,
+        scalars: {
+          DataId: 'DataId',
+          ItemDatasourceConfig: 'ItemDatasourceConfig',
+          ContentDatasourceConfig: 'ContentDatasourceConfig',
+          Geometry: 'Geometry',
+          IconKey: 'IconKey',
+          GeoProperties: 'GeoProperties',
+          GeocoderIdInfo: 'GeocoderIdInfo',
+          ContentValueMap: 'ContentValueMap',
+        },
       }
     }
   }

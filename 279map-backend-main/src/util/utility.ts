@@ -1,14 +1,10 @@
 import { ConnectionPool } from '..';
-import mysql, { PoolConnection } from 'mysql2/promise';
-import { ContentsTable, ItemsTable } from '../../279map-backend-common/src/types/schema';
-import { CurrentMap } from '../../279map-backend-common/src';
+import { ContentsTable, DataSourceTable, ItemContentLink, ItemsTable } from '../../279map-backend-common/src/types/schema';
 import { buffer, circle, featureCollection, lineString, multiLineString, multiPolygon, point, polygon, union } from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 import crypto from 'crypto';
 import * as geojson from 'geojson';
-import { MapKind } from '../graphql/__generated__/types';
 import { DataId } from '../types-common/common-types';
-import { schema } from '../../279map-backend-common/dist';
 
 type Extent = number[];
 
@@ -66,7 +62,7 @@ export async function getAncestorItemId(contentId: DataId): Promise<DataId | und
         where content_page_id = ? and content_datasource_id = ?
         `;
         const [rows] = await myCon.execute(sql, [contentId.id, contentId.dataSourceId]);
-        if ((rows as schema.ItemContentLink[]).length > 0) {
+        if ((rows as ItemContentLink[]).length > 0) {
             const record = (rows as ItemsTable[])[0];
             return {
                 id: record.item_page_id,
@@ -219,7 +215,7 @@ export function geoJsonToTurfFeatureCollection(geoJsons: (geojson.Geometry | geo
     return list;
 }
 
-export async function getDatasourceRecord(datasourceId: string): Promise<schema.DataSourceTable> {
+export async function getDatasourceRecord(datasourceId: string): Promise<DataSourceTable> {
     const con = await ConnectionPool.getConnection();
 
     try {
@@ -228,7 +224,7 @@ export async function getDatasourceRecord(datasourceId: string): Promise<schema.
         if ((rows as []).length === 0) {
             throw new Error('data_source not find. ->' + datasourceId);
         }
-        return (rows as schema.DataSourceTable[])[0];
+        return (rows as DataSourceTable[])[0];
 
     } finally {
         await con.commit();

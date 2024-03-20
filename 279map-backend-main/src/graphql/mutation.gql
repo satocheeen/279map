@@ -39,12 +39,12 @@ type ItemDatasourceInfo {
     name: String!
     groupName: String
     initialVisible: Boolean!
-    config: DatasourceConfig!
+    config: ItemDatasourceConfig!
 }
 type ContentDatasourceInfo {
     datasourceId: String!
     name: String!
-    config: DatasourceConfig!
+    config: ContentDatasourceConfig!
 }
 
 type IconDefine {
@@ -95,26 +95,12 @@ type Mutation {
     registContent (
         parent: ParentInput!
         datasourceId: String!
-
-        title: String!
-        overview: String
-        categories: [String!]
-        type: ContentType!
-        date: String
-        imageUrl: String
-        url: String
+        values: ContentValueMap!
     ): Boolean
 
     updateContent (
         id: DataId!
-        title: String
-        overview: String
-        categories: [String!]
-        type: ContentType!
-        date: String
-        imageUrl: String
-        deleteImage: Boolean
-        url: String
+        values: ContentValueMap!
     ): Boolean
 
     linkContent (

@@ -21,6 +21,7 @@ import LinkContentDriver from './linkcontent/LinkContentDriver';
 import ItemController from './item-controller/ItemContriller';
 import SwitchMapKindDriver from './switch-mapkind/SwitchMapKindDriver';
 import BasicSettingDriver from './basic-settings/BasicSettingDriver';
+import RegistContentDriver from './regist-content/RegistContentDriver';
 
 export const DriverContext = React.createContext({
     getMap: () => null as TsunaguMapHandler | null,
@@ -275,6 +276,7 @@ export default function TestMap() {
                 <div className={styles.VerticalArea}>
                     <DatasourceDriver />
                     <FilterTest />
+                    <RegistContentDriver />
                     <GetUnlinkedContentDriver />
                     <LinkContentDriver />
                 </div>

@@ -1,0 +1,31 @@
+.Table {
+    border: 1px solid #aaa;
+    font-size: .8rem;
+    width: 90%;
+
+    tr:not(:last-child) {
+        td {
+            border-bottom: 1px solid #aaa;
+        }
+    }
+    td:not(:first-child) {
+        border-left: 1px solid #aaa;
+    }
+
+    .Label {
+        min-width: 2rem;
+    }
+}
+.TargetID {
+    margin-left: 1rem;
+    display: block;
+
+    input {
+        width: 100%;
+    }
+}
+.Container {
+    textarea {
+        width: 100%;
+    }
+}

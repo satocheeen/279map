@@ -1,5 +1,5 @@
 import { ConnectionPool } from "..";
-import { schema } from "../../279map-backend-common/src";
+import { DataSourceTable, ItemContentLink, ItemsTable, MapDataSourceLinkTable } from "../../279map-backend-common/src";
 import { MapKind } from "../graphql/__generated__/types";
 import { DatasourceKindType, DataId } from "../types-common/common-types";
 
@@ -24,7 +24,7 @@ export async function getLinkedItemIdList(contentId: DataId): Promise<Result[]> 
         where icl.content_page_id = ? and icl.content_datasource_id = ?
         `;
         const [rows] = await con.execute(sql, [contentId.id, contentId.dataSourceId]);
-        return (rows as (schema.ItemContentLink & schema.ItemsTable & schema.DataSourceTable & schema.MapDataSourceLinkTable)[]).map(row => {
+        return (rows as (ItemContentLink & ItemsTable & DataSourceTable & MapDataSourceLinkTable)[]).map(row => {
             return {
                 mapId: row.map_page_id,
                 mapKind: row.kind === DatasourceKindType.VirtualItem ? MapKind.Virtual : MapKind.Real,

@@ -3,7 +3,7 @@
  */
 
 import { APIDefine, CurrentMap } from "../types";
-import { DataId, GeoProperties } from "../types-common/common-types";
+import { ContentValueMap, DataId, GeoProperties } from "../types-common/common-types";
 
 type CommonParam = {
     currentMap: CurrentMap;
@@ -34,18 +34,13 @@ export const OdbaRegistContentAPI = {
 } as APIDefine<OdbaRegistContentParam, void>;
 
 type ContentAttr = {
-    title: string;
-    overview: string;
-    categories: string[];
-} & ({
     type: 'normal';
-    date?: string;
-    imageUrl?: string;
-    url?: string;
+    values: ContentValueMap;
 } | {
     type: 'sns';
-    url?: string;
-});
+    title: string;
+    url: string;
+};
 
 export type OdbaRegistContentParam = CommonParam & {
     parent: {
@@ -127,9 +122,7 @@ export const OdbaUpdateContentAPI = {
 
 export type OdbaUpdateContentParam = CommonParam & {
     id: DataId;
-} & Partial<ContentAttr> & {
-    deleteImage?: boolean;  // trueの場合、画像削除する
-};
+} & ContentAttr;
 
 /**
  * get unpoint data
@@ -177,7 +170,10 @@ export const OdbaGetImageUrlAPI = {
     uri: 'get-imageurl',
     method: 'post',
     resultType: 'string',
-} as APIDefine<{id: DataId}, string|undefined>;
+} as APIDefine<OdbaGetImageUrlParam, string|undefined>;
+export type OdbaGetImageUrlParam = CommonParam & {
+    id: DataId;
+}
 
 export const OdbaGetLinkableContentsAPI = {
     uri: 'get-linkable-contents',

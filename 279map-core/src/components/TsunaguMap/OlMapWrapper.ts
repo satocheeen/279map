@@ -212,11 +212,10 @@ export class OlMapWrapper {
                     })
 
                 } else if (ds.config.kind === DatasourceKindType.RealPointContent) {
-                    const editable = ds.config.editable;
                     [LayerType.Point, LayerType.Topography].forEach(layerType => {
                         const layerDefine: LayerDefine = {
                             dataSourceId: ds.datasourceId,
-                            editable,
+                            editable: true,
                             layerType: layerType as LayerType.Point| LayerType.Topography,
                         };
                         this.addLayer(layerDefine, ds.initialVisible);

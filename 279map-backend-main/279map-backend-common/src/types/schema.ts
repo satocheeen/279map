@@ -1,6 +1,6 @@
 import { MapPageOptions, MapKind } from '../graphql/__generated__/types';
 import { SnsOptions } from '../sns';
-import { DatasourceConfig, DatasourceKindType } from '../types-common/common-types';
+import { ContentDatasourceConfig, ContentFieldDefine, DatasourceKindType } from '../types-common/common-types';
 
 export enum PublicRange {
     Public = 'Public',
@@ -26,14 +26,16 @@ export type DataSourceTable = {
     data_source_id: string;
     kind: DatasourceKindType;
 
-    // 登録時はstring, 取得時はDatasourceConfig
-    config: string | DatasourceConfig;
+    // 登録時はstring, 取得時はDatasourceConfig(Contentの場合、fieldsは格納対象外)
+    config: string | DatasourceTblConfig;
 
     // ODBAで使用するための接続関連情報
     odba_connection: string | OdbaConnection;  // 登録時はstring、取得時はDataSourceConnection
 
     last_edited_time: string;
 }
+export type DatasourceTblConfig = Omit<ContentDatasourceConfig, 'fields'> | {};
+
 export type MapDataSourceLinkTable = {
     map_page_id: string;
     data_source_id: string;
@@ -44,11 +46,22 @@ export type MapDataSourceLinkTable = {
     last_edited_time: string;
 }
 /**
- * TODO: コンテンツのカラム定義等を格納
+ * コンテンツのカラム定義等を格納
  */
 export type MapDataSourceLinkConfig = {
-    initialVisible?: boolean;    // 初期表示状態（Itemの場合のみ設定）
+    kind: DatasourceKindType.RealItem | DatasourceKindType.Track;
+    initialVisible: boolean;    // 初期表示状態
+} | {
+    kind: DatasourceKindType.Content;
+    fields: ContentFieldDefine[];
+} | {
+    kind: DatasourceKindType.RealPointContent;
+    initialVisible: boolean;    // 初期表示状態
+    fields: ContentFieldDefine[];
+} | {
+    kind: DatasourceKindType.VirtualItem;
 }
+
 export type TracksTable = {
     track_page_id: string;
     data_source_id: string;
@@ -82,7 +95,7 @@ export type ContentsTable = {
     parent_id?: string;         // 親コンテンツID
     parent_datasource_id?: string;         // 親コンテンツデータソースID
     title?: string;
-    contents?: string | ContentsInfo;   // 登録時はstring。取得時はContentsInfo
+    contents?: string | object;   // 登録時はstring。取得時はobject
     thumbnail?: string;
     category?: string | string[];   // 登録時はstring。取得時はCategory文字配列
     date?: Date | string;   // 登録時はDate。取得時はstring
@@ -95,14 +108,6 @@ export type ItemContentLink = {
     content_page_id: string;
     content_datasource_id: string;
     last_edited_time: string;
-}
-/**
- * conteentsテーブル内のcontentsカラムを構成する情報
- */
- export type ContentsInfo = {
-    content?: string;
-    url?: string;
-    videoUrl?: string;
 }
 
 export type OriginalIconsTable = {

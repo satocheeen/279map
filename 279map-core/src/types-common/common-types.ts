@@ -68,22 +68,34 @@ export enum DatasourceKindType {
     Track = 'Track',
     Content = 'Content',
 }
-export type DatasourceConfig = {
-    // 現実世界地図用の作図レイヤ or 軌跡レイヤ
-    kind: DatasourceKindType.RealItem | DatasourceKindType.Track;
+
+/**
+ * アイテムDatasourceに関する情報
+ */
+export type ItemDatasourceConfig = {
+    kind: DatasourceKindType.RealItem | DatasourceKindType.Track | DatasourceKindType.VirtualItem;
 } | {
-    // 村マップの作図レイヤ
-    kind: DatasourceKindType.VirtualItem;
-} | {
-    // 現実世界地図用の位置コンテンツレイヤ
     kind: DatasourceKindType.RealPointContent;
     defaultIcon?: IconKey;
-    linkableChildContents: boolean; // trueの場合、子コンテンツの追加が可能
-    editable: boolean;
-    deletable: boolean;
-} | {
-    kind: DatasourceKindType.Content;
-    linkableChildContents: boolean; // trueの場合、子コンテンツの追加が可能
-    editable: boolean;
-    deletable: boolean;
 }
+/**
+ * コンテンツDatasourceに関する情報
+ */
+export type ContentDatasourceConfig = {
+    kind: DatasourceKindType.Content | DatasourceKindType.RealPointContent;
+    linkableChildContents: boolean; // trueの場合、子コンテンツの追加が可能
+    editable: boolean;
+    deletable: boolean;
+    fields: ContentFieldDefine[];
+}
+
+export type ContentFieldDefine = {
+    key: string;
+    type: 'title' | 'url' | 'latitude' | 'longitude' | 'radius' | 'address';
+} | {
+    key: string;
+    type: 'date' | 'text' | 'category' | 'number' | 'image';
+    label: string;
+}
+
+export type ContentValueMap = {[key: string]: any};

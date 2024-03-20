@@ -1,6 +1,6 @@
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
 import { Geometry } from 'geojson'
-import { DataId, GeoProperties, GeocoderIdInfo, IconKey, DatasourceConfig } from '../../types-common/common-types'
+import { DataId, GeoProperties, GeocoderIdInfo, IconKey, ItemDatasourceConfig, ContentDatasourceConfig, ContentValueMap } from '../../types-common/common-types'
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -17,12 +17,14 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  ContentDatasourceConfig: { input: ContentDatasourceConfig; output: ContentDatasourceConfig; }
+  ContentValueMap: { input: ContentValueMap; output: ContentValueMap; }
   DataId: { input: DataId; output: DataId; }
-  DatasourceConfig: { input: DatasourceConfig; output: DatasourceConfig; }
   GeoProperties: { input: GeoProperties; output: GeoProperties; }
   GeocoderIdInfo: { input: GeocoderIdInfo; output: GeocoderIdInfo; }
   Geometry: { input: Geometry; output: Geometry; }
   IconKey: { input: IconKey; output: IconKey; }
+  ItemDatasourceConfig: { input: ItemDatasourceConfig; output: ItemDatasourceConfig; }
   JSON: { input: any; output: any; }
 };
 
@@ -84,7 +86,7 @@ export type ConnectResult = {
 };
 
 export type ContentDatasourceInfo = {
-  config: Scalars['DatasourceConfig']['output'];
+  config: Scalars['ContentDatasourceConfig']['output'];
   datasourceId: Scalars['String']['output'];
   name: Scalars['String']['output'];
 };
@@ -106,20 +108,15 @@ export type ContentsDatasourceInput = {
 
 export type ContentsDefine = {
   anotherMapItemId?: Maybe<Scalars['DataId']['output']>;
-  category?: Maybe<Array<Scalars['String']['output']>>;
   children?: Maybe<Array<ContentsDefine>>;
-  date?: Maybe<Scalars['String']['output']>;
   id: Scalars['DataId']['output'];
   image: Scalars['Boolean']['output'];
   isDeletable: Scalars['Boolean']['output'];
   isEditable: Scalars['Boolean']['output'];
   isSnsContent: Scalars['Boolean']['output'];
-  overview?: Maybe<Scalars['String']['output']>;
   parentId?: Maybe<Scalars['DataId']['output']>;
-  title: Scalars['String']['output'];
-  url?: Maybe<Scalars['String']['output']>;
   usingAnotherMap: Scalars['Boolean']['output'];
-  videoUrl?: Maybe<Scalars['String']['output']>;
+  values: Scalars['ContentValueMap']['output'];
 };
 
 export type ErrorInfo = {
@@ -171,7 +168,7 @@ export type IconDefine = {
 };
 
 export type ItemDatasourceInfo = {
-  config: Scalars['DatasourceConfig']['output'];
+  config: Scalars['ItemDatasourceConfig']['output'];
   datasourceId: Scalars['String']['output'];
   groupName?: Maybe<Scalars['String']['output']>;
   initialVisible: Scalars['Boolean']['output'];
@@ -289,15 +286,9 @@ export type MutationLinkContentsDatasourceArgs = {
 
 
 export type MutationRegistContentArgs = {
-  categories?: InputMaybe<Array<Scalars['String']['input']>>;
   datasourceId: Scalars['String']['input'];
-  date?: InputMaybe<Scalars['String']['input']>;
-  imageUrl?: InputMaybe<Scalars['String']['input']>;
-  overview?: InputMaybe<Scalars['String']['input']>;
   parent: ParentInput;
-  title: Scalars['String']['input'];
-  type: ContentType;
-  url?: InputMaybe<Scalars['String']['input']>;
+  values: Scalars['ContentValueMap']['input'];
 };
 
 
@@ -342,15 +333,8 @@ export type MutationUnlinkContentsDatasourceArgs = {
 
 
 export type MutationUpdateContentArgs = {
-  categories?: InputMaybe<Array<Scalars['String']['input']>>;
-  date?: InputMaybe<Scalars['String']['input']>;
-  deleteImage?: InputMaybe<Scalars['Boolean']['input']>;
   id: Scalars['DataId']['input'];
-  imageUrl?: InputMaybe<Scalars['String']['input']>;
-  overview?: InputMaybe<Scalars['String']['input']>;
-  title?: InputMaybe<Scalars['String']['input']>;
-  type: ContentType;
-  url?: InputMaybe<Scalars['String']['input']>;
+  values: Scalars['ContentValueMap']['input'];
 };
 
 
@@ -715,13 +699,14 @@ export type ResolversTypes = {
   ConnectErrorType: ConnectErrorType;
   ConnectInfo: ResolverTypeWrapper<ConnectInfo>;
   ConnectResult: ResolverTypeWrapper<ConnectResult>;
+  ContentDatasourceConfig: ResolverTypeWrapper<Scalars['ContentDatasourceConfig']['output']>;
   ContentDatasourceInfo: ResolverTypeWrapper<ContentDatasourceInfo>;
   ContentType: ContentType;
+  ContentValueMap: ResolverTypeWrapper<Scalars['ContentValueMap']['output']>;
   ContentsDatasource: ResolverTypeWrapper<ContentsDatasource>;
   ContentsDatasourceInput: ContentsDatasourceInput;
   ContentsDefine: ResolverTypeWrapper<ContentsDefine>;
   DataId: ResolverTypeWrapper<Scalars['DataId']['output']>;
-  DatasourceConfig: ResolverTypeWrapper<Scalars['DatasourceConfig']['output']>;
   ErrorInfo: ResolverTypeWrapper<ErrorInfo>;
   ErrorType: ErrorType;
   EventContent: ResolverTypeWrapper<EventContent>;
@@ -736,6 +721,7 @@ export type ResolversTypes = {
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   IconDefine: ResolverTypeWrapper<IconDefine>;
   IconKey: ResolverTypeWrapper<Scalars['IconKey']['output']>;
+  ItemDatasourceConfig: ResolverTypeWrapper<Scalars['ItemDatasourceConfig']['output']>;
   ItemDatasourceInfo: ResolverTypeWrapper<ItemDatasourceInfo>;
   ItemDefine: ResolverTypeWrapper<ItemDefine>;
   ItemLabelMode: ItemLabelMode;
@@ -780,12 +766,13 @@ export type ResolversParentTypes = {
   Condition: Condition;
   ConnectInfo: ConnectInfo;
   ConnectResult: ConnectResult;
+  ContentDatasourceConfig: Scalars['ContentDatasourceConfig']['output'];
   ContentDatasourceInfo: ContentDatasourceInfo;
+  ContentValueMap: Scalars['ContentValueMap']['output'];
   ContentsDatasource: ContentsDatasource;
   ContentsDatasourceInput: ContentsDatasourceInput;
   ContentsDefine: ContentsDefine;
   DataId: Scalars['DataId']['output'];
-  DatasourceConfig: Scalars['DatasourceConfig']['output'];
   ErrorInfo: ErrorInfo;
   EventContent: EventContent;
   EventDefine: EventDefine;
@@ -798,6 +785,7 @@ export type ResolversParentTypes = {
   ID: Scalars['ID']['output'];
   IconDefine: IconDefine;
   IconKey: Scalars['IconKey']['output'];
+  ItemDatasourceConfig: Scalars['ItemDatasourceConfig']['output'];
   ItemDatasourceInfo: ItemDatasourceInfo;
   ItemDefine: ItemDefine;
   JSON: Scalars['JSON']['output'];
@@ -854,12 +842,20 @@ export type ConnectResultResolvers<ContextType = any, ParentType extends Resolve
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export interface ContentDatasourceConfigScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['ContentDatasourceConfig'], any> {
+  name: 'ContentDatasourceConfig';
+}
+
 export type ContentDatasourceInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['ContentDatasourceInfo'] = ResolversParentTypes['ContentDatasourceInfo']> = {
-  config?: Resolver<ResolversTypes['DatasourceConfig'], ParentType, ContextType>;
+  config?: Resolver<ResolversTypes['ContentDatasourceConfig'], ParentType, ContextType>;
   datasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
+
+export interface ContentValueMapScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['ContentValueMap'], any> {
+  name: 'ContentValueMap';
+}
 
 export type ContentsDatasourceResolvers<ContextType = any, ParentType extends ResolversParentTypes['ContentsDatasource'] = ResolversParentTypes['ContentsDatasource']> = {
   datasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -869,29 +865,20 @@ export type ContentsDatasourceResolvers<ContextType = any, ParentType extends Re
 
 export type ContentsDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['ContentsDefine'] = ResolversParentTypes['ContentsDefine']> = {
   anotherMapItemId?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType>;
-  category?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   children?: Resolver<Maybe<Array<ResolversTypes['ContentsDefine']>>, ParentType, ContextType>;
-  date?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   image?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   isDeletable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   isEditable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   isSnsContent?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  overview?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   parentId?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType>;
-  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   usingAnotherMap?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  videoUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  values?: Resolver<ResolversTypes['ContentValueMap'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export interface DataIdScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DataId'], any> {
   name: 'DataId';
-}
-
-export interface DatasourceConfigScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DatasourceConfig'], any> {
-  name: 'DatasourceConfig';
 }
 
 export type ErrorInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['ErrorInfo'] = ResolversParentTypes['ErrorInfo']> = {
@@ -950,8 +937,12 @@ export interface IconKeyScalarConfig extends GraphQLScalarTypeConfig<ResolversTy
   name: 'IconKey';
 }
 
+export interface ItemDatasourceConfigScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['ItemDatasourceConfig'], any> {
+  name: 'ItemDatasourceConfig';
+}
+
 export type ItemDatasourceInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemDatasourceInfo'] = ResolversParentTypes['ItemDatasourceInfo']> = {
-  config?: Resolver<ResolversTypes['DatasourceConfig'], ParentType, ContextType>;
+  config?: Resolver<ResolversTypes['ItemDatasourceConfig'], ParentType, ContextType>;
   datasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   groupName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   initialVisible?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -1021,7 +1012,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   disconnect?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   linkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkContentArgs, 'id' | 'parent'>>;
   linkContentsDatasource?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkContentsDatasourceArgs, 'contentsDatasources'>>;
-  registContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRegistContentArgs, 'datasourceId' | 'parent' | 'title' | 'type'>>;
+  registContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRegistContentArgs, 'datasourceId' | 'parent' | 'values'>>;
   registItem?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRegistItemArgs, 'datasourceId' | 'geoProperties' | 'geometry'>>;
   removeContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveContentArgs, 'id'>>;
   removeItem?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveItemArgs, 'id'>>;
@@ -1029,7 +1020,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   switchMapKind?: Resolver<ResolversTypes['MapInfo'], ParentType, ContextType, RequireFields<MutationSwitchMapKindArgs, 'mapKind'>>;
   unlinkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkContentArgs, 'id' | 'parent'>>;
   unlinkContentsDatasource?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkContentsDatasourceArgs, 'contentsDatasourceIds'>>;
-  updateContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateContentArgs, 'id' | 'type'>>;
+  updateContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateContentArgs, 'id' | 'values'>>;
   updateItems?: Resolver<ResolversTypes['UpdateItemsResult'], ParentType, ContextType, RequireFields<MutationUpdateItemsArgs, 'targets'>>;
 };
 
@@ -1140,11 +1131,12 @@ export type Resolvers<ContextType = any> = {
   CategoryDefine?: CategoryDefineResolvers<ContextType>;
   ConnectInfo?: ConnectInfoResolvers<ContextType>;
   ConnectResult?: ConnectResultResolvers<ContextType>;
+  ContentDatasourceConfig?: GraphQLScalarType;
   ContentDatasourceInfo?: ContentDatasourceInfoResolvers<ContextType>;
+  ContentValueMap?: GraphQLScalarType;
   ContentsDatasource?: ContentsDatasourceResolvers<ContextType>;
   ContentsDefine?: ContentsDefineResolvers<ContextType>;
   DataId?: GraphQLScalarType;
-  DatasourceConfig?: GraphQLScalarType;
   ErrorInfo?: ErrorInfoResolvers<ContextType>;
   EventContent?: EventContentResolvers<ContextType>;
   EventDefine?: EventDefineResolvers<ContextType>;
@@ -1155,6 +1147,7 @@ export type Resolvers<ContextType = any> = {
   GetUnpointContentsResult?: GetUnpointContentsResultResolvers<ContextType>;
   IconDefine?: IconDefineResolvers<ContextType>;
   IconKey?: GraphQLScalarType;
+  ItemDatasourceConfig?: GraphQLScalarType;
   ItemDatasourceInfo?: ItemDatasourceInfoResolvers<ContextType>;
   ItemDefine?: ItemDefineResolvers<ContextType>;
   JSON?: GraphQLScalarType;

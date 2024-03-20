@@ -482,12 +482,13 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * サムネイル画像取得
              */
-            getThumb: async(_, param: QueryGetThumbArgs): QueryResolverReturnType<'getThumb'> => {
+            getThumb: async(_, param: QueryGetThumbArgs, ctx): QueryResolverReturnType<'getThumb'> => {
 
                 try {
                     if (param.size === ThumbSize.Medium) {
                         // オリジナル画像を縮小する
                         const url = await callOdbaApi(OdbaGetImageUrlAPI, {
+                            currentMap: ctx.currentMap,
                             id: param.contentId,
                         });
                         if (!url) {
@@ -522,6 +523,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 try {
                     // call odba
                     const result = await callOdbaApi(OdbaGetImageUrlAPI, {
+                        currentMap: ctx.currentMap,
                         id: param.contentId,
                     });
                     return result ?? '';
@@ -838,13 +840,8 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                             contentId: parent.id,
                         },
                         contentDataSourceId: datasourceId,
-                        categories: param.categories ?? [],
-                        date: param.date ?? undefined,
-                        imageUrl: param.imageUrl ?? undefined,
-                        overview: param.overview ?? '',
-                        title: param.title,
-                        type: param.type,
-                        url: param.url ?? undefined,
+                        type: 'normal',
+                        values: param.values,
                     });
             
                     // TODO: OdbaRegistContentAPIの戻り値をcontentIdにして、それを元にgetContentsしてitemIdを取得するように変更する
@@ -875,14 +872,8 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     await callOdbaApi(OdbaUpdateContentAPI, {
                         currentMap: ctx.currentMap,
                         id: param.id,
-                        categories: param.categories ?? undefined,
-                        date: param.date ?? undefined,
-                        imageUrl: param.imageUrl ?? undefined,
-                        deleteImage: param.deleteImage ?? undefined,
-                        overview: param.overview ?? undefined,
-                        title: param.title ?? undefined,
-                        type: param.type,
-                        url: param.url ?? undefined,
+                        type: 'normal',
+                        values: param.values,
                     });
             
                     // 更新通知
@@ -1198,7 +1189,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
             }
         },
-        DatasourceConfig: DatasourceConfigScalarType,
         VisibleDataSource: {
             __resolveType: (obj: any) => {
                 if ('dataSourceId' in obj) {
