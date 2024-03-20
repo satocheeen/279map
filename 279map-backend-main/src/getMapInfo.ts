@@ -178,6 +178,8 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
 
         return (rows as (DataSourceTable & MapDataSourceLinkTable)[]).map((row): ItemDatasourceInfo => {
             const config = row.config as ItemDatasourceConfig;
+            if (row.kind !== DatasourceKindType.Content)
+                config.kind = row.kind;
             const mdlConfig = row.mdl_config as MapDataSourceLinkConfig;
             
             return {
