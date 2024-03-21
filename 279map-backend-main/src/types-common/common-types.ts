@@ -91,10 +91,10 @@ export type ContentDatasourceConfig = {
 
 export type ContentFieldDefine = {
     key: string;
-    type: 'title' | 'url' | 'latitude' | 'longitude' | 'radius' | 'address';
+    type: 'title' | 'latitude' | 'longitude' | 'radius' | 'address';
 } | {
     key: string;
-    type: 'date' | 'text' | 'category' | 'number' | 'image';
+    type: 'date' | 'url' | 'text' | 'category' | 'number' | 'image';
     label: string;
 }
 
