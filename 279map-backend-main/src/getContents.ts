@@ -1,10 +1,9 @@
 import { ConnectionPool } from '.';
 import { PoolConnection } from 'mysql2/promise';
-import { ContentsTable, DataSourceTable, ItemContentLink } from '../279map-backend-common/src/types/schema';
+import { ContentsTable, DataSourceTable, ItemContentLink, MapDataSourceLinkConfig, MapDataSourceLinkTable } from '../279map-backend-common/src/types/schema';
 import { CurrentMap } from '../279map-backend-common/src';
 import { Auth, ContentsDefine, MapKind } from './graphql/__generated__/types';
 import { DatasourceKindType, DataId, ContentValueMap } from './types-common/common-types';
-import dayjs from 'dayjs';
 import { isEqualId } from './util/utility';
 import { DatasourceTblConfig } from '../279map-backend-common/dist';
 
@@ -14,7 +13,7 @@ type GetContentsParam = ({
     contentId: DataId;
 })[];
 
-type ContentsDatasourceRecord = ContentsTable & DataSourceTable;
+type ContentsDatasourceRecord = ContentsTable & DataSourceTable & MapDataSourceLinkTable;
 export async function getContents({param, currentMap, authLv}: {param: GetContentsParam, currentMap: CurrentMap, authLv: Auth}): Promise<ContentsDefine[]> {
     if (!currentMap) {
         throw 'mapKind not defined.';
@@ -70,18 +69,21 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
         
             }();
 
-            // 現状、時刻ありなしを区別できないので、ひとまず00:00を「時刻なし」と判定
-            const date = function() {
-                if (!row.date) return;
-                const dj = dayjs(row.date);
-                if (dj.format('HH:mm') === '00:00') {
-                    return dj.format('YYYY-MM-DD');
-                } else {
-                    return dj.format('YYYY-MM-DD HH:mm');
-                }
-            }();
-
             const values = row.contents as ContentValueMap;
+
+            // 画像が存在する場合は、valuesにIDを含めて返す
+            if (row.thumbnail) {
+                const imageField = function() {
+                    const mdlConfig = row.mdl_config as MapDataSourceLinkConfig;
+                    if (mdlConfig.kind === DatasourceKindType.Content) {
+                        return mdlConfig.fields.find(fd => fd.type === 'image');
+                    }
+                }();
+                if (imageField) {
+                    values[imageField.key] = true;  // 将来的にはイメージIDを返す
+                }
+    
+            }
 
             return {
                 id,
@@ -100,11 +102,12 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
         }
         const getChildren = async(parent: ContentsDatasourceRecord): Promise<ContentsDefine[]> => {
             const getChildrenQuery = `
-                select c.*, ds.* from contents c
+                select c.*, ds.*, mdl.mdl_config from contents c
                 inner join data_source ds on ds.data_source_id = c.data_source_id
-                where c.parent_id = ? AND c.parent_datasource_id = ?
+                inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id
+                where mdl.map_page_id = ? and c.parent_id = ? AND c.parent_datasource_id = ?
                 `;
-            const [rows] = await con.execute(getChildrenQuery, [parent.content_page_id, parent.data_source_id]);
+            const [rows] = await con.execute(getChildrenQuery, [currentMap.mapId, parent.content_page_id, parent.data_source_id]);
             const children = [] as ContentsDefine[];
             for (const row of rows as ContentsDatasourceRecord[]) {
                 const content = await convertRecord(row);
@@ -117,25 +120,26 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
             let myRows: ContentsDatasourceRecord[];
             if ('itemId' in target) {
                 // itemの子コンテンツを取得
-
                 const sql = `
-                select c.*, ds.* from contents c 
+                select c.*, ds.*, mdl.mdl_config from contents c 
                 inner join data_source ds on ds.data_source_id = c.data_source_id
+                inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id
                 inner join item_content_link icl on c.content_page_id = icl.content_page_id and c.data_source_id = icl.content_datasource_id 
-                where icl.item_page_id = ? and icl.item_datasource_id  = ?
+                where mdl.map_page_id = ? and icl.item_page_id = ? and icl.item_datasource_id  = ?
                 `;
-                const [rows] = await con.execute(sql, [target.itemId.id, target.itemId.dataSourceId]);
+                const [rows] = await con.execute(sql, [currentMap.mapId, target.itemId.id, target.itemId.dataSourceId]);
                 myRows = rows as ContentsDatasourceRecord[];
 
             } else {
                 // contentId指定の場合
 
                 const sql = `
-                select c.*, ds.* from contents c
+                select c.*, ds.*, mdl.mdl_config from contents c
                 inner join data_source ds on ds.data_source_id = c.data_source_id
-                where c.content_page_id = ? and c.data_source_id = ?
+                inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id
+                where mdl.map_page_id = ? and c.content_page_id = ? and c.data_source_id = ?
                 `;
-                const [rows] = await con.execute(sql, [target.contentId.id, target.contentId.dataSourceId]);
+                const [rows] = await con.execute(sql, [currentMap.mapId, target.contentId.id, target.contentId.dataSourceId]);
                 myRows = rows as ContentsDatasourceRecord[];
 
             }
