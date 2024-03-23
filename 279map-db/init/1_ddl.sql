@@ -67,6 +67,19 @@ CREATE TABLE `contents` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 
+-- 279map_db.images definition
+
+CREATE TABLE `images` (
+  `image_id` int(10) unsigned NOT NULL,
+  `content_page_id` varchar(100) NOT NULL,
+  `data_source_id` varchar(100) NOT NULL,
+  `thumbnail` mediumtext NOT NULL,
+  `medium` mediumtext NOT NULL,
+  PRIMARY KEY (`image_id`),
+  KEY `images_FK` (`content_page_id`,`data_source_id`),
+  CONSTRAINT `images_FK` FOREIGN KEY (`content_page_id`, `data_source_id`) REFERENCES `contents` (`content_page_id`, `data_source_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
 -- 279map_db.items definition
 
 CREATE TABLE `items` (
