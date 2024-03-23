@@ -877,11 +877,19 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     });
             
                     // 更新通知
-                    // - 当該コンテンツを子孫に持つアイテムIDを取得
-                    const itemId = await getAncestorItemId(param.id);
-
-                    if (itemId) {
-                        pubsub.publish('childContentsUpdate', { itemId }, true);
+                    const ds = await getDatasourceRecord(param.id.dataSourceId);
+                    if (ds.kind === DatasourceKindType.RealPointContent) {
+                        // - RealPointContentの場合
+                        const wkt = await getItemWkt(param.id);
+                        if (wkt) {
+                            pubsub.publish('itemUpdate', ctx.currentMap, [ { id: param.id, wkt }]);
+                        }
+                    } else {
+                        // - 当該コンテンツを子孫に持つアイテムIDを取得
+                        const itemId = await getAncestorItemId(param.id);
+                        if (itemId) {
+                            pubsub.publish('childContentsUpdate', { itemId }, true);
+                        }
                     }
                 
                     return true;
