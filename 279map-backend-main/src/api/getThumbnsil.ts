@@ -1,5 +1,5 @@
-import { ConnectionPool } from ".";
-import { DataId, ImagesTable } from "../279map-backend-common/src";
+import { ConnectionPool } from "..";
+import { DataId, ImagesTable } from "../../279map-backend-common/src";
 
 /**
  * 指定のコンテンツのサムネイル画像取得
@@ -10,7 +10,6 @@ export async function getThumbnail(contentId: DataId): Promise<string> {
     const con = await ConnectionPool.getConnection();
 
     try {
-        // ログイン中の地図に属する画像のみ取得できるようにしている（不正取得防止）
         const sql = `
         select thumbnail from images im
         where content_page_id = ? and data_source_id = ?

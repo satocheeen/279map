@@ -4,7 +4,7 @@ import { getMapInfo } from './getMapInfo';
 import { getItems } from './getItems';
 import { configure, getLogger } from "log4js";
 import { DbSetting, LogSetting } from './config';
-import { getThumbnail } from './getThumbnsil';
+import { getThumbnail } from './api/getThumbnsil';
 import { getContents } from './getContents';
 import { getEvents } from './getEvents';
 import proxy from 'express-http-proxy';
@@ -32,7 +32,7 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { IFieldResolverOptions } from '@graphql-tools/utils';
-import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapKind, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemsArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, ThumbSize } from './graphql/__generated__/types';
+import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapKind, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemsArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, ThumbSize } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType, DatasourceConfigScalarType, GeoPropertiesScalarType, GeocoderIdInfoScalarType, IconKeyScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -47,6 +47,7 @@ import { ApolloServer } from 'apollo-server-express';
 import MyPubSub, { SubscriptionArgs } from './graphql/MyPubSub';
 import { DataId, DatasourceKindType } from './types-common/common-types';
 import { AuthMethod, ItemDefineWithoudContents } from './types';
+import { getImage } from './api/getImage';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -484,33 +485,8 @@ const schema = makeExecutableSchema<GraphQlContextType>({
              * 複数の画像が紐づく場合は、代表１つを取得して返す
              */
             getThumb: async(_, param: QueryGetThumbArgs, ctx): QueryResolverReturnType<'getThumb'> => {
-
                 try {
                     return await getThumbnail(param.contentId);
-                    // if (param.size === ThumbSize.Medium) {
-                    //     // オリジナル画像を縮小する
-                    //     const url = await callOdbaApi(OdbaGetImageUrlAPI, {
-                    //         currentMap: ctx.currentMap,
-                    //         id: param.contentId,
-                    //     });
-                    //     if (!url) {
-                    //         throw new Error('original image url not found');
-                    //     }
-                    //     const image = await getImageBase64(url, {
-                    //          size: { width: 500, height: 500},
-                    //          fit: 'cover',
-                    //     });
-                    //     if (!image) {
-                    //         throw new Error('getImageBase64 failed');
-                    //     }
-
-                    //     return image.base64;
-
-                    // } else {
-                    //     const result = await getThumbnail(param.contentId);
-            
-                    //     return result;
-                    // }
 
                 } catch(e) {
                     apiLogger.warn('get-thumb error', param.contentId, e);
@@ -518,8 +494,14 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
 
             },
-            getImage: async(_, param: QueryGetItemsArgs, ctx): QueryResolverReturnType<'getImage'> => {
-                throw '未実装';
+            getImage: async(_, param: QueryGetImageArgs, ctx): QueryResolverReturnType<'getImage'> => {
+                try {
+                    return await getImage(param.imageId, param.size, ctx.currentMap);
+
+                } catch(e) {
+                    apiLogger.warn('get-image error', param.imageId, e);
+                    throw e;
+                }
             },
             /**
              * オリジナル画像URL取得

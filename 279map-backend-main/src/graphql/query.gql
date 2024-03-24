@@ -162,7 +162,7 @@ type Query {
     getThumb(contentId: DataId!): String!
 
     "指定の画像を返す"
-    getImage(imageId: ID!, size: ThumbSize!): String!
+    getImage(imageId: Int!, size: ThumbSize!): String!
 
     getImageUrl(contentId: DataId!): String!
 

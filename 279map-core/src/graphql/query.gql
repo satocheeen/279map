@@ -142,7 +142,7 @@ query getThumb (
 }
 
 query getImage (
-    $imageId: ID!
+    $imageId: Int!
     $size: ThumbSize!
 ) {
     getImage(imageId: $imageId, size: $size)

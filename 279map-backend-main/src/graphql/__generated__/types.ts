@@ -424,7 +424,7 @@ export type QueryGetGeocoderFeatureArgs = {
 
 
 export type QueryGetImageArgs = {
-  imageId: Scalars['ID']['input'];
+  imageId: Scalars['Int']['input'];
   size: ThumbSize;
 };
 
@@ -728,6 +728,7 @@ export type ResolversTypes = {
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   IconDefine: ResolverTypeWrapper<IconDefine>;
   IconKey: ResolverTypeWrapper<Scalars['IconKey']['output']>;
+  Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   ItemDatasourceConfig: ResolverTypeWrapper<Scalars['ItemDatasourceConfig']['output']>;
   ItemDatasourceInfo: ResolverTypeWrapper<ItemDatasourceInfo>;
   ItemDefine: ResolverTypeWrapper<ItemDefine>;
@@ -792,6 +793,7 @@ export type ResolversParentTypes = {
   ID: Scalars['ID']['output'];
   IconDefine: IconDefine;
   IconKey: Scalars['IconKey']['output'];
+  Int: Scalars['Int']['output'];
   ItemDatasourceConfig: Scalars['ItemDatasourceConfig']['output'];
   ItemDatasourceInfo: ItemDatasourceInfo;
   ItemDefine: ItemDefine;

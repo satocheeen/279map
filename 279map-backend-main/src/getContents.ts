@@ -74,7 +74,7 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
             // 画像が存在する場合は、valuesにIDを含めて返す
             const imageFields = function() {
                 const mdlConfig = row.mdl_config as MapDataSourceLinkConfig;
-                if (mdlConfig.kind === DatasourceKindType.Content) {
+                if ('fields' in mdlConfig) {
                     return mdlConfig.fields.filter(fd => fd.type === 'image');
                 }
             }() ?? [];
