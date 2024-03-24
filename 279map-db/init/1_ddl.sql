@@ -69,15 +69,17 @@ CREATE TABLE `contents` (
 -- 279map_db.images definition
 
 CREATE TABLE `images` (
-  `image_id` int(10) unsigned NOT NULL,
+  `image_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `content_page_id` varchar(100) NOT NULL,
   `data_source_id` varchar(100) NOT NULL,
   `thumbnail` mediumtext NOT NULL,
   `medium` mediumtext NOT NULL,
+  `field_key` varchar(100) NOT NULL COMMENT '対応するコンテンツFieldのキー',
   PRIMARY KEY (`image_id`),
   KEY `images_FK` (`content_page_id`,`data_source_id`),
   CONSTRAINT `images_FK` FOREIGN KEY (`content_page_id`, `data_source_id`) REFERENCES `contents` (`content_page_id`, `data_source_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
 
 -- 279map_db.items definition
 

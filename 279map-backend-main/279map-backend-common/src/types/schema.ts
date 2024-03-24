@@ -105,8 +105,9 @@ export type ImagesTable = {
     image_id: number;
     content_page_id: string;
     data_source_id: string;
+    field_key: string;
     thumbnail: string;
-    mediium: string;
+    medium: string;
 }
 
 export type ItemContentLink = {
