@@ -137,11 +137,16 @@ query getUnpointContents(
 
 query getThumb (
     $contentId: DataId!
-    $size: ThumbSize
 ) {
-    getThumb(contentId: $contentId, size: $size)
+    getThumb(contentId: $contentId)
 }
 
+query getImage (
+    $imageId: ID!
+    $size: ThumbSize!
+) {
+    getImage(imageId: $imageId, size: $size)
+}
 query getImageUrl (
     $contentId: DataId!
 ) {

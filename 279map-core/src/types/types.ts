@@ -192,13 +192,13 @@ export interface TsunaguMapHandler {
 
     loadContents(contentIds: DataId[]): Promise<ContentsDefine[]>;
 
-    /**
-     * 指定のコンテンツの画像データ(Base64)を取得する
-     * @param contentId
-     * @param size 取得サイズ
-     * @param refresh trueの場合、キャッシュを用いずに最新ロードする
-     */
-    loadContentImage(param: {contentId: DataId, size: ThumbSize, refresh?: boolean}): Promise<string>;
+    // /**
+    //  * 指定のコンテンツの画像データ(Base64)を取得する
+    //  * @param contentId
+    //  * @param size 取得サイズ
+    //  * @param refresh trueの場合、キャッシュを用いずに最新ロードする
+    //  */
+    // loadContentImage(param: {contentId: DataId, size: ThumbSize, refresh?: boolean}): Promise<string>;
 
     /**
      * アイテム情報を更新する

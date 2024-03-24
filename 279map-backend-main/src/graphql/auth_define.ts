@@ -21,6 +21,7 @@ export const authDefine: AuthLvDefine = {
     getUnpointContents: Auth.Edit,
 
     getThumb: Auth.View,
+    getImage: Auth.View,
     getImageUrl: Auth.View,
     
     registItem: Auth.Edit,

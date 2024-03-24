@@ -480,41 +480,46 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
             },
             /**
-             * サムネイル画像取得
+             * 指定のコンテンツのサムネイル画像取得
+             * 複数の画像が紐づく場合は、代表１つを取得して返す
              */
             getThumb: async(_, param: QueryGetThumbArgs, ctx): QueryResolverReturnType<'getThumb'> => {
 
                 try {
-                    if (param.size === ThumbSize.Medium) {
-                        // オリジナル画像を縮小する
-                        const url = await callOdbaApi(OdbaGetImageUrlAPI, {
-                            currentMap: ctx.currentMap,
-                            id: param.contentId,
-                        });
-                        if (!url) {
-                            throw new Error('original image url not found');
-                        }
-                        const image = await getImageBase64(url, {
-                             size: { width: 500, height: 500},
-                             fit: 'cover',
-                        });
-                        if (!image) {
-                            throw new Error('getImageBase64 failed');
-                        }
+                    return await getThumbnail(param.contentId);
+                    // if (param.size === ThumbSize.Medium) {
+                    //     // オリジナル画像を縮小する
+                    //     const url = await callOdbaApi(OdbaGetImageUrlAPI, {
+                    //         currentMap: ctx.currentMap,
+                    //         id: param.contentId,
+                    //     });
+                    //     if (!url) {
+                    //         throw new Error('original image url not found');
+                    //     }
+                    //     const image = await getImageBase64(url, {
+                    //          size: { width: 500, height: 500},
+                    //          fit: 'cover',
+                    //     });
+                    //     if (!image) {
+                    //         throw new Error('getImageBase64 failed');
+                    //     }
 
-                        return image.base64;
+                    //     return image.base64;
 
-                    } else {
-                        const result = await getThumbnail(param.contentId);
+                    // } else {
+                    //     const result = await getThumbnail(param.contentId);
             
-                        return result;
-                    }
+                    //     return result;
+                    // }
 
                 } catch(e) {
                     apiLogger.warn('get-thumb error', param.contentId, e);
                     throw e;
                 }
 
+            },
+            getImage: async(_, param: QueryGetItemsArgs, ctx): QueryResolverReturnType<'getImage'> => {
+                throw '未実装';
             },
             /**
              * オリジナル画像URL取得

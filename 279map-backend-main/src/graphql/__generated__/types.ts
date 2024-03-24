@@ -370,6 +370,8 @@ export type Query = {
   getContentsInItem: Array<ContentsDefine>;
   getEvent: Array<EventDefine>;
   getGeocoderFeature: Scalars['Geometry']['output'];
+  /** 指定の画像を返す */
+  getImage: Scalars['String']['output'];
   getImageUrl: Scalars['String']['output'];
   getItems: Array<ItemDefine>;
   getItemsById: Array<ItemDefine>;
@@ -377,6 +379,7 @@ export type Query = {
   /** ユーザがアクセス可能な地図情報一覧を返す */
   getMapList: Array<MapListItem>;
   getSnsPreview: SnsPreviewResult;
+  /** 指定のコンテンツのサムネイル画像を返す */
   getThumb: Scalars['String']['output'];
   getUnpointContents: GetUnpointContentsResult;
   getUserList: Array<User>;
@@ -420,6 +423,12 @@ export type QueryGetGeocoderFeatureArgs = {
 };
 
 
+export type QueryGetImageArgs = {
+  imageId: Scalars['ID']['input'];
+  size: ThumbSize;
+};
+
+
 export type QueryGetImageUrlArgs = {
   contentId: Scalars['DataId']['input'];
 };
@@ -446,7 +455,6 @@ export type QueryGetSnsPreviewArgs = {
 
 export type QueryGetThumbArgs = {
   contentId: Scalars['DataId']['input'];
-  size?: InputMaybe<ThumbSize>;
 };
 
 
@@ -1036,6 +1044,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getContentsInItem?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentsInItemArgs, 'itemId'>>;
   getEvent?: Resolver<Array<ResolversTypes['EventDefine']>, ParentType, ContextType, Partial<QueryGetEventArgs>>;
   getGeocoderFeature?: Resolver<ResolversTypes['Geometry'], ParentType, ContextType, RequireFields<QueryGetGeocoderFeatureArgs, 'id'>>;
+  getImage?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryGetImageArgs, 'imageId' | 'size'>>;
   getImageUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryGetImageUrlArgs, 'contentId'>>;
   getItems?: Resolver<Array<ResolversTypes['ItemDefine']>, ParentType, ContextType, RequireFields<QueryGetItemsArgs, 'datasourceId' | 'wkt' | 'zoom'>>;
   getItemsById?: Resolver<Array<ResolversTypes['ItemDefine']>, ParentType, ContextType, RequireFields<QueryGetItemsByIdArgs, 'targets'>>;

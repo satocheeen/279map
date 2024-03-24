@@ -31,7 +31,7 @@ import useItemProcess from '../../store/item/useItemProcess';
  * - ref経由での操作を実行
  */
 export type EventControllerHandler = Pick<TsunaguMapHandler, 
-    'switchMapKind' | 'focusItem' | 'loadContents' | 'loadContentsInItem' | 'loadContentImage'
+    'switchMapKind' | 'focusItem' | 'loadContents' | 'loadContentsInItem'
     | 'filter' | 'clearFilter'
     | 'updateItem'
     | 'registContent' | 'updateContent' | 'removeContent'
@@ -276,27 +276,27 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
     
         },
     
-        /**
-         * 指定のコンテンツの画像（Blob）を取得する
-         */
-        async loadContentImage({contentId, size, refresh}) {
-            try {
-                const result = await gqlClient.query(GetThumbDocument, {
-                    contentId,
-                    size,
-                }, {
-                    requestPolicy: refresh ? 'network-only' : undefined,
-                });
-                if (result.error) {
-                    throw new Error(result.error.message);
-                }
-                const base64 = result.data?.getThumb ?? '';
-                return 'data:image/' + base64;
+        // /**
+        //  * 指定のコンテンツの画像（Blob）を取得する
+        //  */
+        // async loadContentImage({contentId, size, refresh}) {
+        //     try {
+        //         const result = await gqlClient.query(GetThumbDocument, {
+        //             contentId,
+        //             size,
+        //         }, {
+        //             requestPolicy: refresh ? 'network-only' : undefined,
+        //         });
+        //         if (result.error) {
+        //             throw new Error(result.error.message);
+        //         }
+        //         const base64 = result.data?.getThumb ?? '';
+        //         return 'data:image/' + base64;
                             
-            } catch(err) {
-                throw err;
-            }
-        },
+        //     } catch(err) {
+        //         throw err;
+        //     }
+        // },
     
         changeVisibleLayer(target: { dataSourceId: string } | { group: string }, visible: boolean) {
             updateDatasourceVisible({
