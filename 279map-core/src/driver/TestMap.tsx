@@ -22,6 +22,7 @@ import ItemController from './item-controller/ItemContriller';
 import SwitchMapKindDriver from './switch-mapkind/SwitchMapKindDriver';
 import BasicSettingDriver from './basic-settings/BasicSettingDriver';
 import RegistContentDriver from './regist-content/RegistContentDriver';
+import LoadImageDriver from './image/LoadImageDriver';
 
 export const DriverContext = React.createContext({
     getMap: () => null as TsunaguMapHandler | null,
@@ -272,6 +273,7 @@ export default function TestMap() {
                     <BasicSettingDriver />
  
                     <ItemController />
+                    <LoadImageDriver />
                 </div>
                 <div className={styles.VerticalArea}>
                     <DatasourceDriver />
