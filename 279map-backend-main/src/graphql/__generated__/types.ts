@@ -110,7 +110,6 @@ export type ContentsDefine = {
   anotherMapItemId?: Maybe<Scalars['DataId']['output']>;
   children?: Maybe<Array<ContentsDefine>>;
   id: Scalars['DataId']['output'];
-  image: Scalars['Boolean']['output'];
   isDeletable: Scalars['Boolean']['output'];
   isEditable: Scalars['Boolean']['output'];
   isSnsContent: Scalars['Boolean']['output'];
@@ -867,7 +866,6 @@ export type ContentsDefineResolvers<ContextType = any, ParentType extends Resolv
   anotherMapItemId?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType>;
   children?: Resolver<Maybe<Array<ResolversTypes['ContentsDefine']>>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
-  image?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   isDeletable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   isEditable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   isSnsContent?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;

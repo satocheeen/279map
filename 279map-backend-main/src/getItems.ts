@@ -169,9 +169,15 @@ async function selectTrackInArea(con: PoolConnection, param: QueryGetItemsArgs, 
 // コンテンツ取得メソッド
 export async function  getContentsInfo(con: PoolConnection, contentPageId: string): Promise<ItemContentInfo|null> {
     const getChildrenContentInfo = async(contentPageId: string): Promise<ItemContentInfo[]> => {
-        const sql = 'select * from contents c where parent_id = ?';
+        const sql = `
+        select c.*, count(i.image_id) as image_num  from contents c
+        left join images i on c.content_page_id = i.content_page_id and c.data_source_id = i.data_source_id
+        GROUP by c.content_page_id , c.data_source_id  
+        where parent_id = ?
+        `;
+        // const sql = 'select * from contents c where parent_id = ?';
         const [rows] = await con.execute(sql, [contentPageId]);
-        const myRows = rows as ContentsTable[];
+        const myRows = rows as (ContentsTable & {image_num: number})[];
         if (myRows.length === 0) {
             return [];
         }
@@ -183,16 +189,22 @@ export async function  getContentsInfo(con: PoolConnection, contentPageId: strin
                     id: row.content_page_id,
                     dataSourceId: row.data_source_id,
                 },
-                hasImage: row.thumbnail ? true : false,
+                hasImage: row.image_num > 0,
                 children: discendant,
             });
         }
         return children;
     };
 
-    const sql = 'select * from contents c where content_page_id = ?';
+    const sql = `
+    select c.*, count(i.image_id) as image_num  from contents c
+    left join images i on c.content_page_id = i.content_page_id and c.data_source_id = i.data_source_id
+    GROUP by c.content_page_id , c.data_source_id  
+    where content_page_id = ?
+    `;
+    // const sql = 'select * from contents c where content_page_id = ?';
     const [rows] = await con.execute(sql, [contentPageId]);
-    const myRows = rows as ContentsTable[];
+    const myRows = rows as (ContentsTable & {image_num: number})[];
     if (myRows.length === 0) {
         apiLogger.warn('not founc content.', contentPageId);
         return null;
@@ -205,7 +217,7 @@ export async function  getContentsInfo(con: PoolConnection, contentPageId: strin
             id: row.content_page_id,
             dataSourceId: row.data_source_id,
         },
-    hasImage: row.thumbnail ? true : false,
+    hasImage: row.image_num > 0,
         children: discendant,
     };
 }

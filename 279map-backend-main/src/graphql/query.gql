@@ -46,7 +46,6 @@ enum ContentType {
 }
 type ContentsDefine {
     id: DataId!
-    image: Boolean!
     parentId: DataId
     values: ContentValueMap!
     children: [ContentsDefine!]
