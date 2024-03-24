@@ -79,7 +79,7 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
                 }
             }() ?? [];
             for (const imageField of imageFields) {
-                const imageQuery = 'select from images where content_page_id = ? and data_source_id = ? and field_key = ?';
+                const imageQuery = 'select * from images where content_page_id = ? and data_source_id = ? and field_key = ?';
                 const [rows] = await con.execute(imageQuery, [row.content_page_id, row.data_source_id, imageField.key]);
                 const ids = (rows as ImagesTable[]).map(row => row.image_id);
                 values[imageField.key] = ids;

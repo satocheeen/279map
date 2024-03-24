@@ -172,8 +172,8 @@ export async function  getContentsInfo(con: PoolConnection, contentPageId: strin
         const sql = `
         select c.*, count(i.image_id) as image_num  from contents c
         left join images i on c.content_page_id = i.content_page_id and c.data_source_id = i.data_source_id
-        GROUP by c.content_page_id , c.data_source_id  
         where parent_id = ?
+        GROUP by c.content_page_id , c.data_source_id  
         `;
         // const sql = 'select * from contents c where parent_id = ?';
         const [rows] = await con.execute(sql, [contentPageId]);
@@ -199,8 +199,8 @@ export async function  getContentsInfo(con: PoolConnection, contentPageId: strin
     const sql = `
     select c.*, count(i.image_id) as image_num  from contents c
     left join images i on c.content_page_id = i.content_page_id and c.data_source_id = i.data_source_id
+    where c.content_page_id = ?
     GROUP by c.content_page_id , c.data_source_id  
-    where content_page_id = ?
     `;
     // const sql = 'select * from contents c where content_page_id = ?';
     const [rows] = await con.execute(sql, [contentPageId]);
