@@ -1,4 +1,4 @@
-import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, SnsPreviewResult, GetItemsQuery, ThumbSize } from "../graphql/generated/graphql";
+import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, SnsPreviewResult, GetItemsQuery, ThumbSize, Operation } from "../graphql/generated/graphql";
 import { ContentValueMap, DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
 import { OperationResult } from "urql";
 
@@ -100,6 +100,14 @@ export type TsunaguMapProps = {
     onLoadedItemsChanged?: (items: ItemType[]) => void;
 }
 
+export type CallbackType = (contentId: DataId, operation: Operation) => void | undefined;
+export type LoadContentsResult<T extends CallbackType> = T extends undefined ? {
+    contents: ContentsDefine[];
+} : {
+    contents: ContentsDefine[];
+    unsubscribe: () => void;
+}
+
 export interface TsunaguMapHandler {
     /**
      * switch the map kind
@@ -188,9 +196,13 @@ export interface TsunaguMapHandler {
      * 指定のアイテム配下のコンテンツを取得する
      * @param itemId 
      */
-    loadContentsInItem(itemId: DataId): Promise<ContentsDefine[]>;
+    loadContentsInItem<T extends CallbackType>(itemId: DataId, changeListener: T): Promise<LoadContentsResult<T>>;
 
-    loadContents(contentIds: DataId[]): Promise<ContentsDefine[]>;
+    /**
+     * 指定のコンテンツを取得する
+     * @param contentIds 
+     */
+    loadContents<T extends CallbackType>(contentIds: DataId[], changeListener: T): Promise<LoadContentsResult<T>>;
 
     /**
      * 指定の画像データ(Base64)を取得する

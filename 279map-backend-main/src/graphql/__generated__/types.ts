@@ -345,6 +345,11 @@ export type NoneConfig = {
   dummy?: Maybe<Scalars['Boolean']['output']>;
 };
 
+export enum Operation {
+  Delete = 'Delete',
+  Update = 'Update'
+}
+
 export type ParentInput = {
   id: Scalars['DataId']['input'];
   type: ParentOfContent;
@@ -510,8 +515,8 @@ export enum SortCondition {
 }
 
 export type Subscription = {
-  /** 指定のアイテム配下のコンテンツに変更（登録・更新・削除）があった場合 */
-  childContentsUpdate?: Maybe<Scalars['Boolean']['output']>;
+  /** 指定のコンテンツが更新/削除された場合に通知する */
+  contentUpdate: Operation;
   /**
    * ユーザが操作している地図でエラーが発生した場合にエラー内容を通知する。
    * 突き放し実行している登録、更新処理でエラー発生した場合に通知するために用意。
@@ -532,8 +537,8 @@ export type Subscription = {
 };
 
 
-export type SubscriptionChildContentsUpdateArgs = {
-  itemId: Scalars['DataId']['input'];
+export type SubscriptionContentUpdateArgs = {
+  contentId: Scalars['DataId']['input'];
 };
 
 
@@ -743,6 +748,7 @@ export type ResolversTypes = {
   MediaType: MediaType;
   Mutation: ResolverTypeWrapper<{}>;
   NoneConfig: ResolverTypeWrapper<NoneConfig>;
+  Operation: Operation;
   ParentInput: ParentInput;
   ParentOfContent: ParentOfContent;
   PopupMode: PopupMode;
@@ -1084,7 +1090,7 @@ export type SnsPreviewResultResolvers<ContextType = any, ParentType extends Reso
 };
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
-  childContentsUpdate?: SubscriptionResolver<Maybe<ResolversTypes['Boolean']>, "childContentsUpdate", ParentType, ContextType, RequireFields<SubscriptionChildContentsUpdateArgs, 'itemId'>>;
+  contentUpdate?: SubscriptionResolver<ResolversTypes['Operation'], "contentUpdate", ParentType, ContextType, RequireFields<SubscriptionContentUpdateArgs, 'contentId'>>;
   error?: SubscriptionResolver<ResolversTypes['ErrorInfo'], "error", ParentType, ContextType, RequireFields<SubscriptionErrorArgs, 'sid'>>;
   itemDelete?: SubscriptionResolver<Array<ResolversTypes['DataId']>, "itemDelete", ParentType, ContextType, RequireFields<SubscriptionItemDeleteArgs, 'mapId' | 'mapKind'>>;
   itemInsert?: SubscriptionResolver<Array<ResolversTypes['Target']>, "itemInsert", ParentType, ContextType, RequireFields<SubscriptionItemInsertArgs, 'mapId' | 'mapKind'>>;

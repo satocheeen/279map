@@ -68,10 +68,10 @@ export default function TestMap() {
 
     const [ consoleText, setConsoleText ] = useState('');
     const consoleRef = useRef<HTMLTextAreaElement>(null);
-    const [ consoleCnt, setConsoleCnt ] = useState(1);
+    const consoleCntRef = useRef(1);
     const addConsole = useCallback((...args: any[]) => {
-        const id = `[console-${consoleCnt}]`;
-        setConsoleCnt(cur => cur + 1);
+        const id = `[console-${consoleCntRef.current}]`;
+        consoleCntRef.current += 1;
         const text = id + args.map(arg => {
             if (Array.isArray(arg) || typeof arg === 'object') {
                 const str = JSON.stringify(arg);
@@ -86,7 +86,7 @@ export default function TestMap() {
             if (consoleRef.current)
                 consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
         }, 100)
-    }, [consoleCnt]);
+    }, []);
 
     const [ cnt, setCnt ] = useState(0);
     const [ categories, setCategories ] = useState<CategoryDefine[]>([]);

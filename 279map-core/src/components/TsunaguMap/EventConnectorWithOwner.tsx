@@ -8,14 +8,14 @@ import { currentMapDefineAtom, currentMapKindAtom, mapDefineAtom } from '../../s
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { TsunaguMapHandler } from '../../types/types';
+import { TsunaguMapHandler, LoadContentsResult, CallbackType } from '../../types/types';
 import { useAtom } from 'jotai';
 import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import { useAtomCallback } from 'jotai/utils';
 import { allItemContentListAtom, loadedItemMapAtom, storedItemsAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, LinkContentDocument, RegistContentDocument, SearchDocument, GetThumbDocument, GetSnsPreviewDocument, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument, UpdateItemsDocument, GetImageDocument } from '../../graphql/generated/graphql';
+import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, LinkContentDocument, RegistContentDocument, SearchDocument, GetThumbDocument, GetSnsPreviewDocument, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument, UpdateItemsDocument, GetImageDocument, ContentUpdateDocument, Operation } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import { DataId } from '../../types-common/common-types';
 import { useItems } from '../../store/item/useItems';
@@ -137,7 +137,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         clearFilter() {
             setFilteredItem(null);
         },
-        async loadContents(contentIds: DataId[]): Promise<ContentsDefine[]> {
+        async loadContents<T extends CallbackType>(contentIds: DataId[], changeListener: T): Promise<LoadContentsResult<T>> {
             try {
                 const result = await gqlClient.query(GetContentsDocument, {
                     ids: contentIds,
@@ -148,13 +148,35 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                     throw new Error(result.error.message);
                 }
                 const list = result.data?.getContents ?? [];
-                return list.sort(contentsComparator);
+                const contents = list.sort(contentsComparator);
+
+                if (!changeListener) {
+                    return {
+                        contents
+                    } as LoadContentsResult<T>
+                }
+
+                const subscriptionList = contentIds.map(contentId => {
+                    return gqlClient.subscription(ContentUpdateDocument, {
+                        contentId,
+                    }).subscribe((result) => {
+                        if (!result.data?.contentUpdate) return;
+                        changeListener(contentId, result.data.contentUpdate);
+                    });
+                })
+                const unsubscribe = () => {
+                    subscriptionList.forEach(subscription => subscription.unsubscribe())
+                }
+                return {
+                    contents,
+                    unsubscribe,
+                } as LoadContentsResult<T>
 
             } catch(err) {
                 throw err;
             }
         },
-        async loadContentsInItem(itemId) {
+        async loadContentsInItem<T extends CallbackType>(itemId: DataId, changeListener: T): Promise<LoadContentsResult<T>> {
             try {
                 const result = await gqlClient.query(GetContentsInItemDocument, {
                     itemId: itemId,
@@ -165,8 +187,30 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                     throw new Error(result.error.message);
                 }
                 const list = result.data?.getContentsInItem ?? [];
-                return list.sort(contentsComparator);
+                const contents = list.sort(contentsComparator);
         
+                if (!changeListener) {
+                    return {
+                        contents
+                    } as LoadContentsResult<T>
+                }
+
+                const subscriptionList = contents.map(content => {
+                    return gqlClient.subscription(ContentUpdateDocument, {
+                        contentId: content.id,
+                    }).subscribe((result) => {
+                        if (!result.data?.contentUpdate) return;
+                        changeListener(content.id, result.data.contentUpdate);
+                    });
+                })
+                const unsubscribe = () => {
+                    subscriptionList.forEach(subscription => subscription.unsubscribe())
+                }
+                return {
+                    contents,
+                    unsubscribe,
+                } as LoadContentsResult<T>
+
             } catch(err) {
                 throw err;
             }
