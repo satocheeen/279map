@@ -983,6 +983,9 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             },
             removeContent: async(parent: any, param: MutationRemoveContentArgs, ctx): MutationResolverReturnType<'removeContent'> => {
                 try {
+                    // 属するitem一覧を取得
+                    const items = await getLinkedItemIdList(param.id);
+
                     // データソース種別がRealPointContentの場合は、受け付けない（removeItemでのみ削除可能）
                     const datasource = await getDatasourceRecord(param.id.dataSourceId);
                     if (datasource.kind !== DatasourceKindType.Content) {
@@ -996,8 +999,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     });
             
                     // 更新通知(完了は待たずに復帰する)
-                    // 属するitem一覧を取得
-                    const items = await getLinkedItemIdList(param.id);
                     Promise.all(items.map(async(item) => {
                         const wkt = await getItemWkt(item.itemId);
                         if (!wkt) {
