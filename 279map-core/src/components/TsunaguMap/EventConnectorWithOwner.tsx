@@ -137,7 +137,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         clearFilter() {
             setFilteredItem(null);
         },
-        async loadContents<T extends CallbackType>(contentIds: DataId[], changeListener: T): Promise<LoadContentsResult<T>> {
+        async loadContents<T extends CallbackType>(contentIds: DataId[], changeListener?: T): Promise<LoadContentsResult<T>> {
             try {
                 const result = await gqlClient.query(GetContentsDocument, {
                     ids: contentIds,
@@ -176,7 +176,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 throw err;
             }
         },
-        async loadContentsInItem<T extends CallbackType>(itemId: DataId, changeListener: T): Promise<LoadContentsResult<T>> {
+        async loadContentsInItem<T extends CallbackType>(itemId: DataId, changeListener?: T): Promise<LoadContentsResult<T>> {
             try {
                 const result = await gqlClient.query(GetContentsInItemDocument, {
                     itemId: itemId,

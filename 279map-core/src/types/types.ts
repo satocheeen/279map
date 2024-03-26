@@ -196,13 +196,13 @@ export interface TsunaguMapHandler {
      * 指定のアイテム配下のコンテンツを取得する
      * @param itemId 
      */
-    loadContentsInItem<T extends CallbackType>(itemId: DataId, changeListener: T): Promise<LoadContentsResult<T>>;
+    loadContentsInItem<T extends CallbackType>(itemId: DataId, changeListener?: T): Promise<LoadContentsResult<T>>;
 
     /**
      * 指定のコンテンツを取得する
      * @param contentIds 
      */
-    loadContents<T extends CallbackType>(contentIds: DataId[], changeListener: T): Promise<LoadContentsResult<T>>;
+    loadContents<T extends CallbackType>(contentIds: DataId[], changeListener?: T): Promise<LoadContentsResult<T>>;
 
     /**
      * 指定の画像データ(Base64)を取得する
