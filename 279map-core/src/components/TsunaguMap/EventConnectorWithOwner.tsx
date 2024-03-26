@@ -161,7 +161,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                         contentId,
                     }).subscribe((result) => {
                         if (!result.data?.contentUpdate) return;
-                        changeListener(contentId, result.data.contentUpdate);
+                        changeListener(contentId, result.data.contentUpdate === Operation.Update ? 'update' : 'delete');
                     });
                 })
                 const unsubscribe = () => {
@@ -200,7 +200,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                         contentId: content.id,
                     }).subscribe((result) => {
                         if (!result.data?.contentUpdate) return;
-                        changeListener(content.id, result.data.contentUpdate);
+                        changeListener(content.id, result.data.contentUpdate === Operation.Update ? 'update' : 'delete');
                     });
                 })
                 const unsubscribe = () => {
