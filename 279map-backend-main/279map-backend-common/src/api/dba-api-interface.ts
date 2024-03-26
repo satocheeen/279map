@@ -31,7 +31,7 @@ export const OdbaRegistContentAPI = {
     uri: 'regist-content',
     method: 'post',
     resultType: 'none',
-} as APIDefine<OdbaRegistContentParam, string>;
+} as APIDefine<OdbaRegistContentParam, DataId>;
 
 type ContentAttr = {
     type: 'normal';
