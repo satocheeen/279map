@@ -23,7 +23,7 @@ import { search } from './api/search';
 import { Auth0Management } from './auth/Auth0Management';
 import { OriginalAuthManagement } from './auth/OriginalAuthManagement';
 import { NoneAuthManagement } from './auth/NoneAuthManagement';
-import { CurrentMap, getImageBase64, sleep } from '../279map-backend-common/src';
+import { CurrentMap, sleep } from '../279map-backend-common/src';
 import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUnpointDataAPI, OdbaLinkContentDatasourceToMapAPI, OdbaLinkContentToItemAPI, OdbaRegistContentAPI, OdbaRegistItemAPI, OdbaRemoveContentAPI, OdbaRemoveItemAPI, OdbaUnlinkContentAPI, OdbaUnlinkContentDatasourceFromMapAPI, OdbaUpdateContentAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
 import SessionManager from './session/SessionManager';
 import { geojsonToWKT } from '@terraformer/wkt';
