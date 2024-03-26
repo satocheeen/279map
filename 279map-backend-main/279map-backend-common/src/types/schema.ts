@@ -1,5 +1,5 @@
 import { MapPageOptions, MapKind } from '../graphql/__generated__/types';
-import { SnsOptions } from '../sns';
+// import { SnsOptions } from '../sns';
 import { ContentDatasourceConfig, ContentFieldDefine, DatasourceKindType } from '../types-common/common-types';
 
 export enum PublicRange {
@@ -98,7 +98,7 @@ export type ContentsTable = {
     contents?: string | object;   // 登録時はstring。取得時はobject
     category?: string | string[];   // 登録時はstring。取得時はCategory文字配列
     date?: Date | string;   // 登録時はDate。取得時はstring
-    supplement?: string | SnsOptions;      // 登録時はstring、取得時はSnsOptions
+    supplement?: string; // | SnsOptions;      // 登録時はstring、取得時はSnsOptions
     last_edited_time: string;
 }
 export type ImagesTable = {
