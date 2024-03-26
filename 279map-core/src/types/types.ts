@@ -100,12 +100,9 @@ export type TsunaguMapProps = {
     onLoadedItemsChanged?: (items: ItemType[]) => void;
 }
 
-export type CallbackType = (contentId: DataId, operation: Operation) => void | undefined;
-export type LoadContentsResult<T extends CallbackType> = T extends undefined ? {
+export type LoadContentsResult = {
     contents: ContentsDefine[];
-} : {
-    contents: ContentsDefine[];
-    unsubscribe: () => void;
+    unsubscribe?: () => void;   // callbackを渡した場合に格納されている
 }
 
 export interface TsunaguMapHandler {
@@ -196,13 +193,13 @@ export interface TsunaguMapHandler {
      * 指定のアイテム配下のコンテンツを取得する
      * @param itemId 
      */
-    loadContentsInItem<T extends CallbackType>(itemId: DataId, changeListener?: T): Promise<LoadContentsResult<T>>;
+    loadContentsInItem(itemId: DataId, changeListener?: (contentId: DataId, operation: Operation) => void): Promise<LoadContentsResult<T>>;
 
     /**
      * 指定のコンテンツを取得する
      * @param contentIds 
      */
-    loadContents<T extends CallbackType>(contentIds: DataId[], changeListener?: T): Promise<LoadContentsResult<T>>;
+    loadContents(contentIds: DataId[], changeListener?: (contentId: DataId, operation: Operation) => void): Promise<LoadContentsResult<T>>;
 
     /**
      * 指定の画像データ(Base64)を取得する

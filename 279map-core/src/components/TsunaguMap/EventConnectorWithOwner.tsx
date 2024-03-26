@@ -8,7 +8,7 @@ import { currentMapDefineAtom, currentMapKindAtom, mapDefineAtom } from '../../s
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { TsunaguMapHandler, LoadContentsResult, CallbackType } from '../../types/types';
+import { TsunaguMapHandler, LoadContentsResult } from '../../types/types';
 import { useAtom } from 'jotai';
 import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import { useAtomCallback } from 'jotai/utils';
@@ -137,7 +137,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         clearFilter() {
             setFilteredItem(null);
         },
-        async loadContents<T extends CallbackType>(contentIds: DataId[], changeListener?: T): Promise<LoadContentsResult<T>> {
+        async loadContents(contentIds, changeListener): Promise<LoadContentsResult> {
             try {
                 const result = await gqlClient.query(GetContentsDocument, {
                     ids: contentIds,
@@ -153,7 +153,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 if (!changeListener) {
                     return {
                         contents
-                    } as LoadContentsResult<T>
+                    }
                 }
 
                 const subscriptionList = contentIds.map(contentId => {
@@ -170,13 +170,13 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 return {
                     contents,
                     unsubscribe,
-                } as LoadContentsResult<T>
+                }
 
             } catch(err) {
                 throw err;
             }
         },
-        async loadContentsInItem<T extends CallbackType>(itemId: DataId, changeListener?: T): Promise<LoadContentsResult<T>> {
+        async loadContentsInItem(itemId, changeListener): Promise<LoadContentsResult> {
             try {
                 const result = await gqlClient.query(GetContentsInItemDocument, {
                     itemId: itemId,
@@ -192,7 +192,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 if (!changeListener) {
                     return {
                         contents
-                    } as LoadContentsResult<T>
+                    }
                 }
 
                 const subscriptionList = contents.map(content => {
@@ -209,7 +209,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 return {
                     contents,
                     unsubscribe,
-                } as LoadContentsResult<T>
+                }
 
             } catch(err) {
                 throw err;
