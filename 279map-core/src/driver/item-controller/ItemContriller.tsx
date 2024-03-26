@@ -62,7 +62,7 @@ export default function ItemController(props: Props) {
         } catch(e) {
             addConsole('loadContentsInItem failed.', e);
         }
-    }, [itemId, getMap, addConsole]);
+    }, [itemId, getMap, addConsole, isSubscribe]);
 
     const handleUnsubscribe = useCallback(() => {
         if (unsubscribeRef.current) {
