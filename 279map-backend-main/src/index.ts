@@ -9,7 +9,7 @@ import { getContents } from './getContents';
 import { getEvents } from './getEvents';
 import proxy from 'express-http-proxy';
 import http from 'http';
-import { getDatasourceRecord, getItemWkt } from './util/utility';
+import { cleanupContentValuesForRegist, getDatasourceRecord, getItemWkt } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
 import { getSnsPreview } from './api/getSnsPreview';
@@ -818,6 +818,10 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             registContent: async(_, param: MutationRegistContentArgs, ctx): MutationResolverReturnType<'registContent'> => {
                 try {
                     const { parent, datasourceId } = param;
+
+                    // 誤った値が含まれないように処置
+                    const values = cleanupContentValuesForRegist(ctx.currentMap.mapId, datasourceId, param.values);
+
                     // call ODBA
                     const contentId = await callOdbaApi(OdbaRegistContentAPI, {
                         currentMap: ctx.currentMap,
@@ -827,8 +831,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                             contentId: parent.id,
                         },
                         contentDataSourceId: datasourceId,
-                        type: 'normal',
-                        values: param.values,
+                        values,
                     });
 
                     // 更新通知
@@ -857,12 +860,14 @@ const schema = makeExecutableSchema<GraphQlContextType>({
              */
             updateContent: async(_, param: MutationUpdateContentArgs, ctx): MutationResolverReturnType<'updateContent'> => {
                 try {
+                    // 誤った値が含まれないように処置
+                    const values = cleanupContentValuesForRegist(ctx.currentMap.mapId, param.id.dataSourceId, param.values);
+
                     // call ODBA
                     await callOdbaApi(OdbaUpdateContentAPI, {
                         currentMap: ctx.currentMap,
                         id: param.id,
-                        type: 'normal',
-                        values: param.values,
+                        values,
                     });
             
                     // 更新通知
