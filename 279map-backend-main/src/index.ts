@@ -820,7 +820,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     const { parent, datasourceId } = param;
 
                     // 誤った値が含まれないように処置
-                    const values = cleanupContentValuesForRegist(ctx.currentMap.mapId, datasourceId, param.values);
+                    const values = await cleanupContentValuesForRegist(ctx.currentMap.mapId, datasourceId, param.values);
 
                     // call ODBA
                     const contentId = await callOdbaApi(OdbaRegistContentAPI, {
@@ -861,7 +861,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             updateContent: async(_, param: MutationUpdateContentArgs, ctx): MutationResolverReturnType<'updateContent'> => {
                 try {
                     // 誤った値が含まれないように処置
-                    const values = cleanupContentValuesForRegist(ctx.currentMap.mapId, param.id.dataSourceId, param.values);
+                    const values = await cleanupContentValuesForRegist(ctx.currentMap.mapId, param.id.dataSourceId, param.values);
 
                     // call ODBA
                     await callOdbaApi(OdbaUpdateContentAPI, {
