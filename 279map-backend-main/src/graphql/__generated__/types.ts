@@ -110,7 +110,6 @@ export type ContentsDefine = {
   anotherMapItemId?: Maybe<Scalars['DataId']['output']>;
   children?: Maybe<Array<ContentsDefine>>;
   id: Scalars['DataId']['output'];
-  image: Scalars['Boolean']['output'];
   isDeletable: Scalars['Boolean']['output'];
   isEditable: Scalars['Boolean']['output'];
   isSnsContent: Scalars['Boolean']['output'];
@@ -346,6 +345,11 @@ export type NoneConfig = {
   dummy?: Maybe<Scalars['Boolean']['output']>;
 };
 
+export enum Operation {
+  Delete = 'Delete',
+  Update = 'Update'
+}
+
 export type ParentInput = {
   id: Scalars['DataId']['input'];
   type: ParentOfContent;
@@ -371,6 +375,8 @@ export type Query = {
   getContentsInItem: Array<ContentsDefine>;
   getEvent: Array<EventDefine>;
   getGeocoderFeature: Scalars['Geometry']['output'];
+  /** 指定の画像を返す */
+  getImage: Scalars['String']['output'];
   getImageUrl: Scalars['String']['output'];
   getItems: Array<ItemDefine>;
   getItemsById: Array<ItemDefine>;
@@ -378,6 +384,7 @@ export type Query = {
   /** ユーザがアクセス可能な地図情報一覧を返す */
   getMapList: Array<MapListItem>;
   getSnsPreview: SnsPreviewResult;
+  /** 指定のコンテンツのサムネイル画像を返す */
   getThumb: Scalars['String']['output'];
   getUnpointContents: GetUnpointContentsResult;
   getUserList: Array<User>;
@@ -421,6 +428,12 @@ export type QueryGetGeocoderFeatureArgs = {
 };
 
 
+export type QueryGetImageArgs = {
+  imageId: Scalars['Int']['input'];
+  size: ThumbSize;
+};
+
+
 export type QueryGetImageUrlArgs = {
   contentId: Scalars['DataId']['input'];
 };
@@ -447,7 +460,6 @@ export type QueryGetSnsPreviewArgs = {
 
 export type QueryGetThumbArgs = {
   contentId: Scalars['DataId']['input'];
-  size?: InputMaybe<ThumbSize>;
 };
 
 
@@ -503,8 +515,8 @@ export enum SortCondition {
 }
 
 export type Subscription = {
-  /** 指定のアイテム配下のコンテンツに変更（登録・更新・削除）があった場合 */
-  childContentsUpdate?: Maybe<Scalars['Boolean']['output']>;
+  /** 指定のコンテンツが更新/削除された場合に通知する */
+  contentUpdate: Operation;
   /**
    * ユーザが操作している地図でエラーが発生した場合にエラー内容を通知する。
    * 突き放し実行している登録、更新処理でエラー発生した場合に通知するために用意。
@@ -525,8 +537,8 @@ export type Subscription = {
 };
 
 
-export type SubscriptionChildContentsUpdateArgs = {
-  itemId: Scalars['DataId']['input'];
+export type SubscriptionContentUpdateArgs = {
+  contentId: Scalars['DataId']['input'];
 };
 
 
@@ -721,6 +733,7 @@ export type ResolversTypes = {
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   IconDefine: ResolverTypeWrapper<IconDefine>;
   IconKey: ResolverTypeWrapper<Scalars['IconKey']['output']>;
+  Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   ItemDatasourceConfig: ResolverTypeWrapper<Scalars['ItemDatasourceConfig']['output']>;
   ItemDatasourceInfo: ResolverTypeWrapper<ItemDatasourceInfo>;
   ItemDefine: ResolverTypeWrapper<ItemDefine>;
@@ -735,6 +748,7 @@ export type ResolversTypes = {
   MediaType: MediaType;
   Mutation: ResolverTypeWrapper<{}>;
   NoneConfig: ResolverTypeWrapper<NoneConfig>;
+  Operation: Operation;
   ParentInput: ParentInput;
   ParentOfContent: ParentOfContent;
   PopupMode: PopupMode;
@@ -785,6 +799,7 @@ export type ResolversParentTypes = {
   ID: Scalars['ID']['output'];
   IconDefine: IconDefine;
   IconKey: Scalars['IconKey']['output'];
+  Int: Scalars['Int']['output'];
   ItemDatasourceConfig: Scalars['ItemDatasourceConfig']['output'];
   ItemDatasourceInfo: ItemDatasourceInfo;
   ItemDefine: ItemDefine;
@@ -867,7 +882,6 @@ export type ContentsDefineResolvers<ContextType = any, ParentType extends Resolv
   anotherMapItemId?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType>;
   children?: Resolver<Maybe<Array<ResolversTypes['ContentsDefine']>>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
-  image?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   isDeletable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   isEditable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   isSnsContent?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -1038,6 +1052,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getContentsInItem?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentsInItemArgs, 'itemId'>>;
   getEvent?: Resolver<Array<ResolversTypes['EventDefine']>, ParentType, ContextType, Partial<QueryGetEventArgs>>;
   getGeocoderFeature?: Resolver<ResolversTypes['Geometry'], ParentType, ContextType, RequireFields<QueryGetGeocoderFeatureArgs, 'id'>>;
+  getImage?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryGetImageArgs, 'imageId' | 'size'>>;
   getImageUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryGetImageUrlArgs, 'contentId'>>;
   getItems?: Resolver<Array<ResolversTypes['ItemDefine']>, ParentType, ContextType, RequireFields<QueryGetItemsArgs, 'datasourceId' | 'wkt' | 'zoom'>>;
   getItemsById?: Resolver<Array<ResolversTypes['ItemDefine']>, ParentType, ContextType, RequireFields<QueryGetItemsByIdArgs, 'targets'>>;
@@ -1075,7 +1090,7 @@ export type SnsPreviewResultResolvers<ContextType = any, ParentType extends Reso
 };
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
-  childContentsUpdate?: SubscriptionResolver<Maybe<ResolversTypes['Boolean']>, "childContentsUpdate", ParentType, ContextType, RequireFields<SubscriptionChildContentsUpdateArgs, 'itemId'>>;
+  contentUpdate?: SubscriptionResolver<ResolversTypes['Operation'], "contentUpdate", ParentType, ContextType, RequireFields<SubscriptionContentUpdateArgs, 'contentId'>>;
   error?: SubscriptionResolver<ResolversTypes['ErrorInfo'], "error", ParentType, ContextType, RequireFields<SubscriptionErrorArgs, 'sid'>>;
   itemDelete?: SubscriptionResolver<Array<ResolversTypes['DataId']>, "itemDelete", ParentType, ContextType, RequireFields<SubscriptionItemDeleteArgs, 'mapId' | 'mapKind'>>;
   itemInsert?: SubscriptionResolver<Array<ResolversTypes['Target']>, "itemInsert", ParentType, ContextType, RequireFields<SubscriptionItemInsertArgs, 'mapId' | 'mapKind'>>;

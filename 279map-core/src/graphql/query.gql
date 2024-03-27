@@ -56,10 +56,8 @@ query getItems (
         hasImageContentId
         contents {
             id
-            image
             children {
                 id
-                image
             }
         }
     }
@@ -78,10 +76,8 @@ query getItemsById (
         hasImageContentId
         contents {
             id
-            image
             children {
                 id
-                image
             }
         }
     }
@@ -115,7 +111,6 @@ query getContentsInItem(
 
 fragment content on ContentsDefine {
     id
-    image
     parentId
     values
     usingAnotherMap
@@ -142,11 +137,16 @@ query getUnpointContents(
 
 query getThumb (
     $contentId: DataId!
-    $size: ThumbSize
 ) {
-    getThumb(contentId: $contentId, size: $size)
+    getThumb(contentId: $contentId)
 }
 
+query getImage (
+    $imageId: Int!
+    $size: ThumbSize!
+) {
+    getImage(imageId: $imageId, size: $size)
+}
 query getImageUrl (
     $contentId: DataId!
 ) {

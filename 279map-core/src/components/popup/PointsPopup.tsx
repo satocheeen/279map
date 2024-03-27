@@ -137,7 +137,7 @@ export default function PointsPopup(props: Props) {
                 <div className={styles.Contents}>
                     {imageContentId ?
                         <div className={`${styles.ImageContainer}`}>
-                            <MyThumbnail mode='thumb' className={styles.Image} id={imageContentId} alt="contents" />
+                            <MyThumbnail className={styles.Image} contentId={imageContentId} alt="contents" />
                         </div>
                         :
                         <div className={styles.ThreeDots}>

@@ -94,8 +94,11 @@ export type ContentFieldDefine = {
     type: 'title' | 'latitude' | 'longitude' | 'radius' | 'address';
 } | {
     key: string;
-    type: 'date' | 'url' | 'text' | 'category' | 'number' | 'image';
+
+    // stringは１行、textは複数行
+    type: 'string' | 'date' | 'url' | 'text' | 'category' | 'number' | 'image';
     label: string;
+    readonly?: boolean;
 }
 
 export type ContentValueMap = {[key: string]: any};

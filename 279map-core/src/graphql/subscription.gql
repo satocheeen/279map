@@ -28,11 +28,11 @@ subscription itemDelete (
     itemDelete(mapId: $mapId, mapKind: $mapKind)
 }
 
-# 指定のアイテム配下のコンテンツに変更（登録・更新・削除）があった場合に通知を受け取る
-subscription childContentsUpdate (
-    $itemId: DataId!
+# コンテンツが更新された場合に通知を受け取る
+subscription contentUpdate (
+    $contentId: DataId!
 ) {
-    childContentsUpdate(itemId: $itemId)
+    contentUpdate(contentId: $contentId)
 }
 
 # ユーザ権限に更新があった場合に通知を受け取る

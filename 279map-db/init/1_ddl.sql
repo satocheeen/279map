@@ -53,7 +53,6 @@ CREATE TABLE `contents` (
   `parent_datasource_id` varchar(100) DEFAULT NULL,
   `title` varchar(100) DEFAULT NULL,
   `contents` json DEFAULT NULL,
-  `thumbnail` mediumtext DEFAULT NULL,
   `category` json DEFAULT NULL,
   `date` datetime DEFAULT NULL,
   `supplement` json DEFAULT NULL,
@@ -64,6 +63,21 @@ CREATE TABLE `contents` (
   KEY `contents_FK_2` (`parent_id`,`parent_datasource_id`),
   CONSTRAINT `contents_FK_1` FOREIGN KEY (`data_source_id`) REFERENCES `data_source` (`data_source_id`) ON DELETE CASCADE,
   CONSTRAINT `contents_FK_2` FOREIGN KEY (`parent_id`, `parent_datasource_id`) REFERENCES `contents` (`content_page_id`, `data_source_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+
+-- 279map_db.images definition
+
+CREATE TABLE `images` (
+  `image_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `content_page_id` varchar(100) NOT NULL,
+  `data_source_id` varchar(100) NOT NULL,
+  `thumbnail` mediumtext NOT NULL,
+  `medium` mediumtext NOT NULL,
+  `field_key` varchar(100) NOT NULL COMMENT '対応するコンテンツFieldのキー',
+  PRIMARY KEY (`image_id`),
+  KEY `images_FK` (`content_page_id`,`data_source_id`),
+  CONSTRAINT `images_FK` FOREIGN KEY (`content_page_id`, `data_source_id`) REFERENCES `contents` (`content_page_id`, `data_source_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 

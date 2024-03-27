@@ -1,7 +1,6 @@
 import proj4 from 'proj4';
 import axios from 'axios';
 import sharp from 'sharp';
-import ExifReader from 'exifreader';
 
 export const sleep = (sec: number) => new Promise<void>((resolve) => {
     setTimeout(() => {
@@ -28,58 +27,36 @@ export const sleep = (sec: number) => new Promise<void>((resolve) => {
     return r;
 }
 
-type ImageInfo = {
-    base64: string;
-    gps?: {latitude: number; longitude: number};
-}
-
-type GetImageBase64Option = {
-    size: {
-        width: number;
-        height: number;
-    },
+type GetImageBase64Size = {
+    width?: number;
+    height?: number;
     fit?: 'cover' | 'contain';
 }
 
 /**
- * 指定のURL画像をBase64に変換して返す。また、併せて、GPS情報も取得する。
+ * 指定のURL画像をBase64に変換して返す。
  * @param url 
- * @param option 
- * @returns Base64。画像取得に失敗した場合は、undefined。
+ * @param sizes 変換後サイズ情報の配列。指定した分だけBase64画像を生成して返す。
+ * @returns Base64。sizeで指定した分だけ配列で加瀬素。画像取得に失敗した場合は、undefined。
  */
-export async function getImageBase64(url: string, option: GetImageBase64Option): Promise<ImageInfo|undefined> {
+export async function getImageBase64(url: string, sizes: GetImageBase64Size[]): Promise<string[]|undefined> {
     try {
         const response = (await axios({ url, responseType: "arraybuffer" }));
         const input = response.data as ArrayBuffer;
         // console.log('status', response.status, response.headers, input.byteLength, input);
         const src = sharp(new Uint8Array(input));
         const format = (await src.metadata()).format;
-        const buff = await src.resize(option.size.width, option.size.height, {
-            fit: option.fit ?? 'cover',
-            background: {r: 255, g: 255, b: 255, alpha: 0},
-        }).toBuffer();
-    
-        const base64 = buff.toString('base64');
 
-        const gps = function() {
-            try {
-                const tags = ExifReader.load(input);
-                const latitude = Number(tags.GPSLatitude?.description);
-                const longitude = Number(tags.GPSLongitude?.description);
+        // resize
+        const base64list = Promise.all(sizes.map(async(size) => {
+            const buff = await src.resize(size.width, size.height, {
+                fit: size.fit ?? 'cover',
+                background: {r: 255, g: 255, b: 255, alpha: 0},
+            }).toBuffer();
+            return (format ? format + ';' : '') + 'base64,' + buff.toString('base64');
+        }))
 
-                return latitude && longitude ? {
-                    latitude, longitude
-                } : undefined;
-
-            } catch(e) {
-                return;
-            }
-        }();
-    
-        return {
-            base64: (format ? format + ';' : '') + 'base64,' + base64,
-            gps,
-        };
+        return base64list;
 
     } catch(e) {
         return;

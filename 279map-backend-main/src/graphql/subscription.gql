@@ -8,6 +8,11 @@ enum ErrorType {
     "アイテム登録に失敗した場合"
     RegistItemFailed
 }
+
+enum Operation {
+    Update
+    Delete
+}
 type ErrorInfo {
     "エラー種別"
     type: ErrorType!
@@ -48,11 +53,12 @@ type Subscription {
     ): [DataId!]!
 
     """
-    指定のアイテム配下のコンテンツに変更（登録・更新・削除）があった場合
+    指定のコンテンツが更新/削除された場合に通知する
     """
-    childContentsUpdate (
-        itemId: DataId!
-    ): Boolean
+    contentUpdate (
+        "対象のコンテンツID"
+        contentId: DataId!
+    ): Operation!
 
     """
     ユーザ権限に更新があった場合

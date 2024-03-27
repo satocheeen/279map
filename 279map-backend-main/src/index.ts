@@ -4,12 +4,12 @@ import { getMapInfo } from './getMapInfo';
 import { getItems } from './getItems';
 import { configure, getLogger } from "log4js";
 import { DbSetting, LogSetting } from './config';
-import { getThumbnail } from './getThumbnsil';
+import { getThumbnail } from './api/getThumbnsil';
 import { getContents } from './getContents';
 import { getEvents } from './getEvents';
 import proxy from 'express-http-proxy';
 import http from 'http';
-import { getAncestorItemId, getDatasourceRecord, getItemWkt } from './util/utility';
+import { cleanupContentValuesForRegist, getDatasourceRecord, getItemWkt } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
 import { getSnsPreview } from './api/getSnsPreview';
@@ -23,7 +23,7 @@ import { search } from './api/search';
 import { Auth0Management } from './auth/Auth0Management';
 import { OriginalAuthManagement } from './auth/OriginalAuthManagement';
 import { NoneAuthManagement } from './auth/NoneAuthManagement';
-import { CurrentMap, getImageBase64, sleep } from '../279map-backend-common/src';
+import { CurrentMap, sleep } from '../279map-backend-common/src';
 import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUnpointDataAPI, OdbaLinkContentDatasourceToMapAPI, OdbaLinkContentToItemAPI, OdbaRegistContentAPI, OdbaRegistItemAPI, OdbaRemoveContentAPI, OdbaRemoveItemAPI, OdbaUnlinkContentAPI, OdbaUnlinkContentDatasourceFromMapAPI, OdbaUpdateContentAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
 import SessionManager from './session/SessionManager';
 import { geojsonToWKT } from '@terraformer/wkt';
@@ -32,7 +32,7 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { IFieldResolverOptions } from '@graphql-tools/utils';
-import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapKind, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemsArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, ThumbSize } from './graphql/__generated__/types';
+import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapKind, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemsArgs, Operation, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, ThumbSize } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType, DatasourceConfigScalarType, GeoPropertiesScalarType, GeocoderIdInfoScalarType, IconKeyScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -47,6 +47,7 @@ import { ApolloServer } from 'apollo-server-express';
 import MyPubSub, { SubscriptionArgs } from './graphql/MyPubSub';
 import { DataId, DatasourceKindType } from './types-common/common-types';
 import { AuthMethod, ItemDefineWithoudContents } from './types';
+import { getImage } from './api/getImage';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -480,41 +481,27 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
             },
             /**
-             * サムネイル画像取得
+             * 指定のコンテンツのサムネイル画像取得
+             * 複数の画像が紐づく場合は、代表１つを取得して返す
              */
             getThumb: async(_, param: QueryGetThumbArgs, ctx): QueryResolverReturnType<'getThumb'> => {
-
                 try {
-                    if (param.size === ThumbSize.Medium) {
-                        // オリジナル画像を縮小する
-                        const url = await callOdbaApi(OdbaGetImageUrlAPI, {
-                            currentMap: ctx.currentMap,
-                            id: param.contentId,
-                        });
-                        if (!url) {
-                            throw new Error('original image url not found');
-                        }
-                        const image = await getImageBase64(url, {
-                             size: { width: 500, height: 500},
-                             fit: 'cover',
-                        });
-                        if (!image) {
-                            throw new Error('getImageBase64 failed');
-                        }
-
-                        return image.base64;
-
-                    } else {
-                        const result = await getThumbnail(param.contentId);
-            
-                        return result;
-                    }
+                    return await getThumbnail(param.contentId);
 
                 } catch(e) {
                     apiLogger.warn('get-thumb error', param.contentId, e);
                     throw e;
                 }
 
+            },
+            getImage: async(_, param: QueryGetImageArgs, ctx): QueryResolverReturnType<'getImage'> => {
+                try {
+                    return await getImage(param.imageId, param.size, ctx.currentMap);
+
+                } catch(e) {
+                    apiLogger.warn('get-image error', param.imageId, e);
+                    throw e;
+                }
             },
             /**
              * オリジナル画像URL取得
@@ -831,8 +818,12 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             registContent: async(_, param: MutationRegistContentArgs, ctx): MutationResolverReturnType<'registContent'> => {
                 try {
                     const { parent, datasourceId } = param;
+
+                    // 誤った値が含まれないように処置
+                    const values = cleanupContentValuesForRegist(ctx.currentMap.mapId, datasourceId, param.values);
+
                     // call ODBA
-                    await callOdbaApi(OdbaRegistContentAPI, {
+                    const contentId = await callOdbaApi(OdbaRegistContentAPI, {
                         currentMap: ctx.currentMap,
                         parent: parent.type === ParentOfContent.Item ? {
                             itemId: parent.id,
@@ -840,22 +831,23 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                             contentId: parent.id,
                         },
                         contentDataSourceId: datasourceId,
-                        type: 'normal',
-                        values: param.values,
+                        values,
                     });
-            
-                    // TODO: OdbaRegistContentAPIの戻り値をcontentIdにして、それを元にgetContentsしてitemIdを取得するように変更する
+
                     // 更新通知
-                    if (parent.type === ParentOfContent.Item) {
-                        // 更新通知
-                        const id = param.parent.id;
-                        const wkt = await getItemWkt(id);
-                        if (!wkt) {
-                            logger.warn('not found extent', id);
-                        } else {
-                            pubsub.publish('childContentsUpdate', { itemId: id }, true);
+                    // - 当該コンテンツを子孫に持つアイテムIDを取得
+                    const itemIdList = await getLinkedItemIdList(contentId);
+
+                    for (const item of itemIdList) {
+                        const wkt = await getItemWkt(item.itemId);
+                        if (wkt) {
+                            pubsub.publish('itemUpdate', 
+                                { mapId: item.mapId, mapKind: item.mapKind },
+                                [ { id: item.itemId, wkt } ]
+                            );
                         }
                     }
+
                     return true;
             
                 } catch(e) {    
@@ -866,31 +858,51 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * コンテンツ更新
              */
-            updateContent: async(parent: any, param: MutationUpdateContentArgs, ctx): MutationResolverReturnType<'updateContent'> => {
+            updateContent: async(_, param: MutationUpdateContentArgs, ctx): MutationResolverReturnType<'updateContent'> => {
                 try {
+                    // 誤った値が含まれないように処置
+                    const values = cleanupContentValuesForRegist(ctx.currentMap.mapId, param.id.dataSourceId, param.values);
+
                     // call ODBA
                     await callOdbaApi(OdbaUpdateContentAPI, {
                         currentMap: ctx.currentMap,
                         id: param.id,
-                        type: 'normal',
-                        values: param.values,
+                        values,
                     });
             
                     // 更新通知
-                    const ds = await getDatasourceRecord(param.id.dataSourceId);
-                    if (ds.kind === DatasourceKindType.RealPointContent) {
-                        // - RealPointContentの場合
-                        const wkt = await getItemWkt(param.id);
+                    // -- コンテンツ更新通知
+                    pubsub.publish('contentUpdate', {
+                        contentId: param.id,
+                    }, Operation.Update);
+
+                    // -- 当該コンテンツを子孫に持つアイテムIDを取得して通知
+                    const itemIdList = await getLinkedItemIdList(param.id);
+
+                    for (const item of itemIdList) {
+                        const wkt = await getItemWkt(item.itemId);
                         if (wkt) {
-                            pubsub.publish('itemUpdate', ctx.currentMap, [ { id: param.id, wkt }]);
-                        }
-                    } else {
-                        // - 当該コンテンツを子孫に持つアイテムIDを取得
-                        const itemId = await getAncestorItemId(param.id);
-                        if (itemId) {
-                            pubsub.publish('childContentsUpdate', { itemId }, true);
+                            pubsub.publish('itemUpdate', 
+                                { mapId: item.mapId, mapKind: item.mapKind },
+                                [ { id: item.itemId, wkt } ]
+                            );
                         }
                     }
+
+                    // const ds = await getDatasourceRecord(param.id.dataSourceId);
+                    // if (ds.kind === DatasourceKindType.RealPointContent) {
+                    //     // - RealPointContentの場合
+                    //     const wkt = await getItemWkt(param.id);
+                    //     if (wkt) {
+                    //         pubsub.publish('itemUpdate', ctx.currentMap, [ { id: param.id, wkt }]);
+                    //     }
+                    // } else {
+                    //     // - 当該コンテンツを子孫に持つアイテムIDを取得
+                    //     // const itemId = await getAncestorItemId(param.id);
+                    //     // if (itemId) {
+                    //     //     pubsub.publish('childContentsUpdate', { itemId }, true);
+                    //     // }
+                    // }
                 
                     return true;
 
@@ -922,7 +934,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         if (!wkt) {
                             logger.warn('not found extent', id);
                         } else {
-                            pubsub.publish('childContentsUpdate', { itemId: id }, true);
                             pubsub.publish('itemUpdate', ctx.currentMap, [ { id, wkt } ]);
                         }
                     }
@@ -963,7 +974,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         if (!wkt) {
                             logger.warn('not found extent', id);
                         } else {
-                            pubsub.publish('childContentsUpdate', { itemId: id }, true);
+                            // pubsub.publish('childContentsUpdate', { itemId: id }, true);
                             pubsub.publish('itemUpdate', ctx.currentMap, [ { id, wkt } ]);
                         }
                     }
@@ -977,6 +988,9 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             },
             removeContent: async(parent: any, param: MutationRemoveContentArgs, ctx): MutationResolverReturnType<'removeContent'> => {
                 try {
+                    // 属するitem一覧を取得
+                    const items = await getLinkedItemIdList(param.id);
+
                     // データソース種別がRealPointContentの場合は、受け付けない（removeItemでのみ削除可能）
                     const datasource = await getDatasourceRecord(param.id.dataSourceId);
                     if (datasource.kind !== DatasourceKindType.Content) {
@@ -990,15 +1004,12 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     });
             
                     // 更新通知(完了は待たずに復帰する)
-                    // 属するitem一覧を取得
-                    const items = await getLinkedItemIdList(param.id);
                     Promise.all(items.map(async(item) => {
                         const wkt = await getItemWkt(item.itemId);
                         if (!wkt) {
                             logger.warn('not found extent', item.itemId);
                         } else {
-                            pubsub.publish('childContentsUpdate', { itemId: item.itemId }, true);
-                            pubsub.publish('itemUpdate', ctx.currentMap, [ { id: item.itemId, wkt } ]);
+                            pubsub.publish('itemUpdate', { mapId: item.mapId, mapKind: item.mapKind }, [ { id: item.itemId, wkt } ]);
                         }
                     }));
 
@@ -1139,10 +1150,16 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     return pubsub.asyncIterator('itemDelete', args);
                 }
             },
-            childContentsUpdate: {
+            // childContentsUpdate: {
+            //     resolve: (payload) => payload,
+            //     subscribe: (_, args: SubscriptionArgs<'childContentsUpdate'>) => {
+            //         return pubsub.asyncIterator('childContentsUpdate', args);
+            //     }
+            // },
+            contentUpdate: {
                 resolve: (payload) => payload,
-                subscribe: (_, args: SubscriptionArgs<'childContentsUpdate'>) => {
-                    return pubsub.asyncIterator('childContentsUpdate', args);
+                subscribe: (_, args: SubscriptionArgs<'contentUpdate'>) => {
+                    return pubsub.asyncIterator('contentUpdate', args);
                 }
             },
             updateUserAuth: {

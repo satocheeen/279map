@@ -8,14 +8,14 @@ import { currentMapDefineAtom, currentMapKindAtom, mapDefineAtom } from '../../s
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { TsunaguMapHandler } from '../../types/types';
+import { TsunaguMapHandler, LoadContentsResult } from '../../types/types';
 import { useAtom } from 'jotai';
 import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import { useAtomCallback } from 'jotai/utils';
 import { allItemContentListAtom, loadedItemMapAtom, storedItemsAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
 import useDataSource from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, LinkContentDocument, RegistContentDocument, SearchDocument, GetThumbDocument, GetSnsPreviewDocument, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument, UpdateItemsDocument } from '../../graphql/generated/graphql';
+import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, LinkContentDocument, RegistContentDocument, SearchDocument, GetThumbDocument, GetSnsPreviewDocument, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument, UpdateItemsDocument, GetImageDocument, ContentUpdateDocument, Operation } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import { DataId } from '../../types-common/common-types';
 import { useItems } from '../../store/item/useItems';
@@ -31,7 +31,7 @@ import useItemProcess from '../../store/item/useItemProcess';
  * - ref経由での操作を実行
  */
 export type EventControllerHandler = Pick<TsunaguMapHandler, 
-    'switchMapKind' | 'focusItem' | 'loadContents' | 'loadContentsInItem' | 'loadContentImage'
+    'switchMapKind' | 'focusItem' | 'loadContents' | 'loadContentsInItem' | 'loadImage'
     | 'filter' | 'clearFilter'
     | 'updateItem'
     | 'registContent' | 'updateContent' | 'removeContent'
@@ -137,7 +137,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         clearFilter() {
             setFilteredItem(null);
         },
-        async loadContents(contentIds: DataId[]): Promise<ContentsDefine[]> {
+        async loadContents(contentIds, changeListener): Promise<LoadContentsResult> {
             try {
                 const result = await gqlClient.query(GetContentsDocument, {
                     ids: contentIds,
@@ -148,13 +148,35 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                     throw new Error(result.error.message);
                 }
                 const list = result.data?.getContents ?? [];
-                return list.sort(contentsComparator);
+                const contents = list.sort(contentsComparator);
+
+                if (!changeListener) {
+                    return {
+                        contents
+                    }
+                }
+
+                const subscriptionList = contentIds.map(contentId => {
+                    return gqlClient.subscription(ContentUpdateDocument, {
+                        contentId,
+                    }).subscribe((result) => {
+                        if (!result.data?.contentUpdate) return;
+                        changeListener(contentId, result.data.contentUpdate === Operation.Update ? 'update' : 'delete');
+                    });
+                })
+                const unsubscribe = () => {
+                    subscriptionList.forEach(subscription => subscription.unsubscribe())
+                }
+                return {
+                    contents,
+                    unsubscribe,
+                }
 
             } catch(err) {
                 throw err;
             }
         },
-        async loadContentsInItem(itemId) {
+        async loadContentsInItem(itemId, changeListener): Promise<LoadContentsResult> {
             try {
                 const result = await gqlClient.query(GetContentsInItemDocument, {
                     itemId: itemId,
@@ -165,8 +187,30 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                     throw new Error(result.error.message);
                 }
                 const list = result.data?.getContentsInItem ?? [];
-                return list.sort(contentsComparator);
+                const contents = list.sort(contentsComparator);
         
+                if (!changeListener) {
+                    return {
+                        contents
+                    }
+                }
+
+                const subscriptionList = contents.map(content => {
+                    return gqlClient.subscription(ContentUpdateDocument, {
+                        contentId: content.id,
+                    }).subscribe((result) => {
+                        if (!result.data?.contentUpdate) return;
+                        changeListener(content.id, result.data.contentUpdate === Operation.Update ? 'update' : 'delete');
+                    });
+                })
+                const unsubscribe = () => {
+                    subscriptionList.forEach(subscription => subscription.unsubscribe())
+                }
+                return {
+                    contents,
+                    unsubscribe,
+                }
+
             } catch(err) {
                 throw err;
             }
@@ -279,10 +323,10 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         /**
          * 指定のコンテンツの画像（Blob）を取得する
          */
-        async loadContentImage({contentId, size, refresh}) {
+        async loadImage({imageId, size, refresh}) {
             try {
-                const result = await gqlClient.query(GetThumbDocument, {
-                    contentId,
+                const result = await gqlClient.query(GetImageDocument, {
+                    imageId,
                     size,
                 }, {
                     requestPolicy: refresh ? 'network-only' : undefined,
@@ -290,7 +334,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 if (result.error) {
                     throw new Error(result.error.message);
                 }
-                const base64 = result.data?.getThumb ?? '';
+                const base64 = result.data?.getImage ?? '';
                 return 'data:image/' + base64;
                             
             } catch(err) {

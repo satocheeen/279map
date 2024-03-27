@@ -1,4 +1,4 @@
-import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, SnsPreviewResult, GetItemsQuery, ThumbSize } from "../graphql/generated/graphql";
+import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, SnsPreviewResult, GetItemsQuery, ThumbSize, Operation } from "../graphql/generated/graphql";
 import { ContentValueMap, DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
 import { OperationResult } from "urql";
 
@@ -100,6 +100,11 @@ export type TsunaguMapProps = {
     onLoadedItemsChanged?: (items: ItemType[]) => void;
 }
 
+export type LoadContentsResult = {
+    contents: ContentsDefine[];
+    unsubscribe?: () => void;   // callbackを渡した場合に格納されている
+}
+
 export interface TsunaguMapHandler {
     /**
      * switch the map kind
@@ -188,17 +193,21 @@ export interface TsunaguMapHandler {
      * 指定のアイテム配下のコンテンツを取得する
      * @param itemId 
      */
-    loadContentsInItem(itemId: DataId): Promise<ContentsDefine[]>;
-
-    loadContents(contentIds: DataId[]): Promise<ContentsDefine[]>;
+    loadContentsInItem(itemId: DataId, changeListener?: (contentId: DataId, operation: 'update' | 'delete') => void): Promise<LoadContentsResult>;
 
     /**
-     * 指定のコンテンツの画像データ(Base64)を取得する
-     * @param contentId
+     * 指定のコンテンツを取得する
+     * @param contentIds 
+     */
+    loadContents(contentIds: DataId[], changeListener?: (contentId: DataId, operation: 'update' | 'delete') => void): Promise<LoadContentsResult>;
+
+    /**
+     * 指定の画像データ(Base64)を取得する
+     * @param imageId
      * @param size 取得サイズ
      * @param refresh trueの場合、キャッシュを用いずに最新ロードする
      */
-    loadContentImage(param: {contentId: DataId, size: ThumbSize, refresh?: boolean}): Promise<string>;
+    loadImage(param: {imageId: number, size: ThumbSize, refresh?: boolean}): Promise<string>;
 
     /**
      * アイテム情報を更新する

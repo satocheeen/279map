@@ -33,9 +33,9 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
         },
         {
             define: OdbaRegistContentAPI,
-            func: async(param: OdbaAPIFuncParam<OdbaRegistContentParam>): Promise<void> => {
+            func: async(param: OdbaAPIFuncParam<OdbaRegistContentParam>): Promise<DataId> => {
                 // regist to original db
-                await odba.registContent(param.param);
+                return await odba.registContent(param.param);
             },
         },
         {

@@ -2,19 +2,18 @@ import React, { useState, useRef, useEffect } from 'react';
 import Spinner from '../spinner/Spinner';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
-import { GetThumbDocument, ThumbSize } from '../../../graphql/generated/graphql';
+import { GetThumbDocument } from '../../../graphql/generated/graphql';
 import { DataId } from '../../../types-common/common-types';
 
 type Props = {
-    id: DataId; // サムネイル画像id（コンテンツID）
+    contentId: DataId;
     className?: string;
     onClick?: () => void;
     alt: string;
-    mode: 'thumb' | 'original'; // thumb->サムネイル画像を表示、original->オリジナル画像を表示
 }
 
 /**
- * ヘッダー情報にセッションidを付与して画像を取得して、
+ * 指定のヘッダー情報にセッションidを付与して画像を取得して、
  * サムネイル表示するコンポーネント
  * @param props 
  * @returns 
@@ -30,8 +29,7 @@ export default function MyThumbnail(props: Props) {
      */
     useEffect(() => {
         gqlClient.query(GetThumbDocument, {
-            contentId: props.id,
-            size: props.mode === 'thumb' ? ThumbSize.Thumbnail : ThumbSize.Medium,
+            contentId: props.contentId,
         }).then((result) => {
             const base64 = result.data?.getThumb;
             if (myRef.current && base64) {
@@ -40,7 +38,7 @@ export default function MyThumbnail(props: Props) {
             setLoaded(true);
         });
 
-    }, [props.id, props.mode, gqlClient]);
+    }, [props, gqlClient]);
 
     return (
         <>

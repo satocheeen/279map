@@ -5,7 +5,7 @@ import { CurrentMap } from '../279map-backend-common/src';
 import { Auth, ContentsDefine, MapKind } from './graphql/__generated__/types';
 import { DatasourceKindType, DataId, ContentValueMap } from './types-common/common-types';
 import { isEqualId } from './util/utility';
-import { DatasourceTblConfig } from '../279map-backend-common/dist';
+import { DatasourceTblConfig, ImagesTable } from '../279map-backend-common/dist';
 
 type GetContentsParam = ({
     itemId: DataId;
@@ -72,22 +72,21 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
             const values = row.contents as ContentValueMap;
 
             // 画像が存在する場合は、valuesにIDを含めて返す
-            if (row.thumbnail) {
-                const imageField = function() {
-                    const mdlConfig = row.mdl_config as MapDataSourceLinkConfig;
-                    if (mdlConfig.kind === DatasourceKindType.Content) {
-                        return mdlConfig.fields.find(fd => fd.type === 'image');
-                    }
-                }();
-                if (imageField) {
-                    values[imageField.key] = true;  // 将来的にはイメージIDを返す
+            const imageFields = function() {
+                const mdlConfig = row.mdl_config as MapDataSourceLinkConfig;
+                if ('fields' in mdlConfig) {
+                    return mdlConfig.fields.filter(fd => fd.type === 'image');
                 }
-    
+            }() ?? [];
+            for (const imageField of imageFields) {
+                const imageQuery = 'select * from images where content_page_id = ? and data_source_id = ? and field_key = ?';
+                const [rows] = await con.execute(imageQuery, [row.content_page_id, row.data_source_id, imageField.key]);
+                const ids = (rows as ImagesTable[]).map(row => row.image_id);
+                values[imageField.key] = ids;
             }
 
             return {
                 id,
-                image: row.thumbnail ? true : false,
                 values,
                 parentId: (row.parent_id && row.parent_datasource_id) ? {
                     id: row.parent_id,

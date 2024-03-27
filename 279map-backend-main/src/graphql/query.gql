@@ -46,7 +46,6 @@ enum ContentType {
 }
 type ContentsDefine {
     id: DataId!
-    image: Boolean!
     parentId: DataId
     values: ContentValueMap!
     children: [ContentsDefine!]
@@ -159,7 +158,12 @@ type Query {
     getContentsInItem(itemId: DataId!): [ContentsDefine!]!
     getUnpointContents(datasourceId: String!, nextToken: String): GetUnpointContentsResult!
 
-    getThumb(contentId: DataId!, size: ThumbSize): String!
+    "指定のコンテンツのサムネイル画像を返す"
+    getThumb(contentId: DataId!): String!
+
+    "指定の画像を返す"
+    getImage(imageId: Int!, size: ThumbSize!): String!
+
     getImageUrl(contentId: DataId!): String!
 
     # datasourceIds => 指定されている場合、指定のデータソースのみ検索対象にする

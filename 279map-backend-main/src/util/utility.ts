@@ -1,10 +1,11 @@
 import { ConnectionPool } from '..';
-import { ContentsTable, DataSourceTable, ItemContentLink, ItemsTable } from '../../279map-backend-common/src/types/schema';
+import { ContentsTable, DataSourceTable, ItemContentLink, ItemsTable, MapDataSourceLinkConfig } from '../../279map-backend-common/src/types/schema';
 import { buffer, circle, featureCollection, lineString, multiLineString, multiPolygon, point, polygon, union } from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 import crypto from 'crypto';
 import * as geojson from 'geojson';
-import { DataId } from '../types-common/common-types';
+import { ContentValueMap, DataId } from '../types-common/common-types';
+import { MapDataSourceLinkTable } from '../../279map-backend-common/dist';
 
 type Extent = number[];
 
@@ -234,4 +235,50 @@ export async function getDatasourceRecord(datasourceId: string): Promise<DataSou
 
 export function isEqualId(id1: DataId, id2: DataId): boolean {
     return id1.id === id2.id && id1.dataSourceId === id2.dataSourceId;
+}
+
+/**
+ * コンテンツ登録や更新時に、誤った値がODBAに渡されないように処置する
+ * @param mapId 地図ID
+ * @param datasourceId コンテンツデータソースID
+ * @param values 
+ * @return 処置したあとの値
+ */
+export async function cleanupContentValuesForRegist(mapId: string, datasourceId: string, values: ContentValueMap): Promise<ContentValueMap> {
+    const con = await ConnectionPool.getConnection();
+
+    try {
+        // 項目定義を取得
+        const sql = 'select * from map_datasource_link where map_page_id =? and data_source_id = ?';
+        const [rows] = await con.execute(sql, [mapId,datasourceId]);
+        if ((rows as []).length === 0) {
+            throw new Error('data_source not find. ->' + datasourceId);
+        }
+        const mdl_config = (rows as MapDataSourceLinkTable[])[0].mdl_config as MapDataSourceLinkConfig;
+        const fields = 'fields' in mdl_config ? mdl_config.fields : undefined; 
+        if (!fields) {
+            throw new Error('undefined fields -> ' + datasourceId);
+        }
+
+        const newValues = {} as ContentValueMap;
+        Object.entries(values).forEach(([key, value]) => {
+            const field = fields.find(def => def.key === key);
+            if (!field) return;
+            if ('readonly' in field && field.readonly) {
+                // readonly項目は、はじく
+                return;
+            }
+            if (field.type === 'image' && typeof value === 'number') {
+                // 画像の場合は、修正前の画像ID（数値）が誤って入ってくる可能性があるのでチェックしてはじく
+                return;
+            }
+
+            newValues[key] = value;
+        })
+
+        return newValues;
+
+    } finally {
+        con.release();
+    }
 }

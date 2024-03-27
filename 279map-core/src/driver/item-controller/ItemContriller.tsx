@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { DriverContext } from '../TestMap';
 import styles from '../TestMap.module.scss';
 import { DataId } from '../../entry';
@@ -39,16 +39,37 @@ export default function ItemController(props: Props) {
         });
     }, [itemId, getMap]);
 
+    const [ isSubscribe, setSubscribe ] = useState(false);
+    const unsubscribeRef = useRef<()=>void|undefined>();
     const handleLoadContents = useCallback(async() => {
         if (!itemId) return;
         try {
-            const res = await getMap()?.loadContentsInItem(itemId);
-            addConsole('loadContentsInItem result', res);
+            if (unsubscribeRef.current) {
+                unsubscribeRef.current();
+                unsubscribeRef.current = undefined;
+            }
+            if (isSubscribe) {
+                const res = await getMap()?.loadContentsInItem(itemId, (contentId, operation) => {
+                    addConsole('Change Content', contentId, operation);
+                });
+                addConsole('loadContentsInItem result', res?.contents);
+                unsubscribeRef.current = res?.unsubscribe;
+            } else {
+                const res = await getMap()?.loadContentsInItem(itemId);
+                addConsole('loadContentsInItem result', res?.contents);
+            }
     
         } catch(e) {
             addConsole('loadContentsInItem failed.', e);
         }
-    }, [itemId, getMap, addConsole]);
+    }, [itemId, getMap, addConsole, isSubscribe]);
+
+    const handleUnsubscribe = useCallback(() => {
+        if (unsubscribeRef.current) {
+            unsubscribeRef.current();
+            unsubscribeRef.current = undefined;
+        }
+    }, []);
 
     const handleRemoveItem = useCallback(() => {
         try {
@@ -73,6 +94,11 @@ export default function ItemController(props: Props) {
                 <div>
                     <button onClick={handleFocusItem}>Focus Item</button>
                     <button onClick={handleLoadContents}>Load Contents</button>
+                    <label>
+                        <input type='checkbox' checked={isSubscribe} onChange={evt=>setSubscribe(evt.target.checked)} />
+                        Subscribe
+                    </label>
+                    <button onClick={handleUnsubscribe}>Stop Subscribe</button>
                     <button onClick={handleRemoveItem}>Remove Item</button>
                 </div>
             </div>
