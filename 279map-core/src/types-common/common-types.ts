@@ -96,6 +96,7 @@ export type ContentFieldDefine = {
     key: string;
     type: 'date' | 'url' | 'text' | 'category' | 'number' | 'image';
     label: string;
+    readonly?: boolean;
 }
 
 export type ContentValueMap = {[key: string]: any};
