@@ -33,15 +33,6 @@ export const OdbaRegistContentAPI = {
     resultType: 'none',
 } as APIDefine<OdbaRegistContentParam, DataId>;
 
-type ContentAttr = {
-    type: 'normal';
-    values: ContentValueMap;
-} | {
-    type: 'sns';
-    title: string;
-    url: string;
-};
-
 export type OdbaRegistContentParam = CommonParam & {
     parent: {
         itemId: DataId;
@@ -50,7 +41,8 @@ export type OdbaRegistContentParam = CommonParam & {
     };
     // 登録先データソース
     contentDataSourceId: string;
-} & ContentAttr;
+    values: ContentValueMap;
+};
 
 /**
  * remove item
@@ -122,7 +114,8 @@ export const OdbaUpdateContentAPI = {
 
 export type OdbaUpdateContentParam = CommonParam & {
     id: DataId;
-} & ContentAttr;
+    values: ContentValueMap;
+};
 
 /**
  * get unpoint data
