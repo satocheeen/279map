@@ -10,7 +10,7 @@ CREATE TABLE `map_page_info` (
   `public_range` enum('Public','Private') NOT NULL,
   `options` json DEFAULT NULL,
   `description` text COMMENT '地図説明',
-  `thumbnail` mediumtext NOT NULL COMMENT '地図説明用のサムネイル画像',
+  `thumbnail` mediumtext COMMENT '地図説明用のサムネイル画像',
   `odba_connection` json NOT NULL COMMENT '原本DB関連の任意情報',
   `last_edited_time` varchar(100) NOT NULL,
   PRIMARY KEY (`map_page_id`)
