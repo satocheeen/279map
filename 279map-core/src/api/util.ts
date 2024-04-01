@@ -49,7 +49,12 @@ export async function getAccessableMapList(host: string, ssl: boolean, token: st
 
     try {
         const result = await gqlClient.query(GetMapListDocument, {});
-        return result.data?.getMapList;
+        return result.data?.getMapList.map(item => ({
+            mapId: item.mapId,
+            name: item.name,
+            description: item.description,
+            thumbnail: item.thumbnail,
+        }));
 
     } catch(e) {
         console.warn('get accessable maplist failed.', e);
