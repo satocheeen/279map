@@ -41,7 +41,7 @@ export async function getMapList(userId: string | undefined): Promise<MapListIte
                     mapId: records[0].map_page_id,
                     name: records[0].title,
                     description: records[0].description,
-                    thumbnail: records[0].thumbnail,
+                    thumbnail: records[0].thumbnail ? 'data:image/' + records[0].thumbnail : undefined,
                 })
             }
         }
