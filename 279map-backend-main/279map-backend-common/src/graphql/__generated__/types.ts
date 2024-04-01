@@ -82,8 +82,6 @@ export type MapPageOptions = {
   popupMode?: Maybe<PopupMode>;
   /** 使用パネル */
   usePanels?: Maybe<Array<Scalars['String']['output']>>;
-  /** 初期表示するデータソースを絞る場合に指定する */
-  visibleDataSources: Array<VisibleDataSource>;
 };
 
 export enum PopupMode {
@@ -111,14 +109,4 @@ export type User = {
   authLv: Auth;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
-};
-
-export type VisibleDataSource = VisibleDataSourceDatasource | VisibleDataSourceGroup;
-
-export type VisibleDataSourceDatasource = {
-  dataSourceId?: Maybe<Scalars['String']['output']>;
-};
-
-export type VisibleDataSourceGroup = {
-  group?: Maybe<Scalars['String']['output']>;
 };

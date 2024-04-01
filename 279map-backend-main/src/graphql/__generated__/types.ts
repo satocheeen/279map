@@ -8,7 +8,6 @@ export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: 
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
 export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
-export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
@@ -229,8 +228,6 @@ export type MapPageOptions = {
   popupMode?: Maybe<PopupMode>;
   /** 使用パネル */
   usePanels?: Maybe<Array<Scalars['String']['output']>>;
-  /** 初期表示するデータソースを絞る場合に指定する */
-  visibleDataSources: Array<VisibleDataSource>;
 };
 
 export type MediaInfo = {
@@ -617,16 +614,6 @@ export type User = {
   name: Scalars['String']['output'];
 };
 
-export type VisibleDataSource = VisibleDataSourceDatasource | VisibleDataSourceGroup;
-
-export type VisibleDataSourceDatasource = {
-  dataSourceId?: Maybe<Scalars['String']['output']>;
-};
-
-export type VisibleDataSourceGroup = {
-  group?: Maybe<Scalars['String']['output']>;
-};
-
 
 
 export type ResolverTypeWrapper<T> = Promise<T> | T;
@@ -697,7 +684,6 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping of union types */
 export type ResolversUnionTypes<RefType extends Record<string, unknown>> = {
   ServerConfig: ( Auth0Config ) | ( NoneConfig );
-  VisibleDataSource: ( VisibleDataSourceDatasource ) | ( VisibleDataSourceGroup );
 };
 
 
@@ -743,7 +729,7 @@ export type ResolversTypes = {
   MapInfo: ResolverTypeWrapper<MapInfo>;
   MapKind: MapKind;
   MapListItem: ResolverTypeWrapper<MapListItem>;
-  MapPageOptions: ResolverTypeWrapper<Omit<MapPageOptions, 'visibleDataSources'> & { visibleDataSources: Array<ResolversTypes['VisibleDataSource']> }>;
+  MapPageOptions: ResolverTypeWrapper<MapPageOptions>;
   MediaInfo: ResolverTypeWrapper<MediaInfo>;
   MediaType: MediaType;
   Mutation: ResolverTypeWrapper<{}>;
@@ -767,9 +753,6 @@ export type ResolversTypes = {
   UpdateItemInput: UpdateItemInput;
   UpdateItemsResult: ResolverTypeWrapper<UpdateItemsResult>;
   User: ResolverTypeWrapper<User>;
-  VisibleDataSource: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['VisibleDataSource']>;
-  VisibleDataSourceDatasource: ResolverTypeWrapper<VisibleDataSourceDatasource>;
-  VisibleDataSourceGroup: ResolverTypeWrapper<VisibleDataSourceGroup>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -807,7 +790,7 @@ export type ResolversParentTypes = {
   MapDefine: MapDefine;
   MapInfo: MapInfo;
   MapListItem: MapListItem;
-  MapPageOptions: Omit<MapPageOptions, 'visibleDataSources'> & { visibleDataSources: Array<ResolversParentTypes['VisibleDataSource']> };
+  MapPageOptions: MapPageOptions;
   MediaInfo: MediaInfo;
   Mutation: {};
   NoneConfig: NoneConfig;
@@ -824,9 +807,6 @@ export type ResolversParentTypes = {
   UpdateItemInput: UpdateItemInput;
   UpdateItemsResult: UpdateItemsResult;
   User: User;
-  VisibleDataSource: ResolversUnionTypes<ResolversParentTypes>['VisibleDataSource'];
-  VisibleDataSourceDatasource: VisibleDataSourceDatasource;
-  VisibleDataSourceGroup: VisibleDataSourceGroup;
 };
 
 export type Auth0ConfigResolvers<ContextType = any, ParentType extends ResolversParentTypes['Auth0Config'] = ResolversParentTypes['Auth0Config']> = {
@@ -1010,7 +990,6 @@ export type MapPageOptionsResolvers<ContextType = any, ParentType extends Resolv
   options?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   popupMode?: Resolver<Maybe<ResolversTypes['PopupMode']>, ParentType, ContextType>;
   usePanels?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
-  visibleDataSources?: Resolver<Array<ResolversTypes['VisibleDataSource']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1127,20 +1106,6 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type VisibleDataSourceResolvers<ContextType = any, ParentType extends ResolversParentTypes['VisibleDataSource'] = ResolversParentTypes['VisibleDataSource']> = {
-  __resolveType: TypeResolveFn<'VisibleDataSourceDatasource' | 'VisibleDataSourceGroup', ParentType, ContextType>;
-};
-
-export type VisibleDataSourceDatasourceResolvers<ContextType = any, ParentType extends ResolversParentTypes['VisibleDataSourceDatasource'] = ResolversParentTypes['VisibleDataSourceDatasource']> = {
-  dataSourceId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type VisibleDataSourceGroupResolvers<ContextType = any, ParentType extends ResolversParentTypes['VisibleDataSourceGroup'] = ResolversParentTypes['VisibleDataSourceGroup']> = {
-  group?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export type Resolvers<ContextType = any> = {
   Auth0Config?: Auth0ConfigResolvers<ContextType>;
   CategoryDefine?: CategoryDefineResolvers<ContextType>;
@@ -1183,8 +1148,5 @@ export type Resolvers<ContextType = any> = {
   UnpointContent?: UnpointContentResolvers<ContextType>;
   UpdateItemsResult?: UpdateItemsResultResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
-  VisibleDataSource?: VisibleDataSourceResolvers<ContextType>;
-  VisibleDataSourceDatasource?: VisibleDataSourceDatasourceResolvers<ContextType>;
-  VisibleDataSourceGroup?: VisibleDataSourceGroupResolvers<ContextType>;
 };
 

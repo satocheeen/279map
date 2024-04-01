@@ -1214,15 +1214,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
             }
         },
-        VisibleDataSource: {
-            __resolveType: (obj: any) => {
-                if ('dataSourceId' in obj) {
-                    return 'VisibleDataSourceDatasource';
-                } else {
-                    return 'VisibleDataSourceGroup';
-                }
-            }
-        }
     }
 })
 

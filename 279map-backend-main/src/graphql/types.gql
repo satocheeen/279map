@@ -53,14 +53,6 @@ enum ItemLabelMode {
     hidden
 }
 
-type VisibleDataSourceDatasource {
-    dataSourceId: String
-}
-type VisibleDataSourceGroup {
-    group: String
-}
-union VisibleDataSource = VisibleDataSourceDatasource | VisibleDataSourceGroup
-
 enum SortCondition {
     "作成日時昇順"
     CreatedAtAsc
@@ -79,8 +71,6 @@ enum SortCondition {
 type MapPageOptions {
     popupMode: PopupMode
     itemLabel: ItemLabelMode
-    "初期表示するデータソースを絞る場合に指定する"
-    visibleDataSources: [VisibleDataSource!]!
     "ゲストユーザの操作権限"
     guestUserAuthLevel: Auth!
     "新規登録ユーザに設定する権限"

@@ -165,7 +165,6 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
         if (!mapRecord) {
             throw new Error('map undefined: ' + mapId);
         }
-        const visibleDataSources = (mapRecord.options as MapPageOptions | undefined)?.visibleDataSources;
 
         const sql = `select * from data_source ds
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 

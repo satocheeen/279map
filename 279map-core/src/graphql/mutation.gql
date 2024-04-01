@@ -9,14 +9,6 @@ mutation connect (
             options {
                 popupMode
                 itemLabel
-                visibleDataSources {
-                    ... on VisibleDataSourceDatasource {
-                        dataSourceId
-                    }
-                    ... on VisibleDataSourceGroup {
-                        group
-                    }
-                }
                 guestUserAuthLevel
                 newUserAuthLevel
                 usePanels
