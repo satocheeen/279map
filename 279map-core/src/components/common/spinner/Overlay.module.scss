@@ -9,7 +9,8 @@ $spinnerSize: 36px;
 }
 
 .Message {
-    color: #fffa;
+    // color: #fffa;
+    color: var(--black);
 }
 .Overlay {
     position: absolute;

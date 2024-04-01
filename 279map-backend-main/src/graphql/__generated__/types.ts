@@ -211,8 +211,10 @@ export enum MapKind {
 }
 
 export type MapListItem = {
+  description?: Maybe<Scalars['String']['output']>;
   mapId: Scalars['String']['output'];
   name: Scalars['String']['output'];
+  thumbnail?: Maybe<Scalars['String']['output']>;
 };
 
 export type MapPageOptions = {
@@ -977,8 +979,10 @@ export type MapInfoResolvers<ContextType = any, ParentType extends ResolversPare
 };
 
 export type MapListItemResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapListItem'] = ResolversParentTypes['MapListItem']> = {
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   mapId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  thumbnail?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

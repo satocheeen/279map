@@ -6,6 +6,8 @@ type Auth0Config {
 type MapListItem {
     mapId: String!
     name: String!
+    description: String
+    thumbnail: String
 }
 type NoneConfig {
     dummy: Boolean  # fragmentで種別判定するために型用意

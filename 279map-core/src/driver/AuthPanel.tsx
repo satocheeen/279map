@@ -2,7 +2,6 @@ import React, { useCallback, useContext } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useWatch } from '../util/useWatch';
 import { AuthContext } from './DriverRoot';
-import styles from './TestMap.module.scss';
 
 export default function AuthPanel() {
     const { isAuthenticated, getAccessTokenSilently, loginWithRedirect, logout } = useAuth0();
@@ -38,12 +37,9 @@ export default function AuthPanel() {
     }, [logout]);
 
     return (
-        <div className={styles.Col}>
-            {!isAuthenticated ?
-                <button onClick={onLogin}>Sign in / Sign up</button>
-                :
-                <button onClick={onLogout}>Sign out</button>
-            }
-        </div>
-);
+        !isAuthenticated ?
+            <button onClick={onLogin}>Sign in / Sign up</button>
+            :
+            <button onClick={onLogout}>Sign out</button>
+    );
 }

@@ -1,6 +1,5 @@
 import React, { Suspense, useImperativeHandle, useState, useMemo, useRef } from 'react';
 import styles from './TsunaguMap.module.scss';
-import './TsunaguMap.scss';
 import ConfirmDialog from '../common/confirm/ConfirmDialog';
 import { TooltipContext, TooltipContextValue } from '../common/tooltip/Tooltip';
 import { TsunaguMapHandler, TsunaguMapProps } from '../../types/types';

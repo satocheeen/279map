@@ -11,7 +11,7 @@ import type {
 import { Auth, MapKind, getAccessableMapList } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
 import styles from './TestMap.module.scss';
-import { mapId, myMapServer } from './const';
+import { myMapServer } from './const';
 import AuthPanel from './AuthPanel';
 import { AuthContext } from './DriverRoot';
 import FilterTest from './filter/FilterTest';
@@ -41,27 +41,24 @@ export const DriverContext = React.createContext({
     setPopupMode: (val: TsunaguMapProps['popupMode']) => {},
     setDisableLabel: (val: boolean) => {},
 })
-const props = {
-    mapId,
-    iconDefine: [
-        // id=default指定すると、defaultアイコンを差し替えられる
-        // {
-        //     id: 'default',
-        //     imagePath: './icon/icon0066_ss.png',
-        //     useMaps: [MapKind.Real],
-        // },
-        {
-            id: 'house',
-            imagePath: './icon/house.png',
-            useMaps: [MapKind.Virtual],
-        },
-        {
-            id: 'house2',
-            imagePath: './icon/house2.png',
-            useMaps: [MapKind.Virtual],
-        }
-    ]
-} as TsunaguMapProps;
+const iconDefine: TsunaguMapProps['iconDefine'] = [
+    // id=default指定すると、defaultアイコンを差し替えられる
+    // {
+    //     id: 'default',
+    //     imagePath: './icon/icon0066_ss.png',
+    //     useMaps: [MapKind.Real],
+    // },
+    {
+        id: 'house',
+        imagePath: './icon/house.png',
+        useMaps: [MapKind.Virtual],
+    },
+    {
+        id: 'house2',
+        imagePath: './icon/house2.png',
+        useMaps: [MapKind.Virtual],
+    }
+];
 
 export default function TestMap() {
     const mapRef = useRef<TsunaguMapHandler>(null);
@@ -89,6 +86,13 @@ export default function TestMap() {
     }, []);
 
     const [ cnt, setCnt ] = useState(0);
+    const [ mapId, setMapId ] = useState<string|undefined>();
+    const mapIdTextRef = useRef<HTMLInputElement>(null);
+    const handleMapIdChanged = useCallback(() => {
+        if (!mapIdTextRef.current) return;
+        setMapId(mapIdTextRef.current.value);
+    }, [])
+
     const [ categories, setCategories ] = useState<CategoryDefine[]>([]);
     const [ authLv, setAuthLv ] = useState(Auth.None);
     const onConnect = useCallback((param: OnConnectParam) => {
@@ -161,8 +165,8 @@ export default function TestMap() {
 
     const getAccessableMapListFunc = useCallback(async() => {
         const result = await getAccessableMapList(mapServer.host, mapServer.ssl, mapServer.token);
-        console.log('getAccessableMapList', result);
-    }, [mapServer]);
+        addConsole('getAccessableMapList', result);
+    }, [mapServer, addConsole]);
 
     const handleLoadedItemChanged = useCallback((val: ItemType[]) => {
         addConsole('onLoadedItemCanged', val);
@@ -219,7 +223,6 @@ export default function TestMap() {
                     <button onClick={() => mapRef.current?.showUserList()}>ユーザ一覧</button>
                     <button onClick={() => mapRef.current?.showContentsSetting()}>コンテンツ設定</button>
                     <button onClick={callGetSnsPreview}>GetSNS</button>
-                    <button onClick={getAccessableMapListFunc}>GetAccessableMapList</button>
                 </div>
 
                 <div className={styles.Col}>
@@ -229,25 +232,36 @@ export default function TestMap() {
                 </div>
             </div> */}
             <div className={styles.Map}>
-                <TsunaguMap ref={mapRef} {...props}
-                    mapServer={mapServer}
-                    popupMode={popupMode}
-                    disabledLabel={disabledLabel}
-                    filterUnmatchView={filterUnmatchView}
-                    onConnect={onConnect}
-                    onMapLoad={onMapLoad}
-                    onItemDatasourcesVisibleChanged={handleItemDataSourceVisibleChanged}
-                    onSelectChange={handleSelectChange}
-                    onLoadedItemsChanged={handleLoadedItemChanged}
-                    onItemClick={(val) => onCallback('onClick', val)}
-                    onModeChanged={(val) => onCallback('onModeChanged', val)}
-                    onCategoriesLoaded={onCategoriesLoaded}
-                    onEventsLoaded={(val) => {console.log('onEventsLoaded', val)}}
-                    // onAddNewContent={(val) => onCallback('onNewContentInfo', val)}
-                    // onLinkUnpointedContent={(val) => onCallback('onLinkUnpointedContent', val)}
-                    />
+                {mapId &&
+                    <TsunaguMap ref={mapRef} iconDefine={iconDefine} mapId={mapId}
+                        mapServer={mapServer}
+                        popupMode={popupMode}
+                        disabledLabel={disabledLabel}
+                        filterUnmatchView={filterUnmatchView}
+                        onConnect={onConnect}
+                        onMapLoad={onMapLoad}
+                        onItemDatasourcesVisibleChanged={handleItemDataSourceVisibleChanged}
+                        onSelectChange={handleSelectChange}
+                        onLoadedItemsChanged={handleLoadedItemChanged}
+                        onItemClick={(val) => onCallback('onClick', val)}
+                        onModeChanged={(val) => onCallback('onModeChanged', val)}
+                        onCategoriesLoaded={onCategoriesLoaded}
+                        onEventsLoaded={(val) => {console.log('onEventsLoaded', val)}}
+                        // onAddNewContent={(val) => onCallback('onNewContentInfo', val)}
+                        // onLinkUnpointedContent={(val) => onCallback('onLinkUnpointedContent', val)}
+                        />
+                }
             </div>
 
+            <div className={styles.WithoutMapArea}>
+                <button onClick={getAccessableMapListFunc}>GetAccessableMapList</button>
+                <div>
+                    地図ID
+                    <input type='text' ref={mapIdTextRef} />
+                    <button onClick={handleMapIdChanged}>地図表示</button>
+                </div>
+                <AuthPanel />
+            </div>
             <DriverContext.Provider
                 value={{
                     getMap: () => {
@@ -268,7 +282,6 @@ export default function TestMap() {
                 }}
             >
                 <div className={styles.HorizontalArea}>
-                    <AuthPanel />
                     <SwitchMapKindDriver />
                     <BasicSettingDriver />
  

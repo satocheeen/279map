@@ -40,6 +40,8 @@ export async function getMapList(userId: string | undefined): Promise<MapListIte
                 privateMapList.push({
                     mapId: records[0].map_page_id,
                     name: records[0].title,
+                    description: records[0].description,
+                    thumbnail: records[0].thumbnail,
                 })
             }
         }
