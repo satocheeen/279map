@@ -14,6 +14,10 @@ export type MapPageInfoTable = {
     public_range: PublicRange;
     options?: string | MapPageOptions;   // 登録時はstring、取得時はMapPageOptions
 
+    // 地図説明
+    description?: string;
+    thumbnail?: string;
+
     // ODBAで使用するための接続関連情報
     odba_connection: string | OdbaConnection;  // 登録時はstring、取得時はDataSourceConnection
     last_edited_time: string;
