@@ -52,8 +52,8 @@ export async function getAccessableMapList(host: string, ssl: boolean, token: st
         return result.data?.getMapList.map(item => ({
             mapId: item.mapId,
             name: item.name,
-            description: item.description,
-            thumbnail: item.thumbnail,
+            description: item.description ?? undefined,
+            thumbnail: item.thumbnail ?? undefined,
         }));
 
     } catch(e) {
