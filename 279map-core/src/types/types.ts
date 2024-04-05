@@ -158,10 +158,11 @@ export interface TsunaguMapHandler {
     changeStructure(): void;
 
     /**
-     * start the step of removing a structure.
-     * 建物解体する
+     * start the step of removing an item.
+     * アイテム（建物、地形）を削除する
+     * @param targets 削除対象
      */
-    removeStructure(): void;
+    removeItem(targets: FeatureType[]): void;
 
     /**
      * start the step of drawing a land, a green field or an area.
@@ -180,12 +181,6 @@ export interface TsunaguMapHandler {
      * 地形編集する
      */
     editTopography(): void;
-
-    /**
-     * start the step of removing a topography.
-     * 地形削除する
-     */
-    removeTopography(): void;
 
     editTopographyInfo(): void;
 

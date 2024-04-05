@@ -1,8 +1,9 @@
 import React, { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { DriverContext } from '../TestMap';
 import styles from '../TestMap.module.scss';
-import { DataId } from '../../entry';
+import { DataId, FeatureType, MapKind } from '../../entry';
 import myStyles from './ItemController.module.scss';
+import { useWatch } from '../../util/useWatch2';
 
 type Props = {
 }
@@ -71,37 +72,87 @@ export default function ItemController(props: Props) {
         }
     }, []);
 
+ 
+    return (
+        <>
+            <div>
+                <div className={styles.PropName}>アイテム情報表示</div>
+                <div className={myStyles.Container}>
+                    <div>
+                        <label>
+                            ItemID(JSON)
+                            <input type='text' value={itemIdValue} onChange={evt=>setItemIdValue(evt.target.value)} />
+                        </label>
+                        アイテム情報
+                        <textarea readOnly value={result} rows={3} />
+                    </div>
+                    <div>
+                        <button onClick={handleFocusItem}>Focus Item</button>
+                        <button onClick={handleLoadContents}>Load Contents</button>
+                        <label>
+                            <input type='checkbox' checked={isSubscribe} onChange={evt=>setSubscribe(evt.target.checked)} />
+                            Subscribe
+                        </label>
+                        <button onClick={handleUnsubscribe}>Stop Subscribe</button>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div className={styles.PropName}>アイテム操作</div>
+                <RemoveItemDriver />
+            </div>
+        </>
+    );
+}
+
+function RemoveItemDriver() {
+    const { getMap, mapKind, addConsole } = useContext(DriverContext);
+    const [ targets, setTargets ] = useState<FeatureType[]>([]);
+
+    useWatch(mapKind, () => {
+        setTargets([])
+    })
+
+    const featureTypes = useMemo(() => {
+        if (mapKind === MapKind.Real) {
+            return [FeatureType.STRUCTURE, FeatureType.AREA]
+        } else {
+            return [FeatureType.STRUCTURE, FeatureType.EARTH, FeatureType.FOREST, FeatureType.ROAD]
+        }
+    }, [mapKind]);
+
     const handleRemoveItem = useCallback(() => {
         try {
-            getMap()?.removeStructure();
+            getMap()?.removeItem(targets);
         } catch(e) {
             addConsole('removeStructure failed.', e);
         }
-    }, [getMap, addConsole])
+    }, [getMap, addConsole, targets])
+
+    const handleChangeChecked = useCallback((featureType: FeatureType, val: boolean) => {
+        if (val) {
+            if (!targets.includes(featureType)) {
+                setTargets(current => current.concat(featureType))
+            }
+        } else {
+            if (targets.includes(featureType)) {
+                setTargets(current => current.filter(item => item !== featureType))
+            }
+        }
+    }, [targets])
 
     return (
         <div>
-            <div className={styles.PropName}>アイテム情報表示</div>
-            <div className={myStyles.Container}>
-                <div>
-                    <label>
-                        ItemID(JSON)
-                        <input type='text' value={itemIdValue} onChange={evt=>setItemIdValue(evt.target.value)} />
+            {featureTypes.map(featureType => {                
+                return (
+                    <label key={featureType}>
+                        <input type='checkbox' checked={targets.includes(featureType)}
+                            onChange={(evt) => handleChangeChecked(featureType, evt.target.checked)}></input>
+                        {featureType}
                     </label>
-                    アイテム情報
-                    <textarea readOnly value={result} rows={3} />
-                </div>
-                <div>
-                    <button onClick={handleFocusItem}>Focus Item</button>
-                    <button onClick={handleLoadContents}>Load Contents</button>
-                    <label>
-                        <input type='checkbox' checked={isSubscribe} onChange={evt=>setSubscribe(evt.target.checked)} />
-                        Subscribe
-                    </label>
-                    <button onClick={handleUnsubscribe}>Stop Subscribe</button>
-                    <button onClick={handleRemoveItem}>Remove Item</button>
-                </div>
-            </div>
+                )
+            })}
+            <button onClick={handleRemoveItem}>Remove Item</button>
         </div>
-    );
+    )
 }
