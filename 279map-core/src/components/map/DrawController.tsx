@@ -9,10 +9,10 @@ import { FeatureType } from '../../types-common/common-types';
 const DrawStructureController = lazy(() => import('./draw-controller/structure/DrawStructureController'));
 const MoveItemController = lazy(() => import('./draw-controller/structure/MoveItemController'));
 const DrawTopographyController = lazy(() => import('./draw-controller/topography/DrawTopographyController'));
-const RemoveFeatureController = lazy(() => import('./draw-controller/common/RemoveFeatureController'));
+const RemoveItemController = lazy(() => import('./draw-controller/common/RemoveItemController'));
 const ChangeStructureIconController = lazy(() => import('./draw-controller/structure/ChangeStructureIconController'));
 const DrawRoadController = lazy(() => import('./draw-controller/topography/DrawRoadController'));
-const EditTopographyController = lazy(() => import('./draw-controller/topography/EditTopographyController'));
+const EditItemController = lazy(() => import('./draw-controller/common/EditItemController'));
 
 type Props = {
 }
@@ -21,23 +21,22 @@ type ControllerType = {
     type: 'draw-structure' | 'draw-road';
     dataSourceId: string;
 } | {
-    type: 'move-structure' | 'change-structure' | 'edit-topography' | 'edit-topography-info';
+    type: 'move-structure' | 'edit-topography-info';
 } | {
     type: 'draw-topography';
     dataSourceId: string;
     featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA;
 } | {
-    type: 'remove-item',
+    type: 'remove-item' | 'edit-item',
     featureTypes: FeatureType[];
 }
 export type DrawControllerHandler = Pick<TsunaguMapHandler, 
     'drawStructure'
     | 'moveStructure'
-    | 'changeStructure'
+    | 'editItem'
     | 'removeItem'
     | 'drawTopography'
     | 'drawRoad'
-    | 'editTopography'
     | 'editTopographyInfo'
     >;
 
@@ -64,10 +63,11 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
                 type: 'move-structure',
             })
         },
-        changeStructure() {
+        editItem(targets: FeatureType[]) {
             setMapMode(MapMode.Drawing);
             setController({
-                type: 'change-structure',
+                type: 'edit-item',
+                featureTypes: targets,
             })
         },
         removeItem(targets: FeatureType[]) {
@@ -90,12 +90,6 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
             setController({
                 type: 'draw-road',
                 dataSourceId,
-            })
-        },
-        editTopography() {
-            setMapMode(MapMode.Drawing);
-            setController({
-                type: 'edit-topography',
             })
         },
         editTopographyInfo() {
@@ -124,16 +118,18 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
                 </Suspense>
 
             )
-        case 'change-structure':
+        case 'edit-item':
+            if (controller)
             return (
                 <Suspense fallback={<LoadingOverlay />}>
                     <ChangeStructureIconController close={terminate} />
+                    <EditItemController close={terminate} />
                 </Suspense>
             )
         case 'remove-item':
             return (
                 <Suspense fallback={<LoadingOverlay />}>
-                    <RemoveFeatureController target={controller.featureTypes} close={terminate} />
+                    <RemoveItemController target={controller.featureTypes} close={terminate} />
                 </Suspense>
             )
         case 'draw-topography':
@@ -146,12 +142,6 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
             return (
                 <Suspense fallback={<LoadingOverlay />}>
                     <DrawRoadController dataSourceId={controller.dataSourceId} close={terminate} />
-                </Suspense>
-            )
-        case 'edit-topography':
-            return (
-                <Suspense fallback={<LoadingOverlay />}>
-                    <EditTopographyController close={terminate} />
                 </Suspense>
             )
         case 'edit-topography-info':

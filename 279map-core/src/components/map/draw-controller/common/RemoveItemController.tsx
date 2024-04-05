@@ -13,11 +13,11 @@ type Props = {
 }
 
 /**
- * 地形削除用コントローラ
+ * アイテム削除用コントローラ
  * @param props 
  * @returns 
  */
-export default function RemoveFeatureController(props: Props) {
+export default function RemoveItemController(props: Props) {
     const confirmHook = useConfirm();
     const { removeItem } = useItemProcess();
 

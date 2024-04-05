@@ -8,7 +8,7 @@ import { createGeoJson, extractGeoProperty, getOriginalLine } from '../../../../
 import useTopographyStyle from '../../useTopographyStyle';
 import PromptMessageBox from '../PromptMessageBox';
 import SelectFeature from '../SelectFeature';
-import RoadWidthSelecter from './RoadWidthSelecter';
+import RoadWidthSelecter from '../topography/RoadWidthSelecter';
 import { FeatureLike } from 'ol/Feature';
 import { Geometry } from 'ol/geom';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
@@ -31,9 +31,9 @@ enum Stage {
 }
 
 /**
- * 地形編集用コントロールクラス
+ * アイテム編集用コントロールクラス
  */
- export default function EditTopographyController(props: Props) {
+ export default function EditItemController(props: Props) {
     const { map } = useMap();
     const [stage, setStage] = useState(Stage.SELECTING_FEATURE);
     const selectedFeature = useRef<FeatureLike>();

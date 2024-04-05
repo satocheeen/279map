@@ -37,8 +37,11 @@
 ## changeStructure
 アイテムのアイコン変更操作を起動します。
 
-## removeStructure
+## removeItem
 アイテム削除操作を起動します。
+| Name | Type | Description |
+| ---- | ---- | ---- |
+| targets | FeatureType[] | 削除対象のアイテム種別 |
 
 ## drawTopography
 土地描画操作を起動します。
@@ -57,9 +60,6 @@
 
 ## editTopography
 土地編集操作を起動します。
-
-## removeTopography
-土地削除操作を起動します。
 
 ## editTopographyInfo
 土地情報編集操作を起動します。
