@@ -7,7 +7,7 @@ import useConfirm from '../../../common/confirm/useConfirm';
 import { createGeoJson, extractGeoProperty, getOriginalLine } from '../../../../util/MapUtility';
 import useTopographyStyle from '../../useTopographyStyle';
 import PromptMessageBox from '../PromptMessageBox';
-import SelectFeature from '../SelectFeature';
+import SelectFeature from './SelectFeature';
 import RoadWidthSelecter from '../topography/RoadWidthSelecter';
 import { FeatureLike } from 'ol/Feature';
 import { Geometry } from 'ol/geom';

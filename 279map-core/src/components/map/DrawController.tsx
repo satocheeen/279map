@@ -10,7 +10,6 @@ const DrawStructureController = lazy(() => import('./draw-controller/structure/D
 const MoveItemController = lazy(() => import('./draw-controller/structure/MoveItemController'));
 const DrawTopographyController = lazy(() => import('./draw-controller/topography/DrawTopographyController'));
 const RemoveItemController = lazy(() => import('./draw-controller/common/RemoveItemController'));
-const ChangeStructureIconController = lazy(() => import('./draw-controller/structure/ChangeStructureIconController'));
 const DrawRoadController = lazy(() => import('./draw-controller/topography/DrawRoadController'));
 const EditItemController = lazy(() => import('./draw-controller/common/EditItemController'));
 

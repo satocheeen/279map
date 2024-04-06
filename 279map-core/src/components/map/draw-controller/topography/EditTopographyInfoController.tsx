@@ -2,7 +2,7 @@ import { FeatureLike } from 'ol/Feature';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import Input from '../../../common/form/Input';
 import PromptMessageBox from '../PromptMessageBox';
-import SelectFeature from '../SelectFeature';
+import SelectFeature from '../common/SelectFeature';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useItems } from '../../../../store/item/useItems';

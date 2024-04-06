@@ -1,22 +1,22 @@
 import { Feature, MapBrowserEvent } from 'ol';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import PromptMessageBox from './PromptMessageBox';
+import PromptMessageBox from '../PromptMessageBox';
 import Select, { SelectEvent } from 'ol/interaction/Select';
 import { never } from 'ol/events/condition'
 import { click } from 'ol/events/condition';
 import { FeatureLike } from 'ol/Feature';
-import useTopographyStyle from '../useTopographyStyle';
-import usePointStyle from '../usePointStyle';
-import { LayerInfo, LayerType } from '../../TsunaguMap/VectorLayerMap';
-import { containFeatureInLayer } from '../../../util/MapUtility';
-import { useMap } from '../useMap';
-import { currentMapKindAtom } from '../../../store/session';
+import useTopographyStyle from '../../useTopographyStyle';
+import usePointStyle from '../../usePointStyle';
+import { LayerInfo, LayerType } from '../../../TsunaguMap/VectorLayerMap';
+import { containFeatureInLayer } from '../../../../util/MapUtility';
+import { useMap } from '../../useMap';
+import { currentMapKindAtom } from '../../../../store/session';
 import { useAtom } from 'jotai';
-import { convertDataIdFromFeatureId } from '../../../util/dataUtility';
-import { useItems } from '../../../store/item/useItems';
-import { topographySelectStyleFunction } from './utility';
-import { MapKind } from '../../../graphql/generated/graphql';
-import { FeatureType, GeoProperties } from "../../../types-common/common-types";
+import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
+import { useItems } from '../../../../store/item/useItems';
+import { topographySelectStyleFunction } from '../utility';
+import { MapKind } from '../../../../graphql/generated/graphql';
+import { FeatureType, GeoProperties } from "../../../../types-common/common-types";
 import { Style } from 'ol/style';
 
 type Props = {
