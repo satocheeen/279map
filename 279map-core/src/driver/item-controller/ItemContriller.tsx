@@ -99,13 +99,13 @@ export default function ItemController(props: Props) {
             </div>
             <div>
                 <div className={styles.PropName}>アイテム操作</div>
-                <RemoveItemDriver />
+                <EditRemoveItemDriver />
             </div>
         </>
     );
 }
 
-function RemoveItemDriver() {
+function EditRemoveItemDriver() {
     const { getMap, mapKind, addConsole } = useContext(DriverContext);
     const [ targets, setTargets ] = useState<FeatureType[]>([]);
 
@@ -121,11 +121,19 @@ function RemoveItemDriver() {
         }
     }, [mapKind]);
 
+    const handleEditItem = useCallback(() => {
+        try {
+            getMap()?.editItem(targets);
+        } catch(e) {
+            addConsole('editItem failed.', e);
+        }
+    }, [getMap, addConsole, targets])
+
     const handleRemoveItem = useCallback(() => {
         try {
             getMap()?.removeItem(targets);
         } catch(e) {
-            addConsole('removeStructure failed.', e);
+            addConsole('removeItem failed.', e);
         }
     }, [getMap, addConsole, targets])
 
@@ -143,16 +151,21 @@ function RemoveItemDriver() {
 
     return (
         <div>
-            {featureTypes.map(featureType => {                
-                return (
-                    <label key={featureType}>
-                        <input type='checkbox' checked={targets.includes(featureType)}
-                            onChange={(evt) => handleChangeChecked(featureType, evt.target.checked)}></input>
-                        {featureType}
-                    </label>
-                )
-            })}
-            <button onClick={handleRemoveItem}>Remove Item</button>
+            <div>
+                {featureTypes.map(featureType => {                
+                    return (
+                        <label key={featureType}>
+                            <input type='checkbox' checked={targets.includes(featureType)}
+                                onChange={(evt) => handleChangeChecked(featureType, evt.target.checked)}></input>
+                            {featureType}
+                        </label>
+                    )
+                })}
+            </div>
+            <div>
+                <button onClick={handleEditItem}>Edit Item</button>
+                <button onClick={handleRemoveItem}>Remove Item</button>
+            </div>
         </div>
     )
 }

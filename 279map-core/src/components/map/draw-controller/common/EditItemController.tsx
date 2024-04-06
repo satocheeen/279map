@@ -2,7 +2,7 @@ import { Feature } from 'ol';
 import { Modify } from 'ol/interaction';
 import VectorSource from 'ol/source/Vector';
 import { Stroke, Style } from 'ol/style';
-import React, { useEffect, useCallback, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useCallback, useRef, useState } from 'react';
 import useConfirm from '../../../common/confirm/useConfirm';
 import { createGeoJson, extractGeoProperty, getOriginalLine } from '../../../../util/MapUtility';
 import useTopographyStyle from '../../useTopographyStyle';
@@ -16,16 +16,21 @@ import { useMap } from '../../useMap';
 import { ConfirmResult } from '../../../common/confirm/types';
 import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
 import useItemProcess from '../../../../store/item/useItemProcess';
-import { currentMapKindAtom } from '../../../../store/session';
-import { useAtom } from 'jotai';
-import { MapKind } from '../../../../entry';
+import { SystemIconDefine } from '../../../../entry';
+import SelectStructureDialog from '../structure/SelectStructureDialog';
 
 type Props = {
+    target: FeatureType[];
     close: () => void;  // 作図完了時のコールバック
 }
 
 enum Stage {
-    SELECTING_FEATURE,
+    SELECTING_FEATURE,  // 編集対象選択中
+
+    // ピン、建物の場合
+    SELECTING_STRUCTURE,    // 改築後の建物選択中
+
+    // エリア、土地などの場合
     EDITING,
     SELECT_ROAD_WIDTH,  // 道幅選択（道編集の場合のみ）
 }
@@ -37,33 +42,23 @@ enum Stage {
     const { map } = useMap();
     const [stage, setStage] = useState(Stage.SELECTING_FEATURE);
     const selectedFeature = useRef<FeatureLike>();
-    const styleHook = useTopographyStyle({});
+    const { getStyleFunction } = useTopographyStyle({});
     const confirmHook = useConfirm();
     const modifySource = useRef<VectorSource|null>();
     const modify = useRef<Modify>();
-    const [ mapKind ] = useAtom(currentMapKindAtom);
 
     /**
      * 初期化
      */
     useEffect(() => {
         if (!map) return;
-        const style = styleHook.getStyleFunction(() => {
+        const style = getStyleFunction(() => {
             return new Style({
-                // fill: new Fill({
-                //     color: 'rgba(255, 255, 255, 0.2)'
-                // }),
                 // 道Line
                 stroke: new Stroke({
                     color: '#ffcc33',
                     width: 2
                 }),
-                // image: new CircleStyle({
-                //     radius: 7,
-                //     fill: new Fill({
-                //         color: '#ffcc33'
-                //     })
-                // })
             })
         });
         const modifyLayer = map.createDrawingLayer(style);
@@ -79,27 +74,33 @@ enum Stage {
                 map.removeInteraction(modify.current);
         }
     
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [map]);
+    }, [map, getStyleFunction]);
 
     const onSelectFeature = useCallback((feature: FeatureLike) => {
-        console.log('select feature', feature);
         selectedFeature.current = feature;
 
-        // 対象図形のソースを編集用ソースにコピー
-        let editFeature: Feature;
-        if ((feature.getProperties() as GeoProperties).featureType === FeatureType.ROAD) {
-            // 道の場合は、ラインに変換する
-            editFeature = getOriginalLine(feature as Feature<Geometry>);
-        } else {
-            editFeature = (feature as Feature<Geometry>).clone();
-        }
-        modifySource.current?.addFeature(editFeature);
-        // 編集インタラクションOn
-        if (modify.current)
-            map?.addInteraction(modify.current);
+        const featureType = (feature.getProperties() as GeoProperties).featureType;
 
-        setStage(Stage.EDITING);
+        if (featureType === FeatureType.STRUCTURE) {
+            setStage(Stage.SELECTING_STRUCTURE);
+
+        } else {
+            // 対象図形のソースを編集用ソースにコピー
+            let editFeature: Feature;
+            if (featureType === FeatureType.ROAD) {
+                // 道の場合は、ラインに変換する
+                editFeature = getOriginalLine(feature as Feature<Geometry>);
+            } else {
+                editFeature = (feature as Feature<Geometry>).clone();
+            }
+            modifySource.current?.addFeature(editFeature);
+            // 編集インタラクションOn
+            if (modify.current)
+                map?.addInteraction(modify.current);
+
+            setStage(Stage.EDITING);
+        }
+
     }, [map]);
 
     const onClose = useCallback(() => {
@@ -136,6 +137,30 @@ enum Stage {
 
     }, [onClose, confirmHook, updateItems]);
 
+    const onSelectedStructure = useCallback(async(iconDefine: SystemIconDefine) => {
+        if (!selectedFeature.current) {
+            console.warn('選択アイテムなし');
+            return;
+        }
+
+        // update DB
+        const id = convertDataIdFromFeatureId(selectedFeature.current.getId() as string);
+        updateItems([
+            {
+                id,
+                geoProperties: {
+                    featureType: FeatureType.STRUCTURE,
+                    icon: {
+                        type: iconDefine.type,
+                        id: iconDefine.id,
+                    },
+                },
+            }
+        ])
+
+        props.close();
+    }, [selectedFeature, props, updateItems]);
+    
     const onEditOkClicked = useCallback(() => {
         if ((selectedFeature.current?.getProperties() as GeoProperties).featureType === FeatureType.ROAD) {
             setStage(Stage.SELECT_ROAD_WIDTH);
@@ -153,33 +178,33 @@ enum Stage {
         onSave(feature);
     }, [onSave]);
 
-    const featureType = useMemo(() => {
-        if (mapKind === MapKind.Real) {
-            return [FeatureType.AREA];
-        } else {
-            return [FeatureType.EARTH, FeatureType.FOREST, FeatureType.ROAD];
-        }
+    switch(stage) {
+        case Stage.SELECTING_FEATURE:
+            return (
+                <SelectFeature
+                featureType={props.target}
+                onOk={onSelectFeature} onCancel={onClose} />
+            )
 
-    }, [mapKind]);
+        case Stage.EDITING:
+            return (
+                <PromptMessageBox 
+                    message={'編集完了したら、完了ボタンを押下してください。\n※ポイント削除したい場合→>Altボタンを押しながらクリック'} 
+                    ok={onEditOkClicked} 
+                    cancel={onClose} 
+                    okname="完了" />
+            );
 
-    if (stage === Stage.SELECTING_FEATURE) {
-        return (
-            <SelectFeature
-            featureType={featureType}
-            onOk={onSelectFeature} onCancel={onClose} />
-        )
-    } else if (stage === Stage.EDITING) {
-        return (
-            <PromptMessageBox 
-                message={'編集完了したら、完了ボタンを押下してください。\n※ポイント削除したい場合→>Altボタンを押しながらクリック'} 
-                ok={onEditOkClicked} 
-                cancel={onClose} 
-                okname="完了" />
-        );
-    } else {
-        const target = modifySource.current?.getFeatures()[0] as Feature;
-        return (
-            <RoadWidthSelecter targetRoad={target} onOk={onWidthSelected} onCancel={onClose} />
-        );
+        case Stage.SELECT_ROAD_WIDTH:
+            const target = modifySource.current?.getFeatures()[0] as Feature;
+            return (
+                <RoadWidthSelecter targetRoad={target} onOk={onWidthSelected} onCancel={onClose} />
+            );
+
+        case Stage.SELECTING_STRUCTURE:
+            return (
+                <SelectStructureDialog ok={onSelectedStructure} cancel={onClose} />
+            );
+    
     }
 }

@@ -34,11 +34,17 @@
 ## moveStructure
 アイテム移動操作を起動します。
 
-## changeStructure
-アイテムのアイコン変更操作を起動します。
+## editItem
+アイテム編集操作を起動します。
+
+| Name | Type | Description |
+| ---- | ---- | ---- |
+| targets | FeatureType[] | 編集対象のアイテム種別 |
+
 
 ## removeItem
 アイテム削除操作を起動します。
+
 | Name | Type | Description |
 | ---- | ---- | ---- |
 | targets | FeatureType[] | 削除対象のアイテム種別 |
@@ -57,9 +63,6 @@
 | Name | Type | Description |
 | ---- | ---- | ---- |
 | dataSourceId | string | 描画したアイテムを登録するデータソースid |
-
-## editTopography
-土地編集操作を起動します。
 
 ## editTopographyInfo
 土地情報編集操作を起動します。

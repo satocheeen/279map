@@ -122,8 +122,8 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
             if (controller)
             return (
                 <Suspense fallback={<LoadingOverlay />}>
-                    <ChangeStructureIconController close={terminate} />
-                    <EditItemController close={terminate} />
+                    {/* <ChangeStructureIconController close={terminate} /> */}
+                    <EditItemController target={controller.featureTypes} close={terminate} />
                 </Suspense>
             )
         case 'remove-item':
