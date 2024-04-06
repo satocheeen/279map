@@ -1,7 +1,7 @@
 import React, { Suspense, useCallback, useImperativeHandle, useState } from 'react';
 import { DataId, FeatureType, MapMode, TsunaguMapHandler } from '../../../entry';
 import LoadingOverlay from '../../common/spinner/LoadingOverlay';
-import SelectFeature from './SelectFeature';
+import SelectFeature from './common/SelectFeature';
 import { Feature } from 'ol';
 import { convertDataIdFromFeatureId } from '../../../util/dataUtility';
 import { mapModeAtom } from '../../../store/operation';

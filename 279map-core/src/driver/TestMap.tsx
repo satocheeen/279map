@@ -254,13 +254,13 @@ export default function TestMap() {
             </div>
 
             <div className={styles.WithoutMapArea}>
+                <AuthPanel />
                 <button onClick={getAccessableMapListFunc}>GetAccessableMapList</button>
                 <div>
                     地図ID
                     <input type='text' ref={mapIdTextRef} />
                     <button onClick={handleMapIdChanged}>地図表示</button>
                 </div>
-                <AuthPanel />
             </div>
             <DriverContext.Provider
                 value={{

@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { FeatureLike } from 'ol/Feature';
 import useConfirm from '../../../common/confirm/useConfirm';
-import SelectFeature from '../SelectFeature';
+import SelectFeature from './SelectFeature';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { ConfirmResult } from '../../../common/confirm/types';
 import useItemProcess from '../../../../store/item/useItemProcess';
@@ -13,11 +13,11 @@ type Props = {
 }
 
 /**
- * 地形削除用コントローラ
+ * アイテム削除用コントローラ
  * @param props 
  * @returns 
  */
-export default function RemoveFeatureController(props: Props) {
+export default function RemoveItemController(props: Props) {
     const confirmHook = useConfirm();
     const { removeItem } = useItemProcess();
 

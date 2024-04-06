@@ -152,16 +152,20 @@ export interface TsunaguMapHandler {
     moveStructure(): void;
 
     /**
-     * start the step of changing a structure's icon.
-     * 改築（建物変更）する
+     * start the step of modifying a topography or changing a structure's icon.
+     * アイテム編集する。
+     * 対象が土地の場合 -> 形変更
+     * 対象がピンor建物の場合 -> 建物変更
+     * @param targets 編集可能対象
      */
-    changeStructure(): void;
+    editItem(targets: FeatureType[]): void;
 
     /**
-     * start the step of removing a structure.
-     * 建物解体する
+     * start the step of removing an item.
+     * アイテム（建物、地形）を削除する
+     * @param targets 削除可能対象
      */
-    removeStructure(): void;
+    removeItem(targets: FeatureType[]): void;
 
     /**
      * start the step of drawing a land, a green field or an area.
@@ -174,18 +178,6 @@ export interface TsunaguMapHandler {
      * 道を作成する
      */
     drawRoad(dataSourceId: string): void;
-
-    /**
-     * start the step of modifying a topography.
-     * 地形編集する
-     */
-    editTopography(): void;
-
-    /**
-     * start the step of removing a topography.
-     * 地形削除する
-     */
-    removeTopography(): void;
 
     editTopographyInfo(): void;
 

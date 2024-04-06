@@ -1,20 +1,17 @@
-import React, { lazy, Suspense, useCallback, useImperativeHandle, useMemo, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useImperativeHandle, useState } from 'react';
 import { MapMode, TsunaguMapHandler } from '../../types/types';
 import EditTopographyInfoController from './draw-controller/topography/EditTopographyInfoController';
 import LoadingOverlay from '../common/spinner/LoadingOverlay';
 import { mapModeAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
 import { FeatureType } from '../../types-common/common-types';
-import { currentMapKindAtom } from '../../store/session';
-import { MapKind } from '../../entry';
 
 const DrawStructureController = lazy(() => import('./draw-controller/structure/DrawStructureController'));
 const MoveItemController = lazy(() => import('./draw-controller/structure/MoveItemController'));
 const DrawTopographyController = lazy(() => import('./draw-controller/topography/DrawTopographyController'));
-const RemoveFeatureController = lazy(() => import('./draw-controller/common/RemoveFeatureController'));
-const ChangeStructureIconController = lazy(() => import('./draw-controller/structure/ChangeStructureIconController'));
+const RemoveItemController = lazy(() => import('./draw-controller/common/RemoveItemController'));
 const DrawRoadController = lazy(() => import('./draw-controller/topography/DrawRoadController'));
-const EditTopographyController = lazy(() => import('./draw-controller/topography/EditTopographyController'));
+const EditItemController = lazy(() => import('./draw-controller/common/EditItemController'));
 
 type Props = {
 }
@@ -23,22 +20,24 @@ type ControllerType = {
     type: 'draw-structure' | 'draw-road';
     dataSourceId: string;
 } | {
-    type: 'move-structure' | 'change-structure' | 'remove-structure' | 'edit-topography' | 'edit-topography-info' | 'remove-topography';
+    type: 'move-structure' | 'edit-topography-info';
 } | {
     type: 'draw-topography';
     dataSourceId: string;
     featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA;
+} | {
+    type: 'remove-item' | 'edit-item',
+    featureTypes: FeatureType[];
 }
 export type DrawControllerHandler = Pick<TsunaguMapHandler, 
     'drawStructure'
     | 'moveStructure'
-    | 'changeStructure'
-    | 'removeStructure'
+    | 'editItem'
+    | 'removeItem'
     | 'drawTopography'
     | 'drawRoad'
-    | 'editTopography'
     | 'editTopographyInfo'
-    | 'removeTopography'>;
+    >;
 
 function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler>) {
     const [mapMode, setMapMode] = useAtom(mapModeAtom);
@@ -63,16 +62,18 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
                 type: 'move-structure',
             })
         },
-        changeStructure() {
+        editItem(targets: FeatureType[]) {
             setMapMode(MapMode.Drawing);
             setController({
-                type: 'change-structure',
+                type: 'edit-item',
+                featureTypes: targets,
             })
         },
-        removeStructure() {
+        removeItem(targets: FeatureType[]) {
             setMapMode(MapMode.Drawing);
             setController({
-                type: 'remove-structure',
+                type: 'remove-item',
+                featureTypes: targets,
             })
         },
         drawTopography(dataSourceId: string, featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA) {
@@ -90,35 +91,13 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
                 dataSourceId,
             })
         },
-        editTopography() {
-            setMapMode(MapMode.Drawing);
-            setController({
-                type: 'edit-topography',
-            })
-        },
         editTopographyInfo() {
             setMapMode(MapMode.Drawing);
             setController({
                 type: 'edit-topography-info',
             })
         },
-        removeTopography() {
-            setMapMode(MapMode.Drawing);
-            setController({
-                type:'remove-topography',
-            })
-        },
     }));
-
-    const [ mapKind ] = useAtom(currentMapKindAtom);
-    const topographyFeatureType = useMemo(() => {
-        if (mapKind === MapKind.Real) {
-            return [FeatureType.AREA];
-        } else {
-            return [FeatureType.EARTH, FeatureType.FOREST, FeatureType.ROAD];
-        }
-
-    }, [mapKind]);
 
     if (!controller) {
         return null;
@@ -138,16 +117,18 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
                 </Suspense>
 
             )
-        case 'change-structure':
+        case 'edit-item':
+            if (controller)
             return (
                 <Suspense fallback={<LoadingOverlay />}>
-                    <ChangeStructureIconController close={terminate} />
+                    {/* <ChangeStructureIconController close={terminate} /> */}
+                    <EditItemController target={controller.featureTypes} close={terminate} />
                 </Suspense>
             )
-        case 'remove-structure':
+        case 'remove-item':
             return (
                 <Suspense fallback={<LoadingOverlay />}>
-                    <RemoveFeatureController target={[FeatureType.STRUCTURE]} close={terminate} />
+                    <RemoveItemController target={controller.featureTypes} close={terminate} />
                 </Suspense>
             )
         case 'draw-topography':
@@ -162,22 +143,10 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
                     <DrawRoadController dataSourceId={controller.dataSourceId} close={terminate} />
                 </Suspense>
             )
-        case 'edit-topography':
-            return (
-                <Suspense fallback={<LoadingOverlay />}>
-                    <EditTopographyController close={terminate} />
-                </Suspense>
-            )
         case 'edit-topography-info':
             return (
                 <Suspense fallback={<LoadingOverlay />}>
                     <EditTopographyInfoController close={terminate} />
-                </Suspense>
-            )
-        case 'remove-topography':
-            return (
-                <Suspense fallback={<LoadingOverlay />}>
-                    <RemoveFeatureController target={topographyFeatureType} close={terminate} />
                 </Suspense>
             )
     }

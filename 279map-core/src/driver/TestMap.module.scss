@@ -47,19 +47,22 @@
     gap: 5px;
 
     background-color: rgba(#efe, .8);
+    padding: 5px;
 }
 .HorizontalArea {
     grid-column: 2 / 3;
     grid-row: 1 / 2;
 
-
     // height: 10rem;
     display: flex;
     flex-direction: row;
+    gap: 5px;
     // position: fixed;
     z-index: 10;
     background-color: rgba(#eff, .8);
     overflow-y: scroll;
+
+    padding: 5px;
 }
 .Col {
     display: flex;
