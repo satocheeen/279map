@@ -22,7 +22,7 @@ export async function getMapList(userId: string | undefined): Promise<MapListIte
                 mapId: record.map_page_id,
                 name: record.title,
                 description: record.description,
-                thumbnail: record.thumbnail ? 'data:image/' + records[0].thumbnail : undefined,
+                thumbnail: record.thumbnail ? 'data:image/' + record.thumbnail : undefined,
         };
         });
 
