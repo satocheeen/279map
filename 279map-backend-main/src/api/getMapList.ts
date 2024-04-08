@@ -21,7 +21,9 @@ export async function getMapList(userId: string | undefined): Promise<MapListIte
             return {
                 mapId: record.map_page_id,
                 name: record.title,
-            };
+                description: record.description,
+                thumbnail: record.thumbnail ? 'data:image/' + records[0].thumbnail : undefined,
+        };
         });
 
         if (!userId) {
