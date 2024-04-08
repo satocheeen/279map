@@ -158,7 +158,7 @@ CREATE TABLE `track_geojson` (
 CREATE TABLE `original_icons` (
   `icon_page_id` varchar(100) NOT NULL,
   `caption` varchar(100) DEFAULT NULL,
-  `base64` text NOT NULL,
+  `base64` mediumtext NOT NULL,
   `last_edited_time` varchar(100) NOT NULL,
   `map_page_id` varchar(100) NOT NULL,
   PRIMARY KEY (`icon_page_id`),
