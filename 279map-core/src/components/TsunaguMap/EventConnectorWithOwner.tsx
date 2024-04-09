@@ -306,18 +306,26 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             return res.data.getSnsPreview;
         },
     
-        async getUnpointDataAPI(datasourceId: string, nextToken?: string) {
+        async getUnpointDataAPI({ datasourceId, nextToken, keyword }) {
             const result = await gqlClient.query(GetUnpointContentsDocument, {
                 datasourceId,
                 nextToken,
+                keyword,
             }, {
                 requestPolicy: 'network-only',
             });
             if (!result.data) {
                 throw new Error('getUnpoinData error', result.error);
             }
-            return result.data.getUnpointContents;
-    
+            return {
+                contents: result.data.getUnpointContents.contents.map(c => ({
+                    id: c.id,
+                    title: c.title,
+                    thumb: c.thumb ?? undefined,
+                    overview: c.overview ?? undefined,
+                })),
+                nextToken: result.data.getUnpointContents.nextToken ?? undefined,
+            }
         },
     
         /**

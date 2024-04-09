@@ -9,7 +9,8 @@ export default function GetUnlinkedContentDriver(props: Props) {
     const { getMap, contentDatasources } = useContext(DriverContext);
     const [ result, setResult ] = useState('');
     const handleClick = useCallback(async(datasourceId: string) => {
-        const res = await getMap()?.getUnpointDataAPI(datasourceId);
+        const res = await getMap()?.getUnpointDataAPI(
+            { datasourceId });
         if (res) {
             setResult(JSON.stringify(res.contents, undefined, 2))
         }

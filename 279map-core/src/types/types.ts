@@ -270,7 +270,19 @@ export interface TsunaguMapHandler {
 
     getSnsPreviewAPI(url: string): Promise<SnsPreviewResult>;
 
-    getUnpointDataAPI(dataSourceId: string, nextToken?: string): Promise<GetUnpointContentsResult>;
+    getUnpointDataAPI(param: {
+        datasourceId: string;
+        nextToken?: string;
+        keyword?: string
+    }): Promise<{
+        contents: {
+            id: DataId,
+            title: string;
+            overview?: string;
+            thumb?: string;
+        }[];
+        nextToken?: string;
+    }>;
 
     changeVisibleLayer(target: { dataSourceId: string } | { group: string }, visible: boolean): void;
 
