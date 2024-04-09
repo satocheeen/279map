@@ -158,7 +158,18 @@ type Query {
     getContent(id: DataId!): ContentsDefine!
     getContents(ids: [DataId!]!): [ContentsDefine!]!
     getContentsInItem(itemId: DataId!): [ContentsDefine!]!
-    getUnpointContents(datasourceId: String!, nextToken: String): GetUnpointContentsResult!
+
+    "未割当コンテンツを取得する"
+    getUnpointContents(
+        "取得対象コンテンツデータソースID"
+        datasourceId: String!
+
+        "前回の続きを取得する場合に指定する"
+        nextToken: String
+
+        "指定されている場合、当該キーワードをタイトルに含むコンテンツを返す"
+        keyword: String
+    ): GetUnpointContentsResult!
 
     "指定のコンテンツのサムネイル画像を返す"
     getThumb(contentId: DataId!): String!

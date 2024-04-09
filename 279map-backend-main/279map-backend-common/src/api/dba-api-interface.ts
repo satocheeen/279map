@@ -129,6 +129,7 @@ export const OdbaGetUnpointDataAPI = {
 export type OdbaGetUnpointDataParam = CommonParam & {
     dataSourceId: string;
     nextToken?: string;
+    keyword?: string;
 }
 export type UnpointContent = {
     id: DataId;

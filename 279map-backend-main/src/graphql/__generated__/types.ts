@@ -385,6 +385,7 @@ export type Query = {
   getSnsPreview: SnsPreviewResult;
   /** 指定のコンテンツのサムネイル画像を返す */
   getThumb: Scalars['String']['output'];
+  /** 未割当コンテンツを取得する */
   getUnpointContents: GetUnpointContentsResult;
   getUserList: Array<User>;
   search: Array<SearchHitItem>;
@@ -464,6 +465,7 @@ export type QueryGetThumbArgs = {
 
 export type QueryGetUnpointContentsArgs = {
   datasourceId: Scalars['String']['input'];
+  keyword?: InputMaybe<Scalars['String']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
 };
 

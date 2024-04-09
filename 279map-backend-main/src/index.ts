@@ -453,24 +453,14 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     throw e;
                 }
             },
-            getUnpointContents: async(parent: any, param: QueryGetUnpointContentsArgs, ctx): QueryResolverReturnType<'getUnpointContents'> => {
+            getUnpointContents: async(_: any, param: QueryGetUnpointContentsArgs, ctx): QueryResolverReturnType<'getUnpointContents'> => {
                 try {
-                    // 指定のアイテムに対して紐づけ可能なデータソースか確認
-                    // -> 紐づけ対象のアイテム情報をもらうインタフェースになっていないので、現状はコメントアウト
-                    // const checkOk = await checkLinkableDatasource(req.currentMap, param.dataSourceId);
-                    // if (!checkOk) {
-                    //     apiLogger.warn('check NG');
-                    //     res.send({
-                    //         contents: [],
-                    //     })
-                    //     return;
-                    // }
-        
                     // call ODBA
                     const result = await callOdbaApi(OdbaGetUnpointDataAPI, {
                         currentMap: ctx.currentMap,
                         dataSourceId: param.datasourceId,
                         nextToken: param.nextToken ?? undefined,
+                        keyword: param.keyword ?? undefined,
                     });
             
                     return result;
