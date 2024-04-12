@@ -14,10 +14,9 @@ import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSour
 import { useAtomCallback } from 'jotai/utils';
 import { allItemContentListAtom, loadedItemMapAtom, storedItemsAtom } from '../../store/item';
 import { useMapController } from '../../store/useMapController';
-import useDataSource from '../../store/datasource/useDataSource';
+import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
 import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, LinkContentDocument, RegistContentDocument, SearchDocument, GetThumbDocument, GetSnsPreviewDocument, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument, UpdateItemsDocument, GetImageDocument, ContentUpdateDocument, Operation } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
-import { DataId } from '../../types-common/common-types';
 import { useItems } from '../../store/item/useItems';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern } from '../common/confirm/types';
@@ -350,11 +349,8 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             }
         },
     
-        changeVisibleLayer(target: { dataSourceId: string } | { group: string }, visible: boolean) {
-            updateDatasourceVisible({
-                target,
-                visible,
-            });
+        changeVisibleLayer(targets: ChangeVisibleLayerTarget[]) {
+            updateDatasourceVisible(targets);
         },
         
         selectItem(id) {

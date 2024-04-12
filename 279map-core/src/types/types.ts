@@ -1,4 +1,5 @@
 import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, SnsPreviewResult, GetItemsQuery, ThumbSize, Operation } from "../graphql/generated/graphql";
+import { ChangeVisibleLayerTarget } from "../store/datasource/useDataSource";
 import { ContentValueMap, DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
 import { OperationResult } from "urql";
 
@@ -290,7 +291,7 @@ export interface TsunaguMapHandler {
         nextToken?: string;
     }>;
 
-    changeVisibleLayer(target: { dataSourceId: string } | { group: string }, visible: boolean): void;
+    changeVisibleLayer(targets: ChangeVisibleLayerTarget[]): void;
 
     /**
      * 地図上の指定のアイテムを選択状態にする

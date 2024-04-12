@@ -20,9 +20,7 @@
 | onModeChanged | (mode: MapMode) => void | | 地図表示モードが切り替わった際のコールバック |
 | onCategoriesLoaded | (categories: CategoriDefine[]) => void | | カテゴリ情報がロードされた際のコールバック。カテゴリ情報に更新があった場合も発火されます。 |
 | onEventsLoaded | (events: EventDefine[]) => void | | 日時情報がロードされた際のコールバック。日時情報に更新があった場合も発火されます |
-| onAddNewContent | (param: AddNewContentParam) => void | 新規コンテンツ追加メニューが選択された際のコールバック。未指定の場合は、デフォルトの新規コンテンツ追加ダイアログが表示されます。 |
 | onEditContent | (param: EditContentParam) => void | コンテンツ編集メニューが選択された際のコールバック。未指定の場合は、デフォルトのコンテンツ編集ダイアログが表示されます |
-| onLinkUnpointedContent | (param: LinkUnpointContentParam) => void | 既存コンテンツ紐づけメニューが選択された際のコールバック。未指定の場合は、デフォルトの既存コンテンツ紐づけダイアログが表示されます |
 
 地図上のアイテムをクリックした際のイベントの流れ
 ```mermaid

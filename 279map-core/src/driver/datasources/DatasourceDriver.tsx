@@ -16,10 +16,12 @@ export default function DatasourceDriver(props: Props) {
     const { itemDatasourcesVisibleList, getMap } = useContext(DriverContext);
 
     const handleChangeVisible = useCallback((group: string, val: boolean) => {
-        // TODO:
-        getMap()?.changeVisibleLayer({
-            group,
-        }, val);
+        getMap()?.changeVisibleLayer([
+            {
+                target: { group },
+                visible: val
+            }
+        ]);
     }, [getMap])
 
     return (
@@ -70,9 +72,14 @@ function DatasourceItem(props: DatasourceItemProp) {
 
     const handleChangeVisible = useCallback((val: boolean) => {
         // TODO:
-        getMap()?.changeVisibleLayer({
-            dataSourceId: props.datasourceId,
-        }, val);
+        getMap()?.changeVisibleLayer([
+            {
+                target: {
+                    dataSourceId: props.datasourceId,
+                },
+                visible: val,
+            }
+        ]);
     }, [getMap, props.datasourceId])
 
     return (
