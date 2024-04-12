@@ -10,7 +10,6 @@ export function createGqlClient(serverInfo: ServerInfo, sessionid?: string) {
 
     const wsProtocol = serverInfo.ssl ? 'wss' : 'ws';
     const wsUrl = `${wsProtocol}://${serverInfo.host}/graphql`;
-    console.log('wsUrl', wsUrl);
     const subscriptionClient = new SubscriptionClient(wsUrl, { reconnect: true });
 
     const client = createClient({

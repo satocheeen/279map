@@ -58,6 +58,12 @@ export type TsunaguMapProps = {
     disabledLabel?: boolean; // when true, the item's label hidden.
 
     /**
+     * 初期表示する地図種別。
+     * 未指定時は、地図に指定されているデフォルト地図を表示する。
+     */
+    defaultMapKind?: MapKind;
+
+    /**
      * フィルタ時にフィルタ対象外の建物やピンをどう表示するか
      * hidden => 非表示
      * translucent => 半透明 default

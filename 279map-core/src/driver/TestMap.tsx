@@ -87,17 +87,19 @@ export default function TestMap() {
 
     const [ cnt, setCnt ] = useState(0);
     const [ mapId, setMapId ] = useState<string|undefined>();
-    const mapIdTextRef = useRef<HTMLInputElement>(null);
-    const handleMapIdChanged = useCallback(() => {
-        if (!mapIdTextRef.current) return;
-        setMapId(mapIdTextRef.current.value);
+    const [ defaultMapKind, setDefaultMapKind ] = useState<MapKind|undefined>();
+
+    const handleMapShow = useCallback((mapId: string, mapKind?: MapKind) => {
+        console.log('handleMapShow', mapId, mapKind)
+        setMapId(mapId);
+        setDefaultMapKind(mapKind);
     }, [])
 
     const [ categories, setCategories ] = useState<CategoryDefine[]>([]);
     const [ authLv, setAuthLv ] = useState(Auth.None);
     const onConnect = useCallback((param: OnConnectParam) => {
         console.log('connect', param);
-        setMapKind(param.mapDefine.defaultMapKind);
+        // setMapKind(param.mapDefine.defaultMapKind);
         setAuthLv(param.authLv);
         setCnt(cnt + 1);
     }, [cnt]);
@@ -109,7 +111,6 @@ export default function TestMap() {
 
     const [ filterUnmatchView, setFilterUnmatchView ] = useState<'hidden'|'translucent'|undefined>('hidden');
 
-    // switch mapKind
     const [ mapKind, setMapKind ] = useState(MapKind.Real);
 
     // switch popup
@@ -235,6 +236,7 @@ export default function TestMap() {
                 {mapId &&
                     <TsunaguMap ref={mapRef} iconDefine={iconDefine} mapId={mapId}
                         mapServer={mapServer}
+                        defaultMapKind={defaultMapKind}
                         popupMode={popupMode}
                         disabledLabel={disabledLabel}
                         filterUnmatchView={filterUnmatchView}
@@ -253,15 +255,6 @@ export default function TestMap() {
                 }
             </div>
 
-            <div className={styles.WithoutMapArea}>
-                <AuthPanel />
-                <button onClick={getAccessableMapListFunc}>GetAccessableMapList</button>
-                <div>
-                    地図ID
-                    <input type='text' ref={mapIdTextRef} />
-                    <button onClick={handleMapIdChanged}>地図表示</button>
-                </div>
-            </div>
             <DriverContext.Provider
                 value={{
                     getMap: () => {
@@ -281,8 +274,12 @@ export default function TestMap() {
                     setDisableLabel,
                 }}
             >
+                <div className={styles.WithoutMapArea}>
+                    <AuthPanel />
+                    <button onClick={getAccessableMapListFunc}>GetAccessableMapList</button>
+                    <SwitchMapKindDriver onMapShow={handleMapShow} />
+                </div>
                 <div className={styles.HorizontalArea}>
-                    <SwitchMapKindDriver />
                     <BasicSettingDriver />
  
                     <ItemController />

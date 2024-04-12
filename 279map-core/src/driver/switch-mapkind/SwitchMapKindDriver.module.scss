@@ -1,7 +1,18 @@
 .Container {
     display: flex;
     flex-direction: column;
+    gap: 5px;
+
     label {
-        display: block;
+        display: inline-flex;
+        align-items: center;
+
+        input {
+            flex: 1;
+        }
     }
+}
+.Row {
+    display: flex;
+    gap: 10px;
 }

@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect, useContext, useMemo, useRef } from 'react';
-import { instanceIdAtom, mapDefineAtom } from '../../store/session';
+import { instanceIdAtom, mapDefineAtom, specifiedMapKindAtom } from '../../store/session';
 import Overlay from '../common/spinner/Overlay';
 import { Button } from '../common';
 import Input from '../common/form/Input';
@@ -37,7 +37,7 @@ function createMyStore(iconDefine: TsunaguMapProps['iconDefine']) {
  * @returns 
  */
 export default function MapConnector(props: Props) {
-    const { onConnect } = useContext(OwnerContext);
+    const { onConnect, defaultMapKind } = useContext(OwnerContext);
     const onConnectRef = useRef(onConnect);
     useEffect(() => {
         onConnectRef.current = onConnect;
@@ -58,6 +58,7 @@ export default function MapConnector(props: Props) {
             setConnectErrorType(undefined);
             const gqlClient = createGqlClient(props.server);
             myStoreRef.current.set(clientAtom, gqlClient);
+            myStoreRef.current.set(specifiedMapKindAtom, defaultMapKind);
             console.log('connect to', props.mapId, props.server.token);
     
             const result = await gqlClient.mutation(ConnectDocument, { mapId: props.mapId });
@@ -113,7 +114,7 @@ export default function MapConnector(props: Props) {
             setLoading(false);
 
         }
-    }, [props.server, props.mapId, props.iconDefine]);
+    }, [props.server, props.mapId, props.iconDefine, defaultMapKind]);
 
     const disconnect = useCallback(async() => {
         if (errorHandlerRef.current) {

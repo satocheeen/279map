@@ -49,7 +49,6 @@ export default function DriverRoot() {
     }
 
     if (authConfig.__typename === 'Auth0Config') {
-        console.log('debug', authConfig)
         return (
             <Auth0Provider
                 domain={authConfig.domain}
