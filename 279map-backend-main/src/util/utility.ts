@@ -6,6 +6,7 @@ import crypto from 'crypto';
 import * as geojson from 'geojson';
 import { ContentValueMap, DataId } from '../types-common/common-types';
 import { MapDataSourceLinkTable } from '../../279map-backend-common/dist';
+import { Auth } from '../graphql/__generated__/types';
 
 type Extent = number[];
 
@@ -281,4 +282,23 @@ export async function cleanupContentValuesForRegist(mapId: string, datasourceId:
     } finally {
         con.release();
     }
+}
+
+export function compareAuth(a: Auth, b: Auth) {
+    const weightFunc = (auth: Auth) => {
+        switch(auth) {
+            case Auth.None:
+            case Auth.Request:
+                return 0;
+            case Auth.View:
+                return 1;
+            case Auth.Edit:
+                return 2;
+            case Auth.Admin:
+                return 3;
+        }
+    }
+    const aWeight = weightFunc(a);
+    const bWeight = weightFunc(b);
+    return aWeight - bWeight;
 }

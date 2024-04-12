@@ -320,7 +320,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     if (userId) {
                         await authManagementClient.getUserMapList(userId);
                     }
-                    const list = await getMapList(userId);
+                    const list = await getMapList(ctx.request);
             
                     return list;
     

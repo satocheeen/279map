@@ -14,6 +14,7 @@ query config {
 query getMapList {
     getMapList {
         mapId
+        authLv
         name
         description
         thumbnail

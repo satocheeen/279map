@@ -8,6 +8,7 @@ type MapListItem {
     name: String!
     description: String
     thumbnail: String
+    authLv: Auth!
 }
 type NoneConfig {
     dummy: Boolean  # fragmentで種別判定するために型用意
