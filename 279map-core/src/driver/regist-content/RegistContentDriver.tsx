@@ -131,7 +131,7 @@ export default function RegistContentDriver(props: Props) {
             <div className={styles.PropName}>コンテンツ登録・更新</div>
             <div>
                 <label>
-                    <input type='radio' name='mode' checked={mode==='new'} onClick={()=>setMode('new')}></input>
+                    <input type='radio' name='mode' checked={mode==='new'} onChange={()=>setMode('new')}></input>
                     新規
                 </label>
                 <label className={myStyles.TargetID}>
@@ -142,7 +142,7 @@ export default function RegistContentDriver(props: Props) {
             </div>
             <div>
                 <label>
-                    <input type='radio' name='mode' checked={mode==='update'} onClick={()=>setMode('update')}></input>
+                    <input type='radio' name='mode' checked={mode==='update'} onChange={()=>setMode('update')}></input>
                     更新
                 </label>
                 <label className={myStyles.TargetID}>
