@@ -41,7 +41,7 @@ export type EventControllerHandler = Pick<TsunaguMapHandler,
 
 function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControllerHandler>) {
     const { changeMapKind } = useMapController();
-    const { focusItem, fitToDefaultExtent } = useMap();
+    const { focusItem, fitToDefaultExtent, loadCurrentAreaContents } = useMap();
     const { updateDatasourceVisible } = useDataSource();
     const [ gqlClient ] = useAtom(clientAtom);
     const [ , setFilteredItem ] = useAtom(filteredItemsAtom);
@@ -351,6 +351,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
     
         changeVisibleLayer(targets: ChangeVisibleLayerTarget[]) {
             updateDatasourceVisible(targets);
+            loadCurrentAreaContents();
         },
         
         selectItem(id) {
