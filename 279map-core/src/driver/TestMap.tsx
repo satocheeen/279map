@@ -8,6 +8,7 @@ import type {
     ItemType,
     ItemDatasourceVisibleList,
     OnConnectResult,
+    OnMapLoadResult,
 } from '../entry';
 import { Auth, MapKind, getAccessableMapList } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
@@ -126,11 +127,22 @@ export default function TestMap() {
     const [ contentDatasources, setContentDatasources] = useState<ContentDatasourceInfo[]>([]);
     const [ loadedItems, setLoadedItems ] = useState<ItemType[]>([]);
 
-    const onMapLoad = useCallback((param: OnMapLoadParam) => {
+    const onMapLoad = useCallback(async(param: OnMapLoadParam): Promise<OnMapLoadResult|void> => {
         addConsole('onMapLoad', param);
         setMapKind(param.mapKind);
         setItemDatasources(param.itemDatasources);
         setContentDatasources(param.contentDatasources);
+
+        // 復帰値テスト
+        // 最初のアイテムレイヤのみ表示状態にする
+        // return {
+        //     initialItemLayerVisibles: param.itemDatasources.map((ds, index) => {
+        //         return {
+        //             datasourceId: ds.datasourceId,
+        //             visible: index === 0,
+        //         }
+        //     })
+        // }
     }, [addConsole]);
 
     const [ itemDatasourcesVisibleList, setItemDatasourceVisibleList ] = useState<ItemDatasourceVisibleList>([]);

@@ -5,6 +5,7 @@ import { clientAtom } from "jotai-urql";
 import { currentMapDefineAtom } from "../session";
 import { OwnerContext } from "../../components/TsunaguMap/TsunaguMap";
 import { loadedItemMapAtom, storedItemsAtom } from "../item";
+import { dataSourceVisibleAtom } from "../datasource";
 
 export function useMapController() {
     const { onMapLoad } = useContext(OwnerContext);
@@ -36,7 +37,14 @@ export function useMapController() {
                     contentDatasources: data.contentDataSources,
                     itemDatasources: data.itemDataSources,
                 })
-                // resetItems();
+                if (callbackResult && callbackResult.initialItemLayerVisibles) {
+                    // レイヤ表示の初期状態を指定する
+                    const visibleInfoMap = {} as {[id: string]: boolean};
+                    callbackResult.initialItemLayerVisibles.forEach(info => {
+                        visibleInfoMap[info.datasourceId] = info.visible;
+                    })
+                    set(dataSourceVisibleAtom, visibleInfoMap);
+                }
             }
             set(storedItemsAtom, {});
             set(loadedItemMapAtom, {});
