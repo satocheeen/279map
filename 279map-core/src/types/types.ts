@@ -15,6 +15,13 @@ export type OnConnectParam = {
     userName: string | undefined;
     mapDefine: MapDefine;
 };
+export type OnConnectResult = {
+    /**
+     * 初期表示する地図種別。
+     * 未指定時は地図に指定されているデフォルト地図種別（mapDefine.defaultMapKind（が適用される
+     */
+    mapKind?: MapKind;
+}
 
 export type ItemType = {
     id: DataId;
@@ -59,19 +66,13 @@ export type TsunaguMapProps = {
     disabledLabel?: boolean; // when true, the item's label hidden.
 
     /**
-     * 初期表示する地図種別。
-     * 未指定時は、地図に指定されているデフォルト地図を表示する。
-     */
-    defaultMapKind?: MapKind;
-
-    /**
      * フィルタ時にフィルタ対象外の建物やピンをどう表示するか
      * hidden => 非表示
      * translucent => 半透明 default
      */
     filterUnmatchView?: 'hidden' | 'translucent';
     
-    onConnect?: (param: OnConnectParam) => void;
+    onConnect?: (param: OnConnectParam) => Promise<void|OnConnectResult>;
     onMapLoad?: (param: OnMapLoadParam) => void;
     onItemDatasourcesVisibleChanged?: (param: ItemDatasourceVisibleList) => void;
 

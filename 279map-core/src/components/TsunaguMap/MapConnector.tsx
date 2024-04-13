@@ -7,7 +7,7 @@ import styles from './MapConnector.module.scss';
 import { useAtom } from 'jotai';
 import { ServerInfo, TsunaguMapProps } from '../../types/types';
 import { clientAtom } from 'jotai-urql';
-import { Auth, ConnectDocument, ConnectErrorType, ConnectResult, DisconnectDocument, ErrorDocument, ErrorType, RequestDocument, UpdateUserAuthDocument } from '../../graphql/generated/graphql';
+import { Auth, ConnectDocument, ConnectErrorType, ConnectResult, DisconnectDocument, ErrorDocument, ErrorType, MapKind, RequestDocument, UpdateUserAuthDocument } from '../../graphql/generated/graphql';
 import { OwnerContext } from './TsunaguMap';
 import { Provider, createStore } from 'jotai';
 import { defaultIconDefineAtom } from '../../store/icon';
@@ -50,6 +50,7 @@ export default function MapConnector(props: Props) {
     const myStoreRef = useRef<ReturnType<typeof createStore>|undefined>();
     const [ userId, setUserId ] = useState<string|undefined>();
     const errorHandlerRef = useRef<Subscription>();
+    const [ defaultMapKind, setDefaultMapKind ] = useState<MapKind|undefined>();
 
     const connect = useCallback(async() => {
         try {
@@ -96,13 +97,18 @@ export default function MapConnector(props: Props) {
                 console.log('catch error', errorInfo.data?.error);
             })
 
+            let mapKind = result.data.connect.mapDefine.defaultMapKind;
             if (onConnectRef.current) {
-                onConnectRef.current({
+                const callbackResult = await onConnectRef.current({
                     mapDefine: result.data.connect.mapDefine,
                     authLv,
                     userName,
-                })
+                });
+                if (callbackResult && callbackResult.mapKind) {
+                    mapKind = callbackResult.mapKind;
+                }
             }
+            setDefaultMapKind(mapKind);
 
             setUserId(result.data.connect.connect.userId ?? undefined);
 
@@ -216,7 +222,7 @@ export default function MapConnector(props: Props) {
     }, [connectErrorType]);
     
 
-    if (loading) {
+    if (loading || !defaultMapKind) {
         return <Overlay spinner message='ロード中...' />
     }
 
@@ -233,7 +239,7 @@ export default function MapConnector(props: Props) {
     return (
         <>
             <Provider store={myStoreRef.current}>
-                <DefaultMapLoader>
+                <DefaultMapLoader mapKind={defaultMapKind}>
                     {props.children}
                 </DefaultMapLoader>
             </Provider>
@@ -248,6 +254,7 @@ export default function MapConnector(props: Props) {
 }
 
 type DefaultMapLoaderProps = {
+    mapKind: MapKind;   // 初期表示する地図種別
     children: any;
 }
 /**
@@ -255,15 +262,12 @@ type DefaultMapLoaderProps = {
  * jotai有効化された状態で動作させたいので、コンポーネントとして用意している
  */
 function DefaultMapLoader(props: DefaultMapLoaderProps) {
-    const { defaultMapKind } = useContext(OwnerContext);
     const { loadMap } = useMapController();
     const [ mapDefine ] = useAtom(mapDefineAtom);
 
     useEffect(() => {
-        // 地図データロード
-        const mapKind = defaultMapKind ?? mapDefine.defaultMapKind;
-        loadMap(mapKind);
-    }, [mapDefine, loadMap, defaultMapKind])
+        loadMap(props.mapKind);
+    }, [mapDefine, loadMap, props.mapKind])
 
     return (
         <>

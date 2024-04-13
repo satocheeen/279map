@@ -7,6 +7,7 @@ import type {
     ContentDatasourceInfo,
     ItemType,
     ItemDatasourceVisibleList,
+    OnConnectResult,
 } from '../entry';
 import { Auth, MapKind, getAccessableMapList } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
@@ -97,12 +98,15 @@ export default function TestMap() {
 
     const [ categories, setCategories ] = useState<CategoryDefine[]>([]);
     const [ authLv, setAuthLv ] = useState(Auth.None);
-    const onConnect = useCallback((param: OnConnectParam) => {
+    const onConnect = useCallback(async(param: OnConnectParam): Promise<OnConnectResult> => {
         console.log('connect', param);
-        // setMapKind(param.mapDefine.defaultMapKind);
         setAuthLv(param.authLv);
         setCnt(cnt + 1);
-    }, [cnt]);
+
+        return {
+            mapKind: defaultMapKind,
+        }
+    }, [cnt, defaultMapKind]);
 
     const onCategoriesLoaded = useCallback((categories: CategoryDefine[]) => {
         addConsole('setCategories', categories);
@@ -236,7 +240,6 @@ export default function TestMap() {
                 {mapId &&
                     <TsunaguMap ref={mapRef} iconDefine={iconDefine} mapId={mapId}
                         mapServer={mapServer}
-                        defaultMapKind={defaultMapKind}
                         popupMode={popupMode}
                         disabledLabel={disabledLabel}
                         filterUnmatchView={filterUnmatchView}
