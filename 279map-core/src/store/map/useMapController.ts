@@ -1,10 +1,13 @@
 import { useAtomCallback } from "jotai/utils";
-import { useCallback } from "react";
+import { useCallback, useContext } from "react";
 import { MapKind, SwitchMapKindDocument } from "../../graphql/generated/graphql";
 import { clientAtom } from "jotai-urql";
 import { currentMapDefineAtom } from "../session";
+import { OwnerContext } from "../../components/TsunaguMap/TsunaguMap";
+import { loadedItemMapAtom, storedItemsAtom } from "../item";
 
 export function useMapController() {
+    const { onMapLoad } = useContext(OwnerContext);
 
     /**
      * 指定の地図種別をロードする
@@ -26,8 +29,20 @@ export function useMapController() {
                 mapKind,
                 ...data
             })
+
+            if (onMapLoad) {
+                const callbackResult = await onMapLoad({
+                    mapKind,
+                    contentDatasources: data.contentDataSources,
+                    itemDatasources: data.itemDataSources,
+                })
+                // resetItems();
+            }
+            set(storedItemsAtom, {});
+            set(loadedItemMapAtom, {});
+
         
-        }, [])
+        }, [onMapLoad])
     );
 
     return {

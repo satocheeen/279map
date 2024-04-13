@@ -3,13 +3,6 @@ import { ChangeVisibleLayerTarget } from "../store/datasource/useDataSource";
 import { ContentValueMap, DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
 import { OperationResult } from "urql";
 
-export type OnMapLoadParam = {
-    mapKind: MapKind;
-    // 当該地図で使用可能なデータソース一覧
-    itemDatasources: ItemDatasourceInfo[];
-    contentDatasources: ContentDatasourceInfo[];
-}
-
 export type OnConnectParam = {
     authLv: Auth;
     userName: string | undefined;
@@ -21,6 +14,25 @@ export type OnConnectResult = {
      * 未指定時は地図に指定されているデフォルト地図種別（mapDefine.defaultMapKind（が適用される
      */
     mapKind?: MapKind;
+}
+
+export type OnMapLoadParam = {
+    mapKind: MapKind;
+    // 当該地図で使用可能なデータソース一覧
+    itemDatasources: ItemDatasourceInfo[];
+    contentDatasources: ContentDatasourceInfo[];
+}
+
+// 任意で指定するOnMapLoadの復帰値
+export type OnMapLoadResult = {
+    /**
+     * 初期のアイテムレイヤの表示状態。
+     * 未指定時は地図い指定されているデフォルト表示状態が適用される
+     */
+    initialItemLayerVisibles?: {
+        datasourceId: string;
+        visible: boolean;
+    }[];
 }
 
 export type ItemType = {
@@ -72,8 +84,8 @@ export type TsunaguMapProps = {
      */
     filterUnmatchView?: 'hidden' | 'translucent';
     
-    onConnect?: (param: OnConnectParam) => Promise<void|OnConnectResult>;
-    onMapLoad?: (param: OnMapLoadParam) => void;
+    onConnect?: (param: OnConnectParam) => Promise<void | OnConnectResult>;
+    onMapLoad?: (param: OnMapLoadParam) => Promise<void | OnMapLoadResult>;
     onItemDatasourcesVisibleChanged?: (param: ItemDatasourceVisibleList) => void;
 
     /**

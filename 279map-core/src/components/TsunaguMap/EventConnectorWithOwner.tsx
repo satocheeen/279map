@@ -1,18 +1,17 @@
-import React, { useContext, useCallback, useImperativeHandle, useMemo } from 'react';
+import React, { useContext, useCallback, useImperativeHandle } from 'react';
 import { useWatch } from '../../util/useWatch2';
 import { OwnerContext } from './TsunaguMap';
 import { categoriesAtom } from '../../store/category';
 import { eventsAtom } from '../../store/event';
 import { mapModeAtom, selectItemIdAtom } from '../../store/operation';
-import { currentMapDefineAtom, currentMapKindAtom, mapDefineAtom } from '../../store/session';
+import { mapDefineAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { TsunaguMapHandler, LoadContentsResult } from '../../types/types';
 import { useAtom } from 'jotai';
 import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
-import { useAtomCallback } from 'jotai/utils';
-import { allItemContentListAtom, loadedItemMapAtom, storedItemsAtom } from '../../store/item';
+import { allItemContentListAtom } from '../../store/item';
 import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
 import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, LinkContentDocument, RegistContentDocument, SearchDocument, GetThumbDocument, GetSnsPreviewDocument, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument, UpdateItemsDocument, GetImageDocument, ContentUpdateDocument, Operation } from '../../graphql/generated/graphql';
@@ -359,42 +358,9 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         },
     }));
 
-    useMapLoadListener();
     useEventListener();
 
     return null;
-}
-
-/**
- * 地図ロード時に呼び出し元にイベント発火する
- */
-function useMapLoadListener() {
-    const { onMapLoad } = useContext(OwnerContext);
-    const [ currentMapKind ] = useAtom(currentMapKindAtom);
-
-    const resetItems = useAtomCallback(
-        useCallback(async(get, set) => {
-            set(storedItemsAtom, {});
-            set(loadedItemMapAtom, {});
-        }, [])
-    );
-
-    useWatch(currentMapKind,
-        useAtomCallback(
-            useCallback((get) => {
-                const mapDefine = get(currentMapDefineAtom);
-                if (onMapLoad && currentMapKind) {
-                    onMapLoad({
-                        mapKind: currentMapKind,
-                        contentDatasources: (mapDefine?.contentDataSources ?? []),
-                        itemDatasources: (mapDefine?.itemDataSources ?? []),
-                    })
-                    resetItems();
-                }
-            }, [currentMapKind, onMapLoad, resetItems])
-        )
-    , { immediate: true })
-
 }
 
 function useEventListener() {
