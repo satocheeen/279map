@@ -13,7 +13,7 @@
 | disabledLabel | boolean | | trueを指定すると、地図上のアイテムの名前が非表示になります |
 | disabledContentDialog | boolean | | trueを指定すると、地図上でアイテムを選択しても詳細ダイアログは表示されません |
 | filter | FilterDefine[] | | 設定すると、地図上のピンが指定の条件でフィルタされます。 |
-| onConnect | (param: [OnConnectParam](#onconnectparam)) => void | | 地図への接続が成功した際のコールバック |
+| onConnect | (param: [OnConnectParam](#onconnectparam)) => Promise<void|[OnConnectResult](#onconnectresult)> | | 地図への接続が成功した際のコールバック |
 | onMapLoad | (param: [OnMapLoadParam](#onmaploadparam)) => void | | 地図がロードされた際のコールバック |
 | onSelect | (targets: DataId[]) => void | | 地図上のアイテムが選択された際のコールバック。選択解除された場合は、0個のtargetsを返す |
 | onClick | (targets: DataId[]) => void | | 地図上のアイテムがクリックされた際のコールバック。 このコールバックが指定されている場合は、重畳アイテム選択メニューとonSelectコールバックは無効になります。|
@@ -56,6 +56,13 @@ flowchart TB
 | ---- | ---- | ---- |
 | result | 'failure' | |
 | error | {type: ErrorType; detail: string } | エラー内容 |
+
+### OnConnectResult
+OnConnectの復帰値として以下の任意値を返すことで、接続後の地図挙動を制御できる。
+| Name | Type | 説明 |
+| ---- | ---- | ---- |
+| mapKind | MapKind | 任意項目。指定した種別の地図を初期ロードする。未指定時は地図に設定されたデフォルト種別が適用される。|
+
 
 ### MapDefine
 | Name | Type | Description |

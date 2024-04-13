@@ -1,5 +1,5 @@
 # Commandリファレンス
-`onConnect`コールバックで渡されるCommandHookを用いることで、地図に対して以下の操作を行うことができます。
+`TsunaguMap`にrefを設定することで、地図に対して以下の操作を行うことができます。
 
 ## switchMapKind
 指定の地図種別に切り替えます.
