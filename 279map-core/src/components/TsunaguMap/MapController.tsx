@@ -1,6 +1,6 @@
 import React, { useRef, useMemo, useContext, useEffect, useState } from 'react';
 import { allItemsAtom, loadedItemMapAtom, storedItemsAtom } from '../../store/item';
-import { currentMapDefineAtom, currentMapKindAtom, isWorldMapAtom, mapDefineReducerAtom } from '../../store/session';
+import { currentMapDefineAtom, currentMapKindAtom, isWorldMapAtom } from '../../store/session';
 import { atom, useAtom } from 'jotai';
 import { useItems } from '../../store/item/useItems';
 import { useMap } from '../map/useMap';
@@ -19,7 +19,7 @@ import { ItemDeleteDocument, ItemInsertDocument, ItemUpdateDocument, MapInfoUpda
 import { clientAtom } from 'jotai-urql';
 import { ItemInfo } from '../../types/types';
 import { selectItemIdAtom } from '../../store/operation';
-import { dataSourceVisibleAtom, itemDataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
+import { dataSourceVisibleAtom, itemDataSourcesAtom } from '../../store/datasource';
 import { UpdateLayerVisibleParam } from './OlMapWrapper';
 
 /**
@@ -54,12 +54,11 @@ function useMapInitializer() {
     const { mapId } = useContext(OwnerContext);
 
     // 地図の接続完了したら、地図情報に対するsubscribe開始する
-    const [, dispatchMapDefine] = useAtom(mapDefineReducerAtom);
     useEffect(() => {
         const h = urqlClient.subscription(MapInfoUpdateDocument, { mapId }).subscribe((val) => {
             if (val.data?.mapInfoUpdate) {
-                // 地図定義再取得
-                dispatchMapDefine();
+                // TODO: 地図定義再取得
+                // dispatchMapDefine();
             }
         })
 
@@ -67,7 +66,7 @@ function useMapInitializer() {
             h.unsubscribe();
         }
 
-    }, [urqlClient, dispatchMapDefine, mapId]);
+    }, [urqlClient, mapId]);
 
     // 地図種別が変更されたら、地図に対してsubscribe, unsubscribeする
     useEffect(() => {

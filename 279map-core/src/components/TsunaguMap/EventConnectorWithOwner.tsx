@@ -40,7 +40,7 @@ export type EventControllerHandler = Pick<TsunaguMapHandler,
     | 'selectItem'>
 
 function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControllerHandler>) {
-    const { changeMapKind } = useMapController();
+    const { loadMap } = useMapController();
     const { focusItem, fitToDefaultExtent, loadCurrentAreaContents } = useMap();
     const { updateDatasourceVisible } = useDataSource();
     const [ gqlClient ] = useAtom(clientAtom);
@@ -83,7 +83,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
     const { updateItems } = useItemProcess();
 
     useImperativeHandle(ref, () => ({
-        switchMapKind: changeMapKind,
+        switchMapKind: loadMap,
         focusItem(itemId, opts) {
             return focusItem({
                 itemId,
