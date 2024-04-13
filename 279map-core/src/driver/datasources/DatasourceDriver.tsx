@@ -22,7 +22,7 @@ export default function DatasourceDriver(props: Props) {
         if (changeMode === 'every') {
             getMap()?.changeVisibleLayer([
                 {
-                    target: { group },
+                    group,
                     visible: val
                 }
             ]);
@@ -46,9 +46,7 @@ export default function DatasourceDriver(props: Props) {
         if (changeMode === 'every') {
             getMap()?.changeVisibleLayer([
                 {
-                    target: {
-                        dataSourceId: datasourceId,
-                    },
+                    dataSourceId: datasourceId,
                     visible: val,
                 }
             ]);
@@ -102,9 +100,7 @@ export default function DatasourceDriver(props: Props) {
         })
         getMap()?.changeVisibleLayer(targets.map(t => {
             return {
-                target: { 
-                    dataSourceId: t.id,
-                },
+                dataSourceId: t.id,
                 visible: t.visible,
             }
         }));

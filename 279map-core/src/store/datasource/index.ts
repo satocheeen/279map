@@ -64,7 +64,7 @@ export const itemDatasourcesWithVisibleAtom = atom<ItemDatasourceVisibleList>((g
     const groups = groupNames.map((groupName): DatasourceVisibleGroup => {
         const datasources = itemDatasourceVisibleList
                                 .filter(ds => ds.groupName === groupName);
-        const visible = datasources.every(ds => ds.visible);
+        const visible = datasources.some(ds => ds.visible);
         return {
             type: 'group',
             groupName,

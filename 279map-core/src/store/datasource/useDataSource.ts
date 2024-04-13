@@ -2,14 +2,14 @@ import { useCallback } from 'react';
 import { dataSourceVisibleAtom, itemDatasourcesWithVisibleAtom } from '.';
 import { useAtomCallback } from 'jotai/utils';
 
-export type ChangeVisibleLayerTarget = {
-    target: {
-        dataSourceId: string
-    } | {
-        group: string
-    },
+export type ChangeVisibleLayerTarget = ({
+    dataSourceId: string
+} | {
+    group: string
+}) & {
     visible: boolean
 }
+
 /**
  * データソース関連のユーティリティフック
  * @returns 
@@ -22,8 +22,8 @@ export default function useDataSource() {
         useCallback((get, set, params: ChangeVisibleLayerTarget[]) => {
             const newMap = {} as {[id: string]: boolean};
             for (const param of params) {
-                if ('group' in param.target) {
-                    const groupName = param.target.group;
+                if ('group' in param) {
+                    const groupName = param.group;
                     // 当該グループに属するデータソース取得
                     const itemDatasourceVisibleList = get(itemDatasourcesWithVisibleAtom);
                     const hit = itemDatasourceVisibleList.find(item => item.type === 'group' && item.groupName === groupName);
@@ -38,7 +38,7 @@ export default function useDataSource() {
 
                     }
                 } else {
-                    const ds = param.target.dataSourceId;
+                    const ds = param.dataSourceId;
                     newMap[ds] = param.visible;
                 }
             }
