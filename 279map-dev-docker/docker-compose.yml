@@ -20,43 +20,35 @@ services:
     ports:
       - 8082:8082
     volumes:
-        - ./log:/var/log/www
-        - ./photo:/var/photo
+      - ./log:/var/log/www
+      - ./photo:/var/photo
   frontend:
     # 任意のイメージを指定
     image: satocheeen/279map-frontend:0.77.0
     env_file:
       - ./.env
-    environment:
-      REACT_APP_MAP_SERVER: main
-    ports: 
-        - 80:80
-        - 443:443
-        # - 3000:80
     volumes:
-        - ./conf:/etc/nginx/conf.d
-        - ./log:/var/log/www
-        - ./ssl:/etc/nginx/ssl
+      - ./log:/var/log/www
   main:
     image: satocheeen/279map-backend-main:0.76.0
     depends_on:
       - db
     env_file:
       - ./.env
-    ports: 
-        # - 80:80
+    ports:
         - 8083:8083
     volumes:
         - ./log:/var/log/www
         - 279map-dev-session-volume:/var/session
-  # nginx:
-  #   image: nginx
-  #   ports:
-  #     - 443:443
-  #   volumes:
-  #     - ./log:/var/log/www
-  #     - ./conf:/etc/nginx/conf.d
-  #     - ./ssl:/etc/nginx/ssl
-  #   tty: true
+  nginx:
+    image: nginx
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./log:/var/log/www
+      - ./conf:/etc/nginx/conf.d
+      - ./ssl:/etc/nginx/ssl
+    tty: true
 volumes:
   279map-dev-session-volume:
