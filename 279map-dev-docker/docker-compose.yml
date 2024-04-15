@@ -20,25 +20,22 @@ services:
     ports:
       - 8082:8082
     volumes:
-        - ./log:/var/log/www
-        - ./photo:/var/photo
+      - ./log:/var/log/www
+      - ./photo:/var/photo
   frontend:
     # 任意のイメージを指定
     image: satocheeen/279map-frontend:0.77.0
     env_file:
       - ./.env
-    ports: 
-        - 3000:80
     volumes:
-        - ./log:/var/log/www
+      - ./log:/var/log/www
   main:
-    image: satocheeen/279map-backend-main:0.75.0
+    image: satocheeen/279map-backend-main:0.76.0
     depends_on:
       - db
     env_file:
       - ./.env
-    ports: 
-        - 80:80
+    ports:
         - 8083:8083
     volumes:
         - ./log:/var/log/www
@@ -46,6 +43,7 @@ services:
   nginx:
     image: nginx
     ports:
+      - 80:80
       - 443:443
     volumes:
       - ./log:/var/log/www
