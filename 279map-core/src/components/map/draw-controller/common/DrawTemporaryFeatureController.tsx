@@ -63,19 +63,11 @@ export default function DrawTemporaryFeatureController(props: Props) {
         if (!map) {
             return;
         }
-        if (!drawingLayer.current) {
+        if (!drawRef.current) {
             return;
         }
 
-        const style = getDrawingStructureStyleFunction(currentDefaultIcon);
-        console.log('style', style);
-        drawingLayer.current?.setStyle(style);
-        map.createDrawingLayer(style);
-        drawRef.current = new Draw({
-            source: drawingLayer.current.getSource() as VectorSource, //drawingSource.current as VectorSource,
-            type: 'Point',
-            style,
-        });
+        // map.createDrawingLayer(style);
         drawRef.current.on('drawend', (event: DrawEvent) => {
             onDrawEnd(event.feature);
         });
@@ -84,14 +76,24 @@ export default function DrawTemporaryFeatureController(props: Props) {
         map.addInteraction(drawRef.current);
         setStage(Stage.DRAWING);
 
-    }, [map, currentDefaultIcon, getDrawingStructureStyleFunction, onDrawEnd])    
+    }, [map, onDrawEnd])    
 
 
     // 初期状態
     useEffect(() => {
         if (!map) return;
         
+        const style = getDrawingStructureStyleFunction(currentDefaultIcon);
+        console.log('style', style);
         drawingLayer.current = map.createDrawingLayer();
+        drawingLayer.current?.setStyle(style);
+
+        drawRef.current = new Draw({
+            source: drawingLayer.current.getSource() as VectorSource, //drawingSource.current as VectorSource,
+            type: 'Point',
+            style,
+        });
+
         startDrawing();
 
         return () => {
@@ -103,7 +105,7 @@ export default function DrawTemporaryFeatureController(props: Props) {
                 map.removeDrawingLayer(drawingLayer.current);
             }
         }
-    }, [map, startDrawing]);
+    }, [map, startDrawing, currentDefaultIcon, getDrawingStructureStyleFunction]);
 
     const message = useMemo(() => {
         switch(stage) {
