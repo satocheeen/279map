@@ -1,3 +1,4 @@
+import { Geometry } from "geojson";
 import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, SnsPreviewResult, GetItemsQuery, ThumbSize, Operation } from "../graphql/generated/graphql";
 import { ChangeVisibleLayerTarget } from "../store/datasource/useDataSource";
 import { ContentValueMap, DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
@@ -158,6 +159,13 @@ export interface TsunaguMapHandler {
      * フィルタ解除する
      */
     clearFilter(): void;
+
+    /**
+     * ユーザに指定の種別のFeatureを描画させて、その結果を返す
+     * @param featureType 
+     * @return ユーザが描画したジオメトリ。キャンセルされた場合は、null
+     */
+    drawTemporaryFeature(featureType: FeatureType): Promise<Geometry|null>;
 
     /**
      * start the spte of drawing a structure (or a pin).

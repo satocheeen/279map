@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useState } from 'react';
 import styles from '../TestMap.module.scss';
-import { TsunaguMapProps } from '../../entry';
+import { FeatureType, TsunaguMapProps } from '../../entry';
 import { DriverContext } from '../TestMap';
 
 type Props = {
@@ -9,7 +9,12 @@ type Props = {
 const defaultPopupMode: TsunaguMapProps['popupMode'] = 'maximum';
 
 export default function BasicSettingDriver(props: Props) {
-    const { setPopupMode, setDisableLabel } = useContext(DriverContext);
+    const { setPopupMode, setDisableLabel, getMap, addConsole } = useContext(DriverContext);
+
+    const handleDrawTemporaryFeature = useCallback(async() => {
+        const result = await getMap()?.drawTemporaryFeature(FeatureType.STRUCTURE);
+        addConsole('drawTemporaryFeature', result);
+    }, [getMap, addConsole])
 
     return (
         <div className={styles.Col}>
@@ -21,6 +26,8 @@ export default function BasicSettingDriver(props: Props) {
                 items={[{ label: 'enabled', value: true }, { label: 'disabled', value: false }]}
                 onChange={setDisableLabel} />
             <span style={{fontSize:'small'}}>※地図オプションの指定がある場合はそちらが優先</span>
+
+            <button onClick={handleDrawTemporaryFeature}>drawTemporaryFeature</button>
         </div>
     );
 }

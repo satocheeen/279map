@@ -1,10 +1,12 @@
-import React, { lazy, Suspense, useCallback, useImperativeHandle, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useImperativeHandle, useRef, useState } from 'react';
 import { MapMode, TsunaguMapHandler } from '../../types/types';
 import EditTopographyInfoController from './draw-controller/topography/EditTopographyInfoController';
 import LoadingOverlay from '../common/spinner/LoadingOverlay';
 import { mapModeAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
 import { FeatureType } from '../../types-common/common-types';
+import { Geometry } from 'geojson';
+import DrawTemporaryFeatureController from './draw-controller/common/DrawTemporaryFeatureController';
 
 const DrawStructureController = lazy(() => import('./draw-controller/structure/DrawStructureController'));
 const MoveItemController = lazy(() => import('./draw-controller/structure/MoveItemController'));
@@ -26,11 +28,16 @@ type ControllerType = {
     dataSourceId: string;
     featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA;
 } | {
-    type: 'remove-item' | 'edit-item',
+    type: 'remove-item' | 'edit-item';
     featureTypes: FeatureType[];
+} | {
+    type: 'draw-temporary-feature';
+    featureType: FeatureType;
+    onCommit: (geometry: Geometry) => void;
 }
 export type DrawControllerHandler = Pick<TsunaguMapHandler, 
-    'drawStructure'
+    'drawTemporaryFeature'
+    | 'drawStructure'
     | 'moveStructure'
     | 'editItem'
     | 'removeItem'
@@ -49,6 +56,20 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
     }, [setMapMode])
 
     useImperativeHandle(ref, () => ({
+        drawTemporaryFeature(featureType: FeatureType) {
+            return new Promise<Geometry|null>((resolve) => {
+                setMapMode(MapMode.Drawing);
+                setController({
+                    type: 'draw-temporary-feature',
+                    featureType,
+                    onCommit(geometry) {
+                        setController(undefined);
+                        setMapMode(MapMode.Normal);
+                        resolve(geometry);
+                    },
+                });
+            })
+        },
         drawStructure(dataSourceId: string) {
             setMapMode(MapMode.Drawing);
             setController({
@@ -147,6 +168,13 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
             return (
                 <Suspense fallback={<LoadingOverlay />}>
                     <EditTopographyInfoController close={terminate} />
+                </Suspense>
+            )
+        case 'draw-temporary-feature':
+            return (
+                <Suspense fallback={<LoadingOverlay />}>
+                    <DrawTemporaryFeatureController featureType={controller.featureType}
+                        onCancel={terminate} onCommit={controller.onCommit} />
                 </Suspense>
             )
     }
