@@ -25,6 +25,8 @@ import SwitchMapKindDriver from './switch-mapkind/SwitchMapKindDriver';
 import BasicSettingDriver from './basic-settings/BasicSettingDriver';
 import RegistContentDriver from './regist-content/RegistContentDriver';
 import LoadImageDriver from './image/LoadImageDriver';
+import TemporaryFeaturesDriver from './temporary-feature/TemporaryFeaturesDriver';
+import { GeoJsonObject } from 'geojson';
 
 export const DriverContext = React.createContext({
     getMap: () => null as TsunaguMapHandler | null,
@@ -42,6 +44,7 @@ export const DriverContext = React.createContext({
 
     setPopupMode: (val: TsunaguMapProps['popupMode']) => {},
     setDisableLabel: (val: boolean) => {},
+    setTemporaryGeoJsons: (val: GeoJsonObject[] | undefined) => {},
 })
 const iconDefine: TsunaguMapProps['iconDefine'] = [
     // id=default指定すると、defaultアイコンを差し替えられる
@@ -126,6 +129,8 @@ export default function TestMap() {
     const [ itemDatasources, setItemDatasources] = useState<ItemDatasourceInfo[]>([]);
     const [ contentDatasources, setContentDatasources] = useState<ContentDatasourceInfo[]>([]);
     const [ loadedItems, setLoadedItems ] = useState<ItemType[]>([]);
+
+    const [ temporaryGeoJsons, setTemporaryGeoJsons ] = useState<GeoJsonObject[] | undefined>();
 
     const onMapLoad = useCallback(async(param: OnMapLoadParam): Promise<OnMapLoadResult|void> => {
         addConsole('onMapLoad', param);
@@ -255,6 +260,7 @@ export default function TestMap() {
                         popupMode={popupMode}
                         disabledLabel={disabledLabel}
                         filterUnmatchView={filterUnmatchView}
+                        temporaryFeatures={temporaryGeoJsons}
                         onConnect={onConnect}
                         onMapLoad={onMapLoad}
                         onItemDatasourcesVisibleChanged={handleItemDataSourceVisibleChanged}
@@ -285,6 +291,7 @@ export default function TestMap() {
                     setFilterUnmatchView,
                     setPopupMode,
                     setDisableLabel,
+                    setTemporaryGeoJsons,
                 }}
             >
                 <div className={styles.WithoutMapArea}>
@@ -304,6 +311,7 @@ export default function TestMap() {
                     <RegistContentDriver />
                     <GetUnlinkedContentDriver />
                     <LinkContentDriver />
+                    <TemporaryFeaturesDriver />
                 </div>
             </DriverContext.Provider>
 

@@ -15,12 +15,11 @@ import usePointStyle from '../../usePointStyle';
 import { currentDefaultIconAtom } from '../../../../store/icon';
 import VectorLayer from 'ol/layer/Vector';
 import { createGeoJson } from '../../../../util/MapUtility';
-import { Geometry } from 'geojson';
 
 type Props = {
     featureType: FeatureType;
     onCancel: () => void;
-    onCommit: (geometry: Geometry) => void;
+    onCommit: (geometry: GeoJsonObject) => void;
 }
 
 enum Stage {

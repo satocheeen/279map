@@ -21,9 +21,12 @@ import { ItemInfo } from '../../types/types';
 import { selectItemIdAtom } from '../../store/operation';
 import { dataSourceVisibleAtom, itemDataSourcesAtom } from '../../store/datasource';
 import { UpdateLayerVisibleParam } from './OlMapWrapper';
+import VectorLayer from 'ol/layer/Vector';
+import { createFeatureByGeoJson } from '../../util/MapUtility';
+import { currentDefaultIconAtom } from '../../store/icon';
 
 /**
- * Jotaiの変更検知して、地図に対して特定のイベントを実行するコンポーネントもどき
+ * Jotaiや呼び出し元から渡されたpropsの変更検知して、地図に対して特定のイベントを実行するコンポーネントもどき
  * @returns 
  */
 export default function MapController() {
@@ -33,6 +36,7 @@ export default function MapController() {
     useLayerVisibleChanger();
     useFocusFilteredArea();
     useDeviceListener();
+    useTemporaryFeature();
 
     return (
         <>
@@ -311,4 +315,46 @@ function useDeviceListener() {
         map?.changeDevice(isPC ? 'pc' : 'sp');
     }, [isPC, map]);
 
+}
+
+/**
+ * 呼び出し元から渡される一時ジオメトリを描画する
+ */
+function useTemporaryFeature() {
+    const { map } = useMap();
+    const { temporaryFeatures } = useContext(OwnerContext);
+    const temporaryLayer = useRef<VectorLayer<VectorSource>>();
+    const [ currentDefaultIcon ] = useAtom(currentDefaultIconAtom);
+    const { getDrawingStructureStyleFunction } = usePointStyle();
+ 
+
+    useEffect(() => {
+        if (!map) return;
+
+        return () => {
+            if (temporaryLayer.current) {
+                map.removeDrawingLayer(temporaryLayer.current);
+            }
+        }
+
+    }, [map])
+
+    useWatch(temporaryFeatures, () => {
+        if (!map) return;
+        if (!temporaryLayer.current) {
+            temporaryLayer.current = map.createDrawingLayer();
+            const style = getDrawingStructureStyleFunction(currentDefaultIcon);
+            temporaryLayer.current?.setStyle(style);
+        }
+        const source = temporaryLayer.current.getSource();
+        if (!source) return;
+        
+        source.clear();
+        if (!temporaryFeatures) return;
+        for (const geoJson of temporaryFeatures) {
+            const feature = createFeatureByGeoJson(geoJson);
+            console.log('add feature')
+            source.addFeature(feature);
+        }
+    })
 }

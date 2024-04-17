@@ -3,6 +3,7 @@ import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, ItemDataso
 import { ChangeVisibleLayerTarget } from "../store/datasource/useDataSource";
 import { ContentValueMap, DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
 import { OperationResult } from "urql";
+import { GeoJsonObject } from 'geojson';
 
 export type OnConnectParam = {
     authLv: Auth;
@@ -84,6 +85,11 @@ export type TsunaguMapProps = {
      * translucent => 半透明 default
      */
     filterUnmatchView?: 'hidden' | 'translucent';
+
+    /**
+     * 指定のGeoJsonオブジェクトを一時レイヤに描画して表示する
+     */
+    temporaryFeatures?: GeoJsonObject[];
     
     onConnect?: (param: OnConnectParam) => Promise<void | OnConnectResult>;
     onMapLoad?: (param: OnMapLoadParam) => Promise<void | OnMapLoadResult>;
@@ -165,7 +171,7 @@ export interface TsunaguMapHandler {
      * @param featureType 
      * @return ユーザが描画したジオメトリ。キャンセルされた場合は、null
      */
-    drawTemporaryFeature(featureType: FeatureType): Promise<Geometry|null>;
+    drawTemporaryFeature(featureType: FeatureType): Promise<GeoJsonObject|null>;
 
     /**
      * start the spte of drawing a structure (or a pin).
