@@ -34,6 +34,7 @@ type ControllerType = {
     type: 'draw-temporary-feature';
     featureType: FeatureType;
     onCommit: (geometry: GeoJsonObject) => void;
+    onCancel: () => void;
 }
 export type DrawControllerHandler = Pick<TsunaguMapHandler, 
     'drawTemporaryFeature'
@@ -67,6 +68,11 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
                         setMapMode(MapMode.Normal);
                         resolve(geometry);
                     },
+                    onCancel() {
+                        setController(undefined);
+                        setMapMode(MapMode.Normal);
+                        resolve(null);
+                    }
                 });
             })
         },
@@ -174,7 +180,7 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
             return (
                 <Suspense fallback={<LoadingOverlay />}>
                     <DrawTemporaryFeatureController featureType={controller.featureType}
-                        onCancel={terminate} onCommit={controller.onCommit} />
+                        onCancel={controller.onCancel} onCommit={controller.onCommit} />
                 </Suspense>
             )
     }
