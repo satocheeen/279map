@@ -67,6 +67,10 @@
 ## editTopographyInfo
 土地情報編集操作を起動します。
 
+## drawTemporaryFeature
+ユーザに指定の種別のFeatureを描画させて、その結果を返します。
+現状は、Pointのみ対応。
+
 ## loadContents
 指定のコンテンツ情報を取得します。
 | Name | Type | Description |

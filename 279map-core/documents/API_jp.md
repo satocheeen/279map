@@ -12,15 +12,14 @@
 | popupMode | 'hidden' 'minimum' 'maximum' | | ポップアップの表示方式を指定してください。未指定時は'maximum'が設定されます。 |
 | disabledLabel | boolean | | trueを指定すると、地図上のアイテムの名前が非表示になります |
 | disabledContentDialog | boolean | | trueを指定すると、地図上でアイテムを選択しても詳細ダイアログは表示されません |
-| filter | FilterDefine[] | | 設定すると、地図上のピンが指定の条件でフィルタされます。 |
-| onConnect | (param: [OnConnectParam](#onconnectparam)) => Promise<void|[OnConnectResult](#onconnectresult)> | | 地図への接続が成功した際のコールバック |
+| temporaryFeatures | GeoJsonObject[] | | 指定の地物を一時レイヤに描画して表示します |
+| onConnect | (param: [OnConnectParam](#onconnectparam)) => Promise<void\|[OnConnectResult](#onconnectresult)> | | 地図への接続が成功した際のコールバック |
 | onMapLoad | (param: [OnMapLoadParam](#onmaploadparam)) => void | | 地図がロードされた際のコールバック |
 | onSelect | (targets: DataId[]) => void | | 地図上のアイテムが選択された際のコールバック。選択解除された場合は、0個のtargetsを返す |
 | onClick | (targets: DataId[]) => void | | 地図上のアイテムがクリックされた際のコールバック。 このコールバックが指定されている場合は、重畳アイテム選択メニューとonSelectコールバックは無効になります。|
 | onModeChanged | (mode: MapMode) => void | | 地図表示モードが切り替わった際のコールバック |
 | onCategoriesLoaded | (categories: CategoriDefine[]) => void | | カテゴリ情報がロードされた際のコールバック。カテゴリ情報に更新があった場合も発火されます。 |
 | onEventsLoaded | (events: EventDefine[]) => void | | 日時情報がロードされた際のコールバック。日時情報に更新があった場合も発火されます |
-| onEditContent | (param: EditContentParam) => void | コンテンツ編集メニューが選択された際のコールバック。未指定の場合は、デフォルトのコンテンツ編集ダイアログが表示されます |
 
 地図上のアイテムをクリックした際のイベントの流れ
 ```mermaid
