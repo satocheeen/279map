@@ -19,7 +19,7 @@ import { createGeoJson } from '../../../../util/MapUtility';
 type Props = {
     featureType: FeatureType;
     onCancel: () => void;
-    onCommit: (geometry: GeoJsonObject) => void;
+    onCommit: (geometry: GeoJSON.GeoJSON) => void;
 }
 
 enum Stage {

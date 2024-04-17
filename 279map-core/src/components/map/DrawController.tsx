@@ -5,7 +5,6 @@ import LoadingOverlay from '../common/spinner/LoadingOverlay';
 import { mapModeAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
 import { FeatureType } from '../../types-common/common-types';
-import { GeoJsonObject, Geometry } from 'geojson';
 import DrawTemporaryFeatureController from './draw-controller/common/DrawTemporaryFeatureController';
 
 const DrawStructureController = lazy(() => import('./draw-controller/structure/DrawStructureController'));
@@ -33,7 +32,7 @@ type ControllerType = {
 } | {
     type: 'draw-temporary-feature';
     featureType: FeatureType;
-    onCommit: (geometry: GeoJsonObject) => void;
+    onCommit: (geometry: GeoJSON.GeoJSON) => void;
     onCancel: () => void;
 }
 export type DrawControllerHandler = Pick<TsunaguMapHandler, 
@@ -58,7 +57,7 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
 
     useImperativeHandle(ref, () => ({
         drawTemporaryFeature(featureType: FeatureType) {
-            return new Promise<GeoJsonObject|null>((resolve) => {
+            return new Promise<GeoJSON.GeoJSON|null>((resolve) => {
                 setMapMode(MapMode.Drawing);
                 setController({
                     type: 'draw-temporary-feature',

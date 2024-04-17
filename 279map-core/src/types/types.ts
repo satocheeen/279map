@@ -3,7 +3,6 @@ import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, ItemDataso
 import { ChangeVisibleLayerTarget } from "../store/datasource/useDataSource";
 import { ContentValueMap, DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
 import { OperationResult } from "urql";
-import { GeoJsonObject } from 'geojson';
 
 export type OnConnectParam = {
     authLv: Auth;
@@ -62,6 +61,10 @@ export type DatasourceVisibleGroup = {
 }
 export type ItemDatasourceVisibleList = (DatasourceVisibleGroup|DatasourceVisible)[];
 
+export type TemporaryFeature = {
+    id: string;
+    geoJson: GeoJSON.GeoJSON;
+}
 export type TsunaguMapProps = {
     mapId: string;
     mapServer: {
@@ -89,7 +92,7 @@ export type TsunaguMapProps = {
     /**
      * 指定のGeoJsonオブジェクトを一時レイヤに描画して表示する
      */
-    temporaryFeatures?: GeoJsonObject[];
+    temporaryFeatures?: TemporaryFeature[];
     
     onConnect?: (param: OnConnectParam) => Promise<void | OnConnectResult>;
     onMapLoad?: (param: OnMapLoadParam) => Promise<void | OnMapLoadResult>;
@@ -147,7 +150,18 @@ export interface TsunaguMapHandler {
      *              zoom: trueの場合、フォーカスしたアイテムにズームする
      *              select: trueの場合、フォーカス後に対象アイテムを選択状態にする
      */
-    focusItem(itemId: DataId, opts?: {zoom?: boolean, select?: boolean}): Promise<void>;
+    focusItem(param: {
+        target: {
+            type: 'item';
+            itemId: DataId;
+        } | {
+            // temporaryFeaturesで渡したFeatureの場合
+            type: 'temporary';
+            id: string;
+        }
+        zoom?: boolean;
+        select?: boolean;
+    }): Promise<void>;
 
     /**
      * 全アイテムが表示される範囲にフィットさせる
@@ -171,7 +185,7 @@ export interface TsunaguMapHandler {
      * @param featureType 
      * @return ユーザが描画したジオメトリ。キャンセルされた場合は、null
      */
-    drawTemporaryFeature(featureType: FeatureType): Promise<GeoJsonObject|null>;
+    drawTemporaryFeature(featureType: FeatureType): Promise<GeoJSON.GeoJSON|null>;
 
     /**
      * start the spte of drawing a structure (or a pin).

@@ -21,6 +21,7 @@ import GeoJSON from 'geojson';
 import { Extent } from 'ol/extent';
 import { DataId, DatasourceKindType } from '../../types-common/common-types';
 import { selectItemIdAtom } from '../../store/operation';
+import { TsunaguMapHandler } from '../../entry';
 
 /**
  * 地図インスタンス管理マップ。
@@ -367,29 +368,33 @@ export function useMap() {
      * 指定のitemにfitさせる
      */
     const focusItem = useAtomCallback(
-        useCallback(async(get, set, param: {itemId: DataId; zoom?: boolean, select?: boolean}) => {
+        useCallback(async(get, set, param: Parameters<TsunaguMapHandler['focusItem']>[0]) => {
             if (!map) {
                 return;
             }
     
             const getFeatureFunc = async() => {
-                let itemFeature: undefined | Feature<Geometry>;
-                let retryCnt = 0;
-                do {
-                    itemFeature = map.getFeatureById(param.itemId);
-                    if (!itemFeature) {
-                        // アイテムが存在しない場合は、データロード中の可能性があるので、しばらく待ってからリトライ
-                        retryCnt++;
-                        await sleep(0.5);
-                    } else {
-                        return itemFeature;
-                    }
-                } while(itemFeature === undefined && retryCnt < 5);
-                return itemFeature;
+                if (param.target.type === 'item') {
+                    let itemFeature: undefined | Feature<Geometry>;
+                    let retryCnt = 0;
+                    do {
+                        itemFeature = map.getFeatureById(param.target.itemId);
+                        if (!itemFeature) {
+                            // アイテムが存在しない場合は、データロード中の可能性があるので、しばらく待ってからリトライ
+                            retryCnt++;
+                            await sleep(0.5);
+                        } else {
+                            return itemFeature;
+                        }
+                    } while(itemFeature === undefined && retryCnt < 5);
+                    return itemFeature;
+                } else {
+
+                }
             };
             const itemFeature = await getFeatureFunc();
             if (!itemFeature) {
-                console.warn('focusItem target not found', param.itemId);
+                console.warn('focusItem target not found', param.target);
                 return;
             }
     
@@ -400,7 +405,8 @@ export function useMap() {
                 zoom: param.zoom,
             });
             if (param.select) {
-                set(selectItemIdAtom, param.itemId);
+                // TODO:
+                // set(selectItemIdAtom, param.itemId);
             }
     
         }, [map])

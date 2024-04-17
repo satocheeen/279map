@@ -211,12 +211,18 @@ function useMapStyleUpdater() {
 
     // スタイル設定
     // -- コンテンツ（建物・ポイント）レイヤ
-    const { pointStyleFunction } = usePointStyle();
+    const { pointStyleFunction, temporaryPointStyleFunction } = usePointStyle();
     useEffect(() => {
         if (!map) return;
 
         map.setPointLayerStyle(pointStyleFunction);
     }, [map, pointStyleFunction])
+
+    useEffect(() => {
+        if (!map) return;
+
+        map.setTemporaryLayerStyle(temporaryPointStyleFunction);
+    }, [map, temporaryPointStyleFunction])
 
     // -- コンテンツ（地形）レイヤ
     const { topographyStyleFunction } = useTopographyStyleWithState();
@@ -323,37 +329,17 @@ function useDeviceListener() {
 function useTemporaryFeature() {
     const { map } = useMap();
     const { temporaryFeatures } = useContext(OwnerContext);
-    const temporaryLayer = useRef<VectorLayer<VectorSource>>();
-    const [ currentDefaultIcon ] = useAtom(currentDefaultIconAtom);
-    const { getDrawingStructureStyleFunction } = usePointStyle();
  
-
-    useEffect(() => {
-        if (!map) return;
-
-        return () => {
-            if (temporaryLayer.current) {
-                map.removeDrawingLayer(temporaryLayer.current);
-            }
-        }
-
-    }, [map])
-
     useWatch(temporaryFeatures, () => {
         if (!map) return;
-        if (!temporaryLayer.current) {
-            temporaryLayer.current = map.createDrawingLayer();
-            const style = getDrawingStructureStyleFunction(currentDefaultIcon);
-            temporaryLayer.current?.setStyle(style);
-        }
-        const source = temporaryLayer.current.getSource();
+        const source = map._temporaryLayer?.getSource();
         if (!source) return;
         
         source.clear();
         if (!temporaryFeatures) return;
-        for (const geoJson of temporaryFeatures) {
-            const feature = createFeatureByGeoJson(geoJson);
-            console.log('add feature')
+        for (const info of temporaryFeatures) {
+            const feature = createFeatureByGeoJson(info.geoJson);
+            feature.setId(info.id);
             source.addFeature(feature);
         }
     })

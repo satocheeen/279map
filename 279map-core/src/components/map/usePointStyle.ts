@@ -224,73 +224,83 @@ export default function usePointStyle() {
     }, [filteredItemIdList, selectedItemId]);
 
     const [ dataSources ] = useAtom(itemDataSourcesAtom);
-    const _createPointStyle = useCallback((feature: Feature<Geometry>, resolution: number, forceColor?: string): Style | Style[] => {
-        const { mainFeature, showFeaturesLength } = _analysisFeatures(feature);
+    const _createPointStyle = useAtomCallback(
+        useCallback((get, set, feature: Feature<Geometry>, resolution: number, forceColor?: string, isTemporary?: boolean): Style | Style[] => {
+            const { mainFeature, showFeaturesLength } = _analysisFeatures(feature);
 
-        let icon = mainFeature.getProperties().icon as IconKey | undefined;
-        const itemId = convertDataIdFromFeatureId(mainFeature.getId() as string);
-        if (!icon) {
-            // icon未指定の場合はレイヤデフォルトアイコンを設定
-            const datasource = dataSources.find(ds => ds.datasourceId === itemId.dataSourceId);
-            if (datasource?.config.kind === DatasourceKindType.RealPointContent) {
-                icon = datasource.config.defaultIcon;
-            }
-        }
-        const iconDefine = getIconDefine(icon);
+            const iconDefine = function() {
+                if (isTemporary) {
+                    // 一時レイヤの場合
+                    const pinIconDefine = get(currentDefaultIconAtom);
+                    return pinIconDefine;
+                } else {
+                    let icon = mainFeature.getProperties().icon as IconKey | undefined;
+                    const itemId = convertDataIdFromFeatureId(mainFeature.getId() as string);
+                    if (!icon) {
+                        // icon未指定の場合はレイヤデフォルトアイコンを設定
+                        const datasource = dataSources.find(ds => ds.datasourceId === itemId.dataSourceId);
+                        if (datasource?.config.kind === DatasourceKindType.RealPointContent) {
+                            icon = datasource.config.defaultIcon;
+                        }
+                    }
+                    return getIconDefine(icon);
+                }
+            }();
 
-        // 色設定
-        let color: string | undefined;
-        let opacity = 1;
-        let visible = true;
+            // 色設定
+            let color: string | undefined;
+            let opacity = 1;
+            let visible = true;
 
-        if (forceColor) {
-            color = forceColor;
+            if (forceColor) {
+                color = forceColor;
 
-        } else {
-            // -- フィルタ状態に応じて色設定
-            color = getForceColor(mainFeature);
-            const tempOpacity = getOpacity(mainFeature);
-            if (tempOpacity === 0) {
-                visible = false;
-            } else {
-                opacity = tempOpacity;
-            }
-        }
-
-        if (!visible) {
-            return new Style();
-        }
-
-        const style = _createStyle({
-            feature,
-            resolution,
-            iconDefine,
-            color,
-            opacity,
-        });
-
-        if (showFeaturesLength > 1) {
-            // 複数アイテムがまとまっている場合、まとまっている数を表示
-            if (Array.isArray(style)) {
-                setClusterLabel(style[0], showFeaturesLength);
-
-            } else {
-                setClusterLabel(style, showFeaturesLength);
-
+            } else if(!isTemporary) {
+                // -- フィルタ状態に応じて色設定
+                color = getForceColor(mainFeature);
+                const tempOpacity = getOpacity(mainFeature);
+                if (tempOpacity === 0) {
+                    visible = false;
+                } else {
+                    opacity = tempOpacity;
+                }
             }
 
-        } else if (!disabledLabel) {
-            // ラベル設定
-            const text = createItemNameLabel(mainFeature, resolution, opacity);
-            if (Array.isArray(style)) {
-                style[0].setText(text);
-            } else {
-                style.setText(text);
+            if (!visible) {
+                return new Style();
             }
-        }
-        return style;
 
-    }, [getOpacity, dataSources, disabledLabel, _createStyle, getForceColor, _analysisFeatures, getIconDefine]);
+            const style = _createStyle({
+                feature,
+                resolution,
+                iconDefine,
+                color,
+                opacity,
+            });
+
+            if (showFeaturesLength > 1) {
+                // 複数アイテムがまとまっている場合、まとまっている数を表示
+                if (Array.isArray(style)) {
+                    setClusterLabel(style[0], showFeaturesLength);
+
+                } else {
+                    setClusterLabel(style, showFeaturesLength);
+
+                }
+
+            } else if (!disabledLabel) {
+                // ラベル設定
+                const text = createItemNameLabel(mainFeature, resolution, opacity);
+                if (Array.isArray(style)) {
+                    style[0].setText(text);
+                } else {
+                    style.setText(text);
+                }
+            }
+            return style;
+
+        }, [getOpacity, dataSources, disabledLabel, _createStyle, getForceColor, _analysisFeatures, getIconDefine])
+    )
 
     /**
      * the style function for ordinaly.
@@ -298,6 +308,13 @@ export default function usePointStyle() {
      */
     const pointStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style | Style[] => {
         const style = _createPointStyle(feature as Feature<Geometry>, resolution);
+
+        return style;
+
+    }, [_createPointStyle]);
+
+    const temporaryPointStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style | Style[] => {
+        const style = _createPointStyle(feature as Feature<Geometry>, resolution, undefined, true);
 
         return style;
 
@@ -312,6 +329,7 @@ export default function usePointStyle() {
     return {
         getDrawingStructureStyleFunction,
         pointStyleFunction,
+        temporaryPointStyleFunction,
         selectedStyleFunction,
     }
 }

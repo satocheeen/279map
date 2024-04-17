@@ -83,11 +83,11 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
 
     useImperativeHandle(ref, () => ({
         switchMapKind: loadMap,
-        focusItem(itemId, opts) {
+        focusItem({ target, zoom, select }) {
             return focusItem({
-                itemId,
-                zoom: opts?.zoom,
-                select: opts?.select,
+                target,
+                zoom,
+                select,
             })
         },
         fitAllItemsExtent() {

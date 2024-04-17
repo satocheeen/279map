@@ -54,6 +54,9 @@ export class OlMapWrapper {
     // 描画用レイヤ
     _drawingLayers: VectorLayer<VectorSource>[] = [];
 
+    // 一時描画レイヤ（呼び出し元が任意の図形を描画する用途）
+    _temporaryLayer: VectorLayer<VectorSource> | undefined = undefined;
+
     constructor(id: string, target: HTMLDivElement, device: Device, gqlClient: Client) {
         this._id = id;
         this._vectorLayerMap = new VectorLayerMap();
@@ -254,6 +257,21 @@ export class OlMapWrapper {
 
         }
 
+        // 一時レイヤを用意
+        this._temporaryLayer = new VectorLayer<VectorSource>({
+            source: new VectorSource(),
+            zIndex: 50,
+            properties: {
+                type: 'temporary',
+            }
+        });
+        // if (style) {
+        //     layer.setStyle(style);
+        // }
+        this._map.addLayer(this._temporaryLayer);
+
+
+
         this._map.getView().setMaxZoom(mapKind === MapKind.Virtual ? 10 : 18);
         if (extent) {
             this.fit(extent);
@@ -424,7 +442,7 @@ export class OlMapWrapper {
             source: new VectorSource(),
             zIndex: 100,
             properties: {
-                type: 'temporary',
+                type: 'drawing-temporary',
             }
         });
         if (style) {
@@ -434,6 +452,32 @@ export class OlMapWrapper {
         return layer;
     }
     removeDrawingLayer(layer: VectorLayer<VectorSource>) {
+        if (layer.getProperties()['type'] !== 'drawing-temporary') {
+            console.warn('this is not a drawing layer.', layer);
+            return;
+        }
+        layer.getSource()?.clear();
+        this._map.removeLayer(layer);
+    }
+
+    /**
+     * 呼び出し元が任意で描画するレイヤを生成する
+     */
+    createTemporaryLayer(style?: StyleFunction | Style): VectorLayer<VectorSource> {
+        const layer = new VectorLayer<VectorSource>({
+            source: new VectorSource(),
+            zIndex: 50,
+            properties: {
+                type: 'temporary',
+            }
+        });
+        if (style) {
+            layer.setStyle(style);
+        }
+        this._map.addLayer(layer);
+        return layer;
+    }
+    removeTemporaryLayer(layer: VectorLayer<VectorSource>) {
         if (layer.getProperties()['type'] !== 'temporary') {
             console.warn('this is not a drawing layer.', layer);
             return;
@@ -441,6 +485,7 @@ export class OlMapWrapper {
         layer.getSource()?.clear();
         this._map.removeLayer(layer);
     }
+
 
     getFeatureById(itemId: DataId): Feature<Geometry> | undefined {
         if (!itemId) {
@@ -549,6 +594,10 @@ export class OlMapWrapper {
      */
     setPointLayerStyle(style: StyleFunction) {
         this._vectorLayerMap.setPointLayerStyle(style);
+    }
+
+    setTemporaryLayerStyle(style: StyleFunction) {
+        this._temporaryLayer?.setStyle(style);
     }
 
     /**
