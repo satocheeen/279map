@@ -192,16 +192,15 @@ export interface TsunaguMapHandler {
      * @param featureType 
      * @return 一時描画したジオメトリ。ユーザによりキャンセルされた場合は、null
      */
-    drawTemporaryFeature(featureType: FeatureType): Promise<Omit<ItemGeoInfo,'name'>|null>;
+    drawTemporaryFeature(featureType: FeatureType): Promise<ItemGeoInfo|null>;
 
     /**
      * 指定の図形でアイテム登録する.
-     * 図形未指定の場合は、ユーザにアイテム描画してもらった上で登録する。
      * @param datasourceId 
-     * @param featureType 
-     * @param attr 
+     * @param geo 図形 
+     * @return 登録したアイテムID
      */
-    registItem(datasourceId: string, featureType: FeatureType, attr?: {geo?: ItemGeoInfo; name?: string}): Promise<DataId>;
+    registItemDirectly(datasourceId: string, geo: ItemGeoInfo, name?: string): Promise<DataId>;
 
     /**
      * start the spte of drawing a structure (or a pin).

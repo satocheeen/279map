@@ -38,6 +38,7 @@ type ControllerType = {
 }
 export type DrawControllerHandler = Pick<TsunaguMapHandler, 
     'drawTemporaryFeature'
+    | 'registItemDirectly'
     | 'drawStructure'
     | 'moveStructure'
     | 'editItem'
@@ -50,6 +51,7 @@ export type DrawControllerHandler = Pick<TsunaguMapHandler,
 function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler>) {
     const [mapMode, setMapMode] = useAtom(mapModeAtom);
     const [controller, setController] = useState<ControllerType|undefined>();
+    const { registItem: registItemProcess } = useItemProcess();
 
     const terminate = useCallback(() => {
         setController(undefined);
@@ -75,6 +77,18 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
                     }
                 });
             })
+        },
+        async registItemDirectly(datasourceId, geo, name) {
+            const id = await registItemProcess({
+                datasourceId,
+                geometry: geo.geometry,
+                geoProperties: geo.geoProperties,
+                name,
+            });
+            if (!id) {
+                throw new Error('registItem failed');
+            }
+            return id;
         },
         drawStructure(dataSourceId: string) {
             setMapMode(MapMode.Drawing);
