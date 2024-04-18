@@ -133,6 +133,12 @@ export default function DatasourceDriver(props: Props) {
         }
     }, [getMap, addConsole, temporaryItemIdText, temporaryItemName])
 
+    const handleDrawTemporaryFeature = useCallback(async() => {
+        const result = await getMap()?.drawTemporaryFeature(FeatureType.STRUCTURE);
+        addConsole('drawTemporaryFeature', result);
+    }, [getMap, addConsole])
+
+
     return (
         <div>
             <div className={styles.PropName}>データソース</div>
@@ -164,7 +170,6 @@ export default function DatasourceDriver(props: Props) {
                                         datasourceId={ds.datasourceId}
                                         visible={ds.visible}
                                         isChild
-                                        temporaryGeoJson={temporaryGeoJson}
                                         onChangeVisible={(val)=>handleChangeDatasourceVisible(item.groupName, ds.datasourceId, val)}
                                     />
                                 )
@@ -175,14 +180,16 @@ export default function DatasourceDriver(props: Props) {
                             key={item.datasourceId}
                             datasourceId={item.datasourceId}
                             visible={item.visible}
-                            temporaryGeoJson={temporaryGeoJson}
                             onChangeVisible={(val)=>handleChangeDatasourceVisible(undefined, item.datasourceId, val)}
                             />
                     )
                 })}
             </div>
+            <div>
+                <button onClick={handleDrawTemporaryFeature}>drawTemporaryFeature</button>
+            </div>
             <label>
-                一時描画GeoJson
+                登録時指定GeoJson
                 <textarea className={myStyles.GeoJsonTextarea} value={temporaryGeoJsonText} onChange={evt=>setTemporaryGeoJsonText(evt.target.value)} rows={3} />
             </label>
             <div>
@@ -204,7 +211,6 @@ type DatasourceItemProp = {
     datasourceId: string;
     visible: boolean;
     isChild?: boolean;
-    temporaryGeoJson?: GeoJSON.Geometry;
 
     onChangeVisible: (visible: boolean) => void;
 }
@@ -219,11 +225,6 @@ function DatasourceItem(props: DatasourceItemProp) {
         return targetDatasource?.name;
     }, [targetDatasource]);
 
-    const handleDrawTemporaryFeature = useCallback(async() => {
-        const result = await getMap()?.drawTemporaryFeature(props.datasourceId, FeatureType.STRUCTURE, props.temporaryGeoJson);
-        addConsole('drawTemporaryFeature', result);
-    }, [getMap, addConsole, props.temporaryGeoJson, props.datasourceId])
-
     return (
         <label key={props.datasourceId} className={`${props.isChild ? myStyles.Child : ''}`}>
             <input type="checkbox" checked={props.visible} onChange={(evt) => props.onChangeVisible(evt.target.checked)} />
@@ -234,9 +235,6 @@ function DatasourceItem(props: DatasourceItemProp) {
                     {mapKind === MapKind.Real ?
                         <>
                             <button onClick={()=>getMap()?.drawTopography(props.datasourceId, FeatureType.AREA)}>エリア作成</button>
-                            {targetDatasource?.config.kind === DatasourceKindType.RealPointContent &&
-                                <button onClick={handleDrawTemporaryFeature}>一時描画</button>
-                            }
                         </>
                         :
                         <>

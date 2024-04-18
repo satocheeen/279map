@@ -165,14 +165,11 @@ export interface TsunaguMapHandler {
     clearFilter(): void;
 
     /**
-     * 渡されたGeoJsonを一時描画する。
-     * GeoJson未指定の場合は、ユーザに描画させる。
-     * @param datasourceId 描画対象のデータソース
+     * ユーザにアイテム描画してもらい、描画されたジオメトリを返す。
      * @param featureType 
-     * @param geoJson 描画するジオメトリ。未指定の場合は、ユーザに描画させる。
-     * @return 一時描画したアイテム情報。ユーザによりキャンセルされた場合は、null
+     * @return 一時描画したジオメトリ。ユーザによりキャンセルされた場合は、null
      */
-    drawTemporaryFeature(datasourceId: string, featureType: FeatureType, geoJson?: GeoJSON.Geometry): Promise<TemporaryItemInfo|null>;
+    drawTemporaryFeature(featureType: FeatureType): Promise<GeoJSON.Geometry|null>;
 
     /**
      * drawTemporaryFeatureで一時描画したアイテムを正式登録する
@@ -407,9 +404,3 @@ export type ItemInfo = Omit<Required<OperationResult<GetItemsQuery>>['data']['ge
      */
     temporary?: 'temporary' | 'registing' | 'updating';
 };
-
-export type TemporaryItemInfo = {
-    id: DataId;
-    geometry: GeoJSON.Geometry;
-    geoProperties: GeoProperties;
-}

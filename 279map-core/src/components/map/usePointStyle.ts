@@ -225,20 +225,26 @@ export default function usePointStyle() {
 
     const [ dataSources ] = useAtom(itemDataSourcesAtom);
     const _createPointStyle = useAtomCallback(
-        useCallback((get, set, feature: Feature<Geometry>, resolution: number, forceColor?: string): Style | Style[] => {
+        useCallback((get, set, feature: Feature<Geometry>, resolution: number, forceColor?: string, isTemporary?: boolean): Style | Style[] => {
             const { mainFeature, showFeaturesLength } = _analysisFeatures(feature);
 
             const iconDefine = function() {
-                let icon = mainFeature.getProperties().icon as IconKey | undefined;
-                const itemId = convertDataIdFromFeatureId(mainFeature.getId() as string);
-                if (!icon) {
-                    // icon未指定の場合はレイヤデフォルトアイコンを設定
-                    const datasource = dataSources.find(ds => ds.datasourceId === itemId.dataSourceId);
-                    if (datasource?.config.kind === DatasourceKindType.RealPointContent) {
-                        icon = datasource.config.defaultIcon;
+                if (isTemporary) {
+                    // 一時レイヤの場合
+                    const pinIconDefine = get(currentDefaultIconAtom);
+                    return pinIconDefine;
+                } else {
+                    let icon = mainFeature.getProperties().icon as IconKey | undefined;
+                    const itemId = convertDataIdFromFeatureId(mainFeature.getId() as string);
+                    if (!icon) {
+                        // icon未指定の場合はレイヤデフォルトアイコンを設定
+                        const datasource = dataSources.find(ds => ds.datasourceId === itemId.dataSourceId);
+                        if (datasource?.config.kind === DatasourceKindType.RealPointContent) {
+                            icon = datasource.config.defaultIcon;
+                        }
                     }
+                    return getIconDefine(icon);
                 }
-                return getIconDefine(icon);
             }();
 
             // 色設定
@@ -249,7 +255,7 @@ export default function usePointStyle() {
             if (forceColor) {
                 color = forceColor;
 
-            } else {
+            } else if(!isTemporary){
                 // -- フィルタ状態に応じて色設定
                 color = getForceColor(mainFeature);
                 const tempOpacity = getOpacity(mainFeature);
@@ -307,6 +313,13 @@ export default function usePointStyle() {
 
     }, [_createPointStyle]);
 
+    const temporaryPointStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style | Style[] => {
+        const style = _createPointStyle(feature as Feature<Geometry>, resolution, undefined, true);
+
+        return style;
+
+    }, [_createPointStyle]);
+
     const selectedStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style | Style[] => {
         const style = _createPointStyle(feature as Feature<Geometry>, resolution, STRUCTURE_SELECTED_COLOR);
 
@@ -316,6 +329,7 @@ export default function usePointStyle() {
     return {
         getDrawingStructureStyleFunction,
         pointStyleFunction,
+        temporaryPointStyleFunction,
         selectedStyleFunction,
     }
 }

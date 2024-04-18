@@ -1,10 +1,10 @@
 import React, { lazy, Suspense, useCallback, useImperativeHandle, useState } from 'react';
-import { MapMode, TemporaryItemInfo, TsunaguMapHandler } from '../../types/types';
+import { MapMode, TsunaguMapHandler } from '../../types/types';
 import EditTopographyInfoController from './draw-controller/topography/EditTopographyInfoController';
 import LoadingOverlay from '../common/spinner/LoadingOverlay';
 import { mapModeAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
-import { FeatureType, GeoProperties } from '../../types-common/common-types';
+import { FeatureType } from '../../types-common/common-types';
 import DrawTemporaryFeatureController from './draw-controller/common/DrawTemporaryFeatureController';
 import useItemProcess from '../../store/item/useItemProcess';
 
@@ -32,9 +32,8 @@ type ControllerType = {
     featureTypes: FeatureType[];
 } | {
     type: 'draw-temporary-feature';
-    datasourceId: string;
     featureType: FeatureType;
-    onCommit: (item: TemporaryItemInfo) => void;
+    onCommit: (geometry: GeoJSON.Geometry) => void;
     onCancel: () => void;
 }
 export type DrawControllerHandler = Pick<TsunaguMapHandler, 
@@ -59,37 +58,16 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
     }, [setMapMode])
 
     useImperativeHandle(ref, () => ({
-        drawTemporaryFeature(datasourceId, featureType, geoJson) {
-            return new Promise<TemporaryItemInfo | null>((resolve) => {
-                if (geoJson) {
-                    const geoProperties = {
-                        featureType: FeatureType.STRUCTURE,
-                    } as GeoProperties;
-            
-                    const id = registItemTemporary({
-                        datasourceId,
-                        geometry: geoJson,
-                        geoProperties,
-                    })
-                    resolve({
-                        id: {
-                            id,
-                            dataSourceId: datasourceId,
-                        },
-                        geometry: geoJson,
-                        geoProperties,
-                    });
-                    return;
-                }
+        drawTemporaryFeature(featureType: FeatureType) {
+            return new Promise<GeoJSON.Geometry|null>((resolve) => {
                 setMapMode(MapMode.Drawing);
                 setController({
                     type: 'draw-temporary-feature',
-                    datasourceId,
                     featureType,
-                    onCommit(item) {
+                    onCommit(geometry) {
                         setController(undefined);
                         setMapMode(MapMode.Normal);
-                        resolve(item);
+                        resolve(geometry);
                     },
                     onCancel() {
                         setController(undefined);
@@ -203,7 +181,7 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
             return (
                 <Suspense fallback={<LoadingOverlay />}>
                     <DrawTemporaryFeatureController
-                        datasourceId={controller.datasourceId} featureType={controller.featureType}
+                        featureType={controller.featureType}
                         onCancel={controller.onCancel} onCommit={controller.onCommit} />
                 </Suspense>
             )
