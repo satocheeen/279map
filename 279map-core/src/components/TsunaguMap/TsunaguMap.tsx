@@ -15,6 +15,8 @@ import ClusterMenuContainer from '../cluster-menu/ClusterMenuContainer';
 import ContentsSettingController from '../admin/contents-setting/ContentsSettingController';
 import UserListController from '../admin/user-list/UserListController';
 import SelectItemController, { SelectItemControllerHandler } from '../map/draw-controller/SelectItemController';
+import { useAtom } from 'jotai';
+import { instanceIdAtom } from '../../store/session';
 
 type SomeRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 type OwnerContextType = Omit<TsunaguMapProps, 'mapServer'>;
@@ -46,13 +48,18 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
         }
     }, [props]);
 
+    const [ instanceId ] = useAtom(instanceIdAtom);
     const eventControlerRef = useRef<EventControllerHandler>(null);
     const drawControllerRef = useRef<DrawControllerHandler>(null);
     const selectItemControllerRef = useRef<SelectItemControllerHandler>(null);
     const contentsSettingControlerRef = useRef<Pick<TsunaguMapHandler, 'showContentsSetting'>>(null);
     const userListControlerRef = useRef<Pick<TsunaguMapHandler, 'showUserList'>>(null);
     useImperativeHandle(ref, () => {
-        return Object.assign({}, 
+        return Object.assign({
+            getInstanceId() {
+                return instanceId;
+            }
+        }, 
             drawControllerRef.current,
             selectItemControllerRef.current,
             eventControlerRef.current,

@@ -126,6 +126,8 @@ export type LoadContentsResult = {
 }
 
 export interface TsunaguMapHandler {
+    getInstanceId(): string;
+    
     /**
      * switch the map kind
      * 表示する地図種別の切り替え。切り替え完了したら復帰。
