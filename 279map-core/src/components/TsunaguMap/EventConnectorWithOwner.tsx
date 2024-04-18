@@ -430,7 +430,6 @@ function useEventListener() {
      * 選択アイテムが変化した場合に呼び出し元にイベント発火する
      */
     const [selectedItemId] = useAtom(selectItemIdAtom);
-    const { getItem } = useItems();
     useWatch(selectedItemId,
         useCallback(() => {
             if (!onSelectChange) return;
@@ -439,7 +438,7 @@ function useEventListener() {
             } else {
                 onSelectChange(null);
             }
-        }, [selectedItemId, onSelectChange, getItem])
+        }, [selectedItemId, onSelectChange])
     , { immediate: true })
 
 }
