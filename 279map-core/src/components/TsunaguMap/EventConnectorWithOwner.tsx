@@ -83,9 +83,9 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
 
     useImperativeHandle(ref, () => ({
         switchMapKind: loadMap,
-        focusItem({ target, zoom, select }) {
+        focusItem({ itemId, zoom, select }) {
             return focusItem({
-                target,
+                itemId,
                 zoom,
                 select,
             })
@@ -435,8 +435,7 @@ function useEventListener() {
         useCallback(() => {
             if (!onSelectChange) return;
             if (selectedItemId) {
-                const item = getItem(selectedItemId);
-                onSelectChange(item.id);
+                onSelectChange(selectedItemId);
             } else {
                 onSelectChange(null);
             }

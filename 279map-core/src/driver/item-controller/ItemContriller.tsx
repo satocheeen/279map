@@ -32,14 +32,6 @@ export default function ItemController(props: Props) {
         return JSON.stringify(hit, undefined, 2);
     }, [itemId, loadedItems]);
 
-    const handleFocusItem = useCallback(() => {
-        if (!itemId) return;
-        getMap()?.focusItem(itemId, {
-            zoom: true,
-            select: true,
-        });
-    }, [itemId, getMap]);
-
     const [ isSubscribe, setSubscribe ] = useState(false);
     const unsubscribeRef = useRef<()=>void|undefined>();
     const handleLoadContents = useCallback(async() => {
@@ -87,7 +79,6 @@ export default function ItemController(props: Props) {
                         <textarea readOnly value={result} rows={3} />
                     </div>
                     <div>
-                        <button onClick={handleFocusItem}>Focus Item</button>
                         <button onClick={handleLoadContents}>Load Contents</button>
                         <label>
                             <input type='checkbox' checked={isSubscribe} onChange={evt=>setSubscribe(evt.target.checked)} />

@@ -38,6 +38,8 @@ type Device = 'pc' | 'sp';
 const pcControls = olControl.defaults({attribution: true, zoom: false});
 const spControls = olControl.defaults({attribution: true, zoom: false});
 
+export const TemporaryPointLayerDatasourceId = 'temporary-point';
+
 /**
  * OpenLayersの地図を内包したクラス。
  * 当該システムで必要な機能を実装している。
@@ -53,9 +55,6 @@ export class OlMapWrapper {
 
     // 描画用レイヤ
     _drawingLayers: VectorLayer<VectorSource>[] = [];
-
-    // 一時描画レイヤ（呼び出し元が任意の図形を描画する用途）
-    _temporaryLayer: VectorLayer<VectorSource> | undefined = undefined;
 
     constructor(id: string, target: HTMLDivElement, device: Device, gqlClient: Client) {
         this._id = id;
@@ -258,19 +257,11 @@ export class OlMapWrapper {
         }
 
         // 一時レイヤを用意
-        this._temporaryLayer = new VectorLayer<VectorSource>({
-            source: new VectorSource(),
-            zIndex: 50,
-            properties: {
-                type: 'temporary',
-            }
-        });
-        // if (style) {
-        //     layer.setStyle(style);
-        // }
-        this._map.addLayer(this._temporaryLayer);
-
-
+        this.addLayer({
+            dataSourceId: TemporaryPointLayerDatasourceId,
+            editable: false,
+            layerType: LayerType.Point,
+        }, true);
 
         this._map.getView().setMaxZoom(mapKind === MapKind.Virtual ? 10 : 18);
         if (extent) {
@@ -596,9 +587,6 @@ export class OlMapWrapper {
         this._vectorLayerMap.setPointLayerStyle(style);
     }
 
-    setTemporaryLayerStyle(style: StyleFunction) {
-        this._temporaryLayer?.setStyle(style);
-    }
 
     /**
      * TopographyLayer（村マップの地形, RealMapでのポイント以外）のスタイルを設定する

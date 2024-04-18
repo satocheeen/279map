@@ -20,10 +20,8 @@ import { clientAtom } from 'jotai-urql';
 import { ItemInfo } from '../../types/types';
 import { selectItemIdAtom } from '../../store/operation';
 import { dataSourceVisibleAtom, itemDataSourcesAtom } from '../../store/datasource';
-import { UpdateLayerVisibleParam } from './OlMapWrapper';
-import VectorLayer from 'ol/layer/Vector';
-import { createFeatureByGeoJson } from '../../util/MapUtility';
-import { currentDefaultIconAtom } from '../../store/icon';
+import { TemporaryPointLayerDatasourceId, UpdateLayerVisibleParam } from './OlMapWrapper';
+import { FeatureType } from '../../types-common/common-types';
 
 /**
  * Jotaiや呼び出し元から渡されたpropsの変更検知して、地図に対して特定のイベントを実行するコンポーネントもどき
@@ -211,18 +209,12 @@ function useMapStyleUpdater() {
 
     // スタイル設定
     // -- コンテンツ（建物・ポイント）レイヤ
-    const { pointStyleFunction, temporaryPointStyleFunction } = usePointStyle();
+    const { pointStyleFunction } = usePointStyle();
     useEffect(() => {
         if (!map) return;
 
         map.setPointLayerStyle(pointStyleFunction);
     }, [map, pointStyleFunction])
-
-    useEffect(() => {
-        if (!map) return;
-
-        map.setTemporaryLayerStyle(temporaryPointStyleFunction);
-    }, [map, temporaryPointStyleFunction])
 
     // -- コンテンツ（地形）レイヤ
     const { topographyStyleFunction } = useTopographyStyleWithState();
@@ -332,15 +324,28 @@ function useTemporaryFeature() {
  
     useWatch(temporaryFeatures, () => {
         if (!map) return;
-        const source = map._temporaryLayer?.getSource();
+        const source = map.getDataSourceLayers(TemporaryPointLayerDatasourceId)[0]?.getSource();
         if (!source) return;
         
         source.clear();
         if (!temporaryFeatures) return;
-        for (const info of temporaryFeatures) {
-            const feature = createFeatureByGeoJson(info.geoJson);
-            feature.setId(info.id);
-            source.addFeature(feature);
-        }
+        const features = temporaryFeatures.map((tf): ItemInfo => {
+            return {
+                id: {
+                    dataSourceId: TemporaryPointLayerDatasourceId,
+                    id: tf.id,
+                },
+                geometry: tf.geoJson as GeoJSON.Geometry,
+                contents: [],
+                geoProperties: {
+                    featureType: FeatureType.STRUCTURE,
+                },
+                hasContents: false,
+                hasImageContentId: [],
+                lastEditedTime: '',
+                name: '',
+            }
+        })
+        map.addFeatures(features);
     })
 }

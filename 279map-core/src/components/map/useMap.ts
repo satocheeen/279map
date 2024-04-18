@@ -374,27 +374,23 @@ export function useMap() {
             }
     
             const getFeatureFunc = async() => {
-                if (param.target.type === 'item') {
-                    let itemFeature: undefined | Feature<Geometry>;
-                    let retryCnt = 0;
-                    do {
-                        itemFeature = map.getFeatureById(param.target.itemId);
-                        if (!itemFeature) {
-                            // アイテムが存在しない場合は、データロード中の可能性があるので、しばらく待ってからリトライ
-                            retryCnt++;
-                            await sleep(0.5);
-                        } else {
-                            return itemFeature;
-                        }
-                    } while(itemFeature === undefined && retryCnt < 5);
-                    return itemFeature;
-                } else {
-
-                }
+                let itemFeature: undefined | Feature<Geometry>;
+                let retryCnt = 0;
+                do {
+                    itemFeature = map.getFeatureById(param.itemId);
+                    if (!itemFeature) {
+                        // アイテムが存在しない場合は、データロード中の可能性があるので、しばらく待ってからリトライ
+                        retryCnt++;
+                        await sleep(0.5);
+                    } else {
+                        return itemFeature;
+                    }
+                } while(itemFeature === undefined && retryCnt < 5);
+                return itemFeature;
             };
             const itemFeature = await getFeatureFunc();
             if (!itemFeature) {
-                console.warn('focusItem target not found', param.target);
+                console.warn('focusItem target not found', param.itemId);
                 return;
             }
     
@@ -405,8 +401,7 @@ export function useMap() {
                 zoom: param.zoom,
             });
             if (param.select) {
-                // TODO:
-                // set(selectItemIdAtom, param.itemId);
+                set(selectItemIdAtom, param.itemId);
             }
     
         }, [map])

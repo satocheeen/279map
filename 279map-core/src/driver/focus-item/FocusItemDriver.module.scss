@@ -1,0 +1,12 @@
+.Container {
+    display: flex;
+    flex-direction: column;
+
+    textarea {
+        width: 100%;
+    }
+
+    label {
+        user-select: none;
+    }
+}

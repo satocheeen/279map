@@ -27,6 +27,7 @@ import RegistContentDriver from './regist-content/RegistContentDriver';
 import LoadImageDriver from './image/LoadImageDriver';
 import TemporaryFeaturesDriver from './temporary-feature/TemporaryFeaturesDriver';
 import { GeoJsonObject } from 'geojson';
+import FocusItemDriver from './focus-item/FocusItemDriver';
 
 export const DriverContext = React.createContext({
     getMap: () => null as TsunaguMapHandler | null,
@@ -312,6 +313,7 @@ export default function TestMap() {
                     <GetUnlinkedContentDriver />
                     <LinkContentDriver />
                     <TemporaryFeaturesDriver />
+                    <FocusItemDriver />
                 </div>
             </DriverContext.Provider>
 
