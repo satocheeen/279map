@@ -82,7 +82,7 @@ type Mutation {
         name: String
         geometry: Geometry!
         geoProperties: GeoProperties!
-    ): Boolean
+    ): DataId
     
     updateItems (
         targets: [UpdateItemInput!]!

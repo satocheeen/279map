@@ -732,7 +732,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         }
                     ])
 
-                    return true;
+                    return id;
 
                 } catch(e) {    
                     apiLogger.warn('regist-item API error', param, e);
