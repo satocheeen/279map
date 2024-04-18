@@ -1,5 +1,5 @@
 import React, { lazy, Suspense, useCallback, useImperativeHandle, useState } from 'react';
-import { MapMode, TsunaguMapHandler } from '../../types/types';
+import { ItemGeoInfo, MapMode, TsunaguMapHandler } from '../../types/types';
 import EditTopographyInfoController from './draw-controller/topography/EditTopographyInfoController';
 import LoadingOverlay from '../common/spinner/LoadingOverlay';
 import { mapModeAtom } from '../../store/operation';
@@ -33,7 +33,7 @@ type ControllerType = {
 } | {
     type: 'draw-temporary-feature';
     featureType: FeatureType;
-    onCommit: (geometry: GeoJSON.Geometry) => void;
+    onCommit: (geometry: ItemGeoInfo) => void;
     onCancel: () => void;
 }
 export type DrawControllerHandler = Pick<TsunaguMapHandler, 
@@ -58,7 +58,7 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
 
     useImperativeHandle(ref, () => ({
         drawTemporaryFeature(featureType: FeatureType) {
-            return new Promise<GeoJSON.Geometry|null>((resolve) => {
+            return new Promise<ItemGeoInfo|null>((resolve) => {
                 setMapMode(MapMode.Drawing);
                 setController({
                     type: 'draw-temporary-feature',

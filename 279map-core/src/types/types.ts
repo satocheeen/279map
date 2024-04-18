@@ -60,19 +60,21 @@ export type DatasourceVisibleGroup = {
 }
 export type ItemDatasourceVisibleList = (DatasourceVisibleGroup|DatasourceVisible)[];
 
-export type OverrideItem = {
+export type ItemGeoInfo = {
+    geometry: GeoJSON.Geometry;
+    geoProperties: GeoProperties;
+}
+export type OverrideItem = ({
     type: 'new';
     datasourceId: string;
     name: string;
-    geometry: GeoJSON.Geometry;
-    geoProperties: GeoProperties;
-} | {
+} & ItemGeoInfo)
+| ({
     type: 'update';
     id: DataId;
     name?: string;
-    geometry?: GeoJSON.Geometry;
-    geoProperties?: GeoProperties;
-} | {
+} & Partial<ItemGeoInfo>)
+| {
     type: 'delete';
     id: DataId;
 }
@@ -190,7 +192,16 @@ export interface TsunaguMapHandler {
      * @param featureType 
      * @return 一時描画したジオメトリ。ユーザによりキャンセルされた場合は、null
      */
-    drawTemporaryFeature(featureType: FeatureType): Promise<GeoJSON.Geometry|null>;
+    drawTemporaryFeature(featureType: FeatureType): Promise<Omit<ItemGeoInfo,'name'>|null>;
+
+    /**
+     * 指定の図形でアイテム登録する.
+     * 図形未指定の場合は、ユーザにアイテム描画してもらった上で登録する。
+     * @param datasourceId 
+     * @param featureType 
+     * @param attr 
+     */
+    registItem(datasourceId: string, featureType: FeatureType, attr?: {geo?: ItemGeoInfo; name?: string}): Promise<DataId>;
 
     /**
      * start the spte of drawing a structure (or a pin).

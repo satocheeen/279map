@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FeatureType } from '../../../../types-common/common-types';
+import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
 import PromptMessageBox from '../PromptMessageBox';
 import { currentMapKindAtom } from '../../../../store/session';
 import { useAtom } from 'jotai';
@@ -15,11 +15,12 @@ import usePointStyle from '../../usePointStyle';
 import { currentDefaultIconAtom } from '../../../../store/icon';
 import VectorLayer from 'ol/layer/Vector';
 import { createGeoJson } from '../../../../util/MapUtility';
+import { ItemGeoInfo } from '../../../../entry';
 
 type Props = {
     featureType: FeatureType;
     onCancel: () => void;
-    onCommit: (item: GeoJSON.Geometry) => void;
+    onCommit: (item: ItemGeoInfo) => void;
 }
 
 enum Stage {
@@ -160,7 +161,18 @@ export default function DrawTemporaryFeatureController(props: Props) {
             return;
         }
         const geoJson = createGeoJson(drawingFeature.current);
-        props.onCommit(geoJson.geometry);
+        const geoProperties = Object.assign({}, geoJson.properties, {
+            featureType: FeatureType.STRUCTURE,
+            // icon: {
+            //     type: drawingIcon.current?.type,
+            //     id: drawingIcon.current?.id,
+            // },
+        } as GeoProperties);
+
+        props.onCommit({
+            geometry: geoJson.geometry,
+            geoProperties,
+        });
     }, [props]);
 
     return (
