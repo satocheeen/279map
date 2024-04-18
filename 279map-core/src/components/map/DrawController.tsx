@@ -71,14 +71,15 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
                         geometry: geoJson,
                         geoProperties,
                     })
-                    return {
+                    resolve({
                         id: {
                             id,
                             dataSourceId: datasourceId,
                         },
                         geometry: geoJson,
                         geoProperties,
-                    } as TemporaryItemInfo
+                    });
+                    return;
                 }
                 setMapMode(MapMode.Drawing);
                 setController({
