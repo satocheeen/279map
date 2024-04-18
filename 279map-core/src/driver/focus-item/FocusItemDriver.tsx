@@ -8,47 +8,25 @@ type Props = {
 
 export default function FocusItemDriver(props: Props) {
     const { getMap } = useContext(DriverContext);
-    const [ mode, setMode ] = useState<'item'|'temporary'>('item');
     const [ idText, setIdText ] = useState('');
     const [ zoom, setZoom ] = useState(false);
     const [ select, setSelect ] = useState(false);
 
     const handleFocusItem = useCallback(() => {
-        if (mode === 'item') {
-            const itemId = JSON.parse(idText);
-            getMap()?.focusItem({
-                itemId,
-                zoom,
-                select,
-            })
-        } else {
-            getMap()?.focusItem({
-                itemId: {
-                    dataSourceId: '',
-                    id: idText,
-                },
-                zoom,
-                select,
-            })
-        }
-    }, [idText, getMap, mode, select, zoom]);
+        const itemId = JSON.parse(idText);
+        getMap()?.focusItem({
+            itemId,
+            zoom,
+            select,
+        })
+    }, [idText, getMap, select, zoom]);
 
 
     return (
         <div className={mystyles.Container}>
             <div className={styles.PropName}>Focus Item</div>
-            <div>
-                <label>
-                    <input type='radio' name='focus-type' checked={mode==='item'} onChange={()=>setMode('item')}></input>
-                    Item
-                </label>
-                <label>
-                    <input type='radio' name='focus-type' checked={mode==='temporary'} onChange={()=>setMode('temporary')}></input>
-                    Temporary
-                </label>
-            </div>
             <label>
-                ID{mode==='item' ? '(JSON)' : ''}<br/>
+                ID(JSON)<br/>
                 <textarea value={idText} onChange={evt=>setIdText(evt.target.value)} />
             </label>
             <div>
