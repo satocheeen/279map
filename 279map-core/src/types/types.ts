@@ -177,9 +177,10 @@ export interface TsunaguMapHandler {
     /**
      * drawTemporaryFeatureで一時描画したアイテムを正式登録する
      * @param itemId drawTemporaryFeatureで返されたID
+     * @param name アイテム名
      * @return 正式登録されたID
      */
-    registTemporaryItem(itemId: DataId): Promise<DataId>;
+    registTemporaryItem(itemId: DataId, name?: string): Promise<DataId>;
 
     /**
      * start the spte of drawing a structure (or a pin).

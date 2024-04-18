@@ -122,15 +122,16 @@ export default function DatasourceDriver(props: Props) {
         }
     }, [temporaryGeoJsonText])
 
+    const [ temporaryItemName, setTemporaryItemName ] = useState('');
     const handleRegistTemporaryItem = useCallback(async() => {
         try {
             const itemId = JSON.parse(temporaryItemIdText) as DataId;
-            const id = await getMap()?.registTemporaryItem(itemId);
+            const id = await getMap()?.registTemporaryItem(itemId, temporaryItemName);
             addConsole('registTemporaryItem finished.', id)
         } catch(e) {
 
         }
-    }, [getMap, addConsole, temporaryItemIdText])
+    }, [getMap, addConsole, temporaryItemIdText, temporaryItemName])
 
     return (
         <div>
@@ -188,6 +189,10 @@ export default function DatasourceDriver(props: Props) {
                 <label>
                     一時描画ItemID
                     <input type='text' value={temporaryItemIdText} onChange={evt=>setTemporaryItemIdText(evt.target.value)} />
+                </label>
+                <label>
+                    一時描画Item名
+                    <input type='text' value={temporaryItemName} onChange={evt=>setTemporaryItemName(evt.target.value)} />
                 </label>
                 <button onClick={handleRegistTemporaryItem}>registTemporaryItem</button>
             </div>

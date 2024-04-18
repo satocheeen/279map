@@ -14,6 +14,7 @@ let temporaryCount = 0;
 
 type RegistItemParam = {
     datasourceId: string;
+    name?: string;
     geometry: ItemInfo['geometry'];
     geoProperties: ItemInfo['geoProperties'];
 }
@@ -86,6 +87,7 @@ export default function useItemProcess() {
                 retryFlag = false;
                 const result = await gqlClient.mutation(RegistItemDocument, {
                     datasourceId: item.datasourceId,
+                    name: item.name,
                     geometry: item.geometry,
                     geoProperties: item.geoProperties,
                 });
@@ -143,7 +145,7 @@ export default function useItemProcess() {
      * 一時描画状態で登録する。明示的に登録指示するまで、DBには登録されない
      * @return 仮ID
      */
-    const registItemTemporary = useCallback((item: RegistItemParam) => {
+    const registItemTemporary = useCallback((item: Omit<RegistItemParam, 'name'>) => {
         // 仮ID付与
         const processId = `process-${++temporaryCount}`;
 
@@ -166,7 +168,7 @@ export default function useItemProcess() {
     }, [_addItemProcess])
 
     const registTemporaryItemToDB = useAtomCallback(
-        useCallback(async(get, set, itemId: DataId) => {
+        useCallback(async(get, set, itemId: DataId, name?: string) => {
             // temporary状態であることを確認
             const target = get(itemProcessesAtom).find(item => {
                 if (item.status !== 'temporary') return false;
@@ -191,6 +193,7 @@ export default function useItemProcess() {
             // DB登録
             return await _registItemSub({
                 datasourceId: item.id.dataSourceId,
+                name,
                 geometry: item.geometry,
                 geoProperties: item.geoProperties,
             }, item.id.id);
