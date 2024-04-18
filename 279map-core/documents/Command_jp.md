@@ -78,6 +78,14 @@ GeoJson未指定の場合は、ユーザに描画させる。
 | featureType | FeatureType | 描画する地物種別 |
 | geoJson | GeoJson | 描画するジオメトリ。未指定の場合は、ユーザに描画させる。 |
 
+## registTemporaryItem
+drawTemporaryFeatureで一時描画したアイテムを正式登録する
+
+| Name | Type | Description |
+| ---- | ---- | ---- |
+| itemId | DataId | drawTemporaryFeatureで返されたID |
+
+
 ## loadContents
 指定のコンテンツ情報を取得します。
 | Name | Type | Description |
