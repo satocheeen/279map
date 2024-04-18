@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from 'react';
 import styles from '../TestMap.module.scss';
 import myStyles from './DatasourceDriver.module.scss';
-import { Auth, DatasourceKindType, FeatureType, ItemDatasourceVisibleList, MapKind } from '../../entry';
+import { Auth, DataId, DatasourceKindType, FeatureType, ItemDatasourceVisibleList, MapKind } from '../../entry';
 import { DriverContext } from '../TestMap';
 import { useWatch } from '../../util/useWatch2';
 
@@ -15,9 +15,10 @@ type Props = {
  */
 export default function DatasourceDriver(props: Props) {
     const [ changeMode, setChangeMode ] = useState<'every'|'together'>('every')
-    const { itemDatasourcesVisibleList, getMap } = useContext(DriverContext);
+    const { itemDatasourcesVisibleList, getMap, addConsole } = useContext(DriverContext);
     const [ myItemDatasourcesVisibleList, setMyItemDatasourcesVisibleList ] = useState<ItemDatasourceVisibleList>([]);
     const [ temporaryGeoJsonText, setTemporaryGeoJsonText ] = useState('');
+    const [ temporaryItemIdText, setTemporaryItemIdText ] = useState('');
 
     const handleChangeVisible = useCallback((group: string, val: boolean) => {
         if (changeMode === 'every') {
@@ -121,6 +122,16 @@ export default function DatasourceDriver(props: Props) {
         }
     }, [temporaryGeoJsonText])
 
+    const handleRegistTemporaryItem = useCallback(async() => {
+        try {
+            const itemId = JSON.parse(temporaryItemIdText) as DataId;
+            await getMap()?.registTemporaryItem(itemId);
+            addConsole('registTemporaryItem finished.')
+        } catch(e) {
+
+        }
+    }, [getMap, addConsole, temporaryItemIdText])
+
     return (
         <div>
             <div className={styles.PropName}>データソース</div>
@@ -173,6 +184,13 @@ export default function DatasourceDriver(props: Props) {
                 一時描画GeoJson
                 <textarea className={myStyles.GeoJsonTextarea} value={temporaryGeoJsonText} onChange={evt=>setTemporaryGeoJsonText(evt.target.value)} rows={3} />
             </label>
+            <div>
+                <label>
+                    一時描画ItemID
+                    <input type='text' value={temporaryItemIdText} onChange={evt=>setTemporaryItemIdText(evt.target.value)} />
+                </label>
+                <button onClick={handleRegistTemporaryItem}>registTemporaryItem</button>
+            </div>
         </div>
     );
 }

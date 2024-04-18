@@ -16,7 +16,6 @@ import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
 import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, LinkContentDocument, RegistContentDocument, SearchDocument, GetThumbDocument, GetSnsPreviewDocument, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument, UpdateItemsDocument, GetImageDocument, ContentUpdateDocument, Operation } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
-import { useItems } from '../../store/item/useItems';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern } from '../common/confirm/types';
 import dayjs from 'dayjs';
@@ -31,7 +30,7 @@ import useItemProcess from '../../store/item/useItemProcess';
 export type EventControllerHandler = Pick<TsunaguMapHandler, 
     'switchMapKind' | 'focusItem' | 'loadContents' | 'loadContentsInItem' | 'loadImage'
     | 'filter' | 'clearFilter'
-    | 'updateItem'
+    | 'updateItem' | 'registTemporaryItem'
     | 'registContent' | 'updateContent' | 'removeContent'
     | 'linkContent' | 'unlinkContent'
     | 'getSnsPreviewAPI' | 'getUnpointDataAPI'
@@ -79,7 +78,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         return 0;
     }, [mapDefine, contentDatasources]);
 
-    const { updateItems } = useItemProcess();
+    const { updateItems, registTemporaryItemToDB } = useItemProcess();
 
     useImperativeHandle(ref, () => ({
         switchMapKind: loadMap,
@@ -232,6 +231,9 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                     throw new Error(result.error.message);
                 }
             }
+        },
+        async registTemporaryItem(itemId) {
+            await registTemporaryItemToDB(itemId);
         },
         async registContent(param) {
             try {

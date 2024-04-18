@@ -138,7 +138,7 @@ export default function useItemProcess() {
      * 一時描画状態で登録する。明示的に登録指示するまで、DBには登録されない
      * @return 仮ID
      */
-    const registTemporaryItem = useCallback((item: RegistItemParam) => {
+    const registItemTemporary = useCallback((item: RegistItemParam) => {
         // 仮ID付与
         const processId = `process-${++temporaryCount}`;
 
@@ -167,9 +167,9 @@ export default function useItemProcess() {
                 if (item.status !== 'temporary') return false;
                 return isEqualId(item.item.id, itemId)
             });
-            const item = target?.status === 'registing' ? target.item : undefined;
+            const item = target?.status === 'temporary' ? target.item : undefined;
             if (!item) {
-                console.warn('this is not temporary item,', itemId);
+                console.warn('this is not temporary item,', itemId, get(itemProcessesAtom));
                 return;
             }
             // statusを変更する
@@ -290,7 +290,7 @@ export default function useItemProcess() {
         registItem,
         updateItems,
         removeItem,
-        registTemporaryItem,
+        registItemTemporary,
         registTemporaryItemToDB,
         continueProcess,
     }

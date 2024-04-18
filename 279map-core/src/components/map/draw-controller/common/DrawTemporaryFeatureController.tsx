@@ -157,7 +157,7 @@ export default function DrawTemporaryFeatureController(props: Props) {
         }
     }, [props, stage, startDrawing])
 
-    const { registTemporaryItem } = useItemProcess();
+    const { registItemTemporary } = useItemProcess();
     const handleOk = useCallback(() => {
         if (!drawingFeature.current) {
             console.warn('描画アイテムなし');
@@ -168,7 +168,7 @@ export default function DrawTemporaryFeatureController(props: Props) {
             featureType: FeatureType.STRUCTURE,
         } as GeoProperties);
 
-        const id = registTemporaryItem({
+        const id = registItemTemporary({
             datasourceId: props.datasourceId,
             geometry: geoJson.geometry,
             geoProperties,
@@ -181,7 +181,7 @@ export default function DrawTemporaryFeatureController(props: Props) {
             geometry: geoJson.geometry,
             geoProperties,
         })
-    }, [props, registTemporaryItem]);
+    }, [props, registItemTemporary]);
 
     return (
         <PromptMessageBox 

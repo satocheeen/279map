@@ -51,7 +51,7 @@ export type DrawControllerHandler = Pick<TsunaguMapHandler,
 function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler>) {
     const [mapMode, setMapMode] = useAtom(mapModeAtom);
     const [controller, setController] = useState<ControllerType|undefined>();
-    const { registTemporaryItem } = useItemProcess();
+    const { registItemTemporary } = useItemProcess();
 
     const terminate = useCallback(() => {
         setController(undefined);
@@ -66,7 +66,7 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
                         featureType: FeatureType.STRUCTURE,
                     } as GeoProperties;
             
-                    const id = registTemporaryItem({
+                    const id = registItemTemporary({
                         datasourceId,
                         geometry: geoJson,
                         geoProperties,
