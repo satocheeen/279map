@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FeatureType } from '../../../../types-common/common-types';
+import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
 import PromptMessageBox from '../PromptMessageBox';
 import { currentMapKindAtom } from '../../../../store/session';
 import { useAtom } from 'jotai';
@@ -15,11 +15,14 @@ import usePointStyle from '../../usePointStyle';
 import { currentDefaultIconAtom } from '../../../../store/icon';
 import VectorLayer from 'ol/layer/Vector';
 import { createGeoJson } from '../../../../util/MapUtility';
+import { ItemInfo } from '../../../../entry';
+import useItemProcess from '../../../../store/item/useItemProcess';
 
 type Props = {
+    datasourceId: string;
     featureType: FeatureType;
     onCancel: () => void;
-    onCommit: (geometry: GeoJSON.GeoJSON) => void;
+    onCommit: (item: ItemInfo) => void;
 }
 
 enum Stage {
@@ -154,13 +157,35 @@ export default function DrawTemporaryFeatureController(props: Props) {
         }
     }, [props, stage, startDrawing])
 
+    const { registTemporaryItem } = useItemProcess();
     const handleOk = useCallback(() => {
         if (!drawingFeature.current) {
             console.warn('描画アイテムなし');
             return;
         }
         const geoJson = createGeoJson(drawingFeature.current);
-        props.onCommit(geoJson.geometry)
+        const geoProperties = Object.assign({}, geoJson.properties, {
+            featureType: FeatureType.STRUCTURE,
+        } as GeoProperties);
+
+        const id = registTemporaryItem({
+            datasourceId: props.datasourceId,
+            geometry: geoJson.geometry,
+            geoProperties,
+        })
+        props.onCommit({
+            id: {
+                id,
+                dataSourceId: props.datasourceId,
+            },
+            geometry: geoJson.geometry,
+            geoProperties,
+            contents: [],
+            hasContents: false,
+            hasImageContentId: [],
+            lastEditedTime: '',
+            name: '',
+        })
     }, [props]);
 
     return (

@@ -1,4 +1,3 @@
-import { Geometry } from "geojson";
 import { IconDefine, Auth, CategoryDefine, Condition, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, GetUnpointContentsResult, MapDefine, MapKind, SnsPreviewResult, GetItemsQuery, ThumbSize, Operation } from "../graphql/generated/graphql";
 import { ChangeVisibleLayerTarget } from "../store/datasource/useDataSource";
 import { ContentValueMap, DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
@@ -61,10 +60,6 @@ export type DatasourceVisibleGroup = {
 }
 export type ItemDatasourceVisibleList = (DatasourceVisibleGroup|DatasourceVisible)[];
 
-export type TemporaryFeature = {
-    id: string;
-    geoJson: GeoJSON.GeoJSON;
-}
 export type TsunaguMapProps = {
     mapId: string;
     mapServer: {
@@ -89,11 +84,6 @@ export type TsunaguMapProps = {
      */
     filterUnmatchView?: 'hidden' | 'translucent';
 
-    /**
-     * 指定のGeoJsonオブジェクトを一時レイヤに描画して表示する
-     */
-    temporaryFeatures?: TemporaryFeature[];
-    
     onConnect?: (param: OnConnectParam) => Promise<void | OnConnectResult>;
     onMapLoad?: (param: OnMapLoadParam) => Promise<void | OnMapLoadResult>;
     onItemDatasourcesVisibleChanged?: (param: ItemDatasourceVisibleList) => void;
@@ -173,11 +163,14 @@ export interface TsunaguMapHandler {
     clearFilter(): void;
 
     /**
-     * ユーザに指定の種別のFeatureを描画させて、その結果を返す
+     * 渡されたGeoJsonを一時描画する。
+     * GeoJson未指定の場合は、ユーザに描画させる。
+     * @param datasourceId 描画対象のデータソース
      * @param featureType 
-     * @return ユーザが描画したジオメトリ。キャンセルされた場合は、null
+     * @param geoJson 描画するジオメトリ。未指定の場合は、ユーザに描画させる。
+     * @return 一時描画したアイテム情報。ユーザによりキャンセルされた場合は、null
      */
-    drawTemporaryFeature(featureType: FeatureType): Promise<GeoJSON.GeoJSON|null>;
+    drawTemporaryFeature(datasourceId: string, featureType: FeatureType, geoJson?: GeoJSON.GeoJSON): Promise<ItemInfo|null>;
 
     /**
      * start the spte of drawing a structure (or a pin).
@@ -396,5 +389,11 @@ export type NewContentInfoParam = {
 }
 
 export type ItemInfo = Required<OperationResult<GetItemsQuery>>['data']['getItems'][0] & {
-    temporary?: 'registing' | 'updating';
+    /**
+     * DB未登録状態の場合に値設定
+     * - temporary 呼び出し元から渡された値で一時描画したもの
+     * - registing 新規登録処理中
+     * - updating 更新処理中
+     */
+    temporary?: 'temporary' | 'registing' | 'updating';
 };

@@ -68,8 +68,15 @@
 土地情報編集操作を起動します。
 
 ## drawTemporaryFeature
-ユーザに指定の種別のFeatureを描画させて、その結果を返します。
-現状は、Pointのみ対応。
+渡されたGeoJsonを一時描画する。
+GeoJson未指定の場合は、ユーザに描画させる。
+現状は、Structure(Point)のみ対応。
+
+| Name | Type | Description |
+| ---- | ---- | ---- |
+| dataSourceId | string | 描画対象のデータソース |
+| featureType | FeatureType | 描画する地物種別 |
+| geoJson | GeoJson | 描画するジオメトリ。未指定の場合は、ユーザに描画させる。 |
 
 ## loadContents
 指定のコンテンツ情報を取得します。

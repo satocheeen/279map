@@ -40,8 +40,10 @@ export default function useFilterStatus() {
                 return isEqualId(process.item.id, id)
             } else if (process.status === 'updating') {
                 return process.items.some(item => isEqualId(item.id, id));
-            } else {
+            } else if (process.status === 'deleting') {
                 return isEqualId(process.itemId, id)
+            } else {
+                return false;
             }
         })?.error) {
             return ERROR_COLOR;

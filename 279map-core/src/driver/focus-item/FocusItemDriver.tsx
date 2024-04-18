@@ -2,7 +2,6 @@ import React, { useCallback, useContext, useState } from 'react';
 import styles from '../TestMap.module.scss';
 import { DriverContext } from '../TestMap';
 import mystyles from './FocusItemDriver.module.scss';
-import { TemporaryPointLayerDatasourceId } from '../../components/TsunaguMap/OlMapWrapper';
 
 type Props = {
 }
@@ -25,7 +24,7 @@ export default function FocusItemDriver(props: Props) {
         } else {
             getMap()?.focusItem({
                 itemId: {
-                    dataSourceId: TemporaryPointLayerDatasourceId,
+                    dataSourceId: '',
                     id: idText,
                 },
                 zoom,

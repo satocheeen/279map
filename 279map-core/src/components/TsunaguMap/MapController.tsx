@@ -20,7 +20,7 @@ import { clientAtom } from 'jotai-urql';
 import { ItemInfo } from '../../types/types';
 import { selectItemIdAtom } from '../../store/operation';
 import { dataSourceVisibleAtom, itemDataSourcesAtom } from '../../store/datasource';
-import { TemporaryPointLayerDatasourceId, UpdateLayerVisibleParam } from './OlMapWrapper';
+import { UpdateLayerVisibleParam } from './OlMapWrapper';
 import { FeatureType } from '../../types-common/common-types';
 
 /**
@@ -34,7 +34,6 @@ export default function MapController() {
     useLayerVisibleChanger();
     useFocusFilteredArea();
     useDeviceListener();
-    useTemporaryFeature();
 
     return (
         <>
@@ -318,34 +317,34 @@ function useDeviceListener() {
 /**
  * 呼び出し元から渡される一時ジオメトリを描画する
  */
-function useTemporaryFeature() {
-    const { map } = useMap();
-    const { temporaryFeatures } = useContext(OwnerContext);
+// function useTemporaryFeature() {
+//     const { map } = useMap();
+//     const { temporaryFeatures } = useContext(OwnerContext);
  
-    useWatch(temporaryFeatures, () => {
-        if (!map) return;
-        const source = map.getDataSourceLayers(TemporaryPointLayerDatasourceId)[0]?.getSource();
-        if (!source) return;
+//     useWatch(temporaryFeatures, () => {
+//         if (!map) return;
+//         const source = map.getDataSourceLayers(TemporaryPointLayerDatasourceId)[0]?.getSource();
+//         if (!source) return;
         
-        source.clear();
-        if (!temporaryFeatures) return;
-        const features = temporaryFeatures.map((tf): ItemInfo => {
-            return {
-                id: {
-                    dataSourceId: TemporaryPointLayerDatasourceId,
-                    id: tf.id,
-                },
-                geometry: tf.geoJson as GeoJSON.Geometry,
-                contents: [],
-                geoProperties: {
-                    featureType: FeatureType.STRUCTURE,
-                },
-                hasContents: false,
-                hasImageContentId: [],
-                lastEditedTime: '',
-                name: '',
-            }
-        })
-        map.addFeatures(features);
-    })
-}
+//         source.clear();
+//         if (!temporaryFeatures) return;
+//         const features = temporaryFeatures.map((tf): ItemInfo => {
+//             return {
+//                 id: {
+//                     dataSourceId: TemporaryPointLayerDatasourceId,
+//                     id: tf.id,
+//                 },
+//                 geometry: tf.geoJson as GeoJSON.Geometry,
+//                 contents: [],
+//                 geoProperties: {
+//                     featureType: FeatureType.STRUCTURE,
+//                 },
+//                 hasContents: false,
+//                 hasImageContentId: [],
+//                 lastEditedTime: '',
+//                 name: '',
+//             }
+//         })
+//         map.addFeatures(features);
+//     })
+// }

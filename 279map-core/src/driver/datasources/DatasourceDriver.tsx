@@ -174,10 +174,15 @@ type DatasourceItemProp = {
     onChangeVisible: (visible: boolean) => void;
 }
 function DatasourceItem(props: DatasourceItemProp) {
-    const { itemDatasources, authLv, getMap, mapKind } = useContext(DriverContext);
+    const { itemDatasources, authLv, getMap, mapKind, addConsole } = useContext(DriverContext);
     const name = useMemo(() => {
         return itemDatasources.find(ids => ids.datasourceId === props.datasourceId)?.name;
     }, [itemDatasources, props.datasourceId]);
+
+    const handleDrawTemporaryFeature = useCallback(async() => {
+        const result = await getMap()?.drawTemporaryFeature(props.datasourceId, FeatureType.STRUCTURE);
+        addConsole('drawTemporaryFeature', result);
+    }, [getMap, addConsole])
 
     return (
         <label key={props.datasourceId} className={`${props.isChild ? myStyles.Child : ''}`}>
@@ -187,7 +192,10 @@ function DatasourceItem(props: DatasourceItemProp) {
                 <>
                     <button onClick={()=>getMap()?.drawStructure(props.datasourceId)}>建設</button>
                     {mapKind === MapKind.Real ?
-                        <button onClick={()=>getMap()?.drawTopography(props.datasourceId, FeatureType.AREA)}>エリア作成</button>
+                        <>
+                            <button onClick={()=>getMap()?.drawTopography(props.datasourceId, FeatureType.AREA)}>エリア作成</button>
+                            <button onClick={handleDrawTemporaryFeature}>一時描画</button>
+                        </>
                         :
                         <>
                             <button onClick={()=>getMap()?.drawRoad(props.datasourceId)}>道作成</button>

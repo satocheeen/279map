@@ -1,5 +1,5 @@
 import React, { lazy, Suspense, useCallback, useImperativeHandle, useRef, useState } from 'react';
-import { MapMode, TsunaguMapHandler } from '../../types/types';
+import { ItemInfo, MapMode, TsunaguMapHandler } from '../../types/types';
 import EditTopographyInfoController from './draw-controller/topography/EditTopographyInfoController';
 import LoadingOverlay from '../common/spinner/LoadingOverlay';
 import { mapModeAtom } from '../../store/operation';
@@ -31,8 +31,9 @@ type ControllerType = {
     featureTypes: FeatureType[];
 } | {
     type: 'draw-temporary-feature';
+    datasourceId: string;
     featureType: FeatureType;
-    onCommit: (geometry: GeoJSON.GeoJSON) => void;
+    onCommit: (item: ItemInfo) => void;
     onCancel: () => void;
 }
 export type DrawControllerHandler = Pick<TsunaguMapHandler, 
@@ -56,16 +57,17 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
     }, [setMapMode])
 
     useImperativeHandle(ref, () => ({
-        drawTemporaryFeature(featureType: FeatureType) {
-            return new Promise<GeoJSON.GeoJSON|null>((resolve) => {
+        drawTemporaryFeature(datasourceId, featureType, geojson) {
+            return new Promise<ItemInfo | null>((resolve) => {
                 setMapMode(MapMode.Drawing);
                 setController({
                     type: 'draw-temporary-feature',
+                    datasourceId,
                     featureType,
-                    onCommit(geometry) {
+                    onCommit(item) {
                         setController(undefined);
                         setMapMode(MapMode.Normal);
-                        resolve(geometry);
+                        resolve(item);
                     },
                     onCancel() {
                         setController(undefined);
@@ -178,7 +180,8 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
         case 'draw-temporary-feature':
             return (
                 <Suspense fallback={<LoadingOverlay />}>
-                    <DrawTemporaryFeatureController featureType={controller.featureType}
+                    <DrawTemporaryFeatureController
+                        datasourceId={controller.datasourceId} featureType={controller.featureType}
                         onCancel={controller.onCancel} onCommit={controller.onCommit} />
                 </Suspense>
             )

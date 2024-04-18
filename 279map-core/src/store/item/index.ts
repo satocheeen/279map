@@ -2,7 +2,6 @@ import { atom } from 'jotai';
 import { ItemType, ItemInfo } from '../../types/types';
 import { filteredItemsAtom } from '../filter';
 import { DataId } from '../../entry';
-import { visibleDataSourceIdsAtom } from '../datasource';
 import { UpdateItemInput } from '../../graphql/generated/graphql';
 import { isEqualId } from '../../util/dataUtility';
 
@@ -28,7 +27,8 @@ export type ItemProcessType = {
     processId: string;     // 処理ID
     error?: boolean;    // 処理失敗時にtrue
 } & ({
-    status: 'registing';
+    // temporary: 呼び出し元から渡された値で一時描画したもの
+    status: 'registing' | 'temporary';
     item: Pick<ItemInfo, 'id' | 'geometry' | 'geoProperties'>;
 } | {
     status: 'updating';
@@ -45,7 +45,7 @@ export const allItemsAtom = atom<ItemsByDatasourceMap>((get) => {
 
     const result = structuredClone(storedItems);
     itemProcesses.forEach(itemProcess => {
-        if (itemProcess.status === 'registing') {
+        if (itemProcess.status === 'registing' || itemProcess.status === 'temporary') {
             const item: ItemInfo = {
                 id: itemProcess.item.id,
                 geometry: itemProcess.item.geometry,
@@ -55,7 +55,7 @@ export const allItemsAtom = atom<ItemsByDatasourceMap>((get) => {
                 hasContents: false,
                 hasImageContentId: [],
                 lastEditedTime: '',
-                temporary: 'registing',
+                temporary: itemProcess.status,
             }
             if (!result[itemProcess.item.id.dataSourceId]) {
                 result[itemProcess.item.id.dataSourceId] = {};

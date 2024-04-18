@@ -38,7 +38,7 @@ type Device = 'pc' | 'sp';
 const pcControls = olControl.defaults({attribution: true, zoom: false});
 const spControls = olControl.defaults({attribution: true, zoom: false});
 
-export const TemporaryPointLayerDatasourceId = 'temporary-point';
+// export const TemporaryPointLayerDatasourceId = 'temporary-point';
 
 /**
  * OpenLayersの地図を内包したクラス。
@@ -256,12 +256,12 @@ export class OlMapWrapper {
 
         }
 
-        // 一時レイヤを用意
-        this.addLayer({
-            dataSourceId: TemporaryPointLayerDatasourceId,
-            editable: false,
-            layerType: LayerType.Point,
-        }, true);
+        // // 一時レイヤを用意
+        // this.addLayer({
+        //     dataSourceId: TemporaryPointLayerDatasourceId,
+        //     editable: false,
+        //     layerType: LayerType.Point,
+        // }, true);
 
         this._map.getView().setMaxZoom(mapKind === MapKind.Virtual ? 10 : 18);
         if (extent) {

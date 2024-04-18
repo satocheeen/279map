@@ -127,6 +127,32 @@ export default function useItemProcess() {
         }, [_addItemProcess, _removeItemProcess, _setErrorWithTemporaryItem])
     )
 
+    /**
+     * 一時描画状態で登録する。明示的に登録指示するまで、DBには登録されない
+     * @return 仮ID
+     */
+    const registTemporaryItem = useCallback((item: RegistItemParam) => {
+        // 仮ID付与
+        const processId = `process-${++temporaryCount}`;
+
+        // 仮アイテム登録
+        _addItemProcess({
+            processId,
+            item: {
+                id: {
+                    id: processId,
+                    dataSourceId: item.datasourceId,
+                },
+                geometry: item.geometry,
+                geoProperties: item.geoProperties,
+            },
+            status: 'temporary',
+        });
+
+        return processId;
+
+    }, [_addItemProcess])
+
     const updateItems = useAtomCallback(
         useCallback(async(get, set, items: UpdateItemInput[]) => {
             // ID付与
@@ -224,6 +250,7 @@ export default function useItemProcess() {
         registItem,
         updateItems,
         removeItem,
+        registTemporaryItem,
         continueProcess,
     }
 }
