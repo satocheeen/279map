@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from 'react';
 import styles from '../TestMap.module.scss';
 import myStyles from './DatasourceDriver.module.scss';
-import { Auth, FeatureType, ItemDatasourceVisibleList, MapKind } from '../../entry';
+import { Auth, DatasourceKindType, FeatureType, ItemDatasourceVisibleList, MapKind } from '../../entry';
 import { DriverContext } from '../TestMap';
 import { useWatch } from '../../util/useWatch2';
 
@@ -17,6 +17,7 @@ export default function DatasourceDriver(props: Props) {
     const [ changeMode, setChangeMode ] = useState<'every'|'together'>('every')
     const { itemDatasourcesVisibleList, getMap } = useContext(DriverContext);
     const [ myItemDatasourcesVisibleList, setMyItemDatasourcesVisibleList ] = useState<ItemDatasourceVisibleList>([]);
+    const [ temporaryGeoJsonText, setTemporaryGeoJsonText ] = useState('');
 
     const handleChangeVisible = useCallback((group: string, val: boolean) => {
         if (changeMode === 'every') {
@@ -112,7 +113,13 @@ export default function DatasourceDriver(props: Props) {
             setMyItemDatasourcesVisibleList(itemDatasourcesVisibleList);
     }, {immediate: true})
 
-    console.log('myItemDatasourcesVisibleList', myItemDatasourcesVisibleList)
+    const temporaryGeoJson = useMemo(() => {
+        try {
+            return JSON.parse(temporaryGeoJsonText) as GeoJSON.Geometry;
+        } catch(e) {
+            return;
+        }
+    }, [temporaryGeoJsonText])
 
     return (
         <div>
@@ -127,6 +134,7 @@ export default function DatasourceDriver(props: Props) {
                 <input type='radio' checked={changeMode==='together'} onChange={()=>setChangeMode('together')} />
                     一括
                 </label>
+                <button disabled={changeMode==='every'} onClick={handleTogetherChange}>切替え</button>
             </div>
             <div className={myStyles.List}>
                 {myItemDatasourcesVisibleList.map(item => {
@@ -144,6 +152,7 @@ export default function DatasourceDriver(props: Props) {
                                         datasourceId={ds.datasourceId}
                                         visible={ds.visible}
                                         isChild
+                                        temporaryGeoJson={temporaryGeoJson}
                                         onChangeVisible={(val)=>handleChangeDatasourceVisible(item.groupName, ds.datasourceId, val)}
                                     />
                                 )
@@ -154,14 +163,16 @@ export default function DatasourceDriver(props: Props) {
                             key={item.datasourceId}
                             datasourceId={item.datasourceId}
                             visible={item.visible}
+                            temporaryGeoJson={temporaryGeoJson}
                             onChangeVisible={(val)=>handleChangeDatasourceVisible(undefined, item.datasourceId, val)}
                             />
                     )
                 })}
             </div>
-
-            <button disabled={changeMode==='every'} onClick={handleTogetherChange}>切替え</button>
-
+            <label>
+                一時描画GeoJson
+                <textarea className={myStyles.GeoJsonTextarea} value={temporaryGeoJsonText} onChange={evt=>setTemporaryGeoJsonText(evt.target.value)} rows={3} />
+            </label>
         </div>
     );
 }
@@ -170,19 +181,25 @@ type DatasourceItemProp = {
     datasourceId: string;
     visible: boolean;
     isChild?: boolean;
+    temporaryGeoJson?: GeoJSON.Geometry;
 
     onChangeVisible: (visible: boolean) => void;
 }
 function DatasourceItem(props: DatasourceItemProp) {
     const { itemDatasources, authLv, getMap, mapKind, addConsole } = useContext(DriverContext);
-    const name = useMemo(() => {
-        return itemDatasources.find(ids => ids.datasourceId === props.datasourceId)?.name;
+
+    const targetDatasource = useMemo(() => {
+        return itemDatasources.find(ids => ids.datasourceId === props.datasourceId);
     }, [itemDatasources, props.datasourceId]);
 
+    const name = useMemo(() => {
+        return targetDatasource?.name;
+    }, [targetDatasource]);
+
     const handleDrawTemporaryFeature = useCallback(async() => {
-        const result = await getMap()?.drawTemporaryFeature(props.datasourceId, FeatureType.STRUCTURE);
+        const result = await getMap()?.drawTemporaryFeature(props.datasourceId, FeatureType.STRUCTURE, props.temporaryGeoJson);
         addConsole('drawTemporaryFeature', result);
-    }, [getMap, addConsole])
+    }, [getMap, addConsole, props.temporaryGeoJson, props.datasourceId])
 
     return (
         <label key={props.datasourceId} className={`${props.isChild ? myStyles.Child : ''}`}>
@@ -194,7 +211,9 @@ function DatasourceItem(props: DatasourceItemProp) {
                     {mapKind === MapKind.Real ?
                         <>
                             <button onClick={()=>getMap()?.drawTopography(props.datasourceId, FeatureType.AREA)}>エリア作成</button>
-                            <button onClick={handleDrawTemporaryFeature}>一時描画</button>
+                            {targetDatasource?.config.kind === DatasourceKindType.RealPointContent &&
+                                <button onClick={handleDrawTemporaryFeature}>一時描画</button>
+                            }
                         </>
                         :
                         <>

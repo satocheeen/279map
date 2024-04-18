@@ -77,28 +77,8 @@ export default function useItemProcess() {
         }, [])
     )
 
-    /**
-     * アイテム登録処理
-     */
-    const registItem = useAtomCallback(
-        useCallback(async(get, set, item: RegistItemParam) => {
-            // ID付与
-            const processId = `process-${++temporaryCount}`;
-
-            // 登録完了までの仮アイテム登録
-            _addItemProcess({
-                processId,
-                item: {
-                    id: {
-                        id: processId,
-                        dataSourceId: item.datasourceId,
-                    },
-                    geometry: item.geometry,
-                    geoProperties: item.geoProperties,
-                },
-                status: 'registing',
-            });
-
+    const _registItemSub = useAtomCallback(
+        useCallback(async(get, set, item: RegistItemParam, processId: string) => {
             const gqlClient = get(clientAtom);
             let retryFlag = false;
             do {
@@ -124,7 +104,34 @@ export default function useItemProcess() {
                 _removeItemProcess(processId);
             }, 500)
 
-        }, [_addItemProcess, _removeItemProcess, _setErrorWithTemporaryItem])
+        }, [_setErrorWithTemporaryItem, _removeItemProcess])
+    )
+
+    /**
+     * アイテム登録処理
+     */
+    const registItem = useAtomCallback(
+        useCallback(async(get, set, item: RegistItemParam) => {
+            // ID付与
+            const processId = `process-${++temporaryCount}`;
+
+            // 登録完了までの仮アイテム登録
+            _addItemProcess({
+                processId,
+                item: {
+                    id: {
+                        id: processId,
+                        dataSourceId: item.datasourceId,
+                    },
+                    geometry: item.geometry,
+                    geoProperties: item.geoProperties,
+                },
+                status: 'registing',
+            });
+
+            await _registItemSub(item, processId);
+
+        }, [_addItemProcess, _registItemSub])
     )
 
     /**
@@ -152,6 +159,39 @@ export default function useItemProcess() {
         return processId;
 
     }, [_addItemProcess])
+
+    const registTemporaryItemToDB = useAtomCallback(
+        useCallback(async(get, set, itemId: DataId) => {
+            // temporary状態であることを確認
+            const target = get(itemProcessesAtom).find(item => {
+                if (item.status !== 'temporary') return false;
+                return isEqualId(item.item.id, itemId)
+            });
+            const item = target?.status === 'registing' ? target.item : undefined;
+            if (!item) {
+                console.warn('this is not temporary item,', itemId);
+                return;
+            }
+            // statusを変更する
+            set(itemProcessesAtom, (cur) => {
+                return cur.map(item => {
+                    if (item.status !== 'temporary') return item;
+                    if (!isEqualId(item.item.id, itemId)) return item;
+                    const newItem = structuredClone(item);
+                    newItem.status = 'registing';
+                    return newItem;
+                })
+            })
+
+            // DB登録
+            await _registItemSub({
+                datasourceId: item.id.dataSourceId,
+                geometry: item.geometry,
+                geoProperties: item.geoProperties,
+            }, item.id.id);
+
+        }, [_registItemSub])
+    )
 
     const updateItems = useAtomCallback(
         useCallback(async(get, set, items: UpdateItemInput[]) => {
@@ -251,6 +291,7 @@ export default function useItemProcess() {
         updateItems,
         removeItem,
         registTemporaryItem,
+        registTemporaryItemToDB,
         continueProcess,
     }
 }

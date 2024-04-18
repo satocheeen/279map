@@ -15,14 +15,14 @@ import usePointStyle from '../../usePointStyle';
 import { currentDefaultIconAtom } from '../../../../store/icon';
 import VectorLayer from 'ol/layer/Vector';
 import { createGeoJson } from '../../../../util/MapUtility';
-import { ItemInfo } from '../../../../entry';
+import { TemporaryItemInfo } from '../../../../entry';
 import useItemProcess from '../../../../store/item/useItemProcess';
 
 type Props = {
     datasourceId: string;
     featureType: FeatureType;
     onCancel: () => void;
-    onCommit: (item: ItemInfo) => void;
+    onCommit: (item: TemporaryItemInfo) => void;
 }
 
 enum Stage {
@@ -180,13 +180,8 @@ export default function DrawTemporaryFeatureController(props: Props) {
             },
             geometry: geoJson.geometry,
             geoProperties,
-            contents: [],
-            hasContents: false,
-            hasImageContentId: [],
-            lastEditedTime: '',
-            name: '',
         })
-    }, [props]);
+    }, [props, registTemporaryItem]);
 
     return (
         <PromptMessageBox 

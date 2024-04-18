@@ -1,11 +1,12 @@
-import React, { lazy, Suspense, useCallback, useImperativeHandle, useRef, useState } from 'react';
-import { ItemInfo, MapMode, TsunaguMapHandler } from '../../types/types';
+import React, { lazy, Suspense, useCallback, useImperativeHandle, useState } from 'react';
+import { MapMode, TemporaryItemInfo, TsunaguMapHandler } from '../../types/types';
 import EditTopographyInfoController from './draw-controller/topography/EditTopographyInfoController';
 import LoadingOverlay from '../common/spinner/LoadingOverlay';
 import { mapModeAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
-import { FeatureType } from '../../types-common/common-types';
+import { FeatureType, GeoProperties } from '../../types-common/common-types';
 import DrawTemporaryFeatureController from './draw-controller/common/DrawTemporaryFeatureController';
+import useItemProcess from '../../store/item/useItemProcess';
 
 const DrawStructureController = lazy(() => import('./draw-controller/structure/DrawStructureController'));
 const MoveItemController = lazy(() => import('./draw-controller/structure/MoveItemController'));
@@ -33,7 +34,7 @@ type ControllerType = {
     type: 'draw-temporary-feature';
     datasourceId: string;
     featureType: FeatureType;
-    onCommit: (item: ItemInfo) => void;
+    onCommit: (item: TemporaryItemInfo) => void;
     onCancel: () => void;
 }
 export type DrawControllerHandler = Pick<TsunaguMapHandler, 
@@ -50,6 +51,7 @@ export type DrawControllerHandler = Pick<TsunaguMapHandler,
 function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler>) {
     const [mapMode, setMapMode] = useAtom(mapModeAtom);
     const [controller, setController] = useState<ControllerType|undefined>();
+    const { registTemporaryItem } = useItemProcess();
 
     const terminate = useCallback(() => {
         setController(undefined);
@@ -57,8 +59,27 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
     }, [setMapMode])
 
     useImperativeHandle(ref, () => ({
-        drawTemporaryFeature(datasourceId, featureType, geojson) {
-            return new Promise<ItemInfo | null>((resolve) => {
+        drawTemporaryFeature(datasourceId, featureType, geoJson) {
+            return new Promise<TemporaryItemInfo | null>((resolve) => {
+                if (geoJson) {
+                    const geoProperties = {
+                        featureType: FeatureType.STRUCTURE,
+                    } as GeoProperties;
+            
+                    const id = registTemporaryItem({
+                        datasourceId,
+                        geometry: geoJson,
+                        geoProperties,
+                    })
+                    return {
+                        id: {
+                            id,
+                            dataSourceId: datasourceId,
+                        },
+                        geometry: geoJson,
+                        geoProperties,
+                    } as TemporaryItemInfo
+                }
                 setMapMode(MapMode.Drawing);
                 setController({
                     type: 'draw-temporary-feature',
