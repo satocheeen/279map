@@ -102,6 +102,20 @@ export const allItemsAtom = atom<ItemsByDatasourceMap>((get) => {
             }
             result[overrideItem.datasourceId][id] = item;
 
+        } else if (overrideItem.type === 'update') {
+            const target = result[overrideItem.id.dataSourceId][overrideItem.id.id];
+            if (overrideItem.geometry) {
+                target.geometry = overrideItem.geometry;
+            }
+            if (overrideItem.geoProperties) {
+                target.geoProperties = overrideItem.geoProperties;
+            }
+            if (overrideItem.name) {
+                target.name = overrideItem.name;
+            }
+
+        } else if (overrideItem.type === 'delete') {
+            delete result[overrideItem.id.dataSourceId][overrideItem.id.id];
         }
     })
 

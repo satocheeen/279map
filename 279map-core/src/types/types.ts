@@ -69,9 +69,9 @@ export type OverrideItem = {
 } | {
     type: 'update';
     id: DataId;
-    name: string;
-    geometry: GeoJSON.Geometry;
-    geoProperties: GeoProperties;
+    name?: string;
+    geometry?: GeoJSON.Geometry;
+    geoProperties?: GeoProperties;
 } | {
     type: 'delete';
     id: DataId;

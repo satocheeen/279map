@@ -12,6 +12,7 @@
 | popupMode | 'hidden' 'minimum' 'maximum' | | ポップアップの表示方式を指定してください。未指定時は'maximum'が設定されます。 |
 | disabledLabel | boolean | | trueを指定すると、地図上のアイテムの名前が非表示になります |
 | disabledContentDialog | boolean | | trueを指定すると、地図上でアイテムを選択しても詳細ダイアログは表示されません |
+| overrideItems | OverrideItem[] | | 地図上に表示するアイテム情報を上書きします |
 | onConnect | (param: [OnConnectParam](#onconnectparam)) => Promise<void\|[OnConnectResult](#onconnectresult)> | | 地図への接続が成功した際のコールバック |
 | onMapLoad | (param: [OnMapLoadParam](#onmaploadparam)) => void | | 地図がロードされた際のコールバック |
 | onSelect | (targets: DataId[]) => void | | 地図上のアイテムが選択された際のコールバック。選択解除された場合は、0個のtargetsを返す |
