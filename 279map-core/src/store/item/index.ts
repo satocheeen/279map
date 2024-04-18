@@ -1,7 +1,7 @@
 import { atom } from 'jotai';
-import { ItemType, ItemInfo } from '../../types/types';
+import { ItemType, ItemInfo, OverrideItem } from '../../types/types';
 import { filteredItemsAtom } from '../filter';
-import { DataId } from '../../entry';
+import { DataId, FeatureType } from '../../entry';
 import { UpdateItemInput } from '../../graphql/generated/graphql';
 import { isEqualId } from '../../util/dataUtility';
 
@@ -21,14 +21,15 @@ export type ItemsByDatasourceMap = {[dsId: string]: ItemsMap};
 
 // バックエンドから取得したアイテム情報
 export const storedItemsAtom = atom({} as ItemsByDatasourceMap);
+// 呼び出し元から渡された上書きアイテム情報
+export const overrideItemsAtom = atom<OverrideItem[]>([]);
 
 // 登録・更新・削除処理中のアイテム
 export type ItemProcessType = {
     processId: string;     // 処理ID
     error?: boolean;    // 処理失敗時にtrue
 } & ({
-    // temporary: 呼び出し元から渡された値で一時描画したもの
-    status: 'registing' | 'temporary';
+    status: 'registing';
     item: Pick<ItemInfo, 'id' | 'geometry' | 'geoProperties'>;
 } | {
     status: 'updating';
@@ -45,7 +46,7 @@ export const allItemsAtom = atom<ItemsByDatasourceMap>((get) => {
 
     const result = structuredClone(storedItems);
     itemProcesses.forEach(itemProcess => {
-        if (itemProcess.status === 'registing' || itemProcess.status === 'temporary') {
+        if (itemProcess.status === 'registing') {
             const item: ItemInfo = {
                 id: itemProcess.item.id,
                 geometry: itemProcess.item.geometry,
@@ -77,6 +78,30 @@ export const allItemsAtom = atom<ItemsByDatasourceMap>((get) => {
                     delete result[itemProcess.itemId.dataSourceId][itemProcess.itemId.id];
                 }
             }
+        }
+    })
+    const overrideItems = get(overrideItemsAtom);
+    overrideItems.forEach((overrideItem, index) => {
+        if (overrideItem.type === 'new') {
+            const id = `override-${index}`;
+            const item: ItemInfo = {
+                id: {
+                    id,
+                    dataSourceId: overrideItem.datasourceId,
+                },
+                geometry: overrideItem.geometry,
+                geoProperties: overrideItem.geoProperties,
+                name: overrideItem.name,
+                contents: [],
+                hasContents: false,
+                hasImageContentId: [],
+                lastEditedTime: '',
+            }
+            if (!result[overrideItem.datasourceId]) {
+                result[overrideItem.datasourceId] = {};
+            }
+            result[overrideItem.datasourceId][id] = item;
+
         }
     })
 

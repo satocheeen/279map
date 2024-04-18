@@ -141,66 +141,6 @@ export default function useItemProcess() {
         }, [_addItemProcess, _registItemSub])
     )
 
-    /**
-     * 一時描画状態で登録する。明示的に登録指示するまで、DBには登録されない
-     * @return 仮ID
-     */
-    const registItemTemporary = useCallback((item: Omit<RegistItemParam, 'name'>) => {
-        // 仮ID付与
-        const processId = `process-${++temporaryCount}`;
-
-        // 仮アイテム登録
-        _addItemProcess({
-            processId,
-            item: {
-                id: {
-                    id: processId,
-                    dataSourceId: item.datasourceId,
-                },
-                geometry: item.geometry,
-                geoProperties: item.geoProperties,
-            },
-            status: 'temporary',
-        });
-
-        return processId;
-
-    }, [_addItemProcess])
-
-    const registTemporaryItemToDB = useAtomCallback(
-        useCallback(async(get, set, itemId: DataId, name?: string) => {
-            // temporary状態であることを確認
-            const target = get(itemProcessesAtom).find(item => {
-                if (item.status !== 'temporary') return false;
-                return isEqualId(item.item.id, itemId)
-            });
-            const item = target?.status === 'temporary' ? target.item : undefined;
-            if (!item) {
-                console.warn('this is not temporary item,', itemId, get(itemProcessesAtom));
-                return;
-            }
-            // statusを変更する
-            set(itemProcessesAtom, (cur) => {
-                return cur.map(item => {
-                    if (item.status !== 'temporary') return item;
-                    if (!isEqualId(item.item.id, itemId)) return item;
-                    const newItem = structuredClone(item);
-                    newItem.status = 'registing';
-                    return newItem;
-                })
-            })
-
-            // DB登録
-            return await _registItemSub({
-                datasourceId: item.id.dataSourceId,
-                name,
-                geometry: item.geometry,
-                geoProperties: item.geoProperties,
-            }, item.id.id);
-
-        }, [_registItemSub])
-    )
-
     const updateItems = useAtomCallback(
         useCallback(async(get, set, items: UpdateItemInput[]) => {
             // ID付与
@@ -298,8 +238,6 @@ export default function useItemProcess() {
         registItem,
         updateItems,
         removeItem,
-        registItemTemporary,
-        registTemporaryItemToDB,
         continueProcess,
     }
 }

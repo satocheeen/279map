@@ -50,7 +50,6 @@ export type DrawControllerHandler = Pick<TsunaguMapHandler,
 function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler>) {
     const [mapMode, setMapMode] = useAtom(mapModeAtom);
     const [controller, setController] = useState<ControllerType|undefined>();
-    const { registItemTemporary } = useItemProcess();
 
     const terminate = useCallback(() => {
         setController(undefined);

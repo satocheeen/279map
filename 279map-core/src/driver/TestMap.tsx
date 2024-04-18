@@ -9,6 +9,7 @@ import type {
     ItemDatasourceVisibleList,
     OnConnectResult,
     OnMapLoadResult,
+    OverrideItem,
 } from '../entry';
 import { Auth, MapKind, getAccessableMapList } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
@@ -26,6 +27,7 @@ import BasicSettingDriver from './basic-settings/BasicSettingDriver';
 import RegistContentDriver from './regist-content/RegistContentDriver';
 import LoadImageDriver from './image/LoadImageDriver';
 import FocusItemDriver from './focus-item/FocusItemDriver';
+import OverrideItemsDriver from './override-items/OverrideItemsDriver';
 
 export const DriverContext = React.createContext({
     getMap: () => null as TsunaguMapHandler | null,
@@ -43,6 +45,8 @@ export const DriverContext = React.createContext({
 
     setPopupMode: (val: TsunaguMapProps['popupMode']) => {},
     setDisableLabel: (val: boolean) => {},
+
+    setOverrideItems: (val: OverrideItem[] | undefined) => {},
 })
 const iconDefine: TsunaguMapProps['iconDefine'] = [
     // id=default指定すると、defaultアイコンを差し替えられる
@@ -91,6 +95,7 @@ export default function TestMap() {
     const [ cnt, setCnt ] = useState(0);
     const [ mapId, setMapId ] = useState<string|undefined>();
     const [ defaultMapKind, setDefaultMapKind ] = useState<MapKind|undefined>();
+    const [ overriderItems, setOverrideItems ] = useState<OverrideItem[]|undefined>();
 
     const handleMapShow = useCallback((mapId: string, mapKind?: MapKind) => {
         console.log('handleMapShow', mapId, mapKind)
@@ -256,6 +261,7 @@ export default function TestMap() {
                         popupMode={popupMode}
                         disabledLabel={disabledLabel}
                         filterUnmatchView={filterUnmatchView}
+                        overrideItems={overriderItems}
                         onConnect={onConnect}
                         onMapLoad={onMapLoad}
                         onItemDatasourcesVisibleChanged={handleItemDataSourceVisibleChanged}
@@ -286,6 +292,7 @@ export default function TestMap() {
                     setFilterUnmatchView,
                     setPopupMode,
                     setDisableLabel,
+                    setOverrideItems,
                 }}
             >
                 <div className={styles.WithoutMapArea}>
@@ -306,6 +313,7 @@ export default function TestMap() {
                     <GetUnlinkedContentDriver />
                     <LinkContentDriver />
                     <FocusItemDriver />
+                    <OverrideItemsDriver />
                 </div>
             </DriverContext.Provider>
 

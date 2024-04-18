@@ -11,7 +11,7 @@ import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { TsunaguMapHandler, LoadContentsResult } from '../../types/types';
 import { useAtom } from 'jotai';
 import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
-import { allItemContentListAtom } from '../../store/item';
+import { allItemContentListAtom, overrideItemsAtom } from '../../store/item';
 import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
 import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, LinkContentDocument, RegistContentDocument, SearchDocument, GetThumbDocument, GetSnsPreviewDocument, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument, UpdateItemsDocument, GetImageDocument, ContentUpdateDocument, Operation } from '../../graphql/generated/graphql';
@@ -20,6 +20,7 @@ import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern } from '../common/confirm/types';
 import dayjs from 'dayjs';
 import useItemProcess from '../../store/item/useItemProcess';
+import { useAtomCallback } from 'jotai/utils';
 
 /**
  * 呼び出し元とイベント連携するためのコンポーネントもどき。
@@ -30,7 +31,7 @@ import useItemProcess from '../../store/item/useItemProcess';
 export type EventControllerHandler = Pick<TsunaguMapHandler, 
     'switchMapKind' | 'focusItem' | 'loadContents' | 'loadContentsInItem' | 'loadImage'
     | 'filter' | 'clearFilter'
-    | 'updateItem' | 'registTemporaryItem'
+    | 'updateItem'
     | 'registContent' | 'updateContent' | 'removeContent'
     | 'linkContent' | 'unlinkContent'
     | 'getSnsPreviewAPI' | 'getUnpointDataAPI'
@@ -49,6 +50,15 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
     const [ mapDefine ] = useAtom(mapDefineAtom);
     const [ , setSelectItemId ] = useAtom(selectItemIdAtom);
     const [ contentDatasources ] = useAtom(contentDataSourcesAtom);
+    const { overrideItems } = useContext(OwnerContext);
+
+    useWatch(overrideItems, 
+        useAtomCallback(
+            useCallback((get, set, oldVal, newVal) => {
+                set(overrideItemsAtom, newVal ?? [])
+            }, [])
+        )
+    , { immediate: true })
 
     /**
      * コンテンツ用comparator
@@ -78,7 +88,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         return 0;
     }, [mapDefine, contentDatasources]);
 
-    const { updateItems, registTemporaryItemToDB } = useItemProcess();
+    const { updateItems } = useItemProcess();
 
     useImperativeHandle(ref, () => ({
         switchMapKind: loadMap,
@@ -231,13 +241,6 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                     throw new Error(result.error.message);
                 }
             }
-        },
-        async registTemporaryItem(itemId, name) {
-            const id = await registTemporaryItemToDB(itemId, name);
-            if (!id) {
-                throw new Error('registTemporaryItemToDB failed');
-            }
-            return id;
         },
         async registContent(param) {
             try {

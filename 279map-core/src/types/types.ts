@@ -60,6 +60,22 @@ export type DatasourceVisibleGroup = {
 }
 export type ItemDatasourceVisibleList = (DatasourceVisibleGroup|DatasourceVisible)[];
 
+export type OverrideItem = {
+    type: 'new';
+    datasourceId: string;
+    name: string;
+    geometry: GeoJSON.Geometry;
+    geoProperties: GeoProperties;
+} | {
+    type: 'update';
+    id: DataId;
+    name: string;
+    geometry: GeoJSON.Geometry;
+    geoProperties: GeoProperties;
+} | {
+    type: 'delete';
+    id: DataId;
+}
 export type TsunaguMapProps = {
     mapId: string;
     mapServer: {
@@ -83,6 +99,11 @@ export type TsunaguMapProps = {
      * translucent => 半透明 default
      */
     filterUnmatchView?: 'hidden' | 'translucent';
+
+    /**
+     * アイテムを上書き表示する
+     */
+    overrideItems?: OverrideItem[];
 
     onConnect?: (param: OnConnectParam) => Promise<void | OnConnectResult>;
     onMapLoad?: (param: OnMapLoadParam) => Promise<void | OnMapLoadResult>;
@@ -170,14 +191,6 @@ export interface TsunaguMapHandler {
      * @return 一時描画したジオメトリ。ユーザによりキャンセルされた場合は、null
      */
     drawTemporaryFeature(featureType: FeatureType): Promise<GeoJSON.Geometry|null>;
-
-    /**
-     * drawTemporaryFeatureで一時描画したアイテムを正式登録する
-     * @param itemId drawTemporaryFeatureで返されたID
-     * @param name アイテム名
-     * @return 正式登録されたID
-     */
-    registTemporaryItem(itemId: DataId, name?: string): Promise<DataId>;
 
     /**
      * start the spte of drawing a structure (or a pin).
@@ -402,5 +415,5 @@ export type ItemInfo = Omit<Required<OperationResult<GetItemsQuery>>['data']['ge
      * - registing 新規登録処理中
      * - updating 更新処理中
      */
-    temporary?: 'temporary' | 'registing' | 'updating';
+    temporary?: 'registing' | 'updating';
 };

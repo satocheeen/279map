@@ -123,21 +123,15 @@ export default function DatasourceDriver(props: Props) {
     }, [temporaryGeoJsonText])
 
     const [ temporaryItemName, setTemporaryItemName ] = useState('');
-    const handleRegistTemporaryItem = useCallback(async() => {
-        try {
-            const itemId = JSON.parse(temporaryItemIdText) as DataId;
-            const id = await getMap()?.registTemporaryItem(itemId, temporaryItemName);
-            addConsole('registTemporaryItem finished.', id)
-        } catch(e) {
+    // const handleRegistTemporaryItem = useCallback(async() => {
+    //     try {
+    //         const itemId = JSON.parse(temporaryItemIdText) as DataId;
+    //         const id = await getMap()?.registTemporaryItem(itemId, temporaryItemName);
+    //         addConsole('registTemporaryItem finished.', id)
+    //     } catch(e) {
 
-        }
-    }, [getMap, addConsole, temporaryItemIdText, temporaryItemName])
-
-    const handleDrawTemporaryFeature = useCallback(async() => {
-        const result = await getMap()?.drawTemporaryFeature(FeatureType.STRUCTURE);
-        addConsole('drawTemporaryFeature', result);
-    }, [getMap, addConsole])
-
+    //     }
+    // }, [getMap, addConsole, temporaryItemIdText, temporaryItemName])
 
     return (
         <div>
@@ -185,9 +179,6 @@ export default function DatasourceDriver(props: Props) {
                     )
                 })}
             </div>
-            <div>
-                <button onClick={handleDrawTemporaryFeature}>drawTemporaryFeature</button>
-            </div>
             <label>
                 登録時指定GeoJson
                 <textarea className={myStyles.GeoJsonTextarea} value={temporaryGeoJsonText} onChange={evt=>setTemporaryGeoJsonText(evt.target.value)} rows={3} />
@@ -201,7 +192,7 @@ export default function DatasourceDriver(props: Props) {
                     一時描画Item名
                     <input type='text' value={temporaryItemName} onChange={evt=>setTemporaryItemName(evt.target.value)} />
                 </label>
-                <button onClick={handleRegistTemporaryItem}>registTemporaryItem</button>
+                {/* <button onClick={handleRegistTemporaryItem}>registTemporaryItem</button> */}
             </div>
         </div>
     );

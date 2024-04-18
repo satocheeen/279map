@@ -31,7 +31,7 @@ export default function ProcessOverlay() {
      * スピナー表示するかどうか
      */
     const isShowSpinner = useMemo(() => {
-        if (itemProcesses.filter(ip => ip.status !== 'temporary').length > 0) return true;
+        if (itemProcesses.length > 0) return true;
         return processMessages.some(pm => pm.spinner);
     }, [processMessages, itemProcesses]);
 
