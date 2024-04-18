@@ -81,6 +81,7 @@ export default function useItemProcess() {
         useCallback(async(get, set, item: RegistItemParam, processId: string) => {
             const gqlClient = get(clientAtom);
             let retryFlag = false;
+            let itemId: DataId | undefined;
             do {
                 retryFlag = false;
                 const result = await gqlClient.mutation(RegistItemDocument, {
@@ -95,6 +96,8 @@ export default function useItemProcess() {
                     // キャンセル or リトライ の指示待ち
                     retryFlag = await waitFor(processId);
                     _setErrorWithTemporaryItem(processId, false);
+                } else {
+                    itemId = result.data?.registItem ?? undefined;
                 }
         
             } while(retryFlag);
@@ -103,6 +106,8 @@ export default function useItemProcess() {
             setTimeout(() => {
                 _removeItemProcess(processId);
             }, 500)
+
+            return itemId;
 
         }, [_setErrorWithTemporaryItem, _removeItemProcess])
     )
@@ -129,7 +134,7 @@ export default function useItemProcess() {
                 status: 'registing',
             });
 
-            await _registItemSub(item, processId);
+            return await _registItemSub(item, processId);
 
         }, [_addItemProcess, _registItemSub])
     )
@@ -184,7 +189,7 @@ export default function useItemProcess() {
             })
 
             // DB登録
-            await _registItemSub({
+            return await _registItemSub({
                 datasourceId: item.id.dataSourceId,
                 geometry: item.geometry,
                 geoProperties: item.geoProperties,

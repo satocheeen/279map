@@ -233,7 +233,11 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             }
         },
         async registTemporaryItem(itemId) {
-            await registTemporaryItemToDB(itemId);
+            const id = await registTemporaryItemToDB(itemId);
+            if (!id) {
+                throw new Error('registTemporaryItemToDB failed');
+            }
+            return id;
         },
         async registContent(param) {
             try {

@@ -271,7 +271,7 @@ export type Mutation = {
   linkContent?: Maybe<Scalars['Boolean']['output']>;
   linkContentsDatasource?: Maybe<Scalars['Boolean']['output']>;
   registContent?: Maybe<Scalars['Boolean']['output']>;
-  registItem?: Maybe<Scalars['Boolean']['output']>;
+  registItem?: Maybe<Scalars['DataId']['output']>;
   removeContent?: Maybe<Scalars['Boolean']['output']>;
   removeItem?: Maybe<Scalars['Boolean']['output']>;
   request?: Maybe<Scalars['Boolean']['output']>;
@@ -677,7 +677,7 @@ export type RegistItemMutationVariables = Exact<{
 }>;
 
 
-export type RegistItemMutation = { __typename?: 'Mutation', registItem?: boolean | null };
+export type RegistItemMutation = { __typename?: 'Mutation', registItem?: DataId | null };
 
 export type UpdateItemsMutationVariables = Exact<{
   targets: Array<UpdateItemInput> | UpdateItemInput;

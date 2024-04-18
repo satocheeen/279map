@@ -127,7 +127,7 @@ export type LoadContentsResult = {
 
 export interface TsunaguMapHandler {
     getInstanceId(): string;
-    
+
     /**
      * switch the map kind
      * 表示する地図種別の切り替え。切り替え完了したら復帰。
@@ -177,8 +177,9 @@ export interface TsunaguMapHandler {
     /**
      * drawTemporaryFeatureで一時描画したアイテムを正式登録する
      * @param itemId drawTemporaryFeatureで返されたID
+     * @return 正式登録されたID
      */
-    registTemporaryItem(itemId: DataId): Promise<void>;
+    registTemporaryItem(itemId: DataId): Promise<DataId>;
 
     /**
      * start the spte of drawing a structure (or a pin).

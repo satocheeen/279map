@@ -125,8 +125,8 @@ export default function DatasourceDriver(props: Props) {
     const handleRegistTemporaryItem = useCallback(async() => {
         try {
             const itemId = JSON.parse(temporaryItemIdText) as DataId;
-            await getMap()?.registTemporaryItem(itemId);
-            addConsole('registTemporaryItem finished.')
+            const id = await getMap()?.registTemporaryItem(itemId);
+            addConsole('registTemporaryItem finished.', id)
         } catch(e) {
 
         }
