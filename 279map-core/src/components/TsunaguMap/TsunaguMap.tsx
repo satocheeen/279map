@@ -55,11 +55,12 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
     const contentsSettingControlerRef = useRef<Pick<TsunaguMapHandler, 'showContentsSetting'>>(null);
     const userListControlerRef = useRef<Pick<TsunaguMapHandler, 'showUserList'>>(null);
     useImperativeHandle(ref, () => {
-        return Object.assign({
-            getInstanceId() {
-                return instanceId;
-            }
-        }, 
+        return Object.assign(
+            {
+                getInstanceId() {
+                    return instanceId;
+                }
+            }, 
             drawControllerRef.current,
             selectItemControllerRef.current,
             eventControlerRef.current,

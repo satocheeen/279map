@@ -203,6 +203,20 @@ export interface TsunaguMapHandler {
     registItemDirectly(datasourceId: string, geo: ItemGeoInfo, name?: string): Promise<DataId>;
 
     /**
+     * 指定の値でアイテム更新する.
+     * @param id 更新対象アイテムID
+     * @param name アイテム名
+     * @param geo 図形 
+     */
+    updateItemDirectly(id: DataId, geo?: Partial<ItemGeoInfo>, name?: string): Promise<void>;
+
+    /**
+     * 指定のアイテムを削除する
+     * @param id 
+     */
+    removeItemDircetly(id: DataId): Promise<void>;
+
+    /**
      * start the spte of drawing a structure (or a pin).
      * 建設または地点登録する
      */
