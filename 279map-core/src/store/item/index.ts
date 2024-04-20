@@ -83,7 +83,7 @@ export const allItemsAtom = atom<ItemsByDatasourceMap>((get) => {
     const overrideItems = get(overrideItemsAtom);
     overrideItems.forEach((overrideItem, index) => {
         if (overrideItem.type === 'new') {
-            const id = `override-${index}`;
+            const id = overrideItem.tempId;
             const item: ItemInfo = {
                 id: {
                     id,
