@@ -38,6 +38,7 @@ export type OnMapLoadResult = {
 export type ItemType = {
     id: DataId;
     name: string;
+    geoInfo: ItemGeoInfo;
     lastEditedTime: string;
     filterHit?: boolean;   // フィルタ時にフィルタ条件に該当した場合、true
     contents: {

@@ -168,6 +168,10 @@ export const allItemContentListAtom = atom<ItemType[]>((get) => {
             list.push({
                 id: itemId,
                 name: item.name,
+                geoInfo: {
+                    geometry: item.geometry,
+                    geoProperties: item.geoProperties,
+                },
                 lastEditedTime: item.lastEditedTime,
                 filterHit: filterdItemInfo?.hitItem,
                 contents,
