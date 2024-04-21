@@ -23,12 +23,17 @@ services:
       - ./log:/var/log/www
       - ./photo:/var/photo
   frontend:
-    # 任意のイメージを指定
-    image: satocheeen/279map-frontend:0.77.0
+    # メイン
+    image: satocheeen/279map-frontend:0.78.0
     env_file:
       - ./.env
     volumes:
       - ./log:/var/log/www
+  frontend-log-register:
+    # スマホログ記録
+    image: satocheeen/279map-frontend-logregister:0.1.0
+    env_file:
+      - ./.env
   main:
     image: satocheeen/279map-backend-main:0.76.1
     depends_on:
