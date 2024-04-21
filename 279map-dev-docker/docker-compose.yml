@@ -29,7 +29,7 @@ services:
       - ./.env
     volumes:
       - ./log:/var/log/www
-  frontend-log-register:
+  frontend-logregister:
     # スマホログ記録
     image: satocheeen/279map-frontend-logregister:0.1.0
     env_file:
@@ -50,6 +50,8 @@ services:
     ports:
       - 80:80
       - 443:443
+      - 81:81
+      - 444:444
     volumes:
       - ./log:/var/log/www
       - ./conf:/etc/nginx/conf.d
