@@ -4,6 +4,7 @@ import { filteredItemsAtom } from '../filter';
 import { DataId, FeatureType } from '../../entry';
 import { UpdateItemInput } from '../../graphql/generated/graphql';
 import { isEqualId } from '../../util/dataUtility';
+import { visibleDataSourceIdsAtom } from '../datasource';
 
 export type LoadedItemKey = {
     datasourceId: string;
@@ -186,20 +187,29 @@ export const allItemContentListAtom = atom<ItemType[]>((get) => {
     return list;
 })
 
-// /**
-//  * 現在表示状態にあるアイテム&コンテンツ一覧を返す
-//  */
-// export const visibleItemsAtom = atom<ItemContent[]>((get) => {
-//     const allItems = get(allItemContentListAtom);
-//     const visibleDataSourceIds = get(visibleDataSourceIdsAtom);
-//     const filteredItems = get(filteredItemsAtom);
-//     if (!filteredItems) {
-//         return allItems.filter(item => visibleDataSourceIds.some(vd => item.itemId.dataSourceId === vd));
-//     }
-//     return filteredItems.map((fi): ItemContent => {
-//         return {
-//             itemId: fi.id,
-//             contents: fi.hitContents,
-//         }
-//     })
-// })
+/**
+ * 現在表示状態にあるアイテム一覧を返す
+ */
+export const showingItemsAtom = atom<ItemType[]>((get) => {
+    const storedItems = get(storedItemsAtom);
+    const visibleDataSourceIds = get(visibleDataSourceIdsAtom);
+
+    const items: ItemType[] = [];
+    Object.entries(storedItems).forEach(([dsId, itemMap]) => {
+        if (!visibleDataSourceIds.includes(dsId)) return;
+        Object.values(itemMap).forEach(item => {
+            items.push({
+                id: item.id,
+                contents: item.contents,
+                geoInfo: {
+                    geometry: item.geometry,
+                    geoProperties: item.geoProperties,
+                },
+                lastEditedTime: item.lastEditedTime,
+                name: item.name,
+            })
+        })
+    })
+
+    return items;
+})

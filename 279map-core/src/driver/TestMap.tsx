@@ -191,8 +191,8 @@ export default function TestMap() {
         addConsole('getAccessableMapList', result);
     }, [mapServer, addConsole]);
 
-    const handleLoadedItemChanged = useCallback((val: ItemType[]) => {
-        addConsole('onLoadedItemCanged', val);
+    const handleShowingItemsChanged = useCallback((val: ItemType[]) => {
+        addConsole('onShowingItemsChanged', val);
         setLoadedItems(val);
     }, [addConsole])
 
@@ -266,7 +266,7 @@ export default function TestMap() {
                         onMapLoad={onMapLoad}
                         onItemDatasourcesVisibleChanged={handleItemDataSourceVisibleChanged}
                         onSelectChange={handleSelectChange}
-                        onLoadedItemsChanged={handleLoadedItemChanged}
+                        onShowingItemsChanged={handleShowingItemsChanged}
                         onItemClick={(val) => onCallback('onClick', val)}
                         onModeChanged={(val) => onCallback('onModeChanged', val)}
                         onCategoriesLoaded={onCategoriesLoaded}

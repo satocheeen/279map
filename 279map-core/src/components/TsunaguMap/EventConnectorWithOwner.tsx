@@ -11,7 +11,7 @@ import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { TsunaguMapHandler, LoadContentsResult, ItemType } from '../../types/types';
 import { useAtom } from 'jotai';
 import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
-import { overrideItemsAtom, storedItemsAtom } from '../../store/item';
+import { overrideItemsAtom, storedItemsAtom, showingItemsAtom } from '../../store/item';
 import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
 import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, LinkContentDocument, RegistContentDocument, SearchDocument, GetThumbDocument, GetSnsPreviewDocument, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument, UpdateItemsDocument, GetImageDocument, ContentUpdateDocument, Operation } from '../../graphql/generated/graphql';
@@ -376,7 +376,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
 }
 
 function EventListener() {
-    const { onItemDatasourcesVisibleChanged, onLoadedItemsChanged, onCategoriesLoaded, onEventsLoaded, onModeChanged, onSelectChange }  = useContext(OwnerContext);
+    const { onItemDatasourcesVisibleChanged, onShowingItemsChanged, onCategoriesLoaded, onEventsLoaded, onModeChanged, onSelectChange }  = useContext(OwnerContext);
 
     /**
      * Datasource定義、表示状態が変化した場合に呼び出し元にイベント発火する
@@ -429,28 +429,13 @@ function EventListener() {
         }, [mapMode, onModeChanged])
     , { immediate: true })
 
-    const [ storedItems ] = useAtom(storedItemsAtom);
-    useWatch(storedItems,
+    const [ visibleItems ] = useAtom(showingItemsAtom);
+    useWatch(visibleItems,
         useCallback(() => {
-            if (onLoadedItemsChanged) {
-                const items: ItemType[] = [];
-                Object.entries(storedItems).forEach(([key, itemMap]) => {
-                    Object.values(itemMap).forEach(item => {
-                        items.push({
-                            id: item.id,
-                            contents: item.contents,
-                            geoInfo: {
-                                geometry: item.geometry,
-                                geoProperties: item.geoProperties,
-                            },
-                            lastEditedTime: item.lastEditedTime,
-                            name: item.name,
-                        })
-                    })
-                })
-                onLoadedItemsChanged(items);
+            if (onShowingItemsChanged) {
+                onShowingItemsChanged(visibleItems);
             }
-        }, [onLoadedItemsChanged, storedItems])
+        }, [onShowingItemsChanged, visibleItems])
     , { immediate: true })
 
     /**

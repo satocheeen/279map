@@ -139,11 +139,11 @@ export type TsunaguMapProps = {
     onEventsLoaded?: (events: EventDefine[]) => void;   // callback when events has loaded or has changed.
 
     /**
-     * ロードされているアイテム情報に変更があった場合のコールバック
-     * @param items ロードされている全アイテム情報
+     * 表示されているアイテム情報に変更があった場合のコールバック
+     * @param items 表示中の全アイテム情報（フィルタ時のフィルタ対象外のアイテムは含まれる）
      * @returns 
      */
-    onLoadedItemsChanged?: (items: ItemType[]) => void;
+    onShowingItemsChanged?: (items: ItemType[]) => void;
 }
 
 export type LoadContentsResult = {
