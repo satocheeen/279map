@@ -1,4 +1,4 @@
-import React, { useContext, useCallback, useImperativeHandle } from 'react';
+import React, { useContext, useCallback, useImperativeHandle, Suspense } from 'react';
 import { useWatch } from '../../util/useWatch2';
 import { OwnerContext } from './TsunaguMap';
 import { categoriesAtom } from '../../store/category';
@@ -11,7 +11,7 @@ import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { TsunaguMapHandler, LoadContentsResult, ItemType } from '../../types/types';
 import { useAtom } from 'jotai';
 import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
-import { allItemContentListAtom, overrideItemsAtom, storedItemsAtom } from '../../store/item';
+import { overrideItemsAtom, storedItemsAtom } from '../../store/item';
 import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
 import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, LinkContentDocument, RegistContentDocument, SearchDocument, GetThumbDocument, GetSnsPreviewDocument, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument, UpdateItemsDocument, GetImageDocument, ContentUpdateDocument, Operation } from '../../graphql/generated/graphql';
@@ -367,12 +367,15 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         },
     }));
 
-    useEventListener();
-
-    return null;
+    // categoriesQueryAtomなどは随時ローディングが走るので、Suspenseで囲っている
+    return (
+        <Suspense>
+            <EventListener />
+        </Suspense>
+    )
 }
 
-function useEventListener() {
+function EventListener() {
     const { onItemDatasourcesVisibleChanged, onLoadedItemsChanged, onCategoriesLoaded, onEventsLoaded, onModeChanged, onSelectChange }  = useContext(OwnerContext);
 
     /**
@@ -465,6 +468,7 @@ function useEventListener() {
         }, [selectedItemId, onSelectChange])
     , { immediate: true })
 
+    return null;
 }
 
 export default React.forwardRef(EventConnectorWithOwner);
