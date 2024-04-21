@@ -8,10 +8,10 @@ import { mapDefineAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { TsunaguMapHandler, LoadContentsResult } from '../../types/types';
+import { TsunaguMapHandler, LoadContentsResult, ItemType } from '../../types/types';
 import { useAtom } from 'jotai';
 import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
-import { allItemContentListAtom, overrideItemsAtom } from '../../store/item';
+import { allItemContentListAtom, overrideItemsAtom, storedItemsAtom } from '../../store/item';
 import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
 import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, LinkContentDocument, RegistContentDocument, SearchDocument, GetThumbDocument, GetSnsPreviewDocument, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument, UpdateItemsDocument, GetImageDocument, ContentUpdateDocument, Operation } from '../../graphql/generated/graphql';
@@ -426,13 +426,28 @@ function useEventListener() {
         }, [mapMode, onModeChanged])
     , { immediate: true })
 
-    const [ allItems ] = useAtom(allItemContentListAtom);
-    useWatch(allItems,
+    const [ storedItems ] = useAtom(storedItemsAtom);
+    useWatch(storedItems,
         useCallback(() => {
             if (onLoadedItemsChanged) {
-                onLoadedItemsChanged(allItems);
+                const items: ItemType[] = [];
+                Object.entries(storedItems).forEach(([key, itemMap]) => {
+                    Object.values(itemMap).forEach(item => {
+                        items.push({
+                            id: item.id,
+                            contents: item.contents,
+                            geoInfo: {
+                                geometry: item.geometry,
+                                geoProperties: item.geoProperties,
+                            },
+                            lastEditedTime: item.lastEditedTime,
+                            name: item.name,
+                        })
+                    })
+                })
+                onLoadedItemsChanged(items);
             }
-        }, [onLoadedItemsChanged, allItems])
+        }, [onLoadedItemsChanged, storedItems])
     , { immediate: true })
 
     /**
