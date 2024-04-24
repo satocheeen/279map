@@ -31,7 +31,7 @@ services:
       - ./log:/var/log/www
   frontend-logregister:
     # スマホログ記録
-    image: satocheeen/279map-frontend-logregister:0.1.1
+    image: satocheeen/279map-frontend-logregister:0.1.2
   main:
     image: satocheeen/279map-backend-main:0.76.1
     depends_on:
