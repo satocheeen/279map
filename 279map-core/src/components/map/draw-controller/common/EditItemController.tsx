@@ -18,6 +18,7 @@ import { FeatureType, GeoProperties } from '../../../../types-common/common-type
 import useItemProcess from '../../../../store/item/useItemProcess';
 import { SystemIconDefine } from '../../../../entry';
 import SelectStructureDialog from '../structure/SelectStructureDialog';
+import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 
 type Props = {
     target: FeatureType[];
@@ -61,7 +62,7 @@ enum Stage {
                 }),
             })
         });
-        const modifyLayer = map.createDrawingLayer(style);
+        const modifyLayer = map.createDrawingLayer(LayerType.Topography, style);
         modifySource.current = modifyLayer.getSource();
         modify.current = new Modify({
             source: modifyLayer.getSource() as VectorSource,

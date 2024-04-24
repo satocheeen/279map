@@ -10,6 +10,7 @@ import VectorSource from "ol/source/Vector";
 import { useMap } from "../../useMap";
 import { GeocoderTarget } from "../../../../graphql/generated/graphql";
 import { FeatureType } from "../../../../types-common/common-types";
+import { LayerType } from "../../../TsunaguMap/VectorLayerMap";
 
 type Props = {
     onCancel?: () => void;
@@ -37,7 +38,7 @@ export function DrawAreaAddress(props: Props) {
     // 初期化
     useEffect(() => {
         if (!map) return;
-        const drawingLayer = map.createDrawingLayer(styleHook.getStyleFunction());
+        const drawingLayer = map.createDrawingLayer(LayerType.Topography, styleHook.getStyleFunction());
         drawingSource.current = drawingLayer.getSource();
 
         return () => {

@@ -17,6 +17,7 @@ import { useAtom } from 'jotai';
 import { GeocoderTarget, MapKind } from '../../../../graphql/generated/graphql';
 import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
 import useItemProcess from '../../../../store/item/useItemProcess';
+import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 
 type Props = {
     dataSourceId: string;   // 作図対象のデータソース
@@ -61,7 +62,7 @@ export default function DrawStructureController(props: Props) {
     useEffect(() => {
         if (!map) return;
         
-        drawingLayer.current = map.createDrawingLayer();
+        drawingLayer.current = map.createDrawingLayer(LayerType.Point);
         drawingSource.current = drawingLayer.current.getSource();
 
         return () => {
@@ -98,7 +99,7 @@ export default function DrawStructureController(props: Props) {
         const style = pointStyleHook.getDrawingStructureStyleFunction(drawingIcon.current);
         drawingLayer.current?.setStyle(style);
         drawingFeature.current = undefined;
-        map.createDrawingLayer(style);
+        map.createDrawingLayer(LayerType.Point, style);
         draw.current = new Draw({
             source: drawingSource.current as VectorSource,
             type,

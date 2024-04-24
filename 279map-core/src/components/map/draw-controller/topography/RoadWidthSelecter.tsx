@@ -7,6 +7,7 @@ import PromptMessageBox from '../PromptMessageBox';
 import { Geometry } from 'ol/geom';
 import { useMap } from '../../useMap';
 import { FeatureType } from '../../../../types-common/common-types';
+import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 
 type Props = {
     targetRoad: Feature;
@@ -28,7 +29,7 @@ export default function RoadWidthSelecter(props: Props) {
 
     useEffect(() => {
         if (!map) return;
-        const widthSimulateLayer = map.createDrawingLayer(styleHook.getStyleFunction());
+        const widthSimulateLayer = map.createDrawingLayer(LayerType.Topography, styleHook.getStyleFunction());
         widthSimulateSource.current = widthSimulateLayer.getSource();
 
         // 初期値幅の設定

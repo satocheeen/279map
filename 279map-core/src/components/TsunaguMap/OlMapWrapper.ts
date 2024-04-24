@@ -428,10 +428,10 @@ export class OlMapWrapper {
         })
     }
 
-    createDrawingLayer(style?: StyleFunction | Style): VectorLayer<VectorSource> {
+    createDrawingLayer(layerType: LayerType, style?: StyleFunction | Style): VectorLayer<VectorSource> {
         const layer = new VectorLayer<VectorSource>({
             source: new VectorSource(),
-            zIndex: 100,
+            zIndex: layerType === LayerType.Topography ? 8 : 20,  // 土地の場合は、土地(5), 建物(10)の間になるように。
             properties: {
                 type: 'drawing-temporary',
             }

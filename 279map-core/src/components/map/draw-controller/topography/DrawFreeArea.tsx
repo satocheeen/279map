@@ -8,6 +8,7 @@ import { Geometry } from "ol/geom";
 import VectorSource from "ol/source/Vector";
 import { useMap } from "../../useMap";
 import { FeatureType } from "../../../../types-common/common-types";
+import { LayerType } from "../../../TsunaguMap/VectorLayerMap";
 
 type Props = {
     geometryType: string;
@@ -37,7 +38,7 @@ export function DrawFreeArea(props: Props) {
      useEffect(() => {
         if (!map) return;
         const styleFunction = styleHook.getStyleFunction();
-        const drawingLayer = map.createDrawingLayer(styleHook.getStyleFunction());
+        const drawingLayer = map.createDrawingLayer(LayerType.Topography, styleHook.getStyleFunction());
         drawingSource.current = drawingLayer.getSource();
 
         // Drawインタラクション用意

@@ -22,6 +22,7 @@ import Input from '../../../common/form/Input';
 import { useMap } from '../../useMap';
 import { GeocoderTarget, MapKind } from '../../../../graphql/generated/graphql';
 import { FeatureType } from '../../../../types-common/common-types';
+import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 
 type Props = {
     onCancel?: () => void;
@@ -85,7 +86,7 @@ export default function DrawPointRadius(props: Props) {
                 return defaultStyle;
             }
         });
-        const drawingLayer = map.createDrawingLayer(style);
+        const drawingLayer = map.createDrawingLayer(LayerType.Topography, style);
         drawingSource.current = drawingLayer.getSource();
 
         return () => {

@@ -10,6 +10,7 @@ import { extractGeoProperty } from '../../../../util/MapUtility';
 import { useMap } from '../../useMap';
 import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
 import useItemProcess from '../../../../store/item/useItemProcess';
+import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 
 enum Stage {
     DRAWING,        // 描画
@@ -41,7 +42,7 @@ export default function DrawRoadController(props: Props) {
      */
     useEffect(() => {
         if (!map) return;
-        const drawingLayer = map.createDrawingLayer(styleHook.getStyleFunction());
+        const drawingLayer = map.createDrawingLayer(LayerType.Topography, styleHook.getStyleFunction());
         drawingSource.current = drawingLayer.getSource();
 
         // Drawインタラクション用意

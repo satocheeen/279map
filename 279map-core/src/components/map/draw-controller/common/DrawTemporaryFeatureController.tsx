@@ -16,6 +16,7 @@ import { currentDefaultIconAtom } from '../../../../store/icon';
 import VectorLayer from 'ol/layer/Vector';
 import { createGeoJson } from '../../../../util/MapUtility';
 import { ItemGeoInfo } from '../../../../entry';
+import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 
 type Props = {
     featureType: FeatureType;
@@ -84,8 +85,8 @@ export default function DrawTemporaryFeatureController(props: Props) {
         if (!map) return;
         
         const style = getDrawingStructureStyleFunction(currentDefaultIcon);
-        console.log('style', style);
-        drawingLayer.current = map.createDrawingLayer();
+        const layerType = props.featureType === FeatureType.STRUCTURE ? LayerType.Point : LayerType.Topography;
+        drawingLayer.current = map.createDrawingLayer(layerType);
         drawingLayer.current?.setStyle(style);
 
         drawRef.current = new Draw({
