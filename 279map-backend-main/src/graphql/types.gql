@@ -48,9 +48,18 @@ enum PopupMode {
     minimum
     maximum
 }
+"""
+アイテムラベル表示モード
+"""
 enum ItemLabelMode {
+    "表示する"
     show
+    "表示しない"
     hidden
+    "村マップのみ表示"
+    virtualShow
+    "世界地図のみ表示"
+    realShow
 }
 
 enum SortCondition {

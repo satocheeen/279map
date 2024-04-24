@@ -186,9 +186,16 @@ export type ItemDefine = {
   name: Scalars['String']['output'];
 };
 
+/** アイテムラベル表示モード */
 export enum ItemLabelMode {
+  /** 表示しない */
   Hidden = 'hidden',
-  Show = 'show'
+  /** 世界地図のみ表示 */
+  RealShow = 'realShow',
+  /** 表示する */
+  Show = 'show',
+  /** 村マップのみ表示 */
+  VirtualShow = 'virtualShow'
 }
 
 export type MapDefine = {
