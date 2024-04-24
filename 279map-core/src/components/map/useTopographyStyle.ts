@@ -5,8 +5,7 @@ import { colorWithAlpha } from '../../util/CommonUtility';
 import { MapStyles } from "../../util/constant-defines";
 import { currentMapKindAtom } from "../../store/session";
 import { useAtomCallback } from "jotai/utils";
-import { MapKind } from "../../graphql/generated/graphql";
-import { FeatureType } from "../../types-common/common-types";
+import { MapKind, FeatureType } from "../../types-common/common-types";
 
 const DRAWING_COLOR = '#eebbaa'
 

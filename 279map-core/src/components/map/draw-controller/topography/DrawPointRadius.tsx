@@ -20,8 +20,8 @@ import { getDistance } from 'geolib';
 import FormGroup from '../../../common/form/FormGroup';
 import Input from '../../../common/form/Input';
 import { useMap } from '../../useMap';
-import { GeocoderTarget, MapKind } from '../../../../graphql/generated/graphql';
-import { FeatureType } from '../../../../types-common/common-types';
+import { GeocoderTarget } from '../../../../graphql/generated/graphql';
+import { FeatureType, MapKind } from '../../../../types-common/common-types';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 
 type Props = {

@@ -6,7 +6,7 @@ import { SystemIconDefine } from '../../../../types/types';
 import { currentMapIconDefineAtom } from '../../../../store/icon';
 import { currentMapKindAtom } from '../../../../store/session';
 import { useAtom } from 'jotai';
-import { MapKind } from '../../../../graphql/generated/graphql';
+import { MapKind } from '../../../../types-common/common-types';
 
 type Props = {
     currentIconId?: string;         // 現在の画像ID

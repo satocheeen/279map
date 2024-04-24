@@ -20,9 +20,9 @@ import { Pixel } from 'ol/pixel';
 import { convertDataIdFromFeatureId, getMapKey } from '../../util/dataUtility';
 import { FitOptions } from 'ol/View';
 import { Coordinate } from 'ol/coordinate';
-import { GetGeocoderFeatureDocument, ItemDatasourceInfo, MapKind } from '../../graphql/generated/graphql';
+import { GetGeocoderFeatureDocument, ItemDatasourceInfo } from '../../graphql/generated/graphql';
 import { Client } from 'urql';
-import { DataId, DatasourceKindType, FeatureType } from '../../types-common/common-types';
+import { DataId, DatasourceKindType, FeatureType, MapKind } from '../../types-common/common-types';
 
 export type FeatureInfo = {
     id: DataId;

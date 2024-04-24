@@ -1,6 +1,6 @@
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
 import { Geometry } from 'geojson'
-import { DataId, GeoProperties, GeocoderIdInfo, IconKey, ItemDatasourceConfig, ContentDatasourceConfig, ContentValueMap } from '../../types-common/common-types'
+import { DataId, GeoProperties, GeocoderIdInfo, IconKey, ItemDatasourceConfig, ContentDatasourceConfig, ContentValueMap, MapKind, IconDefine } from '../../types-common/common-types'
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -22,9 +22,11 @@ export type Scalars = {
   GeoProperties: { input: GeoProperties; output: GeoProperties; }
   GeocoderIdInfo: { input: GeocoderIdInfo; output: GeocoderIdInfo; }
   Geometry: { input: Geometry; output: Geometry; }
+  IconDefine: { input: IconDefine; output: IconDefine; }
   IconKey: { input: IconKey; output: IconKey; }
   ItemDatasourceConfig: { input: ItemDatasourceConfig; output: ItemDatasourceConfig; }
   JSON: { input: any; output: any; }
+  MapKind: { input: MapKind; output: MapKind; }
 };
 
 export enum Auth {
@@ -158,13 +160,6 @@ export type GetUnpointContentsResult = {
   nextToken?: Maybe<Scalars['String']['output']>;
 };
 
-export type IconDefine = {
-  caption?: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
-  imagePath: Scalars['String']['output'];
-  useMaps: Array<MapKind>;
-};
-
 export type ItemDatasourceInfo = {
   config: Scalars['ItemDatasourceConfig']['output'];
   datasourceId: Scalars['String']['output'];
@@ -199,23 +194,18 @@ export enum ItemLabelMode {
 }
 
 export type MapDefine = {
-  defaultMapKind: MapKind;
+  defaultMapKind: Scalars['MapKind']['output'];
   name: Scalars['String']['output'];
   options: MapPageOptions;
-  useMaps: Array<MapKind>;
+  originalIcons: Array<Scalars['IconDefine']['output']>;
+  useMaps: Array<Scalars['MapKind']['output']>;
 };
 
 export type MapInfo = {
   contentDataSources: Array<ContentDatasourceInfo>;
   extent: Array<Scalars['Float']['output']>;
   itemDataSources: Array<ItemDatasourceInfo>;
-  originalIcons: Array<IconDefine>;
 };
-
-export enum MapKind {
-  Real = 'Real',
-  Virtual = 'Virtual'
-}
 
 export type MapListItem = {
   authLv: Auth;
@@ -323,7 +313,7 @@ export type MutationRequestArgs = {
 
 
 export type MutationSwitchMapKindArgs = {
-  mapKind: MapKind;
+  mapKind: Scalars['MapKind']['input'];
 };
 
 
@@ -558,19 +548,19 @@ export type SubscriptionErrorArgs = {
 
 export type SubscriptionItemDeleteArgs = {
   mapId: Scalars['String']['input'];
-  mapKind: MapKind;
+  mapKind: Scalars['MapKind']['input'];
 };
 
 
 export type SubscriptionItemInsertArgs = {
   mapId: Scalars['String']['input'];
-  mapKind: MapKind;
+  mapKind: Scalars['MapKind']['input'];
 };
 
 
 export type SubscriptionItemUpdateArgs = {
   mapId: Scalars['String']['input'];
-  mapKind: MapKind;
+  mapKind: Scalars['MapKind']['input'];
 };
 
 
@@ -729,7 +719,7 @@ export type ResolversTypes = {
   Geometry: ResolverTypeWrapper<Scalars['Geometry']['output']>;
   GetUnpointContentsResult: ResolverTypeWrapper<GetUnpointContentsResult>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
-  IconDefine: ResolverTypeWrapper<IconDefine>;
+  IconDefine: ResolverTypeWrapper<Scalars['IconDefine']['output']>;
   IconKey: ResolverTypeWrapper<Scalars['IconKey']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   ItemDatasourceConfig: ResolverTypeWrapper<Scalars['ItemDatasourceConfig']['output']>;
@@ -739,7 +729,7 @@ export type ResolversTypes = {
   JSON: ResolverTypeWrapper<Scalars['JSON']['output']>;
   MapDefine: ResolverTypeWrapper<MapDefine>;
   MapInfo: ResolverTypeWrapper<MapInfo>;
-  MapKind: MapKind;
+  MapKind: ResolverTypeWrapper<Scalars['MapKind']['output']>;
   MapListItem: ResolverTypeWrapper<MapListItem>;
   MapPageOptions: ResolverTypeWrapper<MapPageOptions>;
   MediaInfo: ResolverTypeWrapper<MediaInfo>;
@@ -792,7 +782,7 @@ export type ResolversParentTypes = {
   Geometry: Scalars['Geometry']['output'];
   GetUnpointContentsResult: GetUnpointContentsResult;
   ID: Scalars['ID']['output'];
-  IconDefine: IconDefine;
+  IconDefine: Scalars['IconDefine']['output'];
   IconKey: Scalars['IconKey']['output'];
   Int: Scalars['Int']['output'];
   ItemDatasourceConfig: Scalars['ItemDatasourceConfig']['output'];
@@ -801,6 +791,7 @@ export type ResolversParentTypes = {
   JSON: Scalars['JSON']['output'];
   MapDefine: MapDefine;
   MapInfo: MapInfo;
+  MapKind: Scalars['MapKind']['output'];
   MapListItem: MapListItem;
   MapPageOptions: MapPageOptions;
   MediaInfo: MediaInfo;
@@ -931,13 +922,9 @@ export type GetUnpointContentsResultResolvers<ContextType = any, ParentType exte
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type IconDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['IconDefine'] = ResolversParentTypes['IconDefine']> = {
-  caption?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  imagePath?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  useMaps?: Resolver<Array<ResolversTypes['MapKind']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
+export interface IconDefineScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['IconDefine'], any> {
+  name: 'IconDefine';
+}
 
 export interface IconKeyScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['IconKey'], any> {
   name: 'IconKey';
@@ -976,6 +963,7 @@ export type MapDefineResolvers<ContextType = any, ParentType extends ResolversPa
   defaultMapKind?: Resolver<ResolversTypes['MapKind'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   options?: Resolver<ResolversTypes['MapPageOptions'], ParentType, ContextType>;
+  originalIcons?: Resolver<Array<ResolversTypes['IconDefine']>, ParentType, ContextType>;
   useMaps?: Resolver<Array<ResolversTypes['MapKind']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -984,9 +972,12 @@ export type MapInfoResolvers<ContextType = any, ParentType extends ResolversPare
   contentDataSources?: Resolver<Array<ResolversTypes['ContentDatasourceInfo']>, ParentType, ContextType>;
   extent?: Resolver<Array<ResolversTypes['Float']>, ParentType, ContextType>;
   itemDataSources?: Resolver<Array<ResolversTypes['ItemDatasourceInfo']>, ParentType, ContextType>;
-  originalIcons?: Resolver<Array<ResolversTypes['IconDefine']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
+
+export interface MapKindScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['MapKind'], any> {
+  name: 'MapKind';
+}
 
 export type MapListItemResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapListItem'] = ResolversParentTypes['MapListItem']> = {
   authLv?: Resolver<ResolversTypes['Auth'], ParentType, ContextType>;
@@ -1140,7 +1131,7 @@ export type Resolvers<ContextType = any> = {
   GeocoderItem?: GeocoderItemResolvers<ContextType>;
   Geometry?: GraphQLScalarType;
   GetUnpointContentsResult?: GetUnpointContentsResultResolvers<ContextType>;
-  IconDefine?: IconDefineResolvers<ContextType>;
+  IconDefine?: GraphQLScalarType;
   IconKey?: GraphQLScalarType;
   ItemDatasourceConfig?: GraphQLScalarType;
   ItemDatasourceInfo?: ItemDatasourceInfoResolvers<ContextType>;
@@ -1148,6 +1139,7 @@ export type Resolvers<ContextType = any> = {
   JSON?: GraphQLScalarType;
   MapDefine?: MapDefineResolvers<ContextType>;
   MapInfo?: MapInfoResolvers<ContextType>;
+  MapKind?: GraphQLScalarType;
   MapListItem?: MapListItemResolvers<ContextType>;
   MapPageOptions?: MapPageOptionsResolvers<ContextType>;
   MediaInfo?: MediaInfoResolvers<ContextType>;

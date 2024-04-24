@@ -1,17 +1,17 @@
-import { MapKind } from '../../graphql/generated/graphql';
 import { SystemIconDefine, TsunaguMapProps } from '../../types/types';
-import { currentMapDefineAtom, currentMapKindAtom } from '../session';
+import { currentMapKindAtom, mapDefineAtom } from '../session';
 // import defaultIcon from './pin.png'
 import defaultIconReal from './map-marker.svg';
 import defaultIconRealForMenu from './map-marker-formenu.svg';
 import defaultIconVirtual from './house.png';
 import { atom } from 'jotai';
+import { MapKind } from '../../types-common/common-types';
 
 /**
  * オリジナルアイコン
  */
 const originalIconDefineAtom = atom((get) => {
-    const mapDefine = get(currentMapDefineAtom);
+    const mapDefine = get(mapDefineAtom);
     const originalIcons = mapDefine?.originalIcons ?? [];
 
     const originalDefines = originalIcons.map(def => {
@@ -64,6 +64,7 @@ export const currentMapIconDefineAtom = atom<SystemIconDefine[]>((get) => {
     if (!hasDefulat) {
         const defaultIcon: SystemIconDefine = currentMapKind === MapKind.Real ? {
             id: 'default',
+            caption: '',
             type: 'system',
             imagePath: defaultIconReal,
             defaultColor: '#271AA8',
@@ -73,6 +74,7 @@ export const currentMapIconDefineAtom = atom<SystemIconDefine[]>((get) => {
             id: 'default',
             type: 'system',
             imagePath: defaultIconVirtual,
+            caption: '',
         }
         return [defaultIcon, ...list];
     }

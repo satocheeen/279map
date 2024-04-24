@@ -3,9 +3,9 @@ import { ConnectionPool } from '.';
 import { PoolConnection } from 'mysql2/promise';
 import { CurrentMap } from '../279map-backend-common/src';
 import { ContentsTable, ItemContentLink, ItemsTable, TrackGeoJsonTable, TracksTable } from '../279map-backend-common/src/types/schema';
-import { QueryGetItemsArgs, MapKind } from './graphql/__generated__/types';
+import { QueryGetItemsArgs } from './graphql/__generated__/types';
 import { ItemContentInfo } from './api/getItem';
-import { FeatureType } from './types-common/common-types';
+import { FeatureType, MapKind } from './types-common/common-types';
 import { ItemDefineWithoudContents } from './types';
 
 const apiLogger = getLogger('api');

@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
+import { FeatureType, MapKind, GeoProperties } from '../../../../types-common/common-types';
 import PromptMessageBox from '../PromptMessageBox';
 import { currentMapKindAtom } from '../../../../store/session';
 import { useAtom } from 'jotai';
-import { GeocoderTarget, MapKind } from '../../../../graphql/generated/graphql';
+import { GeocoderTarget } from '../../../../graphql/generated/graphql';
 import SearchAddress, { SearchAddressHandler } from '../../../common/SearchAddress';
 import { GeoJsonObject } from 'geojson';
 import { useMap } from '../../useMap';

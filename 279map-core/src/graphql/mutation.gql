@@ -15,6 +15,7 @@ mutation connect (
                 contentsSortCondition
                 options
             }
+            originalIcons
         }
         connect {
             sid
@@ -46,12 +47,6 @@ mutation switchMapKind (
             datasourceId
             name
             config
-        }
-        originalIcons {
-            id
-            caption
-            imagePath
-            useMaps
         }
     }
 }

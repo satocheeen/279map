@@ -2,8 +2,8 @@ import { ConnectionPool } from '.';
 import { PoolConnection } from 'mysql2/promise';
 import { ContentsTable, DataSourceTable, ItemContentLink, MapDataSourceLinkConfig, MapDataSourceLinkTable } from '../279map-backend-common/src/types/schema';
 import { CurrentMap } from '../279map-backend-common/src';
-import { Auth, ContentsDefine, MapKind } from './graphql/__generated__/types';
-import { DatasourceKindType, DataId, ContentValueMap } from './types-common/common-types';
+import { Auth, ContentsDefine } from './graphql/__generated__/types';
+import { DatasourceKindType, DataId, ContentValueMap, MapKind } from './types-common/common-types';
 import { isEqualId } from './util/utility';
 import { DatasourceTblConfig, ImagesTable } from '../279map-backend-common/dist';
 

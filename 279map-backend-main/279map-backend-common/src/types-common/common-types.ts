@@ -9,9 +9,21 @@ export type DataId = {
     dataSourceId: string;
 }
 
+export enum MapKind {
+    Real = 'Real',
+    Virtual = 'Virtual'
+}
+
 export type IconKey = {
     type: 'system' | 'original';
     id: string;
+}
+
+export type IconDefine = {
+    id: string;
+    caption: string;
+    imagePath: string;
+    useMaps: MapKind[];
 }
 
 /**

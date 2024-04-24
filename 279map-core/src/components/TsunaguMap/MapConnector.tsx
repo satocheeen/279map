@@ -7,7 +7,7 @@ import styles from './MapConnector.module.scss';
 import { useAtom } from 'jotai';
 import { ServerInfo, TsunaguMapProps } from '../../types/types';
 import { clientAtom } from 'jotai-urql';
-import { Auth, ConnectDocument, ConnectErrorType, ConnectResult, DisconnectDocument, ErrorDocument, ErrorType, MapKind, RequestDocument, UpdateUserAuthDocument } from '../../graphql/generated/graphql';
+import { Auth, ConnectDocument, ConnectErrorType, ConnectResult, DisconnectDocument, ErrorDocument, RequestDocument, UpdateUserAuthDocument } from '../../graphql/generated/graphql';
 import { OwnerContext } from './TsunaguMap';
 import { Provider, createStore } from 'jotai';
 import { defaultIconDefineAtom } from '../../store/icon';
@@ -15,6 +15,7 @@ import { createGqlClient } from '../../api';
 import { useWatch } from '../../util/useWatch2';
 import { Subscription } from 'wonka';
 import { useMapController } from '../../store/map/useMapController';
+import { MapKind } from '../../types-common/common-types';
 
 type Props = {
     server: ServerInfo;

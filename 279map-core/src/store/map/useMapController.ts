@@ -1,11 +1,12 @@
 import { useAtomCallback } from "jotai/utils";
 import { useCallback, useContext } from "react";
-import { MapKind, SwitchMapKindDocument } from "../../graphql/generated/graphql";
+import { SwitchMapKindDocument } from "../../graphql/generated/graphql";
 import { clientAtom } from "jotai-urql";
 import { currentMapDefineAtom } from "../session";
 import { OwnerContext } from "../../components/TsunaguMap/TsunaguMap";
 import { loadedItemMapAtom, storedItemsAtom } from "../item";
 import { dataSourceVisibleAtom } from "../datasource";
+import { MapKind } from "../../types-common/common-types";
 
 export function useMapController() {
     const { onMapLoad } = useContext(OwnerContext);

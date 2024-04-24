@@ -14,8 +14,8 @@ import VectorLayer from 'ol/layer/Vector';
 import { useMap } from '../../useMap';
 import { currentMapKindAtom } from '../../../../store/session';
 import { useAtom } from 'jotai';
-import { GeocoderTarget, MapKind } from '../../../../graphql/generated/graphql';
-import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
+import { GeocoderTarget } from '../../../../graphql/generated/graphql';
+import { FeatureType, MapKind, GeoProperties } from '../../../../types-common/common-types';
 import useItemProcess from '../../../../store/item/useItemProcess';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 

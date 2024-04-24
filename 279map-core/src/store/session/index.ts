@@ -1,7 +1,8 @@
 import { atom } from 'jotai';
 import { atomWithCountup } from '../../util/jotaiUtility';
-import { MapKind, Auth, MapPageOptions, SwitchMapKindMutation } from '../../graphql/generated/graphql';
+import { Auth, MapPageOptions, SwitchMapKindMutation } from '../../graphql/generated/graphql';
 import { Extent } from "ol/extent";
+import { IconDefine, MapKind } from '../../types-common/common-types';
 
 /**
  * 地図への接続情報関連Atom
@@ -17,6 +18,7 @@ export const mapDefineAtom = atom({
     options: {} as MapPageOptions,
     useMaps: [] as MapKind[],
     authLv: Auth.None,
+    originalIcons: [] as IconDefine[],
 });
 
 /**
