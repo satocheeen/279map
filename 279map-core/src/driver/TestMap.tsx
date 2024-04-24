@@ -302,6 +302,7 @@ export default function TestMap() {
                 </div>
                 <div className={styles.HorizontalArea}>
                     <BasicSettingDriver />
+                    <button onClick={() => mapRef.current?.moveStructure()}>移築</button>
  
                     <ItemController />
                     <LoadImageDriver />

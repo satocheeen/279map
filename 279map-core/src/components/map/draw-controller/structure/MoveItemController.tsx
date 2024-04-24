@@ -13,7 +13,7 @@ import "react-toggle/style.css";
 import Toggle from 'react-toggle';
 import usePointStyle from '../../usePointStyle';
 import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
-import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
+import { convertDataIdFromFeatureId, isEqualId } from '../../../../util/dataUtility';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { useMap } from '../../useMap';
 import { FeatureLike } from 'ol/Feature';
@@ -117,12 +117,23 @@ export default function MoveItemController(props: Props) {
                 }
 
                 const id = convertDataIdFromFeatureId(feature.getId() as string);
-                targets.push({
-                    id,
-                    geometry,
-                })
+
+                // 同じアイテムが存在する場合（移動操作を複数回行った場合）は、上書き
+                const index = targets.findIndex(t => isEqualId(t.id, id));
+                if (index === -1) {
+                    targets.push({
+                        id,
+                        geometry,
+                    })
+                } else {
+                    targets.splice(index, 1, {
+                        id,
+                        geometry,
+                    })
+                }
             }
         }
+        console.log('updateItems', targets);
         updateItems(targets);
         props.close();
     }
