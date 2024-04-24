@@ -106,7 +106,7 @@ export default function DrawTemporaryFeatureController(props: Props) {
                 map.removeDrawingLayer(drawingLayer.current);
             }
         }
-    }, [map, startDrawing, currentDefaultIcon, getDrawingStructureStyleFunction]);
+    }, [map, startDrawing, currentDefaultIcon, getDrawingStructureStyleFunction, props.featureType]);
 
     const message = useMemo(() => {
         switch(stage) {
