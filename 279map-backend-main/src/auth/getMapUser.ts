@@ -33,8 +33,10 @@ export type UserAuthInfo = {
     userName: string;
 });
 
+type UserAuthInfoByMap = {[mapId: string]: UserAuthInfo};
+
 // ユーザ権限情報
-const userAuthInfoMap = {} as {[userId: string]: UserAuthInfo};
+const userAuthInfoMap = {} as {[userId: string]: UserAuthInfoByMap};
 
 /**
  * 指定の地図へのユーザアクセス権限情報を返す
@@ -68,11 +70,10 @@ export async function getUserAuthInfoInTheMap(mapPageInfo: MapPageInfoTable, req
     // ユーザの地図に対する権限を取得
     const authInfo = await async function(): Promise<UserAuthInfo> {
         if (!resetAuthInfo) {
-            const savedAuthInfo = userAuthInfoMap[userId];
+            const savedAuthInfo = userAuthInfoMap[userId] ? userAuthInfoMap[userId][mapPageInfo.map_page_id] : undefined;
             if (savedAuthInfo) return savedAuthInfo;
         }
 
-        apiLogger.debug('認証情報取得');
         const mapUserInfo = await authManagementClient.getUserInfoOfTheMap(userId, mapPageInfo.map_page_id);
         if (mapUserInfo) {
             switch(mapUserInfo.auth_lv) {
@@ -101,7 +102,10 @@ export async function getUserAuthInfoInTheMap(mapPageInfo: MapPageInfoTable, req
     }();
 
     // 保管する
-    userAuthInfoMap[userId] = authInfo;
+    if (!(userId in userAuthInfoMap)) {
+        userAuthInfoMap[userId] = {};
+    }
+    userAuthInfoMap[userId][mapPageInfo.map_page_id] = authInfo;
 
     return authInfo;
 }
