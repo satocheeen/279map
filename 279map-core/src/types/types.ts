@@ -415,17 +415,6 @@ export type FeatureProperties = {
     lastEditedTime: string;
 } & GeoProperties;
 
-/**
- * 現在の地図で使用可能なアイコン定義
- */
-export type SystemIconDefine = Omit<IconDefine, 'useMaps'> & {
-    type: IconKey['type'],
-    defaultColor?: string;  // デフォルト塗りつぶし色（ピン画像などでの使用を想定）
-    imagePathForMenu?: string;  // 建設メニューや重畳選択メニューに表示するアイコン画像を異なるものにする場合に指定。（白色のSVG画像などを用いる場合を想定）
-
-    isSystemIcon?: boolean; // システムデフォルトのアイコンの場合、true。（ピンの上に白丸を置く関係でひとまず設定）
-}
-
 export type NewContentInfoParam = {
     parent: {
         itemId: DataId;

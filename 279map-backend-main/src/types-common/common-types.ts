@@ -19,8 +19,7 @@ export type IconKey = {
     id: string;
 }
 
-export type IconDefine = {
-    id: string;
+export type IconDefine = IconKey & {
     caption: string;
     imagePath: string;
     useMaps: MapKind[];

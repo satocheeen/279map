@@ -2,7 +2,6 @@ import { useCallback } from "react";
 import Feature, { FeatureLike } from "ol/Feature";
 import { Circle, Fill, Icon, Style, Text } from 'ol/style';
 import { getStructureScale } from "../../util/MapUtility";
-import { SystemIconDefine } from "../../types/types";
 import useFilterStatus from "./useFilterStatus";
 import { Geometry } from "ol/geom";
 import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
@@ -18,7 +17,7 @@ import { DatasourceKindType, IconKey } from "../../types-common/common-types";
 import { useAtomCallback } from "jotai/utils";
 import { currentMapKindAtom } from "../../store/session";
 import { MapKind } from "../../entry";
-import { currentDefaultIconAtom } from "../../store/icon";
+import { SystemIconDefine, currentDefaultIconAtom } from "../../store/icon";
 
 const STRUCTURE_SELECTED_COLOR = '#8888ff';
 

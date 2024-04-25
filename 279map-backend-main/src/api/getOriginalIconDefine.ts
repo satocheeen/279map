@@ -16,6 +16,7 @@ export async function getOriginalIconDefine(mapId: string): Promise<IconDefine[]
             const base64 = await getIcon({id: row.icon_page_id});
             if (!base64) return;
             return {
+                type: 'original',
                 id: row.icon_page_id,
                 caption: row.caption,
                 imagePath: 'data:image/' + base64,

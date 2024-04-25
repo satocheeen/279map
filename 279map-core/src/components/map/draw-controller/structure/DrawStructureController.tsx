@@ -9,7 +9,6 @@ import PromptMessageBox from '../PromptMessageBox';
 import SearchAddress, { SearchAddressHandler } from '../../../common/SearchAddress';
 import GeoJSON from 'ol/format/GeoJSON';
 import { GeoJsonObject } from 'geojson';
-import { SystemIconDefine } from '../../../../types/types';
 import VectorLayer from 'ol/layer/Vector';
 import { useMap } from '../../useMap';
 import { currentMapKindAtom } from '../../../../store/session';
@@ -18,6 +17,7 @@ import { GeocoderTarget } from '../../../../graphql/generated/graphql';
 import { FeatureType, MapKind, GeoProperties } from '../../../../types-common/common-types';
 import useItemProcess from '../../../../store/item/useItemProcess';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
+import { SystemIconDefine } from '../../../../store/icon';
 
 type Props = {
     dataSourceId: string;   // 作図対象のデータソース
