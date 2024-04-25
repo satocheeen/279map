@@ -1,7 +1,6 @@
 import dayjs from 'dayjs';
 import { CurrentMap } from '../../279map-backend-common/src';
-import { MapKind } from '../graphql/__generated__/types';
-import { DataId } from '../types-common/common-types';
+import { MapKind, DataId } from '../types-common/common-types';
 
 type ItemInfoMap = {[dataSourceId: string]: ItemInfo[]};
 type ItemInfo = {

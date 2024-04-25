@@ -2,7 +2,7 @@
  * TsunaguMapの呼び出し元で使用されうるものをexport
  */
 export type {
-    IconDefine, CategoryDefine, 
+    CategoryDefine, 
     Condition, ContentsDefine,     
     EventDefine, GetUnpointContentsResult,
     MapDefine, MutationLinkContentArgs, MutationRegistContentArgs, 
@@ -10,7 +10,7 @@ export type {
     ServerConfig, MapPageOptions, ItemDatasourceInfo, ContentDatasourceInfo
 } from "./graphql/generated/graphql";
 export {
-    Auth, MapKind, PopupMode, SortCondition, ThumbSize
+    Auth, PopupMode, SortCondition, ThumbSize
 } from "./graphql/generated/graphql";
 
 

@@ -16,8 +16,7 @@ import VectorSource from 'ol/source/Vector';
 import { getCenter as getExtentCenter } from 'ol/extent';
 import { Cluster } from 'ol/source';
 import { circle, lineString, multiLineString, multiPolygon, polygon, buffer } from '@turf/turf';
-import { FeatureType, GeoProperties } from '../types-common/common-types';
-import { MapKind } from '../graphql/generated/graphql';
+import { MapKind, FeatureType, GeoProperties } from '../types-common/common-types';
 
 /**
  * GeoJSONを元に対応するジオメトリを生成して返す

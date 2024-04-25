@@ -9,9 +9,25 @@ export type DataId = {
     dataSourceId: string;
 }
 
+export enum MapKind {
+    Real = 'Real',
+    Virtual = 'Virtual'
+}
+
 export type IconKey = {
     type: 'system' | 'original';
     id: string;
+}
+
+export type IconDefine = IconKey & {
+    caption: string;
+    /** 画像ファイルパス */
+    imagePath: string;
+
+    /** SVG画像の場合に、my-colorクラスを付与しているノードに対して、fill設定が行われる */
+    defaultColor?: string;  // デフォルト塗りつぶし色 (将来的にタグなどによる自動色設定や、ユーザによる色指定をできるようにする予定)
+
+    useMaps: MapKind[];
 }
 
 /**

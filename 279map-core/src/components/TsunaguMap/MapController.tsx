@@ -15,13 +15,13 @@ import { filteredItemIdListAtom } from '../../store/filter';
 import VectorSource from 'ol/source/Vector';
 import useMyMedia from '../../util/useMyMedia';
 import { useWatch } from '../../util/useWatch2';
-import { ItemDeleteDocument, ItemInsertDocument, ItemUpdateDocument, MapInfoUpdateDocument, MapKind } from '../../graphql/generated/graphql';
+import { ItemDeleteDocument, ItemInsertDocument, ItemUpdateDocument, MapInfoUpdateDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import { ItemInfo } from '../../types/types';
 import { selectItemIdAtom } from '../../store/operation';
 import { dataSourceVisibleAtom, itemDataSourcesAtom } from '../../store/datasource';
 import { UpdateLayerVisibleParam } from './OlMapWrapper';
-import { FeatureType } from '../../types-common/common-types';
+import { MapKind } from '../../types-common/common-types';
 
 /**
  * Jotaiや呼び出し元から渡されたpropsの変更検知して、地図に対して特定のイベントを実行するコンポーネントもどき

@@ -12,7 +12,7 @@ const config: CodegenConfig = {
           add: {
             content: [
               "import { Geometry } from 'geojson'",
-              "import { DataId, GeoProperties, GeocoderIdInfo, IconKey, ItemDatasourceConfig, ContentDatasourceConfig, ContentValueMap } from '../../types-common/common-types'",
+              "import { DataId, GeoProperties, GeocoderIdInfo, IconKey, ItemDatasourceConfig, ContentDatasourceConfig, ContentValueMap, MapKind, IconDefine } from '../../types-common/common-types'",
             ]
           }
         },
@@ -28,6 +28,8 @@ const config: CodegenConfig = {
           GeoProperties: 'GeoProperties',
           GeocoderIdInfo: 'GeocoderIdInfo',
           ContentValueMap: 'ContentValueMap',
+          IconDefine: 'IconDefine',
+          MapKind: 'MapKind'
         },
       }
     }

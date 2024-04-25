@@ -2,7 +2,6 @@ import { useCallback } from "react";
 import Feature, { FeatureLike } from "ol/Feature";
 import { Circle, Fill, Icon, Style, Text } from 'ol/style';
 import { getStructureScale } from "../../util/MapUtility";
-import { SystemIconDefine } from "../../types/types";
 import useFilterStatus from "./useFilterStatus";
 import { Geometry } from "ol/geom";
 import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
@@ -18,7 +17,7 @@ import { DatasourceKindType, IconKey } from "../../types-common/common-types";
 import { useAtomCallback } from "jotai/utils";
 import { currentMapKindAtom } from "../../store/session";
 import { MapKind } from "../../entry";
-import { currentDefaultIconAtom } from "../../store/icon";
+import { SystemIconDefine, currentDefaultIconAtom } from "../../store/icon";
 
 const STRUCTURE_SELECTED_COLOR = '#8888ff';
 
@@ -95,42 +94,45 @@ export default function usePointStyle() {
                         anchor: [0.5, 1],
                         anchorXUnits: 'fraction', //IconAnchorUnits.FRACTION,
                         anchorYUnits: 'fraction', //IconAnchorUnits.FRACTION,
-                        src: pinIconDefine.imagePath,
-                        color: pinColor,
-                        opacity: param.opacity,
-                        scale,
-                    }),
-                    zIndex,
-                });
-                // 白丸
-                const style2 =  new Style({
-                    image : new Circle({
-                        radius: param.iconDefine.isSystemIcon ? 16 : 30,
-                        fill: new Fill({
-                                color: param.color ?? '#ffffff',
-                        }),
-                        displacement: [0, 84],
-                        scale,
-                    }),
-                    zIndex,
-                });
-                if (param.iconDefine.id === 'default') {
-                    return [style1, style2];
-                }
-                // 画像
-                const style3 =  new Style({
-                    image: new Icon({
-                        anchor: [0.5, 1],
-                        anchorXUnits: 'fraction', //IconAnchorUnits.FRACTION,
-                        anchorYUnits: 'fraction', //IconAnchorUnits.FRACTION,
+                        // src: pinIconDefine.imagePath,
                         src: param.iconDefine.imagePath,
+                        color: param.iconDefine.defaultColor,
+                        // color: pinColor,
                         opacity: param.opacity,
-                        scale: scale * 0.3,
-                        displacement: [0, 186],
+                        scale,
                     }),
                     zIndex,
                 });
-                return [style1, style2, style3]
+                return style1;
+                // // 白丸
+                // const style2 =  new Style({
+                //     image : new Circle({
+                //         radius: param.iconDefine.isSystemIcon ? 16 : 30,
+                //         fill: new Fill({
+                //                 color: param.color ?? '#ffffff',
+                //         }),
+                //         displacement: [0, 84],
+                //         scale,
+                //     }),
+                //     zIndex,
+                // });
+                // if (param.iconDefine.id === 'default') {
+                //     return [style1, style2];
+                // }
+                // // 画像
+                // const style3 =  new Style({
+                //     image: new Icon({
+                //         anchor: [0.5, 1],
+                //         anchorXUnits: 'fraction', //IconAnchorUnits.FRACTION,
+                //         anchorYUnits: 'fraction', //IconAnchorUnits.FRACTION,
+                //         src: param.iconDefine.imagePath,
+                //         opacity: param.opacity,
+                //         scale: scale * 0.3,
+                //         displacement: [0, 186],
+                //     }),
+                //     zIndex,
+                // });
+                // return [style1, style2, style3]
 
             }
 

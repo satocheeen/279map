@@ -1,9 +1,8 @@
 import { ConnectionPool } from '.';
 import mysql from 'mysql2/promise';
 import { DataSourceTable, MapDataSourceLinkConfig, MapDataSourceLinkTable, MapPageInfoTable } from '../279map-backend-common/src/types/schema';
-import { ItemDatasourceInfo, ContentDatasourceInfo, MapInfo, MapKind, Auth, MapPageOptions } from './graphql/__generated__/types';
-import { getOriginalIconDefine } from './api/getOriginalIconDefine';
-import { ContentDatasourceConfig, DatasourceKindType, ItemDatasourceConfig } from './types-common/common-types';
+import { ItemDatasourceInfo, ContentDatasourceInfo, MapInfo, Auth, MapPageOptions } from './graphql/__generated__/types';
+import { ContentDatasourceConfig, DatasourceKindType, ItemDatasourceConfig, MapKind } from './types-common/common-types';
 
 /**
  * 指定の地図データページ配下のコンテンツ情報を返す
@@ -24,17 +23,10 @@ export async function getMapInfo(mapId: string, mapKind: MapKind, authLv: Auth):
     const itemDataSources = await getItemDataSourceGroups(mapPageInfo.map_page_id, targetMapKind);
     const contentDataSources = await getContentDataSources(mapPageInfo.map_page_id, targetMapKind);
 
-    // オリジナルアイコン定義を取得
-    const originalIcons = await getOriginalIconDefine({
-        mapId,
-        mapKind,
-    });
-
     return {
         extent,
         itemDataSources,
         contentDataSources,
-        originalIcons,
     }
 
 }

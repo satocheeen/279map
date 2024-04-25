@@ -4,7 +4,8 @@ import { TsunaguMapProps } from '../types/types';
 import useMyMedia from './useMyMedia';
 import { currentMapKindAtom, mapDefineAtom } from '../store/session';
 import { useAtom } from 'jotai';
-import { ItemLabelMode, MapKind } from '../graphql/generated/graphql';
+import { ItemLabelMode } from '../graphql/generated/graphql';
+import { MapKind } from '../types-common/common-types';
 
 /**
  * 呼び出し元から渡されたpropsと、地図固有のオプション値を加味して、

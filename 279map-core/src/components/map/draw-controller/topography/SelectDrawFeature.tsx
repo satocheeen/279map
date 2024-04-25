@@ -4,7 +4,7 @@ import { TbCircle, TbHexagon } from 'react-icons/tb';
 import styles from './SelectDrawFeature.module.scss';
 import { currentMapKindAtom } from '../../../../store/session';
 import { useAtom } from 'jotai';
-import { MapKind } from '../../../../graphql/generated/graphql';
+import { MapKind } from '../../../../types-common/common-types';
 
 export enum DrawFeatureType {
     FreePolygon,

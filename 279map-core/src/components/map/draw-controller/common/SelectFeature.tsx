@@ -15,8 +15,7 @@ import { useAtom } from 'jotai';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useItems } from '../../../../store/item/useItems';
 import { topographySelectStyleFunction } from '../utility';
-import { MapKind } from '../../../../graphql/generated/graphql';
-import { FeatureType, GeoProperties } from "../../../../types-common/common-types";
+import { MapKind, FeatureType, GeoProperties } from "../../../../types-common/common-types";
 import { Style } from 'ol/style';
 
 type Props = {

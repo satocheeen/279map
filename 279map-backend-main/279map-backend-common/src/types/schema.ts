@@ -1,6 +1,6 @@
-import { MapPageOptions, MapKind } from '../graphql/__generated__/types';
+import { MapPageOptions } from '../graphql/__generated__/types';
 // import { SnsOptions } from '../sns';
-import { ContentDatasourceConfig, ContentFieldDefine, DatasourceKindType } from '../types-common/common-types';
+import { ContentDatasourceConfig, MapKind, ContentFieldDefine, DatasourceKindType } from '../types-common/common-types';
 
 export enum PublicRange {
     Public = 'Public',
@@ -125,6 +125,7 @@ export type ItemContentLink = {
 export type OriginalIconsTable = {
     icon_page_id: string;
     map_page_id: string;
+    use_maps: string;   // MapKindをカンマ区切り
     caption: string;
     base64: string;
     last_edited_time: string;

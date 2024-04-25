@@ -29,9 +29,18 @@
         img {
             aspect-ratio: 1 / 1;
             width: 100%;
+            height: 100%;
             object-fit: contain;
         }
+
+        svg {
+            aspect-ratio: 1 / 1;
+            width: 100%;
+            height: 100%;
+        }
+    
     }
+
 }
 .listGroup{
     padding: 5px 0;

@@ -161,6 +161,7 @@ CREATE TABLE `original_icons` (
   `base64` mediumtext NOT NULL,
   `last_edited_time` varchar(100) NOT NULL,
   `map_page_id` varchar(100) NOT NULL,
+  `use_maps` varchar(100) NOT NULL,
   PRIMARY KEY (`icon_page_id`),
   KEY `original_icons_FK` (`map_page_id`),
   CONSTRAINT `original_icons_FK` FOREIGN KEY (`map_page_id`) REFERENCES `map_page_info` (`map_page_id`) ON DELETE CASCADE

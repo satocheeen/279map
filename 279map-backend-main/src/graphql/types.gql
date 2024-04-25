@@ -10,11 +10,6 @@ enum Auth {
     Admin
 }
 
-enum MapKind {
-    Real
-    Virtual
-}
-
 enum ConnectErrorType {
     "指定の地図が存在しない場合"
     UndefinedMap
@@ -97,6 +92,7 @@ type MapDefine {
     useMaps: [MapKind!]!
     defaultMapKind: MapKind!
     options: MapPageOptions!
+    originalIcons: [IconDefine!]!
 }
 
 scalar DataId
@@ -108,3 +104,5 @@ scalar IconKey
 scalar GeoProperties
 scalar GeocoderIdInfo
 scalar ContentValueMap
+scalar MapKind
+scalar IconDefine

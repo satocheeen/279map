@@ -1,7 +1,6 @@
 import { ConnectionPool } from "..";
 import { DataSourceTable, ItemContentLink, ItemsTable, MapDataSourceLinkTable } from "../../279map-backend-common/src";
-import { MapKind } from "../graphql/__generated__/types";
-import { DatasourceKindType, DataId } from "../types-common/common-types";
+import { MapKind, DatasourceKindType, DataId } from "../types-common/common-types";
 
 type Result = {
     mapId: string;

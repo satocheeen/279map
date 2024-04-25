@@ -16,9 +16,9 @@ import { useMap } from '../../useMap';
 import { ConfirmResult } from '../../../common/confirm/types';
 import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
 import useItemProcess from '../../../../store/item/useItemProcess';
-import { SystemIconDefine } from '../../../../entry';
 import SelectStructureDialog from '../structure/SelectStructureDialog';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
+import { SystemIconDefine } from '../../../../store/icon';
 
 type Props = {
     target: FeatureType[];

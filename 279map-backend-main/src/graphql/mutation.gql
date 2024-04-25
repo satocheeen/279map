@@ -32,7 +32,6 @@ type MapInfo {
     extent: [Float!]!
     itemDataSources: [ItemDatasourceInfo!]!
     contentDataSources: [ContentDatasourceInfo!]!
-    originalIcons: [IconDefine!]!
 }
 type ItemDatasourceInfo {
     datasourceId: String!
@@ -45,13 +44,6 @@ type ContentDatasourceInfo {
     datasourceId: String!
     name: String!
     config: ContentDatasourceConfig!
-}
-
-type IconDefine {
-    id: ID!
-    caption: String
-    imagePath: String!
-    useMaps: [MapKind!]!
 }
 
 # ------------------------------

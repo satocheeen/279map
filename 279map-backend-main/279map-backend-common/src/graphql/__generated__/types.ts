@@ -1,5 +1,5 @@
 import { Geometry } from 'geojson'
-import { DataId, GeoProperties, GeocoderIdInfo, IconKey, ItemDatasourceConfig, ContentDatasourceConfig, ContentValueMap } from '../../types-common/common-types'
+import { DataId, GeoProperties, GeocoderIdInfo, IconKey, ItemDatasourceConfig, ContentDatasourceConfig, ContentValueMap, MapKind, IconDefine } from '../../types-common/common-types'
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -20,9 +20,11 @@ export type Scalars = {
   GeoProperties: { input: GeoProperties; output: GeoProperties; }
   GeocoderIdInfo: { input: GeocoderIdInfo; output: GeocoderIdInfo; }
   Geometry: { input: Geometry; output: Geometry; }
+  IconDefine: { input: IconDefine; output: IconDefine; }
   IconKey: { input: IconKey; output: IconKey; }
   ItemDatasourceConfig: { input: ItemDatasourceConfig; output: ItemDatasourceConfig; }
   JSON: { input: any; output: any; }
+  MapKind: { input: MapKind; output: MapKind; }
 };
 
 export enum Auth {
@@ -65,16 +67,12 @@ export enum ItemLabelMode {
 }
 
 export type MapDefine = {
-  defaultMapKind: MapKind;
+  defaultMapKind: Scalars['MapKind']['output'];
   name: Scalars['String']['output'];
   options: MapPageOptions;
-  useMaps: Array<MapKind>;
+  originalIcons: Array<Scalars['IconDefine']['output']>;
+  useMaps: Array<Scalars['MapKind']['output']>;
 };
-
-export enum MapKind {
-  Real = 'Real',
-  Virtual = 'Virtual'
-}
 
 export type MapPageOptions = {
   /** コンテンツソート順 */

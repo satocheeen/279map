@@ -1,12 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Button from '../../../common/button/Button';
 import Modal from  '../../../common/modal/Modal';
 import styles from './SelectStructureDialog.module.scss';
-import { SystemIconDefine } from '../../../../types/types';
-import { currentMapIconDefineAtom } from '../../../../store/icon';
+import { SystemIconDefine, currentMapIconDefineAtom } from '../../../../store/icon';
 import { currentMapKindAtom } from '../../../../store/session';
 import { useAtom } from 'jotai';
-import { MapKind } from '../../../../graphql/generated/graphql';
+import { MapKind } from '../../../../types-common/common-types';
 
 type Props = {
     currentIconId?: string;         // 現在の画像ID
@@ -72,10 +71,11 @@ export default function SelectStructureDialog(props: Props) {
             if (def.imagePath === selectedDefine?.imagePath) {
                 className += " " + styles.active;
             }
+
             return (
                 <li className={className} key={def.imagePath}
                     onClick={()=>onSelect(def)}>
-                        <img src={def.imagePathForMenu ?? def.imagePath} alt={def.id} />
+                        <IconImage def={def} />
                 </li>
             )
         });
@@ -112,3 +112,54 @@ export default function SelectStructureDialog(props: Props) {
         </Modal>
     );
 }
+
+type IconImageProps = {
+    def: SystemIconDefine;
+}
+function IconImage({ def }: IconImageProps) {
+    const [svgData, setSvgData] = useState<string|null>(null);
+
+    const isSvg = useMemo(() => def.imagePath.endsWith('.svg'), [def]);
+
+    useEffect(() => {
+        if (!isSvg) return;
+        const fetchSvgData = async () => {
+            try {
+                const response = await fetch(def.imagePath);
+                const data = await response.text();
+                if (def.defaultColor) {
+                    const modifiedData = addFillStyle(data, def.defaultColor, 'my-color');
+                    setSvgData(modifiedData);
+                } else {
+                    setSvgData(data);
+                }
+            } catch (error) {
+                console.error('SVGファイルの読み込みに失敗しました:', error);
+            }
+        };
+  
+          fetchSvgData();
+    }, [def, isSvg]);
+  
+    if (!isSvg) {
+        return (
+            <img src={def.imagePath} alt={def.id} />
+        )
+    }
+    if (!svgData) return null;
+    return (
+      <div dangerouslySetInnerHTML={{ __html: svgData }} />
+    );
+}
+
+const addFillStyle = (svgData: string, fillColor: string, targetClass: string) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgData, 'image/svg+xml');
+    const targetElements = doc.getElementsByClassName(targetClass);
+
+    for (let i = 0; i < targetElements.length; i++) {
+      targetElements[i].setAttribute('fill', fillColor);
+    }
+
+    return new XMLSerializer().serializeToString(doc);
+  };
