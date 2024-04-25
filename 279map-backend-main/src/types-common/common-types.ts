@@ -25,7 +25,7 @@ export type IconDefine = IconKey & {
     imagePath: string;
 
     /** SVG画像の場合に、my-colorクラスを付与しているノードに対して、fill設定が行われる */
-    defaultColor?: string;  // デフォルト塗りつぶし色 (将来的にタグなどによる自動色設定を想定)
+    defaultColor?: string;  // デフォルト塗りつぶし色 (将来的にタグなどによる自動色設定や、ユーザによる色指定をできるようにする予定)
 
     useMaps: MapKind[];
 }

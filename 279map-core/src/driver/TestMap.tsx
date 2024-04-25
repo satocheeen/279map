@@ -51,6 +51,20 @@ export const DriverContext = React.createContext({
 const iconDefine: TsunaguMapProps['iconDefine'] = {
     defines: [
         {
+            id: 'pin',
+            caption: '',
+            imagePath: './icon/pin.svg',
+            useMaps: [MapKind.Real],
+            defaultColor: '#271AA8',
+        },
+        {
+            id: 'flag1',
+            caption: '',
+            imagePath: './icon/flag.svg',
+            useMaps: [MapKind.Real],
+            defaultColor: '#ffd800',
+        },
+        {
             id: 'pin0066',
             caption: '',
             imagePath: './icon/icon0066_ss.png',
@@ -70,7 +84,7 @@ const iconDefine: TsunaguMapProps['iconDefine'] = {
         }
     ],
     defaultIconId: {
-        real: 'pin0066',
+        real: 'pin',
         virtual: 'house2',
     }
 };
@@ -265,7 +279,7 @@ export default function TestMap() {
             <div className={styles.Map}>
                 {mapId &&
                     <TsunaguMap ref={mapRef}
-                        // iconDefine={iconDefine}
+                        iconDefine={iconDefine}
                         mapId={mapId}
                         mapServer={mapServer}
                         popupMode={popupMode}
