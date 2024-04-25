@@ -2,7 +2,6 @@ import { TsunaguMapProps } from '../../types/types';
 import { currentMapKindAtom, mapDefineAtom } from '../session';
 // import defaultIcon from './pin.png'
 import defaultIconReal from './map-marker.svg';
-import defaultIconRealForMenu from './map-marker-formenu.svg';
 import defaultIconVirtual from './house.png';
 import { atom } from 'jotai';
 import { IconDefine, IconKey, MapKind } from '../../types-common/common-types';
@@ -12,8 +11,6 @@ import { IconDefine, IconKey, MapKind } from '../../types-common/common-types';
  */
 export type SystemIconDefine = Omit<IconDefine, 'useMaps'> & {
     type: IconKey['type'],
-    defaultColor?: string;  // デフォルト塗りつぶし色（ピン画像などでの使用を想定）
-    imagePathForMenu?: string;  // 建設メニューや重畳選択メニューに表示するアイコン画像を異なるものにする場合に指定。（白色のSVG画像などを用いる場合を想定）
 
     isSystemIcon?: boolean; // システムデフォルトのアイコンの場合、true。（ピンの上に白丸を置く関係でひとまず設定）
 }
@@ -79,7 +76,6 @@ export const currentMapIconDefineAtom = atom<SystemIconDefine[]>((get) => {
             type: 'system',
             imagePath: defaultIconReal,
             defaultColor: '#271AA8',
-            imagePathForMenu: defaultIconRealForMenu,
             isSystemIcon: true,
         } : {
             id: 'default',

@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { Geometry } from 'geojson'
-import { DataId, GeoProperties, GeocoderIdInfo, IconKey, ItemDatasourceConfig, ContentDatasourceConfig, ContentValueMap } from '../../types-common/common-types'
+import { DataId, GeoProperties, GeocoderIdInfo, IconKey, ItemDatasourceConfig, ContentDatasourceConfig, ContentValueMap, MapKind, IconDefine } from '../../types-common/common-types'
 import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -22,11 +22,11 @@ export type Scalars = {
   GeoProperties: { input: GeoProperties; output: GeoProperties; }
   GeocoderIdInfo: { input: GeocoderIdInfo; output: GeocoderIdInfo; }
   Geometry: { input: Geometry; output: Geometry; }
-  IconDefine: { input: any; output: any; }
+  IconDefine: { input: IconDefine; output: IconDefine; }
   IconKey: { input: IconKey; output: IconKey; }
   ItemDatasourceConfig: { input: ItemDatasourceConfig; output: ItemDatasourceConfig; }
   JSON: { input: any; output: any; }
-  MapKind: { input: any; output: any; }
+  MapKind: { input: MapKind; output: MapKind; }
 };
 
 export enum Auth {
@@ -651,7 +651,7 @@ export type ConnectMutationVariables = Exact<{
 }>;
 
 
-export type ConnectMutation = { __typename?: 'Mutation', connect: { __typename?: 'ConnectResult', mapDefine: { __typename?: 'MapDefine', name: string, useMaps: Array<any>, defaultMapKind: any, originalIcons: Array<any>, options: { __typename?: 'MapPageOptions', popupMode?: PopupMode | null, itemLabel?: ItemLabelMode | null, guestUserAuthLevel: Auth, newUserAuthLevel: Auth, usePanels?: Array<string> | null, contentsSortCondition?: SortCondition | null, options?: Array<string> | null } }, connect: { __typename?: 'ConnectInfo', sid: string, authLv: Auth, userId?: string | null, userName?: string | null } } };
+export type ConnectMutation = { __typename?: 'Mutation', connect: { __typename?: 'ConnectResult', mapDefine: { __typename?: 'MapDefine', name: string, useMaps: Array<MapKind>, defaultMapKind: MapKind, originalIcons: Array<IconDefine>, options: { __typename?: 'MapPageOptions', popupMode?: PopupMode | null, itemLabel?: ItemLabelMode | null, guestUserAuthLevel: Auth, newUserAuthLevel: Auth, usePanels?: Array<string> | null, contentsSortCondition?: SortCondition | null, options?: Array<string> | null } }, connect: { __typename?: 'ConnectInfo', sid: string, authLv: Auth, userId?: string | null, userName?: string | null } } };
 
 export type DisconnectMutationVariables = Exact<{ [key: string]: never; }>;
 

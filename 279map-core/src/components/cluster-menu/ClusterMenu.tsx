@@ -123,9 +123,9 @@ function MenuItem(props: MenuItemProp) {
     return (
         <li className={styles.MenuItem} onClick={props.onClick}>
             {iconDefine.type === 'system' ?
-                <img src={iconDefine.imagePathForMenu ?? iconDefine.imagePath} />
+                <img src={iconDefine.imagePath} />
                 :
-                <img src={iconDefine.imagePathForMenu ?? iconDefine.imagePath} alt={'icon' + iconDefine.caption} />
+                <img src={iconDefine.imagePath} alt={'icon' + iconDefine.caption} />
             }
             <span className={styles.NameArea}>
                 <span>{itemName}</span>
