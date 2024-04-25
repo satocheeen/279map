@@ -48,24 +48,32 @@ export const DriverContext = React.createContext({
 
     setOverrideItems: (val: OverrideItem[] | undefined) => {},
 })
-const iconDefine: TsunaguMapProps['iconDefine'] = [
-    // id=default指定すると、defaultアイコンを差し替えられる
-    // {
-    //     id: 'default',
-    //     imagePath: './icon/icon0066_ss.png',
-    //     useMaps: [MapKind.Real],
-    // },
-    {
-        id: 'house',
-        imagePath: './icon/house.png',
-        useMaps: [MapKind.Virtual],
-    },
-    {
-        id: 'house2',
-        imagePath: './icon/house2.png',
-        useMaps: [MapKind.Virtual],
+const iconDefine: TsunaguMapProps['iconDefine'] = {
+    defines: [
+        {
+            id: 'pin0066',
+            caption: '',
+            imagePath: './icon/icon0066_ss.png',
+            useMaps: [MapKind.Real],
+        },
+        {
+            id: 'house',
+            caption: '',
+            imagePath: './icon/house.png',
+            useMaps: [MapKind.Virtual],
+        },
+        {
+            id: 'house2',
+            caption: '',
+            imagePath: './icon/house2.png',
+            useMaps: [MapKind.Virtual],
+        }
+    ],
+    defaultIconId: {
+        real: 'pin0066',
+        virtual: 'house2',
     }
-];
+};
 
 export default function TestMap() {
     const mapRef = useRef<TsunaguMapHandler>(null);
@@ -256,7 +264,9 @@ export default function TestMap() {
             </div> */}
             <div className={styles.Map}>
                 {mapId &&
-                    <TsunaguMap ref={mapRef} iconDefine={iconDefine} mapId={mapId}
+                    <TsunaguMap ref={mapRef}
+                        // iconDefine={iconDefine}
+                        mapId={mapId}
                         mapServer={mapServer}
                         popupMode={popupMode}
                         disabledLabel={disabledLabel}

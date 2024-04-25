@@ -10,7 +10,7 @@ import { clientAtom } from 'jotai-urql';
 import { Auth, ConnectDocument, ConnectErrorType, ConnectResult, DisconnectDocument, ErrorDocument, RequestDocument, UpdateUserAuthDocument } from '../../graphql/generated/graphql';
 import { OwnerContext } from './TsunaguMap';
 import { Provider, createStore } from 'jotai';
-import { defaultIconDefineAtom } from '../../store/icon';
+import { systemIconDefineAtom } from '../../store/icon';
 import { createGqlClient } from '../../api';
 import { useWatch } from '../../util/useWatch2';
 import { Subscription } from 'wonka';
@@ -27,7 +27,7 @@ type Props = {
 function createMyStore(iconDefine: TsunaguMapProps['iconDefine']) {
     const store = createStore();
     if (iconDefine) {
-        store.set(defaultIconDefineAtom, iconDefine);
+        store.set(systemIconDefineAtom, iconDefine);
     }
     return store;
 }

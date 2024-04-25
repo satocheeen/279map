@@ -88,7 +88,17 @@ export type TsunaguMapProps = {
         ssl: boolean;   // SSL通信の場合、true
         token?: string;
     };
-    iconDefine?: IconDefine[];
+
+    /** 未指定の場合は、coreで用意されているアイコンを用いる */
+    iconDefine?: {
+        defines: Omit<IconDefine, 'type'>[];
+        /** 建物やピンに設定するアイコンID */
+        defaultIconId: {
+            virtual?: string;
+            real?: string;
+        }
+    };
+
     /**
      * ポップアップ表示モード
      * - hidden: ポップアップ表示しない
