@@ -7,7 +7,7 @@ export async function getOriginalIconDefine(mapId: string): Promise<IconDefine[]
     const con = await ConnectionPool.getConnection();
     try {
         const sql = `
-        select icon_page_id, oi.caption from original_icons oi 
+        select icon_page_id, oi.caption, use_maps from original_icons oi 
         where oi.map_page_id = ?
         `;
         const [rows] = await con.execute(sql, [mapId]);
@@ -15,12 +15,15 @@ export async function getOriginalIconDefine(mapId: string): Promise<IconDefine[]
         const icons = await Promise.all((rows as OriginalIconsTable[]).map(async(row): Promise<IconDefine|undefined> => {
             const base64 = await getIcon({id: row.icon_page_id});
             if (!base64) return;
+            
             return {
                 type: 'original',
                 id: row.icon_page_id,
                 caption: row.caption,
                 imagePath: 'data:image/' + base64,
-                useMaps: [MapKind.Real, MapKind.Virtual],   // TODO:
+                useMaps: row.use_maps.split(',').map(mapKindStr => {
+                    return mapKindStr as MapKind;
+                }),
             }
         }));
 
