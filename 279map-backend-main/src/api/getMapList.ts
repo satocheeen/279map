@@ -22,7 +22,7 @@ export async function getMapList(req: Request): Promise<MapListItem[]> {
         const records = rows as MapPageInfoTable[];
 
         for (const record of records) {
-            const authInfo = await getUserAuthInfoInTheMap(record, req);
+            const authInfo = await getUserAuthInfoInTheMap(record, req, true);
 
             // 権限のあるもののみ返す
             const authLv = function() {
