@@ -125,6 +125,7 @@ export type ItemContentLink = {
 export type OriginalIconsTable = {
     icon_page_id: string;
     map_page_id: string;
+    use_maps: string;   // MapKindをカンマ区切り
     caption: string;
     base64: string;
     last_edited_time: string;
