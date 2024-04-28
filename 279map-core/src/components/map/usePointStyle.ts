@@ -82,57 +82,20 @@ export default function usePointStyle() {
                 });
 
             } else {
-                // ピン
-                const pinIconDefine = get(currentDefaultIconAtom);
-                const pinColor = function() {
-                    if (!param.color) return pinIconDefine.defaultColor;
-                    if (!pinIconDefine.defaultColor) return param.color;
-                    return multipleColor(pinIconDefine.defaultColor, param.color);
-                }();
-                const style1 =  new Style({
+                
+                const style =  new Style({
                     image: new Icon({
                         anchor: [0.5, 1],
                         anchorXUnits: 'fraction', //IconAnchorUnits.FRACTION,
                         anchorYUnits: 'fraction', //IconAnchorUnits.FRACTION,
-                        // src: pinIconDefine.imagePath,
                         src: param.iconDefine.imagePath,
-                        color: param.iconDefine.defaultColor,
-                        // color: pinColor,
+                        // color: param.iconDefine.defaultColor,
                         opacity: param.opacity,
                         scale,
                     }),
                     zIndex,
                 });
-                return style1;
-                // // 白丸
-                // const style2 =  new Style({
-                //     image : new Circle({
-                //         radius: param.iconDefine.isSystemIcon ? 16 : 30,
-                //         fill: new Fill({
-                //                 color: param.color ?? '#ffffff',
-                //         }),
-                //         displacement: [0, 84],
-                //         scale,
-                //     }),
-                //     zIndex,
-                // });
-                // if (param.iconDefine.id === 'default') {
-                //     return [style1, style2];
-                // }
-                // // 画像
-                // const style3 =  new Style({
-                //     image: new Icon({
-                //         anchor: [0.5, 1],
-                //         anchorXUnits: 'fraction', //IconAnchorUnits.FRACTION,
-                //         anchorYUnits: 'fraction', //IconAnchorUnits.FRACTION,
-                //         src: param.iconDefine.imagePath,
-                //         opacity: param.opacity,
-                //         scale: scale * 0.3,
-                //         displacement: [0, 186],
-                //     }),
-                //     zIndex,
-                // });
-                // return [style1, style2, style3]
+                return style;
 
             }
 
