@@ -37,8 +37,8 @@ export type DataSourceTable = {
 
     config: DatasourceTblConfig;
 
-    location_define: LocationFieldDefine[];
-    contents_define: ContentFieldDefine[];
+    location_define: LocationFieldDefine[] | null;
+    contents_define: ContentFieldDefine[] | null;
 
     // ODBAで使用するための接続関連情報
     odba_connection: OdbaConnection;
@@ -46,8 +46,8 @@ export type DataSourceTable = {
 export type DataSourceTableForRegist = Omit<DataSourceTable, 'config' | 'location_define' | 'contents_define' | 'odba_connection'> & {
     config: string;
 
-    location_define: string;
-    contents_define: string;
+    location_define: string | null;
+    contents_define: string | null;
 
     // ODBAで使用するための接続関連情報
     odba_connection: string;
