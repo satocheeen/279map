@@ -70,13 +70,16 @@ export type MapDataSourceLinkTableForRegist = Omit<MapDataSourceLinkTable, 'mdl_
 
 /**
  * コンテンツのカラム定義等を格納
- * TODO: 地図がどの項目をどの順番で使用するか、を管理するように変更
  */
-export type MapDataSourceLinkConfig = {
-    kind: DatasourceLocationKindType.RealItem | DatasourceLocationKindType.Track;
-    initialVisible: boolean;    // 初期表示状態
-} | {
-    kind: DatasourceLocationKindType.VirtualItem;
+export type MapDataSourceLinkConfig = (
+    {
+        kind: DatasourceLocationKindType.RealItem | DatasourceLocationKindType.Track;
+        initialVisible: boolean;    // 初期表示状態
+    } | {
+        kind: DatasourceLocationKindType.VirtualItem;
+    }
+) & {
+    contentFieldKeyList: string[];  // 当該地図で使用するコンテンツ項目のキー一覧
 }
 
 export type TracksTable = {
