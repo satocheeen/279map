@@ -42,6 +42,8 @@ export type DataSourceTable = {
 
     // ODBAで使用するための接続関連情報
     odba_connection: OdbaConnection;
+
+    last_edited_time: string;
 }
 export type DataSourceTableForRegist = Omit<DataSourceTable, 'config' | 'location_define' | 'contents_define' | 'odba_connection'> & {
     config: string;
