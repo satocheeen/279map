@@ -4,7 +4,7 @@ import { buffer, circle, featureCollection, lineString, multiLineString, multiPo
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 import crypto from 'crypto';
 import * as geojson from 'geojson';
-import { ContentValueMap, DataId } from '../types-common/common-types';
+import { ContentFieldDefine, ContentValueMap, DataId } from '../types-common/common-types';
 import { MapDataSourceLinkTable } from '../../279map-backend-common/dist';
 import { Auth } from '../graphql/__generated__/types';
 
@@ -250,20 +250,20 @@ export async function cleanupContentValuesForRegist(mapId: string, datasourceId:
 
     try {
         // 項目定義を取得
-        const sql = 'select * from map_datasource_link where map_page_id =? and data_source_id = ?';
-        const [rows] = await con.execute(sql, [mapId,datasourceId]);
+        const sql = `
+            select * from data_source ds 
+            inner join map_datasource_link mdl on ds.data_source_id = mdl.data_source_id 
+            map_page_id = ? and ds.data_source_id = ?
+        `;
+        const [rows] = await con.execute(sql, [mapId, datasourceId]);
         if ((rows as []).length === 0) {
             throw new Error('data_source not find. ->' + datasourceId);
         }
-        const mdl_config = (rows as MapDataSourceLinkTable[])[0].mdl_config as MapDataSourceLinkConfig;
-        const fields = 'fields' in mdl_config ? mdl_config.fields : undefined; 
-        if (!fields) {
-            throw new Error('undefined fields -> ' + datasourceId);
-        }
+        const contents_define = (rows as (MapDataSourceLinkTable & DataSourceTable)[])[0].contents_define as ContentFieldDefine[];
 
         const newValues = {} as ContentValueMap;
         Object.entries(values).forEach(([key, value]) => {
-            const field = fields.find(def => def.key === key);
+            const field = contents_define.find(def => def.key === key);
             if (!field) return;
             if ('readonly' in field && field.readonly) {
                 // readonly項目は、はじく

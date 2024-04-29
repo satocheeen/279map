@@ -1,4 +1,4 @@
-import { CurrentMap, DatasourceKindType, MapKind } from "../../279map-backend-common/src";
+import { CurrentMap, DatasourceLocationKindType, MapKind } from "../../279map-backend-common/src";
 import { ConnectionPool } from "..";
 import { PoolConnection } from "mysql2/promise";
 import { ItemContentLink, ItemsTable } from "../../279map-backend-common/src/types/schema";
@@ -103,13 +103,13 @@ async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, cat
         inner join data_source ds on ds.data_source_id = i.data_source_id
         where icl.content_page_id = c.content_page_id and icl.content_datasource_id  = c.data_source_id
         and mdl.map_page_id = ?
-        and ds.kind in (?)
+        and ds.kind = ?
         and JSON_CONTAINS(c.category, ?) > 0
         ${dataSourceIds ? 'and i.data_source_id in (?)' : ''}
     )
     `;
     const categoryParam = `["${category}"]`;
-    const dsKind = currentMap.mapKind === MapKind.Virtual ? [DatasourceKindType.VirtualItem] : [DatasourceKindType.RealItem, DatasourceKindType.RealPointContent];
+    const dsKind = currentMap.mapKind === MapKind.Virtual ? DatasourceLocationKindType.VirtualItem : DatasourceLocationKindType.RealItem;
     const params = [currentMap.mapId, dsKind, categoryParam] as any[];
     if (dataSourceIds) {
         params.push(dataSourceIds);
@@ -147,13 +147,13 @@ async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: s
         inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
         where icl.content_page_id = c.content_page_id and icl.content_datasource_id  = c.data_source_id
         and mdl.map_page_id = ?
-        and ds.kind in (?)
+        and ds.kind = ?
         and DATE_FORMAT(date,'%Y-%m-%d') = ?
         ${dataSourceIds ? 'and i.data_source_id in (?)' : ''}
     )
     `;
 
-    const dsKind = currentMap.mapKind === MapKind.Virtual ? [DatasourceKindType.VirtualItem] : [DatasourceKindType.RealItem, DatasourceKindType.RealPointContent];
+    const dsKind = currentMap.mapKind === MapKind.Virtual ? DatasourceLocationKindType.VirtualItem : DatasourceLocationKindType.RealItem;
     const params = [currentMap.mapId, dsKind, date] as any[];
     if (dataSourceIds) {
         params.push(dataSourceIds);
@@ -193,14 +193,14 @@ async function searchByKeyword(con: PoolConnection, currentMap: CurrentMap, keyw
         inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
         where icl.content_page_id = c.content_page_id and icl.content_datasource_id  = c.data_source_id
             and mdl.map_page_id = ?
-            and ds.kind in (?)
+            and ds.kind = ?
             and (JSON_SEARCH(c.contents, 'one', ?) is not null or c.title like ?)
             ${dataSourceIds ? 'and i.data_source_id in (?)' : ''}
     )
     `;
 
     const keywordParam = `%${keyword}%`;
-    const dsKind = currentMap.mapKind === MapKind.Virtual ? [DatasourceKindType.VirtualItem] : [DatasourceKindType.RealItem, DatasourceKindType.RealPointContent];
+    const dsKind = currentMap.mapKind === MapKind.Virtual ? DatasourceLocationKindType.VirtualItem : DatasourceLocationKindType.RealItem;
     const params = [currentMap.mapId, dsKind, keywordParam, keywordParam] as any[];
     if (dataSourceIds) {
         params.push(dataSourceIds);
@@ -235,12 +235,12 @@ async function searchItemByKeyword(con: PoolConnection, currentMap: CurrentMap, 
         inner join data_source ds on ds.data_source_id = i.data_source_id
         inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
         where mdl.map_page_id = ?
-        and ds.kind in (?)
+        and ds.kind = ?
         and name like ?
         ${dataSourceIds ? 'and i.data_source_id in (?)' : ''}
     `
     const keywordParam = `%${keyword}%`;
-    const dsKind = currentMap.mapKind === MapKind.Virtual ? [DatasourceKindType.VirtualItem] : [DatasourceKindType.RealItem, DatasourceKindType.RealPointContent];
+    const dsKind = currentMap.mapKind === MapKind.Virtual ? DatasourceLocationKindType.VirtualItem : DatasourceLocationKindType.RealItem;
     const params = [currentMap.mapId, dsKind, keywordParam] as any[];
     if (dataSourceIds) {
         params.push(dataSourceIds);

@@ -9,7 +9,7 @@ import { BsImage } from 'react-icons/bs';
 import { useItem } from '../../store/item/useItem';
 import { itemDataSourcesAtom } from '../../store/datasource';
 import { useAtom } from 'jotai';
-import { DataId, DatasourceKindType } from '../../types-common/common-types';
+import { DataId, DatasourceLocationKindType } from '../../types-common/common-types';
 
 const ARROW_HEIGHT = 20;
 const ARROW_OFFSET_LEFT = 45;
@@ -104,7 +104,7 @@ function MenuItem(props: MenuItemProp) {
         if (!('icon' in item.geoProperties)) {
             // icon未指定の場合はレイヤデフォルトアイコンを設定
             const datasource = dataSources.find(ds => ds.datasourceId === item.id.dataSourceId);
-            const icon = datasource?.config.kind === DatasourceKindType.RealPointContent ? datasource.config.defaultIcon : undefined;
+            const icon = datasource?.config.kind === DatasourceLocationKindType.RealItem ? datasource.config.defaultIcon : undefined;
             return getIconDefine(icon ?? undefined);
         }
         return getIconDefine(item.geoProperties.icon ?? undefined);

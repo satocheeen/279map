@@ -3,7 +3,7 @@ import { PoolConnection } from 'mysql2/promise';
 import { ContentsTable, DataSourceTable, ItemContentLink, MapDataSourceLinkConfig, MapDataSourceLinkTable } from '../279map-backend-common/src/types/schema';
 import { CurrentMap } from '../279map-backend-common/src';
 import { Auth, ContentsDefine } from './graphql/__generated__/types';
-import { DatasourceKindType, DataId, ContentValueMap, MapKind } from './types-common/common-types';
+import { DatasourceLocationKindType, DataId, ContentValueMap, MapKind, ContentFieldDefine } from './types-common/common-types';
 import { isEqualId } from './util/utility';
 import { DatasourceTblConfig, ImagesTable } from '../279map-backend-common/dist';
 
@@ -53,9 +53,10 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
                 }
 
                 // アイテムと対になっているコンテンツは削除不可
-                if (row.kind === DatasourceKindType.RealPointContent && itemId && isEqualId(itemId, { id: row.content_page_id, dataSourceId: row.data_source_id})) {
-                    return false;
-                }
+                // TODO: itemテーブルに同一IDのレコードが存在するか確認
+                // if (row.kind === DatasourceLocationKindType.RealPointContent && itemId && isEqualId(itemId, { id: row.content_page_id, dataSourceId: row.data_source_id})) {
+                //     return false;
+                // }
 
                 // 別の地図で使用されている場合は削除不可にする
                 if (usingAnotherMap) return false;
@@ -73,10 +74,8 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
 
             // 画像が存在する場合は、valuesにIDを含めて返す
             const imageFields = function() {
-                const mdlConfig = row.mdl_config as MapDataSourceLinkConfig;
-                if ('fields' in mdlConfig) {
-                    return mdlConfig.fields.filter(fd => fd.type === 'image');
-                }
+                const contentsDefine = row.contents_define as ContentFieldDefine[];
+                return contentsDefine.filter(fd => fd.type === 'image');
             }() ?? [];
             for (const imageField of imageFields) {
                 const imageQuery = 'select * from images where content_page_id = ? and data_source_id = ? and field_key = ?';
@@ -178,9 +177,9 @@ async function getAnotherMapKindItemsUsingTheContent(con: PoolConnection, conten
     inner join data_source ds on ds.data_source_id = i.data_source_id 
     inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
     where icl.content_page_id = ? and icl.content_datasource_id  = ?
-    and mdl.map_page_id = ? and ds.kind in (?)
+    and mdl.map_page_id = ? and ds.kind = ?
     `;
-    const anotherMapKind = currentMap.mapKind === MapKind.Virtual ? [DatasourceKindType.RealItem, DatasourceKindType.RealPointContent] : [DatasourceKindType.VirtualItem];
+    const anotherMapKind = currentMap.mapKind === MapKind.Virtual ? DatasourceLocationKindType.RealItem : DatasourceLocationKindType.VirtualItem;
     const query = con.format(sql, [contentId.id, contentId.dataSourceId, currentMap.mapId, anotherMapKind]);
     const [rows] = await con.execute(query);
 

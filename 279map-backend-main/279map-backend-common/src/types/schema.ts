@@ -1,6 +1,6 @@
 import { MapPageOptions } from '../graphql/__generated__/types';
 // import { SnsOptions } from '../sns';
-import { ContentDatasourceConfig, MapKind, ContentFieldDefine, DatasourceKindType } from '../types-common/common-types';
+import { ContentDatasourceConfig, MapKind, ContentFieldDefine, DatasourceLocationKindType, LocationFieldDefine } from '../types-common/common-types';
 
 export enum PublicRange {
     Public = 'Public',
@@ -12,32 +12,47 @@ export type MapPageInfoTable = {
     use_maps: string;   // MapKindをカンマ区切り
     default_map: MapKind;
     public_range: PublicRange;
-    options?: string | MapPageOptions;   // 登録時はstring、取得時はMapPageOptions
+    options?: MapPageOptions;
 
     // 地図説明
     description?: string;
     thumbnail?: string;
 
     // ODBAで使用するための接続関連情報
-    odba_connection: string | OdbaConnection;  // 登録時はstring、取得時はDataSourceConnection
+    odba_connection: OdbaConnection;
     last_edited_time: string;
 }
+export type MapPageInfoTableForRegist = Omit<MapPageInfoTable, 'options' | 'odba_connection'> & {
+    options?: string;
+    odba_connection: string;
+}
+
 export interface OdbaConnection {
     type: string;   // ODBA識別名称
     // 他に必要な項目は、ODBA内で個別に設定する
 }
 export type DataSourceTable = {
     data_source_id: string;
-    kind: DatasourceKindType;
+    kind: DatasourceLocationKindType;
 
-    // 登録時はstring, 取得時はDatasourceConfig(Contentの場合、fieldsは格納対象外)
-    config: string | DatasourceTblConfig;
+    config: DatasourceTblConfig;
+
+    location_define: LocationFieldDefine[];
+    contents_define: ContentFieldDefine[];
 
     // ODBAで使用するための接続関連情報
-    odba_connection: string | OdbaConnection;  // 登録時はstring、取得時はDataSourceConnection
-
-    last_edited_time: string;
+    odba_connection: OdbaConnection;
 }
+export type DataSourceTableForRegist = Omit<DataSourceTable, 'config' | 'location_define' | 'contents_define' | 'odba_connection'> & {
+    config: string;
+
+    location_define: string;
+    contents_define: string;
+
+    // ODBAで使用するための接続関連情報
+    odba_connection: string;
+}
+
 export type DatasourceTblConfig = Omit<ContentDatasourceConfig, 'fields'> | {};
 
 export type MapDataSourceLinkTable = {
@@ -46,24 +61,22 @@ export type MapDataSourceLinkTable = {
     datasource_name: string;
     group_name?: string;
     order_num?: number;
-    mdl_config: string | MapDataSourceLinkConfig;
+    mdl_config: MapDataSourceLinkConfig;
     last_edited_time: string;
 }
+export type MapDataSourceLinkTableForRegist = Omit<MapDataSourceLinkTable, 'mdl_config'> & {
+    mdl_config: string;
+}
+
 /**
  * コンテンツのカラム定義等を格納
+ * TODO: 地図がどの項目をどの順番で使用するか、を管理するように変更
  */
 export type MapDataSourceLinkConfig = {
-    kind: DatasourceKindType.RealItem | DatasourceKindType.Track;
+    kind: DatasourceLocationKindType.RealItem | DatasourceLocationKindType.Track;
     initialVisible: boolean;    // 初期表示状態
 } | {
-    kind: DatasourceKindType.Content;
-    fields: ContentFieldDefine[];
-} | {
-    kind: DatasourceKindType.RealPointContent;
-    initialVisible: boolean;    // 初期表示状態
-    fields: ContentFieldDefine[];
-} | {
-    kind: DatasourceKindType.VirtualItem;
+    kind: DatasourceLocationKindType.VirtualItem;
 }
 
 export type TracksTable = {

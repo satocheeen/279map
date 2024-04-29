@@ -75,30 +75,28 @@ export type GeoProperties = {
 }
 
 /**
- * データソース種別ごとの設定情報
+ * データソースのLocation種別
  */
-export enum DatasourceKindType {
-    VirtualItem = 'VirtualItem',
-    RealItem = 'RealItem',
-    RealPointContent = 'RealPointContent',
-    Track = 'Track',
-    Content = 'Content',
+export enum DatasourceLocationKindType {
+    VirtualItem = 'VirtualItem',    // 村マップ上の建物や土地に関する情報を格納するデータソース
+    RealItem = 'RealItem',          // 世界地図上のピンやエリア
+    Track = 'Track',                // 世界地図上の軌跡 
 }
 
 /**
  * アイテムDatasourceに関する情報
  */
 export type ItemDatasourceConfig = {
-    kind: DatasourceKindType.RealItem | DatasourceKindType.Track | DatasourceKindType.VirtualItem;
+    kind: DatasourceLocationKindType.Track | DatasourceLocationKindType.VirtualItem;
 } | {
-    kind: DatasourceKindType.RealPointContent;
+    kind: DatasourceLocationKindType.RealItem;
     defaultIcon?: IconKey;
 }
+
 /**
  * コンテンツDatasourceに関する情報
  */
 export type ContentDatasourceConfig = {
-    kind: DatasourceKindType.Content | DatasourceKindType.RealPointContent;
     linkableChildContents: boolean; // trueの場合、子コンテンツの追加が可能
     editable: boolean;
     deletable: boolean;
@@ -107,14 +105,16 @@ export type ContentDatasourceConfig = {
 
 export type ContentFieldDefine = {
     key: string;
-    type: 'title' | 'latitude' | 'longitude' | 'radius' | 'address';
-} | {
-    key: string;
 
     // stringは１行、textは複数行
-    type: 'string' | 'date' | 'url' | 'text' | 'category' | 'number' | 'image';
+    type: 'title' | 'string' | 'date' | 'url' | 'text' | 'category' | 'number' | 'image';
     label: string;
     readonly?: boolean;
+}
+
+export type LocationFieldDefine = {
+    key: string;
+    type: 'latitude' | 'longitude' | 'radius' | 'address' | 'geojson' | 'gpx-file';
 }
 
 export type ContentValueMap = {[key: string]: any};

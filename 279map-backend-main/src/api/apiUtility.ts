@@ -1,6 +1,6 @@
 import { ConnectionPool } from "..";
 import { DataSourceTable, ItemContentLink, ItemsTable, MapDataSourceLinkTable } from "../../279map-backend-common/src";
-import { MapKind, DatasourceKindType, DataId } from "../types-common/common-types";
+import { MapKind, DatasourceLocationKindType, DataId } from "../types-common/common-types";
 
 type Result = {
     mapId: string;
@@ -26,7 +26,7 @@ export async function getLinkedItemIdList(contentId: DataId): Promise<Result[]> 
         return (rows as (ItemContentLink & ItemsTable & DataSourceTable & MapDataSourceLinkTable)[]).map(row => {
             return {
                 mapId: row.map_page_id,
-                mapKind: row.kind === DatasourceKindType.VirtualItem ? MapKind.Virtual : MapKind.Real,
+                mapKind: row.kind === DatasourceLocationKindType.VirtualItem ? MapKind.Virtual : MapKind.Real,
                 itemId: {
                     id: row.item_page_id,
                     dataSourceId: row.item_datasource_id,

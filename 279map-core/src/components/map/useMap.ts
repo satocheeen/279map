@@ -19,7 +19,7 @@ import { GetItemsByIdDocument, GetItemsDocument } from '../../graphql/generated/
 import { clientAtom } from 'jotai-urql';
 import GeoJSON from 'geojson';
 import { Extent } from 'ol/extent';
-import { DataId, DatasourceKindType } from '../../types-common/common-types';
+import { DataId, DatasourceLocationKindType } from '../../types-common/common-types';
 import { selectItemIdAtom } from '../../store/operation';
 import { TsunaguMapHandler } from '../../entry';
 
@@ -90,7 +90,7 @@ export function useMap() {
             const dsInfo = datasources.find(ds => ds.datasourceId === datasourceId);
             const key: LoadedItemKey = {
                 datasourceId,
-                zoom: dsInfo?.config.kind === DatasourceKindType.Track ? zoom : undefined,
+                zoom: dsInfo?.config.kind === DatasourceLocationKindType.Track ? zoom : undefined,
             }
             return key;
         }, [])        
@@ -103,7 +103,7 @@ export function useMap() {
         useCallback((get, set, datasourceId: string, extent: Extent) => {
             const datasources = get(itemDataSourcesAtom);
             const dsInfo = datasources.find(ds => ds.datasourceId === datasourceId);
-            if (dsInfo?.config.kind !== DatasourceKindType.Track) {
+            if (dsInfo?.config.kind !== DatasourceLocationKindType.Track) {
                 // Track以外は関係なし
                 return undefined;
             }

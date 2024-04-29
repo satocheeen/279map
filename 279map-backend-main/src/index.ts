@@ -45,7 +45,7 @@ import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { execute, subscribe } from 'graphql';
 import { ApolloServer } from 'apollo-server-express';
 import MyPubSub, { SubscriptionArgs } from './graphql/MyPubSub';
-import { DataId, DatasourceKindType, MapKind } from './types-common/common-types';
+import { DataId, DatasourceLocationKindType, MapKind } from './types-common/common-types';
 import { AuthMethod, ItemDefineWithoudContents } from './types';
 import { getImage } from './api/getImage';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
@@ -885,7 +885,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     }
 
                     // const ds = await getDatasourceRecord(param.id.dataSourceId);
-                    // if (ds.kind === DatasourceKindType.RealPointContent) {
+                    // if (ds.kind === DatasourceLocationKindType.RealPointContent) {
                     //     // - RealPointContentの場合
                     //     const wkt = await getItemWkt(param.id);
                     //     if (wkt) {
@@ -947,7 +947,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 try {
                     // アイテムと一体になったコンテンツは紐づけ解除不可
                     const datasource = await getDatasourceRecord(param.id.dataSourceId);
-                    if (datasource.kind === DatasourceKindType.RealPointContent && param.id.id === param.parent.id.id && param.id.dataSourceId === param.parent.id.dataSourceId) {
+                    if (param.id.id === param.parent.id.id && param.id.dataSourceId === param.parent.id.dataSourceId) {
                         throw new Error('this content can not unlink with the item because this is same record.');
                     }
 
@@ -986,11 +986,12 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     // 属するitem一覧を取得
                     const items = await getLinkedItemIdList(param.id);
 
+                    // TODO: 振る舞い見直し
                     // データソース種別がRealPointContentの場合は、受け付けない（removeItemでのみ削除可能）
-                    const datasource = await getDatasourceRecord(param.id.dataSourceId);
-                    if (datasource.kind !== DatasourceKindType.Content) {
-                        throw new Error('the content can not remove.');
-                    }
+                    // const datasource = await getDatasourceRecord(param.id.dataSourceId);
+                    // if (datasource.kind !== DatasourceLocationKindType.Content) {
+                    //     throw new Error('the content can not remove.');
+                    // }
 
                     // call ODBA
                     await callOdbaApi(OdbaRemoveContentAPI, {

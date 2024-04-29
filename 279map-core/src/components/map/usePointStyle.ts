@@ -13,7 +13,7 @@ import { filteredItemIdListAtom } from "../../store/filter";
 import { itemDataSourcesAtom } from "../../store/datasource";
 import { useAtom } from 'jotai';
 import { MapStyles } from "../../util/constant-defines";
-import { DatasourceKindType, IconKey } from "../../types-common/common-types";
+import { DatasourceLocationKindType, IconKey } from "../../types-common/common-types";
 import { useAtomCallback } from "jotai/utils";
 import { currentMapKindAtom } from "../../store/session";
 import { MapKind } from "../../entry";
@@ -204,7 +204,7 @@ export default function usePointStyle() {
                     if (!icon) {
                         // icon未指定の場合はレイヤデフォルトアイコンを設定
                         const datasource = dataSources.find(ds => ds.datasourceId === itemId.dataSourceId);
-                        if (datasource?.config.kind === DatasourceKindType.RealPointContent) {
+                        if (datasource?.config.kind === DatasourceLocationKindType.RealItem) {
                             icon = datasource.config.defaultIcon;
                         }
                     }

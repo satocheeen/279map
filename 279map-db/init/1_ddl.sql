@@ -23,6 +23,8 @@ CREATE TABLE `data_source` (
   `data_source_id` varchar(100) NOT NULL,
   `kind` enum('VirtualItem','RealItem','RealPointContent','Content','Track') NOT NULL,
   `config` json NOT NULL,
+  `location_define` json DEFAULT NULL COMMENT '位置項目定義情報',
+  `contents_define` json DEFAULT NULL COMMENT 'コンテンツ項目定義情報',
   `odba_connection` json NOT NULL COMMENT '原本DB関連の任意情報',
   `last_edited_time` varchar(100) NOT NULL,
   PRIMARY KEY (`data_source_id`)

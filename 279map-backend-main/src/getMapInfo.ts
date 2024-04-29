@@ -1,8 +1,8 @@
 import { ConnectionPool } from '.';
 import mysql from 'mysql2/promise';
 import { DataSourceTable, MapDataSourceLinkConfig, MapDataSourceLinkTable, MapPageInfoTable } from '../279map-backend-common/src/types/schema';
-import { ItemDatasourceInfo, ContentDatasourceInfo, MapInfo, Auth, MapPageOptions } from './graphql/__generated__/types';
-import { ContentDatasourceConfig, DatasourceKindType, ItemDatasourceConfig, MapKind } from './types-common/common-types';
+import { ItemDatasourceInfo, ContentDatasourceInfo, MapInfo, Auth } from './graphql/__generated__/types';
+import { ContentDatasourceConfig, DatasourceLocationKindType, ItemDatasourceConfig, MapKind } from './types-common/common-types';
 
 /**
  * 指定の地図データページ配下のコンテンツ情報を返す
@@ -67,12 +67,11 @@ async function getExtent(mapPageId: string, mapKind: MapKind): Promise<[number,n
             select MAX(ST_X(location)) as max_x, MAX(ST_Y(location)) as max_y, MIN(ST_X(location)) as min_x, MIN(ST_Y(location)) as min_y from items i
             inner join data_source ds on ds.data_source_id = i.data_source_id 
             inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
-            where map_page_id = ? and ds.kind in (? )
+            where map_page_id = ? and ds.kind = ?
             `;
             // execute引数でパラメタを渡すと、なぜかエラーになるので、クエリを作成してから投げている
-            const dsKind = mapKind === MapKind.Real ? [DatasourceKindType.RealItem, DatasourceKindType.RealPointContent] : [DatasourceKindType.VirtualItem];
-            const query = mysql.format(sql, [mapPageId, dsKind]);
-            const [rows] = await con.execute(query);
+            const dsKind = mapKind === MapKind.Real ? DatasourceLocationKindType.RealItem : DatasourceLocationKindType.VirtualItem;
+            const [rows] = await con.execute(sql, [mapPageId, dsKind]);
             // const [rows] = await con.execute(sql, [mapPageId, kinds]);
             if((rows as any[]).length === 0) {
                 throw 'Extent error';
@@ -95,12 +94,10 @@ async function getExtent(mapPageId: string, mapKind: MapKind): Promise<[number,n
             from items i
             inner join data_source ds on ds.data_source_id = i.data_source_id 
             inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
-            where map_page_id = ? and ds.kind in (?)
+            where map_page_id = ? and ds.kind = ?
             `;
-            const dsKind = mapKind === MapKind.Real ? [DatasourceKindType.RealItem, DatasourceKindType.RealPointContent] : [DatasourceKindType.VirtualItem];
-            const query = mysql.format(sql, [mapPageId, dsKind]);
-            const [rows] = await con.execute(query);
-            // const [rows] = await con.execute(sql, [mapPageId, kinds]);
+            const dsKind = mapKind === MapKind.Real ? DatasourceLocationKindType.RealItem : DatasourceLocationKindType.VirtualItem;
+            const [rows] = await con.execute(sql, [mapPageId, dsKind]);
             if((rows as any[]).length === 0) {
                 throw 'Extent error';
             }
@@ -160,17 +157,14 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
 
         const sql = `select * from data_source ds
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
-        where map_page_id =? and kind in (?)
+        where map_page_id =? and location_define is not null
         order by order_num`;
-        // execute引数では配列パラメタを渡すと、なぜかエラーになるので、クエリを作成してから投げている
-        const kinds = mapKind === MapKind.Real ? [DatasourceKindType.RealItem, DatasourceKindType.RealPointContent, DatasourceKindType.Track] : [DatasourceKindType.VirtualItem];
-        const query = mysql.format(sql, [mapId, kinds]);
-        const [rows] = await con.execute(query);
+        const [rows] = await con.execute(sql, [mapId]);
 
         return (rows as (DataSourceTable & MapDataSourceLinkTable)[]).map((row): ItemDatasourceInfo => {
             const config = row.config as ItemDatasourceConfig;
-            if (row.kind !== DatasourceKindType.Content)
-                config.kind = row.kind;
+            // if (row.kind !== DatasourceLocationKindType.Content)
+            //     config.kind = row.kind;
             const mdlConfig = row.mdl_config as MapDataSourceLinkConfig;
             
             return {
@@ -201,10 +195,9 @@ async function getContentDataSources(mapId: string, mapKind: MapKind): Promise<C
     try {
         const sql = `select * from data_source ds
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
-        where map_page_id =? and kind in (?)`;
+        where map_page_id =? and contents_define is not null`;
 
-        const kinds = [DatasourceKindType.Content, DatasourceKindType.RealPointContent];
-        const query = mysql.format(sql, [mapId, kinds]);
+        const query = mysql.format(sql, [mapId]);
         const [rows] = await con.execute(query);
 
         return (rows as (DataSourceTable & MapDataSourceLinkTable)[]).map((rec): ContentDatasourceInfo => {{
