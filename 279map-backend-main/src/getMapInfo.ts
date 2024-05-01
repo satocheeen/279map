@@ -157,9 +157,11 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
 
         const sql = `select * from data_source ds
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
-        where map_page_id =? and location_define is not null
+        where map_page_id =? and location_kind in (?)
         order by order_num`;
-        const [rows] = await con.execute(sql, [mapId]);
+        const locationKinds = mapKind === MapKind.Virtual ? [DatasourceLocationKindType.VirtualItem] : [DatasourceLocationKindType.RealItem, DatasourceLocationKindType.Track];
+        const query = con.format(sql, [mapId, locationKinds]);
+        const [rows] = await con.execute(query);
 
         return (rows as (DataSourceTable & MapDataSourceLinkTable)[]).map((row): ItemDatasourceInfo | undefined => {
             const mdlConfig = row.mdl_config as MapDataSourceLinkConfig;
