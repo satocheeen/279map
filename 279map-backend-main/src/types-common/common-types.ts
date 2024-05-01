@@ -104,6 +104,9 @@ export type ContentDatasourceConfig = {
     fields: ContentFieldDefine[];
 }
 
+/**
+ * コンテンツ関連の項目情報
+ */
 export type ContentFieldDefine = {
     key: string;
 
@@ -113,9 +116,12 @@ export type ContentFieldDefine = {
     readonly?: boolean;
 }
 
+/**
+ * 位置（item or track）関連の項目情報
+ */
 export type LocationFieldDefine = {
     key: string;
-    type: 'latitude' | 'longitude' | 'radius' | 'address' | 'geojson' | 'gpx-file';
+    type: 'latitude' | 'longitude' | 'radius' | 'address' | 'geojson' | 'gpx-file' | 'title';
 }
 
 export type ContentValueMap = {[key: string]: any};
