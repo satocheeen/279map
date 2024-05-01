@@ -44,7 +44,5 @@ export const authDefine: AuthLvDefine = {
     changeAuthLevel: Auth.Admin,
     request: Auth.None,
     getLinkableContentsDatasources: Auth.Admin,
-    linkContentsDatasource: Auth.Admin,
-    unlinkContentsDatasource: Auth.Admin,
 
 }

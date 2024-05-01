@@ -119,12 +119,4 @@ type Mutation {
         name: String!
     ): Boolean
 
-    linkContentsDatasource (
-        contentsDatasources: [ContentsDatasourceInput!]!
-    ): Boolean
-
-    unlinkContentsDatasource (
-        contentsDatasourceIds: [String!]!
-    ): Boolean
-
 }
