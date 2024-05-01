@@ -33,7 +33,7 @@ export interface OdbaConnection {
 }
 export type DataSourceTable = {
     data_source_id: string;
-    kind: DatasourceLocationKindType;
+    location_kind: DatasourceLocationKindType;
 
     config: DatasourceTblConfig;
 

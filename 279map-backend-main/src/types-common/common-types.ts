@@ -81,6 +81,7 @@ export enum DatasourceLocationKindType {
     VirtualItem = 'VirtualItem',    // 村マップ上の建物や土地に関する情報を格納するデータソース
     RealItem = 'RealItem',          // 世界地図上のピンやエリア
     Track = 'Track',                // 世界地図上の軌跡 
+    None = 'None',                  // 位置情報を持たないデータソースの場合
 }
 
 /**

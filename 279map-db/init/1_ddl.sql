@@ -21,7 +21,7 @@ CREATE TABLE `map_page_info` (
 
 CREATE TABLE `data_source` (
   `data_source_id` varchar(100) NOT NULL,
-  `kind` enum('VirtualItem','RealItem','RealPointContent','Content','Track') NOT NULL,
+  `location_kind` enum('VirtualItem','RealItem','Track','None') NOT NULL,
   `config` json NOT NULL,
   `location_define` json DEFAULT NULL COMMENT '位置項目定義情報',
   `contents_define` json DEFAULT NULL COMMENT 'コンテンツ項目定義情報',
