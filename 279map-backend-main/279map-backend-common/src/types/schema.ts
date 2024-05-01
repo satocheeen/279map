@@ -75,10 +75,10 @@ export type MapDataSourceLinkTableForRegist = Omit<MapDataSourceLinkTable, 'mdl_
  */
 export type MapDataSourceLinkConfig = (
     {
-        kind: DatasourceLocationKindType.RealItem | DatasourceLocationKindType.Track;
+        location_kind: DatasourceLocationKindType.RealItem | DatasourceLocationKindType.Track;
         initialVisible: boolean;    // 初期表示状態
     } | {
-        kind: DatasourceLocationKindType.VirtualItem;
+        location_kind: DatasourceLocationKindType.VirtualItem | DatasourceLocationKindType.None;
     }
 ) & {
     contentFieldKeyList: string[];  // 当該地図で使用するコンテンツ項目のキー一覧
