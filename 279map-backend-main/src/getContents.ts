@@ -1,11 +1,10 @@
 import { ConnectionPool } from '.';
 import { PoolConnection } from 'mysql2/promise';
-import { ContentsTable, DataSourceTable, ItemContentLink, MapDataSourceLinkConfig, MapDataSourceLinkTable } from '../279map-backend-common/src/types/schema';
+import { ContentsTable, DataSourceTable, ItemContentLink, MapDataSourceLinkTable } from '../279map-backend-common/src/types/schema';
 import { CurrentMap } from '../279map-backend-common/src';
 import { Auth, ContentsDefine } from './graphql/__generated__/types';
 import { DatasourceLocationKindType, DataId, ContentValueMap, MapKind, ContentFieldDefine } from './types-common/common-types';
-import { isEqualId } from './util/utility';
-import { DatasourceTblConfig, ImagesTable } from '../279map-backend-common/dist';
+import { DatasourceTblConfig, ImagesTable } from '../279map-backend-common/src/types';
 
 type GetContentsParam = ({
     itemId: DataId;
@@ -177,7 +176,7 @@ async function getAnotherMapKindItemsUsingTheContent(con: PoolConnection, conten
     inner join data_source ds on ds.data_source_id = i.data_source_id 
     inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
     where icl.content_page_id = ? and icl.content_datasource_id  = ?
-    and mdl.map_page_id = ? and ds.kind = ?
+    and mdl.map_page_id = ? and ds.location_kind = ?
     `;
     const anotherMapKind = currentMap.mapKind === MapKind.Virtual ? DatasourceLocationKindType.RealItem : DatasourceLocationKindType.VirtualItem;
     const query = con.format(sql, [contentId.id, contentId.dataSourceId, currentMap.mapId, anotherMapKind]);

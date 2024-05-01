@@ -885,7 +885,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     }
 
                     // const ds = await getDatasourceRecord(param.id.dataSourceId);
-                    // if (ds.kind === DatasourceLocationKindType.RealPointContent) {
+                    // if (ds.location_kind === DatasourceLocationKindType.RealPointContent) {
                     //     // - RealPointContentの場合
                     //     const wkt = await getItemWkt(param.id);
                     //     if (wkt) {

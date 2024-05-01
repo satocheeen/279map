@@ -67,7 +67,7 @@ async function getExtent(mapPageId: string, mapKind: MapKind): Promise<[number,n
             select MAX(ST_X(location)) as max_x, MAX(ST_Y(location)) as max_y, MIN(ST_X(location)) as min_x, MIN(ST_Y(location)) as min_y from items i
             inner join data_source ds on ds.data_source_id = i.data_source_id 
             inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
-            where map_page_id = ? and ds.kind = ?
+            where map_page_id = ? and ds.location_kind = ?
             `;
             // execute引数でパラメタを渡すと、なぜかエラーになるので、クエリを作成してから投げている
             const dsKind = mapKind === MapKind.Real ? DatasourceLocationKindType.RealItem : DatasourceLocationKindType.VirtualItem;
@@ -94,7 +94,7 @@ async function getExtent(mapPageId: string, mapKind: MapKind): Promise<[number,n
             from items i
             inner join data_source ds on ds.data_source_id = i.data_source_id 
             inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
-            where map_page_id = ? and ds.kind = ?
+            where map_page_id = ? and ds.location_kind = ?
             `;
             const dsKind = mapKind === MapKind.Real ? DatasourceLocationKindType.RealItem : DatasourceLocationKindType.VirtualItem;
             const [rows] = await con.execute(sql, [mapPageId, dsKind]);
@@ -161,21 +161,21 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
         order by order_num`;
         const [rows] = await con.execute(sql, [mapId]);
 
-        return (rows as (DataSourceTable & MapDataSourceLinkTable)[]).map((row): ItemDatasourceInfo => {
-            const config = row.config as ItemDatasourceConfig;
-            // if (row.kind !== DatasourceLocationKindType.Content)
-            //     config.kind = row.kind;
+        return (rows as (DataSourceTable & MapDataSourceLinkTable)[]).map((row): ItemDatasourceInfo | undefined => {
             const mdlConfig = row.mdl_config as MapDataSourceLinkConfig;
-            
+            if (row.location_kind === DatasourceLocationKindType.None) return;
+
             return {
                 datasourceId: row.data_source_id,
                 name: row.datasource_name,
                 groupName: row.group_name,
                 initialVisible: 'initialVisible' in mdlConfig ? mdlConfig.initialVisible ?? true : true,
-                config,
+                config: {
+                    kind: row.location_kind,
+                },
             }
 
-        });
+        }).filter(item => !!item) as ItemDatasourceInfo[];
 
     } finally {
         await con.commit();
