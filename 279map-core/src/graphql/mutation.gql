@@ -154,19 +154,3 @@ mutation request (
         name: $name
     )
 }
-
-mutation linkContentsDatasource (
-    $contentsDatasources: [ContentsDatasourceInput!]!
-) {
-    linkContentsDatasource (
-        contentsDatasources: $contentsDatasources,
-    )
-}
-
-mutation unlinkContentsDatasource (
-    $contentsDatasourceIds: [String!]!
-) {
-    unlinkContentsDatasource (
-        contentsDatasourceIds: $contentsDatasourceIds,
-    )
-}

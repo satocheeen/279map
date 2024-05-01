@@ -9,8 +9,6 @@ import { modalSpinnerAtom } from '../../common/modal/Modal';
 import ListGroup from '../../common/list/ListGroup';
 import styles from './CurrentContentsListPage.module.scss';
 import { clientAtom } from 'jotai-urql';
-import { UnlinkContentsDatasourceDocument } from '../../../graphql/generated/graphql';
-import { DatasourceLocationKindType } from '../../../entry';
 
 type Props = {
 }
@@ -22,18 +20,18 @@ export default function CurrentContentsListPage(props: Props) {
     const [ gqlClient ] = useAtom(clientAtom);
 
     const handleDelete = useCallback(async(id: string) => {
-        const result = await confirm({
-            title: '削除',
-            message: 'この地図上で、このコンテンツを使えなくなります。良いですか',
-        });
-        if (result === ConfirmResult.Cancel) {
-            return;
-        }
-        setSpinner(true);
-        await gqlClient.mutation(UnlinkContentsDatasourceDocument, {
-            contentsDatasourceIds: [id],
-        });
-        setSpinner(false);
+        // const result = await confirm({
+        //     title: '削除',
+        //     message: 'この地図上で、このコンテンツを使えなくなります。良いですか',
+        // });
+        // if (result === ConfirmResult.Cancel) {
+        //     return;
+        // }
+        // setSpinner(true);
+        // await gqlClient.mutation(UnlinkContentsDatasourceDocument, {
+        //     contentsDatasourceIds: [id],
+        // });
+        // setSpinner(false);
     }, [confirm, gqlClient, setSpinner]);
 
     return (
