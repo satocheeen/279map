@@ -116,7 +116,6 @@ export type ContentsTable = {
     data_source_id: string;
     parent_id?: string;         // 親コンテンツID
     parent_datasource_id?: string;         // 親コンテンツデータソースID
-    title?: string;
     contents?: string | object;   // 登録時はstring。取得時はobject
     category?: string | string[];   // 登録時はstring。取得時はCategory文字配列
     date?: Date | string;   // 登録時はDate。取得時はstring

@@ -55,7 +55,6 @@ CREATE TABLE `contents` (
   `data_source_id` varchar(100) NOT NULL,
   `parent_id` varchar(100) DEFAULT NULL,
   `parent_datasource_id` varchar(100) DEFAULT NULL,
-  `title` varchar(100) DEFAULT NULL,
   `contents` json DEFAULT NULL,
   `category` json DEFAULT NULL,
   `date` datetime DEFAULT NULL,
