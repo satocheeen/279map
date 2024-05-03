@@ -33,9 +33,6 @@ export interface OdbaConnection {
 }
 export type DataSourceTable = {
     data_source_id: string;
-    location_kind: DatasourceLocationKindType;
-
-    config: DatasourceTblConfig;
 
     location_define: LocationFieldDefine[] | null;
     contents_define: ContentFieldDefine[] | null;
@@ -44,7 +41,15 @@ export type DataSourceTable = {
     odba_connection: OdbaConnection;
 
     last_edited_time: string;
-}
+} & (
+    {
+        location_kind: DatasourceLocationKindType.None | DatasourceLocationKindType.RealItem | DatasourceLocationKindType.Track;
+        config: DatasourceTblConfigForContent;
+    } | {
+        location_kind: DatasourceLocationKindType.VirtualItem;
+        config: {}
+    }
+)
 export type DataSourceTableForRegist = Omit<DataSourceTable, 'config' | 'location_define' | 'contents_define' | 'odba_connection'> & {
     config: string;
 
@@ -55,7 +60,7 @@ export type DataSourceTableForRegist = Omit<DataSourceTable, 'config' | 'locatio
     odba_connection: string;
 }
 
-export type DatasourceTblConfig = Omit<ContentDatasourceConfig, 'fields'> | {};
+export type DatasourceTblConfigForContent = Omit<ContentDatasourceConfig, 'fields'>;
 
 export type MapDataSourceLinkTable = {
     map_page_id: string;

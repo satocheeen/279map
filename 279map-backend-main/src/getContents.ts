@@ -4,7 +4,7 @@ import { ContentsTable, DataSourceTable, ItemContentLink, MapDataSourceLinkTable
 import { CurrentMap } from '../279map-backend-common/src';
 import { Auth, ContentsDefine } from './graphql/__generated__/types';
 import { DatasourceLocationKindType, DataId, ContentValueMap, MapKind, ContentFieldDefine } from './types-common/common-types';
-import { DatasourceTblConfig, ImagesTable } from '../279map-backend-common/src/types';
+import { DatasourceTblConfigForContent, ImagesTable } from '../279map-backend-common/src/types';
 
 type GetContentsParam = ({
     itemId: DataId;
@@ -42,7 +42,7 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
                 // SNSコンテンツは編集不可
                 if (isSnsContent) return false;
         
-                const config = (row.config as DatasourceTblConfig);
+                const config = (row.config as DatasourceTblConfigForContent);
                 return 'editable' in config ? config.editable : false;
             }();
 
@@ -64,7 +64,7 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
                 if (isSnsContent) return false;
 
                 // readonlyは削除不可
-                const config = (row.config as DatasourceTblConfig);
+                const config = (row.config as DatasourceTblConfigForContent);
                 return 'deletable' in config ? config.deletable : false;
         
             }();

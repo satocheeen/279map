@@ -1,8 +1,8 @@
 import { ConnectionPool } from '.';
 import mysql from 'mysql2/promise';
-import { DataSourceTable, MapDataSourceLinkConfig, MapDataSourceLinkTable, MapPageInfoTable } from '../279map-backend-common/src/types/schema';
+import { DataSourceTable, DatasourceTblConfigForContent, MapDataSourceLinkConfig, MapDataSourceLinkTable, MapPageInfoTable } from '../279map-backend-common/src/types/schema';
 import { ItemDatasourceInfo, ContentDatasourceInfo, MapInfo, Auth } from './graphql/__generated__/types';
-import { ContentDatasourceConfig, DatasourceLocationKindType, ItemDatasourceConfig, MapKind } from './types-common/common-types';
+import { ContentDatasourceConfig, ContentFieldDefine, DatasourceLocationKindType, ItemDatasourceConfig, MapKind } from './types-common/common-types';
 
 /**
  * 指定の地図データページ配下のコンテンツ情報を返す
@@ -202,16 +202,30 @@ async function getContentDataSources(mapId: string, mapKind: MapKind): Promise<C
         const query = mysql.format(sql, [mapId]);
         const [rows] = await con.execute(query);
 
-        return (rows as (DataSourceTable & MapDataSourceLinkTable)[]).map((rec): ContentDatasourceInfo => {{
+        return (rows as (DataSourceTable & MapDataSourceLinkTable)[]).map((rec): ContentDatasourceInfo | undefined => {{
             const mdlConfig = rec.mdl_config as MapDataSourceLinkConfig;
-            const fieldDef = 'fields' in mdlConfig ? mdlConfig.fields : [];
-            const config = Object.assign(rec.config, { fields: fieldDef }) as ContentDatasourceConfig;
+            if (rec.location_kind === DatasourceLocationKindType.VirtualItem) {
+                return;
+            }
             return {
                 datasourceId: rec.data_source_id,
                 name: rec.datasource_name,
-                config,
+                config: {
+                    deletable: rec.config.deletable,
+                    editable: rec.config.editable,
+                    linkableChildContents: rec.config.linkableChildContents,
+                    fields: mdlConfig.contentFieldKeyList.map((key): ContentFieldDefine | undefined => {
+                        const define = rec.contents_define?.find(def => def.key === key);
+                        if (!define) return;
+                        return {
+                            key,
+                            label: define.label,
+                            type: define.type,
+                        }
+                    }).filter(def => !!def) as ContentFieldDefine[],
+                },
             }
-        }})
+        }}).filter(row => !!row) as ContentDatasourceInfo[];
 
     } finally {
         await con.rollback();
