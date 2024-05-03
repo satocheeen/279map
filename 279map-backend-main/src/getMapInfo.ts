@@ -214,7 +214,7 @@ async function getContentDataSources(mapId: string, mapKind: MapKind): Promise<C
                     deletable: rec.config.deletable,
                     editable: rec.config.editable,
                     linkableChildContents: rec.config.linkableChildContents,
-                    fields: mdlConfig.contentFieldKeyList.map((key): ContentFieldDefine | undefined => {
+                    fields: 'contentFieldKeyList' in mdlConfig ? mdlConfig.contentFieldKeyList.map((key): ContentFieldDefine | undefined => {
                         const define = rec.contents_define?.find(def => def.key === key);
                         if (!define) return;
                         return {
@@ -222,7 +222,7 @@ async function getContentDataSources(mapId: string, mapKind: MapKind): Promise<C
                             label: define.label,
                             type: define.type,
                         }
-                    }).filter(def => !!def) as ContentFieldDefine[],
+                    }).filter(def => !!def) as ContentFieldDefine[] : [],
                 },
             }
         }}).filter(row => !!row) as ContentDatasourceInfo[];

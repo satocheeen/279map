@@ -1,6 +1,6 @@
 import { MapPageOptions } from '../graphql/__generated__/types';
 // import { SnsOptions } from '../sns';
-import { ContentDatasourceConfig, MapKind, ContentFieldDefine, DatasourceLocationKindType, LocationFieldDefine } from '../types-common/common-types';
+import { ContentDatasourceConfig, MapKind, ContentFieldDefine, DatasourceLocationKindType, LocationFieldDefine, IconKey } from '../types-common/common-types';
 
 export enum PublicRange {
     Public = 'Public',
@@ -78,14 +78,19 @@ export type MapDataSourceLinkTableForRegist = Omit<MapDataSourceLinkTable, 'mdl_
 /**
  * コンテンツのカラム定義等を格納
  */
-export type MapDataSourceLinkConfig = (
-    {
-        location_kind: DatasourceLocationKindType.RealItem | DatasourceLocationKindType.Track;
-        initialVisible: boolean;    // 初期表示状態
-    } | {
-        location_kind: DatasourceLocationKindType.VirtualItem | DatasourceLocationKindType.None;
-    }
-) & {
+export type MapDataSourceLinkConfig = {
+    location_kind: DatasourceLocationKindType.RealItem;
+    initialVisible: boolean;    // レイヤ初期表示状態
+    contentFieldKeyList: string[];  // 当該地図で使用するコンテンツ項目のキー一覧
+    defaultIconKey: IconKey;
+} | {
+    location_kind: DatasourceLocationKindType.Track;
+    initialVisible: boolean;    // レイヤ初期表示状態
+    contentFieldKeyList: string[];  // 当該地図で使用するコンテンツ項目のキー一覧
+} | {
+    location_kind: DatasourceLocationKindType.VirtualItem;
+} | {
+    location_kind: DatasourceLocationKindType.None;
     contentFieldKeyList: string[];  // 当該地図で使用するコンテンツ項目のキー一覧
 }
 

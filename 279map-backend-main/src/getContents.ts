@@ -72,9 +72,11 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
             const allValues = row.contents as ContentValueMap;
             // 使用する項目に絞る
             const values: ContentValueMap = {};
-            row.mdl_config.contentFieldKeyList.forEach(key => {
-                values[key] = allValues[key];
-            });
+            if ('contentFieldKeyList' in row.mdl_config) {
+                row.mdl_config.contentFieldKeyList.forEach(key => {
+                    values[key] = allValues[key];
+                });
+            }
 
             // 画像が存在する場合は、valuesにIDを含めて返す
             const imageFields = function() {
