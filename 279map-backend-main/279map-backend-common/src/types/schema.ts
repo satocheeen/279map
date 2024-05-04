@@ -116,7 +116,6 @@ export type TrackGeoJsonTable = {
 export type ItemsTable = {
     item_page_id: string;
     data_source_id: string;
-    name: string | null;
     location: {x: number; y: number;};   // Geometry
     geo_properties: string;       // GeoPropertiesのJSON文字列
     last_edited_time: string;
@@ -126,6 +125,7 @@ export type ContentsTable = {
     data_source_id: string;
     parent_id?: string;         // 親コンテンツID
     parent_datasource_id?: string;         // 親コンテンツデータソースID
+    title: string | null;
     contents?: ContentValueMap;
     category?: string[];
     date?: string;
