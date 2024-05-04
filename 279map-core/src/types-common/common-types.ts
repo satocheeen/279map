@@ -121,7 +121,7 @@ export type ContentFieldDefine = {
  */
 export type LocationFieldDefine = {
     key: string;
-    type: 'latitude' | 'longitude' | 'radius' | 'address' | 'geojson' | 'gpx-file' | 'title';
+    type: 'latitude' | 'longitude' | 'radius' | 'address' | 'geojson' | 'gpx-file';
 }
 
 export type ContentValueMap = {[key: string]: any};
