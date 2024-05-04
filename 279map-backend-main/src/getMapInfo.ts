@@ -167,14 +167,18 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
             const mdlConfig = row.mdl_config as MapDataSourceLinkConfig;
             if (row.location_kind === DatasourceLocationKindType.None) return;
 
+            const config: ItemDatasourceConfig = row.location_kind === DatasourceLocationKindType.RealItem ? {
+                kind: row.location_kind,
+                defaultIcon: mdlConfig.location_kind === DatasourceLocationKindType.RealItem ? mdlConfig.defaultIconKey : undefined,
+            } : {
+                kind: row.location_kind,
+            }
             return {
                 datasourceId: row.data_source_id,
                 name: row.datasource_name,
                 groupName: row.group_name,
                 initialVisible: 'initialVisible' in mdlConfig ? mdlConfig.initialVisible ?? true : true,
-                config: {
-                    kind: row.location_kind,
-                },
+                config,
             }
 
         }).filter(item => !!item) as ItemDatasourceInfo[];
