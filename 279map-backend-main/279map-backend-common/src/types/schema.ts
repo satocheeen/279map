@@ -133,7 +133,7 @@ export type ContentsTable = {
 }
 export type ContentsTableForRegist = Omit<ContentsTable, 'contents' | 'category' | 'date'> & {
     contents?: string;
-    category?: string[];
+    category?: string;
     date?: Date;
 }
 export type ImagesTable = {
