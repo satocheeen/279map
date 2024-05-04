@@ -54,7 +54,6 @@ type ContentsDefine {
     children: [ContentsDefine!]
     usingAnotherMap: Boolean!
     anotherMapItemId: DataId
-    isSnsContent: Boolean!
     isEditable: Boolean!
     isDeletable: Boolean!
 }

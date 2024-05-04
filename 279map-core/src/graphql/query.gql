@@ -118,7 +118,6 @@ fragment content on ContentsDefine {
     values
     usingAnotherMap
     anotherMapItemId
-    isSnsContent
     isEditable
     isDeletable
 }

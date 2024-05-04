@@ -23,11 +23,6 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
         const allContents = [] as ContentsDefine[];
 
         const convertRecord = async(row: ContentsDatasourceRecord, itemId?: DataId): Promise<ContentsDefine> => {
-            let isSnsContent = false;
-            if (row.supplement) {
-                // SNSコンテンツの場合
-                isSnsContent = true;
-            }
             const id = {
                 id: row.content_page_id,
                 dataSourceId: row.data_source_id,
@@ -39,9 +34,6 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
                 if (authLv === Auth.None || authLv === Auth.View) {
                     return false;
                 }
-                // SNSコンテンツは編集不可
-                if (isSnsContent) return false;
-        
                 const config = (row.config as DatasourceTblConfigForContent);
                 return 'editable' in config ? config.editable : false;
             }();
@@ -60,9 +52,6 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
                 // 別の地図で使用されている場合は削除不可にする
                 if (usingAnotherMap) return false;
         
-                // SNSコンテンツは削除不可
-                if (isSnsContent) return false;
-
                 // readonlyは削除不可
                 const config = (row.config as DatasourceTblConfigForContent);
                 return 'deletable' in config ? config.deletable : false;
@@ -99,7 +88,6 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
                 } : undefined,
                 usingAnotherMap,
                 anotherMapItemId: anotherMapItemIds.length > 0 ? anotherMapItemIds[0] : undefined,  // 複数存在する場合は１つだけ返す
-                isSnsContent,
                 isEditable,
                 isDeletable,
             };
