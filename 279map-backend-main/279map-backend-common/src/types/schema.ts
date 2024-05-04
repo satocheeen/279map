@@ -1,6 +1,6 @@
 import { MapPageOptions } from '../graphql/__generated__/types';
 // import { SnsOptions } from '../sns';
-import { ContentDatasourceConfig, MapKind, ContentFieldDefine, DatasourceLocationKindType, LocationFieldDefine, IconKey } from '../types-common/common-types';
+import { ContentDatasourceConfig, MapKind, ContentFieldDefine, DatasourceLocationKindType, LocationFieldDefine, IconKey, ContentValueMap } from '../types-common/common-types';
 
 export enum PublicRange {
     Public = 'Public',
@@ -126,11 +126,15 @@ export type ContentsTable = {
     data_source_id: string;
     parent_id?: string;         // 親コンテンツID
     parent_datasource_id?: string;         // 親コンテンツデータソースID
-    contents?: string | object;   // 登録時はstring。取得時はobject
-    category?: string | string[];   // 登録時はstring。取得時はCategory文字配列
-    date?: Date | string;   // 登録時はDate。取得時はstring
-    supplement?: string; // | SnsOptions;      // 登録時はstring、取得時はSnsOptions
+    contents?: ContentValueMap;
+    category?: string[];
+    date?: string;
     last_edited_time: string;
+}
+export type ContentsTableForRegist = Omit<ContentsTable, 'contents' | 'category' | 'date'> & {
+    contents?: string;
+    category?: string[];
+    date?: Date;
 }
 export type ImagesTable = {
     image_id: number;

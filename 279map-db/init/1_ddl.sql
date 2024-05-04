@@ -58,7 +58,6 @@ CREATE TABLE `contents` (
   `contents` json DEFAULT NULL,
   `category` json DEFAULT NULL,
   `date` datetime DEFAULT NULL,
-  `supplement` json DEFAULT NULL,
   `last_edited_time` varchar(100) NOT NULL,
   PRIMARY KEY (`content_page_id`,`data_source_id`),
   KEY `contents_FK` (`parent_id`),
