@@ -65,18 +65,24 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
                 const contentsDefine = row.contents_define as ContentFieldDefine[];
                 return contentsDefine.find(fd => fd.type === 'title');
             }();
-            const allValues = row.contents ?? {};
-            // 使用する項目に絞る
-            const values: ContentValueMap = {};
-            if ('contentFieldKeyList' in row.mdl_config) {
-                row.mdl_config.contentFieldKeyList.forEach(key => {
-                    values[key] = allValues[key];
 
-                    if (key !== titleField?.key) {
-                        hasValue = true;
-                    }
-                });
-            }
+            // 使用する項目に絞る
+            const values: ContentValueMap = function() {
+                if (row.location_kind === DatasourceLocationKindType.VirtualItem) return row.contents ?? {};
+                
+                const allValues = row.contents ?? {};
+                const values: ContentValueMap = {};
+                if ('contentFieldKeyList' in row.mdl_config) {
+                    row.mdl_config.contentFieldKeyList.forEach(key => {
+                        values[key] = allValues[key];
+    
+                        if (key !== titleField?.key) {
+                            hasValue = true;
+                        }
+                    });
+                }
+                return values;
+            }();
 
             // 画像が存在する場合は、valuesにIDを含めて返す
             let hasImage = false;
