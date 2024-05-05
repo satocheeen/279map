@@ -1148,7 +1148,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     authLv: ctx.authLv,
                 });
 
-                return result;
+                return result.filter(c => c.hasValue);
             }
         },
         DataId: DataIdScalarType,
