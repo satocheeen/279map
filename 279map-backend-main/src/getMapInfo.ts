@@ -213,9 +213,7 @@ async function getContentDataSources(mapId: string, mapKind: MapKind): Promise<C
                     datasourceId: rec.data_source_id,
                     name: rec.datasource_name,
                     config: {
-                        deletable: false,
-                        editable: true,
-                        linkableChildContents: true,
+                        linkableToItem: false,
                         fields: rec.contents_define ?? [],
                     },
                 }
@@ -225,9 +223,8 @@ async function getContentDataSources(mapId: string, mapKind: MapKind): Promise<C
                 datasourceId: rec.data_source_id,
                 name: rec.datasource_name,
                 config: {
-                    deletable: rec.config.deletable,
-                    editable: rec.config.editable,
-                    linkableChildContents: rec.config.linkableChildContents,
+                    linkableToItem: true,
+                    readonly: rec.config.readonly,
                     fields: 'contentFieldKeyList' in mdlConfig ? mdlConfig.contentFieldKeyList.map((key): ContentFieldDefine | undefined => {
                         const define = rec.contents_define?.find(def => def.key === key);
                         if (!define) return;

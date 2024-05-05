@@ -45,11 +45,9 @@ export default function CurrentContentsListPage(props: Props) {
                                     {ds.name}
                                 </span>
                                 <span className={styles.IconArea}>
-                                    {ds.config.deletable &&
-                                        <PopupMenuIcon onClick={()=>handleDelete(ds.datasourceId)}>
-                                            <MdDelete />
-                                        </PopupMenuIcon>
-                                    }
+                                    <PopupMenuIcon onClick={()=>handleDelete(ds.datasourceId)}>
+                                        <MdDelete />
+                                    </PopupMenuIcon>
                                 </span>
                             </div>
                         </ListGroup.Item>

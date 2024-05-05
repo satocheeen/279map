@@ -60,7 +60,7 @@ export type DataSourceTableForRegist = Omit<DataSourceTable, 'config' | 'locatio
     odba_connection: string;
 }
 
-export type DatasourceTblConfigForContent = Omit<ContentDatasourceConfig, 'fields'>;
+export type DatasourceTblConfigForContent = Omit<ContentDatasourceConfig, 'fields' | 'linkableToItem'>;
 
 export type MapDataSourceLinkTable = {
     map_page_id: string;

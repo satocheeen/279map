@@ -4,6 +4,8 @@
  * 他プロジェクトへは、npm run codegenスクリプトにてコピーされる。
  */
 
+import { BooleanValueNode } from "graphql";
+
 export type DataId = {
     id: string;
     dataSourceId: string;
@@ -98,9 +100,9 @@ export type ItemDatasourceConfig = {
  * コンテンツDatasourceに関する情報
  */
 export type ContentDatasourceConfig = {
-    linkableChildContents: boolean; // trueの場合、子コンテンツの追加が可能
-    editable: boolean;
-    deletable: boolean;
+    linkableToItem: boolean;        // trueの場合、対になるアイテム以外への割り当て可能
+    readonly?: boolean;             // trueの場合、ユーザによる編集不可能
+    // linkableChildContents: boolean; // trueの場合、子コンテンツの追加が可能
     fields: ContentFieldDefine[];
 }
 

@@ -36,8 +36,9 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
                 if (authLv === Auth.None || authLv === Auth.View) {
                     return false;
                 }
-                const config = (row.config as DatasourceTblConfigForContent);
-                return 'editable' in config ? config.editable : false;
+                if (row.location_kind === DatasourceLocationKindType.VirtualItem) return true;
+
+                return row.config.readonly ? false : true;
             }();
 
             const isDeletable = function() {
@@ -50,14 +51,13 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
                 // if (row.kind === DatasourceLocationKindType.RealPointContent && itemId && isEqualId(itemId, { id: row.content_page_id, dataSourceId: row.data_source_id})) {
                 //     return false;
                 // }
+                if (row.location_kind === DatasourceLocationKindType.VirtualItem) return false;
 
                 // 別の地図で使用されている場合は削除不可にする
                 if (usingAnotherMap) return false;
         
                 // readonlyは削除不可
-                const config = (row.config as DatasourceTblConfigForContent);
-                return 'deletable' in config ? config.deletable : false;
-        
+                return row.config.readonly ? false : true;
             }();
 
             let hasValue = false;
