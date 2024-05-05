@@ -253,7 +253,7 @@ export async function cleanupContentValuesForRegist(mapId: string, datasourceId:
         const sql = `
             select * from data_source ds 
             inner join map_datasource_link mdl on ds.data_source_id = mdl.data_source_id 
-            map_page_id = ? and ds.data_source_id = ?
+            where map_page_id = ? and ds.data_source_id = ?
         `;
         const [rows] = await con.execute(sql, [mapId, datasourceId]);
         if ((rows as []).length === 0) {

@@ -209,8 +209,18 @@ async function getContentDataSources(mapId: string, mapKind: MapKind): Promise<C
         return (rows as (DataSourceTable & MapDataSourceLinkTable)[]).map((rec): ContentDatasourceInfo | undefined => {{
             const mdlConfig = rec.mdl_config as MapDataSourceLinkConfig;
             if (rec.location_kind === DatasourceLocationKindType.VirtualItem) {
-                return;
+                return {
+                    datasourceId: rec.data_source_id,
+                    name: rec.datasource_name,
+                    config: {
+                        deletable: false,
+                        editable: true,
+                        linkableChildContents: true,
+                        fields: rec.contents_define ?? [],
+                    },
+                }
             }
+            
             return {
                 datasourceId: rec.data_source_id,
                 name: rec.datasource_name,
