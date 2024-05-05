@@ -5,6 +5,7 @@ import { CurrentMap } from '../279map-backend-common/src';
 import { Auth, ContentsDefine } from './graphql/__generated__/types';
 import { DatasourceLocationKindType, DataId, ContentValueMap, MapKind, ContentFieldDefine } from './types-common/common-types';
 import { DatasourceTblConfigForContent, ImagesTable } from '../279map-backend-common/src/types';
+import { getLogger } from 'log4js';
 
 type GetContentsParam = ({
     itemId: DataId;
@@ -13,6 +14,9 @@ type GetContentsParam = ({
 })[];
 
 type ContentsDatasourceRecord = ContentsTable & DataSourceTable & MapDataSourceLinkTable;
+
+const logger = getLogger('api');
+
 export async function getContents({param, currentMap, authLv}: {param: GetContentsParam, currentMap: CurrentMap, authLv: Auth}): Promise<ContentsDefine[]> {
     if (!currentMap) {
         throw 'mapKind not defined.';
@@ -20,8 +24,6 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
     const con = await ConnectionPool.getConnection();
 
     try {
-        const allContents = [] as ContentsDefine[];
-
         const convertRecord = async(row: ContentsDatasourceRecord, itemId?: DataId): Promise<ContentsDefine> => {
             const id = {
                 id: row.content_page_id,
@@ -58,7 +60,7 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
         
             }();
 
-            const allValues = row.contents as ContentValueMap;
+            const allValues = row.contents ?? {};
             // 使用する項目に絞る
             const values: ContentValueMap = {};
             if ('contentFieldKeyList' in row.mdl_config) {
@@ -108,40 +110,45 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
             }
             return children;
         }
+        const allContents = [] as ContentsDefine[];
         for (const target of param) {
-            let myRows: ContentsDatasourceRecord[];
-            if ('itemId' in target) {
-                // itemの子コンテンツを取得
-                const sql = `
-                select c.*, ds.*, mdl.mdl_config from contents c 
-                inner join data_source ds on ds.data_source_id = c.data_source_id
-                inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id
-                inner join item_content_link icl on c.content_page_id = icl.content_page_id and c.data_source_id = icl.content_datasource_id 
-                where mdl.map_page_id = ? and icl.item_page_id = ? and icl.item_datasource_id  = ?
-                `;
-                const [rows] = await con.execute(sql, [currentMap.mapId, target.itemId.id, target.itemId.dataSourceId]);
-                myRows = rows as ContentsDatasourceRecord[];
+            try {
+                let myRows: ContentsDatasourceRecord[];
+                if ('itemId' in target) {
+                    // itemの子コンテンツを取得
+                    const sql = `
+                    select c.*, ds.*, mdl.mdl_config from contents c 
+                    inner join data_source ds on ds.data_source_id = c.data_source_id
+                    inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id
+                    inner join item_content_link icl on c.content_page_id = icl.content_page_id and c.data_source_id = icl.content_datasource_id 
+                    where mdl.map_page_id = ? and icl.item_page_id = ? and icl.item_datasource_id  = ?
+                    `;
+                    const [rows] = await con.execute(sql, [currentMap.mapId, target.itemId.id, target.itemId.dataSourceId]);
+                    myRows = rows as ContentsDatasourceRecord[];
 
-            } else {
-                // contentId指定の場合
+                } else {
+                    // contentId指定の場合
 
-                const sql = `
-                select c.*, ds.*, mdl.mdl_config from contents c
-                inner join data_source ds on ds.data_source_id = c.data_source_id
-                inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id
-                where mdl.map_page_id = ? and c.content_page_id = ? and c.data_source_id = ?
-                `;
-                const [rows] = await con.execute(sql, [currentMap.mapId, target.contentId.id, target.contentId.dataSourceId]);
-                myRows = rows as ContentsDatasourceRecord[];
+                    const sql = `
+                    select c.*, ds.*, mdl.mdl_config from contents c
+                    inner join data_source ds on ds.data_source_id = c.data_source_id
+                    inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id
+                    where mdl.map_page_id = ? and c.content_page_id = ? and c.data_source_id = ?
+                    `;
+                    const [rows] = await con.execute(sql, [currentMap.mapId, target.contentId.id, target.contentId.dataSourceId]);
+                    myRows = rows as ContentsDatasourceRecord[];
 
-            }
+                }
 
-            for (const row of myRows) {
-                const content = await convertRecord(row, 'itemId' in target ? target.itemId : undefined);
-                // 子孫コンテンツを取得
-                content.children = await getChildren(row);
-                allContents.push(content);
+                for (const row of myRows) {
+                    const content = await convertRecord(row, 'itemId' in target ? target.itemId : undefined);
+                    // 子孫コンテンツを取得
+                    content.children = await getChildren(row);
+                    allContents.push(content);
 
+                }
+            } catch(e) {
+                logger.warn('getContents error', target, e);
             }
         }
 
