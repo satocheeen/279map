@@ -62,8 +62,9 @@ async function selectItems(con: PoolConnection, param: QueryGetItemsArgs, curren
     try {
         // 位置コンテンツ
         let sql = `
-        select i.*, ST_AsGeoJSON(i.location) as geojson
+        select i.*, ST_AsGeoJSON(i.location) as geojson, c.title
         from items i
+        left join contents c on c.content_page_id = i.item_page_id and c.data_source_id = i.data_source_id 
         inner join data_source ds on ds.data_source_id = i.data_source_id 
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
         where map_page_id = ? and i.data_source_id = ?
@@ -76,7 +77,7 @@ async function selectItems(con: PoolConnection, param: QueryGetItemsArgs, curren
         }
         const [rows] = await con.execute(sql, params);
         const pointContents = [] as ItemDefineWithoudContents[];
-        for(const row of rows as (ItemsTable & {geojson: any})[]) {
+        for(const row of rows as (ItemsTable & {geojson: any; title: string | null})[]) {
             const contents: ItemContentInfo[] = [];
             let lastEditedTime = row.last_edited_time;
 
@@ -96,15 +97,12 @@ async function selectItems(con: PoolConnection, param: QueryGetItemsArgs, curren
                 }
             }
 
-            // itemがnameを持つならname。持たないなら、コンテンツtitle.
-            const name = row.name ?? '';
-
             pointContents.push({
                 id: {
                     id: row.item_page_id,
                     dataSourceId: row.data_source_id,
                 },
-                name,
+                name: row.title ?? '',
                 geometry: row.geojson,
                 geoProperties: row.geo_properties ? JSON.parse(row.geo_properties) : undefined,
                 hasContents: contents.length > 0,

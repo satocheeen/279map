@@ -35,8 +35,8 @@ export async function search(currentMap: CurrentMap, param: QuerySearchArgs): Pr
                 const searchResult = await searchByKeyword(con, currentMap, keyword, param.datasourceIds ?? undefined);
                 Array.prototype.push.apply(hitContents, searchResult);
 
-                const searchItemResult = await searchItemByKeyword(con, currentMap, keyword, param.datasourceIds ?? undefined);
-                Array.prototype.push.apply(hitItems, searchItemResult);
+                // const searchItemResult = await searchItemByKeyword(con, currentMap, keyword, param.datasourceIds ?? undefined);
+                // Array.prototype.push.apply(hitItems, searchItemResult);
             }
 
         }
@@ -223,34 +223,34 @@ async function searchByKeyword(con: PoolConnection, currentMap: CurrentMap, keyw
 
 }
 
-/**
- * 指定のキーワードを持つアイテムを返す
- * @param con 
- * @param currentMap 
- * @param keyword 
- */
-async function searchItemByKeyword(con: PoolConnection, currentMap: CurrentMap, keyword: string, dataSourceIds?: string[]): Promise<DataId[]> {
-    const sql = `
-        select * from items i 
-        inner join data_source ds on ds.data_source_id = i.data_source_id
-        inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
-        where mdl.map_page_id = ?
-        and ds.location_kind = ?
-        and name like ?
-        ${dataSourceIds ? 'and i.data_source_id in (?)' : ''}
-    `
-    const keywordParam = `%${keyword}%`;
-    const dsKind = currentMap.mapKind === MapKind.Virtual ? DatasourceLocationKindType.VirtualItem : DatasourceLocationKindType.RealItem;
-    const params = [currentMap.mapId, dsKind, keywordParam] as any[];
-    if (dataSourceIds) {
-        params.push(dataSourceIds);
-    }
-    const query = con.format(sql, params);
-    const [rows] = await con.execute(query);
-    return (rows as ItemsTable[]).map((item): DataId => {
-        return {
-            id: item.item_page_id,
-            dataSourceId: item.data_source_id,
-        }
-    })
-}
+// /**
+//  * 指定のキーワードを持つアイテムを返す
+//  * @param con 
+//  * @param currentMap 
+//  * @param keyword 
+//  */
+// async function searchItemByKeyword(con: PoolConnection, currentMap: CurrentMap, keyword: string, dataSourceIds?: string[]): Promise<DataId[]> {
+//     const sql = `
+//         select * from items i 
+//         inner join data_source ds on ds.data_source_id = i.data_source_id
+//         inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
+//         where mdl.map_page_id = ?
+//         and ds.location_kind = ?
+//         and name like ?
+//         ${dataSourceIds ? 'and i.data_source_id in (?)' : ''}
+//     `
+//     const keywordParam = `%${keyword}%`;
+//     const dsKind = currentMap.mapKind === MapKind.Virtual ? DatasourceLocationKindType.VirtualItem : DatasourceLocationKindType.RealItem;
+//     const params = [currentMap.mapId, dsKind, keywordParam] as any[];
+//     if (dataSourceIds) {
+//         params.push(dataSourceIds);
+//     }
+//     const query = con.format(sql, params);
+//     const [rows] = await con.execute(query);
+//     return (rows as ItemsTable[]).map((item): DataId => {
+//         return {
+//             id: item.item_page_id,
+//             dataSourceId: item.data_source_id,
+//         }
+//     })
+// }
