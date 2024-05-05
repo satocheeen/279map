@@ -725,7 +725,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     const id = await callOdbaApi(OdbaRegistItemAPI, {
                         currentMap: ctx.currentMap,
                         dataSourceId: param.datasourceId,
-                        name: param.name ?? undefined,
                         geometry: param.geometry,
                         geoProperties: param.geoProperties,
                     });

@@ -283,7 +283,6 @@ export type MutationRegistItemArgs = {
   datasourceId: Scalars['String']['input'];
   geoProperties: Scalars['GeoProperties']['input'];
   geometry: Scalars['Geometry']['input'];
-  name?: InputMaybe<Scalars['String']['input']>;
 };
 
 

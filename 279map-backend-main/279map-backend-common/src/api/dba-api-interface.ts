@@ -19,7 +19,6 @@ export const OdbaRegistItemAPI = {
 
 export type OdbaRegistItemParam = CommonParam & {
     dataSourceId: string;   // 登録先データソース
-    name?: string;  // topography only
     geometry: GeoJSON.Geometry;
     geoProperties: GeoProperties;
 }
