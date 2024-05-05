@@ -1,5 +1,4 @@
 import { MapPageOptions } from '../graphql/__generated__/types';
-// import { SnsOptions } from '../sns';
 import { ContentDatasourceConfig, MapKind, ContentFieldDefine, DatasourceLocationKindType, LocationFieldDefine, IconKey, ContentValueMap } from '../types-common/common-types';
 
 export enum PublicRange {
@@ -94,42 +93,28 @@ export type MapDataSourceLinkConfig = {
     contentFieldKeyList: string[];  // 当該地図で使用するコンテンツ項目のキー一覧
 }
 
-export type TracksTable = {
-    track_page_id: string;
+export type DatasTable = {
+    data_id: number;
     data_source_id: string;
+    original_id: string;
     name: string;
     last_edited_time: string;
 }
-export type TrackFilesTable = {
-    track_file_id: number;
-    track_page_id: string;
-    data_source_id: string;
-    file_name: string;
-}
-export type TrackGeoJsonTable = {
-    track_file_id: number;
-    sub_id: number;
+
+export type GeometryItemsTable = {
+    item_id: number;
+    data_id: number;
     min_zoom: number;
     max_zoom: number;
-    geojson: any;
-}
-export type ItemsTable = {
-    item_page_id: string;
-    data_source_id: string;
-    location: {x: number; y: number;};   // Geometry
+    geometry: any;   // Geometry
     geo_properties: string;       // GeoPropertiesのJSON文字列
-    last_edited_time: string;
 }
+
 export type ContentsTable = {
-    content_page_id: string;
-    data_source_id: string;
-    parent_id?: string;         // 親コンテンツID
-    parent_datasource_id?: string;         // 親コンテンツデータソースID
-    title: string | null;
+    data_id: number;
     contents?: ContentValueMap;
     category?: string[];
     date?: string;
-    last_edited_time: string;
 }
 export type ContentsTableForRegist = Omit<ContentsTable, 'contents' | 'category' | 'date'> & {
     contents?: string;
@@ -138,18 +123,15 @@ export type ContentsTableForRegist = Omit<ContentsTable, 'contents' | 'category'
 }
 export type ImagesTable = {
     image_id: number;
-    content_page_id: string;
-    data_source_id: string;
+    data_id: number;
     field_key: string;
     thumbnail: string;
     medium: string;
 }
 
 export type ItemContentLink = {
-    item_page_id: string;
-    item_datasource_id: string;
-    content_page_id: string;
-    content_datasource_id: string;
+    item_data_id: number;
+    content_data_id: number;
     last_edited_time: string;
 }
 
