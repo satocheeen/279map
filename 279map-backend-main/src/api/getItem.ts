@@ -34,24 +34,24 @@ export async function getItem(id: DataId): Promise<ItemDefineWithoudContents|und
         if ((rows as []).length === 0) return;
         const row = (rows as (ItemsTable & {geojson: any; title: string | null})[])[0]; 
 
-        const contents: ItemContentInfo[] = [];
+        // const contents: ItemContentInfo[] = [];
         let lastEditedTime = row.last_edited_time;
 
-        const contentLinkSql = 'select * from item_content_link where item_page_id = ?';
-        const [linkRows] = await con.execute(contentLinkSql, [row.item_page_id]);
-        const linkRecords = linkRows as ItemContentLink[];
-        if (linkRecords.length > 0) {
-            // 配下のコンテンツID取得
-            for (const linkRecord of linkRecords) {
-                const child = await getContentsInfo(con, linkRecord.content_page_id);
-                if (!child) continue;
-                contents.push(child);
-                // コンテンツリンクの更新日時が新しければ、そちらを更新日時とする
-                if (lastEditedTime.localeCompare(linkRecord.last_edited_time) < 0) {
-                    lastEditedTime = linkRecord.last_edited_time;
-                }
-            }
-        }
+        // const contentLinkSql = 'select * from item_content_link where item_page_id = ?';
+        // const [linkRows] = await con.execute(contentLinkSql, [row.item_page_id]);
+        // const linkRecords = linkRows as ItemContentLink[];
+        // if (linkRecords.length > 0) {
+        //     // 配下のコンテンツID取得
+        //     for (const linkRecord of linkRecords) {
+        //         const child = await getContentsInfo(con, linkRecord.content_page_id);
+        //         if (!child) continue;
+        //         contents.push(child);
+        //         // コンテンツリンクの更新日時が新しければ、そちらを更新日時とする
+        //         if (lastEditedTime.localeCompare(linkRecord.last_edited_time) < 0) {
+        //             lastEditedTime = linkRecord.last_edited_time;
+        //         }
+        //     }
+        // }
 
         return {
             id: {
@@ -61,8 +61,8 @@ export async function getItem(id: DataId): Promise<ItemDefineWithoudContents|und
             name: row.title ?? '',
             geometry: row.geojson,
             geoProperties: row.geo_properties ? JSON.parse(row.geo_properties) : undefined,
-            hasContents: contents.length > 0,
-            hasImageContentId: getImageContentId(contents),
+            // hasContents: contents.length > 0,
+            // hasImageContentId: getImageContentId(contents),
             lastEditedTime,
         }
 

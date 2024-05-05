@@ -110,6 +110,8 @@ export type ContentsDatasourceInput = {
 export type ContentsDefine = {
   anotherMapItemId?: Maybe<Scalars['DataId']['output']>;
   children?: Maybe<Array<ContentsDefine>>;
+  hasImage: Scalars['Boolean']['output'];
+  hasValue: Scalars['Boolean']['output'];
   id: Scalars['DataId']['output'];
   isDeletable: Scalars['Boolean']['output'];
   isEditable: Scalars['Boolean']['output'];
@@ -172,9 +174,6 @@ export type ItemDefine = {
   contents: Array<ContentsDefine>;
   geoProperties: Scalars['GeoProperties']['output'];
   geometry: Scalars['Geometry']['output'];
-  hasContents: Scalars['Boolean']['output'];
-  /** 画像を持つコンテンツID一覧 */
-  hasImageContentId: Array<Scalars['DataId']['output']>;
   id: Scalars['DataId']['output'];
   lastEditedTime: Scalars['String']['output'];
   name: Scalars['String']['output'];
@@ -851,6 +850,8 @@ export type ContentsDatasourceResolvers<ContextType = any, ParentType extends Re
 export type ContentsDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['ContentsDefine'] = ResolversParentTypes['ContentsDefine']> = {
   anotherMapItemId?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType>;
   children?: Resolver<Maybe<Array<ResolversTypes['ContentsDefine']>>, ParentType, ContextType>;
+  hasImage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  hasValue?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   isDeletable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   isEditable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -933,8 +934,6 @@ export type ItemDefineResolvers<ContextType = any, ParentType extends ResolversP
   contents?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType>;
   geoProperties?: Resolver<ResolversTypes['GeoProperties'], ParentType, ContextType>;
   geometry?: Resolver<ResolversTypes['Geometry'], ParentType, ContextType>;
-  hasContents?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  hasImageContentId?: Resolver<Array<ResolversTypes['DataId']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   lastEditedTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

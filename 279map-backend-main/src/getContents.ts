@@ -60,16 +60,26 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
         
             }();
 
+            let hasValue = false;
+            const titleField = function() {
+                const contentsDefine = row.contents_define as ContentFieldDefine[];
+                return contentsDefine.find(fd => fd.type === 'title');
+            }();
             const allValues = row.contents ?? {};
             // 使用する項目に絞る
             const values: ContentValueMap = {};
             if ('contentFieldKeyList' in row.mdl_config) {
                 row.mdl_config.contentFieldKeyList.forEach(key => {
                     values[key] = allValues[key];
+
+                    if (key !== titleField?.key) {
+                        hasValue = true;
+                    }
                 });
             }
 
             // 画像が存在する場合は、valuesにIDを含めて返す
+            let hasImage = false;
             const imageFields = function() {
                 const contentsDefine = row.contents_define as ContentFieldDefine[];
                 return contentsDefine.filter(fd => fd.type === 'image');
@@ -79,6 +89,7 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
                 const [rows] = await con.execute(imageQuery, [row.content_page_id, row.data_source_id, imageField.key]);
                 const ids = (rows as ImagesTable[]).map(row => row.image_id);
                 values[imageField.key] = ids;
+                if (ids.length > 0) hasImage = true;
             }
 
             return {
@@ -89,6 +100,8 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
                     dataSourceId: row.parent_datasource_id,
                 } : undefined,
                 usingAnotherMap,
+                hasValue,
+                hasImage,
                 anotherMapItemId: anotherMapItemIds.length > 0 ? anotherMapItemIds[0] : undefined,  // 複数存在する場合は１つだけ返す
                 isEditable,
                 isDeletable,

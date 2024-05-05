@@ -21,9 +21,6 @@ type ItemDefine {
     geometry: Geometry!
     geoProperties: GeoProperties!
     lastEditedTime: String!
-    hasContents: Boolean!
-    "画像を持つコンテンツID一覧"
-    hasImageContentId: [DataId!]!
 
     "アイテムに紐づくコンテンツ一覧"
     contents: [ContentsDefine!]!
@@ -50,6 +47,10 @@ enum ContentType {
 type ContentsDefine {
     id: DataId!
     parentId: DataId
+    # コンテンツにタイトル以外の値が登録されている場合、true
+    hasValue: Boolean!
+    # 画像を持つ場合、true
+    hasImage: Boolean!
     values: ContentValueMap!
     children: [ContentsDefine!]
     usingAnotherMap: Boolean!

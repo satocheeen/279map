@@ -55,10 +55,10 @@ query getItems (
         geometry
         geoProperties
         lastEditedTime
-        hasContents
-        hasImageContentId
         contents {
             id
+            hasValue
+            hasImage
             children {
                 id
             }
@@ -75,10 +75,10 @@ query getItemsById (
         geometry
         geoProperties
         lastEditedTime
-        hasContents
-        hasImageContentId
         contents {
             id
+            hasValue
+            hasImage
             children {
                 id
             }
@@ -120,6 +120,8 @@ fragment content on ContentsDefine {
     anotherMapItemId
     isEditable
     isDeletable
+    hasValue
+    hasImage
 }
 
 query getUnpointContents(

@@ -78,24 +78,24 @@ async function selectItems(con: PoolConnection, param: QueryGetItemsArgs, curren
         const [rows] = await con.execute(sql, params);
         const pointContents = [] as ItemDefineWithoudContents[];
         for(const row of rows as (ItemsTable & {geojson: any; title: string | null})[]) {
-            const contents: ItemContentInfo[] = [];
+            // const contents: ItemContentInfo[] = [];
             let lastEditedTime = row.last_edited_time;
 
-            const contentLinkSql = 'select * from item_content_link where item_page_id = ?';
-            const [linkRows] = await con.execute(contentLinkSql, [row.item_page_id]);
-            const linkRecords = linkRows as ItemContentLink[];
-            if (linkRecords.length > 0) {
-                // 配下のコンテンツID取得
-                for (const linkRecord of linkRecords) {
-                    const child = await getContentsInfo(con, linkRecord.content_page_id);
-                    if (!child) continue;
-                    contents.push(child);
-                    // コンテンツリンクの更新日時が新しければ、そちらを更新日時とする
-                    if (lastEditedTime.localeCompare(linkRecord.last_edited_time) < 0) {
-                        lastEditedTime = linkRecord.last_edited_time;
-                    }
-                }
-            }
+            // const contentLinkSql = 'select * from item_content_link where item_page_id = ?';
+            // const [linkRows] = await con.execute(contentLinkSql, [row.item_page_id]);
+            // const linkRecords = linkRows as ItemContentLink[];
+            // if (linkRecords.length > 0) {
+            //     // 配下のコンテンツID取得
+            //     for (const linkRecord of linkRecords) {
+            //         const child = await getContentsInfo(con, linkRecord.content_page_id);
+            //         if (!child) continue;
+            //         contents.push(child);
+            //         // コンテンツリンクの更新日時が新しければ、そちらを更新日時とする
+            //         if (lastEditedTime.localeCompare(linkRecord.last_edited_time) < 0) {
+            //             lastEditedTime = linkRecord.last_edited_time;
+            //         }
+            //     }
+            // }
 
             pointContents.push({
                 id: {
@@ -105,8 +105,8 @@ async function selectItems(con: PoolConnection, param: QueryGetItemsArgs, curren
                 name: row.title ?? '',
                 geometry: row.geojson,
                 geoProperties: row.geo_properties ? JSON.parse(row.geo_properties) : undefined,
-                hasContents: contents.length > 0,
-                hasImageContentId: getImageContentId(contents),
+                // hasContents: contents.length > 0,
+                // hasImageContentId: getImageContentId(contents),
                 lastEditedTime,
             });
         }
@@ -151,8 +151,8 @@ async function selectTrackInArea(con: PoolConnection, param: QueryGetItemsArgs, 
                     max_zoom: row.max_zoom,
                 },
                 name: '',
-                hasContents: false,
-                hasImageContentId: [],
+                // hasContents: false,
+                // hasImageContentId: [],
                 lastEditedTime: row.last_edited_time,
             })
         }

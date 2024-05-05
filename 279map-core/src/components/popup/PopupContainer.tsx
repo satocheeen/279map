@@ -48,7 +48,7 @@ export default function PopupContainer() {
             return acc.concat(Object.values(items));
         }, [] as ItemInfo[])
         .filter(item => {
-            if (!item.hasContents) return false;
+            if (!item.contents.some(c => c.hasValue)) return false;
             // フィルタが掛かっている場合は条件外のものは除外する
             if (!filteredItemIdList) return true;
             return filteredItemIdList.some(filteredItemId => isEqualId(filteredItemId, item.id));

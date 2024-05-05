@@ -54,8 +54,8 @@ export const allItemsAtom = atom<ItemsByDatasourceMap>((get) => {
                 geoProperties: itemProcess.item.geoProperties,
                 name: '',
                 contents: [],
-                hasContents: false,
-                hasImageContentId: [],
+                // hasContents: false,
+                // hasImageContentId: [],
                 lastEditedTime: '',
                 temporary: itemProcess.status,
             }
@@ -94,8 +94,8 @@ export const allItemsAtom = atom<ItemsByDatasourceMap>((get) => {
                 geoProperties: overrideItem.geoProperties,
                 name: overrideItem.name,
                 contents: [],
-                hasContents: false,
-                hasImageContentId: [],
+                // hasContents: false,
+                // hasImageContentId: [],
                 lastEditedTime: '',
             }
             if (!result[overrideItem.datasourceId]) {
