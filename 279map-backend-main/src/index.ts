@@ -762,7 +762,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                                 id: target.id,
                                 geometry: target.geometry ?? undefined,
                                 geoProperties: target.geoProperties ?? undefined,
-                                name: target.name ?? undefined,
                             })
                             successIdList.push({
                                 id: target.id,
@@ -1148,6 +1147,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     authLv: ctx.authLv,
                 });
 
+                // 値を持つコンテンツのみを返す（コンテンツ）
                 return result.filter(c => c.hasValue);
             }
         },

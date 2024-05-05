@@ -98,7 +98,6 @@ export const OdbaUpdateItemAPI = {
 
 export type OdbaUpdateItemParam = CommonParam & {
     id: DataId;
-    name?: string;  // topography only
     geometry?: GeoJSON.Geometry;
     geoProperties?: GeoProperties;
 }
