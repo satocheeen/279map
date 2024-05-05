@@ -616,7 +616,6 @@ export type UpdateItemInput = {
   geoProperties?: InputMaybe<Scalars['GeoProperties']['input']>;
   geometry?: InputMaybe<Scalars['Geometry']['input']>;
   id: Scalars['DataId']['input'];
-  name?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateItemsResult = {

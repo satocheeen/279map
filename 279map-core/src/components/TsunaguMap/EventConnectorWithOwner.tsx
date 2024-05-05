@@ -31,7 +31,6 @@ import { useAtomCallback } from 'jotai/utils';
 export type EventControllerHandler = Pick<TsunaguMapHandler, 
     'switchMapKind' | 'focusItem' | 'loadContents' | 'loadContentsInItem' | 'loadImage'
     | 'filter' | 'clearFilter'
-    | 'updateItem'
     | 'registContent' | 'updateContent' | 'removeContent'
     | 'linkContent' | 'unlinkContent'
     | 'getSnsPreviewAPI' | 'getUnpointDataAPI'
@@ -220,26 +219,6 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
 
             } catch(err) {
                 throw err;
-            }
-        },
-        async updateItem(itemId, param, opt) {
-            if (opt?.backend) {
-                return updateItems([
-                    {
-                        id: itemId,
-                        name: param.name,
-                    }
-                ])
-            } else {
-                const result = await gqlClient.mutation(UpdateItemsDocument, {
-                    targets: {
-                        id: itemId,
-                        name: param.name,
-                    }
-                })
-                if (result.error) {
-                    throw new Error(result.error.message);
-                }
             }
         },
         async registContent(param) {

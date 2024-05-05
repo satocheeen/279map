@@ -1,6 +1,6 @@
 import { Auth, CategoryDefine, Condition, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, MapDefine, SnsPreviewResult, GetItemsQuery, ThumbSize } from "../graphql/generated/graphql";
 import { ChangeVisibleLayerTarget } from "../store/datasource/useDataSource";
-import { IconDefine, MapKind, ContentValueMap, DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
+import { IconDefine, MapKind, ContentValueMap, DataId, FeatureType, GeoProperties } from "../types-common/common-types";
 import { OperationResult } from "urql";
 
 export type OnConnectParam = {
@@ -213,7 +213,7 @@ export interface TsunaguMapHandler {
      * @param geo 図形 
      * @return 登録したアイテムID
      */
-    registItemDirectly(datasourceId: string, geo: ItemGeoInfo, name?: string): Promise<DataId>;
+    registItemDirectly(datasourceId: string, geo: ItemGeoInfo): Promise<DataId>;
 
     /**
      * 指定の値でアイテム更新する.
@@ -221,7 +221,7 @@ export interface TsunaguMapHandler {
      * @param name アイテム名
      * @param geo 図形 
      */
-    updateItemDirectly(id: DataId, geo?: Partial<ItemGeoInfo>, name?: string): Promise<void>;
+    updateItemDirectly(id: DataId, geo?: Partial<ItemGeoInfo>): Promise<void>;
 
     /**
      * 指定のアイテムを削除する
@@ -269,8 +269,6 @@ export interface TsunaguMapHandler {
      */
     drawRoad(dataSourceId: string): void;
 
-    editTopographyInfo(): void;
-
     /**
      * 指定のアイテム配下のコンテンツを取得する
      * @param itemId 
@@ -290,22 +288,6 @@ export interface TsunaguMapHandler {
      * @param refresh trueの場合、キャッシュを用いずに最新ロードする
      */
     loadImage(param: {imageId: number, size: ThumbSize, refresh?: boolean}): Promise<string>;
-
-    /**
-     * アイテム情報を更新する
-     * @param itemId 対象アイテムID
-     * @param param 更新する情報
-     * @param opt オプション
-     *          backend: trueの場合、裏で非同期で実行し、処理失敗した場合には地図上にエラーメッセージとリトライボタンが表示される
-     */
-    updateItem(itemId: DataId,
-        param: {
-            name?: string;
-        },
-        opt?: {
-            backend?: boolean;
-        }
-    ): Promise<void>,
 
     /**
      * コンテンツを新規登録する
