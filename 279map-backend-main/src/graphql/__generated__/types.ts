@@ -246,6 +246,8 @@ export type Mutation = {
   disconnect?: Maybe<Scalars['Boolean']['output']>;
   linkContent?: Maybe<Scalars['Boolean']['output']>;
   registContent?: Maybe<Scalars['Boolean']['output']>;
+  /** データ登録 */
+  registData: Scalars['DataId']['output'];
   registItem?: Maybe<Scalars['DataId']['output']>;
   removeContent?: Maybe<Scalars['Boolean']['output']>;
   removeItem?: Maybe<Scalars['Boolean']['output']>;
@@ -278,6 +280,13 @@ export type MutationRegistContentArgs = {
   datasourceId: Scalars['String']['input'];
   parent: ParentInput;
   values: Scalars['ContentValueMap']['input'];
+};
+
+
+export type MutationRegistDataArgs = {
+  contents: Scalars['ContentValueMap']['input'];
+  datasourceId: Scalars['String']['input'];
+  item?: InputMaybe<RegistDataItemInput>;
 };
 
 
@@ -458,6 +467,11 @@ export type QueryGetUnpointContentsArgs = {
 export type QuerySearchArgs = {
   condition: Condition;
   datasourceIds?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export type RegistDataItemInput = {
+  geoProperties: Scalars['GeoProperties']['output'];
+  geometry: Scalars['Geometry']['output'];
 };
 
 export type SearchHitItem = {
@@ -727,6 +741,7 @@ export type ResolversTypes = {
   ParentOfContent: ParentOfContent;
   PopupMode: PopupMode;
   Query: ResolverTypeWrapper<{}>;
+  RegistDataItemInput: ResolverTypeWrapper<RegistDataItemInput>;
   SearchHitItem: ResolverTypeWrapper<SearchHitItem>;
   ServerConfig: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['ServerConfig']>;
   SnsPreviewPost: ResolverTypeWrapper<SnsPreviewPost>;
@@ -785,6 +800,7 @@ export type ResolversParentTypes = {
   NoneConfig: NoneConfig;
   ParentInput: ParentInput;
   Query: {};
+  RegistDataItemInput: RegistDataItemInput;
   SearchHitItem: SearchHitItem;
   ServerConfig: ResolversUnionTypes<ResolversParentTypes>['ServerConfig'];
   SnsPreviewPost: SnsPreviewPost;
@@ -998,6 +1014,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   disconnect?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   linkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkContentArgs, 'id' | 'parent'>>;
   registContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRegistContentArgs, 'datasourceId' | 'parent' | 'values'>>;
+  registData?: Resolver<ResolversTypes['DataId'], ParentType, ContextType, RequireFields<MutationRegistDataArgs, 'contents' | 'datasourceId'>>;
   registItem?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType, RequireFields<MutationRegistItemArgs, 'datasourceId' | 'geoProperties' | 'geometry'>>;
   removeContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveContentArgs, 'id'>>;
   removeItem?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveItemArgs, 'id'>>;
@@ -1033,6 +1050,12 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getUnpointContents?: Resolver<ResolversTypes['GetUnpointContentsResult'], ParentType, ContextType, RequireFields<QueryGetUnpointContentsArgs, 'datasourceId'>>;
   getUserList?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
   search?: Resolver<Array<ResolversTypes['SearchHitItem']>, ParentType, ContextType, RequireFields<QuerySearchArgs, 'condition'>>;
+};
+
+export type RegistDataItemInputResolvers<ContextType = any, ParentType extends ResolversParentTypes['RegistDataItemInput'] = ResolversParentTypes['RegistDataItemInput']> = {
+  geoProperties?: Resolver<ResolversTypes['GeoProperties'], ParentType, ContextType>;
+  geometry?: Resolver<ResolversTypes['Geometry'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type SearchHitItemResolvers<ContextType = any, ParentType extends ResolversParentTypes['SearchHitItem'] = ResolversParentTypes['SearchHitItem']> = {
@@ -1131,6 +1154,7 @@ export type Resolvers<ContextType = any> = {
   Mutation?: MutationResolvers<ContextType>;
   NoneConfig?: NoneConfigResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  RegistDataItemInput?: RegistDataItemInputResolvers<ContextType>;
   SearchHitItem?: SearchHitItemResolvers<ContextType>;
   ServerConfig?: ServerConfigResolvers<ContextType>;
   SnsPreviewPost?: SnsPreviewPostResolvers<ContextType>;

@@ -57,6 +57,10 @@ type UpdateItemsResult {
     success: [DataId!]!
     error: [DataId!]
 }
+type RegistDataItemInput {
+    geometry: Geometry!
+    geoProperties: GeoProperties!
+}
 type Mutation {
     connect (
         mapId: String!
@@ -67,6 +71,15 @@ type Mutation {
     switchMapKind (
         mapKind: MapKind!
     ): MapInfo!
+
+    """
+    データ登録
+    """
+    registData (
+        datasourceId: String!
+        item: RegistDataItemInput
+        contents: ContentValueMap!
+    ): DataId!
 
     registItem (
         datasourceId: String!
