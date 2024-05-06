@@ -64,9 +64,10 @@ async function getExtent(mapPageId: string, mapKind: MapKind): Promise<[number,n
         // -- POINT
         const pointExtent = await async function(){
             const sql = `
-            select MAX(ST_X(location)) as max_x, MAX(ST_Y(location)) as max_y, MIN(ST_X(location)) as min_x, MIN(ST_Y(location)) as min_y from items i
-            inner join data_source ds on ds.data_source_id = i.data_source_id 
-            inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
+            select MAX(ST_X(feature)) as max_x, MAX(ST_Y(feature)) as max_y, MIN(ST_X(feature)) as min_x, MIN(ST_Y(feature)) as min_y from geometry_items i
+            inner join datas d on d.data_id = i.data_id 
+            inner join data_source ds on ds.data_source_id = d.data_source_id 
+            inner join map_datasource_link mdl on mdl.data_source_id = d.data_source_id 
             where map_page_id = ? and ds.location_kind = ?
             `;
             // execute引数でパラメタを渡すと、なぜかエラーになるので、クエリを作成してから投げている
@@ -90,10 +91,11 @@ async function getExtent(mapPageId: string, mapKind: MapKind): Promise<[number,n
         // -- POLYGON, MULTILINESTRING
         const polygonExtent = await async function() {
             const sql = `
-            select MIN(ST_X(ST_PointN(ST_ExteriorRing(ST_Envelope(location)), 1))) as min_x, MAX(ST_X(ST_PointN(ST_ExteriorRing(ST_Envelope(location)), 2))) as max_x, MIN(ST_Y(ST_PointN(ST_ExteriorRing(ST_Envelope(location)), 1))) as min_y, MAX(ST_Y(ST_PointN(ST_ExteriorRing(ST_Envelope(location)), 3))) as max_y 
-            from items i
-            inner join data_source ds on ds.data_source_id = i.data_source_id 
-            inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
+            select MIN(ST_X(ST_PointN(ST_ExteriorRing(ST_Envelope(feature)), 1))) as min_x, MAX(ST_X(ST_PointN(ST_ExteriorRing(ST_Envelope(feature)), 2))) as max_x, MIN(ST_Y(ST_PointN(ST_ExteriorRing(ST_Envelope(feature)), 1))) as min_y, MAX(ST_Y(ST_PointN(ST_ExteriorRing(ST_Envelope(feature)), 3))) as max_y 
+            from geometry_items i
+            inner join datas d on d.data_id = i.data_id 
+            inner join data_source ds on ds.data_source_id = d.data_source_id 
+            inner join map_datasource_link mdl on mdl.data_source_id = d.data_source_id 
             where map_page_id = ? and ds.location_kind = ?
             `;
             const dsKind = mapKind === MapKind.Real ? DatasourceLocationKindType.RealItem : DatasourceLocationKindType.VirtualItem;

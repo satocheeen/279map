@@ -143,14 +143,6 @@ export class VectorLayerMap {
         return list;
     }
 
-    getAllLayerInfo() {
-        const list = [] as LayerInfo[];
-        this._layerMap.forEach(layerInfo => {
-            list.push(layerInfo);
-        });
-        return list;
-    }
-
     // /**
     //  * 指定のグループに属するLayerInfoを返す
     //  * @param dataSourceId 

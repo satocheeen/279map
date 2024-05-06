@@ -24,7 +24,8 @@ export async function getCategory(param: QueryGetCategoryArgs, currentMap: Curre
         const records = await getAllCategories(currentMap, param.datasourceIds ?? undefined);
         const categoryMap = new Map<string, CategoryDefine>();
         records.forEach((row) => {
-            const categories = (JSON.parse(row.category) ?? []) as string[];
+            console.log('row.category', row.category)
+            const categories = row.category ?? [];
             categories.forEach(category => {
                 if (!categoryMap.has(category)) {
                     categoryMap.set(category, {
@@ -67,7 +68,7 @@ export async function getCategory(param: QueryGetCategoryArgs, currentMap: Curre
 
 type CategoryResult = {
     data_source_id: string;
-    category: string;
+    category: string[] | null;
 }
 
 async function getAllCategories(currentMap: CurrentMap, dataSourceIds?: string[]): Promise<CategoryResult[]> {
@@ -78,30 +79,24 @@ async function getAllCategories(currentMap: CurrentMap, dataSourceIds?: string[]
         await con.beginTransaction();
 
         const sql = `
-        select distinct c.data_source_id, c.category from contents c
-        inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
-        inner join item_content_link icl on icl.content_page_id = c.content_page_id and icl.content_datasource_id = c.data_source_id 
-        inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id
-        where category is not null and mdl.map_page_id = ? 
-        ${dataSourceIds ? 'and i.data_source_id in (?)' : ''}
-        union distinct 
-        select distinct icl.item_datasource_id as data_source_id, c.category from contents c 
-        inner join item_content_link icl on icl.content_page_id = c.content_page_id and icl.content_datasource_id = c.data_source_id 
-        inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id
-        inner join map_datasource_link mdl on mdl.data_source_id = c.data_source_id 
-        where category is not null and mdl.map_page_id = ? 
-        ${dataSourceIds ? 'and i.data_source_id in (?)' : ''}
+        select distinct d.data_source_id, c.category from contents c 
+        inner join datas d on d.data_id = c.data_id 
+        where EXISTS (
+            select * from map_datasource_link mdl 
+            where map_page_id = ? and d.data_source_id = mdl.data_source_id 
+        )
         `;
     
-        const params = dataSourceIds ?
-                            [currentMap.mapId, dataSourceIds, currentMap.mapId, dataSourceIds]
-                             : [currentMap.mapId, currentMap.mapId, currentMap.mapKind];
-        const query = con.format(sql, params);
+        const query = con.format(sql, [currentMap.mapId]);
         const [rows] = await con.execute(query);
 
         await con.commit();
 
-        return (rows as CategoryResult[]);
+        if(!dataSourceIds) {
+            return (rows as CategoryResult[]);
+        } else {
+            return (rows as CategoryResult[]).filter(res => dataSourceIds.includes(res.data_source_id));
+        }
     
     } catch(e) {
         apiLogger.warn('get dates failed.', e);

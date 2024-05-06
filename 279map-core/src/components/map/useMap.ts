@@ -192,8 +192,7 @@ export function useMap() {
                 });
                 if (hasItem) {
                     set(storedItemsAtom, (currentItems) => {
-                        const newItemsMap = structuredClone(currentItems);
-                        apiResults.reduce((acc, cur) => {
+                        const newItems = apiResults.reduce((acc, cur) => {
                             const items = cur.data?.getItems.map((i): ItemInfo => {
                                 return {
                                     id: i.id,
@@ -207,7 +206,7 @@ export function useMap() {
                             }) ?? [];
                             return [...acc, ...items];
                         }, [] as ItemInfo[])
-                        return newItemsMap;
+                        return [...currentItems, ...newItems];
                     })
                 }
 

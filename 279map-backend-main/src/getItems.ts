@@ -76,9 +76,11 @@ async function selectItems(con: PoolConnection, param: QueryGetItemsArgs, curren
         from geometry_items gi 
         left join contents c on c.data_id  = gi.data_id
         inner join datas d on d.data_id = gi.data_id 
+        inner join data_source ds on ds.data_source_id = d.data_source_id
         inner join map_datasource_link mdl on mdl.data_source_id = d.data_source_id 
         where map_page_id = ? and d.data_source_id = ?
         and ST_Intersects(gi.feature, ST_GeomFromText(?,4326))
+        and location_kind <> 'Track'
         `;
         const params = [currentMap.mapId, param.datasourceId, param.wkt];
         if (param.latestEditedTime) {
@@ -141,9 +143,11 @@ async function selectTrackInArea(con: PoolConnection, param: QueryGetItemsArgs, 
         from geometry_items gi 
         left join contents c on c.data_id  = gi.data_id
         inner join datas d on d.data_id = gi.data_id 
+        inner join data_source ds on ds.data_source_id = d.data_source_id
         inner join map_datasource_link mdl on mdl.data_source_id = d.data_source_id 
         where map_page_id = ? and d.data_source_id = ?
         AND MBRIntersects(gi.feature, GeomFromText(?,4326)) AND min_zoom <= ? AND ? < max_zoom
+        and location_kind = 'Track'
         `;
 
         const [rows] = await con.execute(sql, [mapPageId, param.datasourceId, wkt, param.zoom, param.zoom]);
@@ -151,7 +155,7 @@ async function selectTrackInArea(con: PoolConnection, param: QueryGetItemsArgs, 
         const list = [] as ItemDefineWithoudContents[];
         for (const row of (rows as (GeometryItemsTable & {geojson: any; title: string | null; last_edited_time: string})[])) {
             list.push({
-                id: '' + row.data_id + row.item_id,
+                id: '' + row.data_id, // + row.item_id,
                 datasourceId: param.datasourceId,
                 geometry: row.geojson,
                 geoProperties: {
