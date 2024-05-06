@@ -250,11 +250,15 @@ export type Mutation = {
   registData: Scalars['DataId']['output'];
   registItem?: Maybe<Scalars['DataId']['output']>;
   removeContent?: Maybe<Scalars['Boolean']['output']>;
+  /** データ削除 */
+  removeData: Scalars['Boolean']['output'];
   removeItem?: Maybe<Scalars['Boolean']['output']>;
   request?: Maybe<Scalars['Boolean']['output']>;
   switchMapKind: MapInfo;
   unlinkContent?: Maybe<Scalars['Boolean']['output']>;
   updateContent?: Maybe<Scalars['Boolean']['output']>;
+  /** データ更新 */
+  updateData: Scalars['Boolean']['output'];
   updateItems: UpdateItemsResult;
 };
 
@@ -284,7 +288,7 @@ export type MutationRegistContentArgs = {
 
 
 export type MutationRegistDataArgs = {
-  contents: Scalars['ContentValueMap']['input'];
+  contents?: InputMaybe<Scalars['ContentValueMap']['input']>;
   datasourceId: Scalars['String']['input'];
   item?: InputMaybe<RegistDataItemInput>;
 };
@@ -298,6 +302,11 @@ export type MutationRegistItemArgs = {
 
 
 export type MutationRemoveContentArgs = {
+  id: Scalars['DataId']['input'];
+};
+
+
+export type MutationRemoveDataArgs = {
   id: Scalars['DataId']['input'];
 };
 
@@ -327,6 +336,13 @@ export type MutationUnlinkContentArgs = {
 export type MutationUpdateContentArgs = {
   id: Scalars['DataId']['input'];
   values: Scalars['ContentValueMap']['input'];
+};
+
+
+export type MutationUpdateDataArgs = {
+  contents?: InputMaybe<Scalars['ContentValueMap']['input']>;
+  id: Scalars['DataId']['input'];
+  item?: InputMaybe<RegistDataItemInput>;
 };
 
 
@@ -1014,14 +1030,16 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   disconnect?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   linkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkContentArgs, 'id' | 'parent'>>;
   registContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRegistContentArgs, 'datasourceId' | 'parent' | 'values'>>;
-  registData?: Resolver<ResolversTypes['DataId'], ParentType, ContextType, RequireFields<MutationRegistDataArgs, 'contents' | 'datasourceId'>>;
+  registData?: Resolver<ResolversTypes['DataId'], ParentType, ContextType, RequireFields<MutationRegistDataArgs, 'datasourceId'>>;
   registItem?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType, RequireFields<MutationRegistItemArgs, 'datasourceId' | 'geoProperties' | 'geometry'>>;
   removeContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveContentArgs, 'id'>>;
+  removeData?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveDataArgs, 'id'>>;
   removeItem?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveItemArgs, 'id'>>;
   request?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRequestArgs, 'mapId' | 'name'>>;
   switchMapKind?: Resolver<ResolversTypes['MapInfo'], ParentType, ContextType, RequireFields<MutationSwitchMapKindArgs, 'mapKind'>>;
   unlinkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkContentArgs, 'id' | 'parent'>>;
   updateContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateContentArgs, 'id' | 'values'>>;
+  updateData?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateDataArgs, 'id'>>;
   updateItems?: Resolver<ResolversTypes['UpdateItemsResult'], ParentType, ContextType, RequireFields<MutationUpdateItemsArgs, 'targets'>>;
 };
 

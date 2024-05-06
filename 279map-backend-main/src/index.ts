@@ -24,7 +24,7 @@ import { Auth0Management } from './auth/Auth0Management';
 import { OriginalAuthManagement } from './auth/OriginalAuthManagement';
 import { NoneAuthManagement } from './auth/NoneAuthManagement';
 import { CurrentMap, sleep } from '../279map-backend-common/src';
-import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaRegistContentAPI, OdbaRegistItemAPI, OdbaRemoveContentAPI, OdbaRemoveItemAPI, OdbaUnlinkContentAPI, OdbaUpdateContentAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
+import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaRegistContentAPI, OdbaRegistDataAPI, OdbaRegistItemAPI, OdbaRemoveContentAPI, OdbaRemoveItemAPI, OdbaUnlinkContentAPI, OdbaUpdateContentAPI, OdbaUpdateDataAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
 import SessionManager from './session/SessionManager';
 import { geojsonToWKT } from '@terraformer/wkt';
 import { getItemsById } from './api/getItem';
@@ -32,7 +32,7 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { IFieldResolverOptions } from '@graphql-tools/utils';
-import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUpdateContentArgs, MutationUpdateItemsArgs, Operation, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription } from './graphql/__generated__/types';
+import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationRegistContentArgs, MutationRegistDataArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUpdateContentArgs, MutationUpdateDataArgs, MutationUpdateItemsArgs, Operation, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType, GeoPropertiesScalarType, GeocoderIdInfoScalarType, IconKeyScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -712,6 +712,71 @@ const schema = makeExecutableSchema<GraphQlContextType>({
 
                 } catch(e) {    
                     apiLogger.warn('switchMapKind error', e);
+                    throw e;
+                }
+            },
+            /**
+             * データ登録
+             */
+            registData: async(_, param: MutationRegistDataArgs, ctx): MutationResolverReturnType<'registData'> => {
+                try {
+                    // call ODBA
+                    const id = await callOdbaApi(OdbaRegistDataAPI, {
+                        currentMap: ctx.currentMap,
+                        dataSourceId: param.datasourceId,
+                        item: param.item ?? undefined,
+                        contents: param.contents ?? undefined,
+                    });
+                    // 更新通知
+                    if (param.item) {
+                        const wkt = geojsonToWKT(param.item.geometry);
+                        pubsub.publish('itemInsert', ctx.currentMap, [
+                            {
+                                id,
+                                wkt,
+                            }
+                        ])
+                    }
+
+                    return id;
+
+                } catch(e) {    
+                    apiLogger.warn('regist-data API error', param, e);
+                    throw e;
+                }
+            },
+            /**
+             * データ更新
+             */
+            updateData: async(_, param: MutationUpdateDataArgs, ctx): MutationResolverReturnType<'updateData'> => {
+                try {
+                    // call ODBA
+                    const result = await callOdbaApi(OdbaUpdateDataAPI, {
+                        currentMap: ctx.currentMap,
+                        id: param.id,
+                        item: param.item ?? undefined,
+                        contents: param.contents ?? undefined,
+                    })
+                    if (!result) {
+                        throw new Error('failed');
+                    }
+
+                    // 更新通知
+                    if (param.item) {
+                        const beforeWkt = await getItemWkt(param.id);
+                        const afterWkt = param.item.geometry ? geojsonToWKT(param.item.geometry) : undefined;
+                        pubsub.publish('itemUpdate', ctx.currentMap, [
+                            {
+                                id: param.id,
+                                wkt: afterWkt ?? beforeWkt ?? 'POLYGON ((-1 1, -1 -1, 1 -1, 1 1))',    // undefinedになることはないはずだが、エラーを防ぐために仮設定
+                            }
+                        ]);
+                    }
+
+                    return true;
+
+                } catch(e) {    
+                    apiLogger.warn('update-item API error', param, e);
                     throw e;
                 }
             },

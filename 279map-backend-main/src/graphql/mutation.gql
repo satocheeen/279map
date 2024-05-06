@@ -72,14 +72,24 @@ type Mutation {
         mapKind: MapKind!
     ): MapInfo!
 
-    """
-    データ登録
-    """
+    "データ登録"
     registData (
         datasourceId: String!
         item: RegistDataItemInput
-        contents: ContentValueMap!
+        contents: ContentValueMap
     ): DataId!
+
+    "データ更新"
+    updateData (
+        id: DataId!
+        item: RegistDataItemInput
+        contents: ContentValueMap
+    ): Boolean!
+
+    "データ削除"
+    removeData (
+        id: DataId!
+    ): Boolean!
 
     registItem (
         datasourceId: String!

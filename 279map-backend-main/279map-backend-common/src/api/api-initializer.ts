@@ -1,6 +1,6 @@
 import { Request, Response, Express } from 'express';
 import { Logger } from "log4js";
-import { OdbaGetImageUrlAPI, OdbaGetImageUrlParam, OdbaGetLinkableContentsAPI, OdbaGetLinkableContentsResult, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaLinkContentToItemParam, OdbaRegistContentAPI, OdbaRegistContentParam, OdbaRegistItemAPI, OdbaRegistItemParam, OdbaRemoveContentAPI, OdbaRemoveContentParam, OdbaRemoveItemAPI, OdbaRemoveItemParam, OdbaUnlinkContentAPI, OdbaUnlinkContentParam, OdbaUpdateContentAPI, OdbaUpdateContentParam, OdbaUpdateItemAPI, OdbaUpdateItemParam } from "./dba-api-interface";
+import { OdbaGetImageUrlAPI, OdbaGetImageUrlParam, OdbaGetLinkableContentsAPI, OdbaGetLinkableContentsResult, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaLinkContentToItemParam, OdbaRegistContentAPI, OdbaRegistContentParam, OdbaRegistDataAPI, OdbaRegistDataParam, OdbaRegistItemAPI, OdbaRegistItemParam, OdbaRemoveContentAPI, OdbaRemoveContentParam, OdbaRemoveDataAPI, OdbaRemoveDataParam, OdbaRemoveItemAPI, OdbaRemoveItemParam, OdbaUnlinkContentAPI, OdbaUnlinkContentParam, OdbaUpdateContentAPI, OdbaUpdateContentParam, OdbaUpdateDataAPI, OdbaUpdateDataParam, OdbaUpdateItemAPI, OdbaUpdateItemParam } from "./dba-api-interface";
 import OdbaInterface from "./OdbaInterface";
 import { APIDefine, CurrentMap } from "../types";
 import { DataId } from '../types-common/common-types';
@@ -17,6 +17,24 @@ export type OdbaAPICallDefine<PARAM, RESULT> = {
 
 export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger) {
     const apiList: OdbaAPICallDefine<any,any>[] = [
+        {
+            define: OdbaRegistDataAPI,
+            func: async(param: OdbaAPIFuncParam<OdbaRegistDataParam>): Promise<DataId> => {
+                return await odba.registDataOdb(param.param);
+            }
+        },
+        {
+            define: OdbaUpdateDataAPI,
+            func: async(param: OdbaAPIFuncParam<OdbaUpdateDataParam>): Promise<boolean> => {
+                return await odba.updateDataOdb(param.param);
+            }
+        },
+        {
+            define: OdbaRemoveDataAPI,
+            func: async(param: OdbaAPIFuncParam<OdbaRemoveDataParam>): Promise<boolean> => {
+                return await odba.removeDataOdb(param.param);
+            }
+        },
         {
             define: OdbaRegistItemAPI,
             func: async(param: OdbaAPIFuncParam<OdbaRegistItemParam>): Promise<DataId> => {

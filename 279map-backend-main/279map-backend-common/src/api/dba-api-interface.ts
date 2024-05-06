@@ -8,6 +8,47 @@ import { ContentValueMap, DataId, GeoProperties } from "../types-common/common-t
 type CommonParam = {
     currentMap: CurrentMap;
 }
+
+export const OdbaRegistDataAPI = {
+    uri: 'regist-data',
+    method: 'post',
+    resultType: 'json',
+} as APIDefine<OdbaRegistDataParam, DataId>;
+
+export type OdbaRegistDataParam = CommonParam & {
+    dataSourceId: string;   // 登録先データソース
+    item?: {
+        geometry: GeoJSON.Geometry;
+        geoProperties: GeoProperties;
+    };
+    contents?: ContentValueMap;
+}
+
+export const OdbaUpdateDataAPI = {
+    uri: 'update-data',
+    method: 'post',
+    resultType: 'json',
+} as APIDefine<OdbaUpdateDataParam, boolean>;
+
+export type OdbaUpdateDataParam = CommonParam & {
+    id: DataId;
+    item?: {
+        geometry: GeoJSON.Geometry;
+        geoProperties: GeoProperties;
+    };
+    contents?: ContentValueMap;
+}
+
+export const OdbaRemoveDataAPI = {
+    uri: 'remove-data',
+    method: 'post',
+    resultType: 'json',
+} as APIDefine<OdbaRemoveDataParam, boolean>;
+
+export type OdbaRemoveDataParam = CommonParam & {
+    id: DataId;
+}
+
 /**
  * regist item
  */
