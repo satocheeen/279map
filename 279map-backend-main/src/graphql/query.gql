@@ -17,6 +17,7 @@ union ServerConfig = Auth0Config | NoneConfig
 
 type ItemDefine {
     id: DataId!
+    datasourceId: String!
     name: String!
     geometry: Geometry!
     geoProperties: GeoProperties!
@@ -46,6 +47,7 @@ enum ContentType {
 }
 type ContentsDefine {
     id: DataId!
+    datasourceId: String!
     parentId: DataId
     # コンテンツにタイトル以外の値が登録されている場合、true
     hasValue: Boolean!

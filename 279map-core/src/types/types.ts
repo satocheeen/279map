@@ -417,6 +417,7 @@ export type NewContentInfoParam = {
 }
 
 export type ItemInfo = Omit<Required<OperationResult<GetItemsQuery>>['data']['getItems'][0], '__typename'> & {
+    datasourceId: string;
     /**
      * DB未登録状態の場合に値設定
      * - temporary 呼び出し元から渡された値で一時描画したもの

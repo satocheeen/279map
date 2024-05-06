@@ -27,7 +27,7 @@ export default function LandNameOverlay() {
         if (!virtualItemDatasource?.datasourceId) {
             return [];
         }
-        return allItems[virtualItemDatasource.datasourceId] ?? [];
+        return allItems.filter(item => virtualItemDatasource.datasourceId === item.datasourceId);
     }, [allItems, virtualItemDatasource]);
 
     const landNameDivMapRef = useRef({} as { [id: string]: HTMLDivElement });

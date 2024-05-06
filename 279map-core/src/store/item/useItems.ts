@@ -13,12 +13,11 @@ export function useItems() {
         useCallback(async(get, set, target: DataId[]) => {
             if (target.length === 0) return;
 
-            set(storedItemsAtom, (currentItemMap) => {
-                const newItemsMap = Object.assign({}, currentItemMap);
-                target.forEach(def => {
-                    delete newItemsMap[def.dataSourceId][def.id];
-                });
-                return newItemsMap;
+            set(storedItemsAtom, (currentItems) => {
+                // const newItemsMap = Object.assign({}, currentItems);
+                return currentItems.filter(item => {
+                    return !target.includes(item.id);
+                })
             });
 
             // TODO: contentsから除去
@@ -35,8 +34,7 @@ export function useItems() {
     const getItem = useAtomCallback(
         useCallback((get, set, id: DataId) => {
             const allItems = get(allItemsAtom);
-            const itemMap = allItems[id.dataSourceId] ?? {};
-            return itemMap[id.id];
+            return allItems.find(item => item.id === id);
         }, [])
     )
 

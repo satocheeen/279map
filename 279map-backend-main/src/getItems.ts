@@ -2,7 +2,7 @@ import { getLogger } from 'log4js';
 import { ConnectionPool } from '.';
 import { PoolConnection } from 'mysql2/promise';
 import { CurrentMap } from '../279map-backend-common/src';
-import { ContentsTable, ItemContentLink, ItemsTable, TrackGeoJsonTable, TracksTable } from '../279map-backend-common/src/types/schema';
+import { GeometryItemsTable } from '../279map-backend-common/src/types/schema';
 import { QueryGetItemsArgs } from './graphql/__generated__/types';
 import { ItemContentInfo } from './api/getItem';
 import { FeatureType, MapKind } from './types-common/common-types';
@@ -24,7 +24,7 @@ export async function getItems({ param, currentMap }: {param:QueryGetItemsArgs; 
 
     if (param.excludeItemIds) {
         // 除外対象のアイテムを除く
-        return items.filter(item => !param.excludeItemIds?.includes(item.id.id))
+        return items.filter(item => !param.excludeItemIds?.includes(item.id))
     } else {
         return items;
     }
@@ -61,23 +61,33 @@ export async function getItemsSub(currentMap: CurrentMap, param: QueryGetItemsAr
 async function selectItems(con: PoolConnection, param: QueryGetItemsArgs, currentMap: CurrentMap): Promise<ItemDefineWithoudContents[]> {
     try {
         // 位置コンテンツ
+        // let sql = `
+        // select i.*, ST_AsGeoJSON(i.location) as geojson, c.title
+        // from items i
+        // left join contents c on c.content_page_id = i.item_page_id and c.data_source_id = i.data_source_id 
+        // inner join data_source ds on ds.data_source_id = i.data_source_id 
+        // inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
+        // where map_page_id = ? and i.data_source_id = ?
+        // and ST_Intersects(location, ST_GeomFromText(?,4326))
+        // `;
+        // TODO: $.titleはcontents_defineから取得した値をパラメタで渡す
         let sql = `
-        select i.*, ST_AsGeoJSON(i.location) as geojson, c.title
-        from items i
-        left join contents c on c.content_page_id = i.item_page_id and c.data_source_id = i.data_source_id 
-        inner join data_source ds on ds.data_source_id = i.data_source_id 
-        inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
-        where map_page_id = ? and i.data_source_id = ?
-        and ST_Intersects(location, ST_GeomFromText(?,4326))
+        select gi.*, ST_AsGeoJSON(gi.feature) as geojson, JSON_UNQUOTE(JSON_EXTRACT(c.contents , '$.title')) as title, d.last_edited_time 
+        from geometry_items gi 
+        left join contents c on c.data_id  = gi.data_id
+        inner join datas d on d.data_id = gi.data_id 
+        inner join map_datasource_link mdl on mdl.data_source_id = d.data_source_id 
+        where map_page_id = ? and d.data_source_id = ?
+        and ST_Intersects(gi.feature, ST_GeomFromText(?,4326))
         `;
         const params = [currentMap.mapId, param.datasourceId, param.wkt];
         if (param.latestEditedTime) {
-            sql += ' and i.last_edited_time > ?';
+            sql += ' and d.last_edited_time > ?';
             params.push(param.latestEditedTime);
         }
         const [rows] = await con.execute(sql, params);
         const pointContents = [] as ItemDefineWithoudContents[];
-        for(const row of rows as (ItemsTable & {geojson: any; title: string | null})[]) {
+        for(const row of rows as (GeometryItemsTable & {geojson: any; title: string | null; last_edited_time: string})[]) {
             // const contents: ItemContentInfo[] = [];
             let lastEditedTime = row.last_edited_time;
 
@@ -98,10 +108,8 @@ async function selectItems(con: PoolConnection, param: QueryGetItemsArgs, curren
             // }
 
             pointContents.push({
-                id: {
-                    id: row.item_page_id,
-                    dataSourceId: row.data_source_id,
-                },
+                id: row.data_id + '',
+                datasourceId: param.datasourceId,
                 name: row.title ?? '',
                 geometry: row.geojson,
                 geoProperties: row.geo_properties ? JSON.parse(row.geo_properties) : undefined,
@@ -129,21 +137,22 @@ async function selectTrackInArea(con: PoolConnection, param: QueryGetItemsArgs, 
     try {
         const wkt = param.wkt;// getExtentWkt(param.extent);
         const sql = `
-                    SELECT tg.track_file_id, tg.sub_id, tg.min_zoom, tg.max_zoom, ST_AsGeoJSON(geojson) as geojson, t.*  FROM track_geojson tg
-                    inner join track_files tf on tf.track_file_id = tg.track_file_id 
-                    inner join tracks t on t.track_page_id = tf.track_page_id 
-                    inner join data_source ds on ds.data_source_id = t.data_source_id 
-                    inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
-                    WHERE map_page_id= ? AND MBRIntersects(geojson, GeomFromText(?,4326)) AND min_zoom <= ? AND ? < max_zoom AND t.data_source_id = ?`;
-        const [rows] = await con.execute(sql, [mapPageId, wkt, param.zoom, param.zoom, param.datasourceId]);
+        select gi.*, ST_AsGeoJSON(gi.feature) as geojson, JSON_UNQUOTE(JSON_EXTRACT(c.contents , '$.title')) as title, d.last_edited_time 
+        from geometry_items gi 
+        left join contents c on c.data_id  = gi.data_id
+        inner join datas d on d.data_id = gi.data_id 
+        inner join map_datasource_link mdl on mdl.data_source_id = d.data_source_id 
+        where map_page_id = ? and d.data_source_id = ?
+        AND MBRIntersects(gi.feature, GeomFromText(?,4326)) AND min_zoom <= ? AND ? < max_zoom
+        `;
+
+        const [rows] = await con.execute(sql, [mapPageId, param.datasourceId, wkt, param.zoom, param.zoom]);
         
         const list = [] as ItemDefineWithoudContents[];
-        for (const row of (rows as (TrackGeoJsonTable & TracksTable)[])) {
+        for (const row of (rows as (GeometryItemsTable & {geojson: any; title: string | null; last_edited_time: string})[])) {
             list.push({
-                id: {
-                    id: '' + row.track_file_id + row.sub_id,
-                    dataSourceId: row.data_source_id,
-                },
+                id: '' + row.data_id + row.item_id,
+                datasourceId: param.datasourceId,
                 geometry: row.geojson,
                 geoProperties: {
                     featureType: FeatureType.TRACK,
@@ -162,62 +171,6 @@ async function selectTrackInArea(con: PoolConnection, param: QueryGetItemsArgs, 
         throw new Error('selectTrackInArea failed');
     }
 
-}
-
-// コンテンツ取得メソッド
-export async function  getContentsInfo(con: PoolConnection, contentPageId: string): Promise<ItemContentInfo|null> {
-    const getChildrenContentInfo = async(contentPageId: string): Promise<ItemContentInfo[]> => {
-        const sql = `
-        select c.*, count(i.image_id) as image_num  from contents c
-        left join images i on c.content_page_id = i.content_page_id and c.data_source_id = i.data_source_id
-        where parent_id = ?
-        GROUP by c.content_page_id , c.data_source_id  
-        `;
-        // const sql = 'select * from contents c where parent_id = ?';
-        const [rows] = await con.execute(sql, [contentPageId]);
-        const myRows = rows as (ContentsTable & {image_num: number})[];
-        if (myRows.length === 0) {
-            return [];
-        }
-        const children = [] as ItemContentInfo[];
-        for(const row of myRows) {
-            const discendant = await getChildrenContentInfo(row.content_page_id);
-            children.push({
-                id: {
-                    id: row.content_page_id,
-                    dataSourceId: row.data_source_id,
-                },
-                hasImage: row.image_num > 0,
-                children: discendant,
-            });
-        }
-        return children;
-    };
-
-    const sql = `
-    select c.*, count(i.image_id) as image_num  from contents c
-    left join images i on c.content_page_id = i.content_page_id and c.data_source_id = i.data_source_id
-    where c.content_page_id = ?
-    GROUP by c.content_page_id , c.data_source_id  
-    `;
-    // const sql = 'select * from contents c where content_page_id = ?';
-    const [rows] = await con.execute(sql, [contentPageId]);
-    const myRows = rows as (ContentsTable & {image_num: number})[];
-    if (myRows.length === 0) {
-        apiLogger.warn('not founc content.', contentPageId);
-        return null;
-    }
-
-    const row = myRows[0];
-    const discendant = await getChildrenContentInfo(row.content_page_id);
-    return {
-        id: {
-            id: row.content_page_id,
-            dataSourceId: row.data_source_id,
-        },
-    hasImage: row.image_num > 0,
-        children: discendant,
-    };
 }
 
 /**

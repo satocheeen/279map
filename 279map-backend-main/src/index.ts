@@ -9,7 +9,7 @@ import { getContents } from './getContents';
 import { getEvents } from './getEvents';
 import proxy from 'express-http-proxy';
 import http from 'http';
-import { cleanupContentValuesForRegist, getDatasourceRecord, getItemWkt } from './util/utility';
+import { cleanupContentValuesForRegist, getDatasourceIdOfTheDataId, getDatasourceRecord, getItemWkt } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
 import { getSnsPreview } from './api/getSnsPreview';
@@ -854,7 +854,8 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             updateContent: async(_, param: MutationUpdateContentArgs, ctx): MutationResolverReturnType<'updateContent'> => {
                 try {
                     // 誤った値が含まれないように処置
-                    const values = await cleanupContentValuesForRegist(ctx.currentMap.mapId, param.id.dataSourceId, param.values);
+                    const dataSourceId = await getDatasourceIdOfTheDataId(param.id);
+                    const values = await cleanupContentValuesForRegist(ctx.currentMap.mapId, dataSourceId, param.values);
 
                     // call ODBA
                     await callOdbaApi(OdbaUpdateContentAPI, {
@@ -944,10 +945,11 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             unlinkContent: async(parent: any, param: MutationUnlinkContentArgs, ctx): MutationResolverReturnType<'unlinkContent'> => {
                 try {
                     // アイテムと一体になったコンテンツは紐づけ解除不可
-                    const datasource = await getDatasourceRecord(param.id.dataSourceId);
-                    if (param.id.id === param.parent.id.id && param.id.dataSourceId === param.parent.id.dataSourceId) {
-                        throw new Error('this content can not unlink with the item because this is same record.');
-                    }
+                    const dataSourceId = await getDatasourceIdOfTheDataId(param.id);
+                    const datasource = await getDatasourceRecord(dataSourceId);
+                    // if (param.id.id === param.parent.id.id && param.id.dataSourceId === param.parent.id.dataSourceId) {
+                    //     throw new Error('this content can not unlink with the item because this is same record.');
+                    // }
 
                     // TODO: 親がコンテンツの場合の考慮（ODBA側のインタフェース対応後）
                     // call ODBA
@@ -1263,11 +1265,12 @@ apolloServer.start().then(() => {
         logger.info('broadcast', param);
         // 変更範囲を取得する
         const itemIdListByDataSource = param.itemIdList.reduce((acc, cur) => {
-            if (cur.dataSourceId in acc) {
-                acc[cur.dataSourceId].push(cur);
-            } else {
-                acc[cur.dataSourceId] = [cur];
-            }
+            // TODO:
+            // if (cur.dataSourceId in acc) {
+            //     acc[cur.dataSourceId].push(cur);
+            // } else {
+            //     acc[cur.dataSourceId] = [cur];
+            // }
             return acc;
         }, {} as {[datasourceId: string]: DataId[]});
         const targets = [] as {id: DataId; wkt: string}[];

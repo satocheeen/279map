@@ -61,6 +61,7 @@ CREATE TABLE `original_icons` (
   CONSTRAINT `original_icons_FK` FOREIGN KEY (`map_page_id`) REFERENCES `map_page_info` (`map_page_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
+
 -- 279map_db.datas definition
 
 CREATE TABLE `datas` (
@@ -70,10 +71,10 @@ CREATE TABLE `datas` (
   `name` varchar(100) DEFAULT NULL,
   `last_edited_time` varchar(100) NOT NULL,
   PRIMARY KEY (`data_id`),
+  UNIQUE KEY `datas_UN` (`data_source_id`,`original_id`),
   KEY `datas_FK` (`data_source_id`),
   CONSTRAINT `datas_FK` FOREIGN KEY (`data_source_id`) REFERENCES `data_source` (`data_source_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
-
+) ENGINE=InnoDB AUTO_INCREMENT=600 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- 279map_db.items definition
 
@@ -103,27 +104,25 @@ CREATE TABLE `geometry_items` (
   `item_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `min_zoom` float NOT NULL,
   `max_zoom` float NOT NULL,
-  `geometry` geometry NOT NULL,
+  `feature` geometry NOT NULL,
   `geo_properties` text,
   PRIMARY KEY (`item_id`),
   KEY `items_sub_FK` (`data_id`),
   CONSTRAINT `items_sub_FK` FOREIGN KEY (`data_id`) REFERENCES `items` (`data_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
-
 -- 279map_db.images definition
 
 CREATE TABLE `images` (
   `image_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `data_id` int(10) unsigned NOT NULL,
-  `data_source_id` varchar(100) NOT NULL,
   `thumbnail` mediumtext NOT NULL,
   `medium` mediumtext NOT NULL,
   `field_key` varchar(100) NOT NULL COMMENT '対応するコンテンツFieldのキー',
   PRIMARY KEY (`image_id`),
-  KEY `images_FK` (`data_id`,`data_source_id`),
+  KEY `images_FK` (`data_id`),
   CONSTRAINT `images_FK` FOREIGN KEY (`data_id`) REFERENCES `contents` (`data_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=335 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 
 -- 279map_db.item_content_link definition

@@ -6,10 +6,11 @@
 
 import { BooleanValueNode } from "graphql";
 
-export type DataId = {
-    id: string;
-    dataSourceId: string;
-}
+// export type DataId = {
+//     id: string;
+//     dataSourceId: string;
+// }
+export type DataId = string;
 
 export enum MapKind {
     Real = 'Real',

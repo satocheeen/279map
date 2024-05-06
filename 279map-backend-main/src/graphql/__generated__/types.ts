@@ -110,6 +110,7 @@ export type ContentsDatasourceInput = {
 export type ContentsDefine = {
   anotherMapItemId?: Maybe<Scalars['DataId']['output']>;
   children?: Maybe<Array<ContentsDefine>>;
+  datasourceId: Scalars['String']['output'];
   hasImage: Scalars['Boolean']['output'];
   hasValue: Scalars['Boolean']['output'];
   id: Scalars['DataId']['output'];
@@ -172,6 +173,7 @@ export type ItemDatasourceInfo = {
 export type ItemDefine = {
   /** アイテムに紐づくコンテンツ一覧 */
   contents: Array<ContentsDefine>;
+  datasourceId: Scalars['String']['output'];
   geoProperties: Scalars['GeoProperties']['output'];
   geometry: Scalars['Geometry']['output'];
   id: Scalars['DataId']['output'];
@@ -848,6 +850,7 @@ export type ContentsDatasourceResolvers<ContextType = any, ParentType extends Re
 export type ContentsDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['ContentsDefine'] = ResolversParentTypes['ContentsDefine']> = {
   anotherMapItemId?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType>;
   children?: Resolver<Maybe<Array<ResolversTypes['ContentsDefine']>>, ParentType, ContextType>;
+  datasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   hasImage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   hasValue?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
@@ -930,6 +933,7 @@ export type ItemDatasourceInfoResolvers<ContextType = any, ParentType extends Re
 
 export type ItemDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemDefine'] = ResolversParentTypes['ItemDefine']> = {
   contents?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType>;
+  datasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   geoProperties?: Resolver<ResolversTypes['GeoProperties'], ParentType, ContextType>;
   geometry?: Resolver<ResolversTypes['Geometry'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;

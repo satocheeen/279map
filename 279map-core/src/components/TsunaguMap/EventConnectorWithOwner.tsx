@@ -11,7 +11,7 @@ import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { TsunaguMapHandler, LoadContentsResult, ItemType } from '../../types/types';
 import { useAtom } from 'jotai';
 import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
-import { overrideItemsAtom, storedItemsAtom, showingItemsAtom } from '../../store/item';
+import { overrideItemsAtom, storedItemsAtom, showingItemsAtom, allItemsAtom } from '../../store/item';
 import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
 import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, LinkContentDocument, RegistContentDocument, SearchDocument, GetThumbDocument, GetSnsPreviewDocument, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument, UpdateItemsDocument, GetImageDocument, ContentUpdateDocument, Operation } from '../../graphql/generated/graphql';
@@ -68,11 +68,12 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             case SortCondition.DateAsc:
             case SortCondition.DateDesc:
                 {
+
                     const aDateField = contentDatasources
-                                        .find(c => c.datasourceId === a.id.dataSourceId)?.config.fields
+                                        .find(c => c.datasourceId === a.datasourceId)?.config.fields
                                         .find(f => f.type === 'date');
                     const bDateField = contentDatasources
-                        .find(c => c.datasourceId === b.id.dataSourceId)?.config.fields
+                        .find(c => c.datasourceId === b.datasourceId)?.config.fields
                         .find(f => f.type === 'date');
                     const aDate = aDateField ? a.values[aDateField.key] : undefined;
                     const bDate = bDateField ? b.values[bDateField.key] : undefined;

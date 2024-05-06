@@ -120,7 +120,7 @@ export const initialLoadingAtom = atom(false);
 function useItemUpdater() {
     const { map, fitToDefaultExtent } = useMap();
     const [ , setStoredItems ] = useAtom(storedItemsAtom);
-    const [ itemMap ] = useAtom(allItemsAtom);
+    const [ allItems ] = useAtom(allItemsAtom);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
     const [ itemDatasources ] = useAtom(itemDataSourcesAtom);
@@ -140,7 +140,7 @@ function useItemUpdater() {
         if (!map || !currentMapKind) return;
         if (initializedMapKind ===  currentMapKind) return;
 
-        setStoredItems({});
+        setStoredItems([]);
 
         // 現在のレイヤ、データソースを削除
         map.clearAllLayers();
@@ -165,10 +165,9 @@ function useItemUpdater() {
      * アイテムFeatureを地図に反映する
      */
     const geoJsonItems = useMemo(() => {
-        return Object.values(itemMap).reduce((acc, cur) => {
-            return acc.concat(Object.values(cur));
-        }, [] as ItemInfo[]);
-    }, [itemMap]);
+        return allItems;
+    }, [allItems]);
+
     // 追加済みアイテム
     const prevGeoJsonItemsRef = useRef<ItemInfo[]>([]);
 

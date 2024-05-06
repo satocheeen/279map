@@ -51,6 +51,7 @@ query getItems (
 ) {
     getItems(wkt: $wkt, zoom: $zoom, datasourceId: $datasourceId, latestEditedTime: $latestEditedTime, excludeItemIds: $excludeItemIds) {
         id
+        datasourceId
         name
         geometry
         geoProperties
@@ -71,6 +72,7 @@ query getItemsById (
 ) {
     getItemsById(targets: $targets) {
         id
+        datasourceId
         name
         geometry
         geoProperties
@@ -114,6 +116,7 @@ query getContentsInItem(
 
 fragment content on ContentsDefine {
     id
+    datasourceId
     parentId
     values
     usingAnotherMap

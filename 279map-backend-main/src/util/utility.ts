@@ -1,5 +1,5 @@
 import { ConnectionPool } from '..';
-import { ContentsTable, DataSourceTable, ItemContentLink, ItemsTable, MapDataSourceLinkConfig } from '../../279map-backend-common/src/types/schema';
+import { ContentsTable, DataSourceTable, DatasTable, ItemContentLink, MapDataSourceLinkConfig } from '../../279map-backend-common/src/types/schema';
 import { buffer, circle, featureCollection, lineString, multiLineString, multiPolygon, point, polygon, union } from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 import crypto from 'crypto';
@@ -33,69 +33,69 @@ export function convertBase64ToBinary(base64: string) {
     };
 }
 
-export async function getContent(content_id: DataId): Promise<ContentsTable|null> {
-    const con = await ConnectionPool.getConnection();
-    try {
-        const sql = "select * from contents where content_page_id = ? and data_source_id = ?";
-        const [rows] = await con.execute(sql, [content_id.id, content_id.dataSourceId]);
-        if ((rows as []).length === 0) {
-            return null;
-        }
-        return (rows as ContentsTable[])[0];
+// export async function getContent(content_id: DataId): Promise<ContentsTable|null> {
+//     const con = await ConnectionPool.getConnection();
+//     try {
+//         const sql = "select * from contents where content_page_id = ? and data_source_id = ?";
+//         const [rows] = await con.execute(sql, [content_id.id, content_id.dataSourceId]);
+//         if ((rows as []).length === 0) {
+//             return null;
+//         }
+//         return (rows as ContentsTable[])[0];
 
-    } catch(e) {
-        throw 'getContent' + e;
-    } finally {
-        await con.rollback();
-        con.release();
-    }
-}
+//     } catch(e) {
+//         throw 'getContent' + e;
+//     } finally {
+//         await con.rollback();
+//         con.release();
+//     }
+// }
 
-/**
- * 指定のコンテンツの祖先にいるアイテムIDを返す
- * @param contentId 
- */
-export async function getAncestorItemId(contentId: DataId): Promise<DataId | undefined> {
-    const myCon = await ConnectionPool.getConnection();
+// /**
+//  * 指定のコンテンツの祖先にいるアイテムIDを返す
+//  * @param contentId 
+//  */
+// export async function getAncestorItemId(contentId: DataId): Promise<DataId | undefined> {
+//     const myCon = await ConnectionPool.getConnection();
 
-    try {
-        const sql = `
-        select * from item_content_link icl 
-        where content_page_id = ? and content_datasource_id = ?
-        `;
-        const [rows] = await myCon.execute(sql, [contentId.id, contentId.dataSourceId]);
-        if ((rows as ItemContentLink[]).length > 0) {
-            const record = (rows as ItemsTable[])[0];
-            return {
-                id: record.item_page_id,
-                dataSourceId: record.data_source_id,
-            };
-        }
+//     try {
+//         const sql = `
+//         select * from item_content_link icl 
+//         where content_page_id = ? and content_datasource_id = ?
+//         `;
+//         const [rows] = await myCon.execute(sql, [contentId.id, contentId.dataSourceId]);
+//         if ((rows as ItemContentLink[]).length > 0) {
+//             const record = (rows as ItemsTable[])[0];
+//             return {
+//                 id: record.item_page_id,
+//                 dataSourceId: record.data_source_id,
+//             };
+//         }
 
-        // 対応するアイテムが存在しない場合は、親コンテンツを辿る
-        const contentQuery = 'select * from contents where content_page_id = ? and data_source_id = ?';
-        const [contentRows] = await myCon.execute(contentQuery, [contentId.id, contentId.dataSourceId]);
-        if ((contentRows as []).length === 0) {
-            return;
-        }
-        const contentRecord = (contentRows as ContentsTable[])[0];
-        if (!contentRecord.parent_id || !contentRecord.parent_datasource_id) {
-            return;
-        }
-        const ancestor = await getAncestorItemId(
-            {
-                id: contentRecord.parent_id,
-                dataSourceId: contentRecord.data_source_id,
-            }
-        );
-        return ancestor;
+//         // 対応するアイテムが存在しない場合は、親コンテンツを辿る
+//         const contentQuery = 'select * from contents where content_page_id = ? and data_source_id = ?';
+//         const [contentRows] = await myCon.execute(contentQuery, [contentId.id, contentId.dataSourceId]);
+//         if ((contentRows as []).length === 0) {
+//             return;
+//         }
+//         const contentRecord = (contentRows as ContentsTable[])[0];
+//         if (!contentRecord.parent_id || !contentRecord.parent_datasource_id) {
+//             return;
+//         }
+//         const ancestor = await getAncestorItemId(
+//             {
+//                 id: contentRecord.parent_id,
+//                 dataSourceId: contentRecord.data_source_id,
+//             }
+//         );
+//         return ancestor;
     
-    } finally {
-        await myCon.commit();
-        myCon.release();
-    }
+//     } finally {
+//         await myCon.commit();
+//         myCon.release();
+//     }
 
-}
+// }
 
 /**
  * 指定のアイテムのwktを返す
@@ -105,13 +105,14 @@ export async function getAncestorItemId(contentId: DataId): Promise<DataId | und
 export async function getItemWkt(itemId: DataId): Promise<string|undefined> {
     const con = await ConnectionPool.getConnection();
 
+    // TODO: 複数ヒットするケース（Track）の考慮
     try {
         const sql = `
         SELECT ST_AsText(ST_Envelope(location)) as location
-        from items i 
-        where data_source_id = ? and item_page_id = ?
+        from geometry_items gi 
+        where data_id = ?
         `;
-        const [rows] = await con.execute(sql, [itemId.dataSourceId, itemId.id]);
+        const [rows] = await con.execute(sql, [itemId]);
         if ((rows as []).length === 0) {
             return;
         }
@@ -235,9 +236,26 @@ export async function getDatasourceRecord(datasourceId: string): Promise<DataSou
 }
 
 export function isEqualId(id1: DataId, id2: DataId): boolean {
-    return id1.id === id2.id && id1.dataSourceId === id2.dataSourceId;
+    return id1 === id2;
+    // return id1.id === id2.id && id1.dataSourceId === id2.dataSourceId;
 }
 
+export async function getDatasourceIdOfTheDataId(data_id: DataId): Promise<string> {
+    const con = await ConnectionPool.getConnection();
+
+    try {
+        const sql = 'select * from datas where data_id = ?';
+        const [rows] = await con.execute(sql, [data_id]);
+        if ((rows as []).length === 0) {
+            throw new Error('data_id not find. ->' + data_id);
+        }
+
+        return (rows as DatasTable[])[0].data_source_id;
+
+    } finally {
+        con.release();
+    }
+}
 /**
  * コンテンツ登録や更新時に、誤った値がODBAに渡されないように処置する
  * @param mapId 地図ID

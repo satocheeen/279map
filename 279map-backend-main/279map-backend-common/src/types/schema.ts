@@ -106,7 +106,7 @@ export type GeometryItemsTable = {
     data_id: number;
     min_zoom: number;
     max_zoom: number;
-    geometry: any;   // Geometry
+    feature: any;   // Geometry
     geo_properties: string;       // GeoPropertiesのJSON文字列
 }
 

@@ -86,7 +86,7 @@ export default function PointsPopup(props: Props) {
         if (!filteredContentIdList) {
             return hasImageContent[0].id;
         }
-        return hasImageContent.find(c => filteredContentIdList.some(f => f.dataSourceId === c.id.dataSourceId && f.id === c.id.id))?.id ?? null;
+        return hasImageContent.find(c => filteredContentIdList.some(f => f === c.id))?.id ?? null;
 
     }, [target, filteredContentIdList, popupMode]);
 

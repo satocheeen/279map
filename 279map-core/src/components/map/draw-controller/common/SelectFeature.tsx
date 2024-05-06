@@ -182,7 +182,7 @@ export default function SelectFeature(props: Props) {
         const idStr = selectedFeature.getId() as string;
         const id = convertDataIdFromFeatureId(idStr);
         const item = getItem(id);
-        if (item.temporary) {
+        if (item?.temporary) {
             setErrorMessage('現在登録処理中のアイテムのため編集できません。少し待ってから選択してください。');
             return;
         }

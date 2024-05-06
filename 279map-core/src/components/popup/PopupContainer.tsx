@@ -14,7 +14,6 @@ import { mapViewAtom } from '../../store/operation';
 import { filteredItemIdListAtom } from '../../store/filter';
 import { useAtom } from 'jotai';
 import { visibleDataSourceIdsAtom } from '../../store/datasource';
-import { ItemInfo } from '../../types/types';
 
 function createKeyFromPopupInfo(param: PopupGroupWithPosition): string {
     if (!param) {
@@ -32,7 +31,7 @@ export default function PopupContainer() {
     
     const { map } = useMap();
 
-    const [itemsMap] = useAtom(allItemsAtom)
+    const [ allItems ] = useAtom(allItemsAtom)
     const [ visibleDataSourceIds ] = useAtom(visibleDataSourceIdsAtom);
 
     const [filteredItemIdList] = useAtom(filteredItemIdListAtom);
@@ -43,10 +42,7 @@ export default function PopupContainer() {
             return [];
         }
         // 表示中のアイテム
-        const list = visibleDataSourceIds.reduce((acc, cur) => {
-            const items = itemsMap[cur] ?? {};
-            return acc.concat(Object.values(items));
-        }, [] as ItemInfo[])
+        const list = allItems.filter(item => visibleDataSourceIds.includes(item.datasourceId))
         .filter(item => {
             if (!item.contents.some(c => c.hasValue)) return false;
             // フィルタが掛かっている場合は条件外のものは除外する
@@ -54,7 +50,7 @@ export default function PopupContainer() {
             return filteredItemIdList.some(filteredItemId => isEqualId(filteredItemId, item.id));
         });
         return list;
-    }, [itemsMap, popupMode, visibleDataSourceIds, filteredItemIdList]);
+    }, [allItems, popupMode, visibleDataSourceIds, filteredItemIdList]);
 
     // 表示するポップアップ情報群
     const [popupGroups, setPopupGroups] = useState<PopupGroupWithPosition[]>([]);

@@ -126,13 +126,11 @@ export default function useItemProcess() {
             _addItemProcess({
                 processId,
                 item: {
-                    id: {
-                        id: processId,
-                        dataSourceId: item.datasourceId,
-                    },
+                    id: processId,
                     geometry: item.geometry,
                     geoProperties: item.geoProperties,
                 },
+                datasourceId: item.datasourceId,
                 status: 'registing',
             });
 

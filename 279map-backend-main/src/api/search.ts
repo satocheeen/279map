@@ -1,7 +1,7 @@
 import { CurrentMap, DatasourceLocationKindType, MapKind } from "../../279map-backend-common/src";
 import { ConnectionPool } from "..";
 import { PoolConnection } from "mysql2/promise";
-import { ItemContentLink, ItemsTable } from "../../279map-backend-common/src/types/schema";
+import { ItemContentLink } from "../../279map-backend-common/src/types/schema";
 import { QuerySearchArgs, SearchHitItem } from "../graphql/__generated__/types";
 import { DataId } from "../types-common/common-types";
 
@@ -46,7 +46,7 @@ export async function search(currentMap: CurrentMap, param: QuerySearchArgs): Pr
         // item単位でまとめる
         const items: SearchHitItem[] = [];
         hitContents.forEach(hitRecord => {
-            const hitItem = items.find(item => item.id.id === hitRecord.itemId.id && item.id.dataSourceId === hitRecord.itemId.dataSourceId);
+            const hitItem = items.find(item => item.id === hitRecord.itemId);
             if (hitItem) {
                 hitItem.hitContents.push(hitRecord.contentId);
             } else {
@@ -58,7 +58,7 @@ export async function search(currentMap: CurrentMap, param: QuerySearchArgs): Pr
             }
         });
         hitItems.forEach(itemId => {
-            const hitItem = items.find(item=> item.id.id === itemId.id && item.id.dataSourceId === itemId.dataSourceId);
+            const hitItem = items.find(item=> item.id === itemId);
             if (hitItem) {
                 hitItem.hitItem = true;
             } else {
@@ -118,14 +118,8 @@ async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, cat
     const [rows] = await con.execute(query);
     return (rows as ItemContentLink[]).map((row): HitContent => {
         return {
-            contentId: {
-                id: row.content_page_id,
-                dataSourceId: row.content_datasource_id,
-            },
-            itemId: {
-                id: row.item_page_id,
-                dataSourceId: row.item_datasource_id,
-            },
+            contentId: row.content_data_id + '',
+            itemId: row.item_data_id + '',
         };
     });
 }
@@ -163,14 +157,8 @@ async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: s
 
     return (rows as ItemContentLink[]).map((row): HitContent => {
         return {
-            contentId: {
-                id: row.content_page_id,
-                dataSourceId: row.content_datasource_id,
-            },
-            itemId: {
-                id: row.item_page_id,
-                dataSourceId: row.item_datasource_id,
-            },
+            contentId: row.content_data_id + '',
+            itemId: row.item_data_id + '',
         };
     });
 
@@ -210,14 +198,8 @@ async function searchByKeyword(con: PoolConnection, currentMap: CurrentMap, keyw
     const [rows] = await con.execute(query);
     return (rows as ItemContentLink[]).map((row): HitContent => {
         return {
-            contentId: {
-                id: row.content_page_id,
-                dataSourceId: row.content_datasource_id,
-            },
-            itemId: {
-                id: row.item_page_id,
-                dataSourceId: row.item_datasource_id,
-            },
+            contentId: row.content_data_id + '',
+            itemId: row.item_data_id + '',
         };
     });
 

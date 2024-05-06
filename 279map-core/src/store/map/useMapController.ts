@@ -47,7 +47,7 @@ export function useMapController() {
                     set(dataSourceVisibleAtom, visibleInfoMap);
                 }
             }
-            set(storedItemsAtom, {});
+            set(storedItemsAtom, []);
             set(loadedItemMapAtom, {});
 
         

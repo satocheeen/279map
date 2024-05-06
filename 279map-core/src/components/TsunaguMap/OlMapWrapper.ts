@@ -265,7 +265,8 @@ export class OlMapWrapper {
      * @param item 
      */
     _getTargetSource(item: ItemInfo): VectorSource | undefined {
-        const layerInfos = this._vectorLayerMap.getLayerInfoOfTheDataSource(item.id.dataSourceId);
+        const layerInfos = this._vectorLayerMap.getAllLayerInfo();
+        // const layerInfos = this._vectorLayerMap.getLayerInfoOfTheDataSource(item.id.dataSourceId);
         if (item.geoProperties.featureType === FeatureType.TRACK) {
             const minZoomLv = item.geoProperties .min_zoom;
             const maxZoomLv = item.geoProperties.max_zoom;

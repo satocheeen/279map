@@ -1,10 +1,10 @@
 import { getLogger } from "log4js";
 import { ConnectionPool } from "..";
-import { ItemContentLink, ItemsTable } from "../../279map-backend-common/src/types/schema";
-import { getContentsInfo, getImageContentId } from "../getItems";
+import { GeometryItemsTable } from "../../279map-backend-common/src/types/schema";
 import { QueryGetItemsByIdArgs } from "../graphql/__generated__/types";
 import { DataId } from "../types-common/common-types";
 import { ItemDefineWithoudContents } from "../types";
+import { DatasTable } from "../../279map-backend-common/dist";
 
 const apiLogger = getLogger('api');
 
@@ -24,15 +24,15 @@ export async function getItem(id: DataId): Promise<ItemDefineWithoudContents|und
 
         // 位置コンテンツ
         let sql = `
-        select i.*, ST_AsGeoJSON(i.location) as geojson, c.title
-        from items i
-        left join contents c on c.content_page_id = i.item_page_id and c.data_source_id = i.data_source_id 
-        where i.item_page_id = ? and i.data_source_id = ?
+        select gi.*, d.data_source_id, ST_AsGeoJSON(gi.feature) as geojson, JSON_UNQUOTE(JSON_EXTRACT(c.contents , '$.title')) as title, d.last_edited_time 
+        from geometry_items gi 
+        inner join datas d on d.data_id = gi.data_id 
+        where gi.data_id = ?
         `;
-        const params = [id.id, id.dataSourceId];
+        const params = [id];
         const [rows] = await con.execute(sql, params);
         if ((rows as []).length === 0) return;
-        const row = (rows as (ItemsTable & {geojson: any; title: string | null})[])[0]; 
+        const row = (rows as (GeometryItemsTable & DatasTable & {geojson: any; title: string | null; last_edited_time: string})[])[0]; 
 
         // const contents: ItemContentInfo[] = [];
         let lastEditedTime = row.last_edited_time;
@@ -54,10 +54,8 @@ export async function getItem(id: DataId): Promise<ItemDefineWithoudContents|und
         // }
 
         return {
-            id: {
-                id: row.item_page_id,
-                dataSourceId: row.data_source_id,
-            },
+            id: row.data_id + '',
+            datasourceId: row.data_source_id,
             name: row.title ?? '',
             geometry: row.geojson,
             geoProperties: row.geo_properties ? JSON.parse(row.geo_properties) : undefined,
