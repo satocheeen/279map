@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { DriverContext } from '../TestMap';
 import styles from '../TestMap.module.scss';
-import { DataId, FeatureType, MapKind } from '../../entry';
+import { FeatureType, MapKind } from '../../entry';
 import myStyles from './ItemController.module.scss';
 import { useWatch } from '../../util/useWatch2';
 
@@ -10,24 +10,11 @@ type Props = {
 
 export default function ItemController(props: Props) {
     const { getMap, loadedItems, addConsole } = useContext(DriverContext);
-    const [ itemIdValue, setItemIdValue ] = useState('');
-
-    const itemId = useMemo(():DataId | undefined => {
-        try {
-            const itemId = JSON.parse(itemIdValue) as DataId;
-            if (!itemId.dataSourceId) return;
-            if (!itemId.id) return;
-            return itemId;
-
-        } catch(e) {
-            return;
-        }
-
-    }, [itemIdValue]);
+    const [ itemId, setItemId ] = useState('');
 
     const result = useMemo(() => {
         if (!itemId) return '';
-        const hit = loadedItems.find(item => item.id.dataSourceId === itemId.dataSourceId && item.id.id === itemId.id);
+        const hit = loadedItems.find(item => item.id === itemId);
         if (!hit) return '該当アイテムなし';
         return JSON.stringify(hit, undefined, 2);
     }, [itemId, loadedItems]);
@@ -72,8 +59,8 @@ export default function ItemController(props: Props) {
                 <div className={myStyles.Container}>
                     <div>
                         <label>
-                            ItemID(JSON)
-                            <input type='text' value={itemIdValue} onChange={evt=>setItemIdValue(evt.target.value)} />
+                            ItemID
+                            <input type='text' value={itemId} onChange={evt=>setItemId(evt.target.value)} />
                         </label>
                         アイテム情報
                         <textarea readOnly value={result} rows={3} />

@@ -192,28 +192,26 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
  * @returns 
  */
 async function getAnotherMapKindItemsUsingTheContent(con: PoolConnection, contentId: DataId, currentMap: CurrentMap): Promise<DataId[]> {
-    return [];
+    // もう片方の地図に存在するかチェック
+    const sql = `
+    select * from item_content_link icl 
+    -- 異なる地図上のitemに紐づいているものに絞る
+    where EXISTS (
+        select * from datas d 
+        inner join data_source ds on d.data_source_id = ds.data_source_id 
+        inner join map_datasource_link mdl on mdl.data_source_id = d.data_source_id 
+        where mdl.map_page_id = ? and ds.location_kind in (?)
+        and d.data_id = icl.item_data_id 
+    )
+    and icl.content_data_id = ?
+    `;
+    const anotherMapKind = currentMap.mapKind === MapKind.Virtual ? [DatasourceLocationKindType.RealItem, DatasourceLocationKindType.Track] : [DatasourceLocationKindType.VirtualItem];
+    const query = con.format(sql, [currentMap.mapId, anotherMapKind, contentId]);
+    const [rows] = await con.execute(query);
 
-    // TODO:
-//     // もう片方の地図に存在するかチェック
-//     const sql = `
-//     select icl.* from item_content_link icl 
-//     inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id 
-//     inner join data_source ds on ds.data_source_id = i.data_source_id 
-//     inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
-//     where icl.content_page_id = ? and icl.content_datasource_id  = ?
-//     and mdl.map_page_id = ? and ds.location_kind = ?
-//     `;
-//     const anotherMapKind = currentMap.mapKind === MapKind.Virtual ? DatasourceLocationKindType.RealItem : DatasourceLocationKindType.VirtualItem;
-//     const query = con.format(sql, [contentId.id, contentId.dataSourceId, currentMap.mapId, anotherMapKind]);
-//     const [rows] = await con.execute(query);
-
-//     return (rows as ItemContentLink[]).map((row): DataId => {
-//         return {
-//             id: row.item_page_id,
-//             dataSourceId: row.item_datasource_id,
-//         }
-//     });
+    return (rows as ItemContentLink[]).map((row): DataId => {
+        return row.item_data_id + '';
+    });
 }
 
 /**
@@ -223,15 +221,18 @@ async function getAnotherMapKindItemsUsingTheContent(con: PoolConnection, conten
  * @param mapId 
  */
 async function checkUsingAnotherMap(con: PoolConnection, contentId: DataId, mapId: string): Promise<boolean> {
-    return false;
-
-    // const sql = `
-    // select icl.* from item_content_link icl 
-    // inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id 
-    // inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
-    // where icl.content_page_id = ? and icl.content_datasource_id  = ?
-    // and mdl.map_page_id <> ?
-    // `;
-    // const [rows] = await con.execute(sql, [contentId.id, contentId.dataSourceId, mapId]);
-    // return (rows as []).length > 0;
+    const sql = `
+    select * from item_content_link icl 
+    -- 異なる地図上のitemに紐づいている
+    where EXISTS (
+        select * from datas d 
+        inner join data_source ds on d.data_source_id = ds.data_source_id 
+        inner join map_datasource_link mdl on mdl.data_source_id = d.data_source_id 
+        where mdl.map_page_id <> ?
+        and d.data_id = icl.item_data_id 
+    )
+    and icl.content_data_id = ?
+    `;
+    const [rows] = await con.execute(sql, [mapId, contentId]);
+    return (rows as []).length > 0;
 }
