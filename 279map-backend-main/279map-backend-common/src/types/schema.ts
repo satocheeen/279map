@@ -97,7 +97,6 @@ export type DatasTable = {
     data_id: number;
     data_source_id: string;
     original_id: string;
-    name: string;
     last_edited_time: string;
 }
 

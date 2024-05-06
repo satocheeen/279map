@@ -68,7 +68,6 @@ CREATE TABLE `datas` (
   `data_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `data_source_id` varchar(100) DEFAULT NULL,
   `original_id` varchar(100) NOT NULL COMMENT '出典元データのID。ODBAで登録・更新を行う際に参照する用途。',
-  `name` varchar(100) DEFAULT NULL,
   `last_edited_time` varchar(100) NOT NULL,
   PRIMARY KEY (`data_id`),
   UNIQUE KEY `datas_UN` (`data_source_id`,`original_id`),
