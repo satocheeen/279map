@@ -1,6 +1,6 @@
 import { Request, Response, Express } from 'express';
 import { Logger } from "log4js";
-import { OdbaGetImageUrlAPI, OdbaGetImageUrlParam, OdbaGetLinkableContentsAPI, OdbaGetLinkableContentsResult, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaLinkContentToItemParam, OdbaRegistDataAPI, OdbaRegistDataParam, OdbaRemoveContentAPI, OdbaRemoveContentParam, OdbaRemoveDataAPI, OdbaRemoveDataParam, OdbaRemoveItemAPI, OdbaRemoveItemParam, OdbaUnlinkContentAPI, OdbaUnlinkContentParam, OdbaUpdateContentAPI, OdbaUpdateContentParam, OdbaUpdateDataAPI, OdbaUpdateDataParam, OdbaUpdateItemAPI, OdbaUpdateItemParam } from "./dba-api-interface";
+import { OdbaGetImageUrlAPI, OdbaGetImageUrlParam, OdbaGetLinkableContentsAPI, OdbaGetLinkableContentsResult, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaLinkContentToItemParam, OdbaRegistDataAPI, OdbaRegistDataParam, OdbaRemoveContentAPI, OdbaRemoveContentParam, OdbaRemoveDataAPI, OdbaRemoveDataParam, OdbaUnlinkContentAPI, OdbaUnlinkContentParam, OdbaUpdateContentAPI, OdbaUpdateContentParam, OdbaUpdateDataAPI, OdbaUpdateDataParam, OdbaUpdateItemAPI, OdbaUpdateItemParam } from "./dba-api-interface";
 import OdbaInterface from "./OdbaInterface";
 import { APIDefine, CurrentMap } from "../types";
 import { DataId } from '../types-common/common-types';
@@ -34,17 +34,6 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
             func: async(param: OdbaAPIFuncParam<OdbaRemoveDataParam>): Promise<boolean> => {
                 return await odba.removeDataOdb(param.param);
             }
-        },
-        {
-            define: OdbaRemoveItemAPI,
-            func: async(param: OdbaAPIFuncParam<OdbaRemoveItemParam>): Promise<void> => {
-                await odba.removeItemOdb(param.param);
-
-                await odba.removeItemCache({
-                    currentMap: param.param.currentMap, 
-                    itemId: param.param.id,
-                });
-            },
         },
         {
             define: OdbaRemoveContentAPI,

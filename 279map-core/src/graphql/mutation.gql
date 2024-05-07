@@ -65,6 +65,14 @@ mutation registData (
     )
 }
 
+mutation removeData (
+    $id: DataId!
+) {
+    removeData (
+        id: $id
+    )
+}
+
 mutation updateItems (
     $targets: [UpdateItemInput!]!
 ) {
@@ -74,14 +82,6 @@ mutation updateItems (
         success
         error
     }
-}
-
-mutation removeItem (
-    $id: DataId!
-) {
-    removeItem(
-        id: $id
-    )
 }
 
 mutation updateContent (

@@ -1,7 +1,7 @@
 import { CurrentMap } from "../types";
 import { DataId } from "../types-common/common-types";
 import { OdbaAPIFunc } from "./api-initializer";
-import { OdbaGetImageUrlParam, OdbaGetLinkableContentsResult, OdbaGetUnpointDataParam, OdbaGetUnpointDataResult, OdbaLinkContentToItemParam, OdbaRegistDataParam, OdbaRemoveDataParam, OdbaRemoveItemParam, OdbaUpdateContentParam, OdbaUpdateDataParam, OdbaUpdateItemParam } from "./dba-api-interface";
+import { OdbaGetImageUrlParam, OdbaGetLinkableContentsResult, OdbaGetUnpointDataParam, OdbaGetUnpointDataResult, OdbaLinkContentToItemParam, OdbaRegistDataParam, OdbaRemoveDataParam, OdbaUpdateContentParam, OdbaUpdateDataParam, OdbaUpdateItemParam } from "./dba-api-interface";
 
 export type UpdateContentLinkCacheParam = {
     currentMap: CurrentMap;
@@ -21,10 +21,6 @@ export default abstract class OdbaInterface {
     abstract removeDataOdb: (param: OdbaRemoveDataParam) => Promise<boolean>;
 
     abstract updateItemCache: (_: {currentMap: CurrentMap, itemId: DataId}) => Promise<'insert' | 'update'>;
-
-    abstract removeItemOdb: (param: OdbaRemoveItemParam) => Promise<void>;
-
-    abstract removeItemCache: (_: {currentMap: CurrentMap, itemId: DataId}) => Promise<void>;
 
     abstract removeContentOdb: (_: {currentMap: CurrentMap, contentId: DataId}) => Promise<void>;
 

@@ -50,20 +50,6 @@ export type OdbaRemoveDataParam = CommonParam & {
     id: DataId;
 }
 
-
-/**
- * remove item
- */
-export const OdbaRemoveItemAPI = {
-    uri: 'remove-item',
-    method: 'post',
-    resultType: 'none',
-} as APIDefine<OdbaRemoveItemParam, void>;
-
-export type OdbaRemoveItemParam = CommonParam & {
-    id: DataId; // 削除対象アイテムのID
-}
-
 /**
  * remove content
  */

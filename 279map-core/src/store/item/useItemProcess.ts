@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { ItemProcessType, itemProcessesAtom } from ".";
 import { ItemInfo } from "../../types/types";
 import { clientAtom } from "jotai-urql";
-import { UpdateItemsDocument, UpdateItemInput, RemoveItemDocument, RegistDataDocument } from "../../graphql/generated/graphql";
+import { UpdateItemsDocument, UpdateItemInput, RegistDataDocument, RemoveDataDocument } from "../../graphql/generated/graphql";
 import { DataId } from "../../entry";
 import { isEqualId } from "../../util/dataUtility";
 
@@ -197,7 +197,7 @@ export default function useItemProcess() {
             let retryFlag = false;
             do {
                 retryFlag = false;
-                const result = await gqlClient.mutation(RemoveItemDocument, {
+                const result = await gqlClient.mutation(RemoveDataDocument, {
                     id: target,
                 });
                 if (result.error) {
