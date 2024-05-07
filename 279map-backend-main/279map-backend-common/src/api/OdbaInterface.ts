@@ -22,10 +22,6 @@ export default abstract class OdbaInterface {
 
     abstract updateItemCache: (_: {currentMap: CurrentMap, itemId: DataId}) => Promise<'insert' | 'update'>;
 
-    abstract removeContentOdb: (_: {currentMap: CurrentMap, contentId: DataId}) => Promise<void>;
-
-    abstract removeContentCache: (_: {currentMap: CurrentMap, contentId: DataId}) => Promise<void>;
-
     abstract updateItemOdb: (param: OdbaUpdateItemParam) => Promise<void>;
 
     /**
