@@ -108,7 +108,7 @@ export async function getItemWkt(itemId: DataId): Promise<string|undefined> {
     // TODO: 複数ヒットするケース（Track）の考慮
     try {
         const sql = `
-        SELECT ST_AsText(ST_Envelope(location)) as location
+        SELECT ST_AsText(ST_Envelope(feature)) as location
         from geometry_items gi 
         where data_id = ?
         `;

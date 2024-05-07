@@ -30,7 +30,6 @@ export const authDefine: AuthLvDefine = {
     updateItems: Auth.Edit,
     removeItem: Auth.Edit,
 
-    registContent: Auth.Edit,
     updateContent: Auth.Edit,
     linkContent: Auth.Edit,
     unlinkContent: Auth.Edit,

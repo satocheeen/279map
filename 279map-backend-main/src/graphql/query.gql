@@ -151,7 +151,7 @@ type Query {
         latestEditedTime: String
 
         "(optional) 指定されている場合、このidのアイテムは結果から除く TODO: deprecated"
-        excludeItemIds: [String!]
+        excludeItemIds: [DataId!]
     ): [ItemDefine!]!
 
     getItemsById(targets: [DataId!]!): [ItemDefine!]!

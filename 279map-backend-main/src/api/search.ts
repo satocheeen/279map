@@ -116,8 +116,8 @@ async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, cat
 
     return records.map((row): HitContent => {
         return {
-            contentId: row.data_id + '',
-            itemId: row.from_data_id + '',
+            contentId: row.data_id,
+            itemId: row.from_data_id,
         };
     });
 }
@@ -154,8 +154,8 @@ async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: s
 
     return records.map((row): HitContent => {
         return {
-            contentId: row.data_id + '',
-            itemId: row.from_data_id + '',
+            contentId: row.data_id,
+            itemId: row.from_data_id,
         };
     });
 
@@ -196,8 +196,8 @@ async function searchByKeyword(con: PoolConnection, currentMap: CurrentMap, keyw
 
     return records.map((row): HitContent => {
         return {
-            contentId: row.data_id + '',
-            itemId: row.from_data_id + '',
+            contentId: row.data_id,
+            itemId: row.from_data_id,
         };
     });
 

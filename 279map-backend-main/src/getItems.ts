@@ -110,7 +110,7 @@ async function selectItems(con: PoolConnection, param: QueryGetItemsArgs, curren
             // }
 
             pointContents.push({
-                id: row.data_id + '',
+                id: row.data_id,
                 datasourceId: param.datasourceId,
                 name: row.title ?? '',
                 geometry: row.geojson,
@@ -155,7 +155,7 @@ async function selectTrackInArea(con: PoolConnection, param: QueryGetItemsArgs, 
         const list = [] as ItemDefineWithoudContents[];
         for (const row of (rows as (GeometryItemsTable & {geojson: any; title: string | null; last_edited_time: string})[])) {
             list.push({
-                id: '' + row.data_id, // + row.item_id,
+                id: row.data_id, // + row.item_id,
                 datasourceId: param.datasourceId,
                 geometry: row.geojson,
                 geoProperties: {

@@ -56,7 +56,7 @@ export async function getItem(id: DataId): Promise<ItemDefineWithoudContents|und
         // }
 
         return {
-            id: row.data_id + '',
+            id: row.data_id,
             datasourceId: row.data_source_id,
             name: row.title ?? '',
             geometry: row.geojson,

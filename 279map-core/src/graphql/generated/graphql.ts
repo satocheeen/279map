@@ -265,7 +265,6 @@ export type Mutation = {
   connect: ConnectResult;
   disconnect?: Maybe<Scalars['Boolean']['output']>;
   linkContent?: Maybe<Scalars['Boolean']['output']>;
-  registContent?: Maybe<Scalars['Boolean']['output']>;
   /** データ登録 */
   registData: Scalars['DataId']['output'];
   removeContent?: Maybe<Scalars['Boolean']['output']>;
@@ -296,13 +295,6 @@ export type MutationConnectArgs = {
 export type MutationLinkContentArgs = {
   id: Scalars['DataId']['input'];
   parent: ParentInput;
-};
-
-
-export type MutationRegistContentArgs = {
-  datasourceId: Scalars['String']['input'];
-  parent: ParentInput;
-  values: Scalars['ContentValueMap']['input'];
 };
 
 

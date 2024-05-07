@@ -100,12 +100,6 @@ type Mutation {
         id: DataId!
     ): Boolean
 
-    registContent (
-        parent: ParentInput!
-        datasourceId: String!
-        values: ContentValueMap!
-    ): Boolean
-
     updateContent (
         id: DataId!
         values: ContentValueMap!

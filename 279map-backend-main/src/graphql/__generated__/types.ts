@@ -245,7 +245,6 @@ export type Mutation = {
   connect: ConnectResult;
   disconnect?: Maybe<Scalars['Boolean']['output']>;
   linkContent?: Maybe<Scalars['Boolean']['output']>;
-  registContent?: Maybe<Scalars['Boolean']['output']>;
   /** データ登録 */
   registData: Scalars['DataId']['output'];
   removeContent?: Maybe<Scalars['Boolean']['output']>;
@@ -276,13 +275,6 @@ export type MutationConnectArgs = {
 export type MutationLinkContentArgs = {
   id: Scalars['DataId']['input'];
   parent: ParentInput;
-};
-
-
-export type MutationRegistContentArgs = {
-  datasourceId: Scalars['String']['input'];
-  parent: ParentInput;
-  values: Scalars['ContentValueMap']['input'];
 };
 
 
@@ -444,7 +436,7 @@ export type QueryGetImageUrlArgs = {
 
 export type QueryGetItemsArgs = {
   datasourceId: Scalars['String']['input'];
-  excludeItemIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  excludeItemIds?: InputMaybe<Array<Scalars['DataId']['input']>>;
   latestEditedTime?: InputMaybe<Scalars['String']['input']>;
   wkt: Scalars['String']['input'];
   zoom: Scalars['Float']['input'];
@@ -1024,7 +1016,6 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   connect?: Resolver<ResolversTypes['ConnectResult'], ParentType, ContextType, RequireFields<MutationConnectArgs, 'mapId'>>;
   disconnect?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   linkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkContentArgs, 'id' | 'parent'>>;
-  registContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRegistContentArgs, 'datasourceId' | 'parent' | 'values'>>;
   registData?: Resolver<ResolversTypes['DataId'], ParentType, ContextType, RequireFields<MutationRegistDataArgs, 'datasourceId'>>;
   removeContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveContentArgs, 'id'>>;
   removeData?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveDataArgs, 'id'>>;

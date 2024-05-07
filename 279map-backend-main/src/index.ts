@@ -24,7 +24,7 @@ import { Auth0Management } from './auth/Auth0Management';
 import { OriginalAuthManagement } from './auth/OriginalAuthManagement';
 import { NoneAuthManagement } from './auth/NoneAuthManagement';
 import { CurrentMap, sleep } from '../279map-backend-common/src';
-import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaRegistContentAPI, OdbaRegistDataAPI, OdbaRemoveContentAPI, OdbaRemoveItemAPI, OdbaUnlinkContentAPI, OdbaUpdateContentAPI, OdbaUpdateDataAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
+import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaRegistDataAPI, OdbaRemoveContentAPI, OdbaRemoveItemAPI, OdbaUnlinkContentAPI, OdbaUpdateContentAPI, OdbaUpdateDataAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
 import SessionManager from './session/SessionManager';
 import { geojsonToWKT } from '@terraformer/wkt';
 import { getItem, getItemsById } from './api/getItem';
@@ -32,7 +32,7 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { IFieldResolverOptions } from '@graphql-tools/utils';
-import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationRegistContentArgs, MutationRegistDataArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUpdateContentArgs, MutationUpdateDataArgs, MutationUpdateItemsArgs, Operation, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription } from './graphql/__generated__/types';
+import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationRegistDataArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUpdateContentArgs, MutationUpdateDataArgs, MutationUpdateItemsArgs, Operation, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { DataIdScalarType, GeoPropertiesScalarType, GeocoderIdInfoScalarType, IconKeyScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -727,8 +727,8 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         item: param.item ?? undefined,
                         contents: param.contents ?? undefined,
                         linkItems: param.linkItems ?? undefined,
-                    }) + '';
-                    logger.debug('OdbaRegistDataAPI', id, typeof id)
+                    });
+
                     // 更新通知
                     if (param.item) {
                         const wkt = geojsonToWKT(param.item.geometry);
@@ -739,6 +739,19 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                                 wkt,
                             }
                         ])
+                    }
+                    if (param.linkItems) {
+                        for (const itemId of param.linkItems) {
+                            const item = await getItem(itemId);
+                            const wkt = await getItemWkt(itemId);
+                            if (wkt) {
+                                pubsub.publish('itemUpdate',
+                                    ctx.currentMap, 
+                                    [ { id: itemId, datasourceId: item?.datasourceId ?? '', wkt } ]
+                                );
+                            }
+                        }
+
                     }
 
                     return id;
@@ -849,50 +862,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     throw e;
                 }
             },
-            /**
-             * コンテンツ登録
-             */
-            registContent: async(_, param: MutationRegistContentArgs, ctx): MutationResolverReturnType<'registContent'> => {
-                try {
-                    const { parent, datasourceId } = param;
 
-                    // 誤った値が含まれないように処置
-                    const values = await cleanupContentValuesForRegist(ctx.currentMap.mapId, datasourceId, param.values);
-
-                    // call ODBA
-                    const contentId = await callOdbaApi(OdbaRegistContentAPI, {
-                        currentMap: ctx.currentMap,
-                        parent: parent.type === ParentOfContent.Item ? {
-                            itemId: parent.id,
-                        } : {
-                            contentId: parent.id,
-                        },
-                        contentDataSourceId: datasourceId,
-                        values,
-                    });
-
-                    // 更新通知
-                    // - 当該コンテンツを子孫に持つアイテムIDを取得
-                    const itemIdList = await getLinkedItemIdList(contentId);
-
-                    for (const item of itemIdList) {
-                        const item2 = await getItem(item.itemId);
-                        const wkt = await getItemWkt(item.itemId);
-                        if (wkt) {
-                            pubsub.publish('itemUpdate', 
-                                { mapId: item.mapId, mapKind: item.mapKind },
-                                [ { id: item.itemId, datasourceId: item2?.datasourceId ?? '', wkt } ]
-                            );
-                        }
-                    }
-
-                    return true;
-            
-                } catch(e) {    
-                    apiLogger.warn('regist-content API error', param, e);
-                    throw e;
-                }
-            },
             /**
              * コンテンツ更新
              */

@@ -4,13 +4,13 @@ import { ContentsTable, DataLinkTable, DataSourceTable, MapDataSourceLinkTable }
 import { CurrentMap } from '../279map-backend-common/src';
 import { Auth, ContentsDefine } from './graphql/__generated__/types';
 import { DatasourceLocationKindType, DataId, ContentValueMap, MapKind, ContentFieldDefine } from './types-common/common-types';
-import { DatasourceTblConfigForContent, ImagesTable } from '../279map-backend-common/src/types';
+import { ImagesTable } from '../279map-backend-common/src/types';
 import { getLogger } from 'log4js';
 
 type GetContentsParam = ({
-    itemId: string;
+    itemId: DataId;
 } | {
-    contentId: string;
+    contentId: DataId;
 })[];
 
 type ContentsDatasourceRecord = ContentsTable & DataSourceTable & MapDataSourceLinkTable;
@@ -29,7 +29,7 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
             //     id: row.content_page_id,
             //     dataSourceId: row.data_source_id,
             // };
-            const id = row.data_id + '';
+            const id = row.data_id;
             const anotherMapItemIds = await getAnotherMapKindItemsUsingTheContent(con, id, currentMap);
             const usingAnotherMap = anotherMapItemIds.length > 0 ? true : await checkUsingAnotherMap(con, id, currentMap.mapId);
 
@@ -209,7 +209,7 @@ async function getAnotherMapKindItemsUsingTheContent(con: PoolConnection, conten
     const [rows] = await con.execute(query);
 
     return (rows as DataLinkTable[]).map((row): DataId => {
-        return row.from_data_id + '';
+        return row.from_data_id;
     });
 }
 

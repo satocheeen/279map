@@ -1,6 +1,6 @@
 import { ConnectionPool } from ".";
 import { getLogger } from "log4js";
-import { CurrentMap, DataSourceTable } from "../279map-backend-common/src";
+import { CurrentMap, DataId, DataSourceTable } from "../279map-backend-common/src";
 import { EventContent, EventDefine, QueryGetEventArgs } from "./graphql/__generated__/types";
 import { QueryResolverReturnType } from "./graphql/type_utility";
 import { DatasourceLocationKindType, MapKind } from "./types-common/common-types";
@@ -44,7 +44,7 @@ export async function getEvents(param: QueryGetEventArgs, currentMap: CurrentMap
 type DateResult = {
     data_source_id: string;
     date: string;
-    data_id: string;
+    data_id: DataId;
 }
 /**
  * 指定の地図上のdateを保持するコンテンツ一覧を返す
@@ -74,7 +74,7 @@ async function getAllDates(currentMap: CurrentMap, dataSourceIds?: string[]): Pr
 
         const records = (rows as (ContentsTable & DataSourceTable)[]).map((rec): DateResult => {
             return {
-                data_id: rec.data_id + '',
+                data_id: rec.data_id,
                 data_source_id: rec.data_source_id,
                 date: rec.date as string,
             }

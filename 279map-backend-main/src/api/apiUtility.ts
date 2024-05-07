@@ -33,7 +33,7 @@ export async function getLinkedItemIdList(contentId: DataId): Promise<Result[]> 
             return {
                 mapId: row.map_page_id,
                 mapKind: row.location_kind === DatasourceLocationKindType.VirtualItem ? MapKind.Virtual : MapKind.Real,
-                itemId: row.from_data_id + '',
+                itemId: row.from_data_id,
             }
         })
 

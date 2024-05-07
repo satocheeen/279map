@@ -5,7 +5,7 @@ export type {
     CategoryDefine, 
     Condition, ContentsDefine,     
     EventDefine, GetUnpointContentsResult,
-    MapDefine, MutationLinkContentArgs, MutationRegistContentArgs, 
+    MapDefine, MutationLinkContentArgs, 
     MutationUpdateContentArgs, SnsPreviewResult,
     ServerConfig, MapPageOptions, ItemDatasourceInfo, ContentDatasourceInfo
 } from "./graphql/generated/graphql";
