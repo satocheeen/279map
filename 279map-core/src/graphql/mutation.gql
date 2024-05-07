@@ -85,17 +85,6 @@ mutation removeData (
     )
 }
 
-mutation updateItems (
-    $targets: [UpdateItemInput!]!
-) {
-    updateItems (
-        targets: $targets
-    ) {
-        success
-        error
-    }
-}
-
 mutation updateContent (
     $id: DataId!
     $values: ContentValueMap!

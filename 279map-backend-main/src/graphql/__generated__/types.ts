@@ -255,7 +255,6 @@ export type Mutation = {
   updateContent?: Maybe<Scalars['Boolean']['output']>;
   /** データ更新 */
   updateData: Scalars['Boolean']['output'];
-  updateItems: UpdateItemsResult;
 };
 
 
@@ -316,11 +315,6 @@ export type MutationUpdateDataArgs = {
   contents?: InputMaybe<Scalars['ContentValueMap']['input']>;
   id: Scalars['DataId']['input'];
   item?: InputMaybe<RegistDataItemInput>;
-};
-
-
-export type MutationUpdateItemsArgs = {
-  targets: Array<UpdateItemInput>;
 };
 
 export type NoneConfig = {
@@ -1011,7 +1005,6 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   unlinkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkContentArgs, 'id' | 'parent'>>;
   updateContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateContentArgs, 'id' | 'values'>>;
   updateData?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateDataArgs, 'id'>>;
-  updateItems?: Resolver<ResolversTypes['UpdateItemsResult'], ParentType, ContextType, RequireFields<MutationUpdateItemsArgs, 'targets'>>;
 };
 
 export type NoneConfigResolvers<ContextType = any, ParentType extends ResolversParentTypes['NoneConfig'] = ResolversParentTypes['NoneConfig']> = {

@@ -93,10 +93,6 @@ type Mutation {
         id: DataId!
     ): Boolean!
 
-    updateItems (
-        targets: [UpdateItemInput!]!
-    ): UpdateItemsResult!
-
     updateContent (
         id: DataId!
         values: ContentValueMap!

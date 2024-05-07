@@ -24,7 +24,7 @@ import { Auth0Management } from './auth/Auth0Management';
 import { OriginalAuthManagement } from './auth/OriginalAuthManagement';
 import { NoneAuthManagement } from './auth/NoneAuthManagement';
 import { CurrentMap, sleep } from '../279map-backend-common/src';
-import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaRegistDataAPI, OdbaRemoveDataAPI, OdbaUnlinkContentAPI, OdbaUpdateContentAPI, OdbaUpdateDataAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
+import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaRegistDataAPI, OdbaRemoveDataAPI, OdbaUnlinkContentAPI, OdbaUpdateContentAPI, OdbaUpdateDataAPI, callOdbaApi } from '../279map-backend-common/src/api';
 import SessionManager from './session/SessionManager';
 import { geojsonToWKT } from '@terraformer/wkt';
 import { getItem, getItemsById } from './api/getItem';
@@ -32,7 +32,7 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { IFieldResolverOptions } from '@graphql-tools/utils';
-import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationRegistDataArgs, MutationRemoveDataArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUpdateContentArgs, MutationUpdateDataArgs, MutationUpdateItemsArgs, Operation, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription } from './graphql/__generated__/types';
+import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationRegistDataArgs, MutationRemoveDataArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUpdateContentArgs, MutationUpdateDataArgs, Operation, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { GeoPropertiesScalarType, GeocoderIdInfoScalarType, IconKeyScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -792,50 +792,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     }
 
                     return true;
-
-                } catch(e) {    
-                    apiLogger.warn('update-item API error', param, e);
-                    throw e;
-                }
-            },
-
-            /**
-             * 位置アイテム更新
-             */
-            updateItems: async(_, param: MutationUpdateItemsArgs, ctx): MutationResolverReturnType<'updateItems'> => {
-                try {
-                    const successIdList = [] as {id: DataId; datasourceId: string; wkt: string}[];
-                    const errorIdList = [] as DataId[];
-                    for (const target of param.targets) {
-                        const item = await getItem(target.id);
-                        const beforeWkt = await getItemWkt(target.id);
-                        const afterWkt = target.geometry ? geojsonToWKT(target.geometry) : undefined;
-                        // call ODBA
-                        try {
-                            await callOdbaApi(OdbaUpdateItemAPI, {
-                                currentMap: ctx.currentMap,
-                                id: target.id,
-                                geometry: target.geometry ?? undefined,
-                                geoProperties: target.geoProperties ?? undefined,
-                            })
-                            successIdList.push({
-                                id: target.id,
-                                datasourceId: item?.datasourceId ?? '',
-                                wkt: afterWkt ?? beforeWkt ?? 'POLYGON ((-1 1, -1 -1, 1 -1, 1 1))',    // undefinedになることはないはずだが、エラーを防ぐために仮設定
-                            });
-    
-                        } catch(e) {
-                            apiLogger.warn('callOdba-updateItem error', e);
-                            errorIdList.push(target.id);
-                        }
-                    }
-                    // 更新通知
-                    pubsub.publish('itemUpdate', ctx.currentMap, successIdList);
-                
-                    return {
-                        success: successIdList.map(item => item.id),
-                        error: errorIdList.length > 0 ? errorIdList : undefined,
-                    };
 
                 } catch(e) {    
                     apiLogger.warn('update-item API error', param, e);

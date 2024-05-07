@@ -68,21 +68,6 @@ export type OdbaUnlinkContentParam = CommonParam & {
 }
 
 /**
- * update item
- */
-export const OdbaUpdateItemAPI = {
-    uri: 'update-item',
-    method: 'post',
-    resultType: 'none',
-} as APIDefine<OdbaUpdateItemParam, void>;
-
-export type OdbaUpdateItemParam = CommonParam & {
-    id: DataId;
-    geometry?: GeoJSON.Geometry;
-    geoProperties?: GeoProperties;
-}
-
-/**
  * update content
  */
 export const OdbaUpdateContentAPI = {
