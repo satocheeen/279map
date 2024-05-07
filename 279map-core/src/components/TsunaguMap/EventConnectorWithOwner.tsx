@@ -14,7 +14,7 @@ import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSour
 import { overrideItemsAtom, showingItemsAtom, } from '../../store/item';
 import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, LinkContentDocument, SearchDocument, GetSnsPreviewDocument, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, UnlinkContentDocument, GetImageDocument, ContentUpdateDocument, Operation, RegistDataDocument, RemoveDataDocument } from '../../graphql/generated/graphql';
+import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, LinkContentDocument, SearchDocument, GetSnsPreviewDocument, ParentOfContent, GetContentsInItemDocument, SortCondition, UnlinkContentDocument, GetImageDocument, ContentUpdateDocument, Operation, RegistDataDocument, RemoveDataDocument, UpdateDataDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern } from '../common/confirm/types';
@@ -242,10 +242,9 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             }
         },
         async updateContent(param) {
-            const result = await gqlClient.mutation(UpdateContentDocument, {
+            const result = await gqlClient.mutation(UpdateDataDocument, {
                 id: param.id,
-                type: ContentType.Normal,
-                values: param.values,
+                contents: param.values,
             });
             if (result.error) {
                 throw new Error(result.error.message);

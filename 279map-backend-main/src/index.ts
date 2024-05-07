@@ -9,7 +9,7 @@ import { getContents } from './getContents';
 import { getEvents } from './getEvents';
 import proxy from 'express-http-proxy';
 import http from 'http';
-import { cleanupContentValuesForRegist, getDatasourceIdOfTheDataId, getDatasourceRecord, getItemWkt } from './util/utility';
+import { getDatasourceIdOfTheDataId, getDatasourceRecord, getItemWkt } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
 import { getSnsPreview } from './api/getSnsPreview';
@@ -24,7 +24,7 @@ import { Auth0Management } from './auth/Auth0Management';
 import { OriginalAuthManagement } from './auth/OriginalAuthManagement';
 import { NoneAuthManagement } from './auth/NoneAuthManagement';
 import { CurrentMap, sleep } from '../279map-backend-common/src';
-import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaRegistDataAPI, OdbaRemoveDataAPI, OdbaUnlinkContentAPI, OdbaUpdateContentAPI, OdbaUpdateDataAPI, callOdbaApi } from '../279map-backend-common/src/api';
+import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaRegistDataAPI, OdbaRemoveDataAPI, OdbaUnlinkContentAPI, OdbaUpdateDataAPI, callOdbaApi } from '../279map-backend-common/src/api';
 import SessionManager from './session/SessionManager';
 import { geojsonToWKT } from '@terraformer/wkt';
 import { getItem, getItemsById } from './api/getItem';
@@ -32,7 +32,7 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { IFieldResolverOptions } from '@graphql-tools/utils';
-import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationRegistDataArgs, MutationRemoveDataArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUpdateContentArgs, MutationUpdateDataArgs, Operation, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription } from './graphql/__generated__/types';
+import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationRegistDataArgs, MutationRemoveDataArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUpdateDataArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { GeoPropertiesScalarType, GeocoderIdInfoScalarType, IconKeyScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -833,63 +833,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
             },
 
-            /**
-             * コンテンツ更新
-             */
-            updateContent: async(_, param: MutationUpdateContentArgs, ctx): MutationResolverReturnType<'updateContent'> => {
-                try {
-                    // 誤った値が含まれないように処置
-                    const dataSourceId = await getDatasourceIdOfTheDataId(param.id);
-                    const values = await cleanupContentValuesForRegist(ctx.currentMap.mapId, dataSourceId, param.values);
-
-                    // call ODBA
-                    await callOdbaApi(OdbaUpdateContentAPI, {
-                        currentMap: ctx.currentMap,
-                        id: param.id,
-                        values,
-                    });
-            
-                    // 更新通知
-                    // -- コンテンツ更新通知
-                    pubsub.publish('contentUpdate', {
-                        contentId: param.id,
-                    }, Operation.Update);
-
-                    // -- 当該コンテンツを子孫に持つアイテムIDを取得して通知
-                    const itemIdList = await getLinkedItemIdList(param.id);
-
-                    for (const item of itemIdList) {
-                        const wkt = await getItemWkt(item.itemId);
-                        if (wkt) {
-                            pubsub.publish('itemUpdate', 
-                                { mapId: item.mapId, mapKind: item.mapKind },
-                                [ { id: item.itemId, datasourceId: '', wkt } ]
-                            );
-                        }
-                    }
-
-                    // const ds = await getDatasourceRecord(param.id.dataSourceId);
-                    // if (ds.location_kind === DatasourceLocationKindType.RealPointContent) {
-                    //     // - RealPointContentの場合
-                    //     const wkt = await getItemWkt(param.id);
-                    //     if (wkt) {
-                    //         pubsub.publish('itemUpdate', ctx.currentMap, [ { id: param.id, wkt }]);
-                    //     }
-                    // } else {
-                    //     // - 当該コンテンツを子孫に持つアイテムIDを取得
-                    //     // const itemId = await getAncestorItemId(param.id);
-                    //     // if (itemId) {
-                    //     //     pubsub.publish('childContentsUpdate', { itemId }, true);
-                    //     // }
-                    // }
-                
-                    return true;
-
-                } catch(e) {
-                    apiLogger.warn('update-content API error', param, e);
-                    throw e;
-                }
-            },
             /**
              * コンテンツをアイテムに紐づけ
              */

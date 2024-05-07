@@ -68,20 +68,6 @@ export type OdbaUnlinkContentParam = CommonParam & {
 }
 
 /**
- * update content
- */
-export const OdbaUpdateContentAPI = {
-    uri: 'update-content',
-    method: 'post',
-    resultType: 'none',
-} as APIDefine<OdbaUpdateContentParam, void>;
-
-export type OdbaUpdateContentParam = CommonParam & {
-    id: DataId;
-    values: ContentValueMap;
-};
-
-/**
  * get unpoint data
  */
 export const OdbaGetUnpointDataAPI = {

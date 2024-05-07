@@ -85,16 +85,6 @@ mutation removeData (
     )
 }
 
-mutation updateContent (
-    $id: DataId!
-    $values: ContentValueMap!
-) {
-    updateContent(
-        id: $id
-        values: $values
-    )
-}
-
 mutation linkContent (
     $id: DataId!
     $parent: ParentInput!

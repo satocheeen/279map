@@ -93,11 +93,6 @@ type Mutation {
         id: DataId!
     ): Boolean!
 
-    updateContent (
-        id: DataId!
-        values: ContentValueMap!
-    ): Boolean
-
     linkContent (
         id: DataId!
         parent: ParentInput!

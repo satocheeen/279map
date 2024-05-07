@@ -28,7 +28,6 @@ export const authDefine: AuthLvDefine = {
     updateData: Auth.Edit,
     removeData: Auth.Edit,
 
-    updateContent: Auth.Edit,
     linkContent: Auth.Edit,
     unlinkContent: Auth.Edit,
 
