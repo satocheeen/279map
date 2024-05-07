@@ -80,11 +80,11 @@ async function getAllCategories(currentMap: CurrentMap, dataSourceIds?: string[]
 
         const sql = `
         select distinct d.data_source_id, c.category from contents c 
-        inner join datas d on d.data_id = c.data_id 
-        where EXISTS (
-            select * from map_datasource_link mdl 
-            where map_page_id = ? and d.data_source_id = mdl.data_source_id 
-        )
+        inner join data_link dl on dl.to_data_id = c.data_id 
+        inner join datas d on dl.from_data_id = d.data_id 
+        inner join data_source ds on ds.data_source_id = d.data_source_id 
+        inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
+        where mdl.map_page_id = ?
         `;
     
         const query = con.format(sql, [currentMap.mapId]);

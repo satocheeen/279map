@@ -1,9 +1,10 @@
 import { ConnectionPool } from ".";
 import { getLogger } from "log4js";
-import { CurrentMap } from "../279map-backend-common/src";
+import { CurrentMap, DataSourceTable } from "../279map-backend-common/src";
 import { EventContent, EventDefine, QueryGetEventArgs } from "./graphql/__generated__/types";
 import { QueryResolverReturnType } from "./graphql/type_utility";
 import { DatasourceLocationKindType, MapKind } from "./types-common/common-types";
+import { ContentsTable } from "../279map-backend-common/dist";
 
 const logger = getLogger('api');
 export async function getEvents(param: QueryGetEventArgs, currentMap: CurrentMap): QueryResolverReturnType<'getEvent'> {
@@ -59,30 +60,30 @@ async function getAllDates(currentMap: CurrentMap, dataSourceIds?: string[]): Pr
         await con.beginTransaction();
 
         const sql = `
-        select c.date, c.data_id, d2.data_source_id from contents c 
+        select c.date, c.data_id, ds.data_source_id from contents c 
         inner join data_link dl on dl.to_data_id = c.data_id 
-        inner join datas d2 on d2.data_id = c.data_id 
-        -- 表示中の地図上のitemに紐づいているものに絞る
-        where EXISTS (
-            select * from datas d 
-            inner join data_source ds on d.data_source_id = ds.data_source_id 
-            inner join map_datasource_link mdl on mdl.data_source_id = d.data_source_id 
-            where mdl.map_page_id = ? and ds.location_kind in (?)
-            and d.data_id = dl.from_data_id  
-        )
-        and date is not NULL
+        inner join datas d on dl.from_data_id = d.data_id 
+        inner join data_source ds on ds.data_source_id = d.data_source_id 
+        inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
+        where date is not NULL
         `;
     
         const locationKinds = currentMap.mapKind === MapKind.Real ? [DatasourceLocationKindType.RealItem, DatasourceLocationKindType.Track] : [DatasourceLocationKindType.VirtualItem];
         const query = con.format(sql, [currentMap.mapId, locationKinds]);
         const [rows] = await con.execute(query);
 
-        await con.commit();
+        const records = (rows as (ContentsTable & DataSourceTable)[]).map((rec): DateResult => {
+            return {
+                data_id: rec.data_id + '',
+                data_source_id: rec.data_source_id,
+                date: rec.date as string,
+            }
+        });
 
         if (!dataSourceIds) {
-            return (rows as DateResult[]);
+            return records
         } else {
-            return (rows as DateResult[]).filter(row => dataSourceIds.includes(row.data_source_id));
+            return records.filter(row => dataSourceIds.includes(row.data_source_id));
         }
     
     } catch(e) {
