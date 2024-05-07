@@ -221,7 +221,7 @@ export interface TsunaguMapHandler {
      * @param name アイテム名
      * @param geo 図形 
      */
-    updateItemDirectly(id: DataId, geo?: Partial<ItemGeoInfo>): Promise<void>;
+    updateItemDirectly(id: DataId, geo: ItemGeoInfo): Promise<void>;
 
     /**
      * 指定のアイテムを削除する

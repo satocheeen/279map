@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { ItemProcessType, itemProcessesAtom } from ".";
 import { ItemInfo } from "../../types/types";
 import { clientAtom } from "jotai-urql";
-import { UpdateItemsDocument, UpdateItemInput, RegistDataDocument, RemoveDataDocument } from "../../graphql/generated/graphql";
+import { RegistDataDocument, RemoveDataDocument, UpdateDataDocument } from "../../graphql/generated/graphql";
 import { DataId } from "../../entry";
 import { isEqualId } from "../../util/dataUtility";
 
@@ -14,6 +14,11 @@ let temporaryCount = 0;
 
 type RegistItemParam = {
     datasourceId: string;
+    geometry: ItemInfo['geometry'];
+    geoProperties: ItemInfo['geoProperties'];
+}
+export type UpdateItemParam = {
+    id: DataId;
     geometry: ItemInfo['geometry'];
     geoProperties: ItemInfo['geoProperties'];
 }
@@ -140,7 +145,7 @@ export default function useItemProcess() {
     )
 
     const updateItems = useAtomCallback(
-        useCallback(async(get, set, items: UpdateItemInput[]) => {
+        useCallback(async(get, set, items: UpdateItemParam[]) => {
             // ID付与
             const processId = ++temporaryCount;
 
@@ -155,14 +160,26 @@ export default function useItemProcess() {
             let retryFlag = false;
             do {
                 retryFlag = false;
-                const result = await gqlClient.mutation(UpdateItemsDocument, {
-                    targets: items,
-                });
-                if (result.error || result.data?.updateItems.error) {
+                const allResult = await Promise.all(items.map(async(item) => {
+                    const result = await gqlClient.mutation(UpdateDataDocument, {
+                        id: item.id,
+                        item: {
+                            geometry: item.geometry,
+                            geoProperties: item.geoProperties,
+                        }
+                    });
+                    return {
+                        result,
+                        id: item.id,
+                    }
+                }));
+                const successResult = allResult.filter(ar => ar.result.data);
+                const errorResult = allResult.filter(ar => ar.result.error);
+                if (errorResult.length > 0) {
                     // エラー時
-                    if (result.data?.updateItems.error) {
+                    if (successResult.length > 0) {
                         // 一部エラー時は、成功したアイテムは仮アイテムから削除する
-                        _removeTemporaryItems(processId, result.data.updateItems.success);
+                        _removeTemporaryItems(processId, successResult.map(sr => sr.id));
                     }
                     _setErrorWithTemporaryItem(processId, true);
                     // キャンセル or リトライ の指示待ち

@@ -7,7 +7,7 @@ import {platformModifierKeyOnly} from 'ol/events/condition';
 import Geometry from 'ol/geom/Geometry';
 import PromptMessageBox from '../PromptMessageBox';
 import styles from './MoveItemController.module.scss';
-import { containFeatureInLayer, createGeoJson, getOriginalLine } from '../../../../util/MapUtility';
+import { containFeatureInLayer, createGeoJson, extractGeoProperty, getOriginalLine } from '../../../../util/MapUtility';
 import { TranslateEvent } from 'ol/interaction/Translate';
 import "react-toggle/style.css";
 import Toggle from 'react-toggle';
@@ -23,9 +23,8 @@ import { topographySelectStyleFunction } from '../utility';
 import { LineString, Polygon } from 'ol/geom';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
-import { UpdateItemInput } from '../../../../graphql/generated/graphql';
 import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
-import useItemProcess from '../../../../store/item/useItemProcess';
+import useItemProcess, { UpdateItemParam } from '../../../../store/item/useItemProcess';
 
 type Props = {
     close: () => void;  // 編集完了時のコールバック
@@ -94,7 +93,7 @@ export default function MoveItemController(props: Props) {
     const { updateItems } = useItemProcess();
     const onFinishClicked = async() => {
         // DB更新用にデータ加工
-        const targets = [] as UpdateItemInput[];
+        const targets = [] as UpdateItemParam[];
         for (const mf of movedFeatureCollection.getArray()) {
             const mfGeoJson = createGeoJson(mf);
             const features = (mf.get('features') as Feature<Geometry>[] | undefined) ?? [mf];
@@ -124,11 +123,13 @@ export default function MoveItemController(props: Props) {
                     targets.push({
                         id,
                         geometry,
+                        geoProperties: extractGeoProperty(feature.getProperties() as GeoProperties),
                     })
                 } else {
                     targets.splice(index, 1, {
                         id,
                         geometry,
+                        geoProperties: extractGeoProperty(feature.getProperties() as GeoProperties),
                     })
                 }
             }

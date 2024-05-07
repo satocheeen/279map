@@ -9,7 +9,6 @@ import useTopographyStyle from '../../useTopographyStyle';
 import PromptMessageBox from '../PromptMessageBox';
 import SelectFeature from './SelectFeature';
 import RoadWidthSelecter from '../topography/RoadWidthSelecter';
-import { FeatureLike } from 'ol/Feature';
 import { Geometry } from 'ol/geom';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useMap } from '../../useMap';
@@ -42,7 +41,7 @@ enum Stage {
  export default function EditItemController(props: Props) {
     const { map } = useMap();
     const [stage, setStage] = useState(Stage.SELECTING_FEATURE);
-    const selectedFeature = useRef<FeatureLike>();
+    const selectedFeature = useRef<Feature<Geometry>>();
     const { getStyleFunction } = useTopographyStyle({});
     const confirmHook = useConfirm();
     const modifySource = useRef<VectorSource|null>();
@@ -77,7 +76,7 @@ enum Stage {
     
     }, [map, getStyleFunction]);
 
-    const onSelectFeature = useCallback((feature: FeatureLike) => {
+    const onSelectFeature = useCallback((feature: Feature<Geometry>) => {
         selectedFeature.current = feature;
 
         const featureType = (feature.getProperties() as GeoProperties).featureType;
@@ -144,11 +143,14 @@ enum Stage {
             return;
         }
 
+        const geoJson = createGeoJson(selectedFeature.current);
+
         // update DB
         const id = convertDataIdFromFeatureId(selectedFeature.current.getId() as string);
         updateItems([
             {
                 id,
+                geometry: geoJson.geometry,
                 geoProperties: {
                     featureType: FeatureType.STRUCTURE,
                     icon: {

@@ -93,8 +93,8 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
             await updateItemsProcess([
                 {
                     id,
-                    geometry: geo?.geometry,
-                    geoProperties: geo?.geoProperties,
+                    geometry: geo.geometry,
+                    geoProperties: geo.geoProperties,
                 }
             ]);
         },

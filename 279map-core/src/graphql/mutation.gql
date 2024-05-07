@@ -65,6 +65,18 @@ mutation registData (
     )
 }
 
+mutation updateData (
+    $id: DataId!
+    $item: RegistDataItemInput
+    $contents: ContentValueMap
+) {
+    updateData (
+        id: $id,
+        item: $item,
+        contents: $contents,
+    )
+}
+
 mutation removeData (
     $id: DataId!
 ) {

@@ -26,13 +26,13 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
         {
             define: OdbaUpdateDataAPI,
             func: async(param: OdbaAPIFuncParam<OdbaUpdateDataParam>): Promise<boolean> => {
-                return await odba.updateDataOdb(param.param);
+                return await odba.updateData(param.param);
             }
         },
         {
             define: OdbaRemoveDataAPI,
             func: async(param: OdbaAPIFuncParam<OdbaRemoveDataParam>): Promise<boolean> => {
-                return await odba.removeDataOdb(param.param);
+                return await odba.removeData(param.param);
             }
         },
         {
