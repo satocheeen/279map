@@ -50,25 +50,6 @@ export type OdbaRemoveDataParam = CommonParam & {
     id: DataId;
 }
 
-/**
- * regist content
- */
-export const OdbaRegistContentAPI = {
-    uri: 'regist-content',
-    method: 'post',
-    resultType: 'none',
-} as APIDefine<OdbaRegistContentParam, DataId>;
-
-export type OdbaRegistContentParam = CommonParam & {
-    parent: {
-        itemId: DataId;
-    } | {
-        contentId: DataId;
-    };
-    // 登録先データソース
-    contentDataSourceId: string;
-    values: ContentValueMap;
-};
 
 /**
  * remove item
