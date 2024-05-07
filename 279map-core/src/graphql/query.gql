@@ -47,7 +47,7 @@ query getItems (
     $zoom: Float!
     $datasourceId: String!
     $latestEditedTime: String
-    $excludeItemIds: [String!]
+    $excludeItemIds: [DataId!]
 ) {
     getItems(wkt: $wkt, zoom: $zoom, datasourceId: $datasourceId, latestEditedTime: $latestEditedTime, excludeItemIds: $excludeItemIds) {
         id

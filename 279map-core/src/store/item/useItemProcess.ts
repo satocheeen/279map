@@ -34,7 +34,7 @@ export default function useItemProcess() {
      * プロセス削除
      */
     const _removeItemProcess = useAtomCallback(
-        useCallback((get, set, processId: string) => {
+        useCallback((get, set, processId: DataId) => {
             set(itemProcessesAtom, (cur) => {
                 return cur.filter(cur => cur.processId !== processId);
             })
@@ -45,7 +45,7 @@ export default function useItemProcess() {
      * 指定のプロセスの指定の仮アイテムを削除する
      */
     const _removeTemporaryItems = useAtomCallback(
-        useCallback((get, set, processId: string, targets: DataId[]) => {
+        useCallback((get, set, processId: DataId, targets: DataId[]) => {
             set(itemProcessesAtom, (cur) => {
                 return cur.map(cur => {
                     if (cur.processId !== processId) return cur;
@@ -62,7 +62,7 @@ export default function useItemProcess() {
      * 指定のプロセスについてエラーフラグを更新する
      */
     const _setErrorWithTemporaryItem = useAtomCallback(
-        useCallback((get, set, processId: string, errorFlag: boolean) => {
+        useCallback((get, set, processId: DataId, errorFlag: boolean) => {
             set(itemProcessesAtom, (cur) => {
                 return cur.map(item => {
                     if (item.processId === processId) {
@@ -78,7 +78,7 @@ export default function useItemProcess() {
     )
 
     const _registItemSub = useAtomCallback(
-        useCallback(async(get, set, item: RegistItemParam, processId: string) => {
+        useCallback(async(get, set, item: RegistItemParam, processId: DataId) => {
             const gqlClient = get(clientAtom);
             let retryFlag = false;
             let itemId: DataId | undefined;
@@ -120,7 +120,7 @@ export default function useItemProcess() {
     const registItem = useAtomCallback(
         useCallback(async(get, set, item: RegistItemParam) => {
             // ID付与
-            const processId = `process-${++temporaryCount}`;
+            const processId = ++temporaryCount;
 
             // 登録完了までの仮アイテム登録
             _addItemProcess({
@@ -142,7 +142,7 @@ export default function useItemProcess() {
     const updateItems = useAtomCallback(
         useCallback(async(get, set, items: UpdateItemInput[]) => {
             // ID付与
-            const processId = `process-${++temporaryCount}`;
+            const processId = ++temporaryCount;
 
             // 登録完了までの仮アイテム登録
             _addItemProcess({
@@ -184,7 +184,7 @@ export default function useItemProcess() {
     const removeItem = useAtomCallback(
         useCallback(async(get, set, target: DataId) => {
             // ID付与
-            const processId = `process-${++temporaryCount}`;
+            const processId = ++temporaryCount;
 
             // 登録完了までの仮アイテム登録
             _addItemProcess({
@@ -223,7 +223,7 @@ export default function useItemProcess() {
      * @param retry リトライの場合、true。キャンセルの場合、false。
      */
     const continueProcess = useAtomCallback(
-        useCallback(async(get, set, processId: string, retry: boolean) => {
+        useCallback(async(get, set, processId: DataId, retry: boolean) => {
             if (!resolveMap[processId]) {
                 console.warn('not exist the process', processId);
                 return;
@@ -241,8 +241,8 @@ export default function useItemProcess() {
 }
 
 // リトライの場合、true。キャンセルの場合、false。
-const resolveMap = {} as {[processId: string]: (value: boolean) => void};
-async function waitFor(processId: string) {
+const resolveMap = {} as {[processId: DataId]: (value: boolean) => void};
+async function waitFor(processId: DataId) {
     return new Promise<boolean>((resolve) => {
         resolveMap[processId] = resolve;
     })

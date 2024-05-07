@@ -69,7 +69,7 @@ export type OverrideItem = ({
     type: 'new';
     datasourceId: string;
     /** 仮ID。focusItem等を行う時に、このidを指定する。 */
-    tempId: string;
+    tempId: DataId;
     name: string;
 } & ItemGeoInfo)
 | ({

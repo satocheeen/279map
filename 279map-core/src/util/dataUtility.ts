@@ -1,14 +1,14 @@
 import { DataId } from "../types-common/common-types";
 
-export function getMapKey(id: DataId): string {
+export function getMapKey(id: DataId): number {
     return id;
     // return JSON.stringify({
     //     id: id.id,
     //     ds: id.dataSourceId
     // });
 }
-export function convertDataIdFromFeatureId(id: string): DataId {
-    return id;
+export function convertDataIdFromFeatureId(id: number | string | undefined): DataId {
+    return Number(id);
     // const json = JSON.parse(id);
     // return {
     //     id: json.id,

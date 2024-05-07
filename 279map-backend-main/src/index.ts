@@ -1169,7 +1169,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 return result.filter(c => c.hasValue);
             }
         },
-        DataId: DataIdScalarType,
+        // DataId: DataIdScalarType,
         JSON: JsonScalarType,
         IconKey: IconKeyScalarType,
         GeoProperties: GeoPropertiesScalarType,

@@ -153,6 +153,9 @@ export function registAPIs(app: Express, apiList: OdbaAPICallDefine<any,any>[], 
                 if (!result) {
                     // undefinedを返すと、main-serverが結果受信できないので。
                     res.send('complete');
+                } else if (typeof result === 'number') {
+                    // 文字列にしないと、statusCode扱いになってしまうので
+                    res.send(result + '');
                 } else {
                     res.send(result);
                 }

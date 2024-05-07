@@ -23,46 +23,6 @@ export const DataIdScalarType = new GraphQLScalarType({
     }
 })
 
-export const DatasourceConfigScalarType = new GraphQLScalarType({
-    name: 'DatasourceConfig',
-    description: 'データソース種別ごとの設定情報',
-    serialize(value: any) {
-        return value;
-    },
-    parseValue(value: any) {
-        if (typeof value === 'string') {
-            return JSON.parse(value) as ContentDatasourceConfig;
-        } else if (typeof value === 'object') {
-            if ('kind' in value) {
-                return value;
-            }
-        }
-        throw 'parse error';
-    },
-    parseLiteral(value) {
-        return value;
-    }
-})
-
-export const GeometryScalarType = new GraphQLScalarType({
-    name: 'Geometry',
-    description: 'GeoJSON Geometry',
-    serialize(value: any) {
-        return value;
-    },
-    parseValue(value: any) {
-        if (typeof value === 'string') {
-            return JSON.parse(value) as Geometry;
-        } else if (typeof value === 'object') {
-            return value as Geometry;
-        }
-        throw 'parse error';
-    },
-    // parseLiteral(value) {
-    //     return value;
-    // }
-})
-
 export const GeoPropertiesScalarType = new GraphQLScalarType({
     name: 'GeoProperties',
     description: 'GeoProperties',

@@ -653,7 +653,7 @@ export class OlMapWrapper {
                     });
                 });
             } else {
-                const dataId = convertDataIdFromFeatureId(feature.getId() as string);
+                const dataId = convertDataIdFromFeatureId(feature.getId());
                 points.push({
                     id: dataId,
                     feature: feature as Feature<Geometry>,
