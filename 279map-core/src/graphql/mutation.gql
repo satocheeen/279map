@@ -55,11 +55,13 @@ mutation registData (
     $datasourceId: String!
     $item: RegistDataItemInput
     $contents: ContentValueMap
+    $linkItems: [DataId!]
 ) {
     registData (
         datasourceId: $datasourceId,
         item: $item,
-        contents: $contents
+        contents: $contents,
+        linkItems: $linkItems,
     )
 }
 

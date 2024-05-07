@@ -8,7 +8,7 @@ import { mapDefineAtom } from '../../store/session';
 import { filteredItemsAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { TsunaguMapHandler, LoadContentsResult, ItemType } from '../../types/types';
+import { TsunaguMapHandler, LoadContentsResult } from '../../types/types';
 import { useAtom } from 'jotai';
 import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import { overrideItemsAtom, showingItemsAtom, } from '../../store/item';
@@ -227,11 +227,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 const result = await gqlClient.mutation(RegistDataDocument, {
                     datasourceId: param.datasourceId,
                     contents: param.values,
-                    // parent: {
-                    //     type: param.parent.type === 'item' ? ParentOfContent.Item : ParentOfContent.Content,
-                    //     id: param.parent.id,
-                    // },
-                    // values: param.values,
+                    linkItems: [param.parent.id]
                 });
                 if (result.error) {
                     throw new Error(result.error.message);
@@ -239,16 +235,6 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 const contentId = result.data?.registData;
                 if (!contentId) {
                     throw new Error('regist content failed');
-                }
-                const result2 = await gqlClient.mutation(LinkContentDocument, {
-                    parent: {
-                        type: param.parent.type === 'item' ? ParentOfContent.Item : ParentOfContent.Content,
-                        id: param.parent.id,
-                    },
-                    id: contentId,
-                })
-                if (result2.error) {
-                    throw new Error(result2.error.message);
                 }
 
             } catch(e) {
