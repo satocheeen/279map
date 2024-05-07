@@ -51,15 +51,15 @@ mutation switchMapKind (
     }
 }
 
-mutation registItem (
+mutation registData (
     $datasourceId: String!
-    $geometry: Geometry!
-    $geoProperties: GeoProperties!
+    $item: RegistDataItemInput
+    $contents: ContentValueMap
 ) {
-    registItem (
+    registData (
         datasourceId: $datasourceId,
-        geometry: $geometry,
-        geoProperties: $geoProperties
+        item: $item,
+        contents: $contents
     )
 }
 

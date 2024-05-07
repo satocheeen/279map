@@ -290,18 +290,15 @@ export function useMap() {
      * 必要に応じて、指定のアイテムを更新する
      */
     const updateItems = useAtomCallback(
-        useCallback(async(get, set, targets: {id: DataId; wkt?: string}[]) => {
+        useCallback(async(get, set, targets: {id: DataId; datasourceId: string, wkt?: string}[]) => {
             const loadedItemMap = get(loadedItemMapAtom);
-            const allItems = get(allItemsAtom);
             // 取得する必要のあるものに絞る
             const updateTargets = targets.filter(target => {
                 // 取得済みアイテムの場合、取得
                 if (getItem(target.id)) return true;
 
                 // 取得済み範囲の場合、取得
-                const datasourceId = allItems.find(item => item.id === target.id)?.datasourceId;
-                if (!datasourceId) return false;
-                const key = getLoadedAreaMapKey(datasourceId, 0);
+                const key = getLoadedAreaMapKey(target.datasourceId, 0);
                 const loadedAreaInfo = loadedItemMap[JSON.stringify(key)];
                 if (!loadedAreaInfo) {
                     console.log('loadedAreaInfo undefined', loadedItemMap);

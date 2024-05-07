@@ -248,7 +248,6 @@ export type Mutation = {
   registContent?: Maybe<Scalars['Boolean']['output']>;
   /** データ登録 */
   registData: Scalars['DataId']['output'];
-  registItem?: Maybe<Scalars['DataId']['output']>;
   removeContent?: Maybe<Scalars['Boolean']['output']>;
   /** データ削除 */
   removeData: Scalars['Boolean']['output'];
@@ -291,13 +290,6 @@ export type MutationRegistDataArgs = {
   contents?: InputMaybe<Scalars['ContentValueMap']['input']>;
   datasourceId: Scalars['String']['input'];
   item?: InputMaybe<RegistDataItemInput>;
-};
-
-
-export type MutationRegistItemArgs = {
-  datasourceId: Scalars['String']['input'];
-  geoProperties: Scalars['GeoProperties']['input'];
-  geometry: Scalars['Geometry']['input'];
 };
 
 
@@ -597,6 +589,8 @@ export type SubscriptionUserListUpdateArgs = {
 };
 
 export type Target = {
+  /** 対象アイテムのデータソースID */
+  datasourceId: Scalars['String']['output'];
   /** 対象アイテムのID */
   id: Scalars['DataId']['output'];
   /** アイテムの地図範囲。update時は更新後範囲 */
@@ -1031,7 +1025,6 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   linkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkContentArgs, 'id' | 'parent'>>;
   registContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRegistContentArgs, 'datasourceId' | 'parent' | 'values'>>;
   registData?: Resolver<ResolversTypes['DataId'], ParentType, ContextType, RequireFields<MutationRegistDataArgs, 'datasourceId'>>;
-  registItem?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType, RequireFields<MutationRegistItemArgs, 'datasourceId' | 'geoProperties' | 'geometry'>>;
   removeContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveContentArgs, 'id'>>;
   removeData?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveDataArgs, 'id'>>;
   removeItem?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveItemArgs, 'id'>>;
@@ -1106,6 +1099,7 @@ export type SubscriptionResolvers<ContextType = any, ParentType extends Resolver
 };
 
 export type TargetResolvers<ContextType = any, ParentType extends ResolversParentTypes['Target'] = ResolversParentTypes['Target']> = {
+  datasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   wkt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;

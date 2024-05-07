@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { ItemProcessType, itemProcessesAtom } from ".";
 import { ItemInfo } from "../../types/types";
 import { clientAtom } from "jotai-urql";
-import { RegistItemDocument, UpdateItemsDocument, UpdateItemInput, RemoveItemDocument } from "../../graphql/generated/graphql";
+import { UpdateItemsDocument, UpdateItemInput, RemoveItemDocument, RegistDataDocument } from "../../graphql/generated/graphql";
 import { DataId } from "../../entry";
 import { isEqualId } from "../../util/dataUtility";
 
@@ -14,7 +14,6 @@ let temporaryCount = 0;
 
 type RegistItemParam = {
     datasourceId: string;
-    name?: string;
     geometry: ItemInfo['geometry'];
     geoProperties: ItemInfo['geoProperties'];
 }
@@ -85,12 +84,13 @@ export default function useItemProcess() {
             let itemId: DataId | undefined;
             do {
                 retryFlag = false;
-                const result = await gqlClient.mutation(RegistItemDocument, {
+                const result = await gqlClient.mutation(RegistDataDocument, {
                     datasourceId: item.datasourceId,
-                    name: item.name,
-                    geometry: item.geometry,
-                    geoProperties: item.geoProperties,
-                });
+                    item: {
+                        geometry: item.geometry,
+                        geoProperties: item.geoProperties,
+                    }
+                })
                 if (result.error) {
                     // エラー時
                     console.warn('registItem failed', result.error.message);
@@ -99,7 +99,7 @@ export default function useItemProcess() {
                     retryFlag = await waitFor(processId);
                     _setErrorWithTemporaryItem(processId, false);
                 } else {
-                    itemId = result.data?.registItem ?? undefined;
+                    itemId = result.data?.registData ?? undefined;
                 }
         
             } while(retryFlag);

@@ -5,6 +5,7 @@ subscription itemInsert (
 ) {
     itemInsert(mapId: $mapId, mapKind: $mapKind) {
         id
+        datasourceId
         wkt
     }
 }
@@ -16,6 +17,7 @@ subscription itemUpdate (
 ) {
     itemUpdate(mapId: $mapId, mapKind: $mapKind) {
         id
+        datasourceId
         wkt
     }
 }

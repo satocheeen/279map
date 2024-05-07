@@ -91,12 +91,6 @@ type Mutation {
         id: DataId!
     ): Boolean!
 
-    registItem (
-        datasourceId: String!
-        geometry: Geometry!
-        geoProperties: GeoProperties!
-    ): DataId
-    
     updateItems (
         targets: [UpdateItemInput!]!
     ): UpdateItemsResult!

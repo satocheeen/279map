@@ -1,6 +1,8 @@
 type Target {
     "対象アイテムのID"
     id: DataId!
+    "対象アイテムのデータソースID"
+    datasourceId: String!
     "アイテムの地図範囲。update時は更新後範囲"
     wkt: String!
 }

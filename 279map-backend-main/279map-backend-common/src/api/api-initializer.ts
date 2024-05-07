@@ -1,6 +1,6 @@
 import { Request, Response, Express } from 'express';
 import { Logger } from "log4js";
-import { OdbaGetImageUrlAPI, OdbaGetImageUrlParam, OdbaGetLinkableContentsAPI, OdbaGetLinkableContentsResult, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaLinkContentToItemParam, OdbaRegistContentAPI, OdbaRegistContentParam, OdbaRegistDataAPI, OdbaRegistDataParam, OdbaRegistItemAPI, OdbaRegistItemParam, OdbaRemoveContentAPI, OdbaRemoveContentParam, OdbaRemoveDataAPI, OdbaRemoveDataParam, OdbaRemoveItemAPI, OdbaRemoveItemParam, OdbaUnlinkContentAPI, OdbaUnlinkContentParam, OdbaUpdateContentAPI, OdbaUpdateContentParam, OdbaUpdateDataAPI, OdbaUpdateDataParam, OdbaUpdateItemAPI, OdbaUpdateItemParam } from "./dba-api-interface";
+import { OdbaGetImageUrlAPI, OdbaGetImageUrlParam, OdbaGetLinkableContentsAPI, OdbaGetLinkableContentsResult, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaLinkContentToItemParam, OdbaRegistContentAPI, OdbaRegistContentParam, OdbaRegistDataAPI, OdbaRegistDataParam, OdbaRemoveContentAPI, OdbaRemoveContentParam, OdbaRemoveDataAPI, OdbaRemoveDataParam, OdbaRemoveItemAPI, OdbaRemoveItemParam, OdbaUnlinkContentAPI, OdbaUnlinkContentParam, OdbaUpdateContentAPI, OdbaUpdateContentParam, OdbaUpdateDataAPI, OdbaUpdateDataParam, OdbaUpdateItemAPI, OdbaUpdateItemParam } from "./dba-api-interface";
 import OdbaInterface from "./OdbaInterface";
 import { APIDefine, CurrentMap } from "../types";
 import { DataId } from '../types-common/common-types';
@@ -33,20 +33,6 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
             define: OdbaRemoveDataAPI,
             func: async(param: OdbaAPIFuncParam<OdbaRemoveDataParam>): Promise<boolean> => {
                 return await odba.removeDataOdb(param.param);
-            }
-        },
-        {
-            define: OdbaRegistItemAPI,
-            func: async(param: OdbaAPIFuncParam<OdbaRegistItemParam>): Promise<DataId> => {
-                // regist to original db
-                const itemId = await odba.registItemOdb(param.param);
-
-                // update cache db
-                await odba.updateItemCache({
-                    currentMap: param.param.currentMap, 
-                    itemId,
-                });
-                return itemId;
             }
         },
         {

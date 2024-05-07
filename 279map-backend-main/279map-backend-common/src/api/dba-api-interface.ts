@@ -50,21 +50,6 @@ export type OdbaRemoveDataParam = CommonParam & {
 }
 
 /**
- * regist item
- */
-export const OdbaRegistItemAPI = {
-    uri: 'regist-item',
-    method: 'post',
-    resultType: 'json',
-} as APIDefine<OdbaRegistItemParam, DataId>;   // result = registed item ID
-
-export type OdbaRegistItemParam = CommonParam & {
-    dataSourceId: string;   // 登録先データソース
-    geometry: GeoJSON.Geometry;
-    geoProperties: GeoProperties;
-}
-
-/**
  * regist content
  */
 export const OdbaRegistContentAPI = {
