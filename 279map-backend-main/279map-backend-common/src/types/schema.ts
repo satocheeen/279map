@@ -128,7 +128,7 @@ export type ImagesTable = {
     medium: string;
 }
 
-export type DataLink = {
+export type DataLinkTable = {
     from_data_id: number;
     to_data_id: number;
     last_edited_time: string;
