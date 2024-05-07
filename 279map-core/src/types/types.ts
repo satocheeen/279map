@@ -322,10 +322,7 @@ export interface TsunaguMapHandler {
      */
     linkContent(param: {
         id: DataId;
-        parent: {
-            type: 'item' | 'content';
-            id: DataId;
-        }
+        parent: DataId;
     }): Promise<void>;
 
     /**
@@ -334,10 +331,7 @@ export interface TsunaguMapHandler {
      */
     unlinkContent(param: {
         id: DataId;
-        parent: {
-            type: 'item' | 'content';
-            id: DataId;
-        }
+        parent: DataId;
     }): Promise<void>;
 
     getSnsPreviewAPI(url: string): Promise<SnsPreviewResult>;

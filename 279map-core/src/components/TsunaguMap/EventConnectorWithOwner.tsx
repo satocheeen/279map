@@ -14,7 +14,7 @@ import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSour
 import { overrideItemsAtom, showingItemsAtom, } from '../../store/item';
 import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, LinkContentDocument, SearchDocument, GetSnsPreviewDocument, ParentOfContent, GetContentsInItemDocument, SortCondition, UnlinkContentDocument, GetImageDocument, ContentUpdateDocument, Operation, RegistDataDocument, RemoveDataDocument, UpdateDataDocument } from '../../graphql/generated/graphql';
+import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, SearchDocument, GetSnsPreviewDocument, GetContentsInItemDocument, SortCondition, GetImageDocument, ContentUpdateDocument, Operation, RegistDataDocument, RemoveDataDocument, UpdateDataDocument, LinkDataDocument, UnlinkDataDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern } from '../common/confirm/types';
@@ -259,24 +259,18 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             }
         },
         async linkContent(param: Parameters<TsunaguMapHandler['linkContent']>[0]) {
-            const result = await gqlClient.mutation(LinkContentDocument, {
+            const result = await gqlClient.mutation(LinkDataDocument, {
                 id: param.id,
-                parent: {
-                    type: param.parent.type === 'item' ? ParentOfContent.Item : ParentOfContent.Content,
-                    id: param.parent.id,
-                }
+                parent: param.parent,
             });
             if (result.error) {
                 throw new Error(result.error.message);
             }
         },
         async unlinkContent(param) {
-            const result = await gqlClient.mutation(UnlinkContentDocument, {
+            const result = await gqlClient.mutation(UnlinkDataDocument, {
                 id: param.id,
-                parent: {
-                    type: param.parent.type === 'content' ? ParentOfContent.Content : ParentOfContent.Item,
-                    id: param.parent.id,
-                }
+                parent: param.parent,
             });
             if (result.error) {
                 throw new Error(result.error.message);

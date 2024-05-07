@@ -85,21 +85,21 @@ mutation removeData (
     )
 }
 
-mutation linkContent (
+mutation linkData (
     $id: DataId!
-    $parent: ParentInput!
+    $parent: DataId!
 ) {
-    linkContent (
+    linkData (
         id: $id
         parent: $parent
     )
 }
 
-mutation unlinkContent (
+mutation unlinkData (
     $id: DataId!
-    $parent: ParentInput!
+    $parent: DataId!
 ) {
-    unlinkContent (
+    unlinkData (
         id: $id
         parent: $parent
     )
