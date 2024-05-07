@@ -101,7 +101,7 @@ export type DatasTable = {
 }
 
 export type GeometryItemsTable = {
-    item_id: number;
+    geometry_item_id: number;
     data_id: number;
     min_zoom: number;
     max_zoom: number;
@@ -128,9 +128,9 @@ export type ImagesTable = {
     medium: string;
 }
 
-export type ItemContentLink = {
-    item_data_id: number;
-    content_data_id: number;
+export type DataLink = {
+    from_data_id: number;
+    to_data_id: number;
     last_edited_time: string;
 }
 

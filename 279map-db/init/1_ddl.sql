@@ -47,6 +47,7 @@ CREATE TABLE `map_datasource_link` (
   CONSTRAINT `map_datasource_link_FK_1` FOREIGN KEY (`data_source_id`) REFERENCES `data_source` (`data_source_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
+
 -- 279map_db.original_icons definition
 
 CREATE TABLE `original_icons` (
@@ -75,14 +76,6 @@ CREATE TABLE `datas` (
   CONSTRAINT `datas_FK` FOREIGN KEY (`data_source_id`) REFERENCES `data_source` (`data_source_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=600 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
--- 279map_db.items definition
-
-CREATE TABLE `items` (
-  `data_id` int(10) unsigned NOT NULL,
-  PRIMARY KEY (`data_id`),
-  CONSTRAINT `items_FK` FOREIGN KEY (`data_id`) REFERENCES `datas` (`data_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
-
 
 -- 279map_db.contents definition
 
@@ -100,15 +93,16 @@ CREATE TABLE `contents` (
 
 CREATE TABLE `geometry_items` (
   `data_id` int(10) unsigned NOT NULL,
-  `item_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `geometry_item_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `min_zoom` float NOT NULL,
   `max_zoom` float NOT NULL,
   `feature` geometry NOT NULL,
   `geo_properties` text,
-  PRIMARY KEY (`item_id`),
+  PRIMARY KEY (`geometry_item_id`),
   KEY `items_sub_FK` (`data_id`),
-  CONSTRAINT `items_sub_FK` FOREIGN KEY (`data_id`) REFERENCES `items` (`data_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+  CONSTRAINT `geometry_items_FK` FOREIGN KEY (`data_id`) REFERENCES `datas` (`data_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=375 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
 
 -- 279map_db.images definition
 
@@ -124,14 +118,14 @@ CREATE TABLE `images` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 
--- 279map_db.item_content_link definition
+-- 279map_db.data_link definition
 
-CREATE TABLE `item_content_link` (
-  `item_data_id` int(10) unsigned NOT NULL COMMENT 'itemまたはtrackのdata_id',
-  `content_data_id` int(10) unsigned NOT NULL,
+CREATE TABLE `data_link` (
+  `from_data_id` int(10) unsigned NOT NULL,
+  `to_data_id` int(10) unsigned NOT NULL,
   `last_edited_time` varchar(100) NOT NULL,
-  PRIMARY KEY (`item_data_id`,`content_data_id`),
-  KEY `item_content_link_FK_1` (`content_data_id`),
-  CONSTRAINT `item_content_link_FK` FOREIGN KEY (`content_data_id`) REFERENCES `contents` (`data_id`) ON DELETE CASCADE,
-  CONSTRAINT `item_content_link_FK_1` FOREIGN KEY (`item_data_id`) REFERENCES `items` (`data_id`) ON DELETE CASCADE
+  PRIMARY KEY (`from_data_id`,`to_data_id`),
+  KEY `data_link_FK_1` (`to_data_id`),
+  CONSTRAINT `data_link_FK` FOREIGN KEY (`from_data_id`) REFERENCES `datas` (`data_id`) ON DELETE CASCADE,
+  CONSTRAINT `data_link_FK_1` FOREIGN KEY (`to_data_id`) REFERENCES `datas` (`data_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
