@@ -28,12 +28,10 @@ export const authDefine: AuthLvDefine = {
     updateData: Auth.Edit,
     removeData: Auth.Edit,
     updateItems: Auth.Edit,
-    removeItem: Auth.Edit,
 
     updateContent: Auth.Edit,
     linkContent: Auth.Edit,
     unlinkContent: Auth.Edit,
-    removeContent: Auth.Edit,
 
     search: Auth.View,
     geocoder: Auth.View,

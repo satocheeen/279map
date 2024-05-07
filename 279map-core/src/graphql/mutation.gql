@@ -114,14 +114,6 @@ mutation unlinkContent (
     )
 }
 
-mutation removeContent (
-    $id: DataId!
-) {
-    removeContent (
-        id: $id
-    )
-}
-
 mutation changeAuthLevel (
     $userId: ID!
     $authLv: Auth!

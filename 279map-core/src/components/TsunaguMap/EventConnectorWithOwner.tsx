@@ -14,7 +14,7 @@ import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSour
 import { overrideItemsAtom, showingItemsAtom, } from '../../store/item';
 import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, LinkContentDocument, SearchDocument, GetSnsPreviewDocument, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument, GetImageDocument, ContentUpdateDocument, Operation, RegistDataDocument } from '../../graphql/generated/graphql';
+import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, LinkContentDocument, SearchDocument, GetSnsPreviewDocument, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, UnlinkContentDocument, GetImageDocument, ContentUpdateDocument, Operation, RegistDataDocument, RemoveDataDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern } from '../common/confirm/types';
@@ -252,7 +252,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             }
         },
         async removeContent(param) {
-            const result = await gqlClient.mutation(RemoveContentDocument, {
+            const result = await gqlClient.mutation(RemoveDataDocument, {
                 id: param.id,
             });
             if (result.error) {

@@ -247,7 +247,6 @@ export type Mutation = {
   linkContent?: Maybe<Scalars['Boolean']['output']>;
   /** データ登録 */
   registData: Scalars['DataId']['output'];
-  removeContent?: Maybe<Scalars['Boolean']['output']>;
   /** データ削除 */
   removeData: Scalars['Boolean']['output'];
   request?: Maybe<Scalars['Boolean']['output']>;
@@ -282,11 +281,6 @@ export type MutationRegistDataArgs = {
   datasourceId: Scalars['String']['input'];
   item?: InputMaybe<RegistDataItemInput>;
   linkItems?: InputMaybe<Array<Scalars['DataId']['input']>>;
-};
-
-
-export type MutationRemoveContentArgs = {
-  id: Scalars['DataId']['input'];
 };
 
 
@@ -1011,7 +1005,6 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   disconnect?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   linkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkContentArgs, 'id' | 'parent'>>;
   registData?: Resolver<ResolversTypes['DataId'], ParentType, ContextType, RequireFields<MutationRegistDataArgs, 'datasourceId'>>;
-  removeContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveContentArgs, 'id'>>;
   removeData?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveDataArgs, 'id'>>;
   request?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRequestArgs, 'mapId' | 'name'>>;
   switchMapKind?: Resolver<ResolversTypes['MapInfo'], ParentType, ContextType, RequireFields<MutationSwitchMapKindArgs, 'mapKind'>>;

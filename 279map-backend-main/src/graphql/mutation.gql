@@ -111,10 +111,6 @@ type Mutation {
         parent: ParentInput!
     ): Boolean
 
-    removeContent (
-        id: DataId!
-    ): Boolean
-
     changeAuthLevel (
         userId: ID!
         authLv: Auth!

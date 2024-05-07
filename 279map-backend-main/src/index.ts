@@ -24,7 +24,7 @@ import { Auth0Management } from './auth/Auth0Management';
 import { OriginalAuthManagement } from './auth/OriginalAuthManagement';
 import { NoneAuthManagement } from './auth/NoneAuthManagement';
 import { CurrentMap, sleep } from '../279map-backend-common/src';
-import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaRegistDataAPI, OdbaRemoveContentAPI, OdbaRemoveDataAPI, OdbaUnlinkContentAPI, OdbaUpdateContentAPI, OdbaUpdateDataAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
+import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaRegistDataAPI, OdbaRemoveDataAPI, OdbaUnlinkContentAPI, OdbaUpdateContentAPI, OdbaUpdateDataAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
 import SessionManager from './session/SessionManager';
 import { geojsonToWKT } from '@terraformer/wkt';
 import { getItem, getItemsById } from './api/getItem';
@@ -32,10 +32,10 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { IFieldResolverOptions } from '@graphql-tools/utils';
-import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationRegistDataArgs, MutationRemoveContentArgs, MutationRemoveDataArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUpdateContentArgs, MutationUpdateDataArgs, MutationUpdateItemsArgs, Operation, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription } from './graphql/__generated__/types';
+import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationRegistDataArgs, MutationRemoveDataArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUpdateContentArgs, MutationUpdateDataArgs, MutationUpdateItemsArgs, Operation, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
-import { DataIdScalarType, GeoPropertiesScalarType, GeocoderIdInfoScalarType, IconKeyScalarType, JsonScalarType } from './graphql/custom_scalar';
+import { GeoPropertiesScalarType, GeocoderIdInfoScalarType, IconKeyScalarType, JsonScalarType } from './graphql/custom_scalar';
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { CustomError } from './graphql/CustomError';
 import { getLinkedItemIdList } from './api/apiUtility';
@@ -855,6 +855,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
 
                     // 更新通知
                     pubsub.publish('itemDelete', ctx.currentMap, [param.id]);
+                    // TODO: 削除したデータと紐づいていたものについて、itemUpdate通知を送る
 
                     return true;
 
@@ -999,41 +1000,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     throw e;
                 }
             },
-            removeContent: async(parent: any, param: MutationRemoveContentArgs, ctx): MutationResolverReturnType<'removeContent'> => {
-                try {
-                    // 属するitem一覧を取得
-                    const items = await getLinkedItemIdList(param.id);
 
-                    // TODO: 振る舞い見直し
-                    // データソース種別がRealPointContentの場合は、受け付けない（removeItemでのみ削除可能）
-                    // const datasource = await getDatasourceRecord(param.id.dataSourceId);
-                    // if (datasource.kind !== DatasourceLocationKindType.Content) {
-                    //     throw new Error('the content can not remove.');
-                    // }
-
-                    // call ODBA
-                    await callOdbaApi(OdbaRemoveContentAPI, {
-                        currentMap: ctx.currentMap,
-                        id: param.id,
-                    });
-            
-                    // 更新通知(完了は待たずに復帰する)
-                    Promise.all(items.map(async(item) => {
-                        const wkt = await getItemWkt(item.itemId);
-                        if (!wkt) {
-                            logger.warn('not found extent', item.itemId);
-                        } else {
-                            pubsub.publish('itemUpdate', { mapId: item.mapId, mapKind: item.mapKind }, [ { id: item.itemId, datasourceId: '', wkt } ]);
-                        }
-                    }));
-
-                    return true;
-
-                } catch(e) {
-                    apiLogger.warn('remove-content API error', param, e);
-                    throw e;
-                }
-            },
             /**
              * ユーザ権限変更
              */

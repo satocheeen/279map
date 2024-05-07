@@ -1,6 +1,6 @@
 import { Request, Response, Express } from 'express';
 import { Logger } from "log4js";
-import { OdbaGetImageUrlAPI, OdbaGetImageUrlParam, OdbaGetLinkableContentsAPI, OdbaGetLinkableContentsResult, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaLinkContentToItemParam, OdbaRegistDataAPI, OdbaRegistDataParam, OdbaRemoveContentAPI, OdbaRemoveContentParam, OdbaRemoveDataAPI, OdbaRemoveDataParam, OdbaUnlinkContentAPI, OdbaUnlinkContentParam, OdbaUpdateContentAPI, OdbaUpdateContentParam, OdbaUpdateDataAPI, OdbaUpdateDataParam, OdbaUpdateItemAPI, OdbaUpdateItemParam } from "./dba-api-interface";
+import { OdbaGetImageUrlAPI, OdbaGetImageUrlParam, OdbaGetLinkableContentsAPI, OdbaGetLinkableContentsResult, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaLinkContentToItemParam, OdbaRegistDataAPI, OdbaRegistDataParam, OdbaRemoveDataAPI, OdbaRemoveDataParam, OdbaUnlinkContentAPI, OdbaUnlinkContentParam, OdbaUpdateContentAPI, OdbaUpdateContentParam, OdbaUpdateDataAPI, OdbaUpdateDataParam, OdbaUpdateItemAPI, OdbaUpdateItemParam } from "./dba-api-interface";
 import OdbaInterface from "./OdbaInterface";
 import { APIDefine, CurrentMap } from "../types";
 import { DataId } from '../types-common/common-types';
@@ -33,19 +33,6 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
             define: OdbaRemoveDataAPI,
             func: async(param: OdbaAPIFuncParam<OdbaRemoveDataParam>): Promise<boolean> => {
                 return await odba.removeDataOdb(param.param);
-            }
-        },
-        {
-            define: OdbaRemoveContentAPI,
-            func: async(param: OdbaAPIFuncParam<OdbaRemoveContentParam>): Promise<void> => {
-                await odba.removeContentOdb({
-                    currentMap: param.param.currentMap, 
-                    contentId: param.param.id,
-                });
-                await odba.removeContentCache({
-                    currentMap: param.param.currentMap, 
-                    contentId: param.param.id,
-                });
             }
         },
         {
