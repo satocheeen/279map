@@ -6,6 +6,7 @@ type Result = {
     mapId: string;
     mapKind: MapKind;
     itemId: DataId;
+    itemDatasourceId: string;
 }
 /**
  * 指定のコンテンツがリンクしているアイテムID一覧を返す
@@ -14,6 +15,7 @@ type Result = {
 export async function getLinkedItemIdList(contentId: DataId): Promise<Result[]> {
     const con = await ConnectionPool.getConnection();
 
+    // TODO: 要確認
     try {
         const sql = `
         -- 何かのdataを参照しているdataを抽出
@@ -34,6 +36,7 @@ export async function getLinkedItemIdList(contentId: DataId): Promise<Result[]> 
                 mapId: row.map_page_id,
                 mapKind: row.location_kind === DatasourceLocationKindType.VirtualItem ? MapKind.Virtual : MapKind.Real,
                 itemId: row.from_data_id,
+                itemDatasourceId: row.data_source_id,
             }
         })
 

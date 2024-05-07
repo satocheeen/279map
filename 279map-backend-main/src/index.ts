@@ -848,6 +848,8 @@ const schema = makeExecutableSchema<GraphQlContextType>({
              */
             removeData: async(_, param: MutationRemoveDataArgs, ctx): MutationResolverReturnType<'removeData'> => {
                 try {
+                    // 紐づいているdataを取得
+                    const linkedDatas = await getLinkedItemIdList(param.id);
                     await callOdbaApi(OdbaRemoveDataAPI, {
                         currentMap: ctx.currentMap,
                         id: param.id,
@@ -855,7 +857,17 @@ const schema = makeExecutableSchema<GraphQlContextType>({
 
                     // 更新通知
                     pubsub.publish('itemDelete', ctx.currentMap, [param.id]);
-                    // TODO: 削除したデータと紐づいていたものについて、itemUpdate通知を送る
+                    // 削除したデータと紐づいていたものについて、itemUpdate通知を送る
+                    for (const data of linkedDatas) {
+                        const wkt = await getItemWkt(data.itemId);
+
+                        if (wkt) {
+                            pubsub.publish('itemUpdate', 
+                                { mapId: data.mapId, mapKind: data.mapKind },
+                                [ {　datasourceId: data.itemDatasourceId, id: data.itemId, wkt } ],
+                            )
+                        }
+                    }
 
                     return true;
 
