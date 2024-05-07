@@ -24,7 +24,7 @@ import { Auth0Management } from './auth/Auth0Management';
 import { OriginalAuthManagement } from './auth/OriginalAuthManagement';
 import { NoneAuthManagement } from './auth/NoneAuthManagement';
 import { CurrentMap, sleep } from '../279map-backend-common/src';
-import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUnpointDataAPI, OdbaLinkContentToItemAPI, OdbaRegistDataAPI, OdbaRemoveDataAPI, OdbaUnlinkContentAPI, OdbaUpdateDataAPI, callOdbaApi } from '../279map-backend-common/src/api';
+import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUnpointDataAPI, OdbaLinkDataAPI, OdbaRegistDataAPI, OdbaRemoveDataAPI, OdbaUnlinkDataAPI, OdbaUpdateDataAPI, callOdbaApi } from '../279map-backend-common/src/api';
 import SessionManager from './session/SessionManager';
 import { geojsonToWKT } from '@terraformer/wkt';
 import { getItem, getItemsById } from './api/getItem';
@@ -32,7 +32,7 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { IFieldResolverOptions } from '@graphql-tools/utils';
-import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationRegistDataArgs, MutationRemoveDataArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUpdateDataArgs, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription } from './graphql/__generated__/types';
+import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkDataArgs, MutationRegistDataArgs, MutationRemoveDataArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkDataArgs, MutationUpdateDataArgs, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { GeoPropertiesScalarType, GeocoderIdInfoScalarType, IconKeyScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -836,29 +836,23 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * コンテンツをアイテムに紐づけ
              */
-            linkContent: async(parent: any, param: MutationLinkContentArgs, ctx): MutationResolverReturnType<'linkContent'> => {
+            linkData: async(parent: any, param: MutationLinkDataArgs, ctx): MutationResolverReturnType<'linkData'> => {
                 try {
                     // call ODBA
-                    await callOdbaApi(OdbaLinkContentToItemAPI, {
+                    await callOdbaApi(OdbaLinkDataAPI, {
                         currentMap: ctx.currentMap,
-                        childContentId: param.id,
-                        parent: param.parent.type === ParentOfContent.Content ? {
-                            contentId: param.parent.id,
-                        } : {
-                            itemId: param.parent.id,
-                        }
+                        id: param.id,
+                        parent: param.parent,
                     });
 
                     // 更新通知
-                    if (param.parent.type === ParentOfContent.Item) {
-                        const id = param.parent.id;
-                        const item = await getItem(id);
-                        const wkt = await getItemWkt(id);
-                        if (!wkt) {
-                            logger.warn('not found extent', id);
-                        } else {
-                            pubsub.publish('itemUpdate', ctx.currentMap, [ { id, datasourceId: item?.datasourceId ?? '', wkt } ]);
-                        }
+                    const id = param.parent;
+                    const item = await getItem(id);
+                    const wkt = await getItemWkt(id);
+                    if (!wkt) {
+                        logger.warn('not found extent', id);
+                    } else {
+                        pubsub.publish('itemUpdate', ctx.currentMap, [ { id, datasourceId: item?.datasourceId ?? '', wkt } ]);
                     }
 
                     return true;
@@ -871,37 +865,24 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * コンテンツ紐づけ解除
              */
-            unlinkContent: async(parent: any, param: MutationUnlinkContentArgs, ctx): MutationResolverReturnType<'unlinkContent'> => {
+            unlinkData: async(parent: any, param: MutationUnlinkDataArgs, ctx): MutationResolverReturnType<'unlinkData'> => {
                 try {
-                    // アイテムと一体になったコンテンツは紐づけ解除不可
-                    const dataSourceId = await getDatasourceIdOfTheDataId(param.id);
-                    const datasource = await getDatasourceRecord(dataSourceId);
-                    // if (param.id.id === param.parent.id.id && param.id.dataSourceId === param.parent.id.dataSourceId) {
-                    //     throw new Error('this content can not unlink with the item because this is same record.');
-                    // }
-
-                    // TODO: 親がコンテンツの場合の考慮（ODBA側のインタフェース対応後）
                     // call ODBA
-                    await callOdbaApi(OdbaUnlinkContentAPI, {
+                    await callOdbaApi(OdbaUnlinkDataAPI, {
                         currentMap: ctx.currentMap,
                         id: param.id,
-                        parent: {
-                            type: 'item',
-                            itemId: param.parent.id,
-                        }
+                        parent: param.parent,
                     });
             
                     // 更新通知
-                    if (param.parent.type === ParentOfContent.Item) {
-                        const id = param.parent.id;
-                        const item = await getItem(id);
-                        const wkt = await getItemWkt(id);
-                        if (!wkt) {
-                            logger.warn('not found extent', id);
-                        } else {
-                            // pubsub.publish('childContentsUpdate', { itemId: id }, true);
-                            pubsub.publish('itemUpdate', ctx.currentMap, [ { id, datasourceId: item?.datasourceId ?? '', wkt } ]);
-                        }
+                    const id = param.parent;
+                    const item = await getItem(id);
+                    const wkt = await getItemWkt(id);
+                    if (!wkt) {
+                        logger.warn('not found extent', id);
+                    } else {
+                        // pubsub.publish('childContentsUpdate', { itemId: id }, true);
+                        pubsub.publish('itemUpdate', ctx.currentMap, [ { id, datasourceId: item?.datasourceId ?? '', wkt } ]);
                     }
 
                     return true;

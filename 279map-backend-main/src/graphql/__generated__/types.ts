@@ -244,14 +244,14 @@ export type Mutation = {
   changeAuthLevel?: Maybe<Scalars['Boolean']['output']>;
   connect: ConnectResult;
   disconnect?: Maybe<Scalars['Boolean']['output']>;
-  linkContent?: Maybe<Scalars['Boolean']['output']>;
+  linkData?: Maybe<Scalars['Boolean']['output']>;
   /** データ登録 */
   registData: Scalars['DataId']['output'];
   /** データ削除 */
   removeData: Scalars['Boolean']['output'];
   request?: Maybe<Scalars['Boolean']['output']>;
   switchMapKind: MapInfo;
-  unlinkContent?: Maybe<Scalars['Boolean']['output']>;
+  unlinkData?: Maybe<Scalars['Boolean']['output']>;
   /** データ更新 */
   updateData: Scalars['Boolean']['output'];
 };
@@ -268,9 +268,9 @@ export type MutationConnectArgs = {
 };
 
 
-export type MutationLinkContentArgs = {
+export type MutationLinkDataArgs = {
   id: Scalars['DataId']['input'];
-  parent: ParentInput;
+  parent: Scalars['DataId']['input'];
 };
 
 
@@ -298,9 +298,9 @@ export type MutationSwitchMapKindArgs = {
 };
 
 
-export type MutationUnlinkContentArgs = {
+export type MutationUnlinkDataArgs = {
   id: Scalars['DataId']['input'];
-  parent: ParentInput;
+  parent: Scalars['DataId']['input'];
 };
 
 
@@ -317,16 +317,6 @@ export type NoneConfig = {
 export enum Operation {
   Delete = 'Delete',
   Update = 'Update'
-}
-
-export type ParentInput = {
-  id: Scalars['DataId']['input'];
-  type: ParentOfContent;
-};
-
-export enum ParentOfContent {
-  Content = 'Content',
-  Item = 'Item'
 }
 
 export enum PopupMode {
@@ -715,8 +705,6 @@ export type ResolversTypes = {
   Mutation: ResolverTypeWrapper<{}>;
   NoneConfig: ResolverTypeWrapper<NoneConfig>;
   Operation: Operation;
-  ParentInput: ParentInput;
-  ParentOfContent: ParentOfContent;
   PopupMode: PopupMode;
   Query: ResolverTypeWrapper<{}>;
   RegistDataItemInput: RegistDataItemInput;
@@ -776,7 +764,6 @@ export type ResolversParentTypes = {
   MediaInfo: MediaInfo;
   Mutation: {};
   NoneConfig: NoneConfig;
-  ParentInput: ParentInput;
   Query: {};
   RegistDataItemInput: RegistDataItemInput;
   SearchHitItem: SearchHitItem;
@@ -990,12 +977,12 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   changeAuthLevel?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationChangeAuthLevelArgs, 'authLv' | 'userId'>>;
   connect?: Resolver<ResolversTypes['ConnectResult'], ParentType, ContextType, RequireFields<MutationConnectArgs, 'mapId'>>;
   disconnect?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  linkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkContentArgs, 'id' | 'parent'>>;
+  linkData?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkDataArgs, 'id' | 'parent'>>;
   registData?: Resolver<ResolversTypes['DataId'], ParentType, ContextType, RequireFields<MutationRegistDataArgs, 'datasourceId'>>;
   removeData?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveDataArgs, 'id'>>;
   request?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRequestArgs, 'mapId' | 'name'>>;
   switchMapKind?: Resolver<ResolversTypes['MapInfo'], ParentType, ContextType, RequireFields<MutationSwitchMapKindArgs, 'mapKind'>>;
-  unlinkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkContentArgs, 'id' | 'parent'>>;
+  unlinkData?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkDataArgs, 'id' | 'parent'>>;
   updateData?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateDataArgs, 'id'>>;
 };
 

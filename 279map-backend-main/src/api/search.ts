@@ -1,4 +1,4 @@
-import { CurrentMap, DatasourceLocationKindType, MapKind, OdbaLinkContentToItemAPI } from "../../279map-backend-common/src";
+import { CurrentMap, DatasourceLocationKindType, MapKind, OdbaLinkDataAPI } from "../../279map-backend-common/src";
 import { ConnectionPool } from "..";
 import { PoolConnection } from "mysql2/promise";
 import {  } from "../../279map-backend-common/src/types/schema";

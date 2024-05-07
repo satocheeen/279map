@@ -1,7 +1,7 @@
 import { CurrentMap } from "../types";
 import { DataId } from "../types-common/common-types";
 import { OdbaAPIFunc } from "./api-initializer";
-import { OdbaGetImageUrlParam, OdbaGetLinkableContentsResult, OdbaGetUnpointDataParam, OdbaGetUnpointDataResult, OdbaLinkContentToItemParam, OdbaRegistDataParam, OdbaRemoveDataParam, OdbaUpdateDataParam } from "./dba-api-interface";
+import { OdbaGetImageUrlParam, OdbaGetLinkableContentsResult, OdbaGetUnpointDataParam, OdbaGetUnpointDataResult, OdbaLinkDataParam, OdbaRegistDataParam, OdbaRemoveDataParam, OdbaUpdateDataParam } from "./dba-api-interface";
 
 export type UpdateContentLinkCacheParam = {
     currentMap: CurrentMap;
@@ -26,13 +26,13 @@ export default abstract class OdbaInterface {
      * 指定のコンテンツをアイテムまたは親コンテンツに紐づける。
      * ODBの更新、キャッシュDBの更新を行う。
      */
-    abstract linkContent: (param: OdbaLinkContentToItemParam) => Promise<void>;
+    abstract linkData: (param: OdbaLinkDataParam) => Promise<void>;
 
     /**
      * 指定のコンテンツについてアイテムまたは親コンテンツとの接続を解除する。
      * ODBの更新、キャッシュDBの更新を行う。
      */
-    abstract unlinkContent: (param: OdbaLinkContentToItemParam) => Promise<void>;
+    abstract unlinkData: (param: OdbaLinkDataParam) => Promise<void>;
 
     abstract getImageUrl: (param: OdbaGetImageUrlParam) => Promise<string | undefined>;
 

@@ -1,11 +1,3 @@
-enum ParentOfContent {
-    Item
-    Content
-}
-input ParentInput {
-    type: ParentOfContent!
-    id: DataId!
-}
 input ContentsDatasourceInput {
     datasourceId: String!
     name: String!   # 名前はユーザ側で指定可能
@@ -93,14 +85,14 @@ type Mutation {
         id: DataId!
     ): Boolean!
 
-    linkContent (
+    linkData (
         id: DataId!
-        parent: ParentInput!
+        parent: DataId!
     ): Boolean
 
-    unlinkContent (
+    unlinkData (
         id: DataId!
-        parent: ParentInput!
+        parent: DataId!
     ): Boolean
 
     changeAuthLevel (

@@ -50,21 +50,15 @@ export type OdbaRemoveDataParam = CommonParam & {
     id: DataId;
 }
 
-export const OdbaUnlinkContentAPI = {
-    uri: 'unlink-content',
+export const OdbaUnlinkDataAPI = {
+    uri: 'unlink-data',
     method: 'post',
     resultType: 'none',
-} as APIDefine<OdbaUnlinkContentParam, void>;
+} as APIDefine<OdbaUnlinkDataParam, void>;
 
-export type OdbaUnlinkContentParam = CommonParam & {
+export type OdbaUnlinkDataParam = CommonParam & {
     id: DataId;
-    parent: {
-        type: 'item';
-        itemId: DataId;
-    } | {
-        type: 'content';
-        contentId: DataId;
-    }
+    parent: DataId;
 }
 
 /**
@@ -95,19 +89,15 @@ export type OdbaGetUnpointDataResult = {
 /**
  * link content to item
  */
-export const OdbaLinkContentToItemAPI = {
-    uri:'link-content2item',
+export const OdbaLinkDataAPI = {
+    uri:'link-data',
     method: 'post',
     resultType: 'none',
-} as APIDefine<OdbaLinkContentToItemParam, void>;
+} as APIDefine<OdbaLinkDataParam, void>;
 
-export type OdbaLinkContentToItemParam = CommonParam & {
-    childContentId: DataId;
-    parent: {
-        itemId: DataId;
-    } | {
-        contentId: DataId;
-    }
+export type OdbaLinkDataParam = CommonParam & {
+    id: DataId;
+    parent: DataId;
 }
 
 export const OdbaGetImageUrlAPI = {
