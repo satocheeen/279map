@@ -109,7 +109,7 @@ async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, cat
     `;
     const categoryParam = `["${category}"]`;
     const dsKind = currentMap.mapKind === MapKind.Virtual ? DatasourceLocationKindType.VirtualItem : DatasourceLocationKindType.RealItem;
-    const param = [currentMap.mapId, dsKind, categoryParam] as any[];
+    const param = [categoryParam, currentMap.mapId, dsKind] as any[];
     const query = con.format(sql, dataSourceIds ? [...param, dataSourceIds] : param);
     const [rows] = await con.execute(query);
     const records = rows as (ContentsTable & DataLinkTable)[]; 
