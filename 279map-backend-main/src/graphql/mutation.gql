@@ -57,7 +57,7 @@ type UpdateItemsResult {
     success: [DataId!]!
     error: [DataId!]
 }
-type RegistDataItemInput {
+input RegistDataItemInput {
     geometry: Geometry!
     geoProperties: GeoProperties!
 }

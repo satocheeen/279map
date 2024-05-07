@@ -12,7 +12,7 @@ export async function getThumbnail(contentId: DataId): Promise<string> {
     try {
         const sql = `
         select thumbnail from images im
-        where content_data_id = ?
+        where data_id = ?
         `;
         const [rows] = await con.execute(sql, [contentId]);
 

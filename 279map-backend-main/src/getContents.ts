@@ -1,6 +1,6 @@
 import { ConnectionPool } from '.';
 import { PoolConnection } from 'mysql2/promise';
-import { ContentsTable, DataSourceTable, ItemContentLink, MapDataSourceLinkTable } from '../279map-backend-common/src/types/schema';
+import { ContentsTable, DataLinkTable, DataSourceTable, MapDataSourceLinkTable } from '../279map-backend-common/src/types/schema';
 import { CurrentMap } from '../279map-backend-common/src';
 import { Auth, ContentsDefine } from './graphql/__generated__/types';
 import { DatasourceLocationKindType, DataId, ContentValueMap, MapKind, ContentFieldDefine } from './types-common/common-types';
@@ -142,8 +142,8 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
                     inner join datas d on d.data_id = c.data_id 
                     inner join data_source ds on ds.data_source_id = d.data_source_id
                     inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id
-                    inner join item_content_link icl on c.data_id = icl.content_data_id
-                    where mdl.map_page_id = ? and icl.item_data_id = ?
+                    inner join data_link dl on dl.to_data_id = c.data_id 
+                    where mdl.map_page_id = ? and dl.from_data_id = ?
                     `;
                     const [rows] = await con.execute(sql, [currentMap.mapId, target.itemId]);
                     myRows = rows as ContentsDatasourceRecord[];
@@ -185,7 +185,7 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
 }
 
 /**
- * 指定のコンテンツが、もう片方の地図に存在する場合に、そのItemIDを返す
+ * 指定のコンテンツが、もう片方の地図から参照されている場合に、そのItemIDを返す
  * @param con 
  * @param contentId 
  * @param currentMap 
@@ -194,23 +194,22 @@ export async function getContents({param, currentMap, authLv}: {param: GetConten
 async function getAnotherMapKindItemsUsingTheContent(con: PoolConnection, contentId: DataId, currentMap: CurrentMap): Promise<DataId[]> {
     // もう片方の地図に存在するかチェック
     const sql = `
-    select * from item_content_link icl 
-    -- 異なる地図上のitemに紐づいているものに絞る
-    where EXISTS (
-        select * from datas d 
-        inner join data_source ds on d.data_source_id = ds.data_source_id 
+    select * from data_link dl 
+    where dl.to_data_id = ?
+    and EXISTS (
+        select * from datas d
+        inner join data_source ds on ds.data_source_id = d.data_source_id 
         inner join map_datasource_link mdl on mdl.data_source_id = d.data_source_id 
         where mdl.map_page_id = ? and ds.location_kind in (?)
-        and d.data_id = icl.item_data_id 
+        and d.data_id = dl.from_data_id 
     )
-    and icl.content_data_id = ?
     `;
     const anotherMapKind = currentMap.mapKind === MapKind.Virtual ? [DatasourceLocationKindType.RealItem, DatasourceLocationKindType.Track] : [DatasourceLocationKindType.VirtualItem];
-    const query = con.format(sql, [currentMap.mapId, anotherMapKind, contentId]);
+    const query = con.format(sql, [contentId, currentMap.mapId, anotherMapKind]);
     const [rows] = await con.execute(query);
 
-    return (rows as ItemContentLink[]).map((row): DataId => {
-        return row.item_data_id + '';
+    return (rows as DataLinkTable[]).map((row): DataId => {
+        return row.from_data_id + '';
     });
 }
 
@@ -222,17 +221,16 @@ async function getAnotherMapKindItemsUsingTheContent(con: PoolConnection, conten
  */
 async function checkUsingAnotherMap(con: PoolConnection, contentId: DataId, mapId: string): Promise<boolean> {
     const sql = `
-    select * from item_content_link icl 
-    -- 異なる地図上のitemに紐づいている
-    where EXISTS (
-        select * from datas d 
-        inner join data_source ds on d.data_source_id = ds.data_source_id 
+    select * from data_link dl 
+    where dl.to_data_id = ?
+    and EXISTS (
+        select * from datas d
+        inner join data_source ds on ds.data_source_id = d.data_source_id 
         inner join map_datasource_link mdl on mdl.data_source_id = d.data_source_id 
         where mdl.map_page_id <> ?
-        and d.data_id = icl.item_data_id 
+        and d.data_id = dl.from_data_id 
     )
-    and icl.content_data_id = ?
     `;
-    const [rows] = await con.execute(sql, [mapId, contentId]);
+    const [rows] = await con.execute(sql, [contentId, mapId]);
     return (rows as []).length > 0;
 }

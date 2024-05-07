@@ -486,8 +486,8 @@ export type QuerySearchArgs = {
 };
 
 export type RegistDataItemInput = {
-  geoProperties: Scalars['GeoProperties']['output'];
-  geometry: Scalars['Geometry']['output'];
+  geoProperties: Scalars['GeoProperties']['input'];
+  geometry: Scalars['Geometry']['input'];
 };
 
 export type SearchHitItem = {
@@ -757,7 +757,7 @@ export type ResolversTypes = {
   ParentOfContent: ParentOfContent;
   PopupMode: PopupMode;
   Query: ResolverTypeWrapper<{}>;
-  RegistDataItemInput: ResolverTypeWrapper<RegistDataItemInput>;
+  RegistDataItemInput: RegistDataItemInput;
   SearchHitItem: ResolverTypeWrapper<SearchHitItem>;
   ServerConfig: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['ServerConfig']>;
   SnsPreviewPost: ResolverTypeWrapper<SnsPreviewPost>;
@@ -1070,12 +1070,6 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   search?: Resolver<Array<ResolversTypes['SearchHitItem']>, ParentType, ContextType, RequireFields<QuerySearchArgs, 'condition'>>;
 };
 
-export type RegistDataItemInputResolvers<ContextType = any, ParentType extends ResolversParentTypes['RegistDataItemInput'] = ResolversParentTypes['RegistDataItemInput']> = {
-  geoProperties?: Resolver<ResolversTypes['GeoProperties'], ParentType, ContextType>;
-  geometry?: Resolver<ResolversTypes['Geometry'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export type SearchHitItemResolvers<ContextType = any, ParentType extends ResolversParentTypes['SearchHitItem'] = ResolversParentTypes['SearchHitItem']> = {
   hitContents?: Resolver<Array<ResolversTypes['DataId']>, ParentType, ContextType>;
   hitItem?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -1172,7 +1166,6 @@ export type Resolvers<ContextType = any> = {
   Mutation?: MutationResolvers<ContextType>;
   NoneConfig?: NoneConfigResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
-  RegistDataItemInput?: RegistDataItemInputResolvers<ContextType>;
   SearchHitItem?: SearchHitItemResolvers<ContextType>;
   ServerConfig?: ServerConfigResolvers<ContextType>;
   SnsPreviewPost?: SnsPreviewPostResolvers<ContextType>;

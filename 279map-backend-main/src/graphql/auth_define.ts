@@ -24,6 +24,9 @@ export const authDefine: AuthLvDefine = {
     getImage: Auth.View,
     getImageUrl: Auth.View,
     
+    registData: Auth.Edit,
+    updateData: Auth.Edit,
+    removeData: Auth.Edit,
     registItem: Auth.Edit,
     updateItems: Auth.Edit,
     removeItem: Auth.Edit,

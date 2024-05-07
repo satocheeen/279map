@@ -60,7 +60,7 @@ async function getAllDates(currentMap: CurrentMap, dataSourceIds?: string[]): Pr
 
         const sql = `
         select c.date, c.data_id, d2.data_source_id from contents c 
-        inner join item_content_link icl on icl.content_data_id = c.data_id 
+        inner join data_link dl on dl.to_data_id = c.data_id 
         inner join datas d2 on d2.data_id = c.data_id 
         -- 表示中の地図上のitemに紐づいているものに絞る
         where EXISTS (
@@ -68,7 +68,7 @@ async function getAllDates(currentMap: CurrentMap, dataSourceIds?: string[]): Pr
             inner join data_source ds on d.data_source_id = ds.data_source_id 
             inner join map_datasource_link mdl on mdl.data_source_id = d.data_source_id 
             where mdl.map_page_id = ? and ds.location_kind in (?)
-            and d.data_id = icl.item_data_id 
+            and d.data_id = dl.from_data_id  
         )
         and date is not NULL
         `;

@@ -1,5 +1,5 @@
 import { ConnectionPool } from '..';
-import { ContentsTable, DataSourceTable, DatasTable, ItemContentLink, MapDataSourceLinkConfig } from '../../279map-backend-common/src/types/schema';
+import { DataSourceTable, DatasTable } from '../../279map-backend-common/src/types/schema';
 import { buffer, circle, featureCollection, lineString, multiLineString, multiPolygon, point, polygon, union } from '@turf/turf';
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 import crypto from 'crypto';

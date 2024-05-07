@@ -1,9 +1,10 @@
-import { CurrentMap, DatasourceLocationKindType, MapKind } from "../../279map-backend-common/src";
+import { CurrentMap, DatasourceLocationKindType, MapKind, OdbaLinkContentToItemAPI } from "../../279map-backend-common/src";
 import { ConnectionPool } from "..";
 import { PoolConnection } from "mysql2/promise";
-import { ItemContentLink } from "../../279map-backend-common/src/types/schema";
+import {  } from "../../279map-backend-common/src/types/schema";
 import { QuerySearchArgs, SearchHitItem } from "../graphql/__generated__/types";
 import { DataId } from "../types-common/common-types";
+import { ContentsTable, DataLinkTable } from "../../279map-backend-common/dist";
 
 export async function search(currentMap: CurrentMap, param: QuerySearchArgs): Promise<SearchHitItem[]> {
     if (param.datasourceIds && param.datasourceIds.length === 0) {
@@ -94,32 +95,29 @@ type HitContent = {
 async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, category: string, dataSourceIds?: string[]): Promise<HitContent[]> {
 
     const sql = `
-    select c.content_page_id, icl.content_datasource_id, icl.item_page_id, icl.item_datasource_id from contents c
-    inner join item_content_link icl on icl.content_page_id = c.content_page_id and icl.content_datasource_id = c.data_source_id 
-    where exists (
-        select icl.* from item_content_link icl 
-        inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id 
-        inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
-        inner join data_source ds on ds.data_source_id = i.data_source_id
-        where icl.content_page_id = c.content_page_id and icl.content_datasource_id  = c.data_source_id
-        and mdl.map_page_id = ?
-        and ds.location_kind = ?
-        and JSON_CONTAINS(c.category, ?) > 0
-        ${dataSourceIds ? 'and i.data_source_id in (?)' : ''}
+    select c.*, dl2.* from contents c 
+    inner join data_link dl2 on dl2.to_data_id = c.data_id 
+    where JSON_CONTAINS(c.category, ?) > 0
+    and EXISTS (
+        select * from data_link dl 
+        inner join datas d on d.data_id = dl.from_data_id 
+        inner join data_source ds on ds.data_source_id = d.data_source_id 
+        inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id and mdl.map_page_id = ?
+        where ds.location_kind in (?) ${dataSourceIds ? 'and ds.data_source_id in (?)' : ''}
+        and dl.to_data_id = c.data_id 
     )
     `;
     const categoryParam = `["${category}"]`;
     const dsKind = currentMap.mapKind === MapKind.Virtual ? DatasourceLocationKindType.VirtualItem : DatasourceLocationKindType.RealItem;
-    const params = [currentMap.mapId, dsKind, categoryParam] as any[];
-    if (dataSourceIds) {
-        params.push(dataSourceIds);
-    }
-    const query = con.format(sql, params);
+    const param = [currentMap.mapId, dsKind, categoryParam] as any[];
+    const query = con.format(sql, dataSourceIds ? [...param, dataSourceIds] : param);
     const [rows] = await con.execute(query);
-    return (rows as ItemContentLink[]).map((row): HitContent => {
+    const records = rows as (ContentsTable & DataLinkTable)[]; 
+
+    return records.map((row): HitContent => {
         return {
-            contentId: row.content_data_id + '',
-            itemId: row.item_data_id + '',
+            contentId: row.data_id + '',
+            itemId: row.from_data_id + '',
         };
     });
 }
@@ -132,18 +130,16 @@ async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, cat
  */
 async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: string, dataSourceIds?: string[]): Promise<HitContent[]> {
     const sql = `
-    select c.content_page_id, icl.content_datasource_id, icl.item_page_id, icl.item_datasource_id from contents c
-    inner join item_content_link icl on icl.content_page_id = c.content_page_id and icl.content_datasource_id = c.data_source_id 
-    where exists (
-        select icl.* from item_content_link icl 
-        inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id 
-        inner join data_source ds on ds.data_source_id = i.data_source_id
-        inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
-        where icl.content_page_id = c.content_page_id and icl.content_datasource_id  = c.data_source_id
-        and mdl.map_page_id = ?
-        and ds.location_kind = ?
-        and DATE_FORMAT(date,'%Y-%m-%d') = ?
-        ${dataSourceIds ? 'and i.data_source_id in (?)' : ''}
+    select c.*, dl2.* from contents c 
+    inner join data_link dl2 on dl2.to_data_id = c.data_id 
+    where DATE_FORMAT(c.date,'%Y-%m-%d') = ?
+    and EXISTS (
+        select * from data_link dl 
+        inner join datas d on d.data_id = dl.from_data_id 
+        inner join data_source ds on ds.data_source_id = d.data_source_id 
+        inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id and mdl.map_page_id = ?
+        where ds.location_kind in (?) ${dataSourceIds ? 'and ds.data_source_id in (?)' : ''}
+        and dl.to_data_id = c.data_id 
     )
     `;
 
@@ -154,11 +150,12 @@ async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: s
     }
     const query = con.format(sql, params);
     const [rows] = await con.execute(query);
+    const records = rows as (ContentsTable & DataLinkTable)[]; 
 
-    return (rows as ItemContentLink[]).map((row): HitContent => {
+    return records.map((row): HitContent => {
         return {
-            contentId: row.content_data_id + '',
-            itemId: row.item_data_id + '',
+            contentId: row.data_id + '',
+            itemId: row.from_data_id + '',
         };
     });
 
@@ -171,19 +168,18 @@ async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: s
  * @param keyword 
  */
 async function searchByKeyword(con: PoolConnection, currentMap: CurrentMap, keyword: string, dataSourceIds?: string[]): Promise<HitContent[]> {
+
     const sql = `
-    select c.content_page_id, icl.content_datasource_id, icl.item_page_id, icl.item_datasource_id from contents c
-    inner join item_content_link icl on icl.content_page_id = c.content_page_id and icl.content_datasource_id = c.data_source_id 
-    where exists (
-        select icl.* from item_content_link icl 
-        inner join items i on i.item_page_id = icl.item_page_id and i.data_source_id = icl.item_datasource_id 
-        inner join data_source ds on ds.data_source_id = i.data_source_id
-        inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
-        where icl.content_page_id = c.content_page_id and icl.content_datasource_id  = c.data_source_id
-            and mdl.map_page_id = ?
-            and ds.location_kind = ?
-            and (JSON_SEARCH(c.contents, 'one', ?) is not null or c.title like ?)
-            ${dataSourceIds ? 'and i.data_source_id in (?)' : ''}
+    select c.*, dl2.* from contents c 
+    inner join data_link dl2 on dl2.to_data_id = c.data_id 
+    where JSON_SEARCH(c.contents, 'one', ?) is not null
+    and EXISTS (
+        select * from data_link dl 
+        inner join datas d on d.data_id = dl.from_data_id 
+        inner join data_source ds on ds.data_source_id = d.data_source_id 
+        inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id and mdl.map_page_id = ?
+        where ds.location_kind in (?) ${dataSourceIds ? 'and ds.data_source_id in (?)' : ''}
+        and dl.to_data_id = c.data_id 
     )
     `;
 
@@ -196,10 +192,12 @@ async function searchByKeyword(con: PoolConnection, currentMap: CurrentMap, keyw
     const query = con.format(sql, params);
 
     const [rows] = await con.execute(query);
-    return (rows as ItemContentLink[]).map((row): HitContent => {
+    const records = rows as (ContentsTable & DataLinkTable)[]; 
+
+    return records.map((row): HitContent => {
         return {
-            contentId: row.content_data_id + '',
-            itemId: row.item_data_id + '',
+            contentId: row.data_id + '',
+            itemId: row.from_data_id + '',
         };
     });
 

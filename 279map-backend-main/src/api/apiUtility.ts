@@ -1,5 +1,5 @@
 import { ConnectionPool } from "..";
-import { DataSourceTable, ItemContentLink, MapDataSourceLinkTable } from "../../279map-backend-common/src";
+import { DataLinkTable, DataSourceTable, MapDataSourceLinkTable } from "../../279map-backend-common/src";
 import { MapKind, DatasourceLocationKindType, DataId } from "../types-common/common-types";
 
 type Result = {
@@ -12,31 +12,33 @@ type Result = {
  * @param contentId 
  */
 export async function getLinkedItemIdList(contentId: DataId): Promise<Result[]> {
-    return [];
-    // const con = await ConnectionPool.getConnection();
+    const con = await ConnectionPool.getConnection();
 
-    // try {
-    //     const sql = `
-    //     select * from item_content_link icl 
-    //     inner join items i on i.item_page_id = icl.item_page_id  and i.data_source_id = icl.item_datasource_id 
-    //     inner join data_source ds on ds.data_source_id = i.data_source_id
-    //     inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id
-    //     where icl.content_page_id = ? and icl.content_datasource_id = ?
-    //     `;
-    //     const [rows] = await con.execute(sql, [contentId.id, contentId.dataSourceId]);
-    //     return (rows as (ItemContentLink & ItemsTable & DataSourceTable & MapDataSourceLinkTable)[]).map(row => {
-    //         return {
-    //             mapId: row.map_page_id,
-    //             mapKind: row.location_kind === DatasourceLocationKindType.VirtualItem ? MapKind.Virtual : MapKind.Real,
-    //             itemId: {
-    //                 id: row.item_page_id,
-    //                 dataSourceId: row.item_datasource_id,
-    //             }
-    //         }
-    //     })
+    try {
+        const sql = `
+        -- 何かのdataを参照しているdataを抽出
+        select dl.*, ds.*, mdl.* from datas d 
+        inner join data_link dl on dl.from_data_id = d.data_id 
+        inner join data_source ds on ds.data_source_id = d.data_source_id 
+        inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
+        -- アイテムから参照されているものに絞る
+        where EXISTS (
+            select * from geometry_items gi 
+            where gi.data_id = dl.from_data_id 
+        )
+        and d.to_data_id = ?
+        `;
+        const [rows] = await con.execute(sql, [contentId]);
+        return (rows as (DataLinkTable & DataSourceTable & MapDataSourceLinkTable)[]).map((row): Result => {
+            return {
+                mapId: row.map_page_id,
+                mapKind: row.location_kind === DatasourceLocationKindType.VirtualItem ? MapKind.Virtual : MapKind.Real,
+                itemId: row.from_data_id + '',
+            }
+        })
 
-    // } finally {
-    //     await con.rollback();
-    //     con.release();
-    // }
+    } finally {
+        await con.rollback();
+        con.release();
+    }
 }
