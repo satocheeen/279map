@@ -726,6 +726,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         dataSourceId: param.datasourceId,
                         item: param.item ?? undefined,
                         contents: param.contents ?? undefined,
+                        linkItems: param.linkItems ?? undefined,
                     }) + '';
                     logger.debug('OdbaRegistDataAPI', id, typeof id)
                     // 更新通知

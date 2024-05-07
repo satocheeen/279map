@@ -290,6 +290,7 @@ export type MutationRegistDataArgs = {
   contents?: InputMaybe<Scalars['ContentValueMap']['input']>;
   datasourceId: Scalars['String']['input'];
   item?: InputMaybe<RegistDataItemInput>;
+  linkItems?: InputMaybe<Array<Scalars['DataId']['input']>>;
 };
 
 
