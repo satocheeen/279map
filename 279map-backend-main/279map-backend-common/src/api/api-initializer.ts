@@ -20,7 +20,7 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
         {
             define: OdbaRegistDataAPI,
             func: async(param: OdbaAPIFuncParam<OdbaRegistDataParam>): Promise<DataId> => {
-                return await odba.registDataOdb(param.param);
+                return await odba.registData(param.param);
             }
         },
         {

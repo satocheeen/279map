@@ -11,10 +11,10 @@ import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { TsunaguMapHandler, LoadContentsResult, ItemType } from '../../types/types';
 import { useAtom } from 'jotai';
 import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
-import { overrideItemsAtom, storedItemsAtom, showingItemsAtom, allItemsAtom } from '../../store/item';
+import { overrideItemsAtom, showingItemsAtom, } from '../../store/item';
 import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, LinkContentDocument, RegistContentDocument, SearchDocument, GetThumbDocument, GetSnsPreviewDocument, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument, UpdateItemsDocument, GetImageDocument, ContentUpdateDocument, Operation } from '../../graphql/generated/graphql';
+import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, LinkContentDocument, SearchDocument, GetSnsPreviewDocument, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument, GetImageDocument, ContentUpdateDocument, Operation, RegistDataDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern } from '../common/confirm/types';
@@ -224,16 +224,31 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         },
         async registContent(param) {
             try {
-                const result = await gqlClient.mutation(RegistContentDocument, {
+                const result = await gqlClient.mutation(RegistDataDocument, {
                     datasourceId: param.datasourceId,
+                    contents: param.values,
+                    // parent: {
+                    //     type: param.parent.type === 'item' ? ParentOfContent.Item : ParentOfContent.Content,
+                    //     id: param.parent.id,
+                    // },
+                    // values: param.values,
+                });
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+                const contentId = result.data?.registData;
+                if (!contentId) {
+                    throw new Error('regist content failed');
+                }
+                const result2 = await gqlClient.mutation(LinkContentDocument, {
                     parent: {
                         type: param.parent.type === 'item' ? ParentOfContent.Item : ParentOfContent.Content,
                         id: param.parent.id,
                     },
-                    values: param.values,
-                });
-                if (result.error) {
-                    throw new Error(result.error.message);
+                    id: contentId,
+                })
+                if (result2.error) {
+                    throw new Error(result2.error.message);
                 }
 
             } catch(e) {

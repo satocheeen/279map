@@ -14,7 +14,7 @@ export type UpdateContentLinkCacheParam = {
 }
 
 export default abstract class OdbaInterface {
-    abstract registDataOdb: (param: OdbaRegistDataParam) => Promise<DataId>;
+    abstract registData: (param: OdbaRegistDataParam) => Promise<DataId>;
 
     abstract updateDataOdb: (param: OdbaUpdateDataParam) => Promise<boolean>;
 

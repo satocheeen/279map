@@ -14,43 +14,21 @@ type Props = {
 export default function RegistContentDriver(props: Props) {
     const { contentDatasources, getMap, addConsole } = useContext(DriverContext);
     const editableDatasources = useMemo(() => {
-        return contentDatasources.filter(ds => ds.config.editable);
+        return contentDatasources.filter(ds => !ds.config.readonly);
     }, [contentDatasources]);
 
     const [ mode, setMode ] = useState<'new'|'update'>('new');
     const [ values, setValues ] = useState<ContentValueMap>({});
     const [ targetDsId, setTargetDsId ] = useState<string|undefined>();
-    const [ targetContentIdText, setTargetContentIdText ] = useState('');
-    const [ targetItemIdText, setTargetItemIdText ] = useState('');
+    const [ targetContentId, setTargetContentId ] = useState('');
+    const [ targetItemId, setTargetItemId ] = useState('');
 
-    const targetContentId = useMemo(() => {
-        try {
-            const id = JSON.parse(targetContentIdText) as DataId;
-            if (!id.dataSourceId || !id.id) return;
-            return id;
-        } catch(e) {
-            return;
-        }
-
-    }, [targetContentIdText]);
-
-    useWatch([targetContentId, mode], () => {
-        console.log('targetContentId', targetContentId);
-        if (mode === 'update' && targetContentId) {
-            setTargetDsId(targetContentId.dataSourceId);
-        }
-    })
-
-    const targetItemId = useMemo(() => {
-        try {
-            const id = JSON.parse(targetItemIdText) as DataId;
-            if (!id.dataSourceId || !id.id) return;
-            return id;
-        } catch(e) {
-            return;
-        }
-
-    }, [targetItemIdText]);
+    // useWatch([targetContentId, mode], () => {
+    //     console.log('targetContentId', targetContentId);
+    //     if (mode === 'update' && targetContentId) {
+    //         setTargetDsId(targetContentId.dataSourceId);
+    //     }
+    // })
 
     useWatch(editableDatasources, () => {
         if (editableDatasources.length > 0)
@@ -135,9 +113,9 @@ export default function RegistContentDriver(props: Props) {
                     新規
                 </label>
                 <label className={myStyles.TargetID}>
-                    対象ItemID(JSON)
+                    対象ItemID
                     <input type='text' disabled={mode==='update'}
-                        value={targetItemIdText} onChange={evt=>setTargetItemIdText(evt.target.value)} />
+                        value={targetItemId} onChange={evt=>setTargetItemId(evt.target.value)} />
                 </label>
             </div>
             <div>
@@ -148,7 +126,7 @@ export default function RegistContentDriver(props: Props) {
                 <label className={myStyles.TargetID}>
                     ContentID(JSON)
                     <input type='text' disabled={mode==='new'}
-                        value={targetContentIdText} onChange={evt=>setTargetContentIdText(evt.target.value)}
+                        value={targetContentId} onChange={evt=>setTargetContentId(evt.target.value)}
                     />
                 </label>
             </div>

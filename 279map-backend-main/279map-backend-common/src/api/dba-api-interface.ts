@@ -12,7 +12,7 @@ type CommonParam = {
 export const OdbaRegistDataAPI = {
     uri: 'regist-data',
     method: 'post',
-    resultType: 'json',
+    resultType: 'string',
 } as APIDefine<OdbaRegistDataParam, DataId>;
 
 export type OdbaRegistDataParam = CommonParam & {
