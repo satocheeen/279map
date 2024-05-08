@@ -22,6 +22,7 @@ export default function RegistContentDriver(props: Props) {
     const [ targetDsId, setTargetDsId ] = useState<string|undefined>();
     const [ targetContentId, setTargetContentId ] = useState('');
     const [ targetItemId, setTargetItemId ] = useState('');
+    const [ loading, setLoading ] = useState(false);
 
     // useWatch([targetContentId, mode], () => {
     //     console.log('targetContentId', targetContentId);
@@ -65,6 +66,7 @@ export default function RegistContentDriver(props: Props) {
     }, [fields]);
 
     const disabled = useMemo(() => {
+        if (loading) return true;
         if (mode === 'new') {
             if (!targetItemId) return true;
             if (!targetDsId) return true;
@@ -72,7 +74,7 @@ export default function RegistContentDriver(props: Props) {
             if (!targetContentId) return true;
         }
         return false;
-    }, [targetItemId, targetDsId, targetContentId, mode]);
+    }, [targetItemId, targetDsId, targetContentId, mode, loading]);
 
     const handleRegist = useCallback(async() => {
         if (!targetDsId) return;
@@ -80,14 +82,16 @@ export default function RegistContentDriver(props: Props) {
 
         const imageField = fields.find(f => f.type === 'image');
         const imageUrl = imageField ? values[imageField.key] : undefined;
+        setLoading(true);
         const result = await getMap()?.registContent({
             datasourceId: targetDsId,
             parent: {
                 type: 'item',
-                id: targetItemId,
+                id: parseInt(targetItemId),
             },
             values,
         });
+        setLoading(false);
         addConsole('registContent', result);
     }, [addConsole, fields, getMap, targetDsId, targetItemId, values]);
 
@@ -96,10 +100,12 @@ export default function RegistContentDriver(props: Props) {
 
         const imageField = fields.find(f => f.type === 'image');
         const imageUrl = imageField ? values[imageField.key] : undefined;
+        setLoading(true);
         const result = await getMap()?.updateContent({
-            id: targetContentId,
+            id: parseInt(targetContentId),
             values,
         })
+        setLoading(false);
         addConsole('updateContent', result);
 
     }, [addConsole, fields, getMap, targetContentId, values])
@@ -124,7 +130,7 @@ export default function RegistContentDriver(props: Props) {
                     更新
                 </label>
                 <label className={myStyles.TargetID}>
-                    ContentID(JSON)
+                    ContentID
                     <input type='text' disabled={mode==='new'}
                         value={targetContentId} onChange={evt=>setTargetContentId(evt.target.value)}
                     />
@@ -178,6 +184,9 @@ export default function RegistContentDriver(props: Props) {
                 <button disabled={disabled} onClick={handleRegist}>登録</button>
                 :
                 <button disabled={disabled} onClick={handleUpdate}>更新</button>
+            }
+            {loading &&
+                <span className={myStyles.RegistingLabel}>登録中...</span>
             }
         </div>
     );
