@@ -186,8 +186,6 @@ type Query {
     geocoder(address: String!, searchTarget: [GeocoderTarget!]!): [GeocoderItem!]!
     getGeocoderFeature(id: GeocoderIdInfo!): Geometry!
 
-    getSnsPreview(url: String!): SnsPreviewResult!
-
     getUserList: [User!]!
     getLinkableContentsDatasources: [ContentsDatasource!]!
 }

@@ -14,7 +14,7 @@ import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSour
 import { overrideItemsAtom, showingItemsAtom, } from '../../store/item';
 import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetUnpointContentsDocument, SearchDocument, GetSnsPreviewDocument, SortCondition, GetImageDocument, ContentUpdateDocument, Operation, RegistDataDocument, RemoveDataDocument, UpdateDataDocument, LinkDataDocument, UnlinkDataDocument, GetContentDocument } from '../../graphql/generated/graphql';
+import { ContentsDefine, GetUnpointContentsDocument, SearchDocument, SortCondition, GetImageDocument, ContentUpdateDocument, Operation, RegistDataDocument, RemoveDataDocument, UpdateDataDocument, LinkDataDocument, UnlinkDataDocument, GetContentDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern } from '../common/confirm/types';
@@ -33,7 +33,7 @@ export type EventControllerHandler = Pick<TsunaguMapHandler,
     | 'filter' | 'clearFilter'
     | 'registContent' | 'updateContent' | 'removeContent'
     | 'linkContent' | 'unlinkContent'
-    | 'getSnsPreviewAPI' | 'getUnpointDataAPI'
+    | 'getUnpointDataAPI'
     | 'changeVisibleLayer'
     | 'selectItem'>
 
@@ -239,17 +239,6 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 throw new Error(result.error.message);
             }
         },
-        async getSnsPreviewAPI(url: string) {
-            const res = await gqlClient.query(GetSnsPreviewDocument, {
-                url,
-            });
-            if (!res.data) {
-                throw new Error('get sns preview error');
-            }
-
-            return res.data.getSnsPreview;
-        },
-    
         async getUnpointDataAPI({ datasourceId, nextToken, keyword }) {
             const result = await gqlClient.query(GetUnpointContentsDocument, {
                 datasourceId,

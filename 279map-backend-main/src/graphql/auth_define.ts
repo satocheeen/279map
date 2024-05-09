@@ -32,7 +32,6 @@ export const authDefine: AuthLvDefine = {
     search: Auth.View,
     geocoder: Auth.View,
     getGeocoderFeature: Auth.View,
-    getSnsPreview: Auth.View,
 
     // 管理者機能
     getUserList: Auth.Admin,

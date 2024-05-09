@@ -329,8 +329,6 @@ export interface TsunaguMapHandler {
         parent: DataId;
     }): Promise<void>;
 
-    getSnsPreviewAPI(url: string): Promise<SnsPreviewResult>;
-
     getUnpointDataAPI(param: {
         datasourceId: string;
         nextToken?: string;

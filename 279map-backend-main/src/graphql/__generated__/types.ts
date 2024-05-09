@@ -340,7 +340,6 @@ export type Query = {
   getLinkableContentsDatasources: Array<ContentsDatasource>;
   /** ユーザがアクセス可能な地図情報一覧を返す */
   getMapList: Array<MapListItem>;
-  getSnsPreview: SnsPreviewResult;
   /** 指定のコンテンツのサムネイル画像を返す */
   getThumb: Scalars['String']['output'];
   /** 未割当コンテンツを取得する */
@@ -398,11 +397,6 @@ export type QueryGetItemsArgs = {
 
 export type QueryGetItemsByIdArgs = {
   targets: Array<Scalars['DataId']['input']>;
-};
-
-
-export type QueryGetSnsPreviewArgs = {
-  url: Scalars['String']['input'];
 };
 
 
@@ -992,7 +986,6 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getItemsById?: Resolver<Array<ResolversTypes['ItemDefine']>, ParentType, ContextType, RequireFields<QueryGetItemsByIdArgs, 'targets'>>;
   getLinkableContentsDatasources?: Resolver<Array<ResolversTypes['ContentsDatasource']>, ParentType, ContextType>;
   getMapList?: Resolver<Array<ResolversTypes['MapListItem']>, ParentType, ContextType>;
-  getSnsPreview?: Resolver<ResolversTypes['SnsPreviewResult'], ParentType, ContextType, RequireFields<QueryGetSnsPreviewArgs, 'url'>>;
   getThumb?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryGetThumbArgs, 'contentId'>>;
   getUnpointContents?: Resolver<ResolversTypes['GetUnpointContentsResult'], ParentType, ContextType, RequireFields<QueryGetUnpointContentsArgs, 'datasourceId'>>;
   getUserList?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;

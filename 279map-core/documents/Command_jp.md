@@ -120,15 +120,6 @@ drawTemporaryFeatureで一時描画したアイテムを正式登録する
 | ---- | ---- | ---- |
 | param | LinkContentToItemParam | 割り当てるコンテンツ情報 |
 
-## getSnsPreviewAPI
-SNSのプレビュー情報を取得します。
-| Name | Type | Description |
-| ---- | ---- | ---- |
-| url | string | SNSのURL |
-
-### Returns
-SNSプレビュー情報
-
 ## getUnpointDataAPI
 未割当コンテンツ情報を取得します。
 | Name | Type | Description |
