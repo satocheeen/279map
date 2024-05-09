@@ -1,8 +1,8 @@
-import { ConnectionPool } from "..";
-import { Auth, ContentsTable, CurrentMap, DataSourceTable, MapDataSourceLinkTable } from "../../279map-backend-common/src";
-import { convertContentsToContentsDefine } from "../api-common/convertContent";
-import { ContentsDefine } from "../graphql/__generated__/types";
-import { DataId } from "../types-common/common-types";
+import { ConnectionPool } from "../..";
+import { Auth, ContentsTable, CurrentMap, DataSourceTable, MapDataSourceLinkTable } from "../../../279map-backend-common/src";
+import { convertContentsToContentsDefine } from "../../api-common/convertContent";
+import { ContentsDefine } from "../../graphql/__generated__/types";
+import { DataId } from "../../types-common/common-types";
 
 type Param = {
     dataId: DataId;
@@ -20,7 +20,7 @@ export async function getContent({ dataId, currentMap, authLv }: Param): Promise
     const con = await ConnectionPool.getConnection();
 
     try {
-        // 指定のdataIdに紐づくコンテンツを取得
+        // 指定のdataIdのコンテンツを取得
         const sql = `
         select * from datas d 
         inner join contents c on c.data_id = d.data_id 

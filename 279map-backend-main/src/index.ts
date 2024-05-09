@@ -48,8 +48,8 @@ import { DataId, MapKind } from './types-common/common-types';
 import { AuthMethod, ItemDefineWithoudContents } from './types';
 import { getImage } from './api/getImage';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
-import { getLinkedContent } from './api/getLinkedContents';
-import { getContent } from './api/getContent';
+import { getLinkedContent } from './api/get-content/getLinkedContents';
+import { getContent } from './api/get-content/getContent';
 
 type GraphQlContextType = {
     request: express.Request,
