@@ -218,44 +218,11 @@ export function geoJsonToTurfFeatureCollection(geoJsons: (geojson.Geometry | geo
     return list;
 }
 
-export async function getDatasourceRecord(datasourceId: string): Promise<DataSourceTable> {
-    const con = await ConnectionPool.getConnection();
-
-    try {
-        const sql = 'select * from data_source where data_source_id = ?';
-        const [rows] = await con.execute(sql, [datasourceId]);
-        if ((rows as []).length === 0) {
-            throw new Error('data_source not find. ->' + datasourceId);
-        }
-        return (rows as DataSourceTable[])[0];
-
-    } finally {
-        await con.commit();
-        con.release();
-    }
-}
-
 export function isEqualId(id1: DataId, id2: DataId): boolean {
     return id1 === id2;
     // return id1.id === id2.id && id1.dataSourceId === id2.dataSourceId;
 }
 
-export async function getDatasourceIdOfTheDataId(data_id: DataId): Promise<string> {
-    const con = await ConnectionPool.getConnection();
-
-    try {
-        const sql = 'select * from datas where data_id = ?';
-        const [rows] = await con.execute(sql, [data_id]);
-        if ((rows as []).length === 0) {
-            throw new Error('data_id not find. ->' + data_id);
-        }
-
-        return (rows as DatasTable[])[0].data_source_id;
-
-    } finally {
-        con.release();
-    }
-}
 /**
  * コンテンツ登録や更新時に、誤った値がODBAに渡されないように処置する
  * @param mapId 地図ID

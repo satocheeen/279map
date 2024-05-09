@@ -330,8 +330,6 @@ export type Query = {
   geocoder: Array<GeocoderItem>;
   getCategory: Array<CategoryDefine>;
   getContent: ContentsDefine;
-  getContents: Array<ContentsDefine>;
-  getContentsInItem: Array<ContentsDefine>;
   getEvent: Array<EventDefine>;
   getGeocoderFeature: Scalars['Geometry']['output'];
   /** 指定の画像を返す */
@@ -365,16 +363,6 @@ export type QueryGetCategoryArgs = {
 
 export type QueryGetContentArgs = {
   id: Scalars['DataId']['input'];
-};
-
-
-export type QueryGetContentsArgs = {
-  ids: Array<Scalars['DataId']['input']>;
-};
-
-
-export type QueryGetContentsInItemArgs = {
-  itemId: Scalars['DataId']['input'];
 };
 
 
@@ -996,8 +984,6 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   geocoder?: Resolver<Array<ResolversTypes['GeocoderItem']>, ParentType, ContextType, RequireFields<QueryGeocoderArgs, 'address' | 'searchTarget'>>;
   getCategory?: Resolver<Array<ResolversTypes['CategoryDefine']>, ParentType, ContextType, Partial<QueryGetCategoryArgs>>;
   getContent?: Resolver<ResolversTypes['ContentsDefine'], ParentType, ContextType, RequireFields<QueryGetContentArgs, 'id'>>;
-  getContents?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentsArgs, 'ids'>>;
-  getContentsInItem?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentsInItemArgs, 'itemId'>>;
   getEvent?: Resolver<Array<ResolversTypes['EventDefine']>, ParentType, ContextType, Partial<QueryGetEventArgs>>;
   getGeocoderFeature?: Resolver<ResolversTypes['Geometry'], ParentType, ContextType, RequireFields<QueryGetGeocoderFeatureArgs, 'id'>>;
   getImage?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryGetImageArgs, 'imageId' | 'size'>>;

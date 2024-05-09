@@ -157,7 +157,7 @@ export type TsunaguMapProps = {
 }
 
 export type LoadContentsResult = {
-    contents: ContentsDefine[];
+    content: ContentsDefine;
     unsubscribe?: () => void;   // callbackを渡した場合に格納されている
 }
 
@@ -270,16 +270,11 @@ export interface TsunaguMapHandler {
     drawRoad(dataSourceId: string): void;
 
     /**
-     * 指定のアイテム配下のコンテンツを取得する
-     * @param itemId 
+     * 指定のDataIdに属するコンテンツを取得する
+     * @param dataId 
+     * @return 指定のDataIdに属するコンテンツ. 属するコンテンツが存在しない場合は、nul
      */
-    loadContentsInItem(itemId: DataId, changeListener?: (contentId: DataId, operation: 'update' | 'delete') => void): Promise<LoadContentsResult>;
-
-    /**
-     * 指定のコンテンツを取得する
-     * @param contentIds 
-     */
-    loadContents(contentIds: DataId[], changeListener?: (contentId: DataId, operation: 'update' | 'delete') => void): Promise<LoadContentsResult>;
+    loadContent(dataId: DataId, changeListener?: (contentId: DataId, operation: 'update' | 'delete') => void): Promise<LoadContentsResult | null>;
 
     /**
      * 指定の画像データ(Base64)を取得する

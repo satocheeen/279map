@@ -96,22 +96,6 @@ query getContent(
 ) {
     getContent(id: $id) {
         ...content
-    }
-}
-
-query getContents(
-    $ids: [DataId!]!
-) {
-    getContents(ids: $ids) {
-        ...content
-    }
-}
-
-query getContentsInItem(
-    $itemId: DataId!
-) {
-    getContentsInItem(itemId: $itemId) {
-        ...content
         children {
             ...content
         }

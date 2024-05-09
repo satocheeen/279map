@@ -159,8 +159,6 @@ type Query {
     getCategory(datasourceIds: [String!]): [CategoryDefine!]!
     getEvent(datasourceIds: [String!]): [EventDefine!]!
     getContent(id: DataId!): ContentsDefine!
-    getContents(ids: [DataId!]!): [ContentsDefine!]!
-    getContentsInItem(itemId: DataId!): [ContentsDefine!]!
 
     "未割当コンテンツを取得する"
     getUnpointContents(

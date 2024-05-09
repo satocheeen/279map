@@ -5,11 +5,10 @@ import { getItems } from './getItems';
 import { configure, getLogger } from "log4js";
 import { DbSetting, LogSetting } from './config';
 import { getThumbnail } from './api/getThumbnsil';
-import { getContents } from './getContents';
 import { getEvents } from './getEvents';
 import proxy from 'express-http-proxy';
 import http from 'http';
-import { getDatasourceIdOfTheDataId, getDatasourceRecord, getItemWkt } from './util/utility';
+import { getItemWkt } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
 import { getSnsPreview } from './api/getSnsPreview';
@@ -32,7 +31,7 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { IFieldResolverOptions } from '@graphql-tools/utils';
-import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkDataArgs, MutationRegistDataArgs, MutationRemoveDataArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkDataArgs, MutationUpdateDataArgs, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription } from './graphql/__generated__/types';
+import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkDataArgs, MutationRegistDataArgs, MutationRemoveDataArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkDataArgs, MutationUpdateDataArgs, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { GeoPropertiesScalarType, GeocoderIdInfoScalarType, IconKeyScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -422,46 +421,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
 
                 } catch(e) {    
                     apiLogger.warn('getContent error', param, e);
-                    throw e;
-                }
-            },
-            getContents: async(parent: any, param: QueryGetContentsArgs, ctx): QueryResolverReturnType<'getContents'> => {
-                try {
-                    const result = await getContents({
-                        param: param.ids.map(id => {
-                            return {
-                                contentId: id,
-                            }
-                        }),
-                        currentMap: ctx.currentMap,
-                        authLv: ctx.authLv,
-                    });
-
-                    return result;
-
-                } catch(e) {    
-                    apiLogger.warn('getContents error', param, e);
-                    throw e;
-                }
-
-            },
-            /**
-             * 指定のアイテムに属するコンテンツ取得
-             */
-            getContentsInItem: async(parent: any, param: QueryGetContentsInItemArgs, ctx): QueryResolverReturnType<'getContentsInItem'> => {
-                try {
-                    const result = await getContents({
-                        param: [{
-                            itemId: param.itemId,
-                        }],
-                        currentMap: ctx.currentMap,
-                        authLv: ctx.authLv,
-                    });
-
-                    return result;
-
-                } catch(e) {    
-                    apiLogger.warn('getContentsInItem error', param, e);
                     throw e;
                 }
             },
