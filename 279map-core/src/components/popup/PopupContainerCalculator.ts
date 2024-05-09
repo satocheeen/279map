@@ -91,7 +91,7 @@ export default class PopupContainerCalculator {
 
                 const hasImage = itemIds.some(itemId => {
                     const target = this._hasContentsItemList.find(item => isEqualId(itemId, item.id));
-                    return target?.contents.some(c => c.hasImage) ?? false;
+                    return (target?.content?.hasImage || target?.content?.children?.some(c => c.hasImage)) ?? false;
                 });
     
                 popupInfoList.push({
@@ -123,7 +123,7 @@ export default class PopupContainerCalculator {
                 }
 
                 const item = this._hasContentsItemList.find(item => isEqualId(id, item.id));
-                const hasImage = item?.contents.some(c => c.hasImage) ?? false;
+                const hasImage = (item?.content?.hasImage || item?.content?.children?.some(c => c.hasImage)) ?? false;
 
                 popupInfoList.push({
                     mainFeature: feature,

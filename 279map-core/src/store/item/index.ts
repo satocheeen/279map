@@ -68,7 +68,6 @@ export const allItemsAtom = atom<ItemInfo[]>((get) => {
                 geometry: itemProcess.item.geometry,
                 geoProperties: itemProcess.item.geoProperties,
                 name: '',
-                contents: [],
                 // hasContents: false,
                 // hasImageContentId: [],
                 lastEditedTime: '',
@@ -88,7 +87,7 @@ export const allItemsAtom = atom<ItemInfo[]>((get) => {
                         return {
                             id: currentItem.id,
                             datasourceId: currentItem.datasourceId,
-                            contents: currentItem.contents,
+                            content: currentItem.content,
                             geometry: tempItem.geometry ?? currentItem.geometry,
                             geoProperties: tempItem.geoProperties ?? currentItem.geoProperties,
                             lastEditedTime: '',
@@ -129,7 +128,6 @@ export const allItemsAtom = atom<ItemInfo[]>((get) => {
                 geometry: overrideItem.geometry,
                 geoProperties: overrideItem.geoProperties,
                 name: overrideItem.name,
-                contents: [],
                 // hasContents: false,
                 // hasImageContentId: [],
                 lastEditedTime: '',
@@ -149,7 +147,7 @@ export const allItemsAtom = atom<ItemInfo[]>((get) => {
                         geometry: overrideItem.geometry ?? item.geometry,
                         geoProperties: overrideItem.geoProperties ?? item.geoProperties,
                         name: overrideItem.name ?? item.name,
-                        contents: item.contents,
+                        content: item.content ?? undefined,
                         lastEditedTime: item.lastEditedTime,
                     }
                 })
@@ -197,18 +195,18 @@ export const allItemContentListAtom = atom<ItemType[]>((get) => {
         const itemId: DataId = item.id; //{ dataSourceId: dsId, id };
         const filterdItemInfo = !filteredItems ? undefined : filteredItems.find(fi => isEqualId(fi.id, itemId));
 
-        const belongContents = item.contents.reduce((acc, cur) => {
-            const childrenIds = cur.children?.map(child => child.id) ?? [];
-            return [...acc, cur.id, ...childrenIds];
-        }, [] as DataId[]);
-        const contents = [] as ItemType['contents'];
-        belongContents.forEach(contentId => {
-            const hit = filterdItemInfo?.hitContents.some(hc => isEqualId(hc, contentId));
-            contents.push({
-                id: contentId,
-                filterHit: hit,
-            });
-        })
+        // const belongContents = item.contents.reduce((acc, cur) => {
+        //     const childrenIds = cur.children?.map(child => child.id) ?? [];
+        //     return [...acc, cur.id, ...childrenIds];
+        // }, [] as DataId[]);
+        // const contents = [] as ItemType['content'];
+        // belongContents.forEach(contentId => {
+        //     const hit = filterdItemInfo?.hitContents.some(hc => isEqualId(hc, contentId));
+        //     contents.push({
+        //         id: contentId,
+        //         filterHit: hit,
+        //     });
+        // })
         list.push({
             id: itemId,
             name: item.name,
@@ -218,7 +216,7 @@ export const allItemContentListAtom = atom<ItemType[]>((get) => {
             },
             lastEditedTime: item.lastEditedTime,
             filterHit: filterdItemInfo?.hitItem,
-            contents,
+            content: item.content ?? undefined,
         })
     })
     return list;
@@ -236,7 +234,7 @@ export const showingItemsAtom = atom<ItemType[]>((get) => {
         if (!visibleDataSourceIds.includes(item.datasourceId)) return;
         items.push({
             id: item.id,
-            contents: item.contents,
+            content: item.content ?? undefined,
             geoInfo: {
                 geometry: item.geometry,
                 geoProperties: item.geoProperties,

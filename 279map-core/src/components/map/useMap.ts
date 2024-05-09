@@ -200,7 +200,7 @@ export function useMap() {
                                     name: i.name,
                                     geometry: i.geometry,
                                     geoProperties: i.geoProperties,
-                                    contents: i.contents,
+                                    content: i.content,
                                     lastEditedTime: i.lastEditedTime,
                                 }
                             }) ?? [];
@@ -341,7 +341,7 @@ export function useMap() {
                         geometry: item.geometry,
                         geoProperties: item.geoProperties,
                         name: item.name,
-                        contents: item.contents,
+                        content: item.content,
                         lastEditedTime: item.lastEditedTime,
                     }
                 });

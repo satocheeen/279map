@@ -41,10 +41,10 @@ export type ItemType = {
     geoInfo: ItemGeoInfo;
     lastEditedTime: string;
     filterHit?: boolean;   // フィルタ時にフィルタ条件に該当した場合、true
-    contents: {
+    content?: {
         id: DataId
         filterHit?: boolean;   // フィルタ時にフィルタ条件に該当した場合、true
-    }[];
+    };
 
 }
 

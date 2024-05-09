@@ -56,12 +56,14 @@ query getItems (
         geometry
         geoProperties
         lastEditedTime
-        contents {
+        content {
             id
             hasValue
             hasImage
             children {
                 id
+                hasValue
+                hasImage
             }
         }
     }
@@ -77,12 +79,14 @@ query getItemsById (
         geometry
         geoProperties
         lastEditedTime
-        contents {
+        content {
             id
             hasValue
             hasImage
             children {
                 id
+                hasValue
+                hasImage
             }
         }
     }

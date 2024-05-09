@@ -49,6 +49,8 @@ import { DataId, MapKind } from './types-common/common-types';
 import { AuthMethod, ItemDefineWithoudContents } from './types';
 import { getImage } from './api/getImage';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
+import { getLinkedContent } from './api/getLinkedContents';
+import { getContent } from './api/getContent';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -396,18 +398,27 @@ const schema = makeExecutableSchema<GraphQlContextType>({
              */
             getContent: async(parent: any, param: QueryGetContentArgs, ctx): QueryResolverReturnType<'getContent'> => {
                 try {
-                    const result = await getContents({
-                        param: [{
-                            contentId: param.id,
-                        }],
+                    const result = await getContent({
+                        dataId: param.id,
                         currentMap: ctx.currentMap,
                         authLv: ctx.authLv,
                     });
-                    if (result.length === 0) {
-                        throw new Error('not found');
+                    if (!result) {
+                        throw new Error('not find content');
                     }
+                    return result;
+                    // const result = await getContents({
+                    //     param: [{
+                    //         contentId: param.id,
+                    //     }],
+                    //     currentMap: ctx.currentMap,
+                    //     authLv: ctx.authLv,
+                    // });
+                    // if (result.length === 0) {
+                    //     throw new Error('not found');
+                    // }
 
-                    return result[0];
+                    // return result[0];
 
                 } catch(e) {    
                     apiLogger.warn('getContent error', param, e);
@@ -1015,18 +1026,34 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
             }
         }as Record<keyof Subscription, IFieldResolverOptions<any, GraphQlContextType, any>>,
-        ItemDefine: {
-            contents: async(parent: ItemDefineWithoudContents, _, ctx): Promise<ContentsDefine[]> => {
-                const result = await getContents({
-                    param: [{
-                        itemId: parent.id,
-                    }],
+        ContentsDefine: {
+            children: async(parent: Omit<ContentsDefine, 'children'>, _, ctx): Promise<ContentsDefine[]> => {
+                const result = await getLinkedContent({
+                    dataId: parent.id,
                     currentMap: ctx.currentMap,
                     authLv: ctx.authLv,
                 });
+                return result;
+            },
+        },
+        ItemDefine: {
+            content: async(parent: ItemDefineWithoudContents, _, ctx): Promise<ContentsDefine|null> => {
+                const result = getContent({
+                    dataId: parent.id,
+                    currentMap: ctx.currentMap,
+                    authLv: ctx.authLv,
+                });
+                return result;
+                // const result = await getContents({
+                //     param: [{
+                //         itemId: parent.id,
+                //     }],
+                //     currentMap: ctx.currentMap,
+                //     authLv: ctx.authLv,
+                // });
 
                 // 値を持つコンテンツのみを返す（コンテンツ）
-                return result.filter(c => c.hasValue);
+                // return result.filter(c => c.hasValue);
             }
         },
         // DataId: DataIdScalarType,

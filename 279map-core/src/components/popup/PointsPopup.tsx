@@ -63,7 +63,7 @@ export default function PointsPopup(props: Props) {
             return infos[0];
         }
         // 複数アイテムが表示対象の場合は、画像を持つもののみ表示対象
-        const ownImageInfos = infos.filter(item => item.contents.some(c => c.hasImage));
+        const ownImageInfos = infos.filter(item => item.content?.hasImage || item.content?.children?.some(c => c.hasImage));
         if (ownImageInfos.length === 0) {
             // 画像を持つものがない場合は、冒頭
             return infos[0];
@@ -79,14 +79,26 @@ export default function PointsPopup(props: Props) {
         if (!target) return null;
         if (popupMode !== 'maximum') return null;
 
-        const hasImageContent = target.contents.filter(c => c.hasImage);
+        const hasImageContent = function() {
+            const list: ItemInfo['content'][] = [];
+            if (target.content?.hasImage) {
+                list.push(target.content)
+            }
+            target.content?.children?.forEach(c => {
+                if (c.hasImage) {
+                    list.push(c);
+                }
+            })
+            return list;
+        }();
+        // const hasImageContent = target.contents.filter(c => c.hasImage);
         if (hasImageContent.length === 0) {
             return null;
         }
         if (!filteredContentIdList) {
-            return hasImageContent[0].id;
+            return hasImageContent[0]?.id ?? null;
         }
-        return hasImageContent.find(c => filteredContentIdList.some(f => f === c.id))?.id ?? null;
+        return hasImageContent.find(c => filteredContentIdList.some(f => f === c?.id))?.id ?? null;
 
     }, [target, filteredContentIdList, popupMode]);
 

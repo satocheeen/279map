@@ -23,8 +23,8 @@ type ItemDefine {
     geoProperties: GeoProperties!
     lastEditedTime: String!
 
-    "アイテムに紐づくコンテンツ一覧"
-    contents: [ContentsDefine!]!
+    "アイテムに紐づくコンテンツ"
+    content: ContentsDefine
 }
 
 type CategoryDefine {

@@ -24,7 +24,6 @@ export async function getCategory(param: QueryGetCategoryArgs, currentMap: Curre
         const records = await getAllCategories(currentMap, param.datasourceIds ?? undefined);
         const categoryMap = new Map<string, CategoryDefine>();
         records.forEach((row) => {
-            console.log('row.category', row.category)
             const categories = row.category ?? [];
             categories.forEach(category => {
                 if (!categoryMap.has(category)) {

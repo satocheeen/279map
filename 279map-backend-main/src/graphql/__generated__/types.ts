@@ -171,8 +171,8 @@ export type ItemDatasourceInfo = {
 };
 
 export type ItemDefine = {
-  /** アイテムに紐づくコンテンツ一覧 */
-  contents: Array<ContentsDefine>;
+  /** アイテムに紐づくコンテンツ */
+  content?: Maybe<ContentsDefine>;
   datasourceId: Scalars['String']['output'];
   geoProperties: Scalars['GeoProperties']['output'];
   geometry: Scalars['Geometry']['output'];
@@ -913,7 +913,7 @@ export type ItemDatasourceInfoResolvers<ContextType = any, ParentType extends Re
 };
 
 export type ItemDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemDefine'] = ResolversParentTypes['ItemDefine']> = {
-  contents?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType>;
+  content?: Resolver<Maybe<ResolversTypes['ContentsDefine']>, ParentType, ContextType>;
   datasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   geoProperties?: Resolver<ResolversTypes['GeoProperties'], ParentType, ContextType>;
   geometry?: Resolver<ResolversTypes['Geometry'], ParentType, ContextType>;
