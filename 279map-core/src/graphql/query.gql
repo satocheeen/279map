@@ -107,10 +107,9 @@ fragment content on ContentsDefine {
     datasourceId
     parentId
     values
-    usingAnotherMap
+    usingOtherMap
     anotherMapItemId
-    isEditable
-    isDeletable
+    readonly
     hasValue
     hasImage
 }

@@ -55,10 +55,12 @@ type ContentsDefine {
     hasImage: Boolean!
     values: ContentValueMap!
     children: [ContentsDefine!]
-    usingAnotherMap: Boolean!
+    "他の地図でも参照されているか"
+    usingOtherMap: Boolean!
+    "もう片方の地図で参照されている場合に、その参照元のID"
     anotherMapItemId: DataId
-    isEditable: Boolean!
-    isDeletable: Boolean!
+    "trueの場合、ユーザ権限に関わらずreadonly"
+    readonly: Boolean
 }
 type UnpointContent {
     id: DataId!

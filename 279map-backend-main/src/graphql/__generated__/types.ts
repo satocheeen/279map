@@ -108,16 +108,18 @@ export type ContentsDatasourceInput = {
 };
 
 export type ContentsDefine = {
+  /** もう片方の地図で参照されている場合に、その参照元のID */
   anotherMapItemId?: Maybe<Scalars['DataId']['output']>;
   children?: Maybe<Array<ContentsDefine>>;
   datasourceId: Scalars['String']['output'];
   hasImage: Scalars['Boolean']['output'];
   hasValue: Scalars['Boolean']['output'];
   id: Scalars['DataId']['output'];
-  isDeletable: Scalars['Boolean']['output'];
-  isEditable: Scalars['Boolean']['output'];
   parentId?: Maybe<Scalars['DataId']['output']>;
-  usingAnotherMap: Scalars['Boolean']['output'];
+  /** trueの場合、ユーザ権限に関わらずreadonly */
+  readonly?: Maybe<Scalars['Boolean']['output']>;
+  /** 他の地図でも参照されているか */
+  usingOtherMap: Scalars['Boolean']['output'];
   values: Scalars['ContentValueMap']['output'];
 };
 
@@ -817,10 +819,9 @@ export type ContentsDefineResolvers<ContextType = any, ParentType extends Resolv
   hasImage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   hasValue?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
-  isDeletable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  isEditable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   parentId?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType>;
-  usingAnotherMap?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  readonly?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  usingOtherMap?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   values?: Resolver<ResolversTypes['ContentValueMap'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };

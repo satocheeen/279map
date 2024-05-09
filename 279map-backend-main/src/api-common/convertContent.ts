@@ -1,8 +1,7 @@
-import { ContentsTable, CurrentMap, DataLinkTable, ImagesTable, MapDataSourceLinkTable } from "../../279map-backend-common/src";
+import { DataSourceTable, ContentsTable, CurrentMap, DataLinkTable, ImagesTable, MapDataSourceLinkTable } from "../../279map-backend-common/src";
 import { Auth, ContentsDefine } from "../graphql/__generated__/types";
 import { ContentFieldDefine, ContentValueMap, DataId, DatasourceLocationKindType, MapKind } from "../types-common/common-types";
 import { ConnectionPool } from "..";
-import { DataSourceTable } from "../../279map-backend-common/dist";
 
 type Record = ContentsTable & DataSourceTable & MapDataSourceLinkTable;
 
@@ -14,34 +13,11 @@ export async function convertContentsToContentsDefine(row: Record, currentMap: C
 
     const id = row.data_id;
     const anotherMapItemIds = await getAnotherMapKindItemsUsingTheContent(id, currentMap);
-    const usingAnotherMap = anotherMapItemIds.length > 0 ? true : await checkUsingAnotherMap(id, currentMap.mapId);
+    const usingOtherMap = anotherMapItemIds.length > 0 ? true : await checkUsingAnotherMap(id, currentMap.mapId);
 
-    const isEditable = function() {
-        if (authLv === Auth.None || authLv === Auth.View) {
-            return false;
-        }
+    const readonly = function() {
         if (row.location_kind === DatasourceLocationKindType.VirtualItem) return true;
-
-        return row.config.readonly ? false : true;
-    }();
-
-    const isDeletable = function() {
-        if (authLv === Auth.None || authLv === Auth.View) {
-            return false;
-        }
-
-        // アイテムと対になっているコンテンツは削除不可
-        // TODO: itemテーブルに同一IDのレコードが存在するか確認
-        // if (row.kind === DatasourceLocationKindType.RealPointContent && itemId && isEqualId(itemId, { id: row.content_page_id, dataSourceId: row.data_source_id})) {
-        //     return false;
-        // }
-        if (row.location_kind === DatasourceLocationKindType.VirtualItem) return false;
-
-        // 別の地図で使用されている場合は削除不可にする
-        if (usingAnotherMap) return false;
-
-        // readonlyは削除不可
-        return row.config.readonly ? false : true;
+        return row.config.readonly;
     }();
 
     let hasValue = false;
@@ -84,12 +60,11 @@ export async function convertContentsToContentsDefine(row: Record, currentMap: C
         id,
         datasourceId: row.data_source_id,
         values,
-        usingAnotherMap,
         hasValue,
         hasImage,
         anotherMapItemId: anotherMapItemIds.length > 0 ? anotherMapItemIds[0] : undefined,  // 複数存在する場合は１つだけ返す
-        isEditable,
-        isDeletable,
+        usingOtherMap,
+        readonly,
     };
 }
 
