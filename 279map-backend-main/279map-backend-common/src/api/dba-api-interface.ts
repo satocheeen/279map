@@ -54,7 +54,12 @@ export const OdbaUnlinkDataAPI = {
     uri: 'unlink-data',
     method: 'post',
     resultType: 'none',
-} as APIDefine<OdbaUnlinkDataParam, void>;
+} as APIDefine<OdbaUnLinkDataParam, void>;
+
+export type OdbaUnLinkDataParam = CommonParam & ({
+    id: DataId;
+    parent: DataId;
+})
 
 export type OdbaUnlinkDataParam = CommonParam & {
     id: DataId;
@@ -96,9 +101,11 @@ export const OdbaLinkDataAPI = {
 } as APIDefine<OdbaLinkDataParam, void>;
 
 export type OdbaLinkDataParam = CommonParam & ({
+    type: 'dataId',
     id: DataId;
     parent: DataId;
 } | {
+    type: 'originalId',
     originalId: string;
     parent: DataId;
 })
