@@ -335,7 +335,7 @@ export interface TsunaguMapHandler {
         keyword?: string
     }): Promise<{
         contents: {
-            id: DataId,
+            originalId: string,
             title: string;
             overview?: string;
             thumb?: string;

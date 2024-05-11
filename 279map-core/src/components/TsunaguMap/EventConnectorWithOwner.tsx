@@ -252,7 +252,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             }
             return {
                 contents: result.data.getUnpointContents.contents.map(c => ({
-                    id: c.id,
+                    originalId: c.originalId,
                     title: c.title,
                     thumb: c.thumb ?? undefined,
                     overview: c.overview ?? undefined,

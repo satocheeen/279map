@@ -246,7 +246,10 @@ export type Mutation = {
   changeAuthLevel?: Maybe<Scalars['Boolean']['output']>;
   connect: ConnectResult;
   disconnect?: Maybe<Scalars['Boolean']['output']>;
+  /** データをリンクする */
   linkData?: Maybe<Scalars['Boolean']['output']>;
+  /** データをリンクする（オリジナルID指定版） */
+  linkDataByOriginalId?: Maybe<Scalars['Boolean']['output']>;
   /** データ登録 */
   registData: Scalars['DataId']['output'];
   /** データ削除 */
@@ -272,6 +275,12 @@ export type MutationConnectArgs = {
 
 export type MutationLinkDataArgs = {
   id: Scalars['DataId']['input'];
+  parent: Scalars['DataId']['input'];
+};
+
+
+export type MutationLinkDataByOriginalIdArgs = {
+  originalId: Scalars['String']['input'];
   parent: Scalars['DataId']['input'];
 };
 
@@ -545,7 +554,7 @@ export enum ThumbSize {
 }
 
 export type UnpointContent = {
-  id: Scalars['DataId']['output'];
+  originalId: Scalars['String']['output'];
   overview?: Maybe<Scalars['String']['output']>;
   thumb?: Maybe<Scalars['String']['output']>;
   title: Scalars['String']['output'];
@@ -961,6 +970,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   connect?: Resolver<ResolversTypes['ConnectResult'], ParentType, ContextType, RequireFields<MutationConnectArgs, 'mapId'>>;
   disconnect?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   linkData?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkDataArgs, 'id' | 'parent'>>;
+  linkDataByOriginalId?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkDataByOriginalIdArgs, 'originalId' | 'parent'>>;
   registData?: Resolver<ResolversTypes['DataId'], ParentType, ContextType, RequireFields<MutationRegistDataArgs, 'datasourceId'>>;
   removeData?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveDataArgs, 'id'>>;
   request?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRequestArgs, 'mapId' | 'name'>>;
@@ -1036,7 +1046,7 @@ export type TargetResolvers<ContextType = any, ParentType extends ResolversParen
 };
 
 export type UnpointContentResolvers<ContextType = any, ParentType extends ResolversParentTypes['UnpointContent'] = ResolversParentTypes['UnpointContent']> = {
-  id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
+  originalId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   overview?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   thumb?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

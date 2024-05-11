@@ -53,7 +53,6 @@ input RegistDataItemInput {
     geometry: Geometry!
     geoProperties: GeoProperties!
 }
-
 type Mutation {
     connect (
         mapId: String!
@@ -85,8 +84,17 @@ type Mutation {
         id: DataId!
     ): Boolean!
 
+    "データをリンクする"
     linkData (
         id: DataId!
+        parent: DataId!
+    ): Boolean
+
+    """
+    データをリンクする（オリジナルID指定版）
+    """
+    linkDataByOriginalId (
+        originalId: String!
         parent: DataId!
     ): Boolean
 

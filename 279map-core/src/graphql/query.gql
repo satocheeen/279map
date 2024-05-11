@@ -121,7 +121,7 @@ query getUnpointContents(
 ) {
     getUnpointContents(datasourceId: $datasourceId, nextToken: $nextToken, keyword: $keyword) {
         contents {
-            id
+            originalId
             title
             thumb
             overview

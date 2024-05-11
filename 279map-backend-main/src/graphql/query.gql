@@ -63,7 +63,7 @@ type ContentsDefine {
     readonly: Boolean
 }
 type UnpointContent {
-    id: DataId!
+    originalId: String!
     title: String!
     thumb: String
     overview: String

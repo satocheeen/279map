@@ -30,7 +30,7 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { IFieldResolverOptions } from '@graphql-tools/utils';
-import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkDataArgs, MutationRegistDataArgs, MutationRemoveDataArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkDataArgs, MutationUpdateDataArgs, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription } from './graphql/__generated__/types';
+import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkDataArgs, MutationLinkDataByOriginalIdArgs, MutationRegistDataArgs, MutationRemoveDataArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkDataArgs, MutationUpdateDataArgs, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { GeoPropertiesScalarType, GeocoderIdInfoScalarType, IconKeyScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -796,6 +796,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     // call ODBA
                     await callOdbaApi(OdbaLinkDataAPI, {
                         currentMap: ctx.currentMap,
+                        type: 'dataId',
                         id: param.id,
                         parent: param.parent,
                     });
@@ -814,6 +815,33 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             
                 } catch(e) {
                     apiLogger.warn('link-content2item API error', param, e);
+                    throw e;
+                }
+            },
+
+            linkDataByOriginalId: async(_, param: MutationLinkDataByOriginalIdArgs, ctx): MutationResolverReturnType<'linkDataByOriginalId'> => {
+                try {
+                    await callOdbaApi(OdbaLinkDataAPI, {
+                        currentMap: ctx.currentMap,
+                        type: 'originalId',
+                        originalId: param.originalId,
+                        parent: param.parent,
+                    });
+
+                    // 更新通知
+                    const id = param.parent;
+                    const item = await getItem(id);
+                    const wkt = await getItemWkt(id);
+                    if (!wkt) {
+                        logger.warn('not found extent', id);
+                    } else {
+                        pubsub.publish('itemUpdate', ctx.currentMap, [ { id, datasourceId: item?.datasourceId ?? '', wkt } ]);
+                    }
+
+                    return true;
+
+                } catch(e) {
+                    apiLogger.warn('linkDataByOriginalId API error', param, e);
                     throw e;
                 }
             },
