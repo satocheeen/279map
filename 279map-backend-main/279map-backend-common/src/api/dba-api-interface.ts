@@ -76,7 +76,7 @@ export type OdbaGetUnpointDataParam = CommonParam & {
     keyword?: string;
 }
 export type UnpointContent = {
-    id: DataId;
+    originalId: string;
     title: string;
     thumb?: string;
     overview?: string;
@@ -95,10 +95,13 @@ export const OdbaLinkDataAPI = {
     resultType: 'none',
 } as APIDefine<OdbaLinkDataParam, void>;
 
-export type OdbaLinkDataParam = CommonParam & {
+export type OdbaLinkDataParam = CommonParam & ({
     id: DataId;
     parent: DataId;
-}
+} | {
+    originalId: string;
+    parent: DataId;
+})
 
 export const OdbaGetImageUrlAPI = {
     uri: 'get-imageurl',
