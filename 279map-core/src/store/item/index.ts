@@ -148,17 +148,18 @@ export const latestEditedTimeOfDatasourceAtom = atom((get) => {
 })
 
 /**
- * ロード済みのアイテム一覧
+ * 現在表示状態にあるアイテム一覧を返す
  */
-export const allItemContentListAtom = atom<ItemType[]>((get) => {
-    const allItems = get(allItemsAtom);
+export const showingItemsAtom = atom<ItemType[]>((get) => {
+    const storedItems = get(storedItemsAtom);
+    const visibleDataSourceIds = get(visibleDataSourceIdsAtom);
     const filteredItems = get(filteredItemsAtom);
-    const list = [] as ItemType[];
-    Object.entries(allItems).forEach(([dsId, itemMap]) => {
-        Object.entries(itemMap).forEach(([id, item]) => {
-            const itemId: DataId = { dataSourceId: dsId, id };
-            const filterdItemInfo = !filteredItems ? undefined : filteredItems.find(fi => isEqualId(fi.id, itemId));
 
+    const items: ItemType[] = [];
+    Object.entries(storedItems).forEach(([dsId, itemMap]) => {
+        if (!visibleDataSourceIds.includes(dsId)) return;
+        Object.values(itemMap).forEach(item => {
+            const filterdItemInfo = !filteredItems ? undefined : filteredItems.find(fi => isEqualId(fi.id, item.id));
             const belongContents = item.contents.reduce((acc, cur) => {
                 const childrenIds = cur.children?.map(child => child.id) ?? [];
                 return [...acc, cur.id, ...childrenIds];
@@ -171,36 +172,11 @@ export const allItemContentListAtom = atom<ItemType[]>((get) => {
                     filterHit: hit,
                 });
             })
-            list.push({
-                id: itemId,
-                name: item.name,
-                geoInfo: {
-                    geometry: item.geometry,
-                    geoProperties: item.geoProperties,
-                },
-                lastEditedTime: item.lastEditedTime,
-                filterHit: filterdItemInfo?.hitItem,
-                contents,
-            })
-        })
-    })
-    return list;
-})
 
-/**
- * 現在表示状態にあるアイテム一覧を返す
- */
-export const showingItemsAtom = atom<ItemType[]>((get) => {
-    const storedItems = get(storedItemsAtom);
-    const visibleDataSourceIds = get(visibleDataSourceIdsAtom);
-
-    const items: ItemType[] = [];
-    Object.entries(storedItems).forEach(([dsId, itemMap]) => {
-        if (!visibleDataSourceIds.includes(dsId)) return;
-        Object.values(itemMap).forEach(item => {
             items.push({
                 id: item.id,
-                contents: item.contents,
+                filterHit: filterdItemInfo?.hitItem,
+                contents,
                 geoInfo: {
                     geometry: item.geometry,
                     geoProperties: item.geoProperties,
