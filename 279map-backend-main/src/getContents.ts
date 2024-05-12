@@ -5,7 +5,7 @@ import { CurrentMap } from '../279map-backend-common/src';
 import { Auth, ContentsDefine } from './graphql/__generated__/types';
 import { DatasourceKindType, DataId, ContentValueMap, MapKind } from './types-common/common-types';
 import { isEqualId } from './util/utility';
-import { DatasourceTblConfig, ImagesTable } from '../279map-backend-common/dist';
+import { DatasourceTblConfig, ImagesTable } from '../279map-backend-common/src';
 
 type GetContentsParam = ({
     itemId: DataId;

@@ -5,7 +5,7 @@ import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 import crypto from 'crypto';
 import * as geojson from 'geojson';
 import { ContentValueMap, DataId } from '../types-common/common-types';
-import { MapDataSourceLinkTable } from '../../279map-backend-common/dist';
+import { MapDataSourceLinkTable } from '../../279map-backend-common/src';
 import { Auth } from '../graphql/__generated__/types';
 
 type Extent = number[];
