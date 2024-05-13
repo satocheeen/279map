@@ -10,7 +10,8 @@ import { loadable } from "jotai/utils";
  * 現在の地図で使用可能なアイコン定義
  */
 export type SystemIconDefine = Omit<IconDefine, 'useMaps'> & {
-    type: IconKey['type'],
+    type: IconKey['type'];
+    originalSvgData?: string;
 }
 
 /**
@@ -100,12 +101,14 @@ const currentMapIconDefinePromiseAtom = atom<Promise<SystemIconDefine[]>>(async(
                 try {
                     const response = await fetch(def.imagePath);
                     const data = await response.text();
-                    // return data;
                     if (def.defaultColor) {
                         const modifiedData = addFillStyle(data, def.defaultColor, 'my-color');
-                        return modifiedData;
+                        return {
+                            data,
+                            modifiedData,
+                        };
                     } else {
-                        return data;
+                        return { data };
                     }
                 } catch (error) {
                     console.warn('SVGファイルの読み込みに失敗しました:', error);
@@ -114,7 +117,8 @@ const currentMapIconDefinePromiseAtom = atom<Promise<SystemIconDefine[]>>(async(
             };
             const data = await fetchSvgData();
             if (!data) return def;
-            def.imagePath = 'data:image/svg+xml;utf8,' + data;
+            def.originalSvgData = data.data;
+            def.imagePath = 'data:image/svg+xml;utf8,' + (data.modifiedData ? data.modifiedData : data.data);
             return def;
         }
         return def;
@@ -132,7 +136,7 @@ export const currentMapIconDefineAtom = atom<SystemIconDefine[]>((get) => {
     return data.data;
 })
 
-const addFillStyle = (svgData: string, fillColor: string, targetClass: string) => {
+export const addFillStyle = (svgData: string, fillColor: string, targetClass: string) => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(svgData, 'image/svg+xml');
     const targetElements = doc.getElementsByClassName(targetClass);

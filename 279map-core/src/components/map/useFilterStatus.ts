@@ -9,7 +9,7 @@ import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import { FeatureType, GeoProperties } from '../../entry';
 
 const ERROR_COLOR = '#ff8888';
-const FORCE_COLOR = '#8888ff';
+export const FORCE_COLOR = '#b2438b';
 
 /**
  * 地物のフィルタ状態を返すフック

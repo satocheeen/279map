@@ -185,21 +185,22 @@ export const latestEditedTimeOfDatasourceAtom = atom((get) => {
 })
 
 /**
- * ロード済みのアイテム一覧
+ * 現在表示状態にあるアイテム一覧を返す
  */
-export const allItemContentListAtom = atom<ItemType[]>((get) => {
-    const allItems = get(allItemsAtom);
+export const showingItemsAtom = atom<ItemType[]>((get) => {
+    const storedItems = get(storedItemsAtom);
+    const visibleDataSourceIds = get(visibleDataSourceIdsAtom);
     const filteredItems = get(filteredItemsAtom);
-    const list = [] as ItemType[];
-    allItems.forEach(item => {
-        const itemId: DataId = item.id; //{ dataSourceId: dsId, id };
-        const filterdItemInfo = !filteredItems ? undefined : filteredItems.find(fi => isEqualId(fi.id, itemId));
 
+    const items: ItemType[] = [];
+    storedItems.forEach((item) => {
+        if (!visibleDataSourceIds.includes(item.datasourceId)) return;
+        const filterdItemInfo = !filteredItems ? undefined : filteredItems.find(fi => isEqualId(fi.id, item.id));
         // const belongContents = item.contents.reduce((acc, cur) => {
         //     const childrenIds = cur.children?.map(child => child.id) ?? [];
         //     return [...acc, cur.id, ...childrenIds];
         // }, [] as DataId[]);
-        // const contents = [] as ItemType['content'];
+        // const contents = [] as ItemType['contents'];
         // belongContents.forEach(contentId => {
         //     const hit = filterdItemInfo?.hitContents.some(hc => isEqualId(hc, contentId));
         //     contents.push({
@@ -207,34 +208,12 @@ export const allItemContentListAtom = atom<ItemType[]>((get) => {
         //         filterHit: hit,
         //     });
         // })
-        list.push({
-            id: itemId,
-            name: item.name,
-            geoInfo: {
-                geometry: item.geometry,
-                geoProperties: item.geoProperties,
-            },
-            lastEditedTime: item.lastEditedTime,
-            filterHit: filterdItemInfo?.hitItem,
-            content: item.content ?? undefined,
-        })
-    })
-    return list;
-})
 
-/**
- * 現在表示状態にあるアイテム一覧を返す
- */
-export const showingItemsAtom = atom<ItemType[]>((get) => {
-    const storedItems = get(storedItemsAtom);
-    const visibleDataSourceIds = get(visibleDataSourceIdsAtom);
-
-    const items: ItemType[] = [];
-    storedItems.forEach(item => {
-        if (!visibleDataSourceIds.includes(item.datasourceId)) return;
         items.push({
             id: item.id,
-            content: item.content ?? undefined,
+            filterHit: filterdItemInfo?.hitItem,
+            // TODO:
+            // content: itemInfo.content,
             geoInfo: {
                 geometry: item.geometry,
                 geoProperties: item.geoProperties,

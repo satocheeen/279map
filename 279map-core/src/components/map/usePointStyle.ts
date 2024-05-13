@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 import Feature, { FeatureLike } from "ol/Feature";
-import { Circle, Fill, Icon, Style, Text } from 'ol/style';
+import { Fill, Icon, Style, Text } from 'ol/style';
 import { getStructureScale } from "../../util/MapUtility";
-import useFilterStatus from "./useFilterStatus";
+import useFilterStatus, { FORCE_COLOR } from "./useFilterStatus";
 import { Geometry } from "ol/geom";
 import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
 import { useMap } from "./useMap";
@@ -17,7 +17,7 @@ import { DatasourceLocationKindType, IconKey } from "../../types-common/common-t
 import { useAtomCallback } from "jotai/utils";
 import { currentMapKindAtom } from "../../store/session";
 import { MapKind } from "../../entry";
-import { SystemIconDefine, currentDefaultIconAtom } from "../../store/icon";
+import { SystemIconDefine, addFillStyle, currentDefaultIconAtom } from "../../store/icon";
 import { allItemsAtom } from "../../store/item";
 
 const STRUCTURE_SELECTED_COLOR = '#8888ff';
@@ -83,14 +83,29 @@ export default function usePointStyle() {
                 });
 
             } else {
+                const { src, color } = function() {
+                    if (param.color && param.iconDefine.originalSvgData) {
+                        const forceData = addFillStyle(param.iconDefine.originalSvgData, param.color, 'my-color')
+                        return {
+                            src: 'data:image/svg+xml;utf8,' + forceData,
+                            color: undefined,
+                        }
+                    } else {
+                        return {
+                            src: param.iconDefine.imagePath,
+                            color: param.color,
+                        }
+                    }
+    
+                }();
                 
                 const style =  new Style({
                     image: new Icon({
                         anchor: [0.5, 1],
                         anchorXUnits: 'fraction', //IconAnchorUnits.FRACTION,
                         anchorYUnits: 'fraction', //IconAnchorUnits.FRACTION,
-                        src: param.iconDefine.imagePath,
-                        // color: param.iconDefine.defaultColor,
+                        src,
+                        color,
                         opacity: param.opacity,
                         scale,
                     }),
@@ -289,7 +304,7 @@ export default function usePointStyle() {
     }, [_createPointStyle]);
 
     const selectedStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style | Style[] => {
-        const style = _createPointStyle(feature as Feature<Geometry>, resolution, STRUCTURE_SELECTED_COLOR);
+        const style = _createPointStyle(feature as Feature<Geometry>, resolution, FORCE_COLOR);
 
         return style;
     }, [_createPointStyle]);
