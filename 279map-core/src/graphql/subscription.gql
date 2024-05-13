@@ -1,11 +1,13 @@
 # 地図上にアイテムが追加された場合に通知を受け取る
-subscription itemInsert (
+subscription dataInsert (
     $mapId: String!
     $mapKind: MapKind!
 ) {
-    itemInsert(mapId: $mapId, mapKind: $mapKind) {
+    dataInsert(mapId: $mapId, mapKind: $mapKind) {
         id
         datasourceId
+        hasItem
+        hasContent
         wkt
     }
 }

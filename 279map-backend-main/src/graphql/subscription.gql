@@ -1,10 +1,14 @@
 type Target {
-    "対象アイテムのID"
+    "対象のデータID"
     id: DataId!
-    "対象アイテムのデータソースID"
+    "対象のデータソースID"
     datasourceId: String!
-    "アイテムの地図範囲。update時は更新後範囲"
-    wkt: String!
+    "アイテム情報を持つデータの場合、true"
+    hasItem: Boolean!
+    "コンテンツ情報を持つデータの場合、true"
+    hasContent: Boolean!
+    "アイテムを持つ場合、地図範囲。update時は更新後範囲"
+    wkt: String
 }
 enum ErrorType {
     "アイテム登録に失敗した場合"
@@ -23,11 +27,12 @@ type ErrorInfo {
     "特定のアイテムに紐づくエラーの場合、アイテムID"
     itemId: DataId
 }
+
 type Subscription {
     """
-    地図上にアイテムが追加された場合に通知する
+    指定の地図上にデータが追加された場合に通知する
     """
-    itemInsert (
+    dataInsert (
         "対象の地図ID"
         mapId: String!
         "対象の地図種別"

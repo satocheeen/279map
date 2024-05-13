@@ -444,6 +444,8 @@ export enum SortCondition {
 export type Subscription = {
   /** 指定のコンテンツが更新/削除された場合に通知する */
   contentUpdate: Operation;
+  /** 指定の地図上にデータが追加された場合に通知する */
+  dataInsert: Array<Target>;
   /**
    * ユーザが操作している地図でエラーが発生した場合にエラー内容を通知する。
    * 突き放し実行している登録、更新処理でエラー発生した場合に通知するために用意。
@@ -451,8 +453,6 @@ export type Subscription = {
   error: ErrorInfo;
   /** 地図上のアイテムが削除された場合に通知する */
   itemDelete: Array<Scalars['DataId']['output']>;
-  /** 地図上にアイテムが追加された場合に通知する */
-  itemInsert: Array<Target>;
   /** 地図上のアイテムが更新された場合に通知する */
   itemUpdate: Array<Target>;
   /** 地図定義に変更があった場合 */
@@ -469,18 +469,18 @@ export type SubscriptionContentUpdateArgs = {
 };
 
 
+export type SubscriptionDataInsertArgs = {
+  mapId: Scalars['String']['input'];
+  mapKind: Scalars['MapKind']['input'];
+};
+
+
 export type SubscriptionErrorArgs = {
   sid: Scalars['String']['input'];
 };
 
 
 export type SubscriptionItemDeleteArgs = {
-  mapId: Scalars['String']['input'];
-  mapKind: Scalars['MapKind']['input'];
-};
-
-
-export type SubscriptionItemInsertArgs = {
   mapId: Scalars['String']['input'];
   mapKind: Scalars['MapKind']['input'];
 };
@@ -508,12 +508,16 @@ export type SubscriptionUserListUpdateArgs = {
 };
 
 export type Target = {
-  /** 対象アイテムのデータソースID */
+  /** 対象のデータソースID */
   datasourceId: Scalars['String']['output'];
-  /** 対象アイテムのID */
+  /** コンテンツ情報を持つデータの場合、true */
+  hasContent: Scalars['Boolean']['output'];
+  /** アイテム情報を持つデータの場合、true */
+  hasItem: Scalars['Boolean']['output'];
+  /** 対象のデータID */
   id: Scalars['DataId']['output'];
-  /** アイテムの地図範囲。update時は更新後範囲 */
-  wkt: Scalars['String']['output'];
+  /** アイテムを持つ場合、地図範囲。update時は更新後範囲 */
+  wkt?: Maybe<Scalars['String']['output']>;
 };
 
 export enum ThumbSize {
@@ -961,9 +965,9 @@ export type ServerConfigResolvers<ContextType = any, ParentType extends Resolver
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
   contentUpdate?: SubscriptionResolver<ResolversTypes['Operation'], "contentUpdate", ParentType, ContextType, RequireFields<SubscriptionContentUpdateArgs, 'contentId'>>;
+  dataInsert?: SubscriptionResolver<Array<ResolversTypes['Target']>, "dataInsert", ParentType, ContextType, RequireFields<SubscriptionDataInsertArgs, 'mapId' | 'mapKind'>>;
   error?: SubscriptionResolver<ResolversTypes['ErrorInfo'], "error", ParentType, ContextType, RequireFields<SubscriptionErrorArgs, 'sid'>>;
   itemDelete?: SubscriptionResolver<Array<ResolversTypes['DataId']>, "itemDelete", ParentType, ContextType, RequireFields<SubscriptionItemDeleteArgs, 'mapId' | 'mapKind'>>;
-  itemInsert?: SubscriptionResolver<Array<ResolversTypes['Target']>, "itemInsert", ParentType, ContextType, RequireFields<SubscriptionItemInsertArgs, 'mapId' | 'mapKind'>>;
   itemUpdate?: SubscriptionResolver<Array<ResolversTypes['Target']>, "itemUpdate", ParentType, ContextType, RequireFields<SubscriptionItemUpdateArgs, 'mapId' | 'mapKind'>>;
   mapInfoUpdate?: SubscriptionResolver<Maybe<ResolversTypes['Boolean']>, "mapInfoUpdate", ParentType, ContextType, RequireFields<SubscriptionMapInfoUpdateArgs, 'mapId'>>;
   updateUserAuth?: SubscriptionResolver<Maybe<ResolversTypes['Boolean']>, "updateUserAuth", ParentType, ContextType, RequireFields<SubscriptionUpdateUserAuthArgs, 'mapId' | 'userId'>>;
@@ -972,8 +976,10 @@ export type SubscriptionResolvers<ContextType = any, ParentType extends Resolver
 
 export type TargetResolvers<ContextType = any, ParentType extends ResolversParentTypes['Target'] = ResolversParentTypes['Target']> = {
   datasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  hasContent?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  hasItem?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
-  wkt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  wkt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

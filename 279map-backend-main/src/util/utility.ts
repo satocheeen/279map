@@ -4,7 +4,7 @@ import { buffer, circle, featureCollection, lineString, multiLineString, multiPo
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 import crypto from 'crypto';
 import * as geojson from 'geojson';
-import { ContentFieldDefine, ContentValueMap, DataId } from '../types-common/common-types';
+import { ContentFieldDefine, ContentValueMap, DataId, DatasourceLocationKindType, MapKind } from '../types-common/common-types';
 import { MapDataSourceLinkTable } from '../../279map-backend-common/src';
 import { Auth } from '../graphql/__generated__/types';
 
@@ -33,69 +33,49 @@ export function convertBase64ToBinary(base64: string) {
     };
 }
 
-// export async function getContent(content_id: DataId): Promise<ContentsTable|null> {
-//     const con = await ConnectionPool.getConnection();
-//     try {
-//         const sql = "select * from contents where content_page_id = ? and data_source_id = ?";
-//         const [rows] = await con.execute(sql, [content_id.id, content_id.dataSourceId]);
-//         if ((rows as []).length === 0) {
-//             return null;
-//         }
-//         return (rows as ContentsTable[])[0];
+type GetDataResult = DatasTable & {
+    map_page_id: string;
+    mapKind: MapKind;
+    hasContents: boolean;
+    hasItem: boolean;
+}
+/**
+ * 指定のidに紐づく情報を返す。
+ * @param id 
+ * @returns 複数の地図に紐づく場合を考慮して、一覧で返す。
+ */
+export async function getData(id: DataId): Promise<GetDataResult[]> {
+    const con = await ConnectionPool.getConnection();
+    try {
+        const sql = `
+        select d.*, mdl.map_page_id, ds.location_kind, count(c.data_id) as contents_num, COUNT(gi.data_id) as items_num  from datas d 
+        inner join data_source ds on ds.data_source_id = d.data_source_id 
+        inner join map_datasource_link mdl on mdl.data_source_id = d.data_source_id 
+        left join contents c on c.data_id = d.data_id 
+        left join geometry_items gi on gi.data_id = d.data_id 
+        group by d.data_id, mdl.map_page_id 
+        having d.data_id = ?
+        `;
+        const [rows] = await con.query(sql, [id]);
 
-//     } catch(e) {
-//         throw 'getContent' + e;
-//     } finally {
-//         await con.rollback();
-//         con.release();
-//     }
-// }
+        const records = rows as (DatasTable & { map_page_id: string; location_kind: DatasourceLocationKindType; contents_num: number; items_num: number })[];
 
-// /**
-//  * 指定のコンテンツの祖先にいるアイテムIDを返す
-//  * @param contentId 
-//  */
-// export async function getAncestorItemId(contentId: DataId): Promise<DataId | undefined> {
-//     const myCon = await ConnectionPool.getConnection();
+        return records.map(rec => {
+            return Object.assign({}, rec, {
+                mapKind: [DatasourceLocationKindType.RealItem, DatasourceLocationKindType.Track].includes(rec.location_kind) ? MapKind.Real : MapKind.Virtual,
+                hasContents: rec.contents_num > 0,
+                hasItem: rec.items_num > 0,
+            })
+        })
 
-//     try {
-//         const sql = `
-//         select * from item_content_link icl 
-//         where content_page_id = ? and content_datasource_id = ?
-//         `;
-//         const [rows] = await myCon.execute(sql, [contentId.id, contentId.dataSourceId]);
-//         if ((rows as ItemContentLink[]).length > 0) {
-//             const record = (rows as ItemsTable[])[0];
-//             return {
-//                 id: record.item_page_id,
-//                 dataSourceId: record.data_source_id,
-//             };
-//         }
+    } catch(e) {
+        throw new Error('getData error.' + e);
 
-//         // 対応するアイテムが存在しない場合は、親コンテンツを辿る
-//         const contentQuery = 'select * from contents where content_page_id = ? and data_source_id = ?';
-//         const [contentRows] = await myCon.execute(contentQuery, [contentId.id, contentId.dataSourceId]);
-//         if ((contentRows as []).length === 0) {
-//             return;
-//         }
-//         const contentRecord = (contentRows as ContentsTable[])[0];
-//         if (!contentRecord.parent_id || !contentRecord.parent_datasource_id) {
-//             return;
-//         }
-//         const ancestor = await getAncestorItemId(
-//             {
-//                 id: contentRecord.parent_id,
-//                 dataSourceId: contentRecord.data_source_id,
-//             }
-//         );
-//         return ancestor;
-    
-//     } finally {
-//         await myCon.commit();
-//         myCon.release();
-//     }
-
-// }
+    } finally {
+        await con.rollback();
+        con.release();
+    }
+}
 
 /**
  * 指定のアイテムのwktを返す

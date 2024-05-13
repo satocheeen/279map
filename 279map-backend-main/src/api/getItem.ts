@@ -27,8 +27,7 @@ export async function getItem(id: DataId): Promise<ItemDefineWithoudContents|und
         select gi.*, d.data_source_id, ST_AsGeoJSON(gi.feature) as geojson, JSON_UNQUOTE(JSON_EXTRACT(c.contents , '$.title')) as title, d.last_edited_time 
         from geometry_items gi 
         inner join datas d on d.data_id = gi.data_id 
-        inner join data_link dl on dl.from_data_id = gi.data_id 
-        inner join contents c on c.data_id = dl.to_data_id 
+        inner join contents c on c.data_id = d.data_id 
         where gi.data_id = ?
         `;
         const params = [id];

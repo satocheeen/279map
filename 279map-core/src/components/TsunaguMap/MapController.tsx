@@ -15,7 +15,7 @@ import { filteredItemIdListAtom } from '../../store/filter';
 import VectorSource from 'ol/source/Vector';
 import useMyMedia from '../../util/useMyMedia';
 import { useWatch } from '../../util/useWatch2';
-import { ItemDeleteDocument, ItemInsertDocument, ItemUpdateDocument, MapInfoUpdateDocument } from '../../graphql/generated/graphql';
+import { ItemDeleteDocument, DataInsertDocument, ItemUpdateDocument, MapInfoUpdateDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import { ItemInfo } from '../../types/types';
 import { selectItemIdAtom } from '../../store/operation';
@@ -74,12 +74,18 @@ function useMapInitializer() {
         if (!currentMapKind) return;
         console.log('start subscribe');
 
-        const h1 = urqlClient.subscription(ItemInsertDocument, { mapId, mapKind: currentMapKind }).subscribe((val) => {
-            const targets = val.data?.itemInsert;
-            console.log('subscribe itemInsert', targets);
+        const h1 = urqlClient.subscription(DataInsertDocument, { mapId, mapKind: currentMapKind }).subscribe((val) => {
+            const targets = val.data?.dataInsert;
+            console.log('subscribe dataInsert', targets);
             if (targets) {
                 // 表示中エリアの場合は最新ロードする
-                updateItems(targets);
+                updateItems(targets.map(t => {
+                    return {
+                        datasourceId: t.datasourceId,
+                        id: t.id,
+                        wkt: t.wkt ?? undefined,
+                    }
+                }));
             }
         });
 
@@ -88,7 +94,13 @@ function useMapInitializer() {
             console.log('subscribe itemUpdate', targets);
             if (targets) {
                 // 表示中エリアの場合は最新ロードする
-                updateItems(targets);
+                updateItems(targets.map(t => {
+                    return {
+                        datasourceId: t.datasourceId,
+                        id: t.id,
+                        wkt: t.wkt ?? undefined,
+                    }
+                }));
             }
         })
 
