@@ -1,6 +1,6 @@
 import { atom } from 'jotai';
 import { ItemType, ItemInfo, OverrideItem } from '../../types/types';
-import { filteredItemsAtom } from '../filter';
+import { filteredDatasAtom } from '../filter';
 import { DataId, FeatureType } from '../../entry';
 import { UpdateItemInput } from '../../graphql/generated/graphql';
 import { isEqualId } from '../../util/dataUtility';
@@ -190,12 +190,12 @@ export const latestEditedTimeOfDatasourceAtom = atom((get) => {
 export const showingItemsAtom = atom<ItemType[]>((get) => {
     const storedItems = get(storedItemsAtom);
     const visibleDataSourceIds = get(visibleDataSourceIdsAtom);
-    const filteredItems = get(filteredItemsAtom);
+    const filteredDatas = get(filteredDatasAtom);
 
     const items: ItemType[] = [];
     storedItems.forEach((item) => {
         if (!visibleDataSourceIds.includes(item.datasourceId)) return;
-        const filterdItemInfo = !filteredItems ? undefined : filteredItems.find(fi => isEqualId(fi.id, item.id));
+        // item.content.
         // const belongContents = item.contents.reduce((acc, cur) => {
         //     const childrenIds = cur.children?.map(child => child.id) ?? [];
         //     return [...acc, cur.id, ...childrenIds];
@@ -211,9 +211,17 @@ export const showingItemsAtom = atom<ItemType[]>((get) => {
 
         items.push({
             id: item.id,
-            filterHit: filterdItemInfo?.hitItem,
-            // TODO:
-            // content: itemInfo.content,
+            filterHit: filteredDatas?.includes(item.id),
+            content: item.content ? {
+                id: item.content.id,
+                filterHit: filteredDatas?.includes(item.content.id),
+            } : undefined,
+            linkedContents: item.content?.children?.map(c => {
+                return {
+                    id: c.id,
+                    filterHit: filteredDatas?.includes(c.id),
+                }
+            }) ?? [],
             geoInfo: {
                 geometry: item.geometry,
                 geoProperties: item.geoProperties,

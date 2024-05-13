@@ -152,11 +152,7 @@ query search (
     $condition: Condition!
     $datasourceIds: [String!]
 ) {
-    search(condition: $condition, datasourceIds: $datasourceIds) {
-        id
-        hitContents
-        hitItem
-    }
+    search(condition: $condition, datasourceIds: $datasourceIds)
 }
 
 query geocoder (

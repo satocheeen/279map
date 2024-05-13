@@ -27,9 +27,9 @@ export async function getLinkedContent({ dataId, currentMap, authLv }: Param): P
         inner join contents c on c.data_id = d.data_id 
         inner join data_source ds on ds.data_source_id = d.data_source_id 
         inner join map_datasource_link mdl on mdl.data_source_id = d.data_source_id 
-        where mdl.map_page_id = 'test' and EXISTS (
+        where mdl.map_page_id = ? and EXISTS (
             select * from data_link dl
-            where dl.to_data_id = d.data_id and from_data_id = 834
+            where dl.to_data_id = d.data_id and from_data_id = ?
         )
         `;
 

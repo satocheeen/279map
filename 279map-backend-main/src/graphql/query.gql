@@ -91,14 +91,6 @@ input Condition {
     keyword: [String!]
 }
 
-type SearchHitItem {
-    id: DataId!
-    "検索条件がアイテム自体にもヒットした場合、True"
-    hitItem: Boolean!
-    "当該アイテム配下の検索条件に合致するコンテンツID一覧"
-    hitContents: [DataId!]!  # TODO: 孫コンテンツも含める
-}
-
 # --------------
 # geocoder関連
 # --------------
@@ -113,29 +105,6 @@ type GeocoderItem {
     geometry: Geometry!
 }
 
-# --------------
-# SNS関連
-# --------------
-type SnsPreviewResult {
-    type: SnsType!
-    posts: [SnsPreviewPost!]!
-}
-enum SnsType {
-    InstagramUser
-}
-type SnsPreviewPost {
-    text: String!
-    media: MediaInfo
-    date: String
-}
-type MediaInfo {
-    type: MediaType!
-    url: String!
-}
-enum MediaType {
-    image
-    Video
-}
 # --------------
 
 type Query {
@@ -182,8 +151,12 @@ type Query {
 
     getImageUrl(contentId: DataId!): String!
 
-    # datasourceIds => 指定されている場合、指定のデータソースのみ検索対象にする
-    search(condition: Condition!, datasourceIds: [String!]): [SearchHitItem!]!
+    "検索。検索にヒットしたもののデータIDを返す"
+    search(
+        condition: Condition!,
+        "指定されている場合、指定のデータソースのみ検索対象にする"
+        datasourceIds: [String!]
+    ): [DataId!]!
 
     geocoder(address: String!, searchTarget: [GeocoderTarget!]!): [GeocoderItem!]!
     getGeocoderFeature(id: GeocoderIdInfo!): Geometry!

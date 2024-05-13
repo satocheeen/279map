@@ -1,4 +1,4 @@
-import { Auth, CategoryDefine, Condition, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, MapDefine, SnsPreviewResult, GetItemsQuery, ThumbSize } from "../graphql/generated/graphql";
+import { Auth, CategoryDefine, Condition, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, MapDefine, GetItemsQuery, ThumbSize } from "../graphql/generated/graphql";
 import { ChangeVisibleLayerTarget } from "../store/datasource/useDataSource";
 import { IconDefine, MapKind, ContentValueMap, DataId, FeatureType, GeoProperties } from "../types-common/common-types";
 import { OperationResult } from "urql";
@@ -45,6 +45,10 @@ export type ItemType = {
         id: DataId
         filterHit?: boolean;   // フィルタ時にフィルタ条件に該当した場合、true
     };
+    linkedContents: {
+        id: DataId
+        filterHit?: boolean;   // フィルタ時にフィルタ条件に該当した場合、true
+    }[];
 
 }
 

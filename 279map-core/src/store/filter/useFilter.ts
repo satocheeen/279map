@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { isEqualId } from "../../util/dataUtility";
-import { filteredItemsAtom } from ".";
+import { filteredDatasAtom, filteredItemIdListAtom } from ".";
 import { useAtomCallback } from "jotai/utils";
 import { DataId } from "../../types-common/common-types";
 
@@ -16,13 +16,11 @@ export function useFilter() {
      */
     const getFilterStatusOfTheItem = useAtomCallback(
         useCallback((get, set, itemId: DataId): FilterStatus => {
-            const filteredItems = get(filteredItemsAtom); 
+            const filteredItems = get(filteredItemIdListAtom); 
             if (!filteredItems) {
                 return 'Normal';
             }
-            const filtered = filteredItems.some(filteredItem => {
-                return isEqualId(filteredItem.id, itemId);
-            });
+            const filtered = filteredItems.includes(itemId);
             if (filtered) {
                 return 'Filtered';
             } else {
@@ -38,15 +36,11 @@ export function useFilter() {
      */
     const getFilterStatusOfTheContent = useAtomCallback(
         useCallback((get, set, contentId: DataId): FilterStatus => {
-            const filteredItems = get(filteredItemsAtom); 
+            const filteredItems = get(filteredDatasAtom); 
             if (!filteredItems) {
                 return 'Normal';
             }
-            const filtered = filteredItems.some(filteredItem => {
-                return filteredItem.hitContents.some(filteredContent => {
-                    return isEqualId(filteredContent, contentId);
-                });
-            });
+            const filtered = filteredItems.includes(contentId);
             if (filtered) {
                 return 'Filtered';
             } else {

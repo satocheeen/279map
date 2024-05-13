@@ -1010,7 +1010,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
         },
         ItemDefine: {
             content: async(parent: ItemDefineWithoudContents, _, ctx): Promise<ContentsDefine|null> => {
-                const result = getContent({
+                const result = await getContent({
                     dataId: parent.id,
                     currentMap: ctx.currentMap,
                     authLv: ctx.authLv,

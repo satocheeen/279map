@@ -7,7 +7,7 @@ import { BsThreeDots } from 'react-icons/bs';
 import { useMapOptions } from "../../util/useMapOptions";
 import { useMap } from "../map/useMap";
 import { selectItemIdAtom, doShowClusterMenuAtom, mapModeAtom } from "../../store/operation";
-import { filteredContentIdListAtom, filteredItemIdListAtom } from "../../store/filter";
+import { filteredDatasAtom, filteredItemIdListAtom } from "../../store/filter";
 import { useItems } from "../../store/item/useItems";
 import { useAtom } from "jotai";
 import { useAtomCallback } from 'jotai/utils';
@@ -30,7 +30,7 @@ export type PopupItem = {
 export default function PointsPopup(props: Props) {
     const { map } = useMap();
     const [ filteredItemIdList ] = useAtom(filteredItemIdListAtom);
-    const [ filteredContentIdList ] = useAtom(filteredContentIdListAtom);
+    const [ filteredContentIdList ] = useAtom(filteredDatasAtom);
     const [ targetItems, setTargetItems ] = useState<ItemInfo[]>([]);
     const { getItem } = useItems();
 

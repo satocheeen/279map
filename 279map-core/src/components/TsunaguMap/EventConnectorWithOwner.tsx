@@ -5,7 +5,7 @@ import { categoriesAtom } from '../../store/category';
 import { eventsAtom } from '../../store/event';
 import { mapModeAtom, selectItemIdAtom } from '../../store/operation';
 import { mapDefineAtom } from '../../store/session';
-import { filteredItemsAtom } from '../../store/filter';
+import { filteredDatasAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { TsunaguMapHandler, LoadContentsResult } from '../../types/types';
@@ -42,7 +42,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
     const { focusItem, fitToDefaultExtent, loadCurrentAreaContents } = useMap();
     const { updateDatasourceVisible } = useDataSource();
     const [ gqlClient ] = useAtom(clientAtom);
-    const [ , setFilteredItem ] = useAtom(filteredItemsAtom);
+    const [ , setFilteredItem ] = useAtom(filteredDatasAtom);
     const [ visibleDataSourceIds ] = useAtom(visibleDataSourceIdsAtom);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
     const { confirm } = useConfirm();

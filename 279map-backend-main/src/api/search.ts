@@ -1,12 +1,11 @@
-import { CurrentMap, DatasourceLocationKindType, MapKind, OdbaLinkDataAPI } from "../../279map-backend-common/src";
+import { CurrentMap, DatasourceLocationKindType, MapKind } from "../../279map-backend-common/src";
 import { ConnectionPool } from "..";
 import { PoolConnection } from "mysql2/promise";
-import {  } from "../../279map-backend-common/src/types/schema";
-import { QuerySearchArgs, SearchHitItem } from "../graphql/__generated__/types";
+import { QuerySearchArgs } from "../graphql/__generated__/types";
 import { DataId } from "../types-common/common-types";
 import { ContentsTable, DataLinkTable } from "../../279map-backend-common/dist";
 
-export async function search(currentMap: CurrentMap, param: QuerySearchArgs): Promise<SearchHitItem[]> {
+export async function search(currentMap: CurrentMap, param: QuerySearchArgs): Promise<DataId[]> {
     if (param.datasourceIds && param.datasourceIds.length === 0) {
         return []
     }
@@ -18,7 +17,6 @@ export async function search(currentMap: CurrentMap, param: QuerySearchArgs): Pr
         await con.beginTransaction();
 
         const hitContents: HitContent[] = [];
-        const hitItems: DataId[] = [];
         if (param.condition.category) {
             for (const category of param.condition.category) {
                 const searchResult = await searchByCategory(con, currentMap, category, param.datasourceIds ?? undefined);
@@ -44,34 +42,12 @@ export async function search(currentMap: CurrentMap, param: QuerySearchArgs): Pr
         // TODO: ANDで絞る
         // hitList = filterArrayByAND(hitList, searchResult, (a, b) => a.contentId.id === b.contentId.id && a.contentId.dataSourceId === b.contentId.dataSourceId);
 
-        // item単位でまとめる
-        const items: SearchHitItem[] = [];
+        const result: DataId[] = [];
         hitContents.forEach(hitRecord => {
-            const hitItem = items.find(item => item.id === hitRecord.itemId);
-            if (hitItem) {
-                hitItem.hitContents.push(hitRecord.contentId);
-            } else {
-                items.push({
-                    id: hitRecord.itemId,
-                    hitContents: [hitRecord.contentId],
-                    hitItem: false,
-                });
-            }
+            result.push(hitRecord.contentId);
         });
-        hitItems.forEach(itemId => {
-            const hitItem = items.find(item=> item.id === itemId);
-            if (hitItem) {
-                hitItem.hitItem = true;
-            } else {
-                items.push({
-                    id: itemId,
-                    hitContents: [],
-                    hitItem: true,
-                })
-            }
-        })
 
-        return items;
+        return result;
     
     } finally {
         await con.commit();

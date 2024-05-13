@@ -232,16 +232,6 @@ export type MapPageOptions = {
   usePanels?: Maybe<Array<Scalars['String']['output']>>;
 };
 
-export type MediaInfo = {
-  type: MediaType;
-  url: Scalars['String']['output'];
-};
-
-export enum MediaType {
-  Video = 'Video',
-  Image = 'image'
-}
-
 export type Mutation = {
   changeAuthLevel?: Maybe<Scalars['Boolean']['output']>;
   connect: ConnectResult;
@@ -356,7 +346,8 @@ export type Query = {
   /** 未割当コンテンツを取得する */
   getUnpointContents: GetUnpointContentsResult;
   getUserList: Array<User>;
-  search: Array<SearchHitItem>;
+  /** 検索。検索にヒットしたもののデータIDを返す */
+  search: Array<Scalars['DataId']['output']>;
 };
 
 
@@ -433,30 +424,7 @@ export type RegistDataItemInput = {
   geometry: Scalars['Geometry']['input'];
 };
 
-export type SearchHitItem = {
-  /** 当該アイテム配下の検索条件に合致するコンテンツID一覧 */
-  hitContents: Array<Scalars['DataId']['output']>;
-  /** 検索条件がアイテム自体にもヒットした場合、True */
-  hitItem: Scalars['Boolean']['output'];
-  id: Scalars['DataId']['output'];
-};
-
 export type ServerConfig = Auth0Config | NoneConfig;
-
-export type SnsPreviewPost = {
-  date?: Maybe<Scalars['String']['output']>;
-  media?: Maybe<MediaInfo>;
-  text: Scalars['String']['output'];
-};
-
-export type SnsPreviewResult = {
-  posts: Array<SnsPreviewPost>;
-  type: SnsType;
-};
-
-export enum SnsType {
-  InstagramUser = 'InstagramUser'
-}
 
 export enum SortCondition {
   /** 作成日時昇順 */
@@ -693,19 +661,13 @@ export type ResolversTypes = {
   MapKind: ResolverTypeWrapper<Scalars['MapKind']['output']>;
   MapListItem: ResolverTypeWrapper<MapListItem>;
   MapPageOptions: ResolverTypeWrapper<MapPageOptions>;
-  MediaInfo: ResolverTypeWrapper<MediaInfo>;
-  MediaType: MediaType;
   Mutation: ResolverTypeWrapper<{}>;
   NoneConfig: ResolverTypeWrapper<NoneConfig>;
   Operation: Operation;
   PopupMode: PopupMode;
   Query: ResolverTypeWrapper<{}>;
   RegistDataItemInput: RegistDataItemInput;
-  SearchHitItem: ResolverTypeWrapper<SearchHitItem>;
   ServerConfig: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['ServerConfig']>;
-  SnsPreviewPost: ResolverTypeWrapper<SnsPreviewPost>;
-  SnsPreviewResult: ResolverTypeWrapper<SnsPreviewResult>;
-  SnsType: SnsType;
   SortCondition: SortCondition;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Subscription: ResolverTypeWrapper<{}>;
@@ -754,15 +716,11 @@ export type ResolversParentTypes = {
   MapKind: Scalars['MapKind']['output'];
   MapListItem: MapListItem;
   MapPageOptions: MapPageOptions;
-  MediaInfo: MediaInfo;
   Mutation: {};
   NoneConfig: NoneConfig;
   Query: {};
   RegistDataItemInput: RegistDataItemInput;
-  SearchHitItem: SearchHitItem;
   ServerConfig: ResolversUnionTypes<ResolversParentTypes>['ServerConfig'];
-  SnsPreviewPost: SnsPreviewPost;
-  SnsPreviewResult: SnsPreviewResult;
   String: Scalars['String']['output'];
   Subscription: {};
   Target: Target;
@@ -959,12 +917,6 @@ export type MapPageOptionsResolvers<ContextType = any, ParentType extends Resolv
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type MediaInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['MediaInfo'] = ResolversParentTypes['MediaInfo']> = {
-  type?: Resolver<ResolversTypes['MediaType'], ParentType, ContextType>;
-  url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   changeAuthLevel?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationChangeAuthLevelArgs, 'authLv' | 'userId'>>;
   connect?: Resolver<ResolversTypes['ConnectResult'], ParentType, ContextType, RequireFields<MutationConnectArgs, 'mapId'>>;
@@ -1000,31 +952,11 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getThumb?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryGetThumbArgs, 'contentId'>>;
   getUnpointContents?: Resolver<ResolversTypes['GetUnpointContentsResult'], ParentType, ContextType, RequireFields<QueryGetUnpointContentsArgs, 'datasourceId'>>;
   getUserList?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
-  search?: Resolver<Array<ResolversTypes['SearchHitItem']>, ParentType, ContextType, RequireFields<QuerySearchArgs, 'condition'>>;
-};
-
-export type SearchHitItemResolvers<ContextType = any, ParentType extends ResolversParentTypes['SearchHitItem'] = ResolversParentTypes['SearchHitItem']> = {
-  hitContents?: Resolver<Array<ResolversTypes['DataId']>, ParentType, ContextType>;
-  hitItem?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+  search?: Resolver<Array<ResolversTypes['DataId']>, ParentType, ContextType, RequireFields<QuerySearchArgs, 'condition'>>;
 };
 
 export type ServerConfigResolvers<ContextType = any, ParentType extends ResolversParentTypes['ServerConfig'] = ResolversParentTypes['ServerConfig']> = {
   __resolveType: TypeResolveFn<'Auth0Config' | 'NoneConfig', ParentType, ContextType>;
-};
-
-export type SnsPreviewPostResolvers<ContextType = any, ParentType extends ResolversParentTypes['SnsPreviewPost'] = ResolversParentTypes['SnsPreviewPost']> = {
-  date?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  media?: Resolver<Maybe<ResolversTypes['MediaInfo']>, ParentType, ContextType>;
-  text?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type SnsPreviewResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['SnsPreviewResult'] = ResolversParentTypes['SnsPreviewResult']> = {
-  posts?: Resolver<Array<ResolversTypes['SnsPreviewPost']>, ParentType, ContextType>;
-  type?: Resolver<ResolversTypes['SnsType'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
@@ -1096,14 +1028,10 @@ export type Resolvers<ContextType = any> = {
   MapKind?: GraphQLScalarType;
   MapListItem?: MapListItemResolvers<ContextType>;
   MapPageOptions?: MapPageOptionsResolvers<ContextType>;
-  MediaInfo?: MediaInfoResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   NoneConfig?: NoneConfigResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
-  SearchHitItem?: SearchHitItemResolvers<ContextType>;
   ServerConfig?: ServerConfigResolvers<ContextType>;
-  SnsPreviewPost?: SnsPreviewPostResolvers<ContextType>;
-  SnsPreviewResult?: SnsPreviewResultResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
   Target?: TargetResolvers<ContextType>;
   UnpointContent?: UnpointContentResolvers<ContextType>;
