@@ -442,19 +442,19 @@ export enum SortCondition {
 }
 
 export type Subscription = {
-  /** 指定のコンテンツが更新/削除された場合に通知する */
-  contentUpdate: Operation;
+  /** 指定の地図上のデータが削除された場合に通知する */
+  dataDeleteInTheMap: Array<Scalars['DataId']['output']>;
   /** 指定の地図上にデータが追加された場合に通知する */
-  dataInsert: Array<Target>;
+  dataInsertInTheMap: Array<Target>;
+  /** 指定のデータが更新/削除された場合に通知する */
+  dataUpdate: Operation;
+  /** 指定の地図上のデータが更新された場合に通知する */
+  dataUpdateInTheMap: Array<Target>;
   /**
    * ユーザが操作している地図でエラーが発生した場合にエラー内容を通知する。
    * 突き放し実行している登録、更新処理でエラー発生した場合に通知するために用意。
    */
   error: ErrorInfo;
-  /** 地図上のアイテムが削除された場合に通知する */
-  itemDelete: Array<Scalars['DataId']['output']>;
-  /** 地図上のアイテムが更新された場合に通知する */
-  itemUpdate: Array<Target>;
   /** 地図定義に変更があった場合 */
   mapInfoUpdate?: Maybe<Scalars['Boolean']['output']>;
   /** ユーザ権限に更新があった場合 */
@@ -464,12 +464,24 @@ export type Subscription = {
 };
 
 
-export type SubscriptionContentUpdateArgs = {
-  contentId: Scalars['DataId']['input'];
+export type SubscriptionDataDeleteInTheMapArgs = {
+  mapId: Scalars['String']['input'];
+  mapKind: Scalars['MapKind']['input'];
 };
 
 
-export type SubscriptionDataInsertArgs = {
+export type SubscriptionDataInsertInTheMapArgs = {
+  mapId: Scalars['String']['input'];
+  mapKind: Scalars['MapKind']['input'];
+};
+
+
+export type SubscriptionDataUpdateArgs = {
+  id: Scalars['DataId']['input'];
+};
+
+
+export type SubscriptionDataUpdateInTheMapArgs = {
   mapId: Scalars['String']['input'];
   mapKind: Scalars['MapKind']['input'];
 };
@@ -477,18 +489,6 @@ export type SubscriptionDataInsertArgs = {
 
 export type SubscriptionErrorArgs = {
   sid: Scalars['String']['input'];
-};
-
-
-export type SubscriptionItemDeleteArgs = {
-  mapId: Scalars['String']['input'];
-  mapKind: Scalars['MapKind']['input'];
-};
-
-
-export type SubscriptionItemUpdateArgs = {
-  mapId: Scalars['String']['input'];
-  mapKind: Scalars['MapKind']['input'];
 };
 
 
@@ -964,11 +964,11 @@ export type ServerConfigResolvers<ContextType = any, ParentType extends Resolver
 };
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
-  contentUpdate?: SubscriptionResolver<ResolversTypes['Operation'], "contentUpdate", ParentType, ContextType, RequireFields<SubscriptionContentUpdateArgs, 'contentId'>>;
-  dataInsert?: SubscriptionResolver<Array<ResolversTypes['Target']>, "dataInsert", ParentType, ContextType, RequireFields<SubscriptionDataInsertArgs, 'mapId' | 'mapKind'>>;
+  dataDeleteInTheMap?: SubscriptionResolver<Array<ResolversTypes['DataId']>, "dataDeleteInTheMap", ParentType, ContextType, RequireFields<SubscriptionDataDeleteInTheMapArgs, 'mapId' | 'mapKind'>>;
+  dataInsertInTheMap?: SubscriptionResolver<Array<ResolversTypes['Target']>, "dataInsertInTheMap", ParentType, ContextType, RequireFields<SubscriptionDataInsertInTheMapArgs, 'mapId' | 'mapKind'>>;
+  dataUpdate?: SubscriptionResolver<ResolversTypes['Operation'], "dataUpdate", ParentType, ContextType, RequireFields<SubscriptionDataUpdateArgs, 'id'>>;
+  dataUpdateInTheMap?: SubscriptionResolver<Array<ResolversTypes['Target']>, "dataUpdateInTheMap", ParentType, ContextType, RequireFields<SubscriptionDataUpdateInTheMapArgs, 'mapId' | 'mapKind'>>;
   error?: SubscriptionResolver<ResolversTypes['ErrorInfo'], "error", ParentType, ContextType, RequireFields<SubscriptionErrorArgs, 'sid'>>;
-  itemDelete?: SubscriptionResolver<Array<ResolversTypes['DataId']>, "itemDelete", ParentType, ContextType, RequireFields<SubscriptionItemDeleteArgs, 'mapId' | 'mapKind'>>;
-  itemUpdate?: SubscriptionResolver<Array<ResolversTypes['Target']>, "itemUpdate", ParentType, ContextType, RequireFields<SubscriptionItemUpdateArgs, 'mapId' | 'mapKind'>>;
   mapInfoUpdate?: SubscriptionResolver<Maybe<ResolversTypes['Boolean']>, "mapInfoUpdate", ParentType, ContextType, RequireFields<SubscriptionMapInfoUpdateArgs, 'mapId'>>;
   updateUserAuth?: SubscriptionResolver<Maybe<ResolversTypes['Boolean']>, "updateUserAuth", ParentType, ContextType, RequireFields<SubscriptionUpdateUserAuthArgs, 'mapId' | 'userId'>>;
   userListUpdate?: SubscriptionResolver<Maybe<ResolversTypes['Boolean']>, "userListUpdate", ParentType, ContextType, RequireFields<SubscriptionUserListUpdateArgs, 'mapId'>>;

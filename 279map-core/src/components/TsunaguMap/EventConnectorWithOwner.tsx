@@ -14,7 +14,7 @@ import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSour
 import { overrideItemsAtom, showingItemsAtom, } from '../../store/item';
 import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetUnpointContentsDocument, SearchDocument, SortCondition, GetImageDocument, ContentUpdateDocument, Operation, RegistDataDocument, RemoveDataDocument, UpdateDataDocument, LinkDataDocument, UnlinkDataDocument, GetContentDocument } from '../../graphql/generated/graphql';
+import { ContentsDefine, GetUnpointContentsDocument, SearchDocument, SortCondition, GetImageDocument, RegistDataDocument, RemoveDataDocument, UpdateDataDocument, LinkDataDocument, UnlinkDataDocument, GetContentDocument, DataUpdateDocument, Operation } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern } from '../common/confirm/types';
@@ -166,11 +166,11 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 }
 
                 const subscriptionList = [content, ...(content.children ?? [])].map(content => {
-                    return gqlClient.subscription(ContentUpdateDocument, {
-                        contentId: content.id,
+                    return gqlClient.subscription(DataUpdateDocument, {
+                        id: content.id,
                     }).subscribe((result) => {
-                        if (!result.data?.contentUpdate) return;
-                        changeListener(content.id, result.data.contentUpdate === Operation.Update ? 'update' : 'delete');
+                        if (!result.data?.dataUpdate) return;
+                        changeListener(content.id, result.data.dataUpdate === Operation.Update ? 'update' : 'delete');
                     });
                 })
                 const unsubscribe = () => {

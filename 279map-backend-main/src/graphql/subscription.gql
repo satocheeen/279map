@@ -15,10 +15,6 @@ enum ErrorType {
     RegistItemFailed
 }
 
-enum Operation {
-    Update
-    Delete
-}
 type ErrorInfo {
     "エラー種別"
     type: ErrorType!
@@ -28,11 +24,16 @@ type ErrorInfo {
     itemId: DataId
 }
 
+enum Operation {
+    Update
+    Delete
+}
+
 type Subscription {
     """
     指定の地図上にデータが追加された場合に通知する
     """
-    dataInsert (
+    dataInsertInTheMap (
         "対象の地図ID"
         mapId: String!
         "対象の地図種別"
@@ -40,9 +41,9 @@ type Subscription {
     ): [Target!]!
 
     """
-    地図上のアイテムが更新された場合に通知する
+    指定の地図上のデータが更新された場合に通知する
     """
-    itemUpdate (
+    dataUpdateInTheMap (
         "対象の地図ID"
         mapId: String!
         "対象の地図種別"
@@ -50,21 +51,22 @@ type Subscription {
     ): [Target!]!
 
     """
-    地図上のアイテムが削除された場合に通知する
+    指定の地図上のデータが削除された場合に通知する
     """
-    itemDelete (
+    dataDeleteInTheMap (
         "対象の地図ID"
         mapId: String!
         "対象の地図種別"
         mapKind: MapKind!
     ): [DataId!]!
 
+
     """
-    指定のコンテンツが更新/削除された場合に通知する
+    指定のデータが更新/削除された場合に通知する
     """
-    contentUpdate (
-        "対象のコンテンツID"
-        contentId: DataId!
+    dataUpdate (
+        "対象のデータID"
+        id: DataId!
     ): Operation!
 
     """

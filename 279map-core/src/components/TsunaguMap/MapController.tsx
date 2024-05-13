@@ -15,7 +15,7 @@ import { filteredItemIdListAtom } from '../../store/filter';
 import VectorSource from 'ol/source/Vector';
 import useMyMedia from '../../util/useMyMedia';
 import { useWatch } from '../../util/useWatch2';
-import { ItemDeleteDocument, DataInsertDocument, ItemUpdateDocument, MapInfoUpdateDocument } from '../../graphql/generated/graphql';
+import { DataDeleteInTheMapDocument, DataInsertInTheMapDocument, DataUpdateInTheMapDocument, MapInfoUpdateDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import { ItemInfo } from '../../types/types';
 import { selectItemIdAtom } from '../../store/operation';
@@ -74,12 +74,12 @@ function useMapInitializer() {
         if (!currentMapKind) return;
         console.log('start subscribe');
 
-        const h1 = urqlClient.subscription(DataInsertDocument, { mapId, mapKind: currentMapKind }).subscribe((val) => {
-            const targets = val.data?.dataInsert;
-            console.log('subscribe dataInsert', targets);
-            if (targets) {
-                // 表示中エリアの場合は最新ロードする
-                updateItems(targets.map(t => {
+        const h1 = urqlClient.subscription(DataInsertInTheMapDocument, { mapId, mapKind: currentMapKind }).subscribe((val) => {
+            const targets = val.data?.dataInsertInTheMap;
+            console.log('subscribe dataInsertInTheMap', targets);
+            const items = targets?.filter(t => t.hasItem) ?? [];
+            if (items.length > 0) {
+                updateItems(items.map(t => {
                     return {
                         datasourceId: t.datasourceId,
                         id: t.id,
@@ -89,12 +89,12 @@ function useMapInitializer() {
             }
         });
 
-        const h2 = urqlClient.subscription(ItemUpdateDocument, { mapId, mapKind: currentMapKind }).subscribe((val) => {
-            const targets = val.data?.itemUpdate;
-            console.log('subscribe itemUpdate', targets);
-            if (targets) {
-                // 表示中エリアの場合は最新ロードする
-                updateItems(targets.map(t => {
+        const h2 = urqlClient.subscription(DataUpdateInTheMapDocument, { mapId, mapKind: currentMapKind }).subscribe((val) => {
+            const targets = val.data?.dataUpdateInTheMap;
+            console.log('subscribe dataUpdateInTheMap', targets);
+            const items = targets?.filter(t => t.hasItem) ?? [];
+            if (items.length > 0) {
+                updateItems(items.map(t => {
                     return {
                         datasourceId: t.datasourceId,
                         id: t.id,
@@ -104,9 +104,9 @@ function useMapInitializer() {
             }
         })
 
-        const h3 = urqlClient.subscription(ItemDeleteDocument, {mapId, mapKind: currentMapKind }).subscribe((val) => {
-            const targets = val.data?.itemDelete;
-            console.log('subscribe itemDelete', targets);
+        const h3 = urqlClient.subscription(DataDeleteInTheMapDocument, {mapId, mapKind: currentMapKind }).subscribe((val) => {
+            const targets = val.data?.dataDeleteInTheMap;
+            console.log('subscribe dataDeleteInTheMap', targets);
             if (targets) {
                 // アイテム削除
                 removeItems(targets);

@@ -1,9 +1,9 @@
 # 地図上にアイテムが追加された場合に通知を受け取る
-subscription dataInsert (
+subscription dataInsertInTheMap (
     $mapId: String!
     $mapKind: MapKind!
 ) {
-    dataInsert(mapId: $mapId, mapKind: $mapKind) {
+    dataInsertInTheMap(mapId: $mapId, mapKind: $mapKind) {
         id
         datasourceId
         hasItem
@@ -13,31 +13,34 @@ subscription dataInsert (
 }
 
 # 地図上のアイテムに更新があった場合に通知を受け取る
-subscription itemUpdate (
+subscription dataUpdateInTheMap (
     $mapId: String!
     $mapKind: MapKind!
 ) {
-    itemUpdate(mapId: $mapId, mapKind: $mapKind) {
+    dataUpdateInTheMap(mapId: $mapId, mapKind: $mapKind) {
         id
         datasourceId
+        hasItem
+        hasContent
         wkt
     }
 }
 
 # 地図上のアイテムが削除された場合に通知を受け取る
-subscription itemDelete (
+subscription dataDeleteInTheMap (
     $mapId: String!
     $mapKind: MapKind!
 ) {
-    itemDelete(mapId: $mapId, mapKind: $mapKind)
+    dataDeleteInTheMap(mapId: $mapId, mapKind: $mapKind)
 }
 
-# コンテンツが更新された場合に通知を受け取る
-subscription contentUpdate (
-    $contentId: DataId!
+# 指定のデータが更新または削除された場合に通知を受け取る
+subscription dataUpdate (
+    $id: DataId!
 ) {
-    contentUpdate(contentId: $contentId)
+    dataUpdate(id: $id)
 }
+
 
 # ユーザ権限に更新があった場合に通知を受け取る
 subscription updateUserAuth (
