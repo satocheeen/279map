@@ -44,7 +44,7 @@ export default function PopupContainer() {
         // 表示中のアイテム
         const list = allItems.filter(item => visibleDataSourceIds.includes(item.datasourceId))
         .filter(item => {
-            const hasValue = item.content?.hasValue || item.content?.children?.some(c => c.hasValue);
+            const hasValue = item.content?.hasValue || item.linkedContents.some(c => c.hasValue);
             if (!hasValue) return false;
             // フィルタが掛かっている場合は条件外のものは除外する
             if (!filteredItemIdList) return true;

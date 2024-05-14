@@ -940,16 +940,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
             }
         }as Record<keyof Subscription, IFieldResolverOptions<any, GraphQlContextType, any>>,
-        ContentsDefine: {
-            children: async(parent: Omit<ContentsDefine, 'children'>, _, ctx): Promise<ContentsDefine[]> => {
-                const result = await getLinkedContent({
-                    dataId: parent.id,
-                    currentMap: ctx.currentMap,
-                    authLv: ctx.authLv,
-                });
-                return result;
-            },
-        },
         ItemDefine: {
             content: async(parent: ItemDefineWithoudContents, _, ctx): Promise<ContentsDefine|null> => {
                 const result = await getContent({
@@ -968,7 +958,16 @@ const schema = makeExecutableSchema<GraphQlContextType>({
 
                 // 値を持つコンテンツのみを返す（コンテンツ）
                 // return result.filter(c => c.hasValue);
+            },
+            linkedContents: async(parent: ItemDefineWithoudContents, _, ctx): Promise<ContentsDefine[]> => {
+                const result = await getLinkedContent({
+                    dataId: parent.id,
+                    currentMap: ctx.currentMap,
+                    authLv: ctx.authLv,
+                });
+                return result;
             }
+
         },
         // DataId: DataIdScalarType,
         JSON: JsonScalarType,

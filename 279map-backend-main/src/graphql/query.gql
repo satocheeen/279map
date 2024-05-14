@@ -23,8 +23,11 @@ type ItemDefine {
     geoProperties: GeoProperties!
     lastEditedTime: String!
 
-    "アイテムに紐づくコンテンツ"
+    "アイテムと対になるコンテンツ"
     content: ContentsDefine
+
+    "アイテムに紐づけられたコンテンツ"
+    linkedContents: [ContentsDefine!]!
 }
 
 type CategoryDefine {
@@ -54,7 +57,6 @@ type ContentsDefine {
     # 画像を持つ場合、true
     hasImage: Boolean!
     values: ContentValueMap!
-    children: [ContentsDefine!]
     "他の地図でも参照されているか"
     usingOtherMap: Boolean!
     "もう片方の地図で参照されている場合に、その参照元のID"

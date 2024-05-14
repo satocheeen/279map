@@ -110,7 +110,6 @@ export type ContentsDatasourceInput = {
 export type ContentsDefine = {
   /** もう片方の地図で参照されている場合に、その参照元のID */
   anotherMapItemId?: Maybe<Scalars['DataId']['output']>;
-  children?: Maybe<Array<ContentsDefine>>;
   datasourceId: Scalars['String']['output'];
   hasImage: Scalars['Boolean']['output'];
   hasValue: Scalars['Boolean']['output'];
@@ -173,13 +172,15 @@ export type ItemDatasourceInfo = {
 };
 
 export type ItemDefine = {
-  /** アイテムに紐づくコンテンツ */
+  /** アイテムと対になるコンテンツ */
   content?: Maybe<ContentsDefine>;
   datasourceId: Scalars['String']['output'];
   geoProperties: Scalars['GeoProperties']['output'];
   geometry: Scalars['Geometry']['output'];
   id: Scalars['DataId']['output'];
   lastEditedTime: Scalars['String']['output'];
+  /** アイテムに紐づけられたコンテンツ */
+  linkedContents: Array<ContentsDefine>;
   name: Scalars['String']['output'];
 };
 
@@ -785,7 +786,6 @@ export type ContentsDatasourceResolvers<ContextType = any, ParentType extends Re
 
 export type ContentsDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['ContentsDefine'] = ResolversParentTypes['ContentsDefine']> = {
   anotherMapItemId?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType>;
-  children?: Resolver<Maybe<Array<ResolversTypes['ContentsDefine']>>, ParentType, ContextType>;
   datasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   hasImage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   hasValue?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -873,6 +873,7 @@ export type ItemDefineResolvers<ContextType = any, ParentType extends ResolversP
   geometry?: Resolver<ResolversTypes['Geometry'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   lastEditedTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  linkedContents?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };

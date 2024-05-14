@@ -37,16 +37,19 @@ export type OnMapLoadResult = {
 
 export type ItemType = {
     id: DataId;
+    datasourceId: string;
     name: string;
     geoInfo: ItemGeoInfo;
     lastEditedTime: string;
     filterHit?: boolean;   // フィルタ時にフィルタ条件に該当した場合、true
     content?: {
         id: DataId
+        datasourceId: string;
         filterHit?: boolean;   // フィルタ時にフィルタ条件に該当した場合、true
     };
     linkedContents: {
         id: DataId
+        datasourceId: string;
         filterHit?: boolean;   // フィルタ時にフィルタ条件に該当した場合、true
     }[];
 
@@ -320,8 +323,14 @@ export interface TsunaguMapHandler {
      * @param param 
      */
     linkContent(param: {
-        id: DataId;
         parent: DataId;
+        child: {
+            type: 'originalId';
+            originalId: string;
+        } | {
+            type: 'dataId';
+            dataId: DataId;
+        }
     }): Promise<void>;
 
     /**

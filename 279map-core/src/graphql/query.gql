@@ -58,13 +58,15 @@ query getItems (
         lastEditedTime
         content {
             id
+            datasourceId
             hasValue
             hasImage
-            children {
-                id
-                hasValue
-                hasImage
-            }
+        }
+        linkedContents {
+            id
+            datasourceId
+            hasValue
+            hasImage
         }
     }
 }
@@ -81,13 +83,15 @@ query getItemsById (
         lastEditedTime
         content {
             id
+            datasourceId
             hasValue
             hasImage
-            children {
-                id
-                hasValue
-                hasImage
-            }
+        }
+        linkedContents {
+            id
+            datasourceId
+            hasValue
+            hasImage
         }
     }
 }
@@ -95,23 +99,16 @@ query getContent(
     $id: DataId!
 ) {
     getContent(id: $id) {
-        ...content
-        children {
-            ...content
-        }
+        id
+        datasourceId
+        parentId
+        values
+        usingOtherMap
+        anotherMapItemId
+        readonly
+        hasValue
+        hasImage
     }
-}
-
-fragment content on ContentsDefine {
-    id
-    datasourceId
-    parentId
-    values
-    usingOtherMap
-    anotherMapItemId
-    readonly
-    hasValue
-    hasImage
 }
 
 query getUnpointContents(

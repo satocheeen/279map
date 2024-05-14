@@ -202,6 +202,7 @@ export function useMap() {
                                     geoProperties: i.geoProperties,
                                     content: i.content,
                                     lastEditedTime: i.lastEditedTime,
+                                    linkedContents: i.linkedContents,
                                 }
                             }) ?? [];
                             return [...acc, ...items];
@@ -343,6 +344,7 @@ export function useMap() {
                         name: item.name,
                         content: item.content,
                         lastEditedTime: item.lastEditedTime,
+                        linkedContents: item.linkedContents,
                     }
                 });
                 return [...currentItems, ...newItems];

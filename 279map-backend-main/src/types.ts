@@ -6,4 +6,4 @@ export enum AuthMethod {
     Original = "Original",
 }
 
-export type ItemDefineWithoudContents = Omit<ItemDefine, 'contents'>;
+export type ItemDefineWithoudContents = Omit<ItemDefine, 'contents' | 'linkedContents'>;

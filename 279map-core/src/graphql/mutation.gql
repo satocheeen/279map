@@ -95,6 +95,16 @@ mutation linkData (
     )
 }
 
+mutation linkDataByOriginalId (
+    $originalId: String!
+    $parent: DataId!
+) {
+    linkDataByOriginalId (
+        originalId: $originalId
+        parent: $parent
+    )
+}
+
 mutation unlinkData (
     $id: DataId!
     $parent: DataId!

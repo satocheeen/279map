@@ -14,7 +14,7 @@ import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSour
 import { overrideItemsAtom, showingItemsAtom, } from '../../store/item';
 import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetUnpointContentsDocument, SearchDocument, SortCondition, GetImageDocument, RegistDataDocument, RemoveDataDocument, UpdateDataDocument, LinkDataDocument, UnlinkDataDocument, GetContentDocument, DataUpdateDocument, Operation } from '../../graphql/generated/graphql';
+import { ContentsDefine, GetUnpointContentsDocument, SearchDocument, SortCondition, GetImageDocument, RegistDataDocument, RemoveDataDocument, UpdateDataDocument, LinkDataDocument, UnlinkDataDocument, GetContentDocument, DataUpdateDocument, Operation, LinkDataByOriginalIdDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern } from '../common/confirm/types';
@@ -157,7 +157,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 }
                 const content = result.data?.getContent ?? null;
                 if (!content) return null;
-                content.children = content?.children?.sort(contentsComparator);
+                // content.children = content?.children?.sort(contentsComparator);
         
                 if (!changeListener) {
                     return {
@@ -165,16 +165,14 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                     }
                 }
 
-                const subscriptionList = [content, ...(content.children ?? [])].map(content => {
-                    return gqlClient.subscription(DataUpdateDocument, {
-                        id: content.id,
-                    }).subscribe((result) => {
-                        if (!result.data?.dataUpdate) return;
-                        changeListener(content.id, result.data.dataUpdate === Operation.Update ? 'update' : 'delete');
-                    });
-                })
+                const subscription = gqlClient.subscription(DataUpdateDocument, {
+                    id: content.id,
+                }).subscribe((result) => {
+                    if (!result.data?.dataUpdate) return;
+                    changeListener(content.id, result.data.dataUpdate === Operation.Update ? 'update' : 'delete');
+                });
                 const unsubscribe = () => {
-                    subscriptionList.forEach(subscription => subscription.unsubscribe())
+                    subscription.unsubscribe();
                 }
                 return {
                     content,
@@ -222,12 +220,22 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             }
         },
         async linkContent(param: Parameters<TsunaguMapHandler['linkContent']>[0]) {
-            const result = await gqlClient.mutation(LinkDataDocument, {
-                id: param.id,
-                parent: param.parent,
-            });
-            if (result.error) {
-                throw new Error(result.error.message);
+            if (param.child.type === 'dataId') {
+                const result = await gqlClient.mutation(LinkDataDocument, {
+                    id: param.child.dataId,
+                    parent: param.parent,
+                });
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+            } else {
+                const result = await gqlClient.mutation(LinkDataByOriginalIdDocument, {
+                    originalId: param.child.originalId,
+                    parent: param.parent,
+                });
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
             }
         },
         async unlinkContent(param) {
