@@ -7,49 +7,38 @@ import { QueryGetItemsArgs } from './graphql/__generated__/types';
 import { ItemContentInfo } from './api/getItem';
 import { DatasourceLocationKindType, FeatureType, GeoProperties } from './types-common/common-types';
 import { ItemDefineWithoudContents } from './types';
+import { DataSourceTable } from '../279map-backend-common/dist';
 
 const apiLogger = getLogger('api');
 
 export async function getItems({ param, currentMap }: {param:QueryGetItemsArgs; currentMap: CurrentMap}): Promise<ItemDefineWithoudContents[]> {
-    if (!currentMap) {
-        throw 'no currentMap';
-    }
-    const mapPageId = currentMap.mapId;
-    const mapKind = currentMap.mapKind;
-    if (!mapPageId || !mapKind) {
-        throw 'no currentMap';
-    }
 
+    const items = await selectItems(param, currentMap);
+
+    if (param.excludeItemIds) {
+        // 除外対象のアイテムを除く
+        return items.filter(item => !param.excludeItemIds?.includes(item.id))
+    } else {
+        return items;
+    }
+    
+}
+
+async function selectItems(param: QueryGetItemsArgs, currentMap: CurrentMap): Promise<ItemDefineWithoudContents[]> {
     const con = await ConnectionPool.getConnection();
 
     try {
-        const items = await selectItems(con, param, currentMap);
-
-        if (param.excludeItemIds) {
-            // 除外対象のアイテムを除く
-            return items.filter(item => !param.excludeItemIds?.includes(item.id))
-        } else {
-            return items;
+        // contents内のtitle値を取得するために、titleに該当するkey値を取得する
+        const dsQuery = 'select * from data_source where data_source_id = ?';
+        const [dsRows] = await con.query(dsQuery, [param.datasourceId]);
+        if ((dsRows as DataSourceTable[]).length === 0) {
+            throw new Error('datasource not found');
         }
-    
-    } catch(e){
-        apiLogger.warn('getItem failed', e);
-        await con.rollback();
-        throw new Error('getItem failed');
+        const datasource = (dsRows as DataSourceTable[])[0];
+        const titleDef = datasource.contents_define?.find(def => def.type === 'title');
 
-    } finally {
-        await con.commit();
-        con.release();
-
-    }
-
-}
-
-async function selectItems(con: PoolConnection, param: QueryGetItemsArgs, currentMap: CurrentMap): Promise<ItemDefineWithoudContents[]> {
-    try {
-        // TODO: $.titleはcontents_defineから取得した値をパラメタで渡す
         let sql = `
-        select gi.*, ST_AsGeoJSON(gi.feature) as geojson, ds.location_kind, JSON_UNQUOTE(JSON_EXTRACT(c.contents , '$.title')) as title, d.last_edited_time 
+        select gi.*, ST_AsGeoJSON(gi.feature) as geojson, ds.location_kind, JSON_UNQUOTE(JSON_EXTRACT(c.contents , '$.${titleDef?.key ?? 'title'}')) as title, d.last_edited_time 
         from geometry_items gi 
         left join contents c on c.data_id  = gi.data_id
         inner join datas d on d.data_id = gi.data_id 
@@ -88,7 +77,13 @@ async function selectItems(con: PoolConnection, param: QueryGetItemsArgs, curren
 
     } catch(e) {
         apiLogger.warn('selectItems failed', e);
-        throw new Error('selected items failed');
+        apiLogger.warn('getItem failed', e);
+        await con.rollback();
+        throw new Error('getItem failed');
+
+    } finally {
+        con.release();
+
     }
 }
 
