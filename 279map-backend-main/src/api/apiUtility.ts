@@ -9,10 +9,10 @@ type Result = {
     itemDatasourceId: string;
 }
 /**
- * 指定のコンテンツがリンクしているアイテムID一覧を返す
- * @param contentId 
+ * 指定のデータを参照しているデータID一覧を返す
+ * @param id 
  */
-export async function getLinkedItemIdList(contentId: DataId): Promise<Result[]> {
+export async function getLinkedDataIdList(id: DataId): Promise<Result[]> {
     const con = await ConnectionPool.getConnection();
 
     // TODO: 要確認
@@ -28,9 +28,9 @@ export async function getLinkedItemIdList(contentId: DataId): Promise<Result[]> 
             select * from geometry_items gi 
             where gi.data_id = dl.from_data_id 
         )
-        and d.to_data_id = ?
+        and dl.to_data_id = ?
         `;
-        const [rows] = await con.execute(sql, [contentId]);
+        const [rows] = await con.execute(sql, [id]);
         return (rows as (DataLinkTable & DataSourceTable & MapDataSourceLinkTable)[]).map((row): Result => {
             return {
                 mapId: row.map_page_id,

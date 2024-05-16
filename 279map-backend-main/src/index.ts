@@ -34,7 +34,7 @@ import { authDefine } from './graphql/auth_define';
 import { GeoPropertiesScalarType, GeocoderIdInfoScalarType, IconKeyScalarType, JsonScalarType } from './graphql/custom_scalar';
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { CustomError } from './graphql/CustomError';
-import { getLinkedItemIdList } from './api/apiUtility';
+import { getLinkedDataIdList } from './api/apiUtility';
 import SessionInfo from './session/SessionInfo';
 import { Geometry } from 'geojson';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
@@ -729,7 +729,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             removeData: async(_, param: MutationRemoveDataArgs, ctx): MutationResolverReturnType<'removeData'> => {
                 try {
                     // 削除する前に紐づいているdataを取得
-                    const linkedDatas = await getLinkedItemIdList(param.id);
+                    const linkedDatas = await getLinkedDataIdList(param.id);
                     await callOdbaApi(OdbaRemoveDataAPI, {
                         currentMap: ctx.currentMap,
                         id: param.id,
