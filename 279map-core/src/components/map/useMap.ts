@@ -334,20 +334,40 @@ export function useMap() {
             const items = apiResult.data?.getItemsById ?? [];
 
             set(storedItemsAtom, (currentItems) => {
-                const newItemsMap = structuredClone(currentItems);
-                const newItems = items.map((item): ItemInfo => {
-                    return {
-                        id: item.id,
-                        datasourceId: item.datasourceId,
-                        geometry: item.geometry,
-                        geoProperties: item.geoProperties,
-                        name: item.name,
-                        content: item.content,
-                        lastEditedTime: item.lastEditedTime,
-                        linkedContents: item.linkedContents,
+                // 既に存在するものは置き換え、存在しないものは追加
+                const newItems = currentItems.map((item): ItemInfo => {
+                    const newItem = items.find(i => i.id === item.id);
+                    if (newItem) {
+                        return {
+                            id: newItem.id,
+                            datasourceId: newItem.datasourceId,
+                            geometry: newItem.geometry,
+                            geoProperties: newItem.geoProperties,
+                            name: newItem.name,
+                            content: newItem.content,
+                            lastEditedTime: newItem.lastEditedTime,
+                            linkedContents: newItem.linkedContents,
+                        }
+                    } else {
+                        return item;
                     }
                 });
-                return [...currentItems, ...newItems];
+                const addItems = items
+                                    .filter(item => !currentItems.some(ci => ci.id === item.id))
+                                    .map((item): ItemInfo => {
+                                        return {
+                                            id: item.id,
+                                            datasourceId: item.datasourceId,
+                                            geometry: item.geometry,
+                                            geoProperties: item.geoProperties,
+                                            name: item.name,
+                                            content: item.content,
+                                            lastEditedTime: item.lastEditedTime,
+                                            linkedContents: item.linkedContents,
+                                        }
+                                    })
+
+                return [...newItems, ...addItems];
             })
 
         }, [getItem, gqlClient, getLoadedAreaMapKey])
