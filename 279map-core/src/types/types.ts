@@ -348,7 +348,15 @@ export interface TsunaguMapHandler {
         keyword?: string
     }): Promise<{
         contents: {
-            originalId: string,
+            id: {
+                // まだ地図に未登録のデータの場合
+                type: 'originalId';
+                originalId: string,
+            } | {
+                // 地図のどこかに登録済みのデータの場合
+                type: 'dataId';
+                dataId: DataId;
+            };
             title: string;
             overview?: string;
             thumb?: string;

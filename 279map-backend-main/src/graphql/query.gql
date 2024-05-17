@@ -66,6 +66,8 @@ type ContentsDefine {
 }
 type UnpointContent {
     originalId: String!
+    "DBに登録済みの場合は、dataIdも返す"
+    dataId: DataId
     title: String!
     thumb: String
     overview: String

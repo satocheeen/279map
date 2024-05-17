@@ -48,6 +48,7 @@ import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import { getLinkedContent } from './api/get-content/getLinkedContents';
 import { getContent } from './api/get-content/getContent';
 import { publishData } from './util/publish_utility';
+import { getDataByOriginalId } from './util/utility';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -431,8 +432,25 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         nextToken: param.nextToken ?? undefined,
                         keyword: param.keyword ?? undefined,
                     });
-            
-                    return result;
+
+                    // 登録済みのものはdataIdも付与して返す
+                    // TODO: odbaからは、地図に全くプロットされていないものを返すように変更して、
+                    // キャッシュDBに存在するけれど、当該地図ではプロットされていないものはここで取得するように処理変更する
+                    const contents = await Promise.all(result.contents.map(async(c): Promise<Awaited<QueryResolverReturnType<'getUnpointContents'>>['contents'][0]> => {
+                        const data = await getDataByOriginalId(c.originalId);
+                        return {
+                            originalId: c.originalId,
+                            dataId: data?.data_id,
+                            title: c.title,
+                            overview: c.overview,
+                            thumb: c.thumb,
+                        }
+                    }));
+
+                    return {
+                        contents,
+                        nextToken: result.nextToken,
+                    };
 
                 } catch(e) {
                     apiLogger.warn('get-unpointdata API error', param, e);

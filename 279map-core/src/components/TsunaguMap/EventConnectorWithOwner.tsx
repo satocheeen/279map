@@ -259,12 +259,31 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 throw new Error('getUnpoinData error', result.error);
             }
             return {
-                contents: result.data.getUnpointContents.contents.map(c => ({
-                    originalId: c.originalId,
-                    title: c.title,
-                    thumb: c.thumb ?? undefined,
-                    overview: c.overview ?? undefined,
-                })),
+                contents: result.data.getUnpointContents.contents.map(c => {
+                    if (c.dataId) {
+                        return {
+                            id: {
+                                type: 'dataId',
+                                dataId: c.dataId,
+                            },
+                            title: c.title,
+                            thumb: c.thumb ?? undefined,
+                            overview: c.overview ?? undefined,
+
+                        }
+                    } else {
+                        return {
+                            id: {
+                                type: 'originalId',
+                                originalId: c.originalId,
+                            },
+                            title: c.title,
+                            thumb: c.thumb ?? undefined,
+                            overview: c.overview ?? undefined,        
+                        }
+    
+                    }
+                }),
                 nextToken: result.data.getUnpointContents.nextToken ?? undefined,
             }
         },

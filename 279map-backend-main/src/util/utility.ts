@@ -1,9 +1,9 @@
 import { ConnectionPool } from '..';
-import { DataSourceTable } from '../../279map-backend-common/src/types/schema';
+import { DataSourceTable, DatasTable } from '../../279map-backend-common/src/types/schema';
 import { buffer, circle, featureCollection, lineString, multiLineString, multiPolygon, point, polygon, union } from '@turf/turf';
 import crypto from 'crypto';
 import * as geojson from 'geojson';
-import { ContentFieldDefine, ContentValueMap, DataId, DatasourceLocationKindType, MapKind } from '../types-common/common-types';
+import { ContentFieldDefine, ContentValueMap, DataId } from '../types-common/common-types';
 import { MapDataSourceLinkTable } from '../../279map-backend-common/src';
 import { Auth } from '../graphql/__generated__/types';
 
@@ -163,4 +163,18 @@ export function compareAuth(a: Auth, b: Auth) {
     const aWeight = weightFunc(a);
     const bWeight = weightFunc(b);
     return aWeight - bWeight;
+}
+
+export async function getDataByOriginalId(originalId: string): Promise<DatasTable|null> {
+    const con = await ConnectionPool.getConnection();
+
+    try {
+        const sql = 'select * from datas where original_id = ?';
+        const [rows] = await con.query(sql, [originalId]);
+        if ((rows as []).length === 0) return null;
+        return (rows as DatasTable[])[0];
+
+    } finally {
+        con.release();
+    }
 }
