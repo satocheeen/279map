@@ -203,7 +203,7 @@ async function getContentDataSources(mapId: string, mapKind: MapKind): Promise<C
     try {
         const sql = `select * from data_source ds
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
-        where map_page_id =? and contents_define is not null`;
+        where map_page_id =? and contents_define is not null ${mapKind === MapKind.Real ? 'and location_kind <> "VirtualItem"' : ''}`;
 
         const query = mysql.format(sql, [mapId]);
         const [rows] = await con.execute(query);
