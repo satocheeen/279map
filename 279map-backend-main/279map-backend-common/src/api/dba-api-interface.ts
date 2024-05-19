@@ -73,27 +73,27 @@ export type OdbaUnlinkDataParam = CommonParam & {
 }
 
 /**
- * get unpoint data
+ * get uncached data
+ * 指定のデータソースIDに関して、キャッシュDBに未登録のデータを取得する
  */
-export const OdbaGetUnpointDataAPI = {
+export const OdbaGetUncachedDataAPI = {
     uri: 'get-unpointdata',
     method: 'post',
     resultType: 'json',
-} as APIDefine<OdbaGetUnpointDataParam, OdbaGetUnpointDataResult>;
+} as APIDefine<OdbaGetUncachedDataParam, OdbaGetUncachedDataResult>;
 
-export type OdbaGetUnpointDataParam = CommonParam & {
+export type OdbaGetUncachedDataParam = CommonParam & {
     dataSourceId: string;
     nextToken?: string;
     keyword?: string;
 }
-export type UnpointContent = {
-    originalId: string;
-    title: string;
-    thumb?: string;
-    overview?: string;
-}
-export type OdbaGetUnpointDataResult = {
-    contents: UnpointContent[],
+export type OdbaGetUncachedDataResult = {
+    contents: {
+        originalId: string;
+        title: string;
+        overview?: string;
+        hasImage?: boolean;
+    }[],
     nextToken?: string;
 };
 
