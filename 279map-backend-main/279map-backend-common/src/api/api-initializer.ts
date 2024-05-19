@@ -47,7 +47,7 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
         },
         {
             define: OdbaGetUncachedDataAPI,
-            func: odba.getUnpointData,
+            func: odba.getUncachedData,
         },
         {
             define: OdbaLinkDataAPI,

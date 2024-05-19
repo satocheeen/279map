@@ -20,7 +20,7 @@ export default abstract class OdbaInterface {
 
     abstract removeData: (param: OdbaRemoveDataParam) => Promise<boolean>;
 
-    abstract getUnpointData: OdbaAPIFunc<OdbaGetUncachedDataParam, OdbaGetUncachedDataResult>;
+    abstract getUncachedData: OdbaAPIFunc<OdbaGetUncachedDataParam, OdbaGetUncachedDataResult>;
 
     /**
      * 指定のコンテンツをアイテムまたは親コンテンツに紐づける。
