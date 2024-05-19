@@ -280,7 +280,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                                 dataId: c.dataId,
                             },
                             title: c.title,
-                            thumb: c.thumb ?? undefined,
+                            hasImage: c.hasImage ?? undefined,
                             overview: c.overview ?? undefined,
 
                         }
@@ -291,7 +291,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                                 originalId: c.originalId,
                             },
                             title: c.title,
-                            thumb: c.thumb ?? undefined,
+                            hasImage: c.hasImage ?? undefined,
                             overview: c.overview ?? undefined,        
                         }
     

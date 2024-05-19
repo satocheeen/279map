@@ -121,8 +121,8 @@ query getUnpointContents(
             originalId
             dataId
             title
-            thumb
             overview
+            hasImage
         }
         nextToken
     }

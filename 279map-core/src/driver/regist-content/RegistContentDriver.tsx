@@ -148,36 +148,38 @@ export default function RegistContentDriver(props: Props) {
                 </select>
             </label>
             <table className={myStyles.Table}>
-                {fields.map(field => {
-                    const type = function() {
-                        switch(field.type) {
-                            case 'date':
-                                return 'datetime-local';
-                            case 'number':
-                                return 'number';
-                            default:
-                                return 'text';
-                        }
-                    }();
-                    return (
-                        <tr key={field.key}>
-                            <td>
-                                <span className={myStyles.Key}>{field.key}</span><br/>
-                                <span>[{field.type}]</span>
-                            </td>
-                            <td className={myStyles.Label}>{'label' in field ? field.label : ''}</td>
-                            <td>
-                                <input type={type} value={values[field.key]??''} onChange={(evt)=>handleChangeValue(field.key, evt.target.value)} />
-                                {(field.type === 'image' && mode==='update') &&
-                                    <label>
-                                        <input type='checkbox' checked={values[field.key] === null} onChange={(evt)=>handleChangeValue(field.key, evt.target.checked ? null : undefined )}/>
-                                        削除
-                                    </label>
-                                }
-                            </td>
-                        </tr>
-                    )
-                })}
+                <tbody>
+                    {fields.map(field => {
+                        const type = function() {
+                            switch(field.type) {
+                                case 'date':
+                                    return 'datetime-local';
+                                case 'number':
+                                    return 'number';
+                                default:
+                                    return 'text';
+                            }
+                        }();
+                        return (
+                            <tr key={field.key}>
+                                <td>
+                                    <span className={myStyles.Key}>{field.key}</span><br/>
+                                    <span>[{field.type}]</span>
+                                </td>
+                                <td className={myStyles.Label}>{'label' in field ? field.label : ''}</td>
+                                <td>
+                                    <input type={type} value={values[field.key]??''} onChange={(evt)=>handleChangeValue(field.key, evt.target.value)} />
+                                    {(field.type === 'image' && mode==='update') &&
+                                        <label>
+                                            <input type='checkbox' checked={values[field.key] === null} onChange={(evt)=>handleChangeValue(field.key, evt.target.checked ? null : undefined )}/>
+                                            削除
+                                        </label>
+                                    }
+                                </td>
+                            </tr>
+                        )
+                    })}
+                </tbody>
             </table>
             <textarea rows={5} readOnly value={JSON.stringify(values)} />
             {mode === 'new' ?

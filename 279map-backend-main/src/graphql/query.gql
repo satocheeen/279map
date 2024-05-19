@@ -69,8 +69,8 @@ type UnpointContent {
     "DBに登録済みの場合は、dataIdも返す"
     dataId: DataId
     title: String!
-    thumb: String
     overview: String
+    hasImage: Boolean
 }
 type GetUnpointContentsResult {
     contents: [UnpointContent!]!

@@ -4,7 +4,7 @@
 export type {
     CategoryDefine, 
     Condition, ContentsDefine,     
-    EventDefine, GetUnpointContentsResult,
+    EventDefine,
     MapDefine, 
     ServerConfig, MapPageOptions, ItemDatasourceInfo, ContentDatasourceInfo
 } from "./graphql/generated/graphql";

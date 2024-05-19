@@ -368,7 +368,7 @@ export interface TsunaguMapHandler {
             };
             title: string;
             overview?: string;
-            thumb?: string;
+            hasImage?: boolean;
         }[];
         nextToken?: string;
     }>;

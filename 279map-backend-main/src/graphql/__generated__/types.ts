@@ -538,9 +538,9 @@ export enum ThumbSize {
 export type UnpointContent = {
   /** DBに登録済みの場合は、dataIdも返す */
   dataId?: Maybe<Scalars['DataId']['output']>;
+  hasImage?: Maybe<Scalars['Boolean']['output']>;
   originalId: Scalars['String']['output'];
   overview?: Maybe<Scalars['String']['output']>;
-  thumb?: Maybe<Scalars['String']['output']>;
   title: Scalars['String']['output'];
 };
 
@@ -998,9 +998,9 @@ export type TargetResolvers<ContextType = any, ParentType extends ResolversParen
 
 export type UnpointContentResolvers<ContextType = any, ParentType extends ResolversParentTypes['UnpointContent'] = ResolversParentTypes['UnpointContent']> = {
   dataId?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType>;
+  hasImage?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   originalId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   overview?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  thumb?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };

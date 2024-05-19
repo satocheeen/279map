@@ -21,7 +21,7 @@ import { Auth0Management } from './auth/Auth0Management';
 import { OriginalAuthManagement } from './auth/OriginalAuthManagement';
 import { NoneAuthManagement } from './auth/NoneAuthManagement';
 import { CurrentMap, sleep } from '../279map-backend-common/src';
-import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUnpointDataAPI, OdbaLinkDataAPI, OdbaRegistDataAPI, OdbaRemoveDataAPI, OdbaUnlinkDataAPI, OdbaUpdateDataAPI, callOdbaApi } from '../279map-backend-common/src/api';
+import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUncachedDataAPI, OdbaLinkDataAPI, OdbaRegistDataAPI, OdbaRemoveDataAPI, OdbaUnlinkDataAPI, OdbaUpdateDataAPI, callOdbaApi } from '../279map-backend-common/src/api';
 import SessionManager from './session/SessionManager';
 import { getItemsById } from './api/getItem';
 import { loadSchemaSync } from '@graphql-tools/load';
@@ -49,6 +49,7 @@ import { getLinkedContent } from './api/get-content/getLinkedContents';
 import { getContent } from './api/get-content/getContent';
 import { publishData } from './util/publish_utility';
 import { getDataByOriginalId } from './util/utility';
+import { UnpointContent, getUnpointData } from './api/getUnpointData';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -405,18 +406,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         throw new Error('not find content');
                     }
                     return result;
-                    // const result = await getContents({
-                    //     param: [{
-                    //         contentId: param.id,
-                    //     }],
-                    //     currentMap: ctx.currentMap,
-                    //     authLv: ctx.authLv,
-                    // });
-                    // if (result.length === 0) {
-                    //     throw new Error('not found');
-                    // }
-
-                    // return result[0];
 
                 } catch(e) {    
                     apiLogger.warn('getContent error', param, e);
@@ -425,30 +414,22 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             },
             getUnpointContents: async(_: any, param: QueryGetUnpointContentsArgs, ctx): QueryResolverReturnType<'getUnpointContents'> => {
                 try {
-                    // call ODBA
-                    const result = await callOdbaApi(OdbaGetUnpointDataAPI, {
+                    // キャッシュDBに存在するデータの中から、指定の地図上のアイテムにプロットされていないデータを取得する
+                    const unpointDataList = await getUnpointData({
+                        currentMap: ctx.currentMap,
+                        dataSourceId: param.datasourceId,
+                        keyword: param.keyword ?? undefined,
+                    });
+                    // ODBAに問い合わせて、キャッシュDBに未登録のデータを取得する
+                    const result = await callOdbaApi(OdbaGetUncachedDataAPI, {
                         currentMap: ctx.currentMap,
                         dataSourceId: param.datasourceId,
                         nextToken: param.nextToken ?? undefined,
                         keyword: param.keyword ?? undefined,
                     });
 
-                    // 登録済みのものはdataIdも付与して返す
-                    // TODO: odbaからは、地図に全くプロットされていないものを返すように変更して、
-                    // キャッシュDBに存在するけれど、当該地図ではプロットされていないものはここで取得するように処理変更する
-                    const contents = await Promise.all(result.contents.map(async(c): Promise<Awaited<QueryResolverReturnType<'getUnpointContents'>>['contents'][0]> => {
-                        const data = await getDataByOriginalId(c.originalId);
-                        return {
-                            originalId: c.originalId,
-                            dataId: data?.data_id,
-                            title: c.title,
-                            overview: c.overview,
-                            thumb: c.thumb,
-                        }
-                    }));
-
                     return {
-                        contents,
+                        contents: [...unpointDataList, ...result.contents],
                         nextToken: result.nextToken,
                     };
 
