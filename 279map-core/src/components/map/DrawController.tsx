@@ -38,7 +38,6 @@ type ControllerType = {
 export type DrawControllerHandler = Pick<TsunaguMapHandler, 
     'drawTemporaryFeature'
     | 'registItemDirectly'
-    | 'updateItemDirectly'
     | 'removeItemDircetly'
     | 'drawStructure'
     | 'moveStructure'
@@ -88,15 +87,6 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
                 throw new Error('registItem failed');
             }
             return id;
-        },
-        async updateItemDirectly(id, geo) {
-            await updateItemsProcess([
-                {
-                    id,
-                    geometry: geo.geometry,
-                    geoProperties: geo.geoProperties,
-                }
-            ]);
         },
         async removeItemDircetly(id) {
             await removeItemProcess(id);

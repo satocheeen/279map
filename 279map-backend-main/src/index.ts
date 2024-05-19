@@ -28,7 +28,7 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { IFieldResolverOptions } from '@graphql-tools/utils';
-import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkDataArgs, MutationLinkDataByOriginalIdArgs, MutationRegistDataArgs, MutationRemoveDataArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkDataArgs, MutationUpdateDataArgs, Operation, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, Target } from './graphql/__generated__/types';
+import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkDataArgs, MutationLinkDataByOriginalIdArgs, MutationRegistDataArgs, MutationRemoveDataArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkDataArgs, MutationUpdateDataArgs, MutationUpdateDataByOriginalIdArgs, Operation, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, Target } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { GeoPropertiesScalarType, GeocoderIdInfoScalarType, IconKeyScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -722,7 +722,10 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     // call ODBA
                     const result = await callOdbaApi(OdbaUpdateDataAPI, {
                         currentMap: ctx.currentMap,
-                        id: param.id,
+                        target: {
+                            type: 'dataId',
+                            id: param.id,
+                        },
                         item: param.item ?? undefined,
                         contents: param.contents ?? undefined,
                     })
@@ -739,6 +742,31 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     apiLogger.warn('update-item API error', param, e);
                     throw e;
                 }
+            },
+
+            updateDataByOriginalId: async(_, param: MutationUpdateDataByOriginalIdArgs, ctx): MutationResolverReturnType<'updateDataByOriginalId'> => {
+                try {
+                    // call ODBA
+                    const id = await callOdbaApi(OdbaUpdateDataAPI, {
+                        currentMap: ctx.currentMap,
+                        target: {
+                            type: 'originalId',
+                            originalId: param.originalId,
+                        },
+                        item: param.item ?? undefined,
+                        contents: param.contents ?? undefined,
+                    })
+
+                    // 更新通知
+                    publishData(pubsub, 'update', [id]);
+
+                    return true;
+
+                } catch(e) {    
+                    apiLogger.warn('update-item API error', param, e);
+                    throw e;
+                }
+
             },
 
             /**

@@ -14,7 +14,7 @@ import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSour
 import { overrideItemsAtom, showingItemsAtom, } from '../../store/item';
 import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetUnpointContentsDocument, SearchDocument, SortCondition, GetImageDocument, RegistDataDocument, RemoveDataDocument, UpdateDataDocument, LinkDataDocument, UnlinkDataDocument, GetContentDocument, DataUpdateDocument, Operation, LinkDataByOriginalIdDocument } from '../../graphql/generated/graphql';
+import { ContentsDefine, GetUnpointContentsDocument, SearchDocument, SortCondition, GetImageDocument, RegistDataDocument, RemoveDataDocument, UpdateDataDocument, LinkDataDocument, UnlinkDataDocument, GetContentDocument, DataUpdateDocument, Operation, LinkDataByOriginalIdDocument, UpdateDataByOriginalIdDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern } from '../common/confirm/types';
@@ -31,7 +31,7 @@ import { useAtomCallback } from 'jotai/utils';
 export type EventControllerHandler = Pick<TsunaguMapHandler, 
     'switchMapKind' | 'focusItem' | 'loadContent' | 'loadImage'
     | 'filter' | 'clearFilter'
-    | 'registContent' | 'updateContent' | 'removeContent'
+    | 'registContent' | 'updateData' | 'removeContent'
     | 'linkContent' | 'unlinkContent'
     | 'getUnpointDataAPI'
     | 'changeVisibleLayer'
@@ -202,13 +202,26 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 throw new Error('registContent failed.' + e);
             }
         },
-        async updateContent(param) {
-            const result = await gqlClient.mutation(UpdateDataDocument, {
-                id: param.id,
-                contents: param.values,
-            });
-            if (result.error) {
-                throw new Error(result.error.message);
+        async updateData(param) {
+            if (param.key.type === 'dataId') {
+                const result = await gqlClient.mutation(UpdateDataDocument, {
+                    id: param.key.dataId,
+                    item: param.item?.geo,
+                    contents: param.contents?.values,
+                });
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+    
+            } else {
+                const result = await gqlClient.mutation(UpdateDataByOriginalIdDocument, {
+                    originalId: param.key.originalId,
+                    item: param.item?.geo,
+                    contents: param.contents?.values,
+                });
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
             }
         },
         async removeContent(param) {

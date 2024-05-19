@@ -88,6 +88,15 @@ export type OverrideItem = ({
     type: 'delete';
     id: DataId;
 }
+
+// Dataを特定するキー
+type DataKey = {
+    type: 'originalId';
+    originalId: string;
+} | {
+    type: 'dataId';
+    dataId: DataId;
+}
 export type TsunaguMapProps = {
     mapId: string;
     mapServer: {
@@ -223,12 +232,20 @@ export interface TsunaguMapHandler {
     registItemDirectly(datasourceId: string, geo: ItemGeoInfo): Promise<DataId>;
 
     /**
-     * 指定の値でアイテム更新する.
-     * @param id 更新対象アイテムID
-     * @param name アイテム名
+     * 指定の値でデータ更新する.
+     * @param key 更新対象データ。originalId指定時は、キャッシュDBに未登録時にはキャッシュDBに新規登録される。
      * @param geo 図形 
+     * @param values コンテンツデータ
      */
-    updateItemDirectly(id: DataId, geo: ItemGeoInfo): Promise<void>;
+    updateData(param: {
+        key: DataKey,
+        item?: {
+            geo: ItemGeoInfo
+        },
+        contents?: {
+            values: ContentValueMap,
+        }
+    }): Promise<void>;
 
     /**
      * 指定のアイテムを削除する
@@ -300,14 +317,6 @@ export interface TsunaguMapHandler {
             type: 'item' | 'content',
             id: DataId,
         },
-        values: ContentValueMap,
-    }): Promise<void>;
-
-    /**
-     * コンテンツを更新する
-     */
-    updateContent(param: {
-        id: DataId,
         values: ContentValueMap,
     }): Promise<void>;
 

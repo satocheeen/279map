@@ -250,6 +250,8 @@ export type Mutation = {
   unlinkData?: Maybe<Scalars['Boolean']['output']>;
   /** データ更新 */
   updateData: Scalars['Boolean']['output'];
+  /** データ更新（オリジナルID指定） */
+  updateDataByOriginalId: Scalars['Boolean']['output'];
 };
 
 
@@ -310,6 +312,13 @@ export type MutationUpdateDataArgs = {
   contents?: InputMaybe<Scalars['ContentValueMap']['input']>;
   id: Scalars['DataId']['input'];
   item?: InputMaybe<RegistDataItemInput>;
+};
+
+
+export type MutationUpdateDataByOriginalIdArgs = {
+  contents?: InputMaybe<Scalars['ContentValueMap']['input']>;
+  item?: InputMaybe<RegistDataItemInput>;
+  originalId: Scalars['String']['input'];
 };
 
 export type NoneConfig = {
@@ -936,6 +945,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   switchMapKind?: Resolver<ResolversTypes['MapInfo'], ParentType, ContextType, RequireFields<MutationSwitchMapKindArgs, 'mapKind'>>;
   unlinkData?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkDataArgs, 'id' | 'parent'>>;
   updateData?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateDataArgs, 'id'>>;
+  updateDataByOriginalId?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateDataByOriginalIdArgs, 'originalId'>>;
 };
 
 export type NoneConfigResolvers<ContextType = any, ParentType extends ResolversParentTypes['NoneConfig'] = ResolversParentTypes['NoneConfig']> = {

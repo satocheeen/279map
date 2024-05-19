@@ -79,6 +79,13 @@ type Mutation {
         contents: ContentValueMap
     ): Boolean!
 
+    "データ更新（オリジナルID指定）"
+    updateDataByOriginalId (
+        originalId: String!
+        item: RegistDataItemInput
+        contents: ContentValueMap
+    ): Boolean!
+
     "データ削除"
     removeData (
         id: DataId!

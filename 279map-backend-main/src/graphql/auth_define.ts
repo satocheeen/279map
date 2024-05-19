@@ -24,6 +24,7 @@ export const authDefine: AuthLvDefine = {
     
     registData: Auth.Edit,
     updateData: Auth.Edit,
+    updateDataByOriginalId: Auth.Edit,
     removeData: Auth.Edit,
 
     linkData: Auth.Edit,
