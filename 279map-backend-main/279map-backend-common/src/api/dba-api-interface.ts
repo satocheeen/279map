@@ -29,10 +29,16 @@ export const OdbaUpdateDataAPI = {
     uri: 'update-data',
     method: 'post',
     resultType: 'json',
-} as APIDefine<OdbaUpdateDataParam, boolean>;
+} as APIDefine<OdbaUpdateDataParam, DataId>;
 
 export type OdbaUpdateDataParam = CommonParam & {
-    id: DataId;
+    target: {
+        type: 'dataId',
+        id: DataId;
+    } | {
+        type: 'originalId',
+        originalId: string;
+    };
     item?: {
         geometry: GeoJSON.Geometry;
         geoProperties: GeoProperties;
