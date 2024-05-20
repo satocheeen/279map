@@ -98,7 +98,7 @@ async function getAnotherMapKindItemsUsingTheContent(contentId: DataId, currentM
     try {
         // もう片方の地図に存在するかチェック
         const sql = `
-        select * from data_link dl 
+        select dl.from_data_id as data_id from data_link dl 
         where dl.to_data_id = ?
         and EXISTS (
             select * from datas d
@@ -107,13 +107,20 @@ async function getAnotherMapKindItemsUsingTheContent(contentId: DataId, currentM
             where mdl.map_page_id = ? and ds.location_kind in (?)
             and d.data_id = dl.from_data_id 
         )
+        union
+        select d2.data_id from datas d2
+        inner join geometry_items gi 
+        inner join data_source ds2 on ds2.data_source_id = d2.data_source_id 
+        inner join map_datasource_link mdl2 on mdl2.data_source_id = d2.data_source_id 
+        where d2.data_id = ?
+        and mdl2.map_page_id = ? and ds2.location_kind in (?)
         `;
         const anotherMapKind = currentMap.mapKind === MapKind.Virtual ? [DatasourceLocationKindType.RealItem, DatasourceLocationKindType.Track] : [DatasourceLocationKindType.VirtualItem];
-        const query = con.format(sql, [contentId, currentMap.mapId, anotherMapKind]);
+        const query = con.format(sql, [contentId, currentMap.mapId, anotherMapKind, contentId, currentMap.mapId, anotherMapKind]);
         const [rows] = await con.execute(query);
 
-        return (rows as DataLinkTable[]).map((row): DataId => {
-            return row.from_data_id;
+        return (rows as {data_id: DataId}[]).map((row): DataId => {
+            return row.data_id;
         });
 
     } finally {
