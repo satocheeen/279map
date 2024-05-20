@@ -36,9 +36,26 @@ export async function convertContentsToContentsDefine(row: Record, currentMap: C
             row.mdl_config.contentFieldKeyList.forEach(key => {
                 values[key] = allValues[key];
 
-                if (key !== titleField?.key) {
-                    hasValue = true;
+                // 値があるかどうかチェック
+                const value = values[key];
+                if (!value) return;
+                // -- タイトルは値と見做さない
+                if (key === titleField?.key) return;
+                const def = row.contents_define?.find(def => def.key === key);
+                if (!def) return;
+                if (def.type === 'category' && (value as string[]).length === 0) {
+                    // category項目で配列0なら、値ありと見做さない
+                    return;
                 }
+                if (def.type === 'image' && (value as string[]).length === 0) {
+                    // image項目で配列0なら、値ありと見做さない
+                    return;
+                }
+                if ((def.type === 'string' || def.type === 'text') && (value as string).length === 0) {
+                    // テキスト項目で文字数0なら、値ありと見做さない
+                    return;
+                }
+                hasValue = true;
             });
         }
         return values;
