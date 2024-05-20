@@ -237,6 +237,7 @@ async function getContentDataSources(mapId: string, mapKind: MapKind): Promise<C
                             key,
                             label: define.label,
                             type: define.type,
+                            readonly: define.readonly,
                         }
                     }).filter(def => !!def) as ContentFieldDefine[] : [],
                 },
