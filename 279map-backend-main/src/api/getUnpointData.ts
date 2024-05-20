@@ -28,8 +28,9 @@ export async function getUnpointData({ currentMap, dataSourceId, keyword }: Odba
                 -- 指定の地図上に存在するitemから参照されているdata
                 select d2.* from datas d2 
                 inner join data_link dl on dl.to_data_id = d2.data_id 
-                inner join data_source ds2 on ds2.data_source_id = dl.from_data_id 
-                inner join map_datasource_link mdl2 on mdl2.data_source_id = dl.from_data_id 
+                inner join datas from_d on from_d.data_id = dl.from_data_id 
+                inner join data_source ds2 on ds2.data_source_id = from_d .data_source_id  
+                inner join map_datasource_link mdl2 on mdl2.data_source_id = from_d .data_source_id  
                 where mdl2.map_page_id = ? and ds2.location_kind in (?)
                 and d2.data_id = d3.data_id 
             )
