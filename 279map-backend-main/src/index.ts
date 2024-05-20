@@ -42,14 +42,13 @@ import { execute, subscribe } from 'graphql';
 import { ApolloServer } from 'apollo-server-express';
 import MyPubSub, { SubscriptionArgs } from './graphql/MyPubSub';
 import { MapKind } from './types-common/common-types';
-import { AuthMethod, ItemDefineWithoudContents } from './types';
+import { AuthMethod, ItemDefineWithoutContents } from './types';
 import { getImage } from './api/getImage';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import { getLinkedContent } from './api/get-content/getLinkedContents';
 import { getContent } from './api/get-content/getContent';
 import { publishData } from './util/publish_utility';
-import { getDataByOriginalId } from './util/utility';
-import { UnpointContent, getUnpointData } from './api/getUnpointData';
+import { getUnpointData } from './api/getUnpointData';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -335,7 +334,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * 地図アイテム取得
              */
-            getItems: async(parent: any, param: QueryGetItemsArgs, ctx): Promise<ItemDefineWithoudContents[]> => {
+            getItems: async(parent: any, param: QueryGetItemsArgs, ctx): Promise<ItemDefineWithoutContents[]> => {
                 try {
                     const items = await getItems({
                         param,
@@ -354,7 +353,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * 地図アイテム取得(ID指定)
              */
-            getItemsById: async(_, param: QueryGetItemsByIdArgs, ctx): Promise<ItemDefineWithoudContents[]> => {
+            getItemsById: async(_, param: QueryGetItemsByIdArgs, ctx): Promise<ItemDefineWithoutContents[]> => {
                 try {
                     const result = await getItemsById(param);
 
@@ -968,12 +967,13 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             }
         }as Record<keyof Subscription, IFieldResolverOptions<any, GraphQlContextType, any>>,
         ItemDefine: {
-            content: async(parent: ItemDefineWithoudContents, _, ctx): Promise<ContentsDefine|null> => {
+            content: async(parent: ItemDefineWithoutContents, _, ctx): Promise<ContentsDefine|null> => {
                 const result = await getContent({
                     dataId: parent.id,
                     currentMap: ctx.currentMap,
                     authLv: ctx.authLv,
                 });
+                if (!result?.hasValue) return null;
                 return result;
                 // const result = await getContents({
                 //     param: [{
@@ -986,7 +986,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 // 値を持つコンテンツのみを返す（コンテンツ）
                 // return result.filter(c => c.hasValue);
             },
-            linkedContents: async(parent: ItemDefineWithoudContents, _, ctx): Promise<ContentsDefine[]> => {
+            linkedContents: async(parent: ItemDefineWithoutContents, _, ctx): Promise<ContentsDefine[]> => {
                 const result = await getLinkedContent({
                     dataId: parent.id,
                     currentMap: ctx.currentMap,

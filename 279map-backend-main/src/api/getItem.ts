@@ -3,13 +3,13 @@ import { ConnectionPool } from "..";
 import { GeometryItemsTable } from "../../279map-backend-common/src/types/schema";
 import { QueryGetItemsByIdArgs } from "../graphql/__generated__/types";
 import { DataId } from "../types-common/common-types";
-import { ItemDefineWithoudContents } from "../types";
+import { ItemDefineWithoutContents } from "../types";
 import { DatasTable } from "../../279map-backend-common/dist";
 
 const apiLogger = getLogger('api');
 
-export async function getItemsById(param: QueryGetItemsByIdArgs): Promise<ItemDefineWithoudContents[]> {
-    const list = [] as ItemDefineWithoudContents[];
+export async function getItemsById(param: QueryGetItemsByIdArgs): Promise<ItemDefineWithoutContents[]> {
+    const list = [] as ItemDefineWithoutContents[];
     for (const target of param.targets) {
         const item = await getItem(target);
         if (item)
@@ -18,7 +18,7 @@ export async function getItemsById(param: QueryGetItemsByIdArgs): Promise<ItemDe
     return list;
 }
 
-export async function getItem(id: DataId): Promise<ItemDefineWithoudContents|undefined> {
+export async function getItem(id: DataId): Promise<ItemDefineWithoutContents|undefined> {
     const con = await ConnectionPool.getConnection();
     try {
 

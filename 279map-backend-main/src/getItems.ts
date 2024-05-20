@@ -5,12 +5,12 @@ import { GeometryItemsTable } from '../279map-backend-common/src/types/schema';
 import { QueryGetItemsArgs } from './graphql/__generated__/types';
 import { ItemContentInfo } from './api/getItem';
 import { DatasourceLocationKindType, FeatureType, GeoProperties } from './types-common/common-types';
-import { ItemDefineWithoudContents } from './types';
+import { ItemDefineWithoutContents } from './types';
 import { DataSourceTable } from '../279map-backend-common/dist';
 
 const apiLogger = getLogger('api');
 
-export async function getItems({ param, currentMap }: {param:QueryGetItemsArgs; currentMap: CurrentMap}): Promise<ItemDefineWithoudContents[]> {
+export async function getItems({ param, currentMap }: {param:QueryGetItemsArgs; currentMap: CurrentMap}): Promise<ItemDefineWithoutContents[]> {
 
     const items = await selectItems(param, currentMap);
 
@@ -23,7 +23,7 @@ export async function getItems({ param, currentMap }: {param:QueryGetItemsArgs; 
     
 }
 
-async function selectItems(param: QueryGetItemsArgs, currentMap: CurrentMap): Promise<ItemDefineWithoudContents[]> {
+async function selectItems(param: QueryGetItemsArgs, currentMap: CurrentMap): Promise<ItemDefineWithoutContents[]> {
     const con = await ConnectionPool.getConnection();
 
     try {
@@ -53,7 +53,7 @@ async function selectItems(param: QueryGetItemsArgs, currentMap: CurrentMap): Pr
             params.push(param.latestEditedTime);
         }
         const [rows] = await con.execute(sql, params);
-        const pointContents = [] as ItemDefineWithoudContents[];
+        const pointContents = [] as ItemDefineWithoutContents[];
         for(const row of rows as (GeometryItemsTable & {geojson: any; title: string | null; location_kind: DatasourceLocationKindType; last_edited_time: string})[]) {
             let lastEditedTime = row.last_edited_time;
 
