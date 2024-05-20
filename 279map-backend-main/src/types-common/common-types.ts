@@ -94,6 +94,7 @@ export type ItemDatasourceConfig = {
     kind: DatasourceLocationKindType.Track | DatasourceLocationKindType.VirtualItem;
 } | {
     kind: DatasourceLocationKindType.RealItem;
+    drawableArea: boolean;  // trueの場合、エリア描画可能。falseの場合は、ピンのみ描画可能。
     defaultIcon?: IconKey;
 }
 

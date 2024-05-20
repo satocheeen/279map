@@ -171,6 +171,7 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
 
             const config: ItemDatasourceConfig = row.location_kind === DatasourceLocationKindType.RealItem ? {
                 kind: row.location_kind,
+                drawableArea: row.location_define?.some(def => def.type === 'geojson') ?? false,
                 defaultIcon: mdlConfig.location_kind === DatasourceLocationKindType.RealItem ? mdlConfig.defaultIconKey : undefined,
             } : {
                 kind: row.location_kind,
