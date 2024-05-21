@@ -12,7 +12,6 @@ import { TranslateEvent } from 'ol/interaction/Translate';
 import "react-toggle/style.css";
 import Toggle from 'react-toggle';
 import usePointStyle from '../../usePointStyle';
-import { useProcessMessage } from '../../../common/spinner/useProcessMessage';
 import { convertDataIdFromFeatureId, isEqualId } from '../../../../util/dataUtility';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { useMap } from '../../useMap';
@@ -22,9 +21,9 @@ import useTopographyStyle from '../../useTopographyStyle';
 import { topographySelectStyleFunction } from '../utility';
 import { LineString, Polygon } from 'ol/geom';
 import { useAtom } from 'jotai';
-import { clientAtom } from 'jotai-urql';
-import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
+import { FeatureType, GeoProperties, MapKind } from '../../../../types-common/common-types';
 import useItemProcess, { UpdateItemParam } from '../../../../store/item/useItemProcess';
+import { currentMapKindAtom } from '../../../../store/session';
 
 type Props = {
     close: () => void;  // 編集完了時のコールバック
@@ -71,8 +70,6 @@ export default function MoveItemController(props: Props) {
 
     const prevGeometoryRef = useRef<{[id: string]: Geometry}>({});
     const [multipleMode, setMultipleMode] = useState(false);    // 複数選択モードの場合、true
-    const spinnerHook = useProcessMessage();
-    const [ gqlClient ] = useAtom(clientAtom);
 
     useEffect(() => {
         movedFeatureCollection.clear();
@@ -242,14 +239,22 @@ export default function MoveItemController(props: Props) {
 
     };
 
-    let message1: string;
-    let message2: string | undefined;
-    if (multipleMode) {
-        message1 = "移動したい建物を選択の上、D&Dで移動してください。";
-        message2 = "複数選択する場合->Shift+クリック\n矩形選択する場合->Ctrl+矩形描画";
-    } else {
-        message1 = "移動したい建物をD&Dで移動してください";
-    }
+    const [ currentMapKind ] = useAtom(currentMapKindAtom);
+    const { message1, message2 } = useMemo(() => {
+        const target = currentMapKind === MapKind.Real ? 'ピンまたはエリア' : '建物または土地';
+        if (multipleMode) {
+            return {
+                message1: `移動したい${target}を選択の上、D&Dで移動してください。`,
+                message2: "複数選択する場合->Shift+クリック\n矩形選択する場合->Ctrl+矩形描画",
+            }
+        } else {
+            return {
+                message1: `移動したい${target}をD&Dで移動してください`,
+                message2: undefined,
+            }
+        }    
+    }, [multipleMode, currentMapKind]);
+
     return (
         <PromptMessageBox message={message1} ok={onFinishClicked} okname="完了" cancel={onCancelClicked} okdisabled={!okable}>
             <>
