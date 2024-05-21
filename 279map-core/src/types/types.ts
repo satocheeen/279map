@@ -43,8 +43,9 @@ export type ItemType = {
     lastEditedTime: string;
     filterHit?: boolean;   // フィルタ時にフィルタ条件に該当した場合、true
     content?: {
-        id: DataId
+        id: DataId;
         datasourceId: string;
+        usingOtherMap: boolean;
         filterHit?: boolean;   // フィルタ時にフィルタ条件に該当した場合、true
     };
     linkedContents: {

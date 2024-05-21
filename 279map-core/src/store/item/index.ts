@@ -219,6 +219,7 @@ export const showingItemsAtom = atom<ItemType[]>((get) => {
             content: item.content ? {
                 id: item.content.id,
                 datasourceId: item.datasourceId,
+                usingOtherMap: item.content.usingOtherMap,
                 filterHit: filteredDatas?.includes(item.content.id),
             } : undefined,
             linkedContents: item.linkedContents.map(c => {

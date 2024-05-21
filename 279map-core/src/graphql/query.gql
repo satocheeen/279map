@@ -59,12 +59,14 @@ query getItems (
         content {
             id
             datasourceId
+            usingOtherMap
             hasValue
             hasImage
         }
         linkedContents {
             id
             datasourceId
+            usingOtherMap
             hasValue
             hasImage
         }
@@ -84,12 +86,14 @@ query getItemsById (
         content {
             id
             datasourceId
+            usingOtherMap
             hasValue
             hasImage
         }
         linkedContents {
             id
             datasourceId
+            usingOtherMap
             hasValue
             hasImage
         }
