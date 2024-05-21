@@ -706,7 +706,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                             type: 'dataId',
                             id: param.id,
                         },
-                        item: param.item ?? undefined,
+                        item: param.deleteItem ? null : (param.item ?? undefined),
                         contents: param.contents ?? undefined,
                     })
                     if (!result) {

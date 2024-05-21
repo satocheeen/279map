@@ -68,11 +68,13 @@ mutation registData (
 mutation updateData (
     $id: DataId!
     $item: RegistDataItemInput
+    $deleteItem: Boolean
     $contents: ContentValueMap
 ) {
     updateData (
         id: $id,
         item: $item,
+        deleteItem: $deleteItem,
         contents: $contents,
     )
 }

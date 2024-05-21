@@ -206,7 +206,8 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             if (param.key.type === 'dataId') {
                 const result = await gqlClient.mutation(UpdateDataDocument, {
                     id: param.key.dataId,
-                    item: param.item?.geo,
+                    item: param.item?.geo ?? undefined,
+                    deleteItem: param.item?.geo === null,
                     contents: param.contents?.values,
                 });
                 if (result.error) {

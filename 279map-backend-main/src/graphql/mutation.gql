@@ -76,6 +76,8 @@ type Mutation {
     updateData (
         id: DataId!
         item: RegistDataItemInput
+        "trueの場合、item削除する"
+        deleteItem: Boolean
         contents: ContentValueMap
     ): Boolean!
 

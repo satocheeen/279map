@@ -310,6 +310,7 @@ export type MutationUnlinkDataArgs = {
 
 export type MutationUpdateDataArgs = {
   contents?: InputMaybe<Scalars['ContentValueMap']['input']>;
+  deleteItem?: InputMaybe<Scalars['Boolean']['input']>;
   id: Scalars['DataId']['input'];
   item?: InputMaybe<RegistDataItemInput>;
 };

@@ -241,7 +241,7 @@ export interface TsunaguMapHandler {
     updateData(param: {
         key: DataKey,
         item?: {
-            geo: ItemGeoInfo
+            geo: ItemGeoInfo | null,    // nullの場合、位置情報を削除する
         },
         contents?: {
             values: ContentValueMap,
