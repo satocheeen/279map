@@ -42,7 +42,7 @@ export type OdbaUpdateDataParam = CommonParam & {
     item?: {
         geometry: GeoJSON.Geometry;
         geoProperties: GeoProperties;
-    };
+    } | null;   // nullの場合、item削除
     contents?: ContentValueMap;
 }
 
