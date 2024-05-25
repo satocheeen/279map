@@ -160,8 +160,8 @@ async function searchByKeyword(con: PoolConnection, currentMap: CurrentMap, keyw
     `;
 
     const keywordParam = `%${keyword}%`;
-    const dsKind = currentMap.mapKind === MapKind.Virtual ? DatasourceLocationKindType.VirtualItem : DatasourceLocationKindType.RealItem;
-    const params = [currentMap.mapId, dsKind, keywordParam, keywordParam] as any[];
+    const dsKind = currentMap.mapKind === MapKind.Virtual ? [DatasourceLocationKindType.VirtualItem] : [DatasourceLocationKindType.RealItem, DatasourceLocationKindType.Track];
+    const params = [keywordParam, currentMap.mapId, dsKind] as any[];
     if (dataSourceIds) {
         params.push(dataSourceIds);
     }
