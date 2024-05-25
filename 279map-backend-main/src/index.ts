@@ -5,14 +5,11 @@ import { getItems } from './getItems';
 import { configure, getLogger } from "log4js";
 import { DbSetting, LogSetting } from './config';
 import { getThumbnail } from './api/getThumbnsil';
-import { getContents } from './getContents';
 import { getEvents } from './getEvents';
 import proxy from 'express-http-proxy';
 import http from 'http';
-import { cleanupContentValuesForRegist, getDatasourceRecord, getItemWkt } from './util/utility';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
-import { getSnsPreview } from './api/getSnsPreview';
 import cors from 'cors';
 import { exit } from 'process';
 import { getMapInfoById } from './getMapDefine';
@@ -24,31 +21,34 @@ import { Auth0Management } from './auth/Auth0Management';
 import { OriginalAuthManagement } from './auth/OriginalAuthManagement';
 import { NoneAuthManagement } from './auth/NoneAuthManagement';
 import { CurrentMap, sleep } from '../279map-backend-common/src';
-import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUnpointDataAPI, OdbaLinkContentDatasourceToMapAPI, OdbaLinkContentToItemAPI, OdbaRegistContentAPI, OdbaRegistItemAPI, OdbaRemoveContentAPI, OdbaRemoveItemAPI, OdbaUnlinkContentAPI, OdbaUnlinkContentDatasourceFromMapAPI, OdbaUpdateContentAPI, OdbaUpdateItemAPI, callOdbaApi } from '../279map-backend-common/src/api';
+import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUncachedDataAPI, OdbaLinkDataAPI, OdbaRegistDataAPI, OdbaRemoveDataAPI, OdbaUnlinkDataAPI, OdbaUpdateDataAPI, callOdbaApi } from '../279map-backend-common/src/api';
 import SessionManager from './session/SessionManager';
-import { geojsonToWKT } from '@terraformer/wkt';
 import { getItemsById } from './api/getItem';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { IFieldResolverOptions } from '@graphql-tools/utils';
-import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkContentArgs, MutationLinkContentsDatasourceArgs, MutationRegistContentArgs, MutationRegistItemArgs, MutationRemoveContentArgs, MutationRemoveItemArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkContentArgs, MutationUnlinkContentsDatasourceArgs, MutationUpdateContentArgs, MutationUpdateItemsArgs, Operation, ParentOfContent, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetContentsArgs, QueryGetContentsInItemArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetSnsPreviewArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, ThumbSize } from './graphql/__generated__/types';
+import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkDataArgs, MutationLinkDataByOriginalIdArgs, MutationRegistDataArgs, MutationRemoveDataArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkDataArgs, MutationUpdateDataArgs, MutationUpdateDataByOriginalIdArgs, Operation, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, Target } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
-import { DataIdScalarType, GeoPropertiesScalarType, GeocoderIdInfoScalarType, IconKeyScalarType, JsonScalarType } from './graphql/custom_scalar';
+import { GeoPropertiesScalarType, GeocoderIdInfoScalarType, IconKeyScalarType, JsonScalarType } from './graphql/custom_scalar';
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { CustomError } from './graphql/CustomError';
-import { getLinkedItemIdList } from './api/apiUtility';
+import { getLinkedDataIdList } from './api/apiUtility';
 import SessionInfo from './session/SessionInfo';
 import { Geometry } from 'geojson';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { execute, subscribe } from 'graphql';
 import { ApolloServer } from 'apollo-server-express';
 import MyPubSub, { SubscriptionArgs } from './graphql/MyPubSub';
-import { DataId, DatasourceKindType, MapKind } from './types-common/common-types';
-import { AuthMethod, ItemDefineWithoudContents } from './types';
+import { MapKind } from './types-common/common-types';
+import { AuthMethod, ItemDefineWithoutContents } from './types';
 import { getImage } from './api/getImage';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
+import { getLinkedContent } from './api/get-content/getLinkedContents';
+import { getContent } from './api/get-content/getContent';
+import { publishData } from './util/publish_utility';
+import { getUnpointData } from './api/getUnpointData';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -334,7 +334,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * 地図アイテム取得
              */
-            getItems: async(parent: any, param: QueryGetItemsArgs, ctx): Promise<ItemDefineWithoudContents[]> => {
+            getItems: async(parent: any, param: QueryGetItemsArgs, ctx): Promise<ItemDefineWithoutContents[]> => {
                 try {
                     const items = await getItems({
                         param,
@@ -353,7 +353,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * 地図アイテム取得(ID指定)
              */
-            getItemsById: async(_, param: QueryGetItemsByIdArgs, ctx): Promise<ItemDefineWithoudContents[]> => {
+            getItemsById: async(_, param: QueryGetItemsByIdArgs, ctx): Promise<ItemDefineWithoutContents[]> => {
                 try {
                     const result = await getItemsById(param);
 
@@ -396,75 +396,41 @@ const schema = makeExecutableSchema<GraphQlContextType>({
              */
             getContent: async(parent: any, param: QueryGetContentArgs, ctx): QueryResolverReturnType<'getContent'> => {
                 try {
-                    const result = await getContents({
-                        param: [{
-                            contentId: param.id,
-                        }],
+                    const result = await getContent({
+                        dataId: param.id,
                         currentMap: ctx.currentMap,
                         authLv: ctx.authLv,
                     });
-                    if (result.length === 0) {
-                        throw new Error('not found');
+                    if (!result) {
+                        throw new Error('not find content');
                     }
-
-                    return result[0];
+                    return result;
 
                 } catch(e) {    
                     apiLogger.warn('getContent error', param, e);
                     throw e;
                 }
             },
-            getContents: async(parent: any, param: QueryGetContentsArgs, ctx): QueryResolverReturnType<'getContents'> => {
-                try {
-                    const result = await getContents({
-                        param: param.ids.map(id => {
-                            return {
-                                contentId: id,
-                            }
-                        }),
-                        currentMap: ctx.currentMap,
-                        authLv: ctx.authLv,
-                    });
-
-                    return result;
-
-                } catch(e) {    
-                    apiLogger.warn('getContents error', param, e);
-                    throw e;
-                }
-
-            },
-            /**
-             * 指定のアイテムに属するコンテンツ取得
-             */
-            getContentsInItem: async(parent: any, param: QueryGetContentsInItemArgs, ctx): QueryResolverReturnType<'getContentsInItem'> => {
-                try {
-                    const result = await getContents({
-                        param: [{
-                            itemId: param.itemId,
-                        }],
-                        currentMap: ctx.currentMap,
-                        authLv: ctx.authLv,
-                    });
-
-                    return result;
-
-                } catch(e) {    
-                    apiLogger.warn('getContentsInItem error', param, e);
-                    throw e;
-                }
-            },
             getUnpointContents: async(_: any, param: QueryGetUnpointContentsArgs, ctx): QueryResolverReturnType<'getUnpointContents'> => {
                 try {
-                    // call ODBA
-                    const result = await callOdbaApi(OdbaGetUnpointDataAPI, {
+                    // キャッシュDBに存在するデータの中から、指定の地図上のアイテムにプロットされていないデータを取得する
+                    const unpointDataList = await getUnpointData({
+                        currentMap: ctx.currentMap,
+                        dataSourceId: param.datasourceId,
+                        keyword: param.keyword ?? undefined,
+                    });
+                    // ODBAに問い合わせて、キャッシュDBに未登録のデータを取得する
+                    const result = await callOdbaApi(OdbaGetUncachedDataAPI, {
                         currentMap: ctx.currentMap,
                         dataSourceId: param.datasourceId,
                         nextToken: param.nextToken ?? undefined,
                         keyword: param.keyword ?? undefined,
                     });
-            
-                    return result;
+
+                    return {
+                        contents: [...unpointDataList, ...result.contents],
+                        nextToken: result.nextToken,
+                    };
 
                 } catch(e) {
                     apiLogger.warn('get-unpointdata API error', param, e);
@@ -558,20 +524,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     throw e;
                 }
 
-            },
-            /**
-             * SNSプレビュー取得
-             */
-            getSnsPreview: async(_, param: QueryGetSnsPreviewArgs): QueryResolverReturnType<'getSnsPreview'> => {
-
-                try {
-                    const result = await getSnsPreview(param);
-                    return result;
-
-                } catch(e) {
-                    apiLogger.warn('get-sns-preview API error', param, e);
-                    throw e;
-                }
             },
             getUserList: async(parent: any, _, ctx): QueryResolverReturnType<'getUserList'> => {
                 try {
@@ -716,222 +668,131 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
             },
             /**
-             * 位置アイテム登録
+             * データ登録
              */
-            registItem: async(_, param: MutationRegistItemArgs, ctx): MutationResolverReturnType<'registItem'> => {
+            registData: async(_, param: MutationRegistDataArgs, ctx): MutationResolverReturnType<'registData'> => {
                 try {
-                    const wkt = geojsonToWKT(param.geometry);
                     // call ODBA
-                    const id = await callOdbaApi(OdbaRegistItemAPI, {
+                    const id = await callOdbaApi(OdbaRegistDataAPI, {
                         currentMap: ctx.currentMap,
                         dataSourceId: param.datasourceId,
-                        name: param.name ?? undefined,
-                        geometry: param.geometry,
-                        geoProperties: param.geoProperties,
+                        item: param.item ?? undefined,
+                        contents: param.contents ?? undefined,
+                        linkItems: param.linkItems ?? undefined,
                     });
+
                     // 更新通知
-                    pubsub.publish('itemInsert', ctx.currentMap, [
-                        {
-                            id,
-                            wkt,
-                        }
-                    ])
+                    publishData(pubsub, 'insert', [id]);
+                    if (param.linkItems) {
+                        publishData(pubsub, 'update', param.linkItems);
+                    }
 
                     return id;
 
                 } catch(e) {    
-                    apiLogger.warn('regist-item API error', param, e);
+                    apiLogger.warn('regist-data API error', param, e);
                     throw e;
                 }
-
             },
             /**
-             * 位置アイテム更新
+             * データ更新
              */
-            updateItems: async(_, param: MutationUpdateItemsArgs, ctx): MutationResolverReturnType<'updateItems'> => {
+            updateData: async(_, param: MutationUpdateDataArgs, ctx): MutationResolverReturnType<'updateData'> => {
                 try {
-                    const successIdList = [] as {id: DataId; wkt: string}[];
-                    const errorIdList = [] as DataId[];
-                    for (const target of param.targets) {
-                        const beforeWkt = await getItemWkt(target.id);
-                        const afterWkt = target.geometry ? geojsonToWKT(target.geometry) : undefined;
-                        // call ODBA
-                        try {
-                            await callOdbaApi(OdbaUpdateItemAPI, {
-                                currentMap: ctx.currentMap,
-                                id: target.id,
-                                geometry: target.geometry ?? undefined,
-                                geoProperties: target.geoProperties ?? undefined,
-                                name: target.name ?? undefined,
-                            })
-                            successIdList.push({
-                                id: target.id,
-                                wkt: afterWkt ?? beforeWkt ?? 'POLYGON ((-1 1, -1 -1, 1 -1, 1 1))',    // undefinedになることはないはずだが、エラーを防ぐために仮設定
-                            });
-    
-                        } catch(e) {
-                            apiLogger.warn('callOdba-updateItem error', e);
-                            errorIdList.push(target.id);
-                        }
+                    // call ODBA
+                    const result = await callOdbaApi(OdbaUpdateDataAPI, {
+                        currentMap: ctx.currentMap,
+                        target: {
+                            type: 'dataId',
+                            id: param.id,
+                        },
+                        item: param.deleteItem ? null : (param.item ?? undefined),
+                        contents: param.contents ?? undefined,
+                    })
+                    if (!result) {
+                        throw new Error('failed');
                     }
+
                     // 更新通知
-                    pubsub.publish('itemUpdate', ctx.currentMap, successIdList);
-                
-                    return {
-                        success: successIdList.map(item => item.id),
-                        error: errorIdList.length > 0 ? errorIdList : undefined,
-                    };
+                    publishData(pubsub, 'update', [param.id]);
+
+                    return true;
 
                 } catch(e) {    
                     apiLogger.warn('update-item API error', param, e);
                     throw e;
                 }
             },
-            /**
-             * 位置アイテム削除
-             */
-            removeItem: async(parent: any, param: MutationRemoveItemArgs, ctx): MutationResolverReturnType<'removeItem'> => {
+
+            updateDataByOriginalId: async(_, param: MutationUpdateDataByOriginalIdArgs, ctx): MutationResolverReturnType<'updateDataByOriginalId'> => {
                 try {
                     // call ODBA
-                    await callOdbaApi(OdbaRemoveItemAPI, Object.assign({
+                    const id = await callOdbaApi(OdbaUpdateDataAPI, {
                         currentMap: ctx.currentMap,
-                    }, param));
-            
-                    // 更新通知
-                    pubsub.publish('itemDelete', ctx.currentMap, [param.id]);
-                    
-                    return true;
-
-                } catch(e) {    
-                    apiLogger.warn('remove-item API error', param, e);
-                    throw e;
-                }
-            },
-            /**
-             * コンテンツ登録
-             */
-            registContent: async(_, param: MutationRegistContentArgs, ctx): MutationResolverReturnType<'registContent'> => {
-                try {
-                    const { parent, datasourceId } = param;
-
-                    // 誤った値が含まれないように処置
-                    const values = await cleanupContentValuesForRegist(ctx.currentMap.mapId, datasourceId, param.values);
-
-                    // call ODBA
-                    const contentId = await callOdbaApi(OdbaRegistContentAPI, {
-                        currentMap: ctx.currentMap,
-                        parent: parent.type === ParentOfContent.Item ? {
-                            itemId: parent.id,
-                        } : {
-                            contentId: parent.id,
+                        target: {
+                            type: 'originalId',
+                            originalId: param.originalId,
                         },
-                        contentDataSourceId: datasourceId,
-                        values,
-                    });
+                        item: param.item ?? undefined,
+                        contents: param.contents ?? undefined,
+                    })
 
                     // 更新通知
-                    // - 当該コンテンツを子孫に持つアイテムIDを取得
-                    const itemIdList = await getLinkedItemIdList(contentId);
-
-                    for (const item of itemIdList) {
-                        const wkt = await getItemWkt(item.itemId);
-                        if (wkt) {
-                            pubsub.publish('itemUpdate', 
-                                { mapId: item.mapId, mapKind: item.mapKind },
-                                [ { id: item.itemId, wkt } ]
-                            );
-                        }
-                    }
+                    publishData(pubsub, 'update', [id]);
 
                     return true;
-            
+
                 } catch(e) {    
-                    apiLogger.warn('regist-content API error', param, e);
+                    apiLogger.warn('update-item API error', param, e);
                     throw e;
                 }
-            },
-            /**
-             * コンテンツ更新
-             */
-            updateContent: async(_, param: MutationUpdateContentArgs, ctx): MutationResolverReturnType<'updateContent'> => {
-                try {
-                    // 誤った値が含まれないように処置
-                    const values = await cleanupContentValuesForRegist(ctx.currentMap.mapId, param.id.dataSourceId, param.values);
 
-                    // call ODBA
-                    await callOdbaApi(OdbaUpdateContentAPI, {
+            },
+
+            /**
+             * データ削除
+             */
+            removeData: async(_, param: MutationRemoveDataArgs, ctx): MutationResolverReturnType<'removeData'> => {
+                try {
+                    // 削除する前に紐づいているdataを取得
+                    const linkedDatas = await getLinkedDataIdList(param.id);
+                    await callOdbaApi(OdbaRemoveDataAPI, {
                         currentMap: ctx.currentMap,
                         id: param.id,
-                        values,
                     });
-            
+
                     // 更新通知
-                    // -- コンテンツ更新通知
-                    pubsub.publish('contentUpdate', {
-                        contentId: param.id,
-                    }, Operation.Update);
+                    pubsub.publish('dataDeleteInTheMap', ctx.currentMap, [param.id]);
+                    pubsub.publish('dataUpdate', {
+                        id: param.id
+                    }, Operation.Delete);
+                    // 削除したデータと紐づいていたものについて、itemUpdate通知を送る
+                    const targets = linkedDatas.map(ld => ld.itemId);
+                    publishData(pubsub, 'update', targets);
 
-                    // -- 当該コンテンツを子孫に持つアイテムIDを取得して通知
-                    const itemIdList = await getLinkedItemIdList(param.id);
-
-                    for (const item of itemIdList) {
-                        const wkt = await getItemWkt(item.itemId);
-                        if (wkt) {
-                            pubsub.publish('itemUpdate', 
-                                { mapId: item.mapId, mapKind: item.mapKind },
-                                [ { id: item.itemId, wkt } ]
-                            );
-                        }
-                    }
-
-                    // const ds = await getDatasourceRecord(param.id.dataSourceId);
-                    // if (ds.kind === DatasourceKindType.RealPointContent) {
-                    //     // - RealPointContentの場合
-                    //     const wkt = await getItemWkt(param.id);
-                    //     if (wkt) {
-                    //         pubsub.publish('itemUpdate', ctx.currentMap, [ { id: param.id, wkt }]);
-                    //     }
-                    // } else {
-                    //     // - 当該コンテンツを子孫に持つアイテムIDを取得
-                    //     // const itemId = await getAncestorItemId(param.id);
-                    //     // if (itemId) {
-                    //     //     pubsub.publish('childContentsUpdate', { itemId }, true);
-                    //     // }
-                    // }
-                
                     return true;
 
                 } catch(e) {
-                    apiLogger.warn('update-content API error', param, e);
+                    apiLogger.warn('remove-data API error', param, e);
                     throw e;
                 }
             },
+
             /**
              * コンテンツをアイテムに紐づけ
              */
-            linkContent: async(parent: any, param: MutationLinkContentArgs, ctx): MutationResolverReturnType<'linkContent'> => {
+            linkData: async(parent: any, param: MutationLinkDataArgs, ctx): MutationResolverReturnType<'linkData'> => {
                 try {
                     // call ODBA
-                    await callOdbaApi(OdbaLinkContentToItemAPI, {
+                    await callOdbaApi(OdbaLinkDataAPI, {
                         currentMap: ctx.currentMap,
-                        childContentId: param.id,
-                        parent: param.parent.type === ParentOfContent.Content ? {
-                            contentId: param.parent.id,
-                        } : {
-                            itemId: param.parent.id,
-                        }
+                        type: 'dataId',
+                        id: param.id,
+                        parent: param.parent,
                     });
 
                     // 更新通知
-                    if (param.parent.type === ParentOfContent.Item) {
-                        const id = param.parent.id;
-                        const wkt = await getItemWkt(id);
-                        if (!wkt) {
-                            logger.warn('not found extent', id);
-                        } else {
-                            pubsub.publish('itemUpdate', ctx.currentMap, [ { id, wkt } ]);
-                        }
-                    }
+                    publishData(pubsub, 'update', [param.parent]);
 
                     return true;
             
@@ -940,39 +801,40 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     throw e;
                 }
             },
+
+            linkDataByOriginalId: async(_, param: MutationLinkDataByOriginalIdArgs, ctx): MutationResolverReturnType<'linkDataByOriginalId'> => {
+                try {
+                    await callOdbaApi(OdbaLinkDataAPI, {
+                        currentMap: ctx.currentMap,
+                        type: 'originalId',
+                        originalId: param.originalId,
+                        parent: param.parent,
+                    });
+
+                    // 更新通知
+                    publishData(pubsub, 'update', [param.parent]);
+
+                    return true;
+
+                } catch(e) {
+                    apiLogger.warn('linkDataByOriginalId API error', param, e);
+                    throw e;
+                }
+            },
             /**
              * コンテンツ紐づけ解除
              */
-            unlinkContent: async(parent: any, param: MutationUnlinkContentArgs, ctx): MutationResolverReturnType<'unlinkContent'> => {
+            unlinkData: async(parent: any, param: MutationUnlinkDataArgs, ctx): MutationResolverReturnType<'unlinkData'> => {
                 try {
-                    // アイテムと一体になったコンテンツは紐づけ解除不可
-                    const datasource = await getDatasourceRecord(param.id.dataSourceId);
-                    if (datasource.kind === DatasourceKindType.RealPointContent && param.id.id === param.parent.id.id && param.id.dataSourceId === param.parent.id.dataSourceId) {
-                        throw new Error('this content can not unlink with the item because this is same record.');
-                    }
-
-                    // TODO: 親がコンテンツの場合の考慮（ODBA側のインタフェース対応後）
                     // call ODBA
-                    await callOdbaApi(OdbaUnlinkContentAPI, {
+                    await callOdbaApi(OdbaUnlinkDataAPI, {
                         currentMap: ctx.currentMap,
                         id: param.id,
-                        parent: {
-                            type: 'item',
-                            itemId: param.parent.id,
-                        }
+                        parent: param.parent,
                     });
             
                     // 更新通知
-                    if (param.parent.type === ParentOfContent.Item) {
-                        const id = param.parent.id;
-                        const wkt = await getItemWkt(id);
-                        if (!wkt) {
-                            logger.warn('not found extent', id);
-                        } else {
-                            // pubsub.publish('childContentsUpdate', { itemId: id }, true);
-                            pubsub.publish('itemUpdate', ctx.currentMap, [ { id, wkt } ]);
-                        }
-                    }
+                    publishData(pubsub, 'update', [param.parent]);
 
                     return true;
 
@@ -981,40 +843,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     throw e;
                 }
             },
-            removeContent: async(parent: any, param: MutationRemoveContentArgs, ctx): MutationResolverReturnType<'removeContent'> => {
-                try {
-                    // 属するitem一覧を取得
-                    const items = await getLinkedItemIdList(param.id);
 
-                    // データソース種別がRealPointContentの場合は、受け付けない（removeItemでのみ削除可能）
-                    const datasource = await getDatasourceRecord(param.id.dataSourceId);
-                    if (datasource.kind !== DatasourceKindType.Content) {
-                        throw new Error('the content can not remove.');
-                    }
-
-                    // call ODBA
-                    await callOdbaApi(OdbaRemoveContentAPI, {
-                        currentMap: ctx.currentMap,
-                        id: param.id,
-                    });
-            
-                    // 更新通知(完了は待たずに復帰する)
-                    Promise.all(items.map(async(item) => {
-                        const wkt = await getItemWkt(item.itemId);
-                        if (!wkt) {
-                            logger.warn('not found extent', item.itemId);
-                        } else {
-                            pubsub.publish('itemUpdate', { mapId: item.mapId, mapKind: item.mapKind }, [ { id: item.itemId, wkt } ]);
-                        }
-                    }));
-
-                    return true;
-
-                } catch(e) {
-                    apiLogger.warn('remove-content API error', param, e);
-                    throw e;
-                }
-            },
             /**
              * ユーザ権限変更
              */
@@ -1080,69 +909,24 @@ const schema = makeExecutableSchema<GraphQlContextType>({
 
 
             },
-            /**
-             * コンテンツデータソースを地図に追加
-             */
-            linkContentsDatasource: async(_, param: MutationLinkContentsDatasourceArgs, ctx): MutationResolverReturnType<'linkContentsDatasource'> => {
-                try {
-                    // call odba
-                    await callOdbaApi(OdbaLinkContentDatasourceToMapAPI, {
-                        currentMap: ctx.currentMap,
-                        contents: param.contentsDatasources.map(d => ({
-                            datasourceId: d.datasourceId,
-                            name: d.name,
-                        })),
-                    });
-
-                    pubsub.publish('mapInfoUpdate', { mapId: ctx.currentMap.mapId }, true);
-
-                    return true;
-
-                } catch(e) {
-                    apiLogger.warn('link-contents-to-map API error', e);
-                    throw e;
-                }
-            },
-            /**
-             * コンテンツデータソースを地図から除去
-             */
-            unlinkContentsDatasource: async(_, param: MutationUnlinkContentsDatasourceArgs, ctx): MutationResolverReturnType<'unlinkContentsDatasource'> => {
-                try {
-                    // call odba
-                    await callOdbaApi(OdbaUnlinkContentDatasourceFromMapAPI, {
-                        currentMap: ctx.currentMap,
-                        contents: param.contentsDatasourceIds.map(datasourceId => ({
-                            datasourceId,
-                        })),
-                    });
-
-                    pubsub.publish('mapInfoUpdate', { mapId: ctx.currentMap.mapId }, true);
-
-                    return true;
-
-                } catch(e) {
-                    apiLogger.warn('unlink-contents-from-map API error', e);
-                    throw e;
-                }
-            },
         } as MutationResolver,
         Subscription: {
-            itemInsert: {
+            dataInsertInTheMap: {
                 resolve: (payload) => payload,
-                subscribe: (_, args: SubscriptionArgs<'itemInsert'>) => {
-                    return pubsub.asyncIterator('itemInsert', args);
+                subscribe: (_, args: SubscriptionArgs<'dataInsertInTheMap'>) => {
+                    return pubsub.asyncIterator('dataInsertInTheMap', args);
                 }
             },
-            itemUpdate: {
+            dataUpdateInTheMap: {
                 resolve: (payload) => payload,
-                subscribe: (_, args: SubscriptionArgs<'itemUpdate'>) => {
-                    return pubsub.asyncIterator('itemUpdate', args);
+                subscribe: (_, args: SubscriptionArgs<'dataUpdateInTheMap'>) => {
+                    return pubsub.asyncIterator('dataUpdateInTheMap', args);
                 }
             },
-            itemDelete: {
+            dataDeleteInTheMap: {
                 resolve: (payload) => payload,
-                subscribe: (_, args: SubscriptionArgs<'itemDelete'>) => {
-                    return pubsub.asyncIterator('itemDelete', args);
+                subscribe: (_, args: SubscriptionArgs<'dataDeleteInTheMap'>) => {
+                    return pubsub.asyncIterator('dataDeleteInTheMap', args);
                 }
             },
             // childContentsUpdate: {
@@ -1151,10 +935,10 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             //         return pubsub.asyncIterator('childContentsUpdate', args);
             //     }
             // },
-            contentUpdate: {
+            dataUpdate: {
                 resolve: (payload) => payload,
-                subscribe: (_, args: SubscriptionArgs<'contentUpdate'>) => {
-                    return pubsub.asyncIterator('contentUpdate', args);
+                subscribe: (_, args: SubscriptionArgs<'dataUpdate'>) => {
+                    return pubsub.asyncIterator('dataUpdate', args);
                 }
             },
             updateUserAuth: {
@@ -1183,19 +967,36 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             }
         }as Record<keyof Subscription, IFieldResolverOptions<any, GraphQlContextType, any>>,
         ItemDefine: {
-            contents: async(parent: ItemDefineWithoudContents, _, ctx): Promise<ContentsDefine[]> => {
-                const result = await getContents({
-                    param: [{
-                        itemId: parent.id,
-                    }],
+            content: async(parent: ItemDefineWithoutContents, _, ctx): Promise<ContentsDefine|null> => {
+                const result = await getContent({
+                    dataId: parent.id,
                     currentMap: ctx.currentMap,
                     authLv: ctx.authLv,
                 });
+                if (!result?.hasValue) return null;
+                return result;
+                // const result = await getContents({
+                //     param: [{
+                //         itemId: parent.id,
+                //     }],
+                //     currentMap: ctx.currentMap,
+                //     authLv: ctx.authLv,
+                // });
 
+                // 値を持つコンテンツのみを返す（コンテンツ）
+                // return result.filter(c => c.hasValue);
+            },
+            linkedContents: async(parent: ItemDefineWithoutContents, _, ctx): Promise<ContentsDefine[]> => {
+                const result = await getLinkedContent({
+                    dataId: parent.id,
+                    currentMap: ctx.currentMap,
+                    authLv: ctx.authLv,
+                });
                 return result;
             }
+
         },
-        DataId: DataIdScalarType,
+        // DataId: DataIdScalarType,
         JSON: JsonScalarType,
         IconKey: IconKeyScalarType,
         GeoProperties: GeoPropertiesScalarType,
@@ -1306,60 +1107,19 @@ apolloServer.start().then(() => {
     internalApp.post('/api/broadcast', async(req: Request, res: Response) => {
         const param = req.body as BroadcastItemParam;
         logger.info('broadcast', param);
-        // 変更範囲を取得する
-        const itemIdListByDataSource = param.itemIdList.reduce((acc, cur) => {
-            if (cur.dataSourceId in acc) {
-                acc[cur.dataSourceId].push(cur);
-            } else {
-                acc[cur.dataSourceId] = [cur];
-            }
-            return acc;
-        }, {} as {[datasourceId: string]: DataId[]});
-        const targets = [] as {id: DataId; wkt: string}[];
-        for (const entry of Object.entries(itemIdListByDataSource)) {
-            const itemIdList = entry[1];
-            for (const itemId of itemIdList) {
-                const wkt = await getItemWkt(itemId);
-                if (wkt) {
-                    targets.push({
-                        id: itemId,
-                        wkt,
-                    })
-                }
-            }
+        if (param.operation === 'delete') {
+            pubsub.publish('dataDeleteInTheMap', 
+                { mapId: param.mapId, mapKind: MapKind.Real },
+                param.itemIdList,
+            )
+            pubsub.publish('dataDeleteInTheMap', 
+                { mapId: param.mapId, mapKind: MapKind.Virtual },
+                param.itemIdList,
+            )
+        } else {
+            publishData(pubsub, param.operation, param.itemIdList);
         }
-        switch(param.operation) {
-            case 'insert':
-                pubsub.publish('itemInsert', {
-                    mapId: param.mapId,
-                    mapKind: MapKind.Real,
-                }, targets);
-                pubsub.publish('itemInsert', {
-                    mapId: param.mapId,
-                    mapKind: MapKind.Virtual,
-                }, targets);
-                break;
-            case 'update':
-                pubsub.publish('itemUpdate', {
-                    mapId: param.mapId,
-                    mapKind: MapKind.Real,
-                }, targets);
-                pubsub.publish('itemUpdate', {
-                    mapId: param.mapId,
-                    mapKind: MapKind.Virtual,
-                }, targets);
-                break;
-            case 'delete':
-                pubsub.publish('itemDelete', {
-                    mapId: param.mapId,
-                    mapKind: MapKind.Real,
-                }, param.itemIdList);
-                pubsub.publish('itemDelete', {
-                    mapId: param.mapId,
-                    mapKind: MapKind.Virtual,
-                }, param.itemIdList);
-                break;
-        }
+
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.status(201).send('broadcasted.');
     });

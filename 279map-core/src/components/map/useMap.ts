@@ -19,9 +19,9 @@ import { GetItemsByIdDocument, GetItemsDocument } from '../../graphql/generated/
 import { clientAtom } from 'jotai-urql';
 import GeoJSON from 'geojson';
 import { Extent } from 'ol/extent';
-import { DataId, DatasourceKindType } from '../../types-common/common-types';
+import { DataId, DatasourceLocationKindType } from '../../types-common/common-types';
 import { selectItemIdAtom } from '../../store/operation';
-import { TsunaguMapHandler } from '../../entry';
+import { ItemInfo, TsunaguMapHandler } from '../../entry';
 
 /**
  * 地図インスタンス管理マップ。
@@ -90,7 +90,7 @@ export function useMap() {
             const dsInfo = datasources.find(ds => ds.datasourceId === datasourceId);
             const key: LoadedItemKey = {
                 datasourceId,
-                zoom: dsInfo?.config.kind === DatasourceKindType.Track ? zoom : undefined,
+                zoom: dsInfo?.config.kind === DatasourceLocationKindType.Track ? zoom : undefined,
             }
             return key;
         }, [])        
@@ -103,18 +103,14 @@ export function useMap() {
         useCallback((get, set, datasourceId: string, extent: Extent) => {
             const datasources = get(itemDataSourcesAtom);
             const dsInfo = datasources.find(ds => ds.datasourceId === datasourceId);
-            if (dsInfo?.config.kind !== DatasourceKindType.Track) {
+            if (dsInfo?.config.kind !== DatasourceLocationKindType.Track) {
                 // Track以外は関係なし
                 return undefined;
             }
             // 取得済みのアイテムを抽出
             const allItems = get(allItemsAtom);
-            const itemMap = allItems[datasourceId];
-            if (!itemMap) {
-                return undefined;
-            }
             const extentPolygon = bboxPolygon(extent as [number,number,number,number]);
-            return Object.values(itemMap).filter(item => {
+            return allItems.filter(item => {
                 let hit: boolean = false;
                 if (item.geometry.type === 'GeometryCollection') {
                     hit = item.geometry.geometries.some(g => {
@@ -125,7 +121,7 @@ export function useMap() {
                     })
                 }
                 return hit;
-            }).map(item => item.id.id);
+            }).map(item => item.id);
         }, [])
     )
     /**
@@ -168,7 +164,7 @@ export function useMap() {
                 });
 
                 const beforeMapKind = get(currentMapKindAtom);
-                const apiResults = await Promise.all(loadTargets.map((target) => {
+                const apiResults = await Promise.all(loadTargets.map(async(target) => {
                     const wkt = geojsonToWKT(target.geometry);
                     const latestEditedTime = get(latestEditedTimeOfDatasourceAtom)[target.datasourceId];
 
@@ -195,16 +191,23 @@ export function useMap() {
                     return items.length > 0;
                 });
                 if (hasItem) {
-                    set(storedItemsAtom, (currentItemMap) => {
-                        const newItemsMap = structuredClone(currentItemMap);
-                        apiResults.forEach(apiResult => {
-                            const items = apiResult.data?.getItems ?? [];
-                            items.forEach(item => {
-                                newItemsMap[item.id.dataSourceId] ??= {};
-                                newItemsMap[item.id.dataSourceId][item.id.id] = item;
-                            })
-                        })
-                        return newItemsMap;
+                    set(storedItemsAtom, (currentItems) => {
+                        const newItems = apiResults.reduce((acc, cur) => {
+                            const items = cur.data?.getItems.map((i): ItemInfo => {
+                                return {
+                                    id: i.id,
+                                    datasourceId: i.datasourceId,
+                                    name: i.name,
+                                    geometry: i.geometry,
+                                    geoProperties: i.geoProperties,
+                                    content: i.content,
+                                    lastEditedTime: i.lastEditedTime,
+                                    linkedContents: i.linkedContents,
+                                }
+                            }) ?? [];
+                            return [...acc, ...items];
+                        }, [] as ItemInfo[])
+                        return [...currentItems, ...newItems];
                     })
                 }
 
@@ -288,7 +291,7 @@ export function useMap() {
      * 必要に応じて、指定のアイテムを更新する
      */
     const updateItems = useAtomCallback(
-        useCallback(async(get, set, targets: {id: DataId; wkt?: string}[]) => {
+        useCallback(async(get, set, targets: {id: DataId; datasourceId: string, wkt?: string}[]) => {
             const loadedItemMap = get(loadedItemMapAtom);
             // 取得する必要のあるものに絞る
             const updateTargets = targets.filter(target => {
@@ -296,7 +299,7 @@ export function useMap() {
                 if (getItem(target.id)) return true;
 
                 // 取得済み範囲の場合、取得
-                const key = getLoadedAreaMapKey(target.id.dataSourceId, 0);
+                const key = getLoadedAreaMapKey(target.datasourceId, 0);
                 const loadedAreaInfo = loadedItemMap[JSON.stringify(key)];
                 if (!loadedAreaInfo) {
                     console.log('loadedAreaInfo undefined', loadedItemMap);
@@ -330,16 +333,41 @@ export function useMap() {
             }, { requestPolicy: 'network-only' });
             const items = apiResult.data?.getItemsById ?? [];
 
-            set(storedItemsAtom, (currentItemMap) => {
-                const newItemsMap = structuredClone(currentItemMap);
-                items.forEach(item => {
-                    if (!newItemsMap[item.id.dataSourceId]) {
-                        newItemsMap[item.id.dataSourceId] = {};
+            set(storedItemsAtom, (currentItems) => {
+                // 既に存在するものは置き換え、存在しないものは追加
+                const newItems = currentItems.map((item): ItemInfo => {
+                    const newItem = items.find(i => i.id === item.id);
+                    if (newItem) {
+                        return {
+                            id: newItem.id,
+                            datasourceId: newItem.datasourceId,
+                            geometry: newItem.geometry,
+                            geoProperties: newItem.geoProperties,
+                            name: newItem.name,
+                            content: newItem.content,
+                            lastEditedTime: newItem.lastEditedTime,
+                            linkedContents: newItem.linkedContents,
+                        }
+                    } else {
+                        return item;
                     }
-                    newItemsMap[item.id.dataSourceId][item.id.id] = item;
-
                 });
-                return newItemsMap;
+                const addItems = items
+                                    .filter(item => !currentItems.some(ci => ci.id === item.id))
+                                    .map((item): ItemInfo => {
+                                        return {
+                                            id: item.id,
+                                            datasourceId: item.datasourceId,
+                                            geometry: item.geometry,
+                                            geoProperties: item.geoProperties,
+                                            name: item.name,
+                                            content: item.content,
+                                            lastEditedTime: item.lastEditedTime,
+                                            linkedContents: item.linkedContents,
+                                        }
+                                    })
+
+                return [...newItems, ...addItems];
             })
 
         }, [getItem, gqlClient, getLoadedAreaMapKey])

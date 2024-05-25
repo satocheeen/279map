@@ -47,21 +47,28 @@ query getItems (
     $zoom: Float!
     $datasourceId: String!
     $latestEditedTime: String
-    $excludeItemIds: [String!]
+    $excludeItemIds: [DataId!]
 ) {
     getItems(wkt: $wkt, zoom: $zoom, datasourceId: $datasourceId, latestEditedTime: $latestEditedTime, excludeItemIds: $excludeItemIds) {
         id
+        datasourceId
         name
         geometry
         geoProperties
         lastEditedTime
-        hasContents
-        hasImageContentId
-        contents {
+        content {
             id
-            children {
-                id
-            }
+            datasourceId
+            usingOtherMap
+            hasValue
+            hasImage
+        }
+        linkedContents {
+            id
+            datasourceId
+            usingOtherMap
+            hasValue
+            hasImage
         }
     }
 }
@@ -71,17 +78,24 @@ query getItemsById (
 ) {
     getItemsById(targets: $targets) {
         id
+        datasourceId
         name
         geometry
         geoProperties
         lastEditedTime
-        hasContents
-        hasImageContentId
-        contents {
+        content {
             id
-            children {
-                id
-            }
+            datasourceId
+            usingOtherMap
+            hasValue
+            hasImage
+        }
+        linkedContents {
+            id
+            datasourceId
+            usingOtherMap
+            hasValue
+            hasImage
         }
     }
 }
@@ -89,38 +103,16 @@ query getContent(
     $id: DataId!
 ) {
     getContent(id: $id) {
-        ...content
+        id
+        datasourceId
+        parentId
+        values
+        usingOtherMap
+        anotherMapItemId
+        readonly
+        hasValue
+        hasImage
     }
-}
-
-query getContents(
-    $ids: [DataId!]!
-) {
-    getContents(ids: $ids) {
-        ...content
-    }
-}
-
-query getContentsInItem(
-    $itemId: DataId!
-) {
-    getContentsInItem(itemId: $itemId) {
-        ...content
-        children {
-            ...content
-        }
-    }
-}
-
-fragment content on ContentsDefine {
-    id
-    parentId
-    values
-    usingAnotherMap
-    anotherMapItemId
-    isSnsContent
-    isEditable
-    isDeletable
 }
 
 query getUnpointContents(
@@ -130,10 +122,11 @@ query getUnpointContents(
 ) {
     getUnpointContents(datasourceId: $datasourceId, nextToken: $nextToken, keyword: $keyword) {
         contents {
-            id
+            originalId
+            dataId
             title
-            thumb
             overview
+            hasImage
         }
         nextToken
     }
@@ -161,11 +154,7 @@ query search (
     $condition: Condition!
     $datasourceIds: [String!]
 ) {
-    search(condition: $condition, datasourceIds: $datasourceIds) {
-        id
-        hitContents
-        hitItem
-    }
+    search(condition: $condition, datasourceIds: $datasourceIds)
 }
 
 query geocoder (
@@ -185,21 +174,6 @@ query getGeocoderFeature (
     getGeocoderFeature(id: $id)
 }
 
-query getSnsPreview (
-    $url: String!
-) {
-    getSnsPreview(url: $url) {
-        type
-        posts {
-            text
-            media {
-                type
-                url
-            }
-            date
-        }
-    }
-}
 query getUserList {
     getUserList {
         id

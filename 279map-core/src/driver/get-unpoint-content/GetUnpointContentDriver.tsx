@@ -43,7 +43,7 @@ export default function GetUnlinkedContentDriver(props: Props) {
                     return (
                         <li key={item.datasourceId}>
                             <label>
-                                <input type='radio' name='unpoint-target' checked={item.datasourceId===target} onClick={()=>setTarget(item.datasourceId)} />
+                                <input type='radio' name='unpoint-target' checked={item.datasourceId===target} onChange={()=>setTarget(item.datasourceId)} />
                                 {item.name}
                             </label>
                         </li>

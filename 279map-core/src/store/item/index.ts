@@ -1,9 +1,8 @@
 import { atom } from 'jotai';
 import { ItemType, ItemInfo, OverrideItem } from '../../types/types';
-import { filteredItemsAtom } from '../filter';
-import { DataId, FeatureType } from '../../entry';
+import { filteredDatasAtom } from '../filter';
+import { DataId } from '../../entry';
 import { UpdateItemInput } from '../../graphql/generated/graphql';
-import { isEqualId } from '../../util/dataUtility';
 import { visibleDataSourceIdsAtom } from '../datasource';
 
 export type LoadedItemKey = {
@@ -17,20 +16,22 @@ export type LoadedAreaInfo = {
 type LoadedItemMap = {[datasourceId: string]: LoadedAreaInfo};
 export const loadedItemMapAtom = atom<LoadedItemMap>({});
 
-export type ItemsMap = {[itemId: string]: ItemInfo};
-export type ItemsByDatasourceMap = {[dsId: string]: ItemsMap};
+// export type ItemsMap = {[itemId: string]: ItemInfo};
+export type ItemsByDatasourceMap = {[dsId: string]: ItemInfo[]};
 
 // バックエンドから取得したアイテム情報
-export const storedItemsAtom = atom({} as ItemsByDatasourceMap);
+// export const storedItemsAtom = atom({} as ItemsByDatasourceMap);
+export const storedItemsAtom = atom([] as ItemInfo[]);
 // 呼び出し元から渡された上書きアイテム情報
 export const overrideItemsAtom = atom<OverrideItem[]>([]);
 
 // 登録・更新・削除処理中のアイテム
 export type ItemProcessType = {
-    processId: string;     // 処理ID
+    processId: DataId;     // 処理ID
     error?: boolean;    // 処理失敗時にtrue
 } & ({
     status: 'registing';
+    datasourceId: string;
     item: Pick<ItemInfo, 'id' | 'geometry' | 'geoProperties'>;
 } | {
     status: 'updating';
@@ -41,43 +42,76 @@ export type ItemProcessType = {
 })
 export const itemProcessesAtom = atom<ItemProcessType[]>([]);
 
-export const allItemsAtom = atom<ItemsByDatasourceMap>((get) => {
+// export const storedItemsFlatListAtom = atom((get) => {
+//     const storedItems = get(storedItemsAtom);
+//     const list: (ItemInfo & {datasourceId: string})[] = [];
+//     Object.entries(storedItems).forEach(([datasourceId, value]) => {
+//         Object.values(value).forEach(val => {
+//             list.push(Object.assign({}, val, {
+//                 datasourceId,
+//             }))
+//         })
+//     })
+//     return list;
+// })
+export const allItemsAtom = atom<ItemInfo[]>((get) => {
     const storedItems = get(storedItemsAtom);
     const itemProcesses = get(itemProcessesAtom);
 
-    const result = structuredClone(storedItems);
+    let result: ItemInfo[] = structuredClone(storedItems);
     itemProcesses.forEach(itemProcess => {
         if (itemProcess.status === 'registing') {
             const item: ItemInfo = {
+                datasourceId: itemProcess.datasourceId,
                 id: itemProcess.item.id,
                 geometry: itemProcess.item.geometry,
                 geoProperties: itemProcess.item.geoProperties,
                 name: '',
-                contents: [],
-                hasContents: false,
-                hasImageContentId: [],
+                // hasContents: false,
+                // hasImageContentId: [],
                 lastEditedTime: '',
                 temporary: itemProcess.status,
+                linkedContents: [],
             }
-            if (!result[itemProcess.item.id.dataSourceId]) {
-                result[itemProcess.item.id.dataSourceId] = {};
-            }
-            result[itemProcess.item.id.dataSourceId][itemProcess.item.id.id] = item;
+            result.push(item);
 
         } else if (itemProcess.status === 'updating') {
             itemProcess.items.forEach(tempItem => {
-                Object.assign(result[tempItem.id.dataSourceId][tempItem.id.id], tempItem, {
-                    lastEditedTime: '',
-                    temporary: 'updating',
-                });
+                const currentItem = storedItems.find(item => item.id === tempItem.id);
+                if (!currentItem) {
+                    console.warn('not find');
+                    return;
+                }
+                result = result.map((item): ItemInfo => {
+                    if (item.id === currentItem.id) {
+                        return {
+                            id: currentItem.id,
+                            datasourceId: currentItem.datasourceId,
+                            content: currentItem.content,
+                            linkedContents: currentItem.linkedContents,
+                            geometry: tempItem.geometry ?? currentItem.geometry,
+                            geoProperties: tempItem.geoProperties ?? currentItem.geoProperties,
+                            lastEditedTime: '',
+                            name: currentItem.name,
+                            temporary: 'updating',
+                        }
+                    } else {
+                        return item;
+                    }
+                })
             })
         } else if (itemProcess.status === 'deleting') {
             // エラー時は半透明表示するので残す
             if (!itemProcess.error) {
                 // 削除中に地図切り替えをしている場合は存在しないので
-                if (result[itemProcess.itemId.dataSourceId] && result[itemProcess.itemId.dataSourceId][itemProcess.itemId.id]) {
-                    delete result[itemProcess.itemId.dataSourceId][itemProcess.itemId.id];
+                const currentItem = storedItems.find(item => item.id === itemProcess.itemId);
+                if (!currentItem) {
+                    console.warn('not find');
+                    return;
                 }
+                result = result.filter(item => {
+                    return item.id !== currentItem.id;
+                })
             }
         }
     })
@@ -86,42 +120,50 @@ export const allItemsAtom = atom<ItemsByDatasourceMap>((get) => {
         if (overrideItem.type === 'new') {
             const id = overrideItem.tempId;
             const item: ItemInfo = {
-                id: {
-                    id,
-                    dataSourceId: overrideItem.datasourceId,
-                },
+                id,
+                datasourceId: overrideItem.datasourceId,
+                linkedContents: [],
+                // id: {
+                //     id,
+                //     dataSourceId: overrideItem.datasourceId,
+                // },
                 geometry: overrideItem.geometry,
                 geoProperties: overrideItem.geoProperties,
                 name: overrideItem.name,
-                contents: [],
-                hasContents: false,
-                hasImageContentId: [],
+                // hasContents: false,
+                // hasImageContentId: [],
                 lastEditedTime: '',
             }
-            if (!result[overrideItem.datasourceId]) {
-                result[overrideItem.datasourceId] = {};
-            }
-            result[overrideItem.datasourceId][id] = item;
+            result.push(item);
 
         } else if (overrideItem.type === 'update') {
-            const target = (overrideItem.id.dataSourceId in result) ? result[overrideItem.id.dataSourceId][overrideItem.id.id] : undefined;
-            if (!target) {
+            const currentItem = storedItems.find(item => item.id === overrideItem.id);
+            if (!currentItem) {
                 console.warn('override target not find', overrideItem.id);
             } else {
-                if (overrideItem.geometry) {
-                    target.geometry = overrideItem.geometry;
-                }
-                if (overrideItem.geoProperties) {
-                    target.geoProperties = overrideItem.geoProperties;
-                }
-                if (overrideItem.name) {
-                    target.name = overrideItem.name;
-                }
+                result = result.map(item => {
+                    if (item.id !== currentItem.id) return item;
+                    return {
+                        id: item.id,
+                        datasourceId: item.datasourceId,
+                        linkedContents: item.linkedContents,
+                        geometry: overrideItem.geometry ?? item.geometry,
+                        geoProperties: overrideItem.geoProperties ?? item.geoProperties,
+                        name: overrideItem.name ?? item.name,
+                        content: item.content ?? undefined,
+                        lastEditedTime: item.lastEditedTime,
+                    }
+                })
             }
 
         } else if (overrideItem.type === 'delete') {
-            if (overrideItem.id.dataSourceId in result)
-                delete result[overrideItem.id.dataSourceId][overrideItem.id.id];
+            const currentItem = storedItems.find(item => item.id === overrideItem.id);
+            if (currentItem) {
+                result = result.filter(item => {
+                    return item.id !== currentItem.id;
+                })
+
+            }
         }
     })
 
@@ -134,15 +176,13 @@ export const allItemsAtom = atom<ItemsByDatasourceMap>((get) => {
 export const latestEditedTimeOfDatasourceAtom = atom((get) => {
     const allItems = get(allItemsAtom);
     const resultMap = {} as {[datasourceId: string]: string};
-    Object.entries(allItems).forEach(([key, itemMap]) => {
-        const latestEditedTime = Object.values(itemMap).reduce((acc, cur) => {
-            if (cur.lastEditedTime.localeCompare(acc) > 0) {
-                return cur.lastEditedTime;
-            } else {
-                return acc;
-            }
-        }, '');
-        resultMap[key] = latestEditedTime;
+    allItems.forEach((item) => {
+        const currentVal = resultMap[item.datasourceId];
+        if (!currentVal) {
+            resultMap[item.datasourceId] = item.lastEditedTime;
+        } else if (item.lastEditedTime.localeCompare(currentVal) > 0) {
+            resultMap[item.datasourceId] = item.lastEditedTime;
+        }
     });
     return resultMap;
 })
@@ -153,37 +193,48 @@ export const latestEditedTimeOfDatasourceAtom = atom((get) => {
 export const showingItemsAtom = atom<ItemType[]>((get) => {
     const storedItems = get(storedItemsAtom);
     const visibleDataSourceIds = get(visibleDataSourceIdsAtom);
-    const filteredItems = get(filteredItemsAtom);
+    const filteredDatas = get(filteredDatasAtom);
 
     const items: ItemType[] = [];
-    Object.entries(storedItems).forEach(([dsId, itemMap]) => {
-        if (!visibleDataSourceIds.includes(dsId)) return;
-        Object.values(itemMap).forEach(item => {
-            const filterdItemInfo = !filteredItems ? undefined : filteredItems.find(fi => isEqualId(fi.id, item.id));
-            const belongContents = item.contents.reduce((acc, cur) => {
-                const childrenIds = cur.children?.map(child => child.id) ?? [];
-                return [...acc, cur.id, ...childrenIds];
-            }, [] as DataId[]);
-            const contents = [] as ItemType['contents'];
-            belongContents.forEach(contentId => {
-                const hit = filterdItemInfo?.hitContents.some(hc => isEqualId(hc, contentId));
-                contents.push({
-                    id: contentId,
-                    filterHit: hit,
-                });
-            })
+    storedItems.forEach((item) => {
+        if (!visibleDataSourceIds.includes(item.datasourceId)) return;
+        // item.content.
+        // const belongContents = item.contents.reduce((acc, cur) => {
+        //     const childrenIds = cur.children?.map(child => child.id) ?? [];
+        //     return [...acc, cur.id, ...childrenIds];
+        // }, [] as DataId[]);
+        // const contents = [] as ItemType['contents'];
+        // belongContents.forEach(contentId => {
+        //     const hit = filterdItemInfo?.hitContents.some(hc => isEqualId(hc, contentId));
+        //     contents.push({
+        //         id: contentId,
+        //         filterHit: hit,
+        //     });
+        // })
 
-            items.push({
-                id: item.id,
-                filterHit: filterdItemInfo?.hitItem,
-                contents,
-                geoInfo: {
-                    geometry: item.geometry,
-                    geoProperties: item.geoProperties,
-                },
-                lastEditedTime: item.lastEditedTime,
-                name: item.name,
-            })
+        items.push({
+            id: item.id,
+            datasourceId: item.datasourceId,
+            filterHit: filteredDatas?.includes(item.id),
+            content: item.content ? {
+                id: item.content.id,
+                datasourceId: item.datasourceId,
+                usingOtherMap: item.content.usingOtherMap,
+                filterHit: filteredDatas?.includes(item.content.id),
+            } : undefined,
+            linkedContents: item.linkedContents.map(c => {
+                return {
+                    id: c.id,
+                    datasourceId: c.datasourceId,
+                    filterHit: filteredDatas?.includes(c.id),
+                }
+            }) ?? [],
+            geoInfo: {
+                geometry: item.geometry,
+                geoProperties: item.geoProperties,
+            },
+            lastEditedTime: item.lastEditedTime,
+            name: item.name,
         })
     })
 

@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { ItemProcessType, itemProcessesAtom } from ".";
 import { ItemInfo } from "../../types/types";
 import { clientAtom } from "jotai-urql";
-import { RegistItemDocument, UpdateItemsDocument, UpdateItemInput, RemoveItemDocument } from "../../graphql/generated/graphql";
+import { RegistDataDocument, RemoveDataDocument, UpdateDataDocument } from "../../graphql/generated/graphql";
 import { DataId } from "../../entry";
 import { isEqualId } from "../../util/dataUtility";
 
@@ -14,7 +14,11 @@ let temporaryCount = 0;
 
 type RegistItemParam = {
     datasourceId: string;
-    name?: string;
+    geometry: ItemInfo['geometry'];
+    geoProperties: ItemInfo['geoProperties'];
+}
+export type UpdateItemParam = {
+    id: DataId;
     geometry: ItemInfo['geometry'];
     geoProperties: ItemInfo['geoProperties'];
 }
@@ -35,7 +39,7 @@ export default function useItemProcess() {
      * プロセス削除
      */
     const _removeItemProcess = useAtomCallback(
-        useCallback((get, set, processId: string) => {
+        useCallback((get, set, processId: DataId) => {
             set(itemProcessesAtom, (cur) => {
                 return cur.filter(cur => cur.processId !== processId);
             })
@@ -46,7 +50,7 @@ export default function useItemProcess() {
      * 指定のプロセスの指定の仮アイテムを削除する
      */
     const _removeTemporaryItems = useAtomCallback(
-        useCallback((get, set, processId: string, targets: DataId[]) => {
+        useCallback((get, set, processId: DataId, targets: DataId[]) => {
             set(itemProcessesAtom, (cur) => {
                 return cur.map(cur => {
                     if (cur.processId !== processId) return cur;
@@ -63,7 +67,7 @@ export default function useItemProcess() {
      * 指定のプロセスについてエラーフラグを更新する
      */
     const _setErrorWithTemporaryItem = useAtomCallback(
-        useCallback((get, set, processId: string, errorFlag: boolean) => {
+        useCallback((get, set, processId: DataId, errorFlag: boolean) => {
             set(itemProcessesAtom, (cur) => {
                 return cur.map(item => {
                     if (item.processId === processId) {
@@ -79,18 +83,19 @@ export default function useItemProcess() {
     )
 
     const _registItemSub = useAtomCallback(
-        useCallback(async(get, set, item: RegistItemParam, processId: string) => {
+        useCallback(async(get, set, item: RegistItemParam, processId: DataId) => {
             const gqlClient = get(clientAtom);
             let retryFlag = false;
             let itemId: DataId | undefined;
             do {
                 retryFlag = false;
-                const result = await gqlClient.mutation(RegistItemDocument, {
+                const result = await gqlClient.mutation(RegistDataDocument, {
                     datasourceId: item.datasourceId,
-                    name: item.name,
-                    geometry: item.geometry,
-                    geoProperties: item.geoProperties,
-                });
+                    item: {
+                        geometry: item.geometry,
+                        geoProperties: item.geoProperties,
+                    }
+                })
                 if (result.error) {
                     // エラー時
                     console.warn('registItem failed', result.error.message);
@@ -99,7 +104,7 @@ export default function useItemProcess() {
                     retryFlag = await waitFor(processId);
                     _setErrorWithTemporaryItem(processId, false);
                 } else {
-                    itemId = result.data?.registItem ?? undefined;
+                    itemId = result.data?.registData ?? undefined;
                 }
         
             } while(retryFlag);
@@ -120,19 +125,17 @@ export default function useItemProcess() {
     const registItem = useAtomCallback(
         useCallback(async(get, set, item: RegistItemParam) => {
             // ID付与
-            const processId = `process-${++temporaryCount}`;
+            const processId = ++temporaryCount;
 
             // 登録完了までの仮アイテム登録
             _addItemProcess({
                 processId,
                 item: {
-                    id: {
-                        id: processId,
-                        dataSourceId: item.datasourceId,
-                    },
+                    id: processId,
                     geometry: item.geometry,
                     geoProperties: item.geoProperties,
                 },
+                datasourceId: item.datasourceId,
                 status: 'registing',
             });
 
@@ -142,9 +145,9 @@ export default function useItemProcess() {
     )
 
     const updateItems = useAtomCallback(
-        useCallback(async(get, set, items: UpdateItemInput[]) => {
+        useCallback(async(get, set, items: UpdateItemParam[]) => {
             // ID付与
-            const processId = `process-${++temporaryCount}`;
+            const processId = ++temporaryCount;
 
             // 登録完了までの仮アイテム登録
             _addItemProcess({
@@ -157,14 +160,26 @@ export default function useItemProcess() {
             let retryFlag = false;
             do {
                 retryFlag = false;
-                const result = await gqlClient.mutation(UpdateItemsDocument, {
-                    targets: items,
-                });
-                if (result.error || result.data?.updateItems.error) {
+                const allResult = await Promise.all(items.map(async(item) => {
+                    const result = await gqlClient.mutation(UpdateDataDocument, {
+                        id: item.id,
+                        item: {
+                            geometry: item.geometry,
+                            geoProperties: item.geoProperties,
+                        }
+                    });
+                    return {
+                        result,
+                        id: item.id,
+                    }
+                }));
+                const successResult = allResult.filter(ar => ar.result.data);
+                const errorResult = allResult.filter(ar => ar.result.error);
+                if (errorResult.length > 0) {
                     // エラー時
-                    if (result.data?.updateItems.error) {
+                    if (successResult.length > 0) {
                         // 一部エラー時は、成功したアイテムは仮アイテムから削除する
-                        _removeTemporaryItems(processId, result.data.updateItems.success);
+                        _removeTemporaryItems(processId, successResult.map(sr => sr.id));
                     }
                     _setErrorWithTemporaryItem(processId, true);
                     // キャンセル or リトライ の指示待ち
@@ -186,7 +201,7 @@ export default function useItemProcess() {
     const removeItem = useAtomCallback(
         useCallback(async(get, set, target: DataId) => {
             // ID付与
-            const processId = `process-${++temporaryCount}`;
+            const processId = ++temporaryCount;
 
             // 登録完了までの仮アイテム登録
             _addItemProcess({
@@ -199,7 +214,7 @@ export default function useItemProcess() {
             let retryFlag = false;
             do {
                 retryFlag = false;
-                const result = await gqlClient.mutation(RemoveItemDocument, {
+                const result = await gqlClient.mutation(RemoveDataDocument, {
                     id: target,
                 });
                 if (result.error) {
@@ -225,7 +240,7 @@ export default function useItemProcess() {
      * @param retry リトライの場合、true。キャンセルの場合、false。
      */
     const continueProcess = useAtomCallback(
-        useCallback(async(get, set, processId: string, retry: boolean) => {
+        useCallback(async(get, set, processId: DataId, retry: boolean) => {
             if (!resolveMap[processId]) {
                 console.warn('not exist the process', processId);
                 return;
@@ -243,8 +258,8 @@ export default function useItemProcess() {
 }
 
 // リトライの場合、true。キャンセルの場合、false。
-const resolveMap = {} as {[processId: string]: (value: boolean) => void};
-async function waitFor(processId: string) {
+const resolveMap = {} as {[processId: DataId]: (value: boolean) => void};
+async function waitFor(processId: DataId) {
     return new Promise<boolean>((resolve) => {
         resolveMap[processId] = resolve;
     })

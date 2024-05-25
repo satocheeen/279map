@@ -22,7 +22,7 @@ import { FitOptions } from 'ol/View';
 import { Coordinate } from 'ol/coordinate';
 import { GetGeocoderFeatureDocument, ItemDatasourceInfo } from '../../graphql/generated/graphql';
 import { Client } from 'urql';
-import { DataId, DatasourceKindType, FeatureType, MapKind } from '../../types-common/common-types';
+import { DataId, DatasourceLocationKindType, FeatureType, MapKind } from '../../types-common/common-types';
 
 export type FeatureInfo = {
     id: DataId;
@@ -189,7 +189,7 @@ export class OlMapWrapper {
             }
 
             itemDataSources.forEach(ds => {
-                if (ds.config.kind === DatasourceKindType.Track) {
+                if (ds.config.kind === DatasourceLocationKindType.Track) {
                     [[1, 8], [8, 13], [13, 21]].forEach(zoomLv => {
                         const layerDefine: LayerDefine = {
                             dataSourceId: ds.datasourceId,
@@ -203,7 +203,7 @@ export class OlMapWrapper {
                         this.addLayer(layerDefine, ds.initialVisible);
                     })
 
-                } else if (ds.config.kind === DatasourceKindType.RealItem) {
+                } else if (ds.config.kind === DatasourceLocationKindType.RealItem) {
                     [LayerType.Point, LayerType.Topography].forEach(layerType => {
                         const layerDefine: LayerDefine = {
                             dataSourceId: ds.datasourceId,
@@ -213,15 +213,6 @@ export class OlMapWrapper {
                         this.addLayer(layerDefine, ds.initialVisible);
                     })
 
-                } else if (ds.config.kind === DatasourceKindType.RealPointContent) {
-                    [LayerType.Point, LayerType.Topography].forEach(layerType => {
-                        const layerDefine: LayerDefine = {
-                            dataSourceId: ds.datasourceId,
-                            editable: true,
-                            layerType: layerType as LayerType.Point| LayerType.Topography,
-                        };
-                        this.addLayer(layerDefine, ds.initialVisible);
-                    })
                 }
 
             })
@@ -230,7 +221,7 @@ export class OlMapWrapper {
             // 村マップ
             extent ??= [0, 0, 2, 2];
             itemDataSources.forEach(ds => {
-                if (ds.config.kind !== DatasourceKindType.VirtualItem) {
+                if (ds.config.kind !== DatasourceLocationKindType.VirtualItem) {
                     return;
                 }
                 [LayerType.Point, LayerType.Topography].forEach(layerType => {
@@ -274,7 +265,7 @@ export class OlMapWrapper {
      * @param item 
      */
     _getTargetSource(item: ItemInfo): VectorSource | undefined {
-        const layerInfos = this._vectorLayerMap.getLayerInfoOfTheDataSource(item.id.dataSourceId);
+        const layerInfos = this._vectorLayerMap.getLayerInfoOfTheDataSource(item.datasourceId);
         if (item.geoProperties.featureType === FeatureType.TRACK) {
             const minZoomLv = item.geoProperties .min_zoom;
             const maxZoomLv = item.geoProperties.max_zoom;
@@ -662,7 +653,7 @@ export class OlMapWrapper {
                     });
                 });
             } else {
-                const dataId = convertDataIdFromFeatureId(feature.getId() as string);
+                const dataId = convertDataIdFromFeatureId(feature.getId());
                 points.push({
                     id: dataId,
                     feature: feature as Feature<Geometry>,

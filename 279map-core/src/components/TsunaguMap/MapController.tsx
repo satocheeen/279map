@@ -15,7 +15,7 @@ import { filteredItemIdListAtom } from '../../store/filter';
 import VectorSource from 'ol/source/Vector';
 import useMyMedia from '../../util/useMyMedia';
 import { useWatch } from '../../util/useWatch2';
-import { ItemDeleteDocument, ItemInsertDocument, ItemUpdateDocument, MapInfoUpdateDocument } from '../../graphql/generated/graphql';
+import { DataDeleteInTheMapDocument, DataInsertInTheMapDocument, DataUpdateInTheMapDocument, MapInfoUpdateDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import { ItemInfo } from '../../types/types';
 import { selectItemIdAtom } from '../../store/operation';
@@ -74,27 +74,39 @@ function useMapInitializer() {
         if (!currentMapKind) return;
         console.log('start subscribe');
 
-        const h1 = urqlClient.subscription(ItemInsertDocument, { mapId, mapKind: currentMapKind }).subscribe((val) => {
-            const targets = val.data?.itemInsert;
-            console.log('subscribe itemInsert', targets);
-            if (targets) {
-                // 表示中エリアの場合は最新ロードする
-                updateItems(targets);
+        const h1 = urqlClient.subscription(DataInsertInTheMapDocument, { mapId, mapKind: currentMapKind }).subscribe((val) => {
+            const targets = val.data?.dataInsertInTheMap;
+            console.log('subscribe dataInsertInTheMap', targets);
+            const items = targets?.filter(t => t.hasItem) ?? [];
+            if (items.length > 0) {
+                updateItems(items.map(t => {
+                    return {
+                        datasourceId: t.datasourceId,
+                        id: t.id,
+                        wkt: t.wkt ?? undefined,
+                    }
+                }));
             }
         });
 
-        const h2 = urqlClient.subscription(ItemUpdateDocument, { mapId, mapKind: currentMapKind }).subscribe((val) => {
-            const targets = val.data?.itemUpdate;
-            console.log('subscribe itemUpdate', targets);
-            if (targets) {
-                // 表示中エリアの場合は最新ロードする
-                updateItems(targets);
+        const h2 = urqlClient.subscription(DataUpdateInTheMapDocument, { mapId, mapKind: currentMapKind }).subscribe((val) => {
+            const targets = val.data?.dataUpdateInTheMap;
+            console.log('subscribe dataUpdateInTheMap', targets);
+            const items = targets?.filter(t => t.hasItem) ?? [];
+            if (items.length > 0) {
+                updateItems(items.map(t => {
+                    return {
+                        datasourceId: t.datasourceId,
+                        id: t.id,
+                        wkt: t.wkt ?? undefined,
+                    }
+                }));
             }
         })
 
-        const h3 = urqlClient.subscription(ItemDeleteDocument, {mapId, mapKind: currentMapKind }).subscribe((val) => {
-            const targets = val.data?.itemDelete;
-            console.log('subscribe itemDelete', targets);
+        const h3 = urqlClient.subscription(DataDeleteInTheMapDocument, {mapId, mapKind: currentMapKind }).subscribe((val) => {
+            const targets = val.data?.dataDeleteInTheMap;
+            console.log('subscribe dataDeleteInTheMap', targets);
             if (targets) {
                 // アイテム削除
                 removeItems(targets);
@@ -120,7 +132,7 @@ export const initialLoadingAtom = atom(false);
 function useItemUpdater() {
     const { map, fitToDefaultExtent } = useMap();
     const [ , setStoredItems ] = useAtom(storedItemsAtom);
-    const [ itemMap ] = useAtom(allItemsAtom);
+    const [ allItems ] = useAtom(allItemsAtom);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
 
     const [ itemDatasources ] = useAtom(itemDataSourcesAtom);
@@ -140,7 +152,7 @@ function useItemUpdater() {
         if (!map || !currentMapKind) return;
         if (initializedMapKind ===  currentMapKind) return;
 
-        setStoredItems({});
+        setStoredItems([]);
 
         // 現在のレイヤ、データソースを削除
         map.clearAllLayers();
@@ -165,10 +177,9 @@ function useItemUpdater() {
      * アイテムFeatureを地図に反映する
      */
     const geoJsonItems = useMemo(() => {
-        return Object.values(itemMap).reduce((acc, cur) => {
-            return acc.concat(Object.values(cur));
-        }, [] as ItemInfo[]);
-    }, [itemMap]);
+        return allItems;
+    }, [allItems]);
+
     // 追加済みアイテム
     const prevGeoJsonItemsRef = useRef<ItemInfo[]>([]);
 

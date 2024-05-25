@@ -7,7 +7,7 @@ import { BsThreeDots } from 'react-icons/bs';
 import { useMapOptions } from "../../util/useMapOptions";
 import { useMap } from "../map/useMap";
 import { selectItemIdAtom, doShowClusterMenuAtom, mapModeAtom } from "../../store/operation";
-import { filteredContentIdListAtom, filteredItemIdListAtom } from "../../store/filter";
+import { filteredDatasAtom, filteredItemIdListAtom } from "../../store/filter";
 import { useItems } from "../../store/item/useItems";
 import { useAtom } from "jotai";
 import { useAtomCallback } from 'jotai/utils';
@@ -30,7 +30,7 @@ export type PopupItem = {
 export default function PointsPopup(props: Props) {
     const { map } = useMap();
     const [ filteredItemIdList ] = useAtom(filteredItemIdListAtom);
-    const [ filteredContentIdList ] = useAtom(filteredContentIdListAtom);
+    const [ filteredContentIdList ] = useAtom(filteredDatasAtom);
     const [ targetItems, setTargetItems ] = useState<ItemInfo[]>([]);
     const { getItem } = useItems();
 
@@ -63,7 +63,7 @@ export default function PointsPopup(props: Props) {
             return infos[0];
         }
         // 複数アイテムが表示対象の場合は、画像を持つもののみ表示対象
-        const ownImageInfos = infos.filter(info => info.hasImageContentId.length > 0);
+        const ownImageInfos = infos.filter(item => item.content?.hasImage || item.linkedContents.some(c => c.hasImage));
         if (ownImageInfos.length === 0) {
             // 画像を持つものがない場合は、冒頭
             return infos[0];
@@ -79,13 +79,26 @@ export default function PointsPopup(props: Props) {
         if (!target) return null;
         if (popupMode !== 'maximum') return null;
 
-        if (target.hasImageContentId.length === 0) {
+        const hasImageContent = function() {
+            const list: ItemInfo['content'][] = [];
+            if (target.content?.hasImage) {
+                list.push(target.content)
+            }
+            target.linkedContents.forEach(c => {
+                if (c.hasImage) {
+                    list.push(c);
+                }
+            })
+            return list;
+        }();
+        // const hasImageContent = target.contents.filter(c => c.hasImage);
+        if (hasImageContent.length === 0) {
             return null;
         }
         if (!filteredContentIdList) {
-            return target.hasImageContentId[0];
+            return hasImageContent[0]?.id ?? null;
         }
-        return target.hasImageContentId.find(c => filteredContentIdList.some(f => f.dataSourceId === c.dataSourceId && f.id === c.id)) ?? null;
+        return hasImageContent.find(c => filteredContentIdList.some(f => f === c?.id))?.id ?? null;
 
     }, [target, filteredContentIdList, popupMode]);
 

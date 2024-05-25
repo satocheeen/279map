@@ -17,16 +17,17 @@ union ServerConfig = Auth0Config | NoneConfig
 
 type ItemDefine {
     id: DataId!
+    datasourceId: String!
     name: String!
     geometry: Geometry!
     geoProperties: GeoProperties!
     lastEditedTime: String!
-    hasContents: Boolean!
-    "画像を持つコンテンツID一覧"
-    hasImageContentId: [DataId!]!
 
-    "アイテムに紐づくコンテンツ一覧"
-    contents: [ContentsDefine!]!
+    "アイテムと対になるコンテンツ"
+    content: ContentsDefine
+
+    "アイテムに紐づけられたコンテンツ"
+    linkedContents: [ContentsDefine!]!
 }
 
 type CategoryDefine {
@@ -49,20 +50,27 @@ enum ContentType {
 }
 type ContentsDefine {
     id: DataId!
+    datasourceId: String!
     parentId: DataId
+    # コンテンツにタイトル以外の値が登録されている場合、true
+    hasValue: Boolean!
+    # 画像を持つ場合、true
+    hasImage: Boolean!
     values: ContentValueMap!
-    children: [ContentsDefine!]
-    usingAnotherMap: Boolean!
+    "他の地図でも参照されているか"
+    usingOtherMap: Boolean!
+    "もう片方の地図で参照されている場合に、その参照元のID"
     anotherMapItemId: DataId
-    isSnsContent: Boolean!
-    isEditable: Boolean!
-    isDeletable: Boolean!
+    "trueの場合、ユーザ権限に関わらずreadonly"
+    readonly: Boolean
 }
 type UnpointContent {
-    id: DataId!
+    originalId: String!
+    "DBに登録済みの場合は、dataIdも返す"
+    dataId: DataId
     title: String!
-    thumb: String
     overview: String
+    hasImage: Boolean
 }
 type GetUnpointContentsResult {
     contents: [UnpointContent!]!
@@ -87,14 +95,6 @@ input Condition {
     keyword: [String!]
 }
 
-type SearchHitItem {
-    id: DataId!
-    "検索条件がアイテム自体にもヒットした場合、True"
-    hitItem: Boolean!
-    "当該アイテム配下の検索条件に合致するコンテンツID一覧"
-    hitContents: [DataId!]!  # TODO: 孫コンテンツも含める
-}
-
 # --------------
 # geocoder関連
 # --------------
@@ -109,29 +109,6 @@ type GeocoderItem {
     geometry: Geometry!
 }
 
-# --------------
-# SNS関連
-# --------------
-type SnsPreviewResult {
-    type: SnsType!
-    posts: [SnsPreviewPost!]!
-}
-enum SnsType {
-    InstagramUser
-}
-type SnsPreviewPost {
-    text: String!
-    media: MediaInfo
-    date: String
-}
-type MediaInfo {
-    type: MediaType!
-    url: String!
-}
-enum MediaType {
-    image
-    Video
-}
 # --------------
 
 type Query {
@@ -149,7 +126,7 @@ type Query {
         latestEditedTime: String
 
         "(optional) 指定されている場合、このidのアイテムは結果から除く TODO: deprecated"
-        excludeItemIds: [String!]
+        excludeItemIds: [DataId!]
     ): [ItemDefine!]!
 
     getItemsById(targets: [DataId!]!): [ItemDefine!]!
@@ -157,8 +134,6 @@ type Query {
     getCategory(datasourceIds: [String!]): [CategoryDefine!]!
     getEvent(datasourceIds: [String!]): [EventDefine!]!
     getContent(id: DataId!): ContentsDefine!
-    getContents(ids: [DataId!]!): [ContentsDefine!]!
-    getContentsInItem(itemId: DataId!): [ContentsDefine!]!
 
     "未割当コンテンツを取得する"
     getUnpointContents(
@@ -180,13 +155,15 @@ type Query {
 
     getImageUrl(contentId: DataId!): String!
 
-    # datasourceIds => 指定されている場合、指定のデータソースのみ検索対象にする
-    search(condition: Condition!, datasourceIds: [String!]): [SearchHitItem!]!
+    "検索。検索にヒットしたもののデータIDを返す"
+    search(
+        condition: Condition!,
+        "指定されている場合、指定のデータソースのみ検索対象にする"
+        datasourceIds: [String!]
+    ): [DataId!]!
 
     geocoder(address: String!, searchTarget: [GeocoderTarget!]!): [GeocoderItem!]!
     getGeocoderFeature(id: GeocoderIdInfo!): Geometry!
-
-    getSnsPreview(url: String!): SnsPreviewResult!
 
     getUserList: [User!]!
     getLinkableContentsDatasources: [ContentsDatasource!]!

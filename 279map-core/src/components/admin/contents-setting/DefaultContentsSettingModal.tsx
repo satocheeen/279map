@@ -4,7 +4,7 @@ import CurrentContentsListPage from './CurrentContentsListPage';
 import AddableContentsListPage from './AddableContentsListPage';
 import { modalSpinnerAtom } from '../../common/modal/Modal';
 import { useAtomCallback } from 'jotai/utils';
-import { ContentsDatasource, LinkContentsDatasourceDocument } from '../../../graphql/generated/graphql';
+import { ContentsDatasource } from '../../../graphql/generated/graphql';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
 
@@ -24,14 +24,14 @@ export default function DefaultContentsSettingModal(props: Props) {
     const [ gqlClient ] = useAtom(clientAtom);
     const handleAddClicked = useAtomCallback(
         useCallback(async(get, set) => {
-            set(modalSpinnerAtom, true);
-            await gqlClient.mutation(LinkContentsDatasourceDocument, {
-                contentsDatasources: addTargetList,
-            });
-            set(modalSpinnerAtom, false);
+            // set(modalSpinnerAtom, true);
+            // await gqlClient.mutation(LinkContentsDatasourceDocument, {
+            //     contentsDatasources: addTargetList,
+            // });
+            // set(modalSpinnerAtom, false);
 
-            // コンテンツ一覧ページに戻る
-            setPage('current');
+            // // コンテンツ一覧ページに戻る
+            // setPage('current');
         }, [addTargetList, gqlClient])
     )
 

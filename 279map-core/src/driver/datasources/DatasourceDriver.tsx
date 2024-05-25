@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from 'react';
 import styles from '../TestMap.module.scss';
 import myStyles from './DatasourceDriver.module.scss';
-import { Auth, DataId, DatasourceKindType, FeatureType, ItemDatasourceVisibleList, MapKind } from '../../entry';
+import { Auth, DataId, DatasourceLocationKindType, FeatureType, ItemDatasourceVisibleList, MapKind } from '../../entry';
 import { DriverContext } from '../TestMap';
 import { useWatch } from '../../util/useWatch2';
 

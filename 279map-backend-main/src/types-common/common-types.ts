@@ -4,10 +4,13 @@
  * 他プロジェクトへは、npm run codegenスクリプトにてコピーされる。
  */
 
-export type DataId = {
-    id: string;
-    dataSourceId: string;
-}
+import { BooleanValueNode } from "graphql";
+
+// export type DataId = {
+//     id: string;
+//     dataSourceId: string;
+// }
+export type DataId = number;
 
 export enum MapKind {
     Real = 'Real',
@@ -75,46 +78,54 @@ export type GeoProperties = {
 }
 
 /**
- * データソース種別ごとの設定情報
+ * データソースのLocation種別
  */
-export enum DatasourceKindType {
-    VirtualItem = 'VirtualItem',
-    RealItem = 'RealItem',
-    RealPointContent = 'RealPointContent',
-    Track = 'Track',
-    Content = 'Content',
+export enum DatasourceLocationKindType {
+    VirtualItem = 'VirtualItem',    // 村マップ上の建物や土地に関する情報を格納するデータソース
+    RealItem = 'RealItem',          // 世界地図上のピンやエリア
+    Track = 'Track',                // 世界地図上の軌跡 
+    None = 'None',                  // 位置情報を持たないデータソースの場合
 }
 
 /**
  * アイテムDatasourceに関する情報
  */
 export type ItemDatasourceConfig = {
-    kind: DatasourceKindType.RealItem | DatasourceKindType.Track | DatasourceKindType.VirtualItem;
+    kind: DatasourceLocationKindType.Track | DatasourceLocationKindType.VirtualItem;
 } | {
-    kind: DatasourceKindType.RealPointContent;
+    kind: DatasourceLocationKindType.RealItem;
+    drawableArea: boolean;  // trueの場合、エリア描画可能。falseの場合は、ピンのみ描画可能。
     defaultIcon?: IconKey;
 }
+
 /**
  * コンテンツDatasourceに関する情報
  */
 export type ContentDatasourceConfig = {
-    kind: DatasourceKindType.Content | DatasourceKindType.RealPointContent;
-    linkableChildContents: boolean; // trueの場合、子コンテンツの追加が可能
-    editable: boolean;
-    deletable: boolean;
+    linkableToItem: boolean;        // trueの場合、対になるアイテム以外への割り当て可能
+    readonly?: boolean;             // trueの場合、ユーザによる編集不可能
+    // linkableChildContents: boolean; // trueの場合、子コンテンツの追加が可能
     fields: ContentFieldDefine[];
 }
 
+/**
+ * コンテンツ関連の項目情報
+ */
 export type ContentFieldDefine = {
-    key: string;
-    type: 'title' | 'latitude' | 'longitude' | 'radius' | 'address';
-} | {
     key: string;
 
     // stringは１行、textは複数行
-    type: 'string' | 'date' | 'url' | 'text' | 'category' | 'number' | 'image';
+    type: 'title' | 'string' | 'date' | 'url' | 'text' | 'category' | 'number' | 'image';
     label: string;
     readonly?: boolean;
+}
+
+/**
+ * 位置（item or track）関連の項目情報
+ */
+export type LocationFieldDefine = {
+    key: string;
+    type: 'latitude' | 'longitude' | 'radius' | 'address' | 'geojson' | 'gpx-file';
 }
 
 export type ContentValueMap = {[key: string]: any};

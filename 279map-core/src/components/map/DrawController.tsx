@@ -1,6 +1,5 @@
 import React, { lazy, Suspense, useCallback, useImperativeHandle, useState } from 'react';
 import { ItemGeoInfo, MapMode, TsunaguMapHandler } from '../../types/types';
-import EditTopographyInfoController from './draw-controller/topography/EditTopographyInfoController';
 import LoadingOverlay from '../common/spinner/LoadingOverlay';
 import { mapModeAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
@@ -22,7 +21,7 @@ type ControllerType = {
     type: 'draw-structure' | 'draw-road';
     dataSourceId: string;
 } | {
-    type: 'move-structure' | 'edit-topography-info';
+    type: 'move-structure';
 } | {
     type: 'draw-topography';
     dataSourceId: string;
@@ -39,7 +38,6 @@ type ControllerType = {
 export type DrawControllerHandler = Pick<TsunaguMapHandler, 
     'drawTemporaryFeature'
     | 'registItemDirectly'
-    | 'updateItemDirectly'
     | 'removeItemDircetly'
     | 'drawStructure'
     | 'moveStructure'
@@ -47,7 +45,6 @@ export type DrawControllerHandler = Pick<TsunaguMapHandler,
     | 'removeItem'
     | 'drawTopography'
     | 'drawRoad'
-    | 'editTopographyInfo'
     >;
 
 function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler>) {
@@ -80,27 +77,16 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
                 });
             })
         },
-        async registItemDirectly(datasourceId, geo, name) {
+        async registItemDirectly(datasourceId, geo) {
             const id = await registItemProcess({
                 datasourceId,
                 geometry: geo.geometry,
                 geoProperties: geo.geoProperties,
-                name,
             });
             if (!id) {
                 throw new Error('registItem failed');
             }
             return id;
-        },
-        async updateItemDirectly(id, geo, name) {
-            await updateItemsProcess([
-                {
-                    id,
-                    geometry: geo?.geometry,
-                    geoProperties: geo?.geoProperties,
-                    name,
-                }
-            ]);
         },
         async removeItemDircetly(id) {
             await removeItemProcess(id);
@@ -147,12 +133,6 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
                 dataSourceId,
             })
         },
-        editTopographyInfo() {
-            setMapMode(MapMode.Drawing);
-            setController({
-                type: 'edit-topography-info',
-            })
-        },
     }));
 
     if (!controller) {
@@ -197,12 +177,6 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
             return (
                 <Suspense fallback={<LoadingOverlay />}>
                     <DrawRoadController dataSourceId={controller.dataSourceId} close={terminate} />
-                </Suspense>
-            )
-        case 'edit-topography-info':
-            return (
-                <Suspense fallback={<LoadingOverlay />}>
-                    <EditTopographyInfoController close={terminate} />
                 </Suspense>
             )
         case 'draw-temporary-feature':

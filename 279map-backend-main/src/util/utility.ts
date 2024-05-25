@@ -1,10 +1,9 @@
 import { ConnectionPool } from '..';
-import { ContentsTable, DataSourceTable, ItemContentLink, ItemsTable, MapDataSourceLinkConfig } from '../../279map-backend-common/src/types/schema';
+import { DataSourceTable, DatasTable } from '../../279map-backend-common/src/types/schema';
 import { buffer, circle, featureCollection, lineString, multiLineString, multiPolygon, point, polygon, union } from '@turf/turf';
-import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
 import crypto from 'crypto';
 import * as geojson from 'geojson';
-import { ContentValueMap, DataId } from '../types-common/common-types';
+import { ContentFieldDefine, ContentValueMap, DataId } from '../types-common/common-types';
 import { MapDataSourceLinkTable } from '../../279map-backend-common/src';
 import { Auth } from '../graphql/__generated__/types';
 
@@ -31,127 +30,6 @@ export function convertBase64ToBinary(base64: string) {
         contentType: 'image/' + format,
         binary: img,
     };
-}
-
-export async function getContent(content_id: DataId): Promise<ContentsTable|null> {
-    const con = await ConnectionPool.getConnection();
-    try {
-        const sql = "select * from contents where content_page_id = ? and data_source_id = ?";
-        const [rows] = await con.execute(sql, [content_id.id, content_id.dataSourceId]);
-        if ((rows as []).length === 0) {
-            return null;
-        }
-        return (rows as ContentsTable[])[0];
-
-    } catch(e) {
-        throw 'getContent' + e;
-    } finally {
-        await con.rollback();
-        con.release();
-    }
-}
-
-/**
- * 指定のコンテンツの祖先にいるアイテムIDを返す
- * @param contentId 
- */
-export async function getAncestorItemId(contentId: DataId): Promise<DataId | undefined> {
-    const myCon = await ConnectionPool.getConnection();
-
-    try {
-        const sql = `
-        select * from item_content_link icl 
-        where content_page_id = ? and content_datasource_id = ?
-        `;
-        const [rows] = await myCon.execute(sql, [contentId.id, contentId.dataSourceId]);
-        if ((rows as ItemContentLink[]).length > 0) {
-            const record = (rows as ItemsTable[])[0];
-            return {
-                id: record.item_page_id,
-                dataSourceId: record.data_source_id,
-            };
-        }
-
-        // 対応するアイテムが存在しない場合は、親コンテンツを辿る
-        const contentQuery = 'select * from contents where content_page_id = ? and data_source_id = ?';
-        const [contentRows] = await myCon.execute(contentQuery, [contentId.id, contentId.dataSourceId]);
-        if ((contentRows as []).length === 0) {
-            return;
-        }
-        const contentRecord = (contentRows as ContentsTable[])[0];
-        if (!contentRecord.parent_id || !contentRecord.parent_datasource_id) {
-            return;
-        }
-        const ancestor = await getAncestorItemId(
-            {
-                id: contentRecord.parent_id,
-                dataSourceId: contentRecord.data_source_id,
-            }
-        );
-        return ancestor;
-    
-    } finally {
-        await myCon.commit();
-        myCon.release();
-    }
-
-}
-
-/**
- * 指定のアイテムのwktを返す
- * @param itemId 
- * @returns 
- */
-export async function getItemWkt(itemId: DataId): Promise<string|undefined> {
-    const con = await ConnectionPool.getConnection();
-
-    try {
-        const sql = `
-        SELECT ST_AsText(ST_Envelope(location)) as location
-        from items i 
-        where data_source_id = ? and item_page_id = ?
-        `;
-        const [rows] = await con.execute(sql, [itemId.dataSourceId, itemId.id]);
-        if ((rows as []).length === 0) {
-            return;
-        }
-        const location = (rows as {location: string}[])[0].location;
-        return location;
-    
-    } finally {
-        await con.rollback();
-        con.release();
-    }
-
-}
-
-export async function getItemsWkt(itemIdList: DataId[]): Promise<string|undefined> {
-    let unionFeature;
-    
-    for (const id of itemIdList) {
-        const wkt = await getItemWkt(id);
-        if (!wkt) continue;
-        const geoJson = wktToGeoJSON(wkt);
-        const ply = function() {
-            switch(geoJson.type) {
-                case 'Polygon':
-                    return polygon(geoJson.coordinates);
-                case 'MultiPolygon':
-                    return multiPolygon(geoJson.coordinates);
-                case 'Point':
-                    const p = point(geoJson.coordinates);
-                    return circle(p, .05);
-            }
-        }();
-        if (!ply) continue;
-        if (!unionFeature) {
-            unionFeature = ply;
-        } else  {
-            unionFeature = union(unionFeature, ply) ?? unionFeature;
-        }
-    }
-    if (unionFeature)
-        return geojsonToWKT(unionFeature.geometry)
 }
 
 export function createHash(): string {
@@ -217,25 +95,9 @@ export function geoJsonToTurfFeatureCollection(geoJsons: (geojson.Geometry | geo
     return list;
 }
 
-export async function getDatasourceRecord(datasourceId: string): Promise<DataSourceTable> {
-    const con = await ConnectionPool.getConnection();
-
-    try {
-        const sql = 'select * from data_source where data_source_id = ?';
-        const [rows] = await con.execute(sql, [datasourceId]);
-        if ((rows as []).length === 0) {
-            throw new Error('data_source not find. ->' + datasourceId);
-        }
-        return (rows as DataSourceTable[])[0];
-
-    } finally {
-        await con.commit();
-        con.release();
-    }
-}
-
 export function isEqualId(id1: DataId, id2: DataId): boolean {
-    return id1.id === id2.id && id1.dataSourceId === id2.dataSourceId;
+    return id1 === id2;
+    // return id1.id === id2.id && id1.dataSourceId === id2.dataSourceId;
 }
 
 /**
@@ -250,20 +112,20 @@ export async function cleanupContentValuesForRegist(mapId: string, datasourceId:
 
     try {
         // 項目定義を取得
-        const sql = 'select * from map_datasource_link where map_page_id =? and data_source_id = ?';
-        const [rows] = await con.execute(sql, [mapId,datasourceId]);
+        const sql = `
+            select * from data_source ds 
+            inner join map_datasource_link mdl on ds.data_source_id = mdl.data_source_id 
+            where map_page_id = ? and ds.data_source_id = ?
+        `;
+        const [rows] = await con.execute(sql, [mapId, datasourceId]);
         if ((rows as []).length === 0) {
             throw new Error('data_source not find. ->' + datasourceId);
         }
-        const mdl_config = (rows as MapDataSourceLinkTable[])[0].mdl_config as MapDataSourceLinkConfig;
-        const fields = 'fields' in mdl_config ? mdl_config.fields : undefined; 
-        if (!fields) {
-            throw new Error('undefined fields -> ' + datasourceId);
-        }
+        const contents_define = (rows as (MapDataSourceLinkTable & DataSourceTable)[])[0].contents_define as ContentFieldDefine[];
 
         const newValues = {} as ContentValueMap;
         Object.entries(values).forEach(([key, value]) => {
-            const field = fields.find(def => def.key === key);
+            const field = contents_define.find(def => def.key === key);
             if (!field) return;
             if ('readonly' in field && field.readonly) {
                 // readonly項目は、はじく
@@ -301,4 +163,18 @@ export function compareAuth(a: Auth, b: Auth) {
     const aWeight = weightFunc(a);
     const bWeight = weightFunc(b);
     return aWeight - bWeight;
+}
+
+export async function getDataByOriginalId(originalId: string): Promise<DatasTable|null> {
+    const con = await ConnectionPool.getConnection();
+
+    try {
+        const sql = 'select * from datas where original_id = ?';
+        const [rows] = await con.query(sql, [originalId]);
+        if ((rows as []).length === 0) return null;
+        return (rows as DatasTable[])[0];
+
+    } finally {
+        con.release();
+    }
 }

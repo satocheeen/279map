@@ -12,9 +12,9 @@ export async function getThumbnail(contentId: DataId): Promise<string> {
     try {
         const sql = `
         select thumbnail from images im
-        where content_page_id = ? and data_source_id = ?
+        where data_id = ?
         `;
-        const [rows] = await con.execute(sql, [contentId.id, contentId.dataSourceId]);
+        const [rows] = await con.execute(sql, [contentId]);
 
         if ((rows as any[]).length === 0) {
             throw 'not found';

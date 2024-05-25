@@ -51,87 +51,81 @@ mutation switchMapKind (
     }
 }
 
-mutation registItem (
+mutation registData (
     $datasourceId: String!
-    $name: String
-    $geometry: Geometry!
-    $geoProperties: GeoProperties!
+    $item: RegistDataItemInput
+    $contents: ContentValueMap
+    $linkItems: [DataId!]
 ) {
-    registItem (
+    registData (
         datasourceId: $datasourceId,
-        name: $name,
-        geometry: $geometry,
-        geoProperties: $geoProperties
+        item: $item,
+        contents: $contents,
+        linkItems: $linkItems,
     )
 }
 
-mutation updateItems (
-    $targets: [UpdateItemInput!]!
+mutation updateData (
+    $id: DataId!
+    $item: RegistDataItemInput
+    $deleteItem: Boolean
+    $contents: ContentValueMap
 ) {
-    updateItems (
-        targets: $targets
-    ) {
-        success
-        error
-    }
+    updateData (
+        id: $id,
+        item: $item,
+        deleteItem: $deleteItem,
+        contents: $contents,
+    )
 }
 
-mutation removeItem (
+mutation updateDataByOriginalId (
+    $originalId: String!
+    $item: RegistDataItemInput
+    $contents: ContentValueMap
+) {
+    updateDataByOriginalId (
+        originalId: $originalId,
+        item: $item,
+        contents: $contents,
+    )
+}
+
+mutation removeData (
     $id: DataId!
 ) {
-    removeItem(
+    removeData (
         id: $id
     )
 }
 
-mutation registContent (
-    $parent: ParentInput!
-    $datasourceId: String!
-
-    $values: ContentValueMap!
-) {
-    registContent(
-        parent: $parent
-        datasourceId: $datasourceId
-        values: $values
-    )
-}
-
-mutation updateContent (
+mutation linkData (
     $id: DataId!
-    $values: ContentValueMap!
+    $parent: DataId!
 ) {
-    updateContent(
-        id: $id
-        values: $values
-    )
-}
-
-mutation linkContent (
-    $id: DataId!
-    $parent: ParentInput!
-) {
-    linkContent (
+    linkData (
         id: $id
         parent: $parent
     )
 }
 
-mutation unlinkContent (
-    $id: DataId!
-    $parent: ParentInput!
+mutation linkDataByOriginalId (
+    $originalId: String!
+    $parent: DataId!
 ) {
-    unlinkContent (
-        id: $id
+    linkDataByOriginalId (
+        originalId: $originalId
         parent: $parent
     )
 }
 
-mutation removeContent (
+mutation unlinkData (
     $id: DataId!
+    $parent: DataId!
 ) {
-    removeContent (
+    unlinkData (
         id: $id
+        parent: $parent
     )
 }
 
@@ -152,21 +146,5 @@ mutation request (
     request(
         mapId: $mapId
         name: $name
-    )
-}
-
-mutation linkContentsDatasource (
-    $contentsDatasources: [ContentsDatasourceInput!]!
-) {
-    linkContentsDatasource (
-        contentsDatasources: $contentsDatasources,
-    )
-}
-
-mutation unlinkContentsDatasource (
-    $contentsDatasourceIds: [String!]!
-) {
-    unlinkContentsDatasource (
-        contentsDatasourceIds: $contentsDatasourceIds,
     )
 }

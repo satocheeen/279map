@@ -108,14 +108,17 @@ export type ContentsDatasourceInput = {
 };
 
 export type ContentsDefine = {
+  /** もう片方の地図で参照されている場合に、その参照元のID */
   anotherMapItemId?: Maybe<Scalars['DataId']['output']>;
-  children?: Maybe<Array<ContentsDefine>>;
+  datasourceId: Scalars['String']['output'];
+  hasImage: Scalars['Boolean']['output'];
+  hasValue: Scalars['Boolean']['output'];
   id: Scalars['DataId']['output'];
-  isDeletable: Scalars['Boolean']['output'];
-  isEditable: Scalars['Boolean']['output'];
-  isSnsContent: Scalars['Boolean']['output'];
   parentId?: Maybe<Scalars['DataId']['output']>;
-  usingAnotherMap: Scalars['Boolean']['output'];
+  /** trueの場合、ユーザ権限に関わらずreadonly */
+  readonly?: Maybe<Scalars['Boolean']['output']>;
+  /** 他の地図でも参照されているか */
+  usingOtherMap: Scalars['Boolean']['output'];
   values: Scalars['ContentValueMap']['output'];
 };
 
@@ -169,15 +172,15 @@ export type ItemDatasourceInfo = {
 };
 
 export type ItemDefine = {
-  /** アイテムに紐づくコンテンツ一覧 */
-  contents: Array<ContentsDefine>;
+  /** アイテムと対になるコンテンツ */
+  content?: Maybe<ContentsDefine>;
+  datasourceId: Scalars['String']['output'];
   geoProperties: Scalars['GeoProperties']['output'];
   geometry: Scalars['Geometry']['output'];
-  hasContents: Scalars['Boolean']['output'];
-  /** 画像を持つコンテンツID一覧 */
-  hasImageContentId: Array<Scalars['DataId']['output']>;
   id: Scalars['DataId']['output'];
   lastEditedTime: Scalars['String']['output'];
+  /** アイテムに紐づけられたコンテンツ */
+  linkedContents: Array<ContentsDefine>;
   name: Scalars['String']['output'];
 };
 
@@ -230,32 +233,25 @@ export type MapPageOptions = {
   usePanels?: Maybe<Array<Scalars['String']['output']>>;
 };
 
-export type MediaInfo = {
-  type: MediaType;
-  url: Scalars['String']['output'];
-};
-
-export enum MediaType {
-  Video = 'Video',
-  Image = 'image'
-}
-
 export type Mutation = {
   changeAuthLevel?: Maybe<Scalars['Boolean']['output']>;
   connect: ConnectResult;
   disconnect?: Maybe<Scalars['Boolean']['output']>;
-  linkContent?: Maybe<Scalars['Boolean']['output']>;
-  linkContentsDatasource?: Maybe<Scalars['Boolean']['output']>;
-  registContent?: Maybe<Scalars['Boolean']['output']>;
-  registItem?: Maybe<Scalars['DataId']['output']>;
-  removeContent?: Maybe<Scalars['Boolean']['output']>;
-  removeItem?: Maybe<Scalars['Boolean']['output']>;
+  /** データをリンクする */
+  linkData?: Maybe<Scalars['Boolean']['output']>;
+  /** データをリンクする（オリジナルID指定版） */
+  linkDataByOriginalId?: Maybe<Scalars['Boolean']['output']>;
+  /** データ登録 */
+  registData: Scalars['DataId']['output'];
+  /** データ削除 */
+  removeData: Scalars['Boolean']['output'];
   request?: Maybe<Scalars['Boolean']['output']>;
   switchMapKind: MapInfo;
-  unlinkContent?: Maybe<Scalars['Boolean']['output']>;
-  unlinkContentsDatasource?: Maybe<Scalars['Boolean']['output']>;
-  updateContent?: Maybe<Scalars['Boolean']['output']>;
-  updateItems: UpdateItemsResult;
+  unlinkData?: Maybe<Scalars['Boolean']['output']>;
+  /** データ更新 */
+  updateData: Scalars['Boolean']['output'];
+  /** データ更新（オリジナルID指定） */
+  updateDataByOriginalId: Scalars['Boolean']['output'];
 };
 
 
@@ -270,38 +266,27 @@ export type MutationConnectArgs = {
 };
 
 
-export type MutationLinkContentArgs = {
+export type MutationLinkDataArgs = {
   id: Scalars['DataId']['input'];
-  parent: ParentInput;
+  parent: Scalars['DataId']['input'];
 };
 
 
-export type MutationLinkContentsDatasourceArgs = {
-  contentsDatasources: Array<ContentsDatasourceInput>;
+export type MutationLinkDataByOriginalIdArgs = {
+  originalId: Scalars['String']['input'];
+  parent: Scalars['DataId']['input'];
 };
 
 
-export type MutationRegistContentArgs = {
+export type MutationRegistDataArgs = {
+  contents?: InputMaybe<Scalars['ContentValueMap']['input']>;
   datasourceId: Scalars['String']['input'];
-  parent: ParentInput;
-  values: Scalars['ContentValueMap']['input'];
+  item?: InputMaybe<RegistDataItemInput>;
+  linkItems?: InputMaybe<Array<Scalars['DataId']['input']>>;
 };
 
 
-export type MutationRegistItemArgs = {
-  datasourceId: Scalars['String']['input'];
-  geoProperties: Scalars['GeoProperties']['input'];
-  geometry: Scalars['Geometry']['input'];
-  name?: InputMaybe<Scalars['String']['input']>;
-};
-
-
-export type MutationRemoveContentArgs = {
-  id: Scalars['DataId']['input'];
-};
-
-
-export type MutationRemoveItemArgs = {
+export type MutationRemoveDataArgs = {
   id: Scalars['DataId']['input'];
 };
 
@@ -317,25 +302,24 @@ export type MutationSwitchMapKindArgs = {
 };
 
 
-export type MutationUnlinkContentArgs = {
+export type MutationUnlinkDataArgs = {
   id: Scalars['DataId']['input'];
-  parent: ParentInput;
+  parent: Scalars['DataId']['input'];
 };
 
 
-export type MutationUnlinkContentsDatasourceArgs = {
-  contentsDatasourceIds: Array<Scalars['String']['input']>;
-};
-
-
-export type MutationUpdateContentArgs = {
+export type MutationUpdateDataArgs = {
+  contents?: InputMaybe<Scalars['ContentValueMap']['input']>;
+  deleteItem?: InputMaybe<Scalars['Boolean']['input']>;
   id: Scalars['DataId']['input'];
-  values: Scalars['ContentValueMap']['input'];
+  item?: InputMaybe<RegistDataItemInput>;
 };
 
 
-export type MutationUpdateItemsArgs = {
-  targets: Array<UpdateItemInput>;
+export type MutationUpdateDataByOriginalIdArgs = {
+  contents?: InputMaybe<Scalars['ContentValueMap']['input']>;
+  item?: InputMaybe<RegistDataItemInput>;
+  originalId: Scalars['String']['input'];
 };
 
 export type NoneConfig = {
@@ -345,16 +329,6 @@ export type NoneConfig = {
 export enum Operation {
   Delete = 'Delete',
   Update = 'Update'
-}
-
-export type ParentInput = {
-  id: Scalars['DataId']['input'];
-  type: ParentOfContent;
-};
-
-export enum ParentOfContent {
-  Content = 'Content',
-  Item = 'Item'
 }
 
 export enum PopupMode {
@@ -368,8 +342,6 @@ export type Query = {
   geocoder: Array<GeocoderItem>;
   getCategory: Array<CategoryDefine>;
   getContent: ContentsDefine;
-  getContents: Array<ContentsDefine>;
-  getContentsInItem: Array<ContentsDefine>;
   getEvent: Array<EventDefine>;
   getGeocoderFeature: Scalars['Geometry']['output'];
   /** 指定の画像を返す */
@@ -380,13 +352,13 @@ export type Query = {
   getLinkableContentsDatasources: Array<ContentsDatasource>;
   /** ユーザがアクセス可能な地図情報一覧を返す */
   getMapList: Array<MapListItem>;
-  getSnsPreview: SnsPreviewResult;
   /** 指定のコンテンツのサムネイル画像を返す */
   getThumb: Scalars['String']['output'];
   /** 未割当コンテンツを取得する */
   getUnpointContents: GetUnpointContentsResult;
   getUserList: Array<User>;
-  search: Array<SearchHitItem>;
+  /** 検索。検索にヒットしたもののデータIDを返す */
+  search: Array<Scalars['DataId']['output']>;
 };
 
 
@@ -403,16 +375,6 @@ export type QueryGetCategoryArgs = {
 
 export type QueryGetContentArgs = {
   id: Scalars['DataId']['input'];
-};
-
-
-export type QueryGetContentsArgs = {
-  ids: Array<Scalars['DataId']['input']>;
-};
-
-
-export type QueryGetContentsInItemArgs = {
-  itemId: Scalars['DataId']['input'];
 };
 
 
@@ -439,7 +401,7 @@ export type QueryGetImageUrlArgs = {
 
 export type QueryGetItemsArgs = {
   datasourceId: Scalars['String']['input'];
-  excludeItemIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  excludeItemIds?: InputMaybe<Array<Scalars['DataId']['input']>>;
   latestEditedTime?: InputMaybe<Scalars['String']['input']>;
   wkt: Scalars['String']['input'];
   zoom: Scalars['Float']['input'];
@@ -448,11 +410,6 @@ export type QueryGetItemsArgs = {
 
 export type QueryGetItemsByIdArgs = {
   targets: Array<Scalars['DataId']['input']>;
-};
-
-
-export type QueryGetSnsPreviewArgs = {
-  url: Scalars['String']['input'];
 };
 
 
@@ -473,30 +430,12 @@ export type QuerySearchArgs = {
   datasourceIds?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
-export type SearchHitItem = {
-  /** 当該アイテム配下の検索条件に合致するコンテンツID一覧 */
-  hitContents: Array<Scalars['DataId']['output']>;
-  /** 検索条件がアイテム自体にもヒットした場合、True */
-  hitItem: Scalars['Boolean']['output'];
-  id: Scalars['DataId']['output'];
+export type RegistDataItemInput = {
+  geoProperties: Scalars['GeoProperties']['input'];
+  geometry: Scalars['Geometry']['input'];
 };
 
 export type ServerConfig = Auth0Config | NoneConfig;
-
-export type SnsPreviewPost = {
-  date?: Maybe<Scalars['String']['output']>;
-  media?: Maybe<MediaInfo>;
-  text: Scalars['String']['output'];
-};
-
-export type SnsPreviewResult = {
-  posts: Array<SnsPreviewPost>;
-  type: SnsType;
-};
-
-export enum SnsType {
-  InstagramUser = 'InstagramUser'
-}
 
 export enum SortCondition {
   /** 作成日時昇順 */
@@ -514,19 +453,19 @@ export enum SortCondition {
 }
 
 export type Subscription = {
-  /** 指定のコンテンツが更新/削除された場合に通知する */
-  contentUpdate: Operation;
+  /** 指定の地図上のデータが削除された場合に通知する */
+  dataDeleteInTheMap: Array<Scalars['DataId']['output']>;
+  /** 指定の地図上にデータが追加された場合に通知する */
+  dataInsertInTheMap: Array<Target>;
+  /** 指定のデータが更新/削除された場合に通知する */
+  dataUpdate: Operation;
+  /** 指定の地図上のデータが更新された場合に通知する */
+  dataUpdateInTheMap: Array<Target>;
   /**
    * ユーザが操作している地図でエラーが発生した場合にエラー内容を通知する。
    * 突き放し実行している登録、更新処理でエラー発生した場合に通知するために用意。
    */
   error: ErrorInfo;
-  /** 地図上のアイテムが削除された場合に通知する */
-  itemDelete: Array<Scalars['DataId']['output']>;
-  /** 地図上にアイテムが追加された場合に通知する */
-  itemInsert: Array<Target>;
-  /** 地図上のアイテムが更新された場合に通知する */
-  itemUpdate: Array<Target>;
   /** 地図定義に変更があった場合 */
   mapInfoUpdate?: Maybe<Scalars['Boolean']['output']>;
   /** ユーザ権限に更新があった場合 */
@@ -536,31 +475,31 @@ export type Subscription = {
 };
 
 
-export type SubscriptionContentUpdateArgs = {
-  contentId: Scalars['DataId']['input'];
+export type SubscriptionDataDeleteInTheMapArgs = {
+  mapId: Scalars['String']['input'];
+  mapKind: Scalars['MapKind']['input'];
+};
+
+
+export type SubscriptionDataInsertInTheMapArgs = {
+  mapId: Scalars['String']['input'];
+  mapKind: Scalars['MapKind']['input'];
+};
+
+
+export type SubscriptionDataUpdateArgs = {
+  id: Scalars['DataId']['input'];
+};
+
+
+export type SubscriptionDataUpdateInTheMapArgs = {
+  mapId: Scalars['String']['input'];
+  mapKind: Scalars['MapKind']['input'];
 };
 
 
 export type SubscriptionErrorArgs = {
   sid: Scalars['String']['input'];
-};
-
-
-export type SubscriptionItemDeleteArgs = {
-  mapId: Scalars['String']['input'];
-  mapKind: Scalars['MapKind']['input'];
-};
-
-
-export type SubscriptionItemInsertArgs = {
-  mapId: Scalars['String']['input'];
-  mapKind: Scalars['MapKind']['input'];
-};
-
-
-export type SubscriptionItemUpdateArgs = {
-  mapId: Scalars['String']['input'];
-  mapKind: Scalars['MapKind']['input'];
 };
 
 
@@ -580,10 +519,16 @@ export type SubscriptionUserListUpdateArgs = {
 };
 
 export type Target = {
-  /** 対象アイテムのID */
+  /** 対象のデータソースID */
+  datasourceId: Scalars['String']['output'];
+  /** コンテンツ情報を持つデータの場合、true */
+  hasContent: Scalars['Boolean']['output'];
+  /** アイテム情報を持つデータの場合、true */
+  hasItem: Scalars['Boolean']['output'];
+  /** 対象のデータID */
   id: Scalars['DataId']['output'];
-  /** アイテムの地図範囲。update時は更新後範囲 */
-  wkt: Scalars['String']['output'];
+  /** アイテムを持つ場合、地図範囲。update時は更新後範囲 */
+  wkt?: Maybe<Scalars['String']['output']>;
 };
 
 export enum ThumbSize {
@@ -592,9 +537,11 @@ export enum ThumbSize {
 }
 
 export type UnpointContent = {
-  id: Scalars['DataId']['output'];
+  /** DBに登録済みの場合は、dataIdも返す */
+  dataId?: Maybe<Scalars['DataId']['output']>;
+  hasImage?: Maybe<Scalars['Boolean']['output']>;
+  originalId: Scalars['String']['output'];
   overview?: Maybe<Scalars['String']['output']>;
-  thumb?: Maybe<Scalars['String']['output']>;
   title: Scalars['String']['output'];
 };
 
@@ -602,7 +549,6 @@ export type UpdateItemInput = {
   geoProperties?: InputMaybe<Scalars['GeoProperties']['input']>;
   geometry?: InputMaybe<Scalars['Geometry']['input']>;
   id: Scalars['DataId']['input'];
-  name?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateItemsResult = {
@@ -732,20 +678,13 @@ export type ResolversTypes = {
   MapKind: ResolverTypeWrapper<Scalars['MapKind']['output']>;
   MapListItem: ResolverTypeWrapper<MapListItem>;
   MapPageOptions: ResolverTypeWrapper<MapPageOptions>;
-  MediaInfo: ResolverTypeWrapper<MediaInfo>;
-  MediaType: MediaType;
   Mutation: ResolverTypeWrapper<{}>;
   NoneConfig: ResolverTypeWrapper<NoneConfig>;
   Operation: Operation;
-  ParentInput: ParentInput;
-  ParentOfContent: ParentOfContent;
   PopupMode: PopupMode;
   Query: ResolverTypeWrapper<{}>;
-  SearchHitItem: ResolverTypeWrapper<SearchHitItem>;
+  RegistDataItemInput: RegistDataItemInput;
   ServerConfig: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['ServerConfig']>;
-  SnsPreviewPost: ResolverTypeWrapper<SnsPreviewPost>;
-  SnsPreviewResult: ResolverTypeWrapper<SnsPreviewResult>;
-  SnsType: SnsType;
   SortCondition: SortCondition;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Subscription: ResolverTypeWrapper<{}>;
@@ -794,15 +733,11 @@ export type ResolversParentTypes = {
   MapKind: Scalars['MapKind']['output'];
   MapListItem: MapListItem;
   MapPageOptions: MapPageOptions;
-  MediaInfo: MediaInfo;
   Mutation: {};
   NoneConfig: NoneConfig;
-  ParentInput: ParentInput;
   Query: {};
-  SearchHitItem: SearchHitItem;
+  RegistDataItemInput: RegistDataItemInput;
   ServerConfig: ResolversUnionTypes<ResolversParentTypes>['ServerConfig'];
-  SnsPreviewPost: SnsPreviewPost;
-  SnsPreviewResult: SnsPreviewResult;
   String: Scalars['String']['output'];
   Subscription: {};
   Target: Target;
@@ -863,13 +798,13 @@ export type ContentsDatasourceResolvers<ContextType = any, ParentType extends Re
 
 export type ContentsDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['ContentsDefine'] = ResolversParentTypes['ContentsDefine']> = {
   anotherMapItemId?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType>;
-  children?: Resolver<Maybe<Array<ResolversTypes['ContentsDefine']>>, ParentType, ContextType>;
+  datasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  hasImage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  hasValue?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
-  isDeletable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  isEditable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  isSnsContent?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   parentId?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType>;
-  usingAnotherMap?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  readonly?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  usingOtherMap?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   values?: Resolver<ResolversTypes['ContentValueMap'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -944,13 +879,13 @@ export type ItemDatasourceInfoResolvers<ContextType = any, ParentType extends Re
 };
 
 export type ItemDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemDefine'] = ResolversParentTypes['ItemDefine']> = {
-  contents?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType>;
+  content?: Resolver<Maybe<ResolversTypes['ContentsDefine']>, ParentType, ContextType>;
+  datasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   geoProperties?: Resolver<ResolversTypes['GeoProperties'], ParentType, ContextType>;
   geometry?: Resolver<ResolversTypes['Geometry'], ParentType, ContextType>;
-  hasContents?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  hasImageContentId?: Resolver<Array<ResolversTypes['DataId']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   lastEditedTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  linkedContents?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -999,28 +934,19 @@ export type MapPageOptionsResolvers<ContextType = any, ParentType extends Resolv
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type MediaInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['MediaInfo'] = ResolversParentTypes['MediaInfo']> = {
-  type?: Resolver<ResolversTypes['MediaType'], ParentType, ContextType>;
-  url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   changeAuthLevel?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationChangeAuthLevelArgs, 'authLv' | 'userId'>>;
   connect?: Resolver<ResolversTypes['ConnectResult'], ParentType, ContextType, RequireFields<MutationConnectArgs, 'mapId'>>;
   disconnect?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  linkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkContentArgs, 'id' | 'parent'>>;
-  linkContentsDatasource?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkContentsDatasourceArgs, 'contentsDatasources'>>;
-  registContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRegistContentArgs, 'datasourceId' | 'parent' | 'values'>>;
-  registItem?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType, RequireFields<MutationRegistItemArgs, 'datasourceId' | 'geoProperties' | 'geometry'>>;
-  removeContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveContentArgs, 'id'>>;
-  removeItem?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveItemArgs, 'id'>>;
+  linkData?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkDataArgs, 'id' | 'parent'>>;
+  linkDataByOriginalId?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLinkDataByOriginalIdArgs, 'originalId' | 'parent'>>;
+  registData?: Resolver<ResolversTypes['DataId'], ParentType, ContextType, RequireFields<MutationRegistDataArgs, 'datasourceId'>>;
+  removeData?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveDataArgs, 'id'>>;
   request?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRequestArgs, 'mapId' | 'name'>>;
   switchMapKind?: Resolver<ResolversTypes['MapInfo'], ParentType, ContextType, RequireFields<MutationSwitchMapKindArgs, 'mapKind'>>;
-  unlinkContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkContentArgs, 'id' | 'parent'>>;
-  unlinkContentsDatasource?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkContentsDatasourceArgs, 'contentsDatasourceIds'>>;
-  updateContent?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateContentArgs, 'id' | 'values'>>;
-  updateItems?: Resolver<ResolversTypes['UpdateItemsResult'], ParentType, ContextType, RequireFields<MutationUpdateItemsArgs, 'targets'>>;
+  unlinkData?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkDataArgs, 'id' | 'parent'>>;
+  updateData?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateDataArgs, 'id'>>;
+  updateDataByOriginalId?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateDataByOriginalIdArgs, 'originalId'>>;
 };
 
 export type NoneConfigResolvers<ContextType = any, ParentType extends ResolversParentTypes['NoneConfig'] = ResolversParentTypes['NoneConfig']> = {
@@ -1033,8 +959,6 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   geocoder?: Resolver<Array<ResolversTypes['GeocoderItem']>, ParentType, ContextType, RequireFields<QueryGeocoderArgs, 'address' | 'searchTarget'>>;
   getCategory?: Resolver<Array<ResolversTypes['CategoryDefine']>, ParentType, ContextType, Partial<QueryGetCategoryArgs>>;
   getContent?: Resolver<ResolversTypes['ContentsDefine'], ParentType, ContextType, RequireFields<QueryGetContentArgs, 'id'>>;
-  getContents?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentsArgs, 'ids'>>;
-  getContentsInItem?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType, RequireFields<QueryGetContentsInItemArgs, 'itemId'>>;
   getEvent?: Resolver<Array<ResolversTypes['EventDefine']>, ParentType, ContextType, Partial<QueryGetEventArgs>>;
   getGeocoderFeature?: Resolver<ResolversTypes['Geometry'], ParentType, ContextType, RequireFields<QueryGetGeocoderFeatureArgs, 'id'>>;
   getImage?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryGetImageArgs, 'imageId' | 'size'>>;
@@ -1043,58 +967,41 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getItemsById?: Resolver<Array<ResolversTypes['ItemDefine']>, ParentType, ContextType, RequireFields<QueryGetItemsByIdArgs, 'targets'>>;
   getLinkableContentsDatasources?: Resolver<Array<ResolversTypes['ContentsDatasource']>, ParentType, ContextType>;
   getMapList?: Resolver<Array<ResolversTypes['MapListItem']>, ParentType, ContextType>;
-  getSnsPreview?: Resolver<ResolversTypes['SnsPreviewResult'], ParentType, ContextType, RequireFields<QueryGetSnsPreviewArgs, 'url'>>;
   getThumb?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryGetThumbArgs, 'contentId'>>;
   getUnpointContents?: Resolver<ResolversTypes['GetUnpointContentsResult'], ParentType, ContextType, RequireFields<QueryGetUnpointContentsArgs, 'datasourceId'>>;
   getUserList?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
-  search?: Resolver<Array<ResolversTypes['SearchHitItem']>, ParentType, ContextType, RequireFields<QuerySearchArgs, 'condition'>>;
-};
-
-export type SearchHitItemResolvers<ContextType = any, ParentType extends ResolversParentTypes['SearchHitItem'] = ResolversParentTypes['SearchHitItem']> = {
-  hitContents?: Resolver<Array<ResolversTypes['DataId']>, ParentType, ContextType>;
-  hitItem?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+  search?: Resolver<Array<ResolversTypes['DataId']>, ParentType, ContextType, RequireFields<QuerySearchArgs, 'condition'>>;
 };
 
 export type ServerConfigResolvers<ContextType = any, ParentType extends ResolversParentTypes['ServerConfig'] = ResolversParentTypes['ServerConfig']> = {
   __resolveType: TypeResolveFn<'Auth0Config' | 'NoneConfig', ParentType, ContextType>;
 };
 
-export type SnsPreviewPostResolvers<ContextType = any, ParentType extends ResolversParentTypes['SnsPreviewPost'] = ResolversParentTypes['SnsPreviewPost']> = {
-  date?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  media?: Resolver<Maybe<ResolversTypes['MediaInfo']>, ParentType, ContextType>;
-  text?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type SnsPreviewResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['SnsPreviewResult'] = ResolversParentTypes['SnsPreviewResult']> = {
-  posts?: Resolver<Array<ResolversTypes['SnsPreviewPost']>, ParentType, ContextType>;
-  type?: Resolver<ResolversTypes['SnsType'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
-  contentUpdate?: SubscriptionResolver<ResolversTypes['Operation'], "contentUpdate", ParentType, ContextType, RequireFields<SubscriptionContentUpdateArgs, 'contentId'>>;
+  dataDeleteInTheMap?: SubscriptionResolver<Array<ResolversTypes['DataId']>, "dataDeleteInTheMap", ParentType, ContextType, RequireFields<SubscriptionDataDeleteInTheMapArgs, 'mapId' | 'mapKind'>>;
+  dataInsertInTheMap?: SubscriptionResolver<Array<ResolversTypes['Target']>, "dataInsertInTheMap", ParentType, ContextType, RequireFields<SubscriptionDataInsertInTheMapArgs, 'mapId' | 'mapKind'>>;
+  dataUpdate?: SubscriptionResolver<ResolversTypes['Operation'], "dataUpdate", ParentType, ContextType, RequireFields<SubscriptionDataUpdateArgs, 'id'>>;
+  dataUpdateInTheMap?: SubscriptionResolver<Array<ResolversTypes['Target']>, "dataUpdateInTheMap", ParentType, ContextType, RequireFields<SubscriptionDataUpdateInTheMapArgs, 'mapId' | 'mapKind'>>;
   error?: SubscriptionResolver<ResolversTypes['ErrorInfo'], "error", ParentType, ContextType, RequireFields<SubscriptionErrorArgs, 'sid'>>;
-  itemDelete?: SubscriptionResolver<Array<ResolversTypes['DataId']>, "itemDelete", ParentType, ContextType, RequireFields<SubscriptionItemDeleteArgs, 'mapId' | 'mapKind'>>;
-  itemInsert?: SubscriptionResolver<Array<ResolversTypes['Target']>, "itemInsert", ParentType, ContextType, RequireFields<SubscriptionItemInsertArgs, 'mapId' | 'mapKind'>>;
-  itemUpdate?: SubscriptionResolver<Array<ResolversTypes['Target']>, "itemUpdate", ParentType, ContextType, RequireFields<SubscriptionItemUpdateArgs, 'mapId' | 'mapKind'>>;
   mapInfoUpdate?: SubscriptionResolver<Maybe<ResolversTypes['Boolean']>, "mapInfoUpdate", ParentType, ContextType, RequireFields<SubscriptionMapInfoUpdateArgs, 'mapId'>>;
   updateUserAuth?: SubscriptionResolver<Maybe<ResolversTypes['Boolean']>, "updateUserAuth", ParentType, ContextType, RequireFields<SubscriptionUpdateUserAuthArgs, 'mapId' | 'userId'>>;
   userListUpdate?: SubscriptionResolver<Maybe<ResolversTypes['Boolean']>, "userListUpdate", ParentType, ContextType, RequireFields<SubscriptionUserListUpdateArgs, 'mapId'>>;
 };
 
 export type TargetResolvers<ContextType = any, ParentType extends ResolversParentTypes['Target'] = ResolversParentTypes['Target']> = {
+  datasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  hasContent?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  hasItem?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
-  wkt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  wkt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type UnpointContentResolvers<ContextType = any, ParentType extends ResolversParentTypes['UnpointContent'] = ResolversParentTypes['UnpointContent']> = {
-  id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
+  dataId?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType>;
+  hasImage?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  originalId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   overview?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  thumb?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -1142,14 +1049,10 @@ export type Resolvers<ContextType = any> = {
   MapKind?: GraphQLScalarType;
   MapListItem?: MapListItemResolvers<ContextType>;
   MapPageOptions?: MapPageOptionsResolvers<ContextType>;
-  MediaInfo?: MediaInfoResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   NoneConfig?: NoneConfigResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
-  SearchHitItem?: SearchHitItemResolvers<ContextType>;
   ServerConfig?: ServerConfigResolvers<ContextType>;
-  SnsPreviewPost?: SnsPreviewPostResolvers<ContextType>;
-  SnsPreviewResult?: SnsPreviewResultResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
   Target?: TargetResolvers<ContextType>;
   UnpointContent?: UnpointContentResolvers<ContextType>;

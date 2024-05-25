@@ -249,13 +249,9 @@ export class VectorLayerMap {
      * @returns 
      */
     getFeatureById(id: DataId) {
-        const layers = this.getLayerInfoOfTheDataSource(id.dataSourceId);
-        if (layers.length === 0) {
-            return undefined;
-        }
         const idStr = getMapKey(id);
         let hit: Feature<Geometry> | undefined;
-        layers.forEach((layer) => {
+        this._layerMap.forEach((layer) => {
             let source = layer.layer.getSource();
             if (layer.layerType === LayerType.Point) {
                 source = (source as Cluster).getSource();

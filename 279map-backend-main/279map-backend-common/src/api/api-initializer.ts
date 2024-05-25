@@ -1,6 +1,6 @@
 import { Request, Response, Express } from 'express';
 import { Logger } from "log4js";
-import { OdbaGetImageUrlAPI, OdbaGetImageUrlParam, OdbaGetLinkableContentsAPI, OdbaGetLinkableContentsResult, OdbaGetUnpointDataAPI, OdbaLinkContentDatasourceToMapAPI, OdbaLinkContentDatasourceToMapParam, OdbaLinkContentToItemAPI, OdbaLinkContentToItemParam, OdbaRegistContentAPI, OdbaRegistContentParam, OdbaRegistItemAPI, OdbaRegistItemParam, OdbaRemoveContentAPI, OdbaRemoveContentParam, OdbaRemoveItemAPI, OdbaRemoveItemParam, OdbaUnlinkContentAPI, OdbaUnlinkContentDatasourceFromMapAPI, OdbaUnlinkContentDatasourceFromMapParam, OdbaUnlinkContentParam, OdbaUpdateContentAPI, OdbaUpdateContentParam, OdbaUpdateItemAPI, OdbaUpdateItemParam } from "./dba-api-interface";
+import { OdbaGetImageUrlAPI, OdbaGetImageUrlParam, OdbaGetLinkableContentsAPI, OdbaGetLinkableContentsResult, OdbaGetUncachedDataAPI, OdbaLinkDataAPI, OdbaLinkDataParam, OdbaRegistDataAPI, OdbaRegistDataParam, OdbaRemoveDataAPI, OdbaRemoveDataParam, OdbaUnlinkDataAPI, OdbaUnlinkDataParam, OdbaUpdateDataAPI, OdbaUpdateDataParam } from "./dba-api-interface";
 import OdbaInterface from "./OdbaInterface";
 import { APIDefine, CurrentMap } from "../types";
 import { DataId } from '../types-common/common-types';
@@ -18,102 +18,41 @@ export type OdbaAPICallDefine<PARAM, RESULT> = {
 export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger) {
     const apiList: OdbaAPICallDefine<any,any>[] = [
         {
-            define: OdbaRegistItemAPI,
-            func: async(param: OdbaAPIFuncParam<OdbaRegistItemParam>): Promise<DataId> => {
-                // regist to original db
-                const itemId = await odba.registItemOdb(param.param);
-
-                // update cache db
-                await odba.updateItemCache({
-                    currentMap: param.param.currentMap, 
-                    itemId,
-                });
-                return itemId;
+            define: OdbaRegistDataAPI,
+            func: async(param: OdbaAPIFuncParam<OdbaRegistDataParam>): Promise<DataId> => {
+                return await odba.registData(param.param);
             }
         },
         {
-            define: OdbaRegistContentAPI,
-            func: async(param: OdbaAPIFuncParam<OdbaRegistContentParam>): Promise<DataId> => {
-                // regist to original db
-                return await odba.registContent(param.param);
-            },
-        },
-        {
-            define: OdbaRemoveItemAPI,
-            func: async(param: OdbaAPIFuncParam<OdbaRemoveItemParam>): Promise<void> => {
-                await odba.removeItemOdb(param.param);
-
-                await odba.removeItemCache({
-                    currentMap: param.param.currentMap, 
-                    itemId: param.param.id,
-                });
-            },
-        },
-        {
-            define: OdbaRemoveContentAPI,
-            func: async(param: OdbaAPIFuncParam<OdbaRemoveContentParam>): Promise<void> => {
-                await odba.removeContentOdb({
-                    currentMap: param.param.currentMap, 
-                    contentId: param.param.id,
-                });
-                await odba.removeContentCache({
-                    currentMap: param.param.currentMap, 
-                    contentId: param.param.id,
-                });
+            define: OdbaUpdateDataAPI,
+            func: async(param: OdbaAPIFuncParam<OdbaUpdateDataParam>): Promise<boolean> => {
+                return await odba.updateData(param.param);
             }
         },
         {
-            define: OdbaUnlinkContentAPI,
-            func: async(param: OdbaAPIFuncParam<OdbaUnlinkContentParam>): Promise<void> => {
-                if (param.param.parent.type === 'content') {
-                    // 子コンテンツとの接続を切る場合
-                    await odba.unlinkContent({
-                        currentMap: param.param.currentMap, 
-                        parent: {
-                            contentId: param.param.parent.contentId,
-                        },
-                        childContentId: param.param.id,
-                    })
-
-                } else {
-                    // アイテムとの接続を切った場合
-                    await odba.unlinkContent({
-                        currentMap: param.param.currentMap, 
-                        parent: {
-                            itemId: param.param.parent.itemId,
-                        },
-                        childContentId: param.param.id,
-                    })
-                }
+            define: OdbaRemoveDataAPI,
+            func: async(param: OdbaAPIFuncParam<OdbaRemoveDataParam>): Promise<boolean> => {
+                return await odba.removeData(param.param);
             }
         },
         {
-            define: OdbaUpdateItemAPI,
-            func: async(param: OdbaAPIFuncParam<OdbaUpdateItemParam>): Promise<void> => {
-                await odba.updateItemOdb(param.param);
-
-                // update cache db
-                await odba.updateItemCache({
+            define: OdbaUnlinkDataAPI,
+            func: async(param: OdbaAPIFuncParam<OdbaUnlinkDataParam>): Promise<void> => {
+                await odba.unlinkData({
                     currentMap: param.param.currentMap, 
-                    itemId: param.param.id,
-                });
-            },
+                    parent: param.param.parent,
+                    id: param.param.id,
+                })
+            }
         },
         {
-            define: OdbaUpdateContentAPI,
-            func: async(param: OdbaAPIFuncParam<OdbaUpdateContentParam>): Promise<void> => {
-                await odba.updateContent(param.param);
-
-            },
+            define: OdbaGetUncachedDataAPI,
+            func: odba.getUncachedData,
         },
         {
-            define: OdbaGetUnpointDataAPI,
-            func: odba.getUnpointData,
-        },
-        {
-            define: OdbaLinkContentToItemAPI,
-            func: async(param: OdbaAPIFuncParam<OdbaLinkContentToItemParam>): Promise<void> => {
-                await odba.linkContent(param.param);
+            define: OdbaLinkDataAPI,
+            func: async(param: OdbaAPIFuncParam<OdbaLinkDataParam>): Promise<void> => {
+                await odba.linkData(param.param);
             }
         },
         {
@@ -129,18 +68,6 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
                 return await odba.getLinkableContents(param.param.currentMap);
             },
         },
-        {
-            define: OdbaLinkContentDatasourceToMapAPI,
-            func: async(param: OdbaAPIFuncParam<OdbaLinkContentDatasourceToMapParam>): Promise<void> => {
-                return await odba.linkContentDatasourceToMap(param.param);
-            },
-        },
-        {
-            define: OdbaUnlinkContentDatasourceFromMapAPI,
-            func: async(param: OdbaAPIFuncParam<OdbaUnlinkContentDatasourceFromMapParam>): Promise<void> => {
-                return await odba.unlinkContentDatasourceFromMap(param.param);
-            },
-        }
     ];
     registAPIs(app, apiList, logger);
 }
@@ -168,6 +95,9 @@ export function registAPIs(app: Express, apiList: OdbaAPICallDefine<any,any>[], 
                 if (!result) {
                     // undefinedを返すと、main-serverが結果受信できないので。
                     res.send('complete');
+                } else if (typeof result === 'number') {
+                    // 文字列にしないと、statusCode扱いになってしまうので
+                    res.send(result + '');
                 } else {
                     res.send(result);
                 }

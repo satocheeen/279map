@@ -14,43 +14,22 @@ type Props = {
 export default function RegistContentDriver(props: Props) {
     const { contentDatasources, getMap, addConsole } = useContext(DriverContext);
     const editableDatasources = useMemo(() => {
-        return contentDatasources.filter(ds => ds.config.editable);
+        return contentDatasources.filter(ds => !ds.config.readonly);
     }, [contentDatasources]);
 
     const [ mode, setMode ] = useState<'new'|'update'>('new');
     const [ values, setValues ] = useState<ContentValueMap>({});
     const [ targetDsId, setTargetDsId ] = useState<string|undefined>();
-    const [ targetContentIdText, setTargetContentIdText ] = useState('');
-    const [ targetItemIdText, setTargetItemIdText ] = useState('');
+    const [ targetContentId, setTargetContentId ] = useState('');
+    const [ targetItemId, setTargetItemId ] = useState('');
+    const [ loading, setLoading ] = useState(false);
 
-    const targetContentId = useMemo(() => {
-        try {
-            const id = JSON.parse(targetContentIdText) as DataId;
-            if (!id.dataSourceId || !id.id) return;
-            return id;
-        } catch(e) {
-            return;
-        }
-
-    }, [targetContentIdText]);
-
-    useWatch([targetContentId, mode], () => {
-        console.log('targetContentId', targetContentId);
-        if (mode === 'update' && targetContentId) {
-            setTargetDsId(targetContentId.dataSourceId);
-        }
-    })
-
-    const targetItemId = useMemo(() => {
-        try {
-            const id = JSON.parse(targetItemIdText) as DataId;
-            if (!id.dataSourceId || !id.id) return;
-            return id;
-        } catch(e) {
-            return;
-        }
-
-    }, [targetItemIdText]);
+    // useWatch([targetContentId, mode], () => {
+    //     console.log('targetContentId', targetContentId);
+    //     if (mode === 'update' && targetContentId) {
+    //         setTargetDsId(targetContentId.dataSourceId);
+    //     }
+    // })
 
     useWatch(editableDatasources, () => {
         if (editableDatasources.length > 0)
@@ -87,6 +66,7 @@ export default function RegistContentDriver(props: Props) {
     }, [fields]);
 
     const disabled = useMemo(() => {
+        if (loading) return true;
         if (mode === 'new') {
             if (!targetItemId) return true;
             if (!targetDsId) return true;
@@ -94,7 +74,7 @@ export default function RegistContentDriver(props: Props) {
             if (!targetContentId) return true;
         }
         return false;
-    }, [targetItemId, targetDsId, targetContentId, mode]);
+    }, [targetItemId, targetDsId, targetContentId, mode, loading]);
 
     const handleRegist = useCallback(async() => {
         if (!targetDsId) return;
@@ -102,14 +82,16 @@ export default function RegistContentDriver(props: Props) {
 
         const imageField = fields.find(f => f.type === 'image');
         const imageUrl = imageField ? values[imageField.key] : undefined;
+        setLoading(true);
         const result = await getMap()?.registContent({
             datasourceId: targetDsId,
             parent: {
                 type: 'item',
-                id: targetItemId,
+                id: parseInt(targetItemId),
             },
             values,
         });
+        setLoading(false);
         addConsole('registContent', result);
     }, [addConsole, fields, getMap, targetDsId, targetItemId, values]);
 
@@ -118,10 +100,12 @@ export default function RegistContentDriver(props: Props) {
 
         const imageField = fields.find(f => f.type === 'image');
         const imageUrl = imageField ? values[imageField.key] : undefined;
+        setLoading(true);
         const result = await getMap()?.updateContent({
-            id: targetContentId,
+            id: parseInt(targetContentId),
             values,
         })
+        setLoading(false);
         addConsole('updateContent', result);
 
     }, [addConsole, fields, getMap, targetContentId, values])
@@ -135,9 +119,9 @@ export default function RegistContentDriver(props: Props) {
                     新規
                 </label>
                 <label className={myStyles.TargetID}>
-                    対象ItemID(JSON)
+                    対象ItemID
                     <input type='text' disabled={mode==='update'}
-                        value={targetItemIdText} onChange={evt=>setTargetItemIdText(evt.target.value)} />
+                        value={targetItemId} onChange={evt=>setTargetItemId(evt.target.value)} />
                 </label>
             </div>
             <div>
@@ -146,9 +130,9 @@ export default function RegistContentDriver(props: Props) {
                     更新
                 </label>
                 <label className={myStyles.TargetID}>
-                    ContentID(JSON)
+                    ContentID
                     <input type='text' disabled={mode==='new'}
-                        value={targetContentIdText} onChange={evt=>setTargetContentIdText(evt.target.value)}
+                        value={targetContentId} onChange={evt=>setTargetContentId(evt.target.value)}
                     />
                 </label>
             </div>
@@ -164,42 +148,47 @@ export default function RegistContentDriver(props: Props) {
                 </select>
             </label>
             <table className={myStyles.Table}>
-                {fields.map(field => {
-                    const type = function() {
-                        switch(field.type) {
-                            case 'date':
-                                return 'datetime-local';
-                            case 'number':
-                                return 'number';
-                            default:
-                                return 'text';
-                        }
-                    }();
-                    return (
-                        <tr key={field.key}>
-                            <td>
-                                <span className={myStyles.Key}>{field.key}</span><br/>
-                                <span>[{field.type}]</span>
-                            </td>
-                            <td className={myStyles.Label}>{'label' in field ? field.label : ''}</td>
-                            <td>
-                                <input type={type} value={values[field.key]??''} onChange={(evt)=>handleChangeValue(field.key, evt.target.value)} />
-                                {(field.type === 'image' && mode==='update') &&
-                                    <label>
-                                        <input type='checkbox' checked={values[field.key] === null} onChange={(evt)=>handleChangeValue(field.key, evt.target.checked ? null : undefined )}/>
-                                        削除
-                                    </label>
-                                }
-                            </td>
-                        </tr>
-                    )
-                })}
+                <tbody>
+                    {fields.map(field => {
+                        const type = function() {
+                            switch(field.type) {
+                                case 'date':
+                                    return 'datetime-local';
+                                case 'number':
+                                    return 'number';
+                                default:
+                                    return 'text';
+                            }
+                        }();
+                        return (
+                            <tr key={field.key}>
+                                <td>
+                                    <span className={myStyles.Key}>{field.key}</span><br/>
+                                    <span>[{field.type}]</span>
+                                </td>
+                                <td className={myStyles.Label}>{'label' in field ? field.label : ''}</td>
+                                <td>
+                                    <input type={type} value={values[field.key]??''} onChange={(evt)=>handleChangeValue(field.key, evt.target.value)} />
+                                    {(field.type === 'image' && mode==='update') &&
+                                        <label>
+                                            <input type='checkbox' checked={values[field.key] === null} onChange={(evt)=>handleChangeValue(field.key, evt.target.checked ? null : undefined )}/>
+                                            削除
+                                        </label>
+                                    }
+                                </td>
+                            </tr>
+                        )
+                    })}
+                </tbody>
             </table>
             <textarea rows={5} readOnly value={JSON.stringify(values)} />
             {mode === 'new' ?
                 <button disabled={disabled} onClick={handleRegist}>登録</button>
                 :
                 <button disabled={disabled} onClick={handleUpdate}>更新</button>
+            }
+            {loading &&
+                <span className={myStyles.RegistingLabel}>登録中...</span>
             }
         </div>
     );

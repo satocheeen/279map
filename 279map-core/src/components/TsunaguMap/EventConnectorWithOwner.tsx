@@ -5,16 +5,16 @@ import { categoriesAtom } from '../../store/category';
 import { eventsAtom } from '../../store/event';
 import { mapModeAtom, selectItemIdAtom } from '../../store/operation';
 import { mapDefineAtom } from '../../store/session';
-import { filteredItemsAtom } from '../../store/filter';
+import { filteredDatasAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { TsunaguMapHandler, LoadContentsResult, ItemType } from '../../types/types';
+import { TsunaguMapHandler, LoadContentsResult } from '../../types/types';
 import { useAtom } from 'jotai';
 import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
-import { overrideItemsAtom, storedItemsAtom, showingItemsAtom } from '../../store/item';
+import { overrideItemsAtom, showingItemsAtom, } from '../../store/item';
 import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetContentsDocument, GetUnpointContentsDocument, LinkContentDocument, RegistContentDocument, SearchDocument, GetThumbDocument, GetSnsPreviewDocument, ParentOfContent, GetContentsInItemDocument, SortCondition, ContentType, UpdateContentDocument, RemoveContentDocument, UnlinkContentDocument, UpdateItemsDocument, GetImageDocument, ContentUpdateDocument, Operation } from '../../graphql/generated/graphql';
+import { ContentsDefine, GetUnpointContentsDocument, SearchDocument, SortCondition, GetImageDocument, RegistDataDocument, RemoveDataDocument, UpdateDataDocument, LinkDataDocument, UnlinkDataDocument, GetContentDocument, DataUpdateDocument, Operation, LinkDataByOriginalIdDocument, UpdateDataByOriginalIdDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern } from '../common/confirm/types';
@@ -29,12 +29,11 @@ import { useAtomCallback } from 'jotai/utils';
  * - ref経由での操作を実行
  */
 export type EventControllerHandler = Pick<TsunaguMapHandler, 
-    'switchMapKind' | 'focusItem' | 'loadContents' | 'loadContentsInItem' | 'loadImage'
+    'switchMapKind' | 'focusItem' | 'loadContent' | 'loadImage'
     | 'filter' | 'clearFilter'
-    | 'updateItem'
-    | 'registContent' | 'updateContent' | 'removeContent'
+    | 'registContent' | 'updateData' | 'removeContent'
     | 'linkContent' | 'unlinkContent'
-    | 'getSnsPreviewAPI' | 'getUnpointDataAPI'
+    | 'getUnpointDataAPI'
     | 'changeVisibleLayer'
     | 'selectItem'>
 
@@ -43,7 +42,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
     const { focusItem, fitToDefaultExtent, loadCurrentAreaContents } = useMap();
     const { updateDatasourceVisible } = useDataSource();
     const [ gqlClient ] = useAtom(clientAtom);
-    const [ , setFilteredItem ] = useAtom(filteredItemsAtom);
+    const [ , setFilteredItem ] = useAtom(filteredDatasAtom);
     const [ visibleDataSourceIds ] = useAtom(visibleDataSourceIdsAtom);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
     const { confirm } = useConfirm();
@@ -69,11 +68,12 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             case SortCondition.DateAsc:
             case SortCondition.DateDesc:
                 {
+
                     const aDateField = contentDatasources
-                                        .find(c => c.datasourceId === a.id.dataSourceId)?.config.fields
+                                        .find(c => c.datasourceId === a.datasourceId)?.config.fields
                                         .find(f => f.type === 'date');
                     const bDateField = contentDatasources
-                        .find(c => c.datasourceId === b.id.dataSourceId)?.config.fields
+                        .find(c => c.datasourceId === b.datasourceId)?.config.fields
                         .find(f => f.type === 'date');
                     const aDate = aDateField ? a.values[aDateField.key] : undefined;
                     const bDate = bDateField ? b.values[bDateField.key] : undefined;
@@ -144,77 +144,38 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         clearFilter() {
             setFilteredItem(null);
         },
-        async loadContents(contentIds, changeListener): Promise<LoadContentsResult> {
+
+        async loadContent(dataId, changeListener): Promise<LoadContentsResult | null> {
             try {
-                const result = await gqlClient.query(GetContentsDocument, {
-                    ids: contentIds,
-                }, {
-                    requestPolicy: 'network-only'
-                });
-                if (result.error) {
-                    throw new Error(result.error.message);
-                }
-                const list = result.data?.getContents ?? [];
-                const contents = list.sort(contentsComparator);
-
-                if (!changeListener) {
-                    return {
-                        contents
-                    }
-                }
-
-                const subscriptionList = contentIds.map(contentId => {
-                    return gqlClient.subscription(ContentUpdateDocument, {
-                        contentId,
-                    }).subscribe((result) => {
-                        if (!result.data?.contentUpdate) return;
-                        changeListener(contentId, result.data.contentUpdate === Operation.Update ? 'update' : 'delete');
-                    });
-                })
-                const unsubscribe = () => {
-                    subscriptionList.forEach(subscription => subscription.unsubscribe())
-                }
-                return {
-                    contents,
-                    unsubscribe,
-                }
-
-            } catch(err) {
-                throw err;
-            }
-        },
-        async loadContentsInItem(itemId, changeListener): Promise<LoadContentsResult> {
-            try {
-                const result = await gqlClient.query(GetContentsInItemDocument, {
-                    itemId: itemId,
+                const result = await gqlClient.query(GetContentDocument, {
+                    id: dataId,
                 }, {
                     requestPolicy: 'network-only',
                 });
                 if (result.error) {
                     throw new Error(result.error.message);
                 }
-                const list = result.data?.getContentsInItem ?? [];
-                const contents = list.sort(contentsComparator);
+                const content = result.data?.getContent ?? null;
+                if (!content) return null;
+                // content.children = content?.children?.sort(contentsComparator);
         
                 if (!changeListener) {
                     return {
-                        contents
+                        content,
                     }
                 }
 
-                const subscriptionList = contents.map(content => {
-                    return gqlClient.subscription(ContentUpdateDocument, {
-                        contentId: content.id,
-                    }).subscribe((result) => {
-                        if (!result.data?.contentUpdate) return;
-                        changeListener(content.id, result.data.contentUpdate === Operation.Update ? 'update' : 'delete');
-                    });
-                })
+                const subscription = gqlClient.subscription(DataUpdateDocument, {
+                    id: content.id,
+                }).subscribe((result) => {
+                    if (!result.data?.dataUpdate) return;
+                    changeListener(content.id, result.data.dataUpdate === Operation.Update ? 'update' : 'delete');
+                });
                 const unsubscribe = () => {
-                    subscriptionList.forEach(subscription => subscription.unsubscribe())
+                    subscription.unsubscribe();
                 }
                 return {
-                    contents,
+                    content,
                     unsubscribe,
                 }
 
@@ -222,56 +183,50 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 throw err;
             }
         },
-        async updateItem(itemId, param, opt) {
-            if (opt?.backend) {
-                return updateItems([
-                    {
-                        id: itemId,
-                        name: param.name,
-                    }
-                ])
-            } else {
-                const result = await gqlClient.mutation(UpdateItemsDocument, {
-                    targets: {
-                        id: itemId,
-                        name: param.name,
-                    }
-                })
-                if (result.error) {
-                    throw new Error(result.error.message);
-                }
-            }
-        },
         async registContent(param) {
             try {
-                const result = await gqlClient.mutation(RegistContentDocument, {
+                const result = await gqlClient.mutation(RegistDataDocument, {
                     datasourceId: param.datasourceId,
-                    parent: {
-                        type: param.parent.type === 'item' ? ParentOfContent.Item : ParentOfContent.Content,
-                        id: param.parent.id,
-                    },
-                    values: param.values,
+                    contents: param.values,
+                    linkItems: [param.parent.id]
                 });
                 if (result.error) {
                     throw new Error(result.error.message);
+                }
+                const contentId = result.data?.registData;
+                if (!contentId) {
+                    throw new Error('regist content failed');
                 }
 
             } catch(e) {
                 throw new Error('registContent failed.' + e);
             }
         },
-        async updateContent(param) {
-            const result = await gqlClient.mutation(UpdateContentDocument, {
-                id: param.id,
-                type: ContentType.Normal,
-                values: param.values,
-            });
-            if (result.error) {
-                throw new Error(result.error.message);
+        async updateData(param) {
+            if (param.key.type === 'dataId') {
+                const result = await gqlClient.mutation(UpdateDataDocument, {
+                    id: param.key.dataId,
+                    item: param.item?.geo ?? undefined,
+                    deleteItem: param.item?.geo === null,
+                    contents: param.contents?.values,
+                });
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+    
+            } else {
+                const result = await gqlClient.mutation(UpdateDataByOriginalIdDocument, {
+                    originalId: param.key.originalId,
+                    item: param.item?.geo,
+                    contents: param.contents?.values,
+                });
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
             }
         },
         async removeContent(param) {
-            const result = await gqlClient.mutation(RemoveContentDocument, {
+            const result = await gqlClient.mutation(RemoveDataDocument, {
                 id: param.id,
             });
             if (result.error) {
@@ -279,40 +234,33 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             }
         },
         async linkContent(param: Parameters<TsunaguMapHandler['linkContent']>[0]) {
-            const result = await gqlClient.mutation(LinkContentDocument, {
-                id: param.id,
-                parent: {
-                    type: param.parent.type === 'item' ? ParentOfContent.Item : ParentOfContent.Content,
-                    id: param.parent.id,
+            if (param.child.type === 'dataId') {
+                const result = await gqlClient.mutation(LinkDataDocument, {
+                    id: param.child.dataId,
+                    parent: param.parent,
+                });
+                if (result.error) {
+                    throw new Error(result.error.message);
                 }
-            });
-            if (result.error) {
-                throw new Error(result.error.message);
+            } else {
+                const result = await gqlClient.mutation(LinkDataByOriginalIdDocument, {
+                    originalId: param.child.originalId,
+                    parent: param.parent,
+                });
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
             }
         },
         async unlinkContent(param) {
-            const result = await gqlClient.mutation(UnlinkContentDocument, {
+            const result = await gqlClient.mutation(UnlinkDataDocument, {
                 id: param.id,
-                parent: {
-                    type: param.parent.type === 'content' ? ParentOfContent.Content : ParentOfContent.Item,
-                    id: param.parent.id,
-                }
+                parent: param.parent,
             });
             if (result.error) {
                 throw new Error(result.error.message);
             }
         },
-        async getSnsPreviewAPI(url: string) {
-            const res = await gqlClient.query(GetSnsPreviewDocument, {
-                url,
-            });
-            if (!res.data) {
-                throw new Error('get sns preview error');
-            }
-
-            return res.data.getSnsPreview;
-        },
-    
         async getUnpointDataAPI({ datasourceId, nextToken, keyword }) {
             const result = await gqlClient.query(GetUnpointContentsDocument, {
                 datasourceId,
@@ -325,12 +273,31 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 throw new Error('getUnpoinData error', result.error);
             }
             return {
-                contents: result.data.getUnpointContents.contents.map(c => ({
-                    id: c.id,
-                    title: c.title,
-                    thumb: c.thumb ?? undefined,
-                    overview: c.overview ?? undefined,
-                })),
+                contents: result.data.getUnpointContents.contents.map(c => {
+                    if (c.dataId) {
+                        return {
+                            id: {
+                                type: 'dataId',
+                                dataId: c.dataId,
+                            },
+                            title: c.title,
+                            hasImage: c.hasImage ?? undefined,
+                            overview: c.overview ?? undefined,
+
+                        }
+                    } else {
+                        return {
+                            id: {
+                                type: 'originalId',
+                                originalId: c.originalId,
+                            },
+                            title: c.title,
+                            hasImage: c.hasImage ?? undefined,
+                            overview: c.overview ?? undefined,        
+                        }
+    
+                    }
+                }),
                 nextToken: result.data.getUnpointContents.nextToken ?? undefined,
             }
         },

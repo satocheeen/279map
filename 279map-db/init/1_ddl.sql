@@ -21,8 +21,10 @@ CREATE TABLE `map_page_info` (
 
 CREATE TABLE `data_source` (
   `data_source_id` varchar(100) NOT NULL,
-  `kind` enum('VirtualItem','RealItem','RealPointContent','Content','Track') NOT NULL,
+  `location_kind` enum('VirtualItem','RealItem','Track','None') NOT NULL,
   `config` json NOT NULL,
+  `location_define` json DEFAULT NULL COMMENT '位置項目定義情報',
+  `contents_define` json DEFAULT NULL COMMENT 'コンテンツ項目定義情報',
   `odba_connection` json NOT NULL COMMENT '原本DB関連の任意情報',
   `last_edited_time` varchar(100) NOT NULL,
   PRIMARY KEY (`data_source_id`)
@@ -46,113 +48,6 @@ CREATE TABLE `map_datasource_link` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 
--- 279map_db.contents definition
-
-CREATE TABLE `contents` (
-  `content_page_id` varchar(100) NOT NULL,
-  `data_source_id` varchar(100) NOT NULL,
-  `parent_id` varchar(100) DEFAULT NULL,
-  `parent_datasource_id` varchar(100) DEFAULT NULL,
-  `title` varchar(100) DEFAULT NULL,
-  `contents` json DEFAULT NULL,
-  `category` json DEFAULT NULL,
-  `date` datetime DEFAULT NULL,
-  `supplement` json DEFAULT NULL,
-  `last_edited_time` varchar(100) NOT NULL,
-  PRIMARY KEY (`content_page_id`,`data_source_id`),
-  KEY `contents_FK` (`parent_id`),
-  KEY `contents_FK_1` (`data_source_id`),
-  KEY `contents_FK_2` (`parent_id`,`parent_datasource_id`),
-  CONSTRAINT `contents_FK_1` FOREIGN KEY (`data_source_id`) REFERENCES `data_source` (`data_source_id`) ON DELETE CASCADE,
-  CONSTRAINT `contents_FK_2` FOREIGN KEY (`parent_id`, `parent_datasource_id`) REFERENCES `contents` (`content_page_id`, `data_source_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
-
-
--- 279map_db.images definition
-
-CREATE TABLE `images` (
-  `image_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `content_page_id` varchar(100) NOT NULL,
-  `data_source_id` varchar(100) NOT NULL,
-  `thumbnail` mediumtext NOT NULL,
-  `medium` mediumtext NOT NULL,
-  `field_key` varchar(100) NOT NULL COMMENT '対応するコンテンツFieldのキー',
-  PRIMARY KEY (`image_id`),
-  KEY `images_FK` (`content_page_id`,`data_source_id`),
-  CONSTRAINT `images_FK` FOREIGN KEY (`content_page_id`, `data_source_id`) REFERENCES `contents` (`content_page_id`, `data_source_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
-
-
--- 279map_db.items definition
-
-CREATE TABLE `items` (
-  `item_page_id` varchar(100) NOT NULL,
-  `data_source_id` varchar(100) NOT NULL,
-  `location` geometry NOT NULL,
-  `geo_properties` text,
-  `name` varchar(100) DEFAULT NULL,
-  `last_edited_time` varchar(100) NOT NULL,
-  PRIMARY KEY (`item_page_id`,`data_source_id`),
-  KEY `point_contents_FK` (`data_source_id`) USING BTREE,
-  CONSTRAINT `items_FK` FOREIGN KEY (`data_source_id`) REFERENCES `data_source` (`data_source_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
-
-
--- 279map_db.item_content_link definition
-
-CREATE TABLE `item_content_link` (
-  `item_page_id` varchar(100) NOT NULL,
-  `item_datasource_id` varchar(100) NOT NULL,
-  `content_page_id` varchar(100) NOT NULL,
-  `content_datasource_id` varchar(100) NOT NULL,
-  `last_edited_time` varchar(100) NOT NULL,
-  PRIMARY KEY (`item_page_id`,`content_page_id`,`item_datasource_id`,`content_datasource_id`),
-  KEY `item_content_link_FK_1` (`content_page_id`),
-  KEY `item_content_link_FK` (`item_page_id`,`item_datasource_id`),
-  KEY `item_content_link_FK_2` (`content_page_id`,`content_datasource_id`),
-  CONSTRAINT `item_content_link_FK` FOREIGN KEY (`item_page_id`, `item_datasource_id`) REFERENCES `items` (`item_page_id`, `data_source_id`) ON DELETE CASCADE,
-  CONSTRAINT `item_content_link_FK_2` FOREIGN KEY (`content_page_id`, `content_datasource_id`) REFERENCES `contents` (`content_page_id`, `data_source_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
-
-
--- 279map_db.tracks definition
-
-CREATE TABLE `tracks` (
-  `track_page_id` varchar(100) NOT NULL,
-  `data_source_id` varchar(100) NOT NULL,
-  `name` varchar(100) DEFAULT NULL,
-  `last_edited_time` varchar(100) NOT NULL,
-  PRIMARY KEY (`track_page_id`,`data_source_id`),
-  KEY `tracks_FK` (`data_source_id`),
-  CONSTRAINT `tracks_FK` FOREIGN KEY (`data_source_id`) REFERENCES `data_source` (`data_source_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
-
-
--- 279map_db.track_files definition
-
-CREATE TABLE `track_files` (
-  `track_file_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `track_page_id` varchar(100) NOT NULL,
-  `data_source_id` varchar(100) NOT NULL,
-  `file_name` varchar(100) NOT NULL,
-  PRIMARY KEY (`track_file_id`),
-  KEY `track_files_FK_1` (`track_page_id`,`data_source_id`),
-  CONSTRAINT `track_files_FK_1` FOREIGN KEY (`track_page_id`, `data_source_id`) REFERENCES `tracks` (`track_page_id`, `data_source_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
-
-
--- 279map_db.track_geojson definition
-
-CREATE TABLE `track_geojson` (
-  `track_file_id` int(10) unsigned NOT NULL,
-  `sub_id` int(10) unsigned NOT NULL,
-  `min_zoom` float NOT NULL,
-  `max_zoom` float NOT NULL,
-  `geojson` geometry NOT NULL,
-  PRIMARY KEY (`track_file_id`,`sub_id`),
-  CONSTRAINT `track_geojson_FK` FOREIGN KEY (`track_file_id`) REFERENCES `track_files` (`track_file_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
-
 -- 279map_db.original_icons definition
 
 CREATE TABLE `original_icons` (
@@ -165,4 +60,72 @@ CREATE TABLE `original_icons` (
   PRIMARY KEY (`icon_page_id`),
   KEY `original_icons_FK` (`map_page_id`),
   CONSTRAINT `original_icons_FK` FOREIGN KEY (`map_page_id`) REFERENCES `map_page_info` (`map_page_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+
+-- 279map_db.datas definition
+
+CREATE TABLE `datas` (
+  `data_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `data_source_id` varchar(100) DEFAULT NULL,
+  `original_id` varchar(100) NOT NULL COMMENT '出典元データのID。ODBAで登録・更新を行う際に参照する用途。',
+  `last_edited_time` varchar(100) NOT NULL,
+  PRIMARY KEY (`data_id`),
+  UNIQUE KEY `datas_UN` (`data_source_id`,`original_id`),
+  KEY `datas_FK` (`data_source_id`),
+  CONSTRAINT `datas_FK` FOREIGN KEY (`data_source_id`) REFERENCES `data_source` (`data_source_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=600 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+
+-- 279map_db.contents definition
+
+CREATE TABLE `contents` (
+  `data_id` int(10) unsigned NOT NULL,
+  `contents` json DEFAULT NULL,
+  `category` json DEFAULT NULL,
+  `date` datetime DEFAULT NULL,
+  PRIMARY KEY (`data_id`),
+  CONSTRAINT `contents_FK` FOREIGN KEY (`data_id`) REFERENCES `datas` (`data_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+
+-- 279map_db.geometry_items definition
+
+CREATE TABLE `geometry_items` (
+  `data_id` int(10) unsigned NOT NULL,
+  `geometry_item_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `min_zoom` float NOT NULL,
+  `max_zoom` float NOT NULL,
+  `feature` geometry NOT NULL,
+  `geo_properties` text,
+  PRIMARY KEY (`geometry_item_id`),
+  KEY `items_sub_FK` (`data_id`),
+  CONSTRAINT `geometry_items_FK` FOREIGN KEY (`data_id`) REFERENCES `datas` (`data_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=375 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+
+-- 279map_db.images definition
+
+CREATE TABLE `images` (
+  `image_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `data_id` int(10) unsigned NOT NULL,
+  `thumbnail` mediumtext NOT NULL,
+  `medium` mediumtext NOT NULL,
+  `field_key` varchar(100) NOT NULL COMMENT '対応するコンテンツFieldのキー',
+  PRIMARY KEY (`image_id`),
+  KEY `images_FK` (`data_id`),
+  CONSTRAINT `images_FK` FOREIGN KEY (`data_id`) REFERENCES `contents` (`data_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+
+-- 279map_db.data_link definition
+
+CREATE TABLE `data_link` (
+  `from_data_id` int(10) unsigned NOT NULL,
+  `to_data_id` int(10) unsigned NOT NULL,
+  `last_edited_time` varchar(100) NOT NULL,
+  PRIMARY KEY (`from_data_id`,`to_data_id`),
+  KEY `data_link_FK_1` (`to_data_id`),
+  CONSTRAINT `data_link_FK` FOREIGN KEY (`from_data_id`) REFERENCES `datas` (`data_id`) ON DELETE CASCADE,
+  CONSTRAINT `data_link_FK_1` FOREIGN KEY (`to_data_id`) REFERENCES `datas` (`data_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;

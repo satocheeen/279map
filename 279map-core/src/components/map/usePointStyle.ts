@@ -13,11 +13,14 @@ import { filteredItemIdListAtom } from "../../store/filter";
 import { itemDataSourcesAtom } from "../../store/datasource";
 import { useAtom } from 'jotai';
 import { MapStyles } from "../../util/constant-defines";
-import { DatasourceKindType, IconKey } from "../../types-common/common-types";
+import { DatasourceLocationKindType, IconKey } from "../../types-common/common-types";
 import { useAtomCallback } from "jotai/utils";
 import { currentMapKindAtom } from "../../store/session";
 import { MapKind } from "../../entry";
 import { SystemIconDefine, addFillStyle, currentDefaultIconAtom } from "../../store/icon";
+import { allItemsAtom } from "../../store/item";
+
+const STRUCTURE_SELECTED_COLOR = '#8888ff';
 
 /**
  * 建物・地点に関するスタイルを設定するフック
@@ -205,6 +208,7 @@ export default function usePointStyle() {
     const _createPointStyle = useAtomCallback(
         useCallback((get, set, feature: Feature<Geometry>, resolution: number, forceColor?: string, isTemporary?: boolean): Style | Style[] => {
             const { mainFeature, showFeaturesLength } = _analysisFeatures(feature);
+            const allItems = get(allItemsAtom);
 
             const iconDefine = function() {
                 if (isTemporary) {
@@ -214,10 +218,11 @@ export default function usePointStyle() {
                 } else {
                     let icon = mainFeature.getProperties().icon as IconKey | undefined;
                     const itemId = convertDataIdFromFeatureId(mainFeature.getId() as string);
-                    if (!icon) {
+                    const item = allItems.find(i => i.id === itemId);
+                    if (!icon && item) {
                         // icon未指定の場合はレイヤデフォルトアイコンを設定
-                        const datasource = dataSources.find(ds => ds.datasourceId === itemId.dataSourceId);
-                        if (datasource?.config.kind === DatasourceKindType.RealPointContent) {
+                        const datasource = dataSources.find(ds => ds.datasourceId === item.datasourceId);
+                        if (datasource?.config.kind === DatasourceLocationKindType.RealItem) {
                             icon = datasource.config.defaultIcon;
                         }
                     }

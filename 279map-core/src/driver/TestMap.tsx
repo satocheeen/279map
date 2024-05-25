@@ -189,12 +189,6 @@ export default function TestMap() {
         addConsole(msg, param);
     }, [addConsole]);
 
-    const callGetSnsPreview = useCallback(async() => {
-        if(!mapRef.current) return;
-        const result = await mapRef.current.getSnsPreviewAPI('https://www.instagram.com/umihiko.miya/');
-        console.log('result', result);
-    }, []);
-
     const handleFitAllItems = useCallback(() => {
         mapRef.current?.fitAllItemsExtent();
     }, []);

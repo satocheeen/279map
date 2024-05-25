@@ -1,7 +1,6 @@
 import React, { useCallback, useContext, useRef } from 'react';
 import styles from '../TestMap.module.scss';
 import { DriverContext } from '../TestMap';
-import { DataId } from '../../entry';
 
 type Props = {
 }
@@ -12,14 +11,13 @@ export default function LinkContentDriver(props: Props) {
     const itemIdRef = useRef<HTMLInputElement>(null);
 
     const handleLink = useCallback(async() => {
-        const contentId = JSON.parse(contentIdRef.current?.value ?? '') as DataId;
-        const itemId = JSON.parse(itemIdRef.current?.value ?? '') as DataId;
+        const contentId = contentIdRef.current?.value;
+        const itemId = itemIdRef.current?.value;
+        if (!contentId || !itemId) return;
+
         const res = await getMap()?.linkContent({
-            id: contentId,
-            parent: {
-                type: 'item',
-                id: itemId,
-            }
+            id: parseInt(contentId),
+            parent: parseInt(itemId)
         });
 
         addConsole('linkContent result', res);
@@ -27,15 +25,13 @@ export default function LinkContentDriver(props: Props) {
     }, [getMap, addConsole])
 
     const handleUnLink = useCallback(async() => {
-        const contentId = JSON.parse(contentIdRef.current?.value ?? '') as DataId;
-        const itemId = JSON.parse(itemIdRef.current?.value ?? '') as DataId;
+        const contentId = contentIdRef.current?.value;
+        const itemId = itemIdRef.current?.value;
+        if (!contentId || !itemId) return;
         try {
             const res = await getMap()?.unlinkContent({
-                id: contentId,
-                parent: {
-                    type: 'item',
-                    id: itemId,
-                }
+                id: parseInt(contentId),
+                parent: parseInt(itemId)
             });
     
             addConsole('unlinkContent result', res);
@@ -50,9 +46,9 @@ export default function LinkContentDriver(props: Props) {
     return (
         <div className={styles.Col}>
             <div className={styles.PropName}>コンテンツ割当て/解除</div>
-            対象コンテンツID(JSON)
+            対象コンテンツID
             <input type='text' ref={contentIdRef} />
-            割当先アイテムID(JSON)
+            割当先アイテムID
             <input type='text' ref={itemIdRef} />
             <div>
                 <button onClick={handleLink}>割当て</button>

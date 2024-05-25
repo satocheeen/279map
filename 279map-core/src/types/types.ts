@@ -1,6 +1,6 @@
-import { Auth, CategoryDefine, Condition, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, MapDefine, SnsPreviewResult, GetItemsQuery, ThumbSize } from "../graphql/generated/graphql";
+import { Auth, CategoryDefine, Condition, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, MapDefine, GetItemsQuery, ThumbSize } from "../graphql/generated/graphql";
 import { ChangeVisibleLayerTarget } from "../store/datasource/useDataSource";
-import { IconDefine, MapKind, ContentValueMap, DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
+import { IconDefine, MapKind, ContentValueMap, DataId, FeatureType, GeoProperties } from "../types-common/common-types";
 import { OperationResult } from "urql";
 
 export type OnConnectParam = {
@@ -37,12 +37,20 @@ export type OnMapLoadResult = {
 
 export type ItemType = {
     id: DataId;
+    datasourceId: string;
     name: string;
     geoInfo: ItemGeoInfo;
     lastEditedTime: string;
     filterHit?: boolean;   // フィルタ時にフィルタ条件に該当した場合、true
-    contents: {
+    content?: {
+        id: DataId;
+        datasourceId: string;
+        usingOtherMap: boolean;
+        filterHit?: boolean;   // フィルタ時にフィルタ条件に該当した場合、true
+    };
+    linkedContents: {
         id: DataId
+        datasourceId: string;
         filterHit?: boolean;   // フィルタ時にフィルタ条件に該当した場合、true
     }[];
 
@@ -69,7 +77,7 @@ export type OverrideItem = ({
     type: 'new';
     datasourceId: string;
     /** 仮ID。focusItem等を行う時に、このidを指定する。 */
-    tempId: string;
+    tempId: DataId;
     name: string;
 } & ItemGeoInfo)
 | ({
@@ -80,6 +88,15 @@ export type OverrideItem = ({
 | {
     type: 'delete';
     id: DataId;
+}
+
+// Dataを特定するキー
+type DataKey = {
+    type: 'originalId';
+    originalId: string;
+} | {
+    type: 'dataId';
+    dataId: DataId;
 }
 export type TsunaguMapProps = {
     mapId: string;
@@ -157,7 +174,7 @@ export type TsunaguMapProps = {
 }
 
 export type LoadContentsResult = {
-    contents: ContentsDefine[];
+    content: ContentsDefine;
     unsubscribe?: () => void;   // callbackを渡した場合に格納されている
 }
 
@@ -213,15 +230,23 @@ export interface TsunaguMapHandler {
      * @param geo 図形 
      * @return 登録したアイテムID
      */
-    registItemDirectly(datasourceId: string, geo: ItemGeoInfo, name?: string): Promise<DataId>;
+    registItemDirectly(datasourceId: string, geo: ItemGeoInfo): Promise<DataId>;
 
     /**
-     * 指定の値でアイテム更新する.
-     * @param id 更新対象アイテムID
-     * @param name アイテム名
+     * 指定の値でデータ更新する.
+     * @param key 更新対象データ。originalId指定時は、キャッシュDBに未登録時にはキャッシュDBに新規登録される。
      * @param geo 図形 
+     * @param values コンテンツデータ
      */
-    updateItemDirectly(id: DataId, geo?: Partial<ItemGeoInfo>, name?: string): Promise<void>;
+    updateData(param: {
+        key: DataKey,
+        item?: {
+            geo: ItemGeoInfo | null,    // nullの場合、位置情報を削除する
+        },
+        contents?: {
+            values: ContentValueMap,
+        }
+    }): Promise<void>;
 
     /**
      * 指定のアイテムを削除する
@@ -269,19 +294,12 @@ export interface TsunaguMapHandler {
      */
     drawRoad(dataSourceId: string): void;
 
-    editTopographyInfo(): void;
-
     /**
-     * 指定のアイテム配下のコンテンツを取得する
-     * @param itemId 
+     * 指定のDataIdに属するコンテンツを取得する
+     * @param dataId 
+     * @return 指定のDataIdに属するコンテンツ. 属するコンテンツが存在しない場合は、nul
      */
-    loadContentsInItem(itemId: DataId, changeListener?: (contentId: DataId, operation: 'update' | 'delete') => void): Promise<LoadContentsResult>;
-
-    /**
-     * 指定のコンテンツを取得する
-     * @param contentIds 
-     */
-    loadContents(contentIds: DataId[], changeListener?: (contentId: DataId, operation: 'update' | 'delete') => void): Promise<LoadContentsResult>;
+    loadContent(dataId: DataId, changeListener?: (contentId: DataId, operation: 'update' | 'delete') => void): Promise<LoadContentsResult | null>;
 
     /**
      * 指定の画像データ(Base64)を取得する
@@ -292,22 +310,6 @@ export interface TsunaguMapHandler {
     loadImage(param: {imageId: number, size: ThumbSize, refresh?: boolean}): Promise<string>;
 
     /**
-     * アイテム情報を更新する
-     * @param itemId 対象アイテムID
-     * @param param 更新する情報
-     * @param opt オプション
-     *          backend: trueの場合、裏で非同期で実行し、処理失敗した場合には地図上にエラーメッセージとリトライボタンが表示される
-     */
-    updateItem(itemId: DataId,
-        param: {
-            name?: string;
-        },
-        opt?: {
-            backend?: boolean;
-        }
-    ): Promise<void>,
-
-    /**
      * コンテンツを新規登録する
      */
     registContent(param: {
@@ -316,14 +318,6 @@ export interface TsunaguMapHandler {
             type: 'item' | 'content',
             id: DataId,
         },
-        values: ContentValueMap,
-    }): Promise<void>;
-
-    /**
-     * コンテンツを更新する
-     */
-    updateContent(param: {
-        id: DataId,
         values: ContentValueMap,
     }): Promise<void>;
 
@@ -339,10 +333,13 @@ export interface TsunaguMapHandler {
      * @param param 
      */
     linkContent(param: {
-        id: DataId;
-        parent: {
-            type: 'item' | 'content';
-            id: DataId;
+        parent: DataId;
+        child: {
+            type: 'originalId';
+            originalId: string;
+        } | {
+            type: 'dataId';
+            dataId: DataId;
         }
     }): Promise<void>;
 
@@ -352,13 +349,8 @@ export interface TsunaguMapHandler {
      */
     unlinkContent(param: {
         id: DataId;
-        parent: {
-            type: 'item' | 'content';
-            id: DataId;
-        }
+        parent: DataId;
     }): Promise<void>;
-
-    getSnsPreviewAPI(url: string): Promise<SnsPreviewResult>;
 
     getUnpointDataAPI(param: {
         datasourceId: string;
@@ -366,10 +358,18 @@ export interface TsunaguMapHandler {
         keyword?: string
     }): Promise<{
         contents: {
-            id: DataId,
+            id: {
+                // まだ地図に未登録のデータの場合
+                type: 'originalId';
+                originalId: string,
+            } | {
+                // 地図のどこかに登録済みのデータの場合
+                type: 'dataId';
+                dataId: DataId;
+            };
             title: string;
             overview?: string;
-            thumb?: string;
+            hasImage?: boolean;
         }[];
         nextToken?: string;
     }>;
@@ -435,6 +435,7 @@ export type NewContentInfoParam = {
 }
 
 export type ItemInfo = Omit<Required<OperationResult<GetItemsQuery>>['data']['getItems'][0], '__typename'> & {
+    datasourceId: string;
     /**
      * DB未登録状態の場合に値設定
      * - temporary 呼び出し元から渡された値で一時描画したもの

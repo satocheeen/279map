@@ -1,43 +1,23 @@
 import { atom } from "jotai";
-import { SearchHitItem } from "../../graphql/generated/graphql";
 import { DataId } from "../../types-common/common-types";
+import { storedItemsAtom } from "../item";
 
-export const filteredItemsAtom = atom<SearchHitItem[] | null>(null);
+export const filteredDatasAtom = atom<DataId[] | null>(null);
 
 /**
  * フィルタのかかっているアイテムidを返す。
  * フィルタ設定されていない場合は、undefined.
  */
 export const filteredItemIdListAtom = atom<DataId[] | undefined>(( get ) => {
-    const filteredItems = get(filteredItemsAtom);
-    if (!filteredItems) {
+    const filteredDatas = get(filteredDatasAtom);
+    if (!filteredDatas) {
         return undefined;
     }
-    return filteredItems.map(fi => fi.id);
-})
-
-/**
- * アイテム自体がフィルタ条件に合致しているアイテムidを返す。
- * フィルタ設定されていない場合は、undefined.
- */
-export const filterHittedItemIdListAtom = atom<DataId[] | undefined>(( get ) => {
-    const filteredItems = get(filteredItemsAtom);
-    if (!filteredItems) {
-        return undefined;
-    }
-    return filteredItems.filter(fi => fi.hitItem).map(fi => fi.id);
-})
-
-/**
- * フィルタのかかっているコンテンツidを返す。
- * フィルタ設定されていない場合は、undefined.
- */
-export const filteredContentIdListAtom = atom<DataId[] | undefined>(( get ) => {
-    const filteredItems = get(filteredItemsAtom);
-    if (!filteredItems) {
-        return undefined;
-    }
-    return filteredItems.reduce((acc, cur) => {
-        return acc.concat(cur.hitContents);
-    }, [] as DataId[]);
+    const storedItems = get(storedItemsAtom);
+    return storedItems.filter(item => {
+        const itemHit = filteredDatas.includes(item.id);
+        if (itemHit) return true;
+        const childHit = item.linkedContents.some(child => filteredDatas.includes(child.id));
+        return !!childHit;
+    }).map(item => item.id);
 })

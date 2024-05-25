@@ -17,8 +17,7 @@ export function useItem(props: Props) {
     const [ allItems ] = useAtom(allItemsAtom);
 
     const item = useMemo(() => {
-        const itemMap = allItems[props.id.dataSourceId] ?? {};
-        return itemMap[props.id.id];
+        return allItems.find(item => item.id === props.id);
 
     }, [ allItems, props.id ])
 

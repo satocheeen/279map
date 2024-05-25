@@ -8,157 +8,113 @@ import { ContentValueMap, DataId, GeoProperties } from "../types-common/common-t
 type CommonParam = {
     currentMap: CurrentMap;
 }
-/**
- * regist item
- */
-export const OdbaRegistItemAPI = {
-    uri: 'regist-item',
+
+export const OdbaRegistDataAPI = {
+    uri: 'regist-data',
+    method: 'post',
+    resultType: 'string',
+} as APIDefine<OdbaRegistDataParam, DataId>;
+
+export type OdbaRegistDataParam = CommonParam & {
+    dataSourceId: string;   // 登録先データソース
+    item?: {
+        geometry: GeoJSON.Geometry;
+        geoProperties: GeoProperties;
+    };
+    contents?: ContentValueMap;
+    linkItems?: DataId[];   // 既存のアイテムに紐づける場合に指定
+}
+
+export const OdbaUpdateDataAPI = {
+    uri: 'update-data',
     method: 'post',
     resultType: 'json',
-} as APIDefine<OdbaRegistItemParam, DataId>;   // result = registed item ID
+} as APIDefine<OdbaUpdateDataParam, DataId>;
 
-export type OdbaRegistItemParam = CommonParam & {
-    dataSourceId: string;   // 登録先データソース
-    name?: string;  // topography only
-    geometry: GeoJSON.Geometry;
-    geoProperties: GeoProperties;
-}
-
-/**
- * regist content
- */
-export const OdbaRegistContentAPI = {
-    uri: 'regist-content',
-    method: 'post',
-    resultType: 'none',
-} as APIDefine<OdbaRegistContentParam, DataId>;
-
-export type OdbaRegistContentParam = CommonParam & {
-    parent: {
-        itemId: DataId;
+export type OdbaUpdateDataParam = CommonParam & {
+    target: {
+        type: 'dataId',
+        id: DataId;
     } | {
-        contentId: DataId;
+        type: 'originalId',
+        originalId: string;
     };
-    // 登録先データソース
-    contentDataSourceId: string;
-    values: ContentValueMap;
-};
-
-/**
- * remove item
- */
-export const OdbaRemoveItemAPI = {
-    uri: 'remove-item',
-    method: 'post',
-    resultType: 'none',
-} as APIDefine<OdbaRemoveItemParam, void>;
-
-export type OdbaRemoveItemParam = CommonParam & {
-    id: DataId; // 削除対象アイテムのID
+    item?: {
+        geometry: GeoJSON.Geometry;
+        geoProperties: GeoProperties;
+    } | null;   // nullの場合、item削除
+    contents?: ContentValueMap;
 }
 
-/**
- * remove content
- */
-export const OdbaRemoveContentAPI = {
-    uri: 'remove-content',
+export const OdbaRemoveDataAPI = {
+    uri: 'remove-data',
     method: 'post',
-    resultType: 'none',
-} as APIDefine<OdbaRemoveContentParam, void>;
+    resultType: 'json',
+} as APIDefine<OdbaRemoveDataParam, boolean>;
 
-export type OdbaRemoveContentParam = CommonParam & {
+export type OdbaRemoveDataParam = CommonParam & {
     id: DataId;
 }
 
-export const OdbaUnlinkContentAPI = {
-    uri: 'unlink-content',
+export const OdbaUnlinkDataAPI = {
+    uri: 'unlink-data',
     method: 'post',
     resultType: 'none',
-} as APIDefine<OdbaUnlinkContentParam, void>;
+} as APIDefine<OdbaUnLinkDataParam, void>;
 
-export type OdbaUnlinkContentParam = CommonParam & {
+export type OdbaUnLinkDataParam = CommonParam & ({
     id: DataId;
-    parent: {
-        type: 'item';
-        itemId: DataId;
-    } | {
-        type: 'content';
-        contentId: DataId;
-    }
+    parent: DataId;
+})
+
+export type OdbaUnlinkDataParam = CommonParam & {
+    id: DataId;
+    parent: DataId;
 }
 
 /**
- * update item
+ * get uncached data
+ * 指定のデータソースIDに関して、キャッシュDBに未登録のデータを取得する
  */
-export const OdbaUpdateItemAPI = {
-    uri: 'update-item',
-    method: 'post',
-    resultType: 'none',
-} as APIDefine<OdbaUpdateItemParam, void>;
-
-export type OdbaUpdateItemParam = CommonParam & {
-    id: DataId;
-    name?: string;  // topography only
-    geometry?: GeoJSON.Geometry;
-    geoProperties?: GeoProperties;
-}
-
-/**
- * update content
- */
-export const OdbaUpdateContentAPI = {
-    uri: 'update-content',
-    method: 'post',
-    resultType: 'none',
-} as APIDefine<OdbaUpdateContentParam, void>;
-
-export type OdbaUpdateContentParam = CommonParam & {
-    id: DataId;
-    values: ContentValueMap;
-};
-
-/**
- * get unpoint data
- */
-export const OdbaGetUnpointDataAPI = {
+export const OdbaGetUncachedDataAPI = {
     uri: 'get-unpointdata',
     method: 'post',
     resultType: 'json',
-} as APIDefine<OdbaGetUnpointDataParam, OdbaGetUnpointDataResult>;
+} as APIDefine<OdbaGetUncachedDataParam, OdbaGetUncachedDataResult>;
 
-export type OdbaGetUnpointDataParam = CommonParam & {
+export type OdbaGetUncachedDataParam = CommonParam & {
     dataSourceId: string;
     nextToken?: string;
     keyword?: string;
 }
-export type UnpointContent = {
-    id: DataId;
-    title: string;
-    thumb?: string;
-    overview?: string;
-}
-export type OdbaGetUnpointDataResult = {
-    contents: UnpointContent[],
+export type OdbaGetUncachedDataResult = {
+    contents: {
+        originalId: string;
+        title: string;
+        overview?: string;
+        hasImage?: boolean;
+    }[],
     nextToken?: string;
 };
 
 /**
  * link content to item
  */
-export const OdbaLinkContentToItemAPI = {
-    uri:'link-content2item',
+export const OdbaLinkDataAPI = {
+    uri:'link-data',
     method: 'post',
     resultType: 'none',
-} as APIDefine<OdbaLinkContentToItemParam, void>;
+} as APIDefine<OdbaLinkDataParam, void>;
 
-export type OdbaLinkContentToItemParam = CommonParam & {
-    childContentId: DataId;
-    parent: {
-        itemId: DataId;
-    } | {
-        contentId: DataId;
-    }
-}
+export type OdbaLinkDataParam = CommonParam & ({
+    type: 'dataId',
+    id: DataId;
+    parent: DataId;
+} | {
+    type: 'originalId',
+    originalId: string;
+    parent: DataId;
+})
 
 export const OdbaGetImageUrlAPI = {
     uri: 'get-imageurl',
@@ -178,28 +134,5 @@ export type OdbaGetLinkableContentsResult = {
     contents: {
         datasourceId: string;
         name: string;
-    }[];
-}
-
-export const OdbaLinkContentDatasourceToMapAPI = {
-    uri: 'link-contentdatasource-map',
-    method: 'post',
-    resultType: 'json',
-} as APIDefine<OdbaLinkContentDatasourceToMapParam, void>;
-export type OdbaLinkContentDatasourceToMapParam = CommonParam & {
-    contents: {
-        datasourceId: string;
-        name: string;
-    }[];
-}
-
-export const OdbaUnlinkContentDatasourceFromMapAPI = {
-    uri: 'unlink-contentdatasource-map',
-    method: 'post',
-    resultType: 'json',
-} as APIDefine<OdbaUnlinkContentDatasourceFromMapParam, void>;
-export type OdbaUnlinkContentDatasourceFromMapParam = CommonParam & {
-    contents: {
-        datasourceId: string;
     }[];
 }
