@@ -109,7 +109,7 @@ async function getAnotherMapKindItemsUsingTheContent(contentId: DataId, currentM
         )
         union
         select d2.data_id from datas d2
-        inner join geometry_items gi 
+        inner join geometry_items gi on gi.data_id = d2.data_id 
         inner join data_source ds2 on ds2.data_source_id = d2.data_source_id 
         inner join map_datasource_link mdl2 on mdl2.data_source_id = d2.data_source_id 
         where d2.data_id = ?
