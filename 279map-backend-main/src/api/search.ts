@@ -120,13 +120,14 @@ async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: s
     `;
 
     const dsKind = currentMap.mapKind === MapKind.Virtual ? DatasourceLocationKindType.VirtualItem : DatasourceLocationKindType.RealItem;
-    const params = [currentMap.mapId, dsKind, date] as any[];
+    const params = [date, currentMap.mapId, dsKind] as any[];
     if (dataSourceIds) {
         params.push(dataSourceIds);
     }
     const query = con.format(sql, params);
     const [rows] = await con.execute(query);
     const records = rows as (ContentsTable & DataLinkTable)[]; 
+    console.log('query', query);
 
     return records.map((row): HitContent => {
         return {
