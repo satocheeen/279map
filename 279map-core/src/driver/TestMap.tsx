@@ -10,6 +10,8 @@ import type {
     OnConnectResult,
     OnMapLoadResult,
     OverrideItem,
+    MapDefine,
+    SystemIconDefine,
 } from '../entry';
 import { Auth, MapKind, getAccessableMapList } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
@@ -33,6 +35,7 @@ export const DriverContext = React.createContext({
     getMap: () => null as TsunaguMapHandler | null,
     addConsole: (...text: any) => {},
     categories: [] as CategoryDefine[],
+    icons: [] as SystemIconDefine[],
     itemDatasources: [] as ItemDatasourceInfo[],
     itemDatasourcesVisibleList: [] as ItemDatasourceVisibleList,
     contentDatasources: [] as ContentDatasourceInfo[],
@@ -118,6 +121,7 @@ export default function TestMap() {
     const [ mapId, setMapId ] = useState<string|undefined>();
     const [ defaultMapKind, setDefaultMapKind ] = useState<MapKind|undefined>();
     const [ overriderItems, setOverrideItems ] = useState<OverrideItem[]|undefined>();
+    const [ icons, setIcons ] = useState<SystemIconDefine[]>([]);
 
     const handleMapShow = useCallback((mapId: string, mapKind?: MapKind) => {
         console.log('handleMapShow', mapId, mapKind)
@@ -158,6 +162,7 @@ export default function TestMap() {
     const onMapLoad = useCallback(async(param: OnMapLoadParam): Promise<OnMapLoadResult|void> => {
         addConsole('onMapLoad', param);
         setMapKind(param.mapKind);
+        setIcons(param.icons);
         setItemDatasources(param.itemDatasources);
         setContentDatasources(param.contentDatasources);
 
@@ -299,6 +304,7 @@ export default function TestMap() {
                         return mapRef.current
                     },
                     addConsole,
+                    icons,
                     categories,
                     itemDatasources,
                     itemDatasourcesVisibleList,

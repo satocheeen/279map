@@ -1,7 +1,7 @@
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { ItemProcessType, itemProcessesAtom } from ".";
-import { ItemInfo } from "../../types/types";
+import { ItemInfo, TsunaguMapHandler } from "../../types/types";
 import { clientAtom } from "jotai-urql";
 import { RegistDataDocument, RemoveDataDocument, UpdateDataDocument } from "../../graphql/generated/graphql";
 import { DataId } from "../../entry";
@@ -12,16 +12,13 @@ import { isEqualId } from "../../util/dataUtility";
  */
 let temporaryCount = 0;
 
-type RegistItemParam = {
-    datasourceId: string;
-    geometry: ItemInfo['geometry'];
-    geoProperties: ItemInfo['geoProperties'];
-}
 export type UpdateItemParam = {
     id: DataId;
     geometry: ItemInfo['geometry'];
     geoProperties: ItemInfo['geoProperties'];
 }
+
+type RegistDataParam = Parameters<TsunaguMapHandler['registData']>[0];
 
 export default function useItemProcess() {
     /**
@@ -82,19 +79,18 @@ export default function useItemProcess() {
         }, [])
     )
 
-    const _registItemSub = useAtomCallback(
-        useCallback(async(get, set, item: RegistItemParam, processId: DataId) => {
+    const _registDataSub = useAtomCallback(
+        useCallback(async(get, set, data: RegistDataParam, processId: DataId): Promise<DataId> => {
             const gqlClient = get(clientAtom);
             let retryFlag = false;
-            let itemId: DataId | undefined;
+            let dataId: DataId | undefined;
             do {
                 retryFlag = false;
                 const result = await gqlClient.mutation(RegistDataDocument, {
-                    datasourceId: item.datasourceId,
-                    item: {
-                        geometry: item.geometry,
-                        geoProperties: item.geoProperties,
-                    }
+                    datasourceId: data.datasourceId,
+                    item: data.item?.geo,
+                    contents: data.contents,
+                    linkDatas: data.parent ? [data.parent] : undefined,
                 })
                 if (result.error) {
                     // エラー時
@@ -104,7 +100,7 @@ export default function useItemProcess() {
                     retryFlag = await waitFor(processId);
                     _setErrorWithTemporaryItem(processId, false);
                 } else {
-                    itemId = result.data?.registData ?? undefined;
+                    dataId = result.data?.registData ?? undefined;
                 }
         
             } while(retryFlag);
@@ -114,34 +110,41 @@ export default function useItemProcess() {
                 _removeItemProcess(processId);
             }, 500)
 
-            return itemId;
+            if (!dataId) {
+                throw new Error('regist failed')
+            }
+
+            return dataId;
 
         }, [_setErrorWithTemporaryItem, _removeItemProcess])
     )
 
     /**
-     * アイテム登録処理
+     * データ登録処理
      */
-    const registItem = useAtomCallback(
-        useCallback(async(get, set, item: RegistItemParam) => {
+    const registData = useAtomCallback(
+        useCallback(async(get, set, data: RegistDataParam) => {
             // ID付与
             const processId = ++temporaryCount;
 
-            // 登録完了までの仮アイテム登録
-            _addItemProcess({
-                processId,
-                item: {
-                    id: processId,
-                    geometry: item.geometry,
-                    geoProperties: item.geoProperties,
-                },
-                datasourceId: item.datasourceId,
-                status: 'registing',
-            });
+            if (data.item) {
+                // 登録完了までの仮アイテム登録
+                _addItemProcess({
+                    processId,
+                    item: {
+                        id: processId,
+                        geometry: data.item.geo.geometry,
+                        geoProperties: data.item.geo.geoProperties,
+                    },
+                    datasourceId: data.datasourceId,
+                    status: 'registing',
+                });
 
-            return await _registItemSub(item, processId);
+            }
 
-        }, [_addItemProcess, _registItemSub])
+            return await _registDataSub(data, processId);
+
+        }, [_addItemProcess, _registDataSub])
     )
 
     const updateItems = useAtomCallback(
@@ -250,7 +253,7 @@ export default function useItemProcess() {
     )
 
     return {
-        registItem,
+        registData,
         updateItems,
         removeItem,
         continueProcess,

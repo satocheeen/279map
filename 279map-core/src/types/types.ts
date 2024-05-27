@@ -1,12 +1,20 @@
 import { Auth, CategoryDefine, Condition, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, MapDefine, GetItemsQuery, ThumbSize } from "../graphql/generated/graphql";
 import { ChangeVisibleLayerTarget } from "../store/datasource/useDataSource";
-import { IconDefine, MapKind, ContentValueMap, DataId, FeatureType, GeoProperties } from "../types-common/common-types";
+import { IconDefine, MapKind, ContentValueMap, DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
 import { OperationResult } from "urql";
+
+/**
+ * 現在の地図で使用可能なアイコン定義
+ */
+export type SystemIconDefine = Omit<IconDefine, 'useMaps'> & {
+    type: IconKey['type'];
+    originalSvgData?: string;
+}
 
 export type OnConnectParam = {
     authLv: Auth;
     userName: string | undefined;
-    mapDefine: MapDefine;
+    mapDefine: Omit<MapDefine, '__typename' | 'originalIcons'>;
 };
 export type OnConnectResult = {
     /**
@@ -18,6 +26,8 @@ export type OnConnectResult = {
 
 export type OnMapLoadParam = {
     mapKind: MapKind;
+    // 使用可能なアイコン
+    icons: SystemIconDefine[];
     // 当該地図で使用可能なデータソース一覧
     itemDatasources: ItemDatasourceInfo[];
     contentDatasources: ContentDatasourceInfo[];
@@ -223,19 +233,34 @@ export interface TsunaguMapHandler {
 
     /**
      * ユーザにアイテム描画してもらい、描画されたジオメトリを返す。
-     * @param featureType 
+     * @param featureType 表示中の地図種別に合わないものを指定した場合は何も実施しない
      * @return 一時描画したジオメトリ。ユーザによりキャンセルされた場合は、null
      */
-    drawTemporaryFeature(featureType: FeatureType): Promise<ItemGeoInfo|null>;
+    drawTemporaryFeature(param: {
+        featureType: FeatureType.STRUCTURE;
+        datasourceId: string;
+        icon?: IconKey;
+    } | {
+        featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA | FeatureType.ROAD;
+    }): Promise<ItemGeoInfo|null>;
 
     /**
-     * 指定の図形でアイテム登録する.
-     * @param datasourceId 
+     * 指定の値でデータ登録する.
      * @param geo 図形 
-     * @return 登録したアイテムID
+     * @param values コンテンツデータ
      */
-    registItemDirectly(datasourceId: string, geo: ItemGeoInfo): Promise<DataId>;
-
+    registData(param: {
+        datasourceId: string,
+        item?: {
+            geo: ItemGeoInfo,
+        },
+        contents?: {
+            values: ContentValueMap,
+        }
+        // 指定した場合は、指定先のparentの子として紐づける
+        parent?: DataId,
+    }): Promise<DataId>;
+    
     /**
      * 指定の値でデータ更新する.
      * @param key 更新対象データ。originalId指定時は、キャッシュDBに未登録時にはキャッシュDBに新規登録される。
@@ -253,10 +278,10 @@ export interface TsunaguMapHandler {
     }): Promise<void>;
 
     /**
-     * 指定のアイテムを削除する
+     * 指定のデータを削除する
      * @param id 
      */
-    removeItemDircetly(id: DataId): Promise<void>;
+    removeData(id: DataId): Promise<void>;
 
     /**
      * start the spte of drawing a structure (or a pin).
@@ -312,18 +337,6 @@ export interface TsunaguMapHandler {
      * @param refresh trueの場合、キャッシュを用いずに最新ロードする
      */
     loadImage(param: {imageId: number, size: ThumbSize, refresh?: boolean}): Promise<string>;
-
-    /**
-     * コンテンツを新規登録する
-     */
-    registContent(param: {
-        datasourceId: string,
-        parent: {
-            type: 'item' | 'content',
-            id: DataId,
-        },
-        values: ContentValueMap,
-    }): Promise<void>;
 
     /**
      * コンテンツを削除する

@@ -36,7 +36,7 @@ export default function DrawTopographyController(props: Props) {
 
     const [geometryType, setGeometryType] = useState('Polygon');
 
-    const { registItem } = useItemProcess();
+    const { registData } = useItemProcess();
 
     const registFeatureFunc = useCallback(async(feature: Feature<Geometry>) => {
         // DB登録
@@ -46,17 +46,21 @@ export default function DrawTopographyController(props: Props) {
         } else {
             const geoJson = MapUtility.createGeoJson(feature);
 
-            registItem({
+            registData({
                 datasourceId: props.dataSourceId,
-                geometry: geoJson.geometry,
-                geoProperties: Object.assign({}, geoJson.properties, {
-                    featureType: props.drawFeatureType,
-                } as GeoProperties),
+                item: {
+                    geo: {
+                        geometry: geoJson.geometry,
+                        geoProperties: Object.assign({}, geoJson.properties, {
+                            featureType: props.drawFeatureType,
+                        } as GeoProperties),
+                    }
+                }
             });
         }
 
         props.close();
-    }, [props, registItem]);
+    }, [props, registData]);
 
     // 描画図形選択後
     const onSelectDrawFeatureType = useCallback((selected: DrawFeatureType) => {

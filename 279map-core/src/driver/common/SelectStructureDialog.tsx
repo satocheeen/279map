@@ -1,12 +1,8 @@
-import React, { CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Button from '../../../common/button/Button';
-import Modal from  '../../../common/modal/Modal';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import Modal from  './modal/Modal';
 import styles from './SelectStructureDialog.module.scss';
-import { currentMapIconDefineAtom } from '../../../../store/icon';
-import { currentMapKindAtom } from '../../../../store/session';
-import { useAtom } from 'jotai';
-import { MapKind } from '../../../../types-common/common-types';
-import { SystemIconDefine } from '../../../../entry';
+import { DriverContext } from '../TestMap';
+import { MapKind, SystemIconDefine } from '../../entry';
 
 type Props = {
     currentIconId?: string;         // 現在の画像ID
@@ -16,20 +12,19 @@ type Props = {
 
 export default function SelectStructureDialog(props: Props) {
     const [show, setShow] = useState(true);
-    const [ currentMapIconDefine ] = useAtom(currentMapIconDefineAtom);
     const [selectedDefine, setSelectedDefine] = useState(null as SystemIconDefine | null);
-    const [ mapKind ] = useAtom(currentMapKindAtom);
+    const { mapKind, icons } = useContext(DriverContext);
 
     useEffect(() => {
         if (props.currentIconId !== undefined) {
-            let hit = currentMapIconDefine.find((def) => {
+            let hit = icons.find((def) => {
                 return props.currentIconId === def.id;
             });
             if (hit !== undefined) {
                 setSelectedDefine(hit);
             }
         }
-    }, [props.currentIconId, currentMapIconDefine]);
+    }, [props.currentIconId, icons]);
 
     const title = useMemo((): string => {
         if (props.currentIconId !== undefined) {
@@ -67,7 +62,7 @@ export default function SelectStructureDialog(props: Props) {
     }, [selectedDefine, props]);
 
     const imageList = useMemo(() => {
-        const imageList = currentMapIconDefine.map((def: SystemIconDefine) => {
+        const imageList = icons.map((def: SystemIconDefine) => {
             let className = styles.listGroupItem;
             if (def.imagePath === selectedDefine?.imagePath) {
                 className += " " + styles.active;
@@ -85,7 +80,7 @@ export default function SelectStructureDialog(props: Props) {
                 {imageList}
             </ul>
         );
-    }, [selectedDefine, onSelect, currentMapIconDefine]);
+    }, [selectedDefine, onSelect, icons]);
 
     const message = useMemo(() => {
         return mapKind === MapKind.Virtual ? '建物を選択してください。' : 'ピンを選択してください。'
@@ -103,12 +98,12 @@ export default function SelectStructureDialog(props: Props) {
                 </div>
             </Modal.Body>
             <Modal.Footer>
-                <Button variant="secondary" onClick={onCancel}>
-                        Cancel
-                </Button>
-                <Button variant="primary" onClick={onOk} disabled={okDisable}>
-                        OK
-                </Button>
+                <button onClick={onCancel}>
+                    Cancel
+                </button>
+                <button onClick={onOk} disabled={okDisable}>
+                    OK
+                </button>
             </Modal.Footer>
         </Modal>
     );

@@ -7,6 +7,7 @@ import { OwnerContext } from "../../components/TsunaguMap/TsunaguMap";
 import { loadedItemMapAtom, storedItemsAtom } from "../item";
 import { dataSourceVisibleAtom } from "../datasource";
 import { MapKind } from "../../types-common/common-types";
+import { currentMapIconDefineAtom, currentMapIconDefinePromiseAtom } from "../icon";
 
 export function useMapController() {
     const { onMapLoad } = useContext(OwnerContext);
@@ -33,8 +34,10 @@ export function useMapController() {
             })
 
             if (onMapLoad) {
+                const icons = await get(currentMapIconDefinePromiseAtom);
                 const callbackResult = await onMapLoad({
                     mapKind,
+                    icons,
                     contentDatasources: data.contentDataSources,
                     itemDatasources: data.itemDataSources,
                 })

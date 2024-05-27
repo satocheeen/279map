@@ -3,11 +3,11 @@ import { ItemGeoInfo, MapMode, TsunaguMapHandler } from '../../types/types';
 import LoadingOverlay from '../common/spinner/LoadingOverlay';
 import { mapModeAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
-import { FeatureType } from '../../types-common/common-types';
+import { FeatureType, IconKey } from '../../types-common/common-types';
 import DrawTemporaryFeatureController from './draw-controller/common/DrawTemporaryFeatureController';
 import useItemProcess from '../../store/item/useItemProcess';
 
-const DrawStructureController = lazy(() => import('./draw-controller/structure/DrawStructureController'));
+const DrawPointController = lazy(() => import('./draw-controller/structure/DrawPointController'));
 const MoveItemController = lazy(() => import('./draw-controller/structure/MoveItemController'));
 const DrawTopographyController = lazy(() => import('./draw-controller/topography/DrawTopographyController'));
 const RemoveItemController = lazy(() => import('./draw-controller/common/RemoveItemController'));
@@ -18,7 +18,13 @@ type Props = {
 }
 
 type ControllerType = {
-    type: 'draw-structure' | 'draw-road';
+    type: 'draw-structure';
+    dataSourceId: string;
+    iconKey?: IconKey;
+    onCommit: (geometry: ItemGeoInfo) => void;
+    onCancel: () => void;
+} | {
+    type: 'draw-road';
     dataSourceId: string;
 } | {
     type: 'move-structure';
@@ -37,8 +43,7 @@ type ControllerType = {
 }
 export type DrawControllerHandler = Pick<TsunaguMapHandler, 
     'drawTemporaryFeature'
-    | 'registItemDirectly'
-    | 'removeItemDircetly'
+    | 'removeData'
     | 'drawStructure'
     | 'moveStructure'
     | 'editItem'
@@ -50,7 +55,7 @@ export type DrawControllerHandler = Pick<TsunaguMapHandler,
 function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler>) {
     const [mapMode, setMapMode] = useAtom(mapModeAtom);
     const [controller, setController] = useState<ControllerType|undefined>();
-    const { registItem: registItemProcess, updateItems: updateItemsProcess, removeItem: removeItemProcess } = useItemProcess();
+    const { removeItem: removeItemProcess } = useItemProcess();
 
     const terminate = useCallback(() => {
         setController(undefined);
@@ -58,45 +63,52 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
     }, [setMapMode])
 
     useImperativeHandle(ref, () => ({
-        drawTemporaryFeature(featureType: FeatureType) {
+        drawTemporaryFeature(param) {
             return new Promise<ItemGeoInfo|null>((resolve) => {
                 setMapMode(MapMode.Drawing);
-                setController({
-                    type: 'draw-temporary-feature',
-                    featureType,
-                    onCommit(geometry) {
-                        setController(undefined);
-                        setMapMode(MapMode.Normal);
-                        resolve(geometry);
-                    },
-                    onCancel() {
-                        setController(undefined);
-                        setMapMode(MapMode.Normal);
-                        resolve(null);
-                    }
-                });
+                if (param.featureType === FeatureType.STRUCTURE) {
+                    setController({
+                        type: 'draw-structure',
+                        dataSourceId: param.datasourceId,
+                        iconKey: param.icon,
+                        onCommit(geometry) {
+                            setController(undefined);
+                            setMapMode(MapMode.Normal);
+                            resolve(geometry);
+                        },
+                        onCancel() {
+                            setController(undefined);
+                            setMapMode(MapMode.Normal);
+                            resolve(null);
+                        }
+                    })
+                }
+                // setController({
+                //     type: 'draw-temporary-feature',
+                //     featureType,
+                //     onCommit(geometry) {
+                //         setController(undefined);
+                //         setMapMode(MapMode.Normal);
+                //         resolve(geometry);
+                //     },
+                //     onCancel() {
+                //         setController(undefined);
+                //         setMapMode(MapMode.Normal);
+                //         resolve(null);
+                //     }
+                // });
             })
         },
-        async registItemDirectly(datasourceId, geo) {
-            const id = await registItemProcess({
-                datasourceId,
-                geometry: geo.geometry,
-                geoProperties: geo.geoProperties,
-            });
-            if (!id) {
-                throw new Error('registItem failed');
-            }
-            return id;
-        },
-        async removeItemDircetly(id) {
+
+        async removeData(id) {
             await removeItemProcess(id);
         },
         drawStructure(dataSourceId: string) {
-            setMapMode(MapMode.Drawing);
-            setController({
-                type: 'draw-structure',
-                dataSourceId,
-            });
+            // setMapMode(MapMode.Drawing);
+            // setController({
+            //     type: 'draw-structure',
+            //     dataSourceId,
+            // });
         },
         moveStructure() {
             setMapMode(MapMode.Drawing);
@@ -143,7 +155,8 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
         case 'draw-structure':
             return (
                 <Suspense fallback={<LoadingOverlay />}>
-                    <DrawStructureController dataSourceId={controller.dataSourceId} close={terminate} />
+                    <DrawPointController dataSourceId={controller.dataSourceId}
+                        onCancel={controller.onCancel} onCommit={controller.onCommit} />
                 </Suspense>
             )
         case 'move-structure':

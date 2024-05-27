@@ -1,9 +1,10 @@
 import React, { useCallback, useContext, useMemo, useState } from 'react';
 import styles from '../TestMap.module.scss';
 import myStyles from './DatasourceDriver.module.scss';
-import { Auth, DataId, DatasourceLocationKindType, FeatureType, ItemDatasourceVisibleList, MapKind } from '../../entry';
+import { Auth, DataId, DatasourceLocationKindType, FeatureType, ItemDatasourceVisibleList, MapKind, SystemIconDefine } from '../../entry';
 import { DriverContext } from '../TestMap';
 import { useWatch } from '../../util/useWatch2';
+import SelectStructureDialog from '../common/SelectStructureDialog';
 
 type Props = {
 }
@@ -206,7 +207,7 @@ type DatasourceItemProp = {
     onChangeVisible: (visible: boolean) => void;
 }
 function DatasourceItem(props: DatasourceItemProp) {
-    const { itemDatasources, authLv, getMap, mapKind, addConsole } = useContext(DriverContext);
+    const { itemDatasources, authLv, getMap, mapKind, icons } = useContext(DriverContext);
 
     const targetDatasource = useMemo(() => {
         return itemDatasources.find(ids => ids.datasourceId === props.datasourceId);
@@ -216,13 +217,39 @@ function DatasourceItem(props: DatasourceItemProp) {
         return targetDatasource?.name;
     }, [targetDatasource]);
 
+    const [ showSelectIconDialog, setShowSelectIconDialog ] = useState(false);
+    const registItem = useCallback(() => {
+        // ピン選択ダイアログ表示
+        setShowSelectIconDialog(true);
+    }, []);
+
+    const handleSelectIcon = useCallback(async(iconDefine: SystemIconDefine) => {
+        setShowSelectIconDialog(false);
+        const feature = await getMap()?.drawTemporaryFeature({
+            featureType: FeatureType.STRUCTURE,
+            datasourceId: props.datasourceId,
+            icon: {
+                type: iconDefine.type,
+                id: iconDefine.id
+            },
+        })
+        if (!feature) return;
+        getMap()?.registData({
+            datasourceId: props.datasourceId,
+            item: {
+                geo: feature,
+            }
+        })
+
+    }, [getMap, props.datasourceId]);
+
     return (
         <label key={props.datasourceId} className={`${props.isChild ? myStyles.Child : ''}`}>
             <input type="checkbox" checked={props.visible} onChange={(evt) => props.onChangeVisible(evt.target.checked)} />
             {name}
             {(authLv !== Auth.View) &&
                 <>
-                    <button onClick={()=>getMap()?.drawStructure(props.datasourceId)}>建設</button>
+                    <button onClick={registItem}>建設</button>
                     {mapKind === MapKind.Real ?
                         <>
                             <button onClick={()=>getMap()?.drawTopography(props.datasourceId, FeatureType.AREA)}>エリア作成</button>
@@ -235,6 +262,9 @@ function DatasourceItem(props: DatasourceItemProp) {
                         </>
                     }
                 </>
+            }
+            {showSelectIconDialog &&
+                <SelectStructureDialog ok={handleSelectIcon} cancel={() => setShowSelectIconDialog(false)} />
             }
         </label>
     )

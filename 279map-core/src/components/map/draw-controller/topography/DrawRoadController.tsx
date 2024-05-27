@@ -79,7 +79,7 @@ export default function DrawRoadController(props: Props) {
     }, [props]);
     
 
-    const { registItem } = useItemProcess();
+    const { registData } = useItemProcess();
     const registFeatureFunc = useCallback(async() => {
         if (!drawingFeature.current) {
             console.warn('描画図形なし（想定外）');
@@ -95,14 +95,18 @@ export default function DrawRoadController(props: Props) {
         }
 
         // DB登録
-        registItem({
+        registData({
             datasourceId: props.dataSourceId,
-            geometry: geoJson.geometry,
-            geoProperties: geoJson.properties as GeoProperties,
+            item: {
+                geo: {
+                    geometry: geoJson.geometry,
+                    geoProperties: geoJson.properties as GeoProperties,
+                }
+            }
         });
 
         props.close();
-    }, [props, registItem]);
+    }, [props, registData]);
 
     const onWidthSelected = useCallback(async(feature: Feature) => {
         drawingFeature.current = feature;

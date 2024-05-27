@@ -16,11 +16,9 @@ import { MapStyles } from "../../util/constant-defines";
 import { DatasourceLocationKindType, IconKey } from "../../types-common/common-types";
 import { useAtomCallback } from "jotai/utils";
 import { currentMapKindAtom } from "../../store/session";
-import { MapKind } from "../../entry";
-import { SystemIconDefine, addFillStyle, currentDefaultIconAtom } from "../../store/icon";
+import { MapKind, SystemIconDefine } from "../../entry";
+import { addFillStyle, currentDefaultIconAtom } from "../../store/icon";
 import { allItemsAtom } from "../../store/item";
-
-const STRUCTURE_SELECTED_COLOR = '#8888ff';
 
 /**
  * 建物・地点に関するスタイルを設定するフック

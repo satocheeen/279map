@@ -1,18 +1,10 @@
-import { TsunaguMapProps } from '../../types/types';
+import { SystemIconDefine, TsunaguMapProps } from '../../types/types';
 import { currentMapKindAtom, mapDefineAtom } from '../session';
 import defaultIconReal from './map-marker.svg';
 import defaultIconVirtual from './house.png';
 import { atom } from 'jotai';
-import { IconDefine, IconKey, MapKind } from '../../types-common/common-types';
+import { MapKind } from '../../types-common/common-types';
 import { loadable } from "jotai/utils";
-
-/**
- * 現在の地図で使用可能なアイコン定義
- */
-export type SystemIconDefine = Omit<IconDefine, 'useMaps'> & {
-    type: IconKey['type'];
-    originalSvgData?: string;
-}
 
 /**
  * オリジナルアイコン
@@ -56,7 +48,7 @@ export const currentDefaultIconAtom = atom<SystemIconDefine>((get) => {
  * 現在の地図で使用可能なアイコン一覧。
  * imagePathがSVG画像の場合は、SVG文字列を読み込んで、必要に応じて色設定する。
  */
-const currentMapIconDefinePromiseAtom = atom<Promise<SystemIconDefine[]>>(async(get) => {
+export const currentMapIconDefinePromiseAtom = atom<Promise<SystemIconDefine[]>>(async(get) => {
 
     const currentMapKind = get(currentMapKindAtom); 
     if (!currentMapKind) return [];
