@@ -53,7 +53,7 @@ export type CategoryDefine = {
 
 export type Condition = {
   category?: InputMaybe<Array<Scalars['String']['input']>>;
-  date?: InputMaybe<Array<Scalars['String']['input']>>;
+  date?: InputMaybe<Array<DateCondition>>;
   keyword?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
@@ -127,6 +127,13 @@ export type ContentsDefine = {
   /** 他の地図でも参照されているか */
   usingOtherMap: Scalars['Boolean']['output'];
   values: Scalars['ContentValueMap']['output'];
+};
+
+export type DateCondition = {
+  /** 日付文字列 */
+  date: Scalars['String']['input'];
+  /** クライアント端末のUTCからの時差 */
+  utcOffset: Scalars['Int']['input'];
 };
 
 export type ErrorInfo = {

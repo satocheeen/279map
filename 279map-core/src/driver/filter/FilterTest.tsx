@@ -1,12 +1,13 @@
-import React, { useCallback, useContext, useState } from 'react';
+import React, { useCallback, useContext } from 'react';
 import styles from '../TestMap.module.scss';
 import FilterCondition from './FilterCondition';
 import { DriverContext } from '../TestMap';
-import { Condition } from '../../entry';
+import { TsunaguMapHandler } from '../../entry';
 
 type Props = {
 }
 
+export type Condition = Parameters<TsunaguMapHandler['filter']>[0]
 /**
  * filterAPIテストコンポーネント
  */

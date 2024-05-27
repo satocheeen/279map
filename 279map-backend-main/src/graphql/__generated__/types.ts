@@ -51,7 +51,7 @@ export type CategoryDefine = {
 
 export type Condition = {
   category?: InputMaybe<Array<Scalars['String']['input']>>;
-  date?: InputMaybe<Array<Scalars['String']['input']>>;
+  date?: InputMaybe<Array<DateCondition>>;
   keyword?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
@@ -120,6 +120,13 @@ export type ContentsDefine = {
   /** 他の地図でも参照されているか */
   usingOtherMap: Scalars['Boolean']['output'];
   values: Scalars['ContentValueMap']['output'];
+};
+
+export type DateCondition = {
+  /** 日付文字列 */
+  date: Scalars['String']['input'];
+  /** クライアント端末のUTCからの時差 */
+  utcOffset: Scalars['Int']['input'];
 };
 
 export type ErrorInfo = {
@@ -653,6 +660,7 @@ export type ResolversTypes = {
   ContentsDatasourceInput: ContentsDatasourceInput;
   ContentsDefine: ResolverTypeWrapper<ContentsDefine>;
   DataId: ResolverTypeWrapper<Scalars['DataId']['output']>;
+  DateCondition: DateCondition;
   ErrorInfo: ResolverTypeWrapper<ErrorInfo>;
   ErrorType: ErrorType;
   EventContent: ResolverTypeWrapper<EventContent>;
@@ -711,6 +719,7 @@ export type ResolversParentTypes = {
   ContentsDatasourceInput: ContentsDatasourceInput;
   ContentsDefine: ContentsDefine;
   DataId: Scalars['DataId']['output'];
+  DateCondition: DateCondition;
   ErrorInfo: ErrorInfo;
   EventContent: EventContent;
   EventDefine: EventDefine;

@@ -14,7 +14,7 @@ import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSour
 import { overrideItemsAtom, showingItemsAtom, } from '../../store/item';
 import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetUnpointContentsDocument, SearchDocument, SortCondition, GetImageDocument, RegistDataDocument, RemoveDataDocument, UpdateDataDocument, LinkDataDocument, UnlinkDataDocument, GetContentDocument, DataUpdateDocument, Operation, LinkDataByOriginalIdDocument, UpdateDataByOriginalIdDocument } from '../../graphql/generated/graphql';
+import { ContentsDefine, GetUnpointContentsDocument, SearchDocument, SortCondition, GetImageDocument, RegistDataDocument, RemoveDataDocument, UpdateDataDocument, LinkDataDocument, UnlinkDataDocument, GetContentDocument, DataUpdateDocument, Operation, LinkDataByOriginalIdDocument, UpdateDataByOriginalIdDocument, Condition } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern } from '../common/confirm/types';
@@ -113,9 +113,20 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 overlay: true,
                 spinner: true,
             });
+            const utcOffset = dayjs().utcOffset();
+            const paramCondition: Condition = {
+                category: condition.category,
+                keyword: condition.keyword,
+                date: condition.date ? condition.date.map(d => {
+                    return {
+                        date: d,
+                        utcOffset,
+                    }
+                }): undefined,
+            }
             try {
                 const result = await gqlClient.query(SearchDocument, {
-                    condition,
+                    condition: paramCondition,
                     datasourceIds: visibleDataSourceIds,
                 });
                 if (result.error) {

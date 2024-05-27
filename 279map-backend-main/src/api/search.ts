@@ -1,9 +1,10 @@
 import { CurrentMap, DatasourceLocationKindType, MapKind } from "../../279map-backend-common/src";
 import { ConnectionPool } from "..";
 import { PoolConnection } from "mysql2/promise";
-import { QuerySearchArgs } from "../graphql/__generated__/types";
+import { DateCondition, QuerySearchArgs } from "../graphql/__generated__/types";
 import { DataId } from "../types-common/common-types";
 import { ContentsTable, DataLinkTable } from "../../279map-backend-common/dist";
+import dayjs from "dayjs";
 
 export async function search(currentMap: CurrentMap, param: QuerySearchArgs): Promise<DataId[]> {
     if (param.datasourceIds && param.datasourceIds.length === 0) {
@@ -104,11 +105,15 @@ async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, cat
  * @param currentMap 
  * @param date 
  */
-async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: string, dataSourceIds?: string[]): Promise<HitContent[]> {
+async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: DateCondition, dataSourceIds?: string[]): Promise<HitContent[]> {
+    const offsetStr = formatTimezoneOffset(date.utcOffset);
+    const startDate = dayjs(date.date).format('YYYY-MM-DD');
+    const endDate = dayjs(date.date).add(1, 'day').format('YYYY-MM-DD');
+
     const sql = `
     select c.*, dl2.* from contents c 
     inner join data_link dl2 on dl2.to_data_id = c.data_id 
-    where DATE_FORMAT(c.date,'%Y-%m-%d') = ?
+    where CONVERT_TZ(date, '+00:00', ?) BETWEEN ? AND ?
     and EXISTS (
         select * from data_link dl 
         inner join datas d on d.data_id = dl.from_data_id 
@@ -120,14 +125,13 @@ async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: s
     `;
 
     const dsKind = currentMap.mapKind === MapKind.Virtual ? DatasourceLocationKindType.VirtualItem : DatasourceLocationKindType.RealItem;
-    const params = [date, currentMap.mapId, dsKind] as any[];
+    const params = [offsetStr, startDate, endDate, currentMap.mapId, dsKind] as any[];
     if (dataSourceIds) {
         params.push(dataSourceIds);
     }
     const query = con.format(sql, params);
     const [rows] = await con.execute(query);
     const records = rows as (ContentsTable & DataLinkTable)[]; 
-    console.log('query', query);
 
     return records.map((row): HitContent => {
         return {
@@ -180,34 +184,17 @@ async function searchByKeyword(con: PoolConnection, currentMap: CurrentMap, keyw
 
 }
 
-// /**
-//  * 指定のキーワードを持つアイテムを返す
-//  * @param con 
-//  * @param currentMap 
-//  * @param keyword 
-//  */
-// async function searchItemByKeyword(con: PoolConnection, currentMap: CurrentMap, keyword: string, dataSourceIds?: string[]): Promise<DataId[]> {
-//     const sql = `
-//         select * from items i 
-//         inner join data_source ds on ds.data_source_id = i.data_source_id
-//         inner join map_datasource_link mdl on mdl.data_source_id = i.data_source_id 
-//         where mdl.map_page_id = ?
-//         and ds.location_kind = ?
-//         and name like ?
-//         ${dataSourceIds ? 'and i.data_source_id in (?)' : ''}
-//     `
-//     const keywordParam = `%${keyword}%`;
-//     const dsKind = currentMap.mapKind === MapKind.Virtual ? DatasourceLocationKindType.VirtualItem : DatasourceLocationKindType.RealItem;
-//     const params = [currentMap.mapId, dsKind, keywordParam] as any[];
-//     if (dataSourceIds) {
-//         params.push(dataSourceIds);
-//     }
-//     const query = con.format(sql, params);
-//     const [rows] = await con.execute(query);
-//     return (rows as ItemsTable[]).map((item): DataId => {
-//         return {
-//             id: item.item_page_id,
-//             dataSourceId: item.data_source_id,
-//         }
-//     })
-// }
+/**
+ * UTCオフセット値(分)を、'+09:00'の形式の文字列に変換する
+ * @param {number} utcOffsetMinutes - UTCオフセット値(分)
+ * @returns {string} タイムゾーンオフセットの文字列表記 (例: '+09:00')
+ */
+function formatTimezoneOffset(utcOffsetMinutes: number) {
+    const absoluteOffsetMinutes = Math.abs(utcOffsetMinutes);
+    const hourOffset = Math.floor(absoluteOffsetMinutes / 60);
+    const minuteOffset = absoluteOffsetMinutes % 60;
+    const offsetHours = String(hourOffset).padStart(2, '0');
+    const offsetMinutes = String(minuteOffset).padStart(2, '0');
+    const sign = utcOffsetMinutes < 0 ? '-' : '+';
+    return `${sign}${offsetHours}:${offsetMinutes}`;
+}

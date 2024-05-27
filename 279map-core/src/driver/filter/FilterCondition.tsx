@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useCallback, useRef, useContext } from 'react';
 import styles from './FilterCondition.module.scss';
 import { useWatch } from '../../util/useWatch2';
-import { Condition } from '../../graphql/generated/graphql';
 import { DriverContext } from '../TestMap';
+import { Condition } from './FilterTest';
 
 type FilterKind = keyof Required<Condition>;
+const filterKinds: FilterKind[] = ['category', 'date', 'keyword'];
 
 type Props = {
     onChange: (filter: Condition | undefined) => void;
@@ -82,8 +83,7 @@ export default function FilterCondition(props: Props) {
         <>
             <div className={styles.Container}>
                 <div className={styles.TabArea}>
-                    {(['category', 'calendar', 'keyword'] as FilterKind[]).map(name => {
-                    <Tab name='category' />
+                    {filterKinds.map(name => {
                         return (
                             <Tab key={name} name={name} active={currentMode===name}
                                 onClick={() => setCurrentMode(name)} />

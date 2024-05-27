@@ -210,7 +210,11 @@ export interface TsunaguMapHandler {
      * @param condition フィルタ条件
      * @result フィルタ完了したら、true。条件に該当するものがない場合は、フィルタ実行せずfalseを返す。
      */
-    filter(condition: Condition): Promise<boolean>;
+    filter(condition: {
+        category?: string[];
+        date?: string[];
+        keyword?: string[];
+    }): Promise<boolean>;
 
     /**
      * フィルタ解除する
