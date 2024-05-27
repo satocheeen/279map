@@ -678,13 +678,13 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         dataSourceId: param.datasourceId,
                         item: param.item ?? undefined,
                         contents: param.contents ?? undefined,
-                        linkItems: param.linkItems ?? undefined,
+                        linkItems: param.linkDatas ?? undefined,
                     });
 
                     // 更新通知
                     publishData(pubsub, 'insert', [id]);
-                    if (param.linkItems) {
-                        publishData(pubsub, 'update', param.linkItems);
+                    if (param.linkDatas) {
+                        publishData(pubsub, 'update', param.linkDatas);
                     }
 
                     return id;

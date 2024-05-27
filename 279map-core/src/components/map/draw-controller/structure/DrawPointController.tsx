@@ -42,7 +42,6 @@ export default function DrawPointController(props: Props) {
         return getIconDefine(props.iconKey);
 
     }, [getIconDefine, props.iconKey])
-    // const drawingIcon = useRef<SystemIconDefine | null>(null);
 
     const draw = useRef<null | Draw>(null);
     const drawingFeature = useRef<Feature | undefined>(undefined);  // 描画中のFeature
@@ -119,6 +118,10 @@ export default function DrawPointController(props: Props) {
         });
         setStage(Stage.DRAWING);
     }, [map, drawReset, onDrawEnd, pointStyleHook, drawingIcon])
+
+    useEffect(() => {
+        startDrawing();
+    }, [])
 
     const handleOk = useCallback(() => {
         if (!drawingFeature.current) {

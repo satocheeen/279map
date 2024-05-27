@@ -156,6 +156,7 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
             return (
                 <Suspense fallback={<LoadingOverlay />}>
                     <DrawPointController dataSourceId={controller.dataSourceId}
+                        iconKey={controller.iconKey}
                         onCancel={controller.onCancel} onCommit={controller.onCommit} />
                 </Suspense>
             )
