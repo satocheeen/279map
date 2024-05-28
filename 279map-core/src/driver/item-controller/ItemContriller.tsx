@@ -124,7 +124,7 @@ function EditRemoveItemDriver() {
 
     const handleRemoveItem = useCallback(() => {
         try {
-            getMap()?.removeItem(targets);
+            getMap()?.removeDataByUser(targets);
         } catch(e) {
             addConsole('removeItem failed.', e);
         }

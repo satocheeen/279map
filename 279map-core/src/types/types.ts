@@ -337,10 +337,10 @@ export interface TsunaguMapHandler {
 
     /**
      * start the step of removing an item.
-     * アイテム（建物、地形）を削除する
+     * ユーザにアイテム（建物、地形）を選択させて、データを削除する
      * @param targets 削除可能対象
      */
-    removeItem(targets: FeatureType[]): Promise<void>;
+    removeDataByUser(targets: FeatureType[]): Promise<void>;
 
     /**
      * 指定のDataIdに属するコンテンツを取得する

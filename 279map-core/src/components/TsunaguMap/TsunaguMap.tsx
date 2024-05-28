@@ -107,7 +107,7 @@ function TsunaguMapMainFunc(props: TsunaguMapProps, ref: React.ForwardedRef<Tsun
             
                     return true;
                 },
-                async removeItem(targets) {
+                async removeDataByUser(targets) {
                     if (!selectItemControllerRef.current) return;
                     const item = await selectItemControllerRef.current.selectItemByUser(targets);
                     if (!item) return;
