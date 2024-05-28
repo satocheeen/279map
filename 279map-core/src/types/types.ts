@@ -340,7 +340,7 @@ export interface TsunaguMapHandler {
      * アイテム（建物、地形）を削除する
      * @param targets 削除可能対象
      */
-    removeItem(targets: FeatureType[]): void;
+    removeItem(targets: FeatureType[]): Promise<void>;
 
     /**
      * 指定のDataIdに属するコンテンツを取得する

@@ -201,7 +201,7 @@ export default function useItemProcess() {
         }, [_addItemProcess, _removeItemProcess, _setErrorWithTemporaryItem, _removeTemporaryItems])
     )
 
-    const removeItem = useAtomCallback(
+    const removeData = useAtomCallback(
         useCallback(async(get, set, target: DataId) => {
             // ID付与
             const processId = ++temporaryCount;
@@ -255,7 +255,7 @@ export default function useItemProcess() {
     return {
         registData,
         updateItems,
-        removeItem,
+        removeData,
         continueProcess,
     }
 }

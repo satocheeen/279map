@@ -6,12 +6,10 @@ import { useAtom } from 'jotai';
 import { DataId, FeatureType, IconKey } from '../../types-common/common-types';
 import useItemProcess from '../../store/item/useItemProcess';
 import { currentMapIconDefineAtom } from '../../store/icon';
-import { geometry } from '@turf/turf';
 
 const DrawPointController = lazy(() => import('./draw-controller/structure/DrawPointController'));
 const MoveItemController = lazy(() => import('./draw-controller/structure/MoveItemController'));
 const DrawTopographyController = lazy(() => import('./draw-controller/topography/DrawTopographyController'));
-const RemoveItemController = lazy(() => import('./draw-controller/common/RemoveItemController'));
 const DrawRoadController = lazy(() => import('./draw-controller/topography/DrawRoadController'));
 const EditItemController = lazy(() => import('./draw-controller/common/EditItemController'));
 
@@ -43,22 +41,18 @@ type ControllerType = {
     iconFunction?: (icons: SystemIconDefine[]) => Promise<IconKey|'cancel'>;
     onCommit: (id: DataId, geometry: ItemGeoInfo) => Promise<void>;
     onCancel: () => void;
-} | {
-    type: 'remove-item';
-    featureTypes: FeatureType[];
 }
 export type DrawControllerHandler = Pick<TsunaguMapHandler, 
     'drawTemporaryFeature'
     | 'removeData'
     | 'moveItem'
     | 'editItem'
-    | 'removeItem'
     >;
 
 function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler>) {
     const [mapMode, setMapMode] = useAtom(mapModeAtom);
     const [controller, setController] = useState<ControllerType|undefined>();
-    const { removeItem: removeItemProcess, updateItems } = useItemProcess();
+    const { removeData: removeItemProcess, updateItems } = useItemProcess();
     const [ icons ] = useAtom(currentMapIconDefineAtom);
 
     const terminate = useCallback(() => {
@@ -170,13 +164,6 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
                 })
             })
         },
-        removeItem(targets: FeatureType[]) {
-            setMapMode(MapMode.Drawing);
-            setController({
-                type: 'remove-item',
-                featureTypes: targets,
-            })
-        },
     }));
 
     if (!controller) {
@@ -206,12 +193,6 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
                     <EditItemController target={controller.featureTypes}
                         iconFunction={controller.iconFunction}
                         onCancel={controller.onCancel} onCommit={controller.onCommit} />
-                </Suspense>
-            )
-        case 'remove-item':
-            return (
-                <Suspense fallback={<LoadingOverlay />}>
-                    <RemoveItemController target={controller.featureTypes} close={terminate} />
                 </Suspense>
             )
         case 'draw-topography':
