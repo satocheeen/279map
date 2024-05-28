@@ -307,12 +307,6 @@ export interface TsunaguMapHandler {
     removeItem(targets: FeatureType[]): void;
 
     /**
-     * start the step of drawing a land, a green field or an area.
-     * 島or緑地orエリアを作成する
-     */
-    drawTopography(dataSourceId: string, featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA):void;
-
-    /**
      * 指定のDataIdに属するコンテンツを取得する
      * @param dataId 
      * @return 指定のDataIdに属するコンテンツ. 属するコンテンツが存在しない場合は、nul

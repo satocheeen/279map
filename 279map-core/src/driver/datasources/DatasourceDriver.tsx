@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from 'react';
 import styles from '../TestMap.module.scss';
 import myStyles from './DatasourceDriver.module.scss';
-import { Auth, DataId, DatasourceLocationKindType, FeatureType, ItemDatasourceVisibleList, MapKind, SystemIconDefine } from '../../entry';
+import { Auth, FeatureType, ItemDatasourceVisibleList, MapKind, SystemIconDefine } from '../../entry';
 import { DriverContext } from '../TestMap';
 import { useWatch } from '../../util/useWatch2';
 import SelectStructureDialog from '../common/SelectStructureDialog';
@@ -114,14 +114,6 @@ export default function DatasourceDriver(props: Props) {
         if (changeMode === 'every')
             setMyItemDatasourcesVisibleList(itemDatasourcesVisibleList);
     }, {immediate: true})
-
-    const temporaryGeoJson = useMemo(() => {
-        try {
-            return JSON.parse(temporaryGeoJsonText) as GeoJSON.Geometry;
-        } catch(e) {
-            return;
-        }
-    }, [temporaryGeoJsonText])
 
     const [ temporaryItemName, setTemporaryItemName ] = useState('');
     // const handleRegistTemporaryItem = useCallback(async() => {
@@ -271,13 +263,13 @@ function DatasourceItem(props: DatasourceItemProp) {
                     <button onClick={()=>handleRegistItem(FeatureType.STRUCTURE)}>{mapKind === MapKind.Real ? 'ピン作成' : '建設'}</button>
                     {mapKind === MapKind.Real ?
                         <>
-                            <button onClick={()=>getMap()?.drawTopography(props.datasourceId, FeatureType.AREA)}>エリア作成</button>
+                            <button onClick={()=>handleRegistItem(FeatureType.AREA)}>エリア作成</button>
                         </>
                         :
                         <>
                             <button onClick={()=>handleRegistItem(FeatureType.ROAD)}>道作成</button>
-                            <button onClick={()=>getMap()?.drawTopography(props.datasourceId, FeatureType.EARTH)}>島作成</button>
-                            <button onClick={()=>getMap()?.drawTopography(props.datasourceId, FeatureType.FOREST)}>緑地作成</button>
+                            <button onClick={()=>handleRegistItem(FeatureType.EARTH)}>島作成</button>
+                            <button onClick={()=>handleRegistItem(FeatureType.FOREST)}>緑地作成</button>
                         </>
                     }
                 </>

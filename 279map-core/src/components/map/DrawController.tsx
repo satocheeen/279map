@@ -29,11 +29,13 @@ type ControllerType = {
     onCommit: (geometry: ItemGeoInfo) => void;
     onCancel: () => void;
 } | {
-    type: 'move-structure';
-} | {
     type: 'draw-topography';
     dataSourceId: string;
     featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA;
+    onCommit: (geometry: ItemGeoInfo) => void;
+    onCancel: () => void;
+} | {
+    type: 'move-structure';
 } | {
     type: 'remove-item' | 'edit-item';
     featureTypes: FeatureType[];
@@ -49,7 +51,6 @@ export type DrawControllerHandler = Pick<TsunaguMapHandler,
     | 'moveStructure'
     | 'editItem'
     | 'removeItem'
-    | 'drawTopography'
     >;
 
 function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler>) {
@@ -95,22 +96,18 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
                             onCancel,
                         })
                         break;
+                    case FeatureType.AREA:
+                    case FeatureType.FOREST:
+                    case FeatureType.EARTH:
+                        setController({
+                            type: 'draw-topography',
+                            dataSourceId: param.datasourceId,
+                            featureType: param.featureType,
+                            onCommit,
+                            onCancel,
+                        })
+                        break;
                 }
-
-                // setController({
-                //     type: 'draw-temporary-feature',
-                //     featureType,
-                //     onCommit(geometry) {
-                //         setController(undefined);
-                //         setMapMode(MapMode.Normal);
-                //         resolve(geometry);
-                //     },
-                //     onCancel() {
-                //         setController(undefined);
-                //         setMapMode(MapMode.Normal);
-                //         resolve(null);
-                //     }
-                // });
             })
         },
 
@@ -135,14 +132,6 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
             setController({
                 type: 'remove-item',
                 featureTypes: targets,
-            })
-        },
-        drawTopography(dataSourceId: string, featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA) {
-            setMapMode(MapMode.Drawing);
-            setController({
-                type: 'draw-topography',
-                dataSourceId,
-                featureType,
             })
         },
     }));
@@ -184,7 +173,8 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
         case 'draw-topography':
             return (
                 <Suspense fallback={<LoadingOverlay />}>
-                    <DrawTopographyController dataSourceId={controller.dataSourceId} drawFeatureType={controller.featureType} close={terminate} />
+                    <DrawTopographyController dataSourceId={controller.dataSourceId} drawFeatureType={controller.featureType}
+                        onCancel={controller.onCancel} onCommit={controller.onCommit} />
                 </Suspense>
             )
         case 'draw-road':

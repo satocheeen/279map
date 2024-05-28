@@ -9,7 +9,6 @@ import RoadWidthSelecter from './RoadWidthSelecter';
 import { extractGeoProperty } from '../../../../util/MapUtility';
 import { useMap } from '../../useMap';
 import { FeatureType } from '../../../../types-common/common-types';
-import useItemProcess from '../../../../store/item/useItemProcess';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { ItemGeoInfo } from '../../../../entry';
 
