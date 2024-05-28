@@ -154,7 +154,7 @@ enum Stage {
             setStage(Stage.EDITING);
         }
 
-    }, [map, icons, props, getItem, isEnableIcon]);
+    }, [map, icons, props, getItem, isEnableIcon, confirm]);
 
     const onCancel = useCallback(() => {
         props.onCancel();

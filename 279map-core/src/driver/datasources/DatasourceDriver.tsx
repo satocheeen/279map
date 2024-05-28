@@ -238,7 +238,7 @@ function DatasourceItem(props: DatasourceItemProp) {
             datasourceId: props.datasourceId,
         });
         addConsole('drawAndRegistItem', result);
-    }, [getMap, props.datasourceId]);
+    }, [getMap, props.datasourceId, addConsole]);
 
     return (
         <div key={props.datasourceId} className={`${props.isChild ? myStyles.Child : ''}`}>
