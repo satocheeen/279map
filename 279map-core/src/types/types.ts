@@ -242,6 +242,7 @@ export interface TsunaguMapHandler {
         icon?: IconKey;
     } | {
         featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA | FeatureType.ROAD;
+        datasourceId: string;
     }): Promise<ItemGeoInfo|null>;
 
     /**
@@ -282,12 +283,6 @@ export interface TsunaguMapHandler {
      * @param id 
      */
     removeData(id: DataId): Promise<void>;
-
-    /**
-     * start the spte of drawing a structure (or a pin).
-     * 建設または地点登録する
-     */
-    drawStructure(dataSourceId: string): void;
 
     /**
      * start the step of moving a structure (or a pin).

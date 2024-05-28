@@ -8,9 +8,10 @@ import PromptMessageBox from '../PromptMessageBox';
 import RoadWidthSelecter from './RoadWidthSelecter';
 import { extractGeoProperty } from '../../../../util/MapUtility';
 import { useMap } from '../../useMap';
-import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
+import { FeatureType } from '../../../../types-common/common-types';
 import useItemProcess from '../../../../store/item/useItemProcess';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
+import { ItemGeoInfo } from '../../../../entry';
 
 enum Stage {
     DRAWING,        // 描画
@@ -19,7 +20,8 @@ enum Stage {
 type Props = {
     /** 親からもらうprops定義 */
     dataSourceId: string;
-    close: () => void;  // 作図完了時のコールバック
+    onCancel: () => void;
+    onCommit: (item: ItemGeoInfo) => void;
 }
 
 /**
@@ -75,11 +77,9 @@ export default function DrawRoadController(props: Props) {
     // 描画中にキャンセルボタンが押された場合
     const onCanceled = useCallback(() => {
         // 描画とりやめ
-        props.close();
-    }, [props]);
-    
+        props.onCancel();
+    }, [props]);    
 
-    const { registData } = useItemProcess();
     const registFeatureFunc = useCallback(async() => {
         if (!drawingFeature.current) {
             console.warn('描画図形なし（想定外）');
@@ -94,19 +94,12 @@ export default function DrawRoadController(props: Props) {
             return;
         }
 
-        // DB登録
-        registData({
-            datasourceId: props.dataSourceId,
-            item: {
-                geo: {
-                    geometry: geoJson.geometry,
-                    geoProperties: geoJson.properties as GeoProperties,
-                }
-            }
+        props.onCommit({
+            geometry: geoJson.geometry,
+            geoProperties,
         });
 
-        props.close();
-    }, [props, registData]);
+    }, [props]);
 
     const onWidthSelected = useCallback(async(feature: Feature) => {
         drawingFeature.current = feature;

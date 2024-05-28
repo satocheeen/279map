@@ -18,7 +18,7 @@ type Props = {
 }
 
 type ControllerType = {
-    type: 'draw-structure';
+    type: 'draw-point';
     dataSourceId: string;
     iconKey?: IconKey;
     onCommit: (geometry: ItemGeoInfo) => void;
@@ -26,6 +26,8 @@ type ControllerType = {
 } | {
     type: 'draw-road';
     dataSourceId: string;
+    onCommit: (geometry: ItemGeoInfo) => void;
+    onCancel: () => void;
 } | {
     type: 'move-structure';
 } | {
@@ -44,7 +46,6 @@ type ControllerType = {
 export type DrawControllerHandler = Pick<TsunaguMapHandler, 
     'drawTemporaryFeature'
     | 'removeData'
-    | 'drawStructure'
     | 'moveStructure'
     | 'editItem'
     | 'removeItem'
@@ -66,23 +67,37 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
         drawTemporaryFeature(param) {
             return new Promise<ItemGeoInfo|null>((resolve) => {
                 setMapMode(MapMode.Drawing);
-                if (param.featureType === FeatureType.STRUCTURE) {
-                    setController({
-                        type: 'draw-structure',
-                        dataSourceId: param.datasourceId,
-                        iconKey: param.icon,
-                        onCommit(geometry) {
-                            setController(undefined);
-                            setMapMode(MapMode.Normal);
-                            resolve(geometry);
-                        },
-                        onCancel() {
-                            setController(undefined);
-                            setMapMode(MapMode.Normal);
-                            resolve(null);
-                        }
-                    })
+
+                const onCommit = (geometry: ItemGeoInfo) => {
+                    setController(undefined);
+                    setMapMode(MapMode.Normal);
+                    resolve(geometry);
+                };
+                const onCancel = () => {
+                    setController(undefined);
+                    setMapMode(MapMode.Normal);
+                    resolve(null);
                 }
+                switch(param.featureType) {
+                    case FeatureType.STRUCTURE:
+                        setController({
+                            type: 'draw-point',
+                            dataSourceId: param.datasourceId,
+                            iconKey: param.icon,
+                            onCommit,
+                            onCancel,
+                        })
+                        break;
+                    case FeatureType.ROAD:
+                        setController({
+                            type: 'draw-road',
+                            dataSourceId: param.datasourceId,
+                            onCommit,
+                            onCancel,
+                        })
+                        break;
+                }
+
                 // setController({
                 //     type: 'draw-temporary-feature',
                 //     featureType,
@@ -102,13 +117,6 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
 
         async removeData(id) {
             await removeItemProcess(id);
-        },
-        drawStructure(dataSourceId: string) {
-            // setMapMode(MapMode.Drawing);
-            // setController({
-            //     type: 'draw-structure',
-            //     dataSourceId,
-            // });
         },
         moveStructure() {
             setMapMode(MapMode.Drawing);
@@ -139,11 +147,11 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
             })
         },
         drawRoad(dataSourceId: string) {
-            setMapMode(MapMode.Drawing);
-            setController({
-                type: 'draw-road',
-                dataSourceId,
-            })
+            // setMapMode(MapMode.Drawing);
+            // setController({
+            //     type: 'draw-road',
+            //     dataSourceId,
+            // })
         },
     }));
 
@@ -152,7 +160,7 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
     }
 
     switch(controller.type) {
-        case 'draw-structure':
+        case 'draw-point':
             return (
                 <Suspense fallback={<LoadingOverlay />}>
                     <DrawPointController dataSourceId={controller.dataSourceId}
@@ -190,7 +198,8 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
         case 'draw-road':
             return (
                 <Suspense fallback={<LoadingOverlay />}>
-                    <DrawRoadController dataSourceId={controller.dataSourceId} close={terminate} />
+                    <DrawRoadController dataSourceId={controller.dataSourceId}
+                        onCancel={controller.onCancel} onCommit={controller.onCommit} />
                 </Suspense>
             )
         case 'draw-temporary-feature':
