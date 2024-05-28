@@ -83,7 +83,7 @@ function TsunaguMapMainFunc(props: TsunaguMapProps, ref: React.ForwardedRef<Tsun
     const contentsSettingControlerRef = useRef<Pick<TsunaguMapHandler, 'showContentsSetting'>>(null);
     const userListControlerRef = useRef<Pick<TsunaguMapHandler, 'showUserList'>>(null);
     const { confirm } = useConfirm();
-    const { removeData} = useItemProcess();
+    const { removeData: removeDataProcess} = useItemProcess();
 
     const [ showTooltipId, setShowTooltipId ] = useState<{[name: string]: string}>({});
     const tooltipContextValue = {
@@ -121,8 +121,12 @@ function TsunaguMapMainFunc(props: TsunaguMapProps, ref: React.ForwardedRef<Tsun
                     }
                     
                     // DB更新
-                    await removeData(item);
+                    await removeDataProcess(item);
             
+                },
+                async removeData(param) {
+                    await removeDataProcess(param);
+                    
                 },
             } as TsunaguMapHandler, 
             drawControllerRef.current,

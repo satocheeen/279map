@@ -44,15 +44,18 @@ type ControllerType = {
 }
 export type DrawControllerHandler = Pick<TsunaguMapHandler, 
     'drawTemporaryFeature'
-    | 'removeData'
     | 'moveItem'
     | 'editItem'
     >;
 
+/**
+ * ユーザに描画させる系の処理コンポーネント。
+ * 各処理において必要なコンポーネントは、遅延読み込みする。
+ */
 function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler>) {
-    const [mapMode, setMapMode] = useAtom(mapModeAtom);
-    const [controller, setController] = useState<ControllerType|undefined>();
-    const { removeData: removeItemProcess, updateItems } = useItemProcess();
+    const [ , setMapMode] = useAtom(mapModeAtom);
+    const [ controller, setController] = useState<ControllerType|undefined>();
+    const { updateItems } = useItemProcess();
     const [ icons ] = useAtom(currentMapIconDefineAtom);
 
     const terminate = useCallback(() => {
@@ -124,9 +127,6 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
             })
         },
 
-        async removeData(id) {
-            await removeItemProcess(id);
-        },
         moveItem() {
             setMapMode(MapMode.Drawing);
             setController({
