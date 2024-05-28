@@ -50,7 +50,6 @@ export type DrawControllerHandler = Pick<TsunaguMapHandler,
     | 'editItem'
     | 'removeItem'
     | 'drawTopography'
-    | 'drawRoad'
     >;
 
 function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler>) {
@@ -145,13 +144,6 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
                 dataSourceId,
                 featureType,
             })
-        },
-        drawRoad(dataSourceId: string) {
-            // setMapMode(MapMode.Drawing);
-            // setController({
-            //     type: 'draw-road',
-            //     dataSourceId,
-            // })
         },
     }));
 

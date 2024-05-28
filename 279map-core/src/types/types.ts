@@ -313,12 +313,6 @@ export interface TsunaguMapHandler {
     drawTopography(dataSourceId: string, featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA):void;
 
     /**
-     * start the step of drawing a road.
-     * 道を作成する
-     */
-    drawRoad(dataSourceId: string): void;
-
-    /**
      * 指定のDataIdに属するコンテンツを取得する
      * @param dataId 
      * @return 指定のDataIdに属するコンテンツ. 属するコンテンツが存在しない場合は、nul
