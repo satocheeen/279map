@@ -4,7 +4,6 @@ import LoadingOverlay from '../common/spinner/LoadingOverlay';
 import { mapModeAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
 import { FeatureType, IconKey } from '../../types-common/common-types';
-import DrawTemporaryFeatureController from './draw-controller/common/DrawTemporaryFeatureController';
 import useItemProcess from '../../store/item/useItemProcess';
 
 const DrawPointController = lazy(() => import('./draw-controller/structure/DrawPointController'));
@@ -39,11 +38,6 @@ type ControllerType = {
 } | {
     type: 'remove-item' | 'edit-item';
     featureTypes: FeatureType[];
-} | {
-    type: 'draw-temporary-feature';
-    featureType: FeatureType;
-    onCommit: (geometry: ItemGeoInfo) => void;
-    onCancel: () => void;
 }
 export type DrawControllerHandler = Pick<TsunaguMapHandler, 
     'drawTemporaryFeature'
@@ -181,14 +175,6 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
             return (
                 <Suspense fallback={<LoadingOverlay />}>
                     <DrawRoadController dataSourceId={controller.dataSourceId}
-                        onCancel={controller.onCancel} onCommit={controller.onCommit} />
-                </Suspense>
-            )
-        case 'draw-temporary-feature':
-            return (
-                <Suspense fallback={<LoadingOverlay />}>
-                    <DrawTemporaryFeatureController
-                        featureType={controller.featureType}
                         onCancel={controller.onCancel} onCommit={controller.onCommit} />
                 </Suspense>
             )
