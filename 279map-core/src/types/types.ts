@@ -358,13 +358,6 @@ export interface TsunaguMapHandler {
     loadImage(param: {imageId: number, size: ThumbSize, refresh?: boolean}): Promise<string>;
 
     /**
-     * コンテンツを削除する
-     */
-    removeContent(param: {
-        id: DataId,
-    }): Promise<void>;
-
-    /**
      * 指定のコンテンツを指定のアイテムまたはコンテンツに子供として紐づける
      * @param param 
      */

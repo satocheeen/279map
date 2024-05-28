@@ -31,7 +31,7 @@ import { useAtomCallback } from 'jotai/utils';
 export type EventControllerHandler = Pick<TsunaguMapHandler, 
     'switchMapKind' | 'focusItem' | 'loadContent' | 'loadImage'
     | 'filter' | 'clearFilter'
-    | 'registData' | 'updateData' | 'removeContent'
+    | 'registData' | 'updateData'
     | 'linkContent' | 'unlinkContent'
     | 'getUnpointDataAPI'
     | 'changeVisibleLayer'
@@ -220,14 +220,6 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 if (result.error) {
                     throw new Error(result.error.message);
                 }
-            }
-        },
-        async removeContent(param) {
-            const result = await gqlClient.mutation(RemoveDataDocument, {
-                id: param.id,
-            });
-            if (result.error) {
-                throw new Error(result.error.message);
             }
         },
         async linkContent(param: Parameters<TsunaguMapHandler['linkContent']>[0]) {
