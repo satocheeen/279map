@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
-import { dataSourceVisibleAtom, itemDatasourcesWithVisibleAtom } from '.';
+import { dataSourceVisibleAtom, itemDataSourcesAtom, itemDatasourcesWithVisibleAtom } from '.';
 import { useAtomCallback } from 'jotai/utils';
+import { DatasourceLocationKindType } from '../../entry';
 
 export type ChangeVisibleLayerTarget = ({
     dataSourceId: string
@@ -48,7 +49,29 @@ export default function useDataSource() {
         }, [])
     )
 
+    /**
+     * 指定のデータソースがアイコン指定可能かどうかを返す
+     */
+    const isEnableIcon = useAtomCallback(
+        useCallback((get, set, datasourceId: string) => {
+            const itemDatasources = get(itemDataSourcesAtom);
+            const targetDatasource = itemDatasources.find(ds => ds.datasourceId === datasourceId);
+            if (!targetDatasource) {
+                return false;
+            }
+            if (targetDatasource?.config.kind === DatasourceLocationKindType.VirtualItem) {
+                return true;
+            }
+            if (targetDatasource?.config.kind === DatasourceLocationKindType.RealItem) {
+                return targetDatasource.config.drawableArea;
+            }
+            return false;
+
+        }, [])
+    );
+
     return {
         updateDatasourceVisible,
+        isEnableIcon,
     }
 }

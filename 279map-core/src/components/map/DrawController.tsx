@@ -1,16 +1,16 @@
 import React, { lazy, Suspense, useCallback, useImperativeHandle, useState } from 'react';
-import { ItemGeoInfo, MapMode, TsunaguMapHandler } from '../../types/types';
+import { ItemGeoInfo, MapMode, SystemIconDefine, TsunaguMapHandler } from '../../types/types';
 import LoadingOverlay from '../common/spinner/LoadingOverlay';
 import { mapModeAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
-import { FeatureType } from '../../types-common/common-types';
-import DrawTemporaryFeatureController from './draw-controller/common/DrawTemporaryFeatureController';
+import { DataId, FeatureType, IconKey } from '../../types-common/common-types';
 import useItemProcess from '../../store/item/useItemProcess';
+import { currentMapIconDefineAtom } from '../../store/icon';
+import useDataSource from '../../store/datasource/useDataSource';
 
-const DrawStructureController = lazy(() => import('./draw-controller/structure/DrawStructureController'));
+const DrawPointController = lazy(() => import('./draw-controller/structure/DrawPointController'));
 const MoveItemController = lazy(() => import('./draw-controller/structure/MoveItemController'));
 const DrawTopographyController = lazy(() => import('./draw-controller/topography/DrawTopographyController'));
-const RemoveItemController = lazy(() => import('./draw-controller/common/RemoveItemController'));
 const DrawRoadController = lazy(() => import('./draw-controller/topography/DrawRoadController'));
 const EditItemController = lazy(() => import('./draw-controller/common/EditItemController'));
 
@@ -18,39 +18,47 @@ type Props = {
 }
 
 type ControllerType = {
-    type: 'draw-structure' | 'draw-road';
+    type: 'draw-point';
     dataSourceId: string;
+    iconKey?: IconKey;
+    onCommit: (geometry: ItemGeoInfo) => void;
+    onCancel: () => void;
 } | {
-    type: 'move-structure';
+    type: 'draw-road';
+    dataSourceId: string;
+    onCommit: (geometry: ItemGeoInfo) => void;
+    onCancel: () => void;
 } | {
     type: 'draw-topography';
     dataSourceId: string;
     featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA;
-} | {
-    type: 'remove-item' | 'edit-item';
-    featureTypes: FeatureType[];
-} | {
-    type: 'draw-temporary-feature';
-    featureType: FeatureType;
     onCommit: (geometry: ItemGeoInfo) => void;
+    onCancel: () => void;
+} | {
+    type: 'move-structure';
+} | {
+    type: 'edit-item';
+    featureTypes: FeatureType[];
+    iconFunction?: (icons: SystemIconDefine[]) => Promise<IconKey|'cancel'>;
+    onCommit: (id: DataId, geometry: ItemGeoInfo) => Promise<void>;
     onCancel: () => void;
 }
 export type DrawControllerHandler = Pick<TsunaguMapHandler, 
     'drawTemporaryFeature'
-    | 'registItemDirectly'
-    | 'removeItemDircetly'
-    | 'drawStructure'
-    | 'moveStructure'
+    | 'moveItem'
     | 'editItem'
-    | 'removeItem'
-    | 'drawTopography'
-    | 'drawRoad'
     >;
 
+/**
+ * ユーザに描画させる系の処理コンポーネント。
+ * 各処理において必要なコンポーネントは、遅延読み込みする。
+ */
 function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler>) {
-    const [mapMode, setMapMode] = useAtom(mapModeAtom);
-    const [controller, setController] = useState<ControllerType|undefined>();
-    const { registItem: registItemProcess, updateItems: updateItemsProcess, removeItem: removeItemProcess } = useItemProcess();
+    const [ , setMapMode] = useAtom(mapModeAtom);
+    const [ controller, setController] = useState<ControllerType|undefined>();
+    const { updateItems } = useItemProcess();
+    const [ icons ] = useAtom(currentMapIconDefineAtom);
+    const { isEnableIcon } = useDataSource();
 
     const terminate = useCallback(() => {
         setController(undefined);
@@ -58,79 +66,106 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
     }, [setMapMode])
 
     useImperativeHandle(ref, () => ({
-        drawTemporaryFeature(featureType: FeatureType) {
-            return new Promise<ItemGeoInfo|null>((resolve) => {
+        drawTemporaryFeature(param) {
+            return new Promise<ItemGeoInfo|null>((resolve, reject) => {
                 setMapMode(MapMode.Drawing);
-                setController({
-                    type: 'draw-temporary-feature',
-                    featureType,
-                    onCommit(geometry) {
-                        setController(undefined);
-                        setMapMode(MapMode.Normal);
-                        resolve(geometry);
-                    },
-                    onCancel() {
-                        setController(undefined);
-                        setMapMode(MapMode.Normal);
-                        resolve(null);
-                    }
-                });
+
+                const onCommit = (geometry: ItemGeoInfo) => {
+                    setController(undefined);
+                    setMapMode(MapMode.Normal);
+                    resolve(geometry);
+                };
+                const onCancel = () => {
+                    setController(undefined);
+                    setMapMode(MapMode.Normal);
+                    resolve(null);
+                }
+                switch(param.featureType) {
+                    case FeatureType.STRUCTURE:
+                        // アイコンを指定可能なデータソースかどうかをチェック
+                        const enableIcon = isEnableIcon(param.datasourceId);
+                        // アイコン指定可能かつiconFunctionが渡されている場合は、ユーザにアイコン指定させる
+                        if (enableIcon && param.iconFunction) {
+                            param.iconFunction(icons).then(result => {
+                                if (result === 'cancel') {
+                                    resolve(null);
+                                    return;
+                                }
+                                setController({
+                                    type: 'draw-point',
+                                    dataSourceId: param.datasourceId,
+                                    iconKey: result,
+                                    onCommit,
+                                    onCancel,
+                                })
+                            })
+                        } else {
+                            setController({
+                                type: 'draw-point',
+                                dataSourceId: param.datasourceId,
+                                onCommit,
+                                onCancel,
+                            })
+                        }
+                        break;
+                    case FeatureType.ROAD:
+                        setController({
+                            type: 'draw-road',
+                            dataSourceId: param.datasourceId,
+                            onCommit,
+                            onCancel,
+                        })
+                        break;
+                    case FeatureType.AREA:
+                    case FeatureType.FOREST:
+                    case FeatureType.EARTH:
+                        setController({
+                            type: 'draw-topography',
+                            dataSourceId: param.datasourceId,
+                            featureType: param.featureType,
+                            onCommit,
+                            onCancel,
+                        })
+                        break;
+                }
             })
         },
-        async registItemDirectly(datasourceId, geo) {
-            const id = await registItemProcess({
-                datasourceId,
-                geometry: geo.geometry,
-                geoProperties: geo.geoProperties,
-            });
-            if (!id) {
-                throw new Error('registItem failed');
-            }
-            return id;
-        },
-        async removeItemDircetly(id) {
-            await removeItemProcess(id);
-        },
-        drawStructure(dataSourceId: string) {
-            setMapMode(MapMode.Drawing);
-            setController({
-                type: 'draw-structure',
-                dataSourceId,
-            });
-        },
-        moveStructure() {
+
+        moveItem() {
             setMapMode(MapMode.Drawing);
             setController({
                 type: 'move-structure',
             })
         },
-        editItem(targets: FeatureType[]) {
-            setMapMode(MapMode.Drawing);
-            setController({
-                type: 'edit-item',
-                featureTypes: targets,
-            })
-        },
-        removeItem(targets: FeatureType[]) {
-            setMapMode(MapMode.Drawing);
-            setController({
-                type: 'remove-item',
-                featureTypes: targets,
-            })
-        },
-        drawTopography(dataSourceId: string, featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA) {
-            setMapMode(MapMode.Drawing);
-            setController({
-                type: 'draw-topography',
-                dataSourceId,
-                featureType,
-            })
-        },
-        drawRoad(dataSourceId: string) {
-            setMapMode(MapMode.Drawing);
-            setController({
-                type: 'draw-road',
-                dataSourceId,
+        editItem(param) {
+            return new Promise<void>((resolve) => {
+                setMapMode(MapMode.Drawing);
+
+                setController({
+                    type: 'edit-item',
+                    featureTypes: param.targets,
+                    iconFunction: param.iconFunction,
+                    onCommit: async(id, geometry) => {
+                        setController(undefined);
+                        setMapMode(MapMode.Normal);
+
+                        await updateItems([
+                            {
+                                id,
+                                geometry: geometry.geometry,
+                                geoProperties: geometry.geoProperties,
+                            }
+                        ])
+
+                        resolve();
+
+                    },
+                    onCancel: () => {
+                        setController(undefined);
+                        setMapMode(MapMode.Normal);
+                        resolve();
+                    },
+                })
             })
         },
     }));
@@ -140,10 +175,12 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
     }
 
     switch(controller.type) {
-        case 'draw-structure':
+        case 'draw-point':
             return (
                 <Suspense fallback={<LoadingOverlay />}>
-                    <DrawStructureController dataSourceId={controller.dataSourceId} close={terminate} />
+                    <DrawPointController dataSourceId={controller.dataSourceId}
+                        iconKey={controller.iconKey}
+                        onCancel={controller.onCancel} onCommit={controller.onCommit} />
                 </Suspense>
             )
         case 'move-structure':
@@ -157,33 +194,22 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
             if (controller)
             return (
                 <Suspense fallback={<LoadingOverlay />}>
-                    {/* <ChangeStructureIconController close={terminate} /> */}
-                    <EditItemController target={controller.featureTypes} close={terminate} />
-                </Suspense>
-            )
-        case 'remove-item':
-            return (
-                <Suspense fallback={<LoadingOverlay />}>
-                    <RemoveItemController target={controller.featureTypes} close={terminate} />
+                    <EditItemController target={controller.featureTypes}
+                        iconFunction={controller.iconFunction}
+                        onCancel={controller.onCancel} onCommit={controller.onCommit} />
                 </Suspense>
             )
         case 'draw-topography':
             return (
                 <Suspense fallback={<LoadingOverlay />}>
-                    <DrawTopographyController dataSourceId={controller.dataSourceId} drawFeatureType={controller.featureType} close={terminate} />
+                    <DrawTopographyController dataSourceId={controller.dataSourceId} drawFeatureType={controller.featureType}
+                        onCancel={controller.onCancel} onCommit={controller.onCommit} />
                 </Suspense>
             )
         case 'draw-road':
             return (
                 <Suspense fallback={<LoadingOverlay />}>
-                    <DrawRoadController dataSourceId={controller.dataSourceId} close={terminate} />
-                </Suspense>
-            )
-        case 'draw-temporary-feature':
-            return (
-                <Suspense fallback={<LoadingOverlay />}>
-                    <DrawTemporaryFeatureController
-                        featureType={controller.featureType}
+                    <DrawRoadController dataSourceId={controller.dataSourceId}
                         onCancel={controller.onCancel} onCommit={controller.onCommit} />
                 </Suspense>
             )

@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Feature } from 'ol';
-import SelectStructureDialog from './SelectStructureDialog';
 import Draw, { DrawEvent } from "ol/interaction/Draw";
 import VectorSource from 'ol/source/Vector';
 import { createGeoJson } from '../../../../util/MapUtility';
@@ -14,27 +13,35 @@ import { useMap } from '../../useMap';
 import { currentMapKindAtom } from '../../../../store/session';
 import { useAtom } from 'jotai';
 import { GeocoderTarget } from '../../../../graphql/generated/graphql';
-import { FeatureType, MapKind, GeoProperties } from '../../../../types-common/common-types';
-import useItemProcess from '../../../../store/item/useItemProcess';
+import { FeatureType, MapKind, GeoProperties, IconKey } from '../../../../types-common/common-types';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
-import { SystemIconDefine } from '../../../../store/icon';
+import { ItemGeoInfo } from '../../../../entry';
+import useIcon from '../../../../store/icon/useIcon';
 
 type Props = {
     dataSourceId: string;   // 作図対象のデータソース
-    close: () => void;  // 作図完了時のコールバック
+    iconKey?: IconKey;  // 指定時、指定のアイコンで描画する。未指定時はデフォルトアイコンを用いる。
+    onCancel: () => void;
+    onCommit: (item: ItemGeoInfo) => void;
 }
 
 enum Stage {
-    SELECTING_FEATURE,
     DRAWING,
     CONFIRM,
-    REGISTING,  // 登録中
 }
 
+/**
+ * Point描画用コントローラ
+ * @param props 
+ * @returns 
+ */
+export default function DrawPointController(props: Props) {
+    const [stage, setStage] = useState(Stage.DRAWING);
+    const { getIconDefine } = useIcon();
+    const drawingIcon = useMemo(() => {
+        return getIconDefine(props.iconKey);
 
-export default function DrawStructureController(props: Props) {
-    const [stage, setStage] = useState(Stage.SELECTING_FEATURE);
-    const drawingIcon = useRef<SystemIconDefine | null>(null);
+    }, [getIconDefine, props.iconKey])
 
     const draw = useRef<null | Draw>(null);
     const drawingFeature = useRef<Feature | undefined>(undefined);  // 描画中のFeature
@@ -91,12 +98,12 @@ export default function DrawStructureController(props: Props) {
      * Drawing開始時の処理
      */
     const startDrawing = useCallback(() => {
-        if (drawingIcon.current === null || !map) {
+        if (!map) {
             return;
         }
         drawReset();
         const type = 'Point';
-        const style = pointStyleHook.getDrawingStructureStyleFunction(drawingIcon.current);
+        const style = pointStyleHook.getDrawingStructureStyleFunction(drawingIcon);
         drawingLayer.current?.setStyle(style);
         drawingFeature.current = undefined;
         map.createDrawingLayer(LayerType.Point, style);
@@ -110,41 +117,30 @@ export default function DrawStructureController(props: Props) {
             onDrawEnd(event.feature);
         });
         setStage(Stage.DRAWING);
-    }, [map, drawReset, onDrawEnd, pointStyleHook])
+    }, [map, drawReset, onDrawEnd, pointStyleHook, drawingIcon])
 
-    const onSelectedStructure = useCallback((iconDefine: SystemIconDefine) => {
-        drawingIcon.current = iconDefine;
+    useEffect(() => {
         startDrawing();
-    }, [startDrawing]);
+    }, [])
 
-    const { registItem } = useItemProcess();
-
-    const registFeatureFunc = useCallback(() => {
+    const handleOk = useCallback(() => {
         if (!drawingFeature.current) {
             console.warn('描画アイテムなし');
             return;
         }
-        setStage(Stage.REGISTING);
         const geoJson = createGeoJson(drawingFeature.current);
 
         const geoProperties = Object.assign({}, geoJson.properties, {
             featureType: FeatureType.STRUCTURE,
-            icon: {
-                type: drawingIcon.current?.type,
-                id: drawingIcon.current?.id,
-            },
+            icon: drawingIcon,
         } as GeoProperties);
 
-        // 登録処理開始
-        registItem({
-            datasourceId: props.dataSourceId,
+        props.onCommit({
             geometry: geoJson.geometry,
             geoProperties,
         });
 
-        props.close();
-
-    }, [props, registItem]);
+    }, [props, drawingIcon]);
 
     const onSelectAddress= useCallback((address: GeoJsonObject) => {
         if (!map) return;
@@ -175,48 +171,39 @@ export default function DrawStructureController(props: Props) {
         }
     }, [startDrawing]);
 
-    const drawingMessage = useMemo(() => {
-        if (mapKind === MapKind.Real) {
-            return '任意の地点をクリックするか、住所を検索してください。';
+    const message = useMemo(() => {
+        if (stage === Stage.DRAWING) {
+            if (mapKind === MapKind.Real) {
+                return '任意の地点をクリックするか、住所を検索してください。';
+            } else {
+                return '任意の地点をクリックしてください。'
+            }
+    
         } else {
-            return '任意の地点をクリックしてください。'
+            return 'この場所でよろしいですか。';
         }
-    }, [mapKind]);
+    }, [stage, mapKind])
 
-    switch(stage) {
-        case Stage.SELECTING_FEATURE:
-            return (
-                <SelectStructureDialog ok={onSelectedStructure} cancel={() => props.close()} />
-            );
+    const cancel = useCallback(() => {
+        if (stage === Stage.DRAWING) {
+            props.onCancel();
+        }
+        onConfirmCancel();
+    }, [stage, onConfirmCancel, props]);
 
-        case Stage.DRAWING:
-        case Stage.CONFIRM:
-            const message = stage === Stage.DRAWING
-                                ? drawingMessage
-                                : 'この場所でよろしいですか。';
-            const ok = stage === Stage.DRAWING
-                                ? undefined
-                                : registFeatureFunc;
-            const cancel = stage === Stage.DRAWING
-                                ? props.close
-                                : onConfirmCancel;
-            return (
-                <PromptMessageBox 
-                    message={message} 
-                    ok={ok}
-                    cancel={cancel}>
-                        {mapKind === MapKind.Real &&
-                            <SearchAddress
-                                ref={searchAddressRef}
-                                onAddress={onSelectAddress}
-                                searchTarget={[GeocoderTarget.Point]}
-                                disabled={stage === Stage.CONFIRM} />
-                        }
-                </PromptMessageBox>
-            );
-        
-        default:
-            console.log('current stage', stage);
-            return null;
-    }
+    return (
+        <PromptMessageBox 
+            message={message} 
+            ok={handleOk}
+            cancel={cancel}>
+                {mapKind === MapKind.Real &&
+                    <SearchAddress
+                        ref={searchAddressRef}
+                        onAddress={onSelectAddress}
+                        searchTarget={[GeocoderTarget.Point]}
+                        disabled={stage === Stage.CONFIRM} />
+                }
+        </PromptMessageBox>
+    );
+
 }

@@ -4,6 +4,8 @@ import styles from '../TestMap.module.scss';
 import { FeatureType, MapKind } from '../../entry';
 import myStyles from './ItemController.module.scss';
 import { useWatch } from '../../util/useWatch2';
+import SelectStructureDialog, { SelectStructureDialogParams, SelectStructureDialogResult } from '../common/SelectStructureDialog';
+import { ModalHandler } from '../common/useModal';
 
 type Props = {
 }
@@ -87,6 +89,7 @@ export default function ItemController(props: Props) {
 function EditRemoveItemDriver() {
     const { getMap, mapKind, addConsole } = useContext(DriverContext);
     const [ targets, setTargets ] = useState<FeatureType[]>([]);
+    const selectIconDialogRef = useRef<ModalHandler<SelectStructureDialogParams, SelectStructureDialogResult>>(null);
 
     useWatch(mapKind, () => {
         setTargets([])
@@ -102,7 +105,18 @@ function EditRemoveItemDriver() {
 
     const handleEditItem = useCallback(() => {
         try {
-            getMap()?.editItem(targets);
+            getMap()?.editItem({
+                targets,
+                async iconFunction(icons) {
+                    // ピン選択ダイアログ表示
+                    if (!selectIconDialogRef.current) return 'cancel';
+                    const result = await selectIconDialogRef.current.show({
+                        icons,
+                    });
+                    if (result === null) return 'cancel';
+                    return result;
+                }
+            });
         } catch(e) {
             addConsole('editItem failed.', e);
         }
@@ -110,7 +124,7 @@ function EditRemoveItemDriver() {
 
     const handleRemoveItem = useCallback(() => {
         try {
-            getMap()?.removeItem(targets);
+            getMap()?.removeDataByUser(targets);
         } catch(e) {
             addConsole('removeItem failed.', e);
         }
@@ -145,6 +159,7 @@ function EditRemoveItemDriver() {
                 <button onClick={handleEditItem}>Edit Item</button>
                 <button onClick={handleRemoveItem}>Remove Item</button>
             </div>
+            <SelectStructureDialog ref={selectIconDialogRef} />
         </div>
     )
 }

@@ -1,12 +1,20 @@
 import { Auth, CategoryDefine, Condition, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, MapDefine, GetItemsQuery, ThumbSize } from "../graphql/generated/graphql";
 import { ChangeVisibleLayerTarget } from "../store/datasource/useDataSource";
-import { IconDefine, MapKind, ContentValueMap, DataId, FeatureType, GeoProperties } from "../types-common/common-types";
+import { IconDefine, MapKind, ContentValueMap, DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
 import { OperationResult } from "urql";
+
+/**
+ * 現在の地図で使用可能なアイコン定義
+ */
+export type SystemIconDefine = Omit<IconDefine, 'useMaps'> & {
+    type: IconKey['type'];
+    originalSvgData?: string;
+}
 
 export type OnConnectParam = {
     authLv: Auth;
     userName: string | undefined;
-    mapDefine: MapDefine;
+    mapDefine: Omit<MapDefine, '__typename' | 'originalIcons'>;
 };
 export type OnConnectResult = {
     /**
@@ -18,6 +26,8 @@ export type OnConnectResult = {
 
 export type OnMapLoadParam = {
     mapKind: MapKind;
+    // 使用可能なアイコン
+    icons: SystemIconDefine[];
     // 当該地図で使用可能なデータソース一覧
     itemDatasources: ItemDatasourceInfo[];
     contentDatasources: ContentDatasourceInfo[];
@@ -222,20 +232,62 @@ export interface TsunaguMapHandler {
     clearFilter(): void;
 
     /**
-     * ユーザにアイテム描画してもらい、描画されたジオメトリを返す。
-     * @param featureType 
-     * @return 一時描画したジオメトリ。ユーザによりキャンセルされた場合は、null
+     * ユーザにアイテム描画してもらい、描画されたジオメトリを登録する。
+     * @param featureType 表示中の地図種別に合わないものを指定した場合は何も実施しない
+     * @return ユーザによりキャンセルされた場合は、false
      */
-    drawTemporaryFeature(featureType: FeatureType): Promise<ItemGeoInfo|null>;
+    drawAndRegistItem(param: {
+        featureType: FeatureType.STRUCTURE;
+        datasourceId: string;
+        /**
+         * アイコンを指定可能なデータソースの場合、このfunctionが呼び出され、
+         * 戻り値で返されたアイコンが描画に用いられる
+         * @param icons 地図で使用可能なアイコン一覧
+         * @returns 描画に用いるアイコン. 'cancel'の場合、後続処理中断。
+         */
+        iconFunction?: (icons: SystemIconDefine[]) => Promise<IconKey|'cancel'>;
+    } | {
+        featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA | FeatureType.ROAD;
+        datasourceId: string;
+    }): Promise<boolean>;
 
     /**
-     * 指定の図形でアイテム登録する.
-     * @param datasourceId 
-     * @param geo 図形 
-     * @return 登録したアイテムID
+     * ユーザにアイテム描画してもらい、描画されたジオメトリを返す。
+     * @param featureType 表示中の地図種別に合わないものを指定した場合は何も実施しない
+     * @return 一時描画したジオメトリ。ユーザによりキャンセルされた場合は、null
      */
-    registItemDirectly(datasourceId: string, geo: ItemGeoInfo): Promise<DataId>;
+    drawTemporaryFeature(param: {
+        featureType: FeatureType.STRUCTURE;
+        datasourceId: string;
+        /**
+         * アイコンを指定可能なデータソースの場合、このfunctionが呼び出され、
+         * 戻り値で返されたアイコンが描画に用いられる
+         * @param icons 地図で使用可能なアイコン一覧
+         * @returns 描画に用いるアイコン. 'cancel'の場合、後続処理中断。
+         */
+        iconFunction?: (icons: SystemIconDefine[]) => Promise<IconKey|'cancel'>;
+    } | {
+        featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA | FeatureType.ROAD;
+        datasourceId: string;
+    }): Promise<ItemGeoInfo|null>;
 
+    /**
+     * 指定の値でデータ登録する.
+     * @param geo 図形 
+     * @param values コンテンツデータ
+     */
+    registData(param: {
+        datasourceId: string,
+        item?: {
+            geo: ItemGeoInfo,
+        },
+        contents?: {
+            values: ContentValueMap,
+        }
+        // 指定した場合は、指定先のparentの子として紐づける
+        parent?: DataId,
+    }): Promise<DataId>;
+    
     /**
      * 指定の値でデータ更新する.
      * @param key 更新対象データ。originalId指定時は、キャッシュDBに未登録時にはキャッシュDBに新規登録される。
@@ -253,22 +305,16 @@ export interface TsunaguMapHandler {
     }): Promise<void>;
 
     /**
-     * 指定のアイテムを削除する
+     * 指定のデータを削除する
      * @param id 
      */
-    removeItemDircetly(id: DataId): Promise<void>;
-
-    /**
-     * start the spte of drawing a structure (or a pin).
-     * 建設または地点登録する
-     */
-    drawStructure(dataSourceId: string): void;
+    removeData(id: DataId): Promise<void>;
 
     /**
      * start the step of moving a structure (or a pin).
      * 移築または地点移動する
      */
-    moveStructure(): void;
+    moveItem(): void;
 
     /**
      * start the step of modifying a topography or changing a structure's icon.
@@ -277,26 +323,24 @@ export interface TsunaguMapHandler {
      * 対象がピンor建物の場合 -> 建物変更
      * @param targets 編集可能対象
      */
-    editItem(targets: FeatureType[]): void;
+    editItem(param: {
+        targets: FeatureType[]
+        /**
+         * 編集対象としてFeatureType.STRUCTUREが指定され、
+         * かつ、アイコンを指定可能なデータソースの場合、このfunctionが呼び出され、
+         * 戻り値で返されたアイコンが描画に用いられる
+         * @param icons 地図で使用可能なアイコン一覧
+         * @returns 描画に用いるアイコン. 'cancel'の場合、後続処理中断。
+         */
+        iconFunction?: (icons: SystemIconDefine[]) => Promise<IconKey|'cancel'>;
+    }): Promise<void>;
 
     /**
      * start the step of removing an item.
-     * アイテム（建物、地形）を削除する
+     * ユーザにアイテム（建物、地形）を選択させて、データを削除する
      * @param targets 削除可能対象
      */
-    removeItem(targets: FeatureType[]): void;
-
-    /**
-     * start the step of drawing a land, a green field or an area.
-     * 島or緑地orエリアを作成する
-     */
-    drawTopography(dataSourceId: string, featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA):void;
-
-    /**
-     * start the step of drawing a road.
-     * 道を作成する
-     */
-    drawRoad(dataSourceId: string): void;
+    removeDataByUser(targets: FeatureType[]): Promise<void>;
 
     /**
      * 指定のDataIdに属するコンテンツを取得する
@@ -312,25 +356,6 @@ export interface TsunaguMapHandler {
      * @param refresh trueの場合、キャッシュを用いずに最新ロードする
      */
     loadImage(param: {imageId: number, size: ThumbSize, refresh?: boolean}): Promise<string>;
-
-    /**
-     * コンテンツを新規登録する
-     */
-    registContent(param: {
-        datasourceId: string,
-        parent: {
-            type: 'item' | 'content',
-            id: DataId,
-        },
-        values: ContentValueMap,
-    }): Promise<void>;
-
-    /**
-     * コンテンツを削除する
-     */
-    removeContent(param: {
-        id: DataId,
-    }): Promise<void>;
 
     /**
      * 指定のコンテンツを指定のアイテムまたはコンテンツに子供として紐づける

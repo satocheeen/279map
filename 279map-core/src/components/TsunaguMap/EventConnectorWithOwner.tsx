@@ -31,7 +31,7 @@ import { useAtomCallback } from 'jotai/utils';
 export type EventControllerHandler = Pick<TsunaguMapHandler, 
     'switchMapKind' | 'focusItem' | 'loadContent' | 'loadImage'
     | 'filter' | 'clearFilter'
-    | 'registContent' | 'updateData' | 'removeContent'
+    | 'registData' | 'updateData'
     | 'linkContent' | 'unlinkContent'
     | 'getUnpointDataAPI'
     | 'changeVisibleLayer'
@@ -88,7 +88,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         return 0;
     }, [mapDefine, contentDatasources]);
 
-    const { updateItems } = useItemProcess();
+    const { registData: registDataProcess } = useItemProcess();
 
     useImperativeHandle(ref, () => ({
         switchMapKind: loadMap,
@@ -194,25 +194,11 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 throw err;
             }
         },
-        async registContent(param) {
-            try {
-                const result = await gqlClient.mutation(RegistDataDocument, {
-                    datasourceId: param.datasourceId,
-                    contents: param.values,
-                    linkItems: [param.parent.id]
-                });
-                if (result.error) {
-                    throw new Error(result.error.message);
-                }
-                const contentId = result.data?.registData;
-                if (!contentId) {
-                    throw new Error('regist content failed');
-                }
 
-            } catch(e) {
-                throw new Error('registContent failed.' + e);
-            }
+        async registData(param) {
+            return await registDataProcess(param);
         },
+        
         async updateData(param) {
             if (param.key.type === 'dataId') {
                 const result = await gqlClient.mutation(UpdateDataDocument, {
@@ -234,14 +220,6 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 if (result.error) {
                     throw new Error(result.error.message);
                 }
-            }
-        },
-        async removeContent(param) {
-            const result = await gqlClient.mutation(RemoveDataDocument, {
-                id: param.id,
-            });
-            if (result.error) {
-                throw new Error(result.error.message);
             }
         },
         async linkContent(param: Parameters<TsunaguMapHandler['linkContent']>[0]) {

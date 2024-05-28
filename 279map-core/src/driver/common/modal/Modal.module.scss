@@ -1,0 +1,49 @@
+@import '../../../styles/global.scss';
+
+// showModalによって表示したものは:modalが使える
+.Dialog:modal {
+    border:0;
+    border-radius: 5px;
+
+    animation: fadeIn .5s;
+
+    width: 40vw;
+    color: var(--black);
+
+    &.Close {
+        animation: fadeOut .3s forwards;
+    }
+}
+// 背景オーバーレイ
+.Dialog::backdrop {
+    background-color: rgba(0,0,0,.32);
+    animation: fadeIn .5s;
+}
+.Dialog.Close::backdrop {
+    animation: fadeOut .3s forwards;
+}
+.Header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 120%;
+    border-bottom: 1px solid $dark-012;
+}
+.Body {
+    padding: 1rem;
+}
+@media screen and (max-width: 600px) {
+    .Dialog:modal {
+        width: 80vw;
+    }
+}
+.Footer {
+    text-align: right;
+
+    button {
+        margin-left: 5px;
+        min-width: 7rem;
+    }
+}
+.Close {
+    cursor: pointer;
+}

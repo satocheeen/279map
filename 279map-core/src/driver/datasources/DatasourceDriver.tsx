@@ -1,9 +1,11 @@
-import React, { useCallback, useContext, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import styles from '../TestMap.module.scss';
 import myStyles from './DatasourceDriver.module.scss';
-import { Auth, DataId, DatasourceLocationKindType, FeatureType, ItemDatasourceVisibleList, MapKind } from '../../entry';
+import { Auth, FeatureType, ItemDatasourceVisibleList, MapKind } from '../../entry';
 import { DriverContext } from '../TestMap';
 import { useWatch } from '../../util/useWatch2';
+import SelectStructureDialog, { SelectStructureDialogParams, SelectStructureDialogResult } from '../common/SelectStructureDialog';
+import { ModalHandler } from '../common/useModal';
 
 type Props = {
 }
@@ -114,14 +116,6 @@ export default function DatasourceDriver(props: Props) {
             setMyItemDatasourcesVisibleList(itemDatasourcesVisibleList);
     }, {immediate: true})
 
-    const temporaryGeoJson = useMemo(() => {
-        try {
-            return JSON.parse(temporaryGeoJsonText) as GeoJSON.Geometry;
-        } catch(e) {
-            return;
-        }
-    }, [temporaryGeoJsonText])
-
     const [ temporaryItemName, setTemporaryItemName ] = useState('');
     // const handleRegistTemporaryItem = useCallback(async() => {
     //     try {
@@ -207,6 +201,7 @@ type DatasourceItemProp = {
 }
 function DatasourceItem(props: DatasourceItemProp) {
     const { itemDatasources, authLv, getMap, mapKind, addConsole } = useContext(DriverContext);
+    const selectIconDialogRef = useRef<ModalHandler<SelectStructureDialogParams, SelectStructureDialogResult>>(null);
 
     const targetDatasource = useMemo(() => {
         return itemDatasources.find(ids => ids.datasourceId === props.datasourceId);
@@ -216,27 +211,59 @@ function DatasourceItem(props: DatasourceItemProp) {
         return targetDatasource?.name;
     }, [targetDatasource]);
 
+    const handleRegistItem = useCallback(async(featureType: FeatureType) => {
+        if (featureType === FeatureType.STRUCTURE) {
+            const result = await getMap()?.drawAndRegistItem({
+                featureType: FeatureType.STRUCTURE,
+                datasourceId: props.datasourceId,
+                async iconFunction(icons) {
+                    // ピン選択ダイアログ表示
+                    if (!selectIconDialogRef.current) return 'cancel';
+                    const result = await selectIconDialogRef.current.show({
+                        icons,
+                    });
+                    if (result === null) return 'cancel';
+                    return result;
+                }
+            })
+            addConsole('drawAndRegistItem', result);
+    
+            return;
+        }
+        if (featureType === FeatureType.TRACK) {
+            return;
+        }
+        const result = await getMap()?.drawAndRegistItem({
+            featureType,
+            datasourceId: props.datasourceId,
+        });
+        addConsole('drawAndRegistItem', result);
+    }, [getMap, props.datasourceId, addConsole]);
+
     return (
-        <label key={props.datasourceId} className={`${props.isChild ? myStyles.Child : ''}`}>
-            <input type="checkbox" checked={props.visible} onChange={(evt) => props.onChangeVisible(evt.target.checked)} />
-            {name}
+        <div key={props.datasourceId} className={`${props.isChild ? myStyles.Child : ''}`}>
+            <label>
+                <input type="checkbox" checked={props.visible} onChange={(evt) => props.onChangeVisible(evt.target.checked)} />
+                {name}
+            </label>
             {(authLv !== Auth.View) &&
                 <>
-                    <button onClick={()=>getMap()?.drawStructure(props.datasourceId)}>建設</button>
+                    <button onClick={()=>handleRegistItem(FeatureType.STRUCTURE)}>{mapKind === MapKind.Real ? 'ピン作成' : '建設'}</button>
                     {mapKind === MapKind.Real ?
                         <>
-                            <button onClick={()=>getMap()?.drawTopography(props.datasourceId, FeatureType.AREA)}>エリア作成</button>
+                            <button onClick={()=>handleRegistItem(FeatureType.AREA)}>エリア作成</button>
                         </>
                         :
                         <>
-                            <button onClick={()=>getMap()?.drawRoad(props.datasourceId)}>道作成</button>
-                            <button onClick={()=>getMap()?.drawTopography(props.datasourceId, FeatureType.EARTH)}>島作成</button>
-                            <button onClick={()=>getMap()?.drawTopography(props.datasourceId, FeatureType.FOREST)}>緑地作成</button>
+                            <button onClick={()=>handleRegistItem(FeatureType.ROAD)}>道作成</button>
+                            <button onClick={()=>handleRegistItem(FeatureType.EARTH)}>島作成</button>
+                            <button onClick={()=>handleRegistItem(FeatureType.FOREST)}>緑地作成</button>
                         </>
                     }
                 </>
             }
-        </label>
+            <SelectStructureDialog ref={selectIconDialogRef} />
+        </div>
     )
 
 

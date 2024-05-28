@@ -8,12 +8,13 @@ import { DrawFreeArea } from './DrawFreeArea';
 import { Geometry } from 'ol/geom';
 import { Feature } from 'ol';
 import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
-import useItemProcess from '../../../../store/item/useItemProcess';
+import { ItemGeoInfo } from '../../../../entry';
 
 type Props = {
     dataSourceId: string;
     drawFeatureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA;
-    close: () => void;  // 作図完了時のコールバック
+    onCancel: () => void;
+    onCommit: (item: ItemGeoInfo) => void;
 }
 
 // 描画状況
@@ -36,27 +37,23 @@ export default function DrawTopographyController(props: Props) {
 
     const [geometryType, setGeometryType] = useState('Polygon');
 
-    const { registItem } = useItemProcess();
-
     const registFeatureFunc = useCallback(async(feature: Feature<Geometry>) => {
         // DB登録
-        // const feature = map.getDrawingLayer().getSource()?.getFeatures()[0];
         if (!feature) {
             console.warn('feature not find.')
         } else {
             const geoJson = MapUtility.createGeoJson(feature);
 
-            registItem({
-                datasourceId: props.dataSourceId,
+            props.onCommit({
                 geometry: geoJson.geometry,
                 geoProperties: Object.assign({}, geoJson.properties, {
                     featureType: props.drawFeatureType,
                 } as GeoProperties),
-            });
+           });
+    
         }
 
-        props.close();
-    }, [props, registItem]);
+    }, [props]);
 
     // 描画図形選択後
     const onSelectDrawFeatureType = useCallback((selected: DrawFeatureType) => {
@@ -80,7 +77,7 @@ export default function DrawTopographyController(props: Props) {
     
 
     const onSelectFeatureCanceled = () => {
-        props.close();
+        props.onCancel();
     }
 
     const onDrawCanceled = useCallback(() => {
