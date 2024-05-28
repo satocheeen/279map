@@ -12,13 +12,15 @@ import RoadWidthSelecter from '../topography/RoadWidthSelecter';
 import { Geometry } from 'ol/geom';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useMap } from '../../useMap';
-import { ConfirmResult } from '../../../common/confirm/types';
+import { ConfirmBtnPattern, ConfirmResult } from '../../../common/confirm/types';
 import { DataId, FeatureType, GeoProperties, IconKey } from '../../../../types-common/common-types';
 import useItemProcess from '../../../../store/item/useItemProcess';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { ItemGeoInfo, SystemIconDefine } from '../../../../entry';
 import { useAtom } from 'jotai';
 import { currentMapIconDefineAtom } from '../../../../store/icon';
+import useDataSource from '../../../../store/datasource/useDataSource';
+import { useItems } from '../../../../store/item/useItems';
 
 type Props = {
     target: FeatureType[];
@@ -61,6 +63,8 @@ enum Stage {
     const modifySource = useRef<VectorSource|null>();
     const modify = useRef<Modify>();
     const [ icons ] = useAtom(currentMapIconDefineAtom);
+    const { isEnableIcon } = useDataSource();
+    const { getItem } = useItems();
 
     /**
      * 初期化
@@ -91,6 +95,7 @@ enum Stage {
     
     }, [map, getStyleFunction]);
 
+    const { confirm } = useConfirm();
     const onSelectFeature = useCallback(async(feature: Feature<Geometry>) => {
         selectedFeature.current = feature;
 
@@ -102,6 +107,20 @@ enum Stage {
                 props.onCancel();
                 return;
             }
+            const id = convertDataIdFromFeatureId(selectedFeature.current.getId() as string);
+            const item = getItem(id);
+            if (!item) {
+                console.warn('illegal item', id);
+                return;
+            }
+            const enableIcon = isEnableIcon(item.datasourceId);
+            if (!enableIcon) {
+                confirm({
+                    message: 'このピンのアイコンは編集できません',
+                    btnPattern: ConfirmBtnPattern.OkOnly,
+                })
+                return;
+            }
             const result = await props.iconFunction(icons);
             if (result === 'cancel') {
                 props.onCancel();
@@ -109,7 +128,6 @@ enum Stage {
             }
 
             const geoJson = createGeoJson(selectedFeature.current);
-            const id = convertDataIdFromFeatureId(selectedFeature.current.getId() as string);
 
             props.onCommit(id, {
                 geometry: geoJson.geometry,
@@ -136,7 +154,7 @@ enum Stage {
             setStage(Stage.EDITING);
         }
 
-    }, [map, icons, props]);
+    }, [map, icons, props, getItem, isEnableIcon]);
 
     const onCancel = useCallback(() => {
         props.onCancel();

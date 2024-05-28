@@ -3,10 +3,10 @@ import { ItemGeoInfo, MapMode, SystemIconDefine, TsunaguMapHandler } from '../..
 import LoadingOverlay from '../common/spinner/LoadingOverlay';
 import { mapModeAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
-import { DataId, DatasourceLocationKindType, FeatureType, IconKey } from '../../types-common/common-types';
+import { DataId, FeatureType, IconKey } from '../../types-common/common-types';
 import useItemProcess from '../../store/item/useItemProcess';
 import { currentMapIconDefineAtom } from '../../store/icon';
-import { itemDataSourcesAtom } from '../../store/datasource';
+import useDataSource from '../../store/datasource/useDataSource';
 
 const DrawPointController = lazy(() => import('./draw-controller/structure/DrawPointController'));
 const MoveItemController = lazy(() => import('./draw-controller/structure/MoveItemController'));
@@ -58,7 +58,7 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
     const [ controller, setController] = useState<ControllerType|undefined>();
     const { updateItems } = useItemProcess();
     const [ icons ] = useAtom(currentMapIconDefineAtom);
-    const [ itemDatasources ] = useAtom(itemDataSourcesAtom);
+    const { isEnableIcon } = useDataSource();
 
     const terminate = useCallback(() => {
         setController(undefined);
@@ -68,10 +68,6 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
     useImperativeHandle(ref, () => ({
         drawTemporaryFeature(param) {
             return new Promise<ItemGeoInfo|null>((resolve, reject) => {
-                const targetDatasource = itemDatasources.find(ds => ds.datasourceId === param.datasourceId);
-                if (!targetDatasource) {
-                    reject('illegal datasourceId.' + param.datasourceId);
-                }
                 setMapMode(MapMode.Drawing);
 
                 const onCommit = (geometry: ItemGeoInfo) => {
@@ -87,15 +83,7 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
                 switch(param.featureType) {
                     case FeatureType.STRUCTURE:
                         // アイコンを指定可能なデータソースかどうかをチェック
-                        const enableIcon = function() {
-                            if (targetDatasource?.config.kind === DatasourceLocationKindType.VirtualItem) {
-                                return true;
-                            }
-                            if (targetDatasource?.config.kind === DatasourceLocationKindType.RealItem) {
-                                return targetDatasource.config.drawableArea;
-                            }
-                            return false;
-                        }();
+                        const enableIcon = isEnableIcon(param.datasourceId);
                         // アイコン指定可能かつiconFunctionが渡されている場合は、ユーザにアイコン指定させる
                         if (enableIcon && param.iconFunction) {
                             param.iconFunction(icons).then(result => {
