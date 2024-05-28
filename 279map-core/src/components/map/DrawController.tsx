@@ -5,6 +5,7 @@ import { mapModeAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
 import { FeatureType, IconKey } from '../../types-common/common-types';
 import useItemProcess from '../../store/item/useItemProcess';
+import { currentMapIconDefineAtom } from '../../store/icon';
 
 const DrawPointController = lazy(() => import('./draw-controller/structure/DrawPointController'));
 const MoveItemController = lazy(() => import('./draw-controller/structure/MoveItemController'));
@@ -51,6 +52,7 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
     const [mapMode, setMapMode] = useAtom(mapModeAtom);
     const [controller, setController] = useState<ControllerType|undefined>();
     const { removeItem: removeItemProcess } = useItemProcess();
+    const [ icons ] = useAtom(currentMapIconDefineAtom);
 
     const terminate = useCallback(() => {
         setController(undefined);
@@ -74,13 +76,29 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
                 }
                 switch(param.featureType) {
                     case FeatureType.STRUCTURE:
-                        setController({
-                            type: 'draw-point',
-                            dataSourceId: param.datasourceId,
-                            iconKey: param.icon,
-                            onCommit,
-                            onCancel,
-                        })
+                        // TODO: アイコンを指定可能なデータソースかどうかをチェック
+                        if (param.iconFunction) {
+                            param.iconFunction(icons).then(result => {
+                                if (result === 'cancel') {
+                                    resolve(null);
+                                    return;
+                                }
+                                setController({
+                                    type: 'draw-point',
+                                    dataSourceId: param.datasourceId,
+                                    iconKey: result,
+                                    onCommit,
+                                    onCancel,
+                                })
+                            })
+                        } else {
+                            setController({
+                                type: 'draw-point',
+                                dataSourceId: param.datasourceId,
+                                onCommit,
+                                onCancel,
+                            })
+                        }
                         break;
                     case FeatureType.ROAD:
                         setController({

@@ -239,7 +239,13 @@ export interface TsunaguMapHandler {
     drawTemporaryFeature(param: {
         featureType: FeatureType.STRUCTURE;
         datasourceId: string;
-        icon?: IconKey;
+        /**
+         * アイコンを指定可能なデータソースの場合、このfunctionが呼び出され、
+         * 戻り値で返されたアイコンが描画に用いられる
+         * @param icons 地図で使用可能なアイコン一覧
+         * @returns 描画に用いるアイコン. 'cancel'の場合、後続処理中断。
+         */
+        iconFunction?: (icons: SystemIconDefine[]) => Promise<IconKey|'cancel'>;
     } | {
         featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA | FeatureType.ROAD;
         datasourceId: string;
