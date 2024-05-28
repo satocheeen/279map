@@ -200,7 +200,7 @@ type DatasourceItemProp = {
     onChangeVisible: (visible: boolean) => void;
 }
 function DatasourceItem(props: DatasourceItemProp) {
-    const { itemDatasources, authLv, getMap, mapKind, icons } = useContext(DriverContext);
+    const { itemDatasources, authLv, getMap, mapKind } = useContext(DriverContext);
     const selectIconDialogRef = useRef<ModalHandler<SelectStructureDialogParams, SelectStructureDialogResult>>(null);
 
     const targetDatasource = useMemo(() => {

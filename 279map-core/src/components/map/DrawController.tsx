@@ -1,11 +1,12 @@
 import React, { lazy, Suspense, useCallback, useImperativeHandle, useState } from 'react';
-import { ItemGeoInfo, MapMode, TsunaguMapHandler } from '../../types/types';
+import { ItemGeoInfo, MapMode, SystemIconDefine, TsunaguMapHandler } from '../../types/types';
 import LoadingOverlay from '../common/spinner/LoadingOverlay';
 import { mapModeAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
-import { FeatureType, IconKey } from '../../types-common/common-types';
+import { DataId, FeatureType, IconKey } from '../../types-common/common-types';
 import useItemProcess from '../../store/item/useItemProcess';
 import { currentMapIconDefineAtom } from '../../store/icon';
+import { geometry } from '@turf/turf';
 
 const DrawPointController = lazy(() => import('./draw-controller/structure/DrawPointController'));
 const MoveItemController = lazy(() => import('./draw-controller/structure/MoveItemController'));
@@ -37,7 +38,13 @@ type ControllerType = {
 } | {
     type: 'move-structure';
 } | {
-    type: 'remove-item' | 'edit-item';
+    type: 'edit-item';
+    featureTypes: FeatureType[];
+    iconFunction?: (icons: SystemIconDefine[]) => Promise<IconKey|'cancel'>;
+    onCommit: (id: DataId, geometry: ItemGeoInfo) => Promise<void>;
+    onCancel: () => void;
+} | {
+    type: 'remove-item';
     featureTypes: FeatureType[];
 }
 export type DrawControllerHandler = Pick<TsunaguMapHandler, 
@@ -51,7 +58,7 @@ export type DrawControllerHandler = Pick<TsunaguMapHandler,
 function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler>) {
     const [mapMode, setMapMode] = useAtom(mapModeAtom);
     const [controller, setController] = useState<ControllerType|undefined>();
-    const { removeItem: removeItemProcess } = useItemProcess();
+    const { removeItem: removeItemProcess, updateItems } = useItemProcess();
     const [ icons ] = useAtom(currentMapIconDefineAtom);
 
     const terminate = useCallback(() => {
@@ -132,11 +139,35 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
                 type: 'move-structure',
             })
         },
-        editItem(targets: FeatureType[]) {
-            setMapMode(MapMode.Drawing);
-            setController({
-                type: 'edit-item',
-                featureTypes: targets,
+        editItem(param) {
+            return new Promise<void>((resolve) => {
+                setMapMode(MapMode.Drawing);
+
+                setController({
+                    type: 'edit-item',
+                    featureTypes: param.targets,
+                    iconFunction: param.iconFunction,
+                    onCommit: async(id, geometry) => {
+                        setController(undefined);
+                        setMapMode(MapMode.Normal);
+
+                        await updateItems([
+                            {
+                                id,
+                                geometry: geometry.geometry,
+                                geoProperties: geometry.geoProperties,
+                            }
+                        ])
+
+                        resolve();
+
+                    },
+                    onCancel: () => {
+                        setController(undefined);
+                        setMapMode(MapMode.Normal);
+                        resolve();
+                    },
+                })
             })
         },
         removeItem(targets: FeatureType[]) {
@@ -172,8 +203,9 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
             if (controller)
             return (
                 <Suspense fallback={<LoadingOverlay />}>
-                    {/* <ChangeStructureIconController close={terminate} /> */}
-                    <EditItemController target={controller.featureTypes} close={terminate} />
+                    <EditItemController target={controller.featureTypes}
+                        iconFunction={controller.iconFunction}
+                        onCancel={controller.onCancel} onCommit={controller.onCommit} />
                 </Suspense>
             )
         case 'remove-item':

@@ -13,22 +13,36 @@ import { Geometry } from 'ol/geom';
 import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useMap } from '../../useMap';
 import { ConfirmResult } from '../../../common/confirm/types';
-import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
+import { DataId, FeatureType, GeoProperties, IconKey } from '../../../../types-common/common-types';
 import useItemProcess from '../../../../store/item/useItemProcess';
-import SelectStructureDialog from '../structure/SelectStructureDialog';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
-import { SystemIconDefine } from '../../../../entry';
+import { ItemGeoInfo, SystemIconDefine } from '../../../../entry';
+import { useAtom } from 'jotai';
+import { currentMapIconDefineAtom } from '../../../../store/icon';
 
 type Props = {
     target: FeatureType[];
-    close: () => void;  // 作図完了時のコールバック
+
+    /**
+     * 編集対象としてFeatureType.STRUCTUREが指定され、
+     * かつ、アイコンを指定可能なデータソースの場合、このfunctionが呼び出され、
+     * 戻り値で返されたアイコンが描画に用いられる
+     * @param icons 地図で使用可能なアイコン一覧
+     * @returns 描画に用いるアイコン. 'cancel'の場合、後続処理中断。
+     */
+    iconFunction?: (icons: SystemIconDefine[]) => Promise<IconKey|'cancel'>;
+
+    onCancel: () => void;
+
+    /**
+     * ユーザによる編集完了時に編集後のアイテム情報を返す
+     * @param item 
+     */
+    onCommit: (id: DataId, item: ItemGeoInfo) => void;
 }
 
 enum Stage {
     SELECTING_FEATURE,  // 編集対象選択中
-
-    // ピン、建物の場合
-    SELECTING_STRUCTURE,    // 改築後の建物選択中
 
     // エリア、土地などの場合
     EDITING,
@@ -46,6 +60,7 @@ enum Stage {
     const confirmHook = useConfirm();
     const modifySource = useRef<VectorSource|null>();
     const modify = useRef<Modify>();
+    const [ icons ] = useAtom(currentMapIconDefineAtom);
 
     /**
      * 初期化
@@ -76,13 +91,33 @@ enum Stage {
     
     }, [map, getStyleFunction]);
 
-    const onSelectFeature = useCallback((feature: Feature<Geometry>) => {
+    const onSelectFeature = useCallback(async(feature: Feature<Geometry>) => {
         selectedFeature.current = feature;
 
         const featureType = (feature.getProperties() as GeoProperties).featureType;
 
         if (featureType === FeatureType.STRUCTURE) {
-            setStage(Stage.SELECTING_STRUCTURE);
+            if (!props.iconFunction) {
+                console.warn('iconFunction not defined');
+                props.onCancel();
+                return;
+            }
+            const result = await props.iconFunction(icons);
+            if (result === 'cancel') {
+                props.onCancel();
+                return;
+            }
+
+            const geoJson = createGeoJson(selectedFeature.current);
+            const id = convertDataIdFromFeatureId(selectedFeature.current.getId() as string);
+
+            props.onCommit(id, {
+                geometry: geoJson.geometry,
+                geoProperties: {
+                    featureType: FeatureType.STRUCTURE,
+                    icon: result,
+                },
+            })
 
         } else {
             // 対象図形のソースを編集用ソースにコピー
@@ -101,10 +136,10 @@ enum Stage {
             setStage(Stage.EDITING);
         }
 
-    }, [map]);
+    }, [map, icons, props]);
 
-    const onClose = useCallback(() => {
-        props.close();
+    const onCancel = useCallback(() => {
+        props.onCancel();
     }, [props]);
 
     const { updateItems } = useItemProcess();
@@ -118,7 +153,7 @@ enum Stage {
             message: '変更を確定してよろしいですか。',
         });
         if(result === ConfirmResult.Cancel) {
-            onClose();
+            onCancel();
         }
 
         // 更新
@@ -133,36 +168,9 @@ enum Stage {
             }
         ])
 
-        onClose();
+        onCancel();
 
-    }, [onClose, confirmHook, updateItems]);
-
-    const onSelectedStructure = useCallback(async(iconDefine: SystemIconDefine) => {
-        if (!selectedFeature.current) {
-            console.warn('選択アイテムなし');
-            return;
-        }
-
-        const geoJson = createGeoJson(selectedFeature.current);
-
-        // update DB
-        const id = convertDataIdFromFeatureId(selectedFeature.current.getId() as string);
-        updateItems([
-            {
-                id,
-                geometry: geoJson.geometry,
-                geoProperties: {
-                    featureType: FeatureType.STRUCTURE,
-                    icon: {
-                        type: iconDefine.type,
-                        id: iconDefine.id,
-                    },
-                },
-            }
-        ])
-
-        props.close();
-    }, [selectedFeature, props, updateItems]);
+    }, [onCancel, confirmHook, updateItems]);
     
     const onEditOkClicked = useCallback(() => {
         if ((selectedFeature.current?.getProperties() as GeoProperties).featureType === FeatureType.ROAD) {
@@ -186,7 +194,7 @@ enum Stage {
             return (
                 <SelectFeature
                 featureType={props.target}
-                onOk={onSelectFeature} onCancel={onClose} />
+                onOk={onSelectFeature} onCancel={onCancel} />
             )
 
         case Stage.EDITING:
@@ -194,20 +202,15 @@ enum Stage {
                 <PromptMessageBox 
                     message={'編集完了したら、完了ボタンを押下してください。\n※ポイント削除したい場合→>Altボタンを押しながらクリック'} 
                     ok={onEditOkClicked} 
-                    cancel={onClose} 
+                    cancel={onCancel} 
                     okname="完了" />
             );
 
         case Stage.SELECT_ROAD_WIDTH:
             const target = modifySource.current?.getFeatures()[0] as Feature;
             return (
-                <RoadWidthSelecter targetRoad={target} onOk={onWidthSelected} onCancel={onClose} />
+                <RoadWidthSelecter targetRoad={target} onOk={onWidthSelected} onCancel={onCancel} />
             );
 
-        case Stage.SELECTING_STRUCTURE:
-            return (
-                <SelectStructureDialog ok={onSelectedStructure} cancel={onClose} />
-            );
-    
     }
 }

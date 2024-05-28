@@ -23,7 +23,10 @@ export default createModal<{}, SelectStructureDialogParams, SelectStructureDialo
                     return param.currentIconId === def.id;
                 });
                 if (hit !== undefined) {
-                    setSelectedDefine(hit);
+                    setSelectedDefine({
+                        id: hit.id,
+                        type: hit.type
+                    });
                 }
             }
         }, [param]);
@@ -40,7 +43,10 @@ export default createModal<{}, SelectStructureDialogParams, SelectStructureDialo
         }, [mapKind]);
 
         const onSelect = useCallback((def: SystemIconDefine) => {
-            setSelectedDefine(def);
+            setSelectedDefine({
+                id: def.id,
+                type: def.type,
+            });
         }, []);
     
         const imageList = useMemo(() => {
