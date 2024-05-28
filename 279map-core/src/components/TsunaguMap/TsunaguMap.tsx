@@ -59,8 +59,21 @@ function TsunaguMap(props: TsunaguMapProps, ref: React.ForwardedRef<TsunaguMapHa
             {
                 getInstanceId() {
                     return instanceId;
+                },
+                async drawAndRegistItem(param) {
+                    if (!drawControllerRef.current) return false;
+                    const feature = await drawControllerRef.current.drawTemporaryFeature(param);
+                    if (!feature) return false;
+                    eventControlerRef.current?.registData({
+                        datasourceId: param.datasourceId,
+                        item: {
+                            geo: feature,
+                        }
+                    })
+            
+                    return true;
                 }
-            }, 
+            } as TsunaguMapHandler, 
             drawControllerRef.current,
             selectItemControllerRef.current,
             eventControlerRef.current,

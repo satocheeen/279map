@@ -232,6 +232,26 @@ export interface TsunaguMapHandler {
     clearFilter(): void;
 
     /**
+     * ユーザにアイテム描画してもらい、描画されたジオメトリを登録する。
+     * @param featureType 表示中の地図種別に合わないものを指定した場合は何も実施しない
+     * @return ユーザによりキャンセルされた場合は、false
+     */
+    drawAndRegistItem(param: {
+        featureType: FeatureType.STRUCTURE;
+        datasourceId: string;
+        /**
+         * アイコンを指定可能なデータソースの場合、このfunctionが呼び出され、
+         * 戻り値で返されたアイコンが描画に用いられる
+         * @param icons 地図で使用可能なアイコン一覧
+         * @returns 描画に用いるアイコン. 'cancel'の場合、後続処理中断。
+         */
+        iconFunction?: (icons: SystemIconDefine[]) => Promise<IconKey|'cancel'>;
+    } | {
+        featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA | FeatureType.ROAD;
+        datasourceId: string;
+    }): Promise<boolean>;
+
+    /**
      * ユーザにアイテム描画してもらい、描画されたジオメトリを返す。
      * @param featureType 表示中の地図種別に合わないものを指定した場合は何も実施しない
      * @return 一時描画したジオメトリ。ユーザによりキャンセルされた場合は、null
@@ -294,7 +314,7 @@ export interface TsunaguMapHandler {
      * start the step of moving a structure (or a pin).
      * 移築または地点移動する
      */
-    moveStructure(): void;
+    moveItem(): void;
 
     /**
      * start the step of modifying a topography or changing a structure's icon.

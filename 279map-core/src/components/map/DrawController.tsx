@@ -50,7 +50,7 @@ type ControllerType = {
 export type DrawControllerHandler = Pick<TsunaguMapHandler, 
     'drawTemporaryFeature'
     | 'removeData'
-    | 'moveStructure'
+    | 'moveItem'
     | 'editItem'
     | 'removeItem'
     >;
@@ -133,7 +133,7 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
         async removeData(id) {
             await removeItemProcess(id);
         },
-        moveStructure() {
+        moveItem() {
             setMapMode(MapMode.Drawing);
             setController({
                 type: 'move-structure',

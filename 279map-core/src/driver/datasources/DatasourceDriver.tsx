@@ -200,7 +200,7 @@ type DatasourceItemProp = {
     onChangeVisible: (visible: boolean) => void;
 }
 function DatasourceItem(props: DatasourceItemProp) {
-    const { itemDatasources, authLv, getMap, mapKind } = useContext(DriverContext);
+    const { itemDatasources, authLv, getMap, mapKind, addConsole } = useContext(DriverContext);
     const selectIconDialogRef = useRef<ModalHandler<SelectStructureDialogParams, SelectStructureDialogResult>>(null);
 
     const targetDatasource = useMemo(() => {
@@ -213,7 +213,7 @@ function DatasourceItem(props: DatasourceItemProp) {
 
     const handleRegistItem = useCallback(async(featureType: FeatureType) => {
         if (featureType === FeatureType.STRUCTURE) {
-            const feature = await getMap()?.drawTemporaryFeature({
+            const result = await getMap()?.drawAndRegistItem({
                 featureType: FeatureType.STRUCTURE,
                 datasourceId: props.datasourceId,
                 async iconFunction(icons) {
@@ -226,30 +226,18 @@ function DatasourceItem(props: DatasourceItemProp) {
                     return result;
                 }
             })
-            if (!feature) return;
-            getMap()?.registData({
-                datasourceId: props.datasourceId,
-                item: {
-                    geo: feature,
-                }
-            })
+            addConsole('drawAndRegistItem', result);
     
             return;
         }
         if (featureType === FeatureType.TRACK) {
             return;
         }
-        const feature = await getMap()?.drawTemporaryFeature({
+        const result = await getMap()?.drawAndRegistItem({
             featureType,
             datasourceId: props.datasourceId,
         });
-        if (!feature) return;
-        getMap()?.registData({
-            datasourceId: props.datasourceId,
-            item: {
-                geo: feature,
-            }
-        })
+        addConsole('drawAndRegistItem', result);
     }, [getMap, props.datasourceId]);
 
     return (
