@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useEffect, useContext, useMemo, useRef } from 'react';
 import { instanceIdAtom, mapDefineAtom } from '../../store/session';
 import Overlay from '../common/spinner/Overlay';
-import { Button } from '../common';
+import Button from '../common/button/Button';
 import Input from '../common/form/Input';
 import styles from './MapConnector.module.scss';
 import { useAtom } from 'jotai';

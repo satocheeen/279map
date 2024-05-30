@@ -3,7 +3,7 @@
  */
 export type {
     CategoryDefine, 
-    Condition, ContentsDefine,     
+    ContentsDefine,     
     EventDefine,
     MapDefine, 
     ServerConfig, MapPageOptions, ItemDatasourceInfo, ContentDatasourceInfo

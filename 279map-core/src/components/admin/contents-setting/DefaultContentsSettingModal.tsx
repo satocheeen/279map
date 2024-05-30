@@ -1,12 +1,12 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { Button, Modal } from '../../common';
 import CurrentContentsListPage from './CurrentContentsListPage';
 import AddableContentsListPage from './AddableContentsListPage';
-import { modalSpinnerAtom } from '../../common/modal/Modal';
 import { useAtomCallback } from 'jotai/utils';
 import { ContentsDatasource } from '../../../graphql/generated/graphql';
 import { useAtom } from 'jotai';
 import { clientAtom } from 'jotai-urql';
+import Button from '../../common/button/Button';
+import Modal from '../../common/modal/Modal';
 
 type Props = {
     onClose: () => void;

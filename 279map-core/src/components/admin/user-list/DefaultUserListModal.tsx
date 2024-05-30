@@ -1,13 +1,13 @@
 import React, { useState, useCallback, useMemo, useEffect, useContext } from 'react';
-import { Button, Modal } from '../../common';
 import styles from './DefaultUserListModal.module.scss';
 import Select from '../../common/form/Select';
-import { modalSpinnerAtom } from '../../common/modal/Modal';
+import Modal, { modalSpinnerAtom } from '../../common/modal/Modal';
 import { useAtomCallback } from 'jotai/utils';
 import { useAtom } from 'jotai';
 import { atomWithQuery, clientAtom } from 'jotai-urql';
 import { Auth, ChangeAuthLevelDocument, GetUserListDocument, User, UserListUpdateDocument } from '../../../graphql/generated/graphql';
 import { OwnerContext } from '../../TsunaguMap/TsunaguMap';
+import Button from '../../common/button/Button';
 
 type Props = {
     onClose: () => void;
