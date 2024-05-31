@@ -34,7 +34,7 @@ export async function getContent({ dataId, currentMap, authLv }: Param): Promise
             return null;
         }
         const record = (rows as (ContentsTable & DataSourceTable & MapDataSourceLinkTable)[])[0];
-        const content = await convertContentsToContentsDefine(record, currentMap, authLv);
+        const content = await convertContentsToContentsDefine(con, record, currentMap, authLv);
 
         return content;
 

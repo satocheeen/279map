@@ -336,6 +336,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
              */
             getItems: async(parent: any, param: QueryGetItemsArgs, ctx): Promise<ItemDefineWithoutContents[]> => {
                 try {
+                    apiLogger.info('[start] getItems');
                     const items = await getItems({
                         param,
                         currentMap: ctx.currentMap,
@@ -348,6 +349,9 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 } catch(e) {
                     apiLogger.warn('get-items API error', param, e);
                     throw e;
+                } finally {
+                    apiLogger.info('[end] getItems');
+
                 }
             },
             /**
@@ -968,23 +972,32 @@ const schema = makeExecutableSchema<GraphQlContextType>({
         }as Record<keyof Subscription, IFieldResolverOptions<any, GraphQlContextType, any>>,
         ItemDefine: {
             content: async(parent: ItemDefineWithoutContents, _, ctx): Promise<ContentsDefine|null> => {
-                const result = await getContent({
-                    dataId: parent.id,
-                    currentMap: ctx.currentMap,
-                    authLv: ctx.authLv,
-                });
-                if (!result?.hasValue) return null;
-                return result;
-                // const result = await getContents({
-                //     param: [{
-                //         itemId: parent.id,
-                //     }],
-                //     currentMap: ctx.currentMap,
-                //     authLv: ctx.authLv,
-                // });
+                try {
+                    apiLogger.info('[start] ItemDefine>content', parent.id);
+                    const result = await getContent({
+                        dataId: parent.id,
+                        currentMap: ctx.currentMap,
+                        authLv: ctx.authLv,
+                    });
+                    if (!result?.hasValue) return null;
+                    return result;
+                    // const result = await getContents({
+                    //     param: [{
+                    //         itemId: parent.id,
+                    //     }],
+                    //     currentMap: ctx.currentMap,
+                    //     authLv: ctx.authLv,
+                    // });
+    
+                    // 値を持つコンテンツのみを返す（コンテンツ）
+                    // return result.filter(c => c.hasValue);
+                } catch(e) {
+                    apiLogger.warn('ItemDefine>content error', parent.id, e);
+                    throw e;
+                } finally {
+                    apiLogger.info('[end] ItemDefine>content', parent.id);
 
-                // 値を持つコンテンツのみを返す（コンテンツ）
-                // return result.filter(c => c.hasValue);
+                }
             },
             linkedContents: async(parent: ItemDefineWithoutContents, _, ctx): Promise<ContentsDefine[]> => {
                 const result = await getLinkedContent({

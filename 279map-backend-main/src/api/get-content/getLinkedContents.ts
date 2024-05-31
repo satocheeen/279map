@@ -36,7 +36,7 @@ export async function getLinkedContent({ dataId, currentMap, authLv }: Param): P
         const [rows] = await con.query(sql, [currentMap.mapId, dataId]);
 
         const contents = await Promise.all((rows as (ContentsTable & DataSourceTable & MapDataSourceLinkTable)[]).map(async(record) => {
-            return convertContentsToContentsDefine(record, currentMap, authLv);
+            return convertContentsToContentsDefine(con, record, currentMap, authLv);
         }));
 
         return contents;

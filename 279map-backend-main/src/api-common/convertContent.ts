@@ -2,6 +2,7 @@ import { DataSourceTable, ContentsTable, CurrentMap, DataLinkTable, ImagesTable,
 import { Auth, ContentsDefine } from "../graphql/__generated__/types";
 import { ContentFieldDefine, ContentValueMap, DataId, DatasourceLocationKindType, MapKind } from "../types-common/common-types";
 import { ConnectionPool } from "..";
+import { PoolConnection } from "mysql2/promise";
 
 type Record = ContentsTable & DataSourceTable & MapDataSourceLinkTable;
 
@@ -9,11 +10,11 @@ type Record = ContentsTable & DataSourceTable & MapDataSourceLinkTable;
  * contentsテーブルの値をContentsDefineの形式に変換して返す
  * @param row
  */
-export async function convertContentsToContentsDefine(row: Record, currentMap: CurrentMap, authLv: Auth): Promise<ContentsDefine> {
+export async function convertContentsToContentsDefine(con: PoolConnection, row: Record, currentMap: CurrentMap, authLv: Auth): Promise<ContentsDefine> {
 
     const id = row.data_id;
-    const anotherMapItemIds = await getAnotherMapKindItemsUsingTheContent(id, currentMap);
-    const usingOtherMap = anotherMapItemIds.length > 0 ? true : await checkUsingAnotherMap(id, currentMap.mapId);
+    const anotherMapItemIds = await getAnotherMapKindItemsUsingTheContent(con, id, currentMap);
+    const usingOtherMap = anotherMapItemIds.length > 0 ? true : await checkUsingAnotherMap(con, id, currentMap.mapId);
 
     const readonly = function() {
         if (row.location_kind === DatasourceLocationKindType.VirtualItem) return true;
@@ -92,8 +93,7 @@ export async function convertContentsToContentsDefine(row: Record, currentMap: C
  * @param currentMap 
  * @returns 
  */
-async function getAnotherMapKindItemsUsingTheContent(contentId: DataId, currentMap: CurrentMap): Promise<DataId[]> {
-    const con = await ConnectionPool.getConnection();
+async function getAnotherMapKindItemsUsingTheContent(con: PoolConnection, contentId: DataId, currentMap: CurrentMap): Promise<DataId[]> {
 
     try {
         // もう片方の地図に存在するかチェック
@@ -124,7 +124,6 @@ async function getAnotherMapKindItemsUsingTheContent(contentId: DataId, currentM
         });
 
     } finally {
-        con.release();
     }
 }
 
@@ -134,8 +133,7 @@ async function getAnotherMapKindItemsUsingTheContent(contentId: DataId, currentM
  * @param contentId 
  * @param mapId 
  */
-async function checkUsingAnotherMap(contentId: DataId, mapId: string): Promise<boolean> {
-    const con = await ConnectionPool.getConnection();
+async function checkUsingAnotherMap(con: PoolConnection, contentId: DataId, mapId: string): Promise<boolean> {
 
     try {
         const sql = `
@@ -153,7 +151,6 @@ async function checkUsingAnotherMap(contentId: DataId, mapId: string): Promise<b
         return (rows as []).length > 0;
     
     } finally {
-        (await con).release();
     }
 }
 

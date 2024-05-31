@@ -34,7 +34,7 @@ export const LogSetting = {
 } as Configuration;
 
 export const DbSetting: PoolOptions = {
-    connectionLimit : parseInt(process.env.CONNECTION_LIMIT ?? '100'),
+    connectionLimit : parseInt(process.env.CONNECTION_LIMIT ?? '10'),
     host: process.env.MYSQL_HOST,
     port: parseInt(process.env.MYSQL_PORT ?? '3306'),
     user: process.env.MYSQL_USER,
