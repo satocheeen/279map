@@ -967,7 +967,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
         ItemDefine: {
             content: async(parent: ItemDefineWithoutContents, _, ctx): Promise<ContentsDefine|null> => {
                 try {
-                    apiLogger.info('[start] ItemDefine>content', parent.id);
+                    // apiLogger.info('[start] ItemDefine>content', parent.id);
                     const result = await getContent({
                         dataId: parent.id,
                         currentMap: ctx.currentMap,
@@ -978,7 +978,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     apiLogger.warn('ItemDefine>content error', parent.id, e);
                     throw e;
                 } finally {
-                    apiLogger.info('[end] ItemDefine>content', parent.id);
+                    // apiLogger.info('[end] ItemDefine>content', parent.id);
 
                 }
             },
