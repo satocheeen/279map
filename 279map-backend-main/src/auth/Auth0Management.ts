@@ -3,7 +3,7 @@ import axios from "axios";
 import { ManagementClient } from 'auth0';
 import { auth } from "express-oauth2-jwt-bearer";
 import { getLogger } from 'log4js';
-import { AuthManagementInterface } from '../../279map-backend-common/src';
+import { AuthManagementInterface, UserAuthData } from '../../279map-backend-common/src';
 import { Auth, User } from '../graphql/__generated__/types';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { jwtDecode } from "jwt-decode";
@@ -17,9 +17,8 @@ export type MapInfo = {
     auth_lv: Auth;
     name: string;
 }
-type AppMetaData = {
-    maps: {[mapId: string]: MapInfo}
-}
+type AppMetaData = UserAuthData;
+
 const apiLogger = getLogger('api');
 const savedTokenPath = process.env.AUTH0_SAVED_TOKEN_PATH;
 
@@ -130,19 +129,20 @@ export class Auth0Management extends AuthManagementInterface {
     /**
      * 指定のユーザの指定の地図での権限情報を返す
      * @param userId 
-     * @param mapId 
      * @return ユーザ情報。該当するデータが存在しない場合、null。
      */
-    public async getUserInfoOfTheMap(userId: string, mapId: string): Promise<MapInfo|undefined> {
+    public async getUserInfo(userId: string): Promise<UserAuthData> {
         if (!this.#management) {
             throw new Error('authManagementClient not initialize');
         }
         const res = await this.#management.getUser({id: userId});
         if (!res.app_metadata) {
-            return;
+            return {
+                maps: {},
+            };
         }
         const metadata = res.app_metadata as AppMetaData;
-        return metadata.maps[mapId];
+        return metadata;
     }
 
     /**

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
 import { ParsedQs } from "qs";
-import { AuthManagementInterface, MapInfo } from "../../279map-backend-common/src";
+import { AuthManagementInterface, MapInfo, UserAuthData } from "../../279map-backend-common/src";
 import { Auth, User } from "../graphql/__generated__/types";
 
 export class NoneAuthManagement extends AuthManagementInterface {
@@ -13,8 +13,10 @@ export class NoneAuthManagement extends AuthManagementInterface {
     async getUserMapList(userId: string): Promise<string[]> {
         return [];
     }
-    async getUserInfoOfTheMap(userId: string, mapId: string): Promise<MapInfo | undefined> {
-        return;
+    async getUserInfo(userId: string): Promise<UserAuthData> {
+        return {
+            maps: {}
+        };
     }
     async requestForEnterMap(param: {userId: string; mapId: string; name: string; newUserAuthLevel: Auth}): Promise<void> {
         return;

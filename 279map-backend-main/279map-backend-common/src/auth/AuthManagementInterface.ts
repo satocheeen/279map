@@ -5,6 +5,9 @@ export type MapInfo = {
     auth_lv: Auth;
     name: string;
 }
+export type UserAuthData = {
+    maps: {[mapId: string]: MapInfo}
+}
 
 export abstract class AuthManagementInterface {
     abstract initialize(): Promise<void>;
@@ -19,12 +22,12 @@ export abstract class AuthManagementInterface {
     abstract getUserMapList(userId: string): Promise<string[]>;
 
     /**
-     * 指定のユーザの指定の地図での権限情報を返す
+     * 指定のユーザの権限情報を返す
      * @param userId 
      * @param mapId 
-     * @return ユーザ情報。該当するデータが存在しない場合、null。
+     * @return ユーザ権限情報。
      */
-    abstract getUserInfoOfTheMap(userId: string, mapId: string): Promise<MapInfo|undefined>;
+    abstract getUserInfo(userId: string, mapId: string): Promise<UserAuthData>;
 
     /**
      * 指定の地図に対して、指定のユーザを登録申請する

@@ -1,6 +1,6 @@
 import { ConnectionPool } from "..";
 import { MapPageInfoTable, PublicRange } from "../../279map-backend-common/src/types/schema";
-import { getUserAuthInfoInTheMap } from "../auth/getMapUser";
+import { getUserAuthInfoInTheMap, loadUserAuthInfo } from "../auth/getMapUser";
 import { Auth, MapListItem } from "../graphql/__generated__/types";
 import { Request } from 'express';
 import { compareAuth } from "../util/utility";
@@ -15,6 +15,7 @@ export async function getMapList(req: Request): Promise<MapListItem[]> {
 
     const mapList = [] as MapListItem[];
 
+    await loadUserAuthInfo(req);
     try {
         // 地図一覧取得
         const selectQuery = 'select * from map_page_info';
@@ -22,7 +23,7 @@ export async function getMapList(req: Request): Promise<MapListItem[]> {
         const records = rows as MapPageInfoTable[];
 
         for (const record of records) {
-            const authInfo = await getUserAuthInfoInTheMap(record, req, true);
+            const authInfo = await getUserAuthInfoInTheMap(record, req);
 
             // 権限のあるもののみ返す
             const authLv = function() {

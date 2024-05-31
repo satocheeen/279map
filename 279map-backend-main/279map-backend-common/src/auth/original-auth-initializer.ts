@@ -47,7 +47,7 @@ export function initializeOriginalAuth(app: Express, authManagement: AuthManagem
         logger.info('[start] auth getUserInfoOfTheMap');
         try {
             const param = req.body;
-            const result = await authManagement.getUserInfoOfTheMap(param.userId, param.mapId);
+            const result = await authManagement.getUserInfo(param.userId, param.mapId);
             res.send(result);
 
         } catch(e) {

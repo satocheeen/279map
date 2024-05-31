@@ -1,4 +1,4 @@
-import { authManagementClient } from "..";
+import { ConnectionPool, authManagementClient } from "..";
 import { getLogger } from 'log4js';
 import { authMethod } from '..';
 import { Request } from 'express';
@@ -39,13 +39,81 @@ type UserAuthInfoByMap = {[mapId: string]: UserAuthInfo};
 const userAuthInfoMap = {} as {[userId: string]: UserAuthInfoByMap};
 
 /**
+ * 指定のリクエストのユーザの最新認証情報をロードする。
+ * @param req 
+ */
+export async function loadUserAuthInfo(req: Request) {
+    const userId = getUserIdByRequest(req);
+    if (!userId) return;
+    const userInfo = await authManagementClient.getUserInfo(userId);
+
+    if (!(userId in userAuthInfoMap)) {
+        userAuthInfoMap[userId] = {};
+    }
+
+    const con = await ConnectionPool.getConnection();
+    try {
+        const sql = 'select * from map_page_info';
+        const [rows] = await con.execute(sql);
+
+        for (const mapPageInfo of rows as MapPageInfoTable[]) {
+            const guestUserAuth = function() {
+                const auth = (mapPageInfo.options as MapPageOptions | undefined)?.guestUserAuthLevel ?? Auth.None;
+                if (auth === Auth.None && mapPageInfo.public_range === PublicRange.Public) {
+                    // 地図の公開範囲publicの場合は、最低でもView権限
+                    return Auth.View;
+                } else {
+                    return auth;
+                }
+            }();
+        
+            const authInfo = function(): UserAuthInfo {
+                const mapUserInfo = userInfo.maps[mapPageInfo.map_page_id];
+                if (mapUserInfo) {
+                    switch(mapUserInfo.auth_lv) {
+                        case Auth.None:
+                        case Auth.Request:
+                            return {
+                                userId,
+                                authLv: mapUserInfo.auth_lv,
+                                guestAuthLv: guestUserAuth,
+                            }
+                        default:
+                            return {
+                                userId,
+                                authLv: mapUserInfo.auth_lv as Auth.Admin | Auth.Edit | Auth.View,
+                                userName: mapUserInfo.name,
+                            };
+                        }
+                } else {
+                    // ユーザが権限を持たない場合
+                    return {
+                        userId,
+                        authLv: Auth.None,
+                        guestAuthLv: guestUserAuth,
+                    }
+                }
+            }();
+
+            // 保管する
+            userAuthInfoMap[userId][mapPageInfo.map_page_id] = authInfo;
+
+        }
+
+    } finally {
+        con.release();
+    }
+
+
+}
+/**
  * 指定の地図へのユーザアクセス権限情報を返す
  * @param mapPageInfo 地図テーブルレコード
  * @param req リクエスト情報
  * @param resetAuthInfo trueの場合、認証情報を再取得する。falseの場合、メモリから取得する。
  * @returns アクセス権限情報。ログインが必要な地図で、ユーザが未ログインの場合はundfined。
  */
-export async function getUserAuthInfoInTheMap(mapPageInfo: MapPageInfoTable, req: Request, resetAuthInfo?: boolean): Promise<UserAuthInfo> {
+export async function getUserAuthInfoInTheMap(mapPageInfo: MapPageInfoTable, req: Request): Promise<UserAuthInfo> {
     const guestUserAuth = function() {
         const auth = (mapPageInfo.options as MapPageOptions | undefined)?.guestUserAuthLevel ?? Auth.None;
         if (auth === Auth.None && mapPageInfo.public_range === PublicRange.Public) {
@@ -66,46 +134,24 @@ export async function getUserAuthInfoInTheMap(mapPageInfo: MapPageInfoTable, req
         }
     }
 
-    apiLogger.debug('ログイン済み');
     // ユーザの地図に対する権限を取得
     const authInfo = await async function(): Promise<UserAuthInfo> {
-        if (!resetAuthInfo) {
-            const savedAuthInfo = userAuthInfoMap[userId] ? userAuthInfoMap[userId][mapPageInfo.map_page_id] : undefined;
-            if (savedAuthInfo) return savedAuthInfo;
-        }
+        const savedAuthInfo = userAuthInfoMap[userId] ? userAuthInfoMap[userId][mapPageInfo.map_page_id] : undefined;
+        if (savedAuthInfo) return savedAuthInfo;
 
-        const mapUserInfo = await authManagementClient.getUserInfoOfTheMap(userId, mapPageInfo.map_page_id);
-        if (mapUserInfo) {
-            switch(mapUserInfo.auth_lv) {
-                case Auth.None:
-                case Auth.Request:
-                    return {
-                        userId,
-                        authLv: mapUserInfo.auth_lv,
-                        guestAuthLv: guestUserAuth,
-                    }
-                default:
-                    return {
-                        userId,
-                        authLv: mapUserInfo.auth_lv as Auth.Admin | Auth.Edit | Auth.View,
-                        userName: mapUserInfo.name,
-                    };
-                }
-        } else {
-            // ユーザが権限を持たない場合
-            return {
-                userId,
-                authLv: Auth.None,
-                guestAuthLv: guestUserAuth,
-            }
+        // ユーザが権限を持たない場合
+        return {
+            userId,
+            authLv: Auth.None,
+            guestAuthLv: guestUserAuth,
         }
     }();
 
-    // 保管する
-    if (!(userId in userAuthInfoMap)) {
-        userAuthInfoMap[userId] = {};
-    }
-    userAuthInfoMap[userId][mapPageInfo.map_page_id] = authInfo;
+    // // 保管する
+    // if (!(userId in userAuthInfoMap)) {
+    //     userAuthInfoMap[userId] = {};
+    // }
+    // userAuthInfoMap[userId][mapPageInfo.map_page_id] = authInfo;
 
     return authInfo;
 }

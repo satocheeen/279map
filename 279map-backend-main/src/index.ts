@@ -13,7 +13,7 @@ import { getCategory } from './api/getCategory';
 import cors from 'cors';
 import { exit } from 'process';
 import { getMapInfoById } from './getMapDefine';
-import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
+import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest, loadUserAuthInfo } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
 import { getMapList } from './api/getMapList';
 import { search } from './api/search';
@@ -573,7 +573,8 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         });
                     }
 
-                    const userAccessInfo = await getUserAuthInfoInTheMap(mapInfo, ctx.request, true);
+                    await loadUserAuthInfo(ctx.request);
+                    const userAccessInfo = await getUserAuthInfoInTheMap(mapInfo, ctx.request);
                     if (userAccessInfo.authLv === undefined && userAccessInfo.guestAuthLv === Auth.None) {
                         // ログインが必要な地図の場合
                         throw new CustomError({

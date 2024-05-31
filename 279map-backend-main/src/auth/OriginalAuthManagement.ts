@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from "axios";
 import { Request, Response, NextFunction } from "express";
-import { AuthManagementInterface, MapInfo } from "../../279map-backend-common/src";
+import { AuthManagementInterface, MapInfo, UserAuthData } from "../../279map-backend-common/src";
 import { Auth, User } from "../graphql/__generated__/types";
 
 /**
@@ -32,10 +32,9 @@ export class OriginalAuthManagement extends AuthManagementInterface {
         });
         return res;
     }
-    async getUserInfoOfTheMap(userId: string, mapId: string): Promise<MapInfo | undefined> {
-        const res = await callOriginalServer('get-userinfo-of-map', {
+    async getUserInfo(userId: string): Promise<UserAuthData> {
+        const res = await callOriginalServer('get-userinfo', {
             userId,
-            mapId,
         });
         return res;
     }
