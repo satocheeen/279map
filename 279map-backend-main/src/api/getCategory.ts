@@ -24,7 +24,13 @@ export async function getCategory(param: QueryGetCategoryArgs, currentMap: Curre
         const records = await getAllCategories(currentMap, param.datasourceIds ?? undefined);
         const categoryMap = new Map<string, CategoryDefine>();
         records.forEach((row) => {
-            const categories = row.category ?? [];
+            const categories = function() {
+                if (!row.category) return [];
+                if (typeof row.category === 'string') {
+                    return JSON.parse(row.category) as string[];
+                }
+                return row.category as string[];
+            }();
             categories.forEach(category => {
                 if (!categoryMap.has(category)) {
                     categoryMap.set(category, {
@@ -78,6 +84,12 @@ async function getAllCategories(currentMap: CurrentMap, dataSourceIds?: string[]
         await con.beginTransaction();
 
         const sql = `
+        select distinct d2.data_source_id, c2.category from contents c2
+        inner join datas d2 on d2.data_id = c2.data_id 
+        inner join map_datasource_link mdl2 on mdl2.data_source_id = d2.data_source_id 
+        where mdl2.map_page_id = ?
+        union
+        -- この地図上のアイテムから参照されているコンテンツ
         select distinct d.data_source_id, c.category from contents c 
         inner join data_link dl on dl.to_data_id = c.data_id 
         inner join datas d on dl.from_data_id = d.data_id 
@@ -86,7 +98,7 @@ async function getAllCategories(currentMap: CurrentMap, dataSourceIds?: string[]
         where mdl.map_page_id = ?
         `;
     
-        const query = con.format(sql, [currentMap.mapId]);
+        const query = con.format(sql, [currentMap.mapId, currentMap.mapId]);
         const [rows] = await con.execute(query);
 
         await con.commit();
