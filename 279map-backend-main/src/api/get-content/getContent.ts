@@ -7,16 +7,14 @@ import { DataId } from "../../types-common/common-types";
 type Param = {
     dataId: DataId;
     currentMap: CurrentMap;
-    authLv: Auth;
 }
 
 /**
  * 指定のコンテンツについて情報を取得して返す
  * @param dataId 取得対象コンテンツ
  * @param currentMap 接続中の地図。この地図で使われていないコンテンツの場合は、値を返さない。
- * @param authLv ユーザ認証レベル。この値を加味して、コンテンツのeditable等を設定して返す。
  */
-export async function getContent({ dataId, currentMap, authLv }: Param): Promise<ContentsDefine | null> {
+export async function getContent({ dataId, currentMap }: Param): Promise<ContentsDefine | null> {
     const con = await ConnectionPool.getConnection();
 
     try {
@@ -34,7 +32,7 @@ export async function getContent({ dataId, currentMap, authLv }: Param): Promise
             return null;
         }
         const record = (rows as (ContentsTable & DataSourceTable & MapDataSourceLinkTable)[])[0];
-        const content = await convertContentsToContentsDefine(con, record, currentMap, authLv);
+        const content = await convertContentsToContentsDefine(con, record, currentMap);
 
         return content;
 

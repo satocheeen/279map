@@ -131,23 +131,17 @@ const initializeDb = async() => {
 // ConnectionPool.on('connection', () => {
 //     logger.debug('connection', ++connectNum);
 // });
+// let releaseNum = 0;
 // ConnectionPool.on('release', () => {
-//     --connectNum;
-//     if (connectNum < 0) {
-//         connectNum = 0;
-//     }
-//     logger.debug('release', connectNum);
+//     logger.debug('release', ++releaseNum);
 // });
-// let querNum = 0;
+// let arquireNum = 0;
 // ConnectionPool.on('acquire', () => {
-//     logger.debug('acquire', ++querNum);
+//     logger.debug('acquire', ++arquireNum);
 // });
+// let enqueueNum = 0;
 // ConnectionPool.on('enqueue', () => {
-//     --querNum;
-//     if (querNum < 0) {
-//         querNum = 0;
-//     }
-//     logger.debug('enqueue', querNum);
+//     logger.debug('enqueue', ++enqueueNum);
 // })
 
 // Create Web Server
@@ -403,7 +397,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     const result = await getContent({
                         dataId: param.id,
                         currentMap: ctx.currentMap,
-                        authLv: ctx.authLv,
                     });
                     if (!result) {
                         throw new Error('not find content');
@@ -978,20 +971,9 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     const result = await getContent({
                         dataId: parent.id,
                         currentMap: ctx.currentMap,
-                        authLv: ctx.authLv,
                     });
                     if (!result?.hasValue) return null;
                     return result;
-                    // const result = await getContents({
-                    //     param: [{
-                    //         itemId: parent.id,
-                    //     }],
-                    //     currentMap: ctx.currentMap,
-                    //     authLv: ctx.authLv,
-                    // });
-    
-                    // 値を持つコンテンツのみを返す（コンテンツ）
-                    // return result.filter(c => c.hasValue);
                 } catch(e) {
                     apiLogger.warn('ItemDefine>content error', parent.id, e);
                     throw e;

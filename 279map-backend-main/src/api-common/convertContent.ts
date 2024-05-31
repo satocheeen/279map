@@ -1,7 +1,6 @@
-import { DataSourceTable, ContentsTable, CurrentMap, DataLinkTable, ImagesTable, MapDataSourceLinkTable } from "../../279map-backend-common/src";
+import { DataSourceTable, ContentsTable, CurrentMap, ImagesTable, MapDataSourceLinkTable } from "../../279map-backend-common/src";
 import { Auth, ContentsDefine } from "../graphql/__generated__/types";
 import { ContentFieldDefine, ContentValueMap, DataId, DatasourceLocationKindType, MapKind } from "../types-common/common-types";
-import { ConnectionPool } from "..";
 import { PoolConnection } from "mysql2/promise";
 
 type Record = ContentsTable & DataSourceTable & MapDataSourceLinkTable;
@@ -10,8 +9,7 @@ type Record = ContentsTable & DataSourceTable & MapDataSourceLinkTable;
  * contentsテーブルの値をContentsDefineの形式に変換して返す
  * @param row
  */
-export async function convertContentsToContentsDefine(con: PoolConnection, row: Record, currentMap: CurrentMap, authLv: Auth): Promise<ContentsDefine> {
-
+export async function convertContentsToContentsDefine(con: PoolConnection, row: Record, currentMap: CurrentMap): Promise<ContentsDefine> {
     const id = row.data_id;
     const anotherMapItemIds = await getAnotherMapKindItemsUsingTheContent(con, id, currentMap);
     const usingOtherMap = anotherMapItemIds.length > 0 ? true : await checkUsingAnotherMap(con, id, currentMap.mapId);
@@ -69,7 +67,7 @@ export async function convertContentsToContentsDefine(con: PoolConnection, row: 
         return contentsDefine.filter(fd => fd.type === 'image');
     }() ?? [];
     for (const imageField of imageFields) {
-        const ids = await getImageIdList(row.data_id, imageField);
+        const ids = await getImageIdList(con, row.data_id, imageField);
         values[imageField.key] = ids;
         if (ids.length > 0) hasImage = true;
     }
@@ -159,9 +157,7 @@ async function checkUsingAnotherMap(con: PoolConnection, contentId: DataId, mapI
  * @param dataId
  * @param imageField 
  */
-async function getImageIdList(dataId: DataId, imageField: ContentFieldDefine): Promise<ContentValueMap> {
-    const con = await ConnectionPool.getConnection();
-
+async function getImageIdList(con: PoolConnection, dataId: DataId, imageField: ContentFieldDefine): Promise<ContentValueMap> {
     try {
         const imageQuery = 'select * from images where data_id = ? and field_key = ?';
         const [rows] = await con.execute(imageQuery, [dataId, imageField.key]);
@@ -169,7 +165,6 @@ async function getImageIdList(dataId: DataId, imageField: ContentFieldDefine): P
         return ids;
     
     } finally {
-        con.release();
     }
 
 }
