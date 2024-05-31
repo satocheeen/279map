@@ -1,4 +1,4 @@
-import { CurrentMap, DatasourceLocationKindType, MapKind } from "../../279map-backend-common/src";
+import { ContentBelongMapView, CurrentMap, DatasourceLocationKindType, MapKind } from "../../279map-backend-common/src";
 import { ConnectionPool } from "..";
 import { PoolConnection } from "mysql2/promise";
 import { DateCondition, QuerySearchArgs } from "../graphql/__generated__/types";
@@ -72,29 +72,22 @@ type HitContent = {
 async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, category: string, dataSourceIds?: string[]): Promise<HitContent[]> {
 
     const sql = `
-    select c.*, dl2.* from contents c 
-    inner join data_link dl2 on dl2.to_data_id = c.data_id 
+    select c.*, cbm.* from contents c 
+    inner join content_belong_map cbm on cbm.content_id = c.data_id 
     where JSON_CONTAINS(c.category, ?) > 0
-    and EXISTS (
-        select * from data_link dl 
-        inner join datas d on d.data_id = dl.from_data_id 
-        inner join data_source ds on ds.data_source_id = d.data_source_id 
-        inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id and mdl.map_page_id = ?
-        where ds.location_kind in (?) ${dataSourceIds ? 'and ds.data_source_id in (?)' : ''}
-        and dl.to_data_id = c.data_id 
-    )
+    and cbm.map_page_id = ? and cbm.location_kind in (?) ${dataSourceIds ? 'and cbm.item_datasource_id in (?)' : ''}
     `;
     const categoryParam = `["${category}"]`;
     const dsKind = currentMap.mapKind === MapKind.Virtual ? DatasourceLocationKindType.VirtualItem : DatasourceLocationKindType.RealItem;
     const param = [categoryParam, currentMap.mapId, dsKind] as any[];
     const query = con.format(sql, dataSourceIds ? [...param, dataSourceIds] : param);
     const [rows] = await con.execute(query);
-    const records = rows as (ContentsTable & DataLinkTable)[]; 
+    const records = rows as (ContentsTable & ContentBelongMapView)[]; 
 
     return records.map((row): HitContent => {
         return {
-            contentId: row.data_id,
-            itemId: row.from_data_id,
+            contentId: row.content_id,
+            itemId: row.item_id,
         };
     });
 }

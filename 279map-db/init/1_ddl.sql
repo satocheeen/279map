@@ -129,3 +129,32 @@ CREATE TABLE `data_link` (
   CONSTRAINT `data_link_FK` FOREIGN KEY (`from_data_id`) REFERENCES `datas` (`data_id`) ON DELETE CASCADE,
   CONSTRAINT `data_link_FK_1` FOREIGN KEY (`to_data_id`) REFERENCES `datas` (`data_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+
+-- コンテンツの属する地図一覧View
+create view content_belong_map as 
+  -- この地図上のアイテムと直接紐づいているコンテンツ
+  select c.data_id as content_id, d.data_id as item_id, d.data_source_id as item_datasource_id, ds.location_kind, mdl.map_page_id
+  from contents c
+  inner join datas d on d.data_id = c.data_id 
+  inner join data_source ds on ds.data_source_id = d.data_source_id 
+  inner join map_datasource_link mdl on mdl.data_source_id = d.data_source_id 
+  where EXISTS (
+    select * from geometry_items gi 
+    where gi.data_id = c.data_id 
+  )
+  UNION 
+  -- この地図上のアイテムから参照されているコンテンツ
+  select c2.data_id as content_id, dl2.from_data_id as item_id, d2.data_source_id as item_datasource_id, ds.location_kind, mdl.map_page_id  
+  from contents c2
+  inner join data_link dl2 on dl2.to_data_id = c2.data_id 
+  inner join datas d2 on d2.data_id = dl2.from_data_id 
+  inner join data_source ds on ds.data_source_id = d2.data_source_id 
+  inner join map_datasource_link mdl on mdl.data_source_id = d2.data_source_id 
+  where EXISTS (
+      select * from datas d 
+      inner join data_source ds on ds.data_source_id = d.data_source_id 
+      INNER join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
+      where d.data_id = dl2.from_data_id 
+  )
+  ;

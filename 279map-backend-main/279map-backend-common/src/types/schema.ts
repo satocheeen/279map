@@ -142,3 +142,11 @@ export type OriginalIconsTable = {
     base64: string;
     last_edited_time: string;
 }
+
+export type ContentBelongMapView = {
+    content_id: number;
+    item_id: number;
+    item_datasource_id: string;
+    location_kind: DatasourceLocationKindType;
+    map_page_id: string;
+}
