@@ -11,7 +11,7 @@ import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { TsunaguMapHandler, LoadContentsResult } from '../../types/types';
 import { useAtom } from 'jotai';
 import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
-import { overrideItemsAtom, showingItemsAtom, } from '../../store/item';
+import { itemProcessesAtom, overrideItemsAtom, showingItemsAtom, } from '../../store/item';
 import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
 import { ContentsDefine, GetUnpointContentsDocument, SearchDocument, SortCondition, GetImageDocument, RegistDataDocument, RemoveDataDocument, UpdateDataDocument, LinkDataDocument, UnlinkDataDocument, GetContentDocument, DataUpdateDocument, Operation, LinkDataByOriginalIdDocument, UpdateDataByOriginalIdDocument, Condition } from '../../graphql/generated/graphql';
@@ -89,6 +89,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
     }, [mapDefine, contentDatasources]);
 
     const { registData: registDataProcess } = useItemProcess();
+    const [ itemProcesses ] = useAtom(itemProcessesAtom);
 
     useImperativeHandle(ref, () => ({
         switchMapKind: loadMap,
@@ -158,6 +159,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
 
         async loadContent(dataId, changeListener): Promise<LoadContentsResult | null> {
             try {
+                // TODO: 一時データが存在する場合は、そちらを優先
                 const result = await gqlClient.query(GetContentDocument, {
                     id: dataId,
                 }, {

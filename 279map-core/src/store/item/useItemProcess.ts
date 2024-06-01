@@ -24,7 +24,7 @@ export default function useItemProcess() {
     /**
      * プロセス追加
      */
-    const _addItemProcess = useAtomCallback(
+    const _addDataProcess = useAtomCallback(
         useCallback((get, set, temporaryItem: ItemProcessType) => {
             set(itemProcessesAtom, (cur) => {
                 return cur.concat(temporaryItem);
@@ -52,7 +52,8 @@ export default function useItemProcess() {
                 return cur.map(cur => {
                     if (cur.processId !== processId) return cur;
                     if (cur.status !== 'updating') return cur;
-                    const newItems = cur.items.filter(item => !targets.some(target => isEqualId(target, item.id)));
+
+                    const newItems = cur.datas.filter(item => !targets.some(target => isEqualId(target, item.id)));
                     return Object.assign({}, cur, { items: newItems });
                 });
             })
@@ -129,12 +130,16 @@ export default function useItemProcess() {
 
             if (data.item) {
                 // 登録完了までの仮アイテム登録
-                _addItemProcess({
+                _addDataProcess({
                     processId,
-                    item: {
+                    data: {
                         id: processId,
-                        geometry: data.item.geo.geometry,
-                        geoProperties: data.item.geo.geoProperties,
+                        item: {
+                            geometry: data.item.geo.geometry,
+                            geoProperties: data.item.geo.geoProperties,
+                        },
+                        contents: data.contents,
+                        parent: data.parent,
                     },
                     datasourceId: data.datasourceId,
                     status: 'registing',
@@ -144,7 +149,7 @@ export default function useItemProcess() {
 
             return await _registDataSub(data, processId);
 
-        }, [_addItemProcess, _registDataSub])
+        }, [_addDataProcess, _registDataSub])
     )
 
     const updateItems = useAtomCallback(
@@ -153,9 +158,17 @@ export default function useItemProcess() {
             const processId = ++temporaryCount;
 
             // 登録完了までの仮アイテム登録
-            _addItemProcess({
+            _addDataProcess({
                 processId,
-                items,
+                datas: items.map(item=> {
+                    return {
+                        id: item.id,
+                        item: {
+                            geometry: item.geometry,
+                            geoProperties: item.geoProperties,
+                        }
+                    }
+                }),
                 status: 'updating',
             });
 
@@ -198,7 +211,7 @@ export default function useItemProcess() {
             }, 500)
 
 
-        }, [_addItemProcess, _removeItemProcess, _setErrorWithTemporaryItem, _removeTemporaryItems])
+        }, [_addDataProcess, _removeItemProcess, _setErrorWithTemporaryItem, _removeTemporaryItems])
     )
 
     const removeData = useAtomCallback(
@@ -207,7 +220,7 @@ export default function useItemProcess() {
             const processId = ++temporaryCount;
 
             // 登録完了までの仮アイテム登録
-            _addItemProcess({
+            _addDataProcess({
                 processId,
                 status: 'deleting',
                 itemId: target,
@@ -235,7 +248,7 @@ export default function useItemProcess() {
                 _removeItemProcess(processId);
             }, 500)
 
-        }, [_addItemProcess, _removeItemProcess, _setErrorWithTemporaryItem])
+        }, [_addDataProcess, _removeItemProcess, _setErrorWithTemporaryItem])
     )
 
     /**

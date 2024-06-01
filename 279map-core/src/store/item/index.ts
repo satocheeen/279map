@@ -1,9 +1,10 @@
 import { atom } from 'jotai';
 import { ItemType, ItemInfo, OverrideItem } from '../../types/types';
 import { filteredDatasAtom } from '../filter';
-import { DataId } from '../../entry';
+import { ContentValueMap, DataId, GeoProperties } from '../../entry';
 import { UpdateItemInput } from '../../graphql/generated/graphql';
 import { visibleDataSourceIdsAtom } from '../datasource';
+import { Geometry } from 'geojson';
 
 export type LoadedItemKey = {
     datasourceId: string;
@@ -25,17 +26,28 @@ export const storedItemsAtom = atom([] as ItemInfo[]);
 // 呼び出し元から渡された上書きアイテム情報
 export const overrideItemsAtom = atom<OverrideItem[]>([]);
 
-// 登録・更新・削除処理中のアイテム
+type TemporaryDataType = {
+    id: DataId;
+    item?: {
+        geometry: Geometry;
+        geoProperties: GeoProperties;
+    };
+    contents?: ContentValueMap;
+    parent?: DataId,
+}
+
+// 登録・更新・削除処理中のデータ
 export type ItemProcessType = {
     processId: DataId;     // 処理ID
     error?: boolean;    // 処理失敗時にtrue
 } & ({
     status: 'registing';
     datasourceId: string;
-    item: Pick<ItemInfo, 'id' | 'geometry' | 'geoProperties'>;
+    data: TemporaryDataType;
 } | {
     status: 'updating';
-    items: UpdateItemInput[];
+    datas: TemporaryDataType[];
+    // items: UpdateItemInput[];
 } | {
     status: 'deleting';
     itemId: DataId;
@@ -61,36 +73,44 @@ export const allItemsAtom = atom<ItemInfo[]>((get) => {
     let result: ItemInfo[] = structuredClone(storedItems);
     itemProcesses.forEach(itemProcess => {
         if (itemProcess.status === 'registing') {
-            const item: ItemInfo = {
-                datasourceId: itemProcess.datasourceId,
-                id: itemProcess.item.id,
-                geometry: itemProcess.item.geometry,
-                geoProperties: itemProcess.item.geoProperties,
-                name: '',
-                // hasContents: false,
-                // hasImageContentId: [],
-                lastEditedTime: '',
-                temporary: itemProcess.status,
-                linkedContents: [],
+            if (itemProcess.data.item) {
+                const item: ItemInfo = {
+                    datasourceId: itemProcess.datasourceId,
+                    id: itemProcess.data.id,
+                    geometry: itemProcess.data.item.geometry,
+                    geoProperties: itemProcess.data.item.geoProperties,
+                    name: '',
+                    content: itemProcess.data.contents ?
+                        {
+                            datasourceId: itemProcess.datasourceId,
+                            hasImage: false,
+                            hasValue: true,
+                            id: itemProcess.data.id,
+                            usingOtherMap: false,
+                        }: undefined,
+                    lastEditedTime: '',
+                    temporary: itemProcess.status,
+                    linkedContents: [],
+                }
+                result.push(item);
             }
-            result.push(item);
 
         } else if (itemProcess.status === 'updating') {
-            itemProcess.items.forEach(tempItem => {
+            itemProcess.datas.forEach(tempItem => {
                 const currentItem = storedItems.find(item => item.id === tempItem.id);
                 if (!currentItem) {
                     console.warn('not find');
                     return;
                 }
                 result = result.map((item): ItemInfo => {
-                    if (item.id === currentItem.id) {
+                    if (item.id === currentItem.id && tempItem.item) {
                         return {
                             id: currentItem.id,
                             datasourceId: currentItem.datasourceId,
                             content: currentItem.content,
                             linkedContents: currentItem.linkedContents,
-                            geometry: tempItem.geometry ?? currentItem.geometry,
-                            geoProperties: tempItem.geoProperties ?? currentItem.geoProperties,
+                            geometry: tempItem.item.geometry ?? currentItem.geometry,
+                            geoProperties: tempItem.item.geoProperties ?? currentItem.geoProperties,
                             lastEditedTime: '',
                             name: currentItem.name,
                             temporary: 'updating',
