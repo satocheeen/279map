@@ -83,13 +83,12 @@ export default function RegistContentDriver(props: Props) {
         const imageField = fields.find(f => f.type === 'image');
         const imageUrl = imageField ? values[imageField.key] : undefined;
         setLoading(true);
-        const result = await getMap()?.registContent({
+        const result = await getMap()?.registData({
             datasourceId: targetDsId,
-            parent: {
-                type: 'item',
-                id: parseInt(targetItemId),
+            contents: {
+                values,
             },
-            values,
+            parent: parseInt(targetItemId),
         });
         setLoading(false);
         addConsole('registContent', result);
@@ -101,9 +100,14 @@ export default function RegistContentDriver(props: Props) {
         const imageField = fields.find(f => f.type === 'image');
         const imageUrl = imageField ? values[imageField.key] : undefined;
         setLoading(true);
-        const result = await getMap()?.updateContent({
-            id: parseInt(targetContentId),
-            values,
+        const result = await getMap()?.updateData({
+            key: {
+                type: 'dataId',
+                dataId: parseInt(targetContentId),
+            },
+            contents: {
+                values,
+            }
         })
         setLoading(false);
         addConsole('updateContent', result);

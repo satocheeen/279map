@@ -19,6 +19,7 @@ export type UpdateItemParam = {
 }
 
 type RegistDataParam = Parameters<TsunaguMapHandler['registData']>[0];
+type UpdateDataParam = Omit<Parameters<TsunaguMapHandler['updateData']>[0], 'key'> & { id: DataId };
 
 export default function useItemProcess() {
     /**
@@ -152,6 +153,58 @@ export default function useItemProcess() {
         }, [_addDataProcess, _registDataSub])
     )
 
+    /**
+     * データ更新処理
+     */
+    const updateData = useAtomCallback(
+            useCallback(async(get, set, data: UpdateDataParam) => {
+                const processId = ++temporaryCount;
+                _addDataProcess({
+                    processId,
+                    data: {
+                        id: data.id,
+                        item: data.item?.geo ? {
+                            geometry: data.item.geo.geometry,
+                            geoProperties: data.item.geo.geoProperties,
+                        } : undefined,
+                        contents: data.contents
+                    },
+                    status: 'updating',
+                });
+
+                let retryFlag = false;
+
+                const gqlClient = get(clientAtom);
+                do {
+                    const result = await gqlClient.mutation(UpdateDataDocument, {
+                        id: data.id,
+                        item: data.item?.geo ? {
+                            geometry: data.item.geo.geometry,
+                            geoProperties: data.item.geo.geoProperties,
+                        } : undefined,
+                        contents: data.contents?.values,
+                    });
+
+                    if (result.data) {
+                        // 成功したアイテムは仮アイテムから削除する
+                        // （WebSocket経由で更新後アイテムを取得するまでのタイムラグがあるので間をおいて実行）
+                        setTimeout(() => {
+                            _removeItemProcess(processId);
+                        }, 500)
+                    }
+
+                    if (result.error) {
+                        // エラー時
+                        _setErrorWithTemporaryItem(processId, true);
+                        // キャンセル or リトライ の指示待ち
+                        retryFlag = await waitFor(processId);
+                        _setErrorWithTemporaryItem(processId, false);
+                    }
+                } while(retryFlag);
+
+            }, [_addDataProcess, _registDataSub])
+        )
+    
     const updateItems = useAtomCallback(
         useCallback(async(get, set, items: UpdateItemParam[]) => {
             // ID付与
@@ -267,6 +320,7 @@ export default function useItemProcess() {
 
     return {
         registData,
+        updateData,
         updateItems,
         removeData,
         continueProcess,

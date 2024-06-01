@@ -88,7 +88,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         return 0;
     }, [mapDefine, contentDatasources]);
 
-    const { registData: registDataProcess } = useItemProcess();
+    const { registData: registDataProcess, updateData: updateDataProcess } = useItemProcess();
     const [ itemProcesses ] = useAtom(itemProcessesAtom);
 
     useImperativeHandle(ref, () => ({
@@ -159,7 +159,6 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
 
         async loadContent(dataId, changeListener): Promise<LoadContentsResult | null> {
             try {
-                // TODO: 一時データが存在する場合は、そちらを優先
                 const result = await gqlClient.query(GetContentDocument, {
                     id: dataId,
                 }, {
@@ -171,6 +170,24 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 const content = result.data?.getContent ?? null;
                 if (!content) return null;
                 // content.children = content?.children?.sort(contentsComparator);
+
+                // 一時データが存在する場合は、上書き
+                const tempData = itemProcesses.find(ip => {
+                    if (ip.status === 'registing' || ip.status === 'updating') {
+                        return ip.data.id === dataId;
+                    } else {
+                        return false;
+                    }
+                })
+                console.log('tempData', tempData, itemProcesses)
+                if (tempData && (tempData.status === 'registing' || tempData.status === 'updating')) {
+                    if (tempData.data.contents) {
+                        Object.assign(content, {
+                            values: tempData.data.contents,
+                        })
+                    }
+                }    
+                console.log('content', content);                    
         
                 if (!changeListener) {
                     return {
@@ -203,15 +220,20 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         
         async updateData(param) {
             if (param.key.type === 'dataId') {
-                const result = await gqlClient.mutation(UpdateDataDocument, {
+                await updateDataProcess({
                     id: param.key.dataId,
-                    item: param.item?.geo ?? undefined,
-                    deleteItem: param.item?.geo === null,
-                    contents: param.contents?.values,
-                });
-                if (result.error) {
-                    throw new Error(result.error.message);
-                }
+                    item: param.item,
+                    contents: param.contents,
+                })
+                // const result = await gqlClient.mutation(UpdateDataDocument, {
+                //     id: param.key.dataId,
+                //     item: param.item?.geo ?? undefined,
+                //     deleteItem: param.item?.geo === null,
+                //     contents: param.contents?.values,
+                // });
+                // if (result.error) {
+                //     throw new Error(result.error.message);
+                // }
     
             } else {
                 const result = await gqlClient.mutation(UpdateDataByOriginalIdDocument, {
