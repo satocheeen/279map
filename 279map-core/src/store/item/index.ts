@@ -46,7 +46,8 @@ export type ItemProcessType = {
     data: TemporaryDataType;
 } | {
     status: 'updating';
-    datas: TemporaryDataType[];
+    data: TemporaryDataType;
+    // datas: TemporaryDataType[];
     // items: UpdateItemInput[];
 } | {
     status: 'deleting';
@@ -96,29 +97,28 @@ export const allItemsAtom = atom<ItemInfo[]>((get) => {
             }
 
         } else if (itemProcess.status === 'updating') {
-            itemProcess.datas.forEach(tempItem => {
-                const currentItem = storedItems.find(item => item.id === tempItem.id);
-                if (!currentItem) {
-                    console.warn('not find');
-                    return;
-                }
-                result = result.map((item): ItemInfo => {
-                    if (item.id === currentItem.id && tempItem.item) {
-                        return {
-                            id: currentItem.id,
-                            datasourceId: currentItem.datasourceId,
-                            content: currentItem.content,
-                            linkedContents: currentItem.linkedContents,
-                            geometry: tempItem.item.geometry ?? currentItem.geometry,
-                            geoProperties: tempItem.item.geoProperties ?? currentItem.geoProperties,
-                            lastEditedTime: '',
-                            name: currentItem.name,
-                            temporary: 'updating',
-                        }
-                    } else {
-                        return item;
+            const tempItem = itemProcess.data;
+            const currentItem = storedItems.find(item => item.id === tempItem.id);
+            if (!currentItem) {
+                console.warn('not find');
+                return;
+            }
+            result = result.map((item): ItemInfo => {
+                if (item.id === currentItem.id && tempItem.item) {
+                    return {
+                        id: currentItem.id,
+                        datasourceId: currentItem.datasourceId,
+                        content: currentItem.content,
+                        linkedContents: currentItem.linkedContents,
+                        geometry: tempItem.item.geometry ?? currentItem.geometry,
+                        geoProperties: tempItem.item.geoProperties ?? currentItem.geoProperties,
+                        lastEditedTime: '',
+                        name: currentItem.name,
+                        temporary: 'updating',
                     }
-                })
+                } else {
+                    return item;
+                }
             })
         } else if (itemProcess.status === 'deleting') {
             // エラー時は半透明表示するので残す

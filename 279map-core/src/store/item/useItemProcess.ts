@@ -46,20 +46,20 @@ export default function useItemProcess() {
     /**
      * 指定のプロセスの指定の仮アイテムを削除する
      */
-    const _removeTemporaryItems = useAtomCallback(
-        useCallback((get, set, processId: DataId, targets: DataId[]) => {
-            set(itemProcessesAtom, (cur) => {
-                return cur.map(cur => {
-                    if (cur.processId !== processId) return cur;
-                    if (cur.status !== 'updating') return cur;
+    // const _removeTemporaryItems = useAtomCallback(
+    //     useCallback((get, set, processId: DataId, targets: DataId[]) => {
+    //         set(itemProcessesAtom, (cur) => {
+    //             return cur.map(cur => {
+    //                 if (cur.processId !== processId) return cur;
+    //                 if (cur.status !== 'updating') return cur;
 
-                    const newItems = cur.datas.filter(item => !targets.some(target => isEqualId(target, item.id)));
-                    return Object.assign({}, cur, { items: newItems });
-                });
-            })
+    //                 const newItems = cur.datas.filter(item => !targets.some(target => isEqualId(target, item.id)));
+    //                 return Object.assign({}, cur, { items: newItems });
+    //             });
+    //         })
 
-        }, [])
-    )
+    //     }, [])
+    // )
 
     /**
      * 指定のプロセスについてエラーフラグを更新する
@@ -155,28 +155,35 @@ export default function useItemProcess() {
     const updateItems = useAtomCallback(
         useCallback(async(get, set, items: UpdateItemParam[]) => {
             // ID付与
-            const processId = ++temporaryCount;
 
             // 登録完了までの仮アイテム登録
-            _addDataProcess({
-                processId,
-                datas: items.map(item=> {
-                    return {
+            const itemsWithProcess = items.map(item => {
+                const processId = ++temporaryCount;
+                _addDataProcess({
+                    processId,
+                    data: {
                         id: item.id,
                         item: {
                             geometry: item.geometry,
                             geoProperties: item.geoProperties,
                         }
-                    }
-                }),
-                status: 'updating',
-            });
+                    },
+                    status: 'updating',
+                });
+    
+                return {
+                    processId,
+                    item,
+                }
+            })
 
             const gqlClient = get(clientAtom);
-            let retryFlag = false;
-            do {
-                retryFlag = false;
-                const allResult = await Promise.all(items.map(async(item) => {
+            await Promise.all(itemsWithProcess.map(async(iwp) => {
+                const item = iwp.item;
+                const processId = iwp.processId;
+                let retryFlag = false;
+
+                do {
                     const result = await gqlClient.mutation(UpdateDataDocument, {
                         id: item.id,
                         item: {
@@ -184,34 +191,27 @@ export default function useItemProcess() {
                             geoProperties: item.geoProperties,
                         }
                     });
-                    return {
-                        result,
-                        id: item.id,
+
+                    if (result.data) {
+                        // 成功したアイテムは仮アイテムから削除する
+                        // （WebSocket経由で更新後アイテムを取得するまでのタイムラグがあるので間をおいて実行）
+                        setTimeout(() => {
+                            _removeItemProcess(processId);
+                        }, 500)
                     }
-                }));
-                const successResult = allResult.filter(ar => ar.result.data);
-                const errorResult = allResult.filter(ar => ar.result.error);
-                if (errorResult.length > 0) {
-                    // エラー時
-                    if (successResult.length > 0) {
-                        // 一部エラー時は、成功したアイテムは仮アイテムから削除する
-                        _removeTemporaryItems(processId, successResult.map(sr => sr.id));
+
+                    if (result.error) {
+                        // エラー時
+                        _setErrorWithTemporaryItem(processId, true);
+                        // キャンセル or リトライ の指示待ち
+                        retryFlag = await waitFor(processId);
+                        _setErrorWithTemporaryItem(processId, false);
                     }
-                    _setErrorWithTemporaryItem(processId, true);
-                    // キャンセル or リトライ の指示待ち
-                    retryFlag = await waitFor(processId);
-                    _setErrorWithTemporaryItem(processId, false);
-                }
-        
-            } while(retryFlag);
-
-            // 仮アイテム削除（WebSocket経由で更新後アイテムを取得するまでのタイムラグがあるので間をおいて実行）
-            setTimeout(() => {
-                _removeItemProcess(processId);
-            }, 500)
+                } while(retryFlag);
+            }))
 
 
-        }, [_addDataProcess, _removeItemProcess, _setErrorWithTemporaryItem, _removeTemporaryItems])
+        }, [_addDataProcess, _removeItemProcess, _setErrorWithTemporaryItem])
     )
 
     const removeData = useAtomCallback(

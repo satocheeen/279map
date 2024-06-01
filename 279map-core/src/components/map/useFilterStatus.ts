@@ -36,10 +36,8 @@ export default function useFilterStatus() {
 
         // エラー状態のものはエラー色表示
         if (itemProcesses.find(process => {
-            if (process.status === 'registing') {
+            if (process.status === 'registing' || process.status === 'updating') {
                 return isEqualId(process.data.id, id)
-            } else if (process.status === 'updating') {
-                return process.datas.some(item => isEqualId(item.id, id));
             } else if (process.status === 'deleting') {
                 return isEqualId(process.itemId, id)
             } else {
