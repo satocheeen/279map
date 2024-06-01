@@ -110,7 +110,7 @@ function ClusterMenuController(props: Props, ref: React.ForwardedRef<ClusterMenu
         pointIds = pointIds.filter(id => {
             return !itemProcessesRef.current.some(process => {
                 if (process.status === 'registing') {
-                    return isEqualId(process.item.id, id.id);
+                    return isEqualId(process.data.id, id.id);
                 }
             });
         })
