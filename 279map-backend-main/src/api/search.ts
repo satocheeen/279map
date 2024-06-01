@@ -104,17 +104,10 @@ async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: D
     const endDate = dayjs(date.date).add(1, 'day').format('YYYY-MM-DD');
 
     const sql = `
-    select c.*, dl2.* from contents c 
-    inner join data_link dl2 on dl2.to_data_id = c.data_id 
+    select c.*, cbm.* from contents c 
+    inner join content_belong_map cbm on cbm.content_id = c.data_id 
     where CONVERT_TZ(date, '+00:00', ?) BETWEEN ? AND ?
-    and EXISTS (
-        select * from data_link dl 
-        inner join datas d on d.data_id = dl.from_data_id 
-        inner join data_source ds on ds.data_source_id = d.data_source_id 
-        inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id and mdl.map_page_id = ?
-        where ds.location_kind in (?) ${dataSourceIds ? 'and ds.data_source_id in (?)' : ''}
-        and dl.to_data_id = c.data_id 
-    )
+    and cbm.map_page_id = ? and cbm.location_kind in (?) ${dataSourceIds ? 'and cbm.item_datasource_id in (?)' : ''}
     `;
 
     const dsKind = currentMap.mapKind === MapKind.Virtual ? DatasourceLocationKindType.VirtualItem : DatasourceLocationKindType.RealItem;
@@ -144,17 +137,10 @@ async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: D
 async function searchByKeyword(con: PoolConnection, currentMap: CurrentMap, keyword: string, dataSourceIds?: string[]): Promise<HitContent[]> {
 
     const sql = `
-    select c.*, dl2.* from contents c 
-    inner join data_link dl2 on dl2.to_data_id = c.data_id 
+    select c.*, cbm.* from contents c 
+    inner join content_belong_map cbm on cbm.content_id = c.data_id 
     where JSON_SEARCH(c.contents, 'one', ?) is not null
-    and EXISTS (
-        select * from data_link dl 
-        inner join datas d on d.data_id = dl.from_data_id 
-        inner join data_source ds on ds.data_source_id = d.data_source_id 
-        inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id and mdl.map_page_id = ?
-        where ds.location_kind in (?) ${dataSourceIds ? 'and ds.data_source_id in (?)' : ''}
-        and dl.to_data_id = c.data_id 
-    )
+    and cbm.map_page_id = ? and cbm.location_kind in (?) ${dataSourceIds ? 'and cbm.item_datasource_id in (?)' : ''}
     `;
 
     const keywordParam = `%${keyword}%`;
@@ -166,12 +152,12 @@ async function searchByKeyword(con: PoolConnection, currentMap: CurrentMap, keyw
     const query = con.format(sql, params);
 
     const [rows] = await con.execute(query);
-    const records = rows as (ContentsTable & DataLinkTable)[]; 
+    const records = rows as (ContentsTable & ContentBelongMapView)[]; 
 
     return records.map((row): HitContent => {
         return {
-            contentId: row.data_id,
-            itemId: row.from_data_id,
+            contentId: row.content_id,
+            itemId: row.item_id,
         };
     });
 
