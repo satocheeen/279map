@@ -14,7 +14,7 @@ import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSour
 import { overrideItemsAtom, showingItemsAtom, } from '../../store/item';
 import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetUnpointContentsDocument, SearchDocument, SortCondition, GetImageDocument, RegistDataDocument, RemoveDataDocument, UpdateDataDocument, LinkDataDocument, UnlinkDataDocument, GetContentDocument, DataUpdateDocument, Operation, LinkDataByOriginalIdDocument, UpdateDataByOriginalIdDocument, Condition } from '../../graphql/generated/graphql';
+import { ContentsDefine, GetUnpointContentsDocument, SearchDocument, SortCondition, GetImageDocument, UpdateDataDocument, LinkDataDocument, UnlinkDataDocument, GetContentDocument, DataUpdateDocument, Operation, LinkDataByOriginalIdDocument, UpdateDataByOriginalIdDocument, Condition } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern } from '../common/confirm/types';

@@ -89,7 +89,7 @@ export default function useItemProcess() {
                 const result = await gqlClient.mutation(RegistDataDocument, {
                     datasourceId: data.datasourceId,
                     item: data.item?.geo,
-                    contents: data.contents,
+                    contents: data.contents?.values,
                     linkDatas: data.parent ? [data.parent] : undefined,
                 })
                 if (result.error) {
