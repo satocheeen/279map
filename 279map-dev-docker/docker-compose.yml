@@ -17,14 +17,14 @@ services:
     env_file:
       - ./.env
       - ./.env.notion
-    ports:
-      - 8082:8082
+    # ports:
+    #   - 8082:8082
     volumes:
       - ./log:/var/log/www
       - ./photo:/var/photo
   frontend:
     # メイン
-    image: satocheeen/279map-frontend:0.82.3
+    image: satocheeen/279map-frontend:0.82.4
     env_file:
       - ./.env
     # ports:
@@ -33,7 +33,7 @@ services:
       - ./log:/var/log/www
   frontend-logregister:
     # スマホログ記録
-    image: satocheeen/279map-frontend-logregister:0.2.0
+    image: satocheeen/279map-frontend-logregister:0.3.0
   main:
     image: satocheeen/279map-backend-main:0.79.4
     depends_on:
