@@ -115,8 +115,8 @@ export class OlMapWrapper {
         const resolution = this._map.getView().getResolution();
         if (!resolution) return;
         const isMax = this._map.getView().getZoom() === this._map.getView().getMaxZoom();
-        if (isMax) {
-            // 最大Zoom時は、まとめない
+        if (isMax || this._mapKind === MapKind.Virtual) {
+            // 最大Zoom時or村マップでは、まとめない
             this._vectorLayerMap.setClusterDistance(0, 0);
         } else {
             const structureScale = MapUtility.getStructureScale(resolution, this._mapKind);
@@ -244,6 +244,7 @@ export class OlMapWrapper {
                 extent: undefined,
             });
             this._map.setView(view);
+            this._vectorLayerMap.setClusterDistance(0, 0);
 
         }
 
