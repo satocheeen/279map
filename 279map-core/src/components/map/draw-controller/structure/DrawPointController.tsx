@@ -15,12 +15,14 @@ import { useAtom } from 'jotai';
 import { GeocoderTarget } from '../../../../graphql/generated/graphql';
 import { FeatureType, MapKind, GeoProperties, IconKey } from '../../../../types-common/common-types';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
-import { ItemGeoInfo } from '../../../../entry';
+import { ItemGeoInfo, SystemIconDefine } from '../../../../entry';
 import useIcon from '../../../../store/icon/useIcon';
+import Button from '../../../common/button/Button';
+import { currentMapIconDefineAtom } from '../../../../store/icon';
 
 type Props = {
     dataSourceId: string;   // 作図対象のデータソース
-    iconKey?: IconKey;  // 指定時、指定のアイコンで描画する。未指定時はデフォルトアイコンを用いる。
+    iconFunction?: (icons: SystemIconDefine[]) => Promise<IconKey|'cancel'>;
     onCancel: () => void;
     onCommit: (item: ItemGeoInfo) => void;
 }
@@ -38,10 +40,7 @@ enum Stage {
 export default function DrawPointController(props: Props) {
     const [stage, setStage] = useState(Stage.DRAWING);
     const { getIconDefine } = useIcon();
-    const drawingIcon = useMemo(() => {
-        return getIconDefine(props.iconKey);
-
-    }, [getIconDefine, props.iconKey])
+    const drawingIconRef = useRef<SystemIconDefine>(getIconDefine());
 
     const draw = useRef<null | Draw>(null);
     const drawingFeature = useRef<Feature | undefined>(undefined);  // 描画中のFeature
@@ -103,7 +102,7 @@ export default function DrawPointController(props: Props) {
         }
         drawReset();
         const type = 'Point';
-        const style = pointStyleHook.getDrawingStructureStyleFunction(drawingIcon);
+        const style = pointStyleHook.getDrawingStructureStyleFunction(drawingIconRef.current);
         drawingLayer.current?.setStyle(style);
         drawingFeature.current = undefined;
         map.createDrawingLayer(LayerType.Point, style);
@@ -117,7 +116,7 @@ export default function DrawPointController(props: Props) {
             onDrawEnd(event.feature);
         });
         setStage(Stage.DRAWING);
-    }, [map, drawReset, onDrawEnd, pointStyleHook, drawingIcon])
+    }, [map, drawReset, onDrawEnd, pointStyleHook])
 
     useEffect(() => {
         startDrawing();
@@ -132,7 +131,10 @@ export default function DrawPointController(props: Props) {
 
         const geoProperties = Object.assign({}, geoJson.properties, {
             featureType: FeatureType.STRUCTURE,
-            icon: drawingIcon,
+            icon: {
+                id: drawingIconRef.current.id,
+                type: drawingIconRef.current.type,
+            }
         } as GeoProperties);
 
         props.onCommit({
@@ -140,14 +142,13 @@ export default function DrawPointController(props: Props) {
             geoProperties,
         });
 
-    }, [props, drawingIcon]);
+    }, [props]);
 
     const onSelectAddress= useCallback((address: GeoJsonObject) => {
         if (!map) return;
         if (!drawingSource.current || !map) {
             return;
         }
-        console.log('select', address);
         // 指定のアドレスにFeature追加
         const feature = new GeoJSON().readFeatures(address)[0];
         drawingSource.current.clear();
@@ -191,18 +192,35 @@ export default function DrawPointController(props: Props) {
         onConfirmCancel();
     }, [stage, onConfirmCancel, props]);
 
+    const [ icons ] = useAtom(currentMapIconDefineAtom);
+    const handleChangeIconBtnClicked = useCallback(async() => {
+        if (!props.iconFunction) return;
+        const result = await props.iconFunction(icons);
+        if (result === 'cancel') return;
+
+        const icon = getIconDefine(result);
+        drawingIconRef.current = icon;
+        startDrawing();
+
+    }, [props, icons, getIconDefine, startDrawing])
+
     return (
         <PromptMessageBox 
             message={message} 
             ok={handleOk}
             cancel={cancel}>
-                {mapKind === MapKind.Real &&
-                    <SearchAddress
-                        ref={searchAddressRef}
-                        onAddress={onSelectAddress}
-                        searchTarget={[GeocoderTarget.Point]}
-                        disabled={stage === Stage.CONFIRM} />
-                }
+                <>
+                    {props.iconFunction &&
+                        <Button variant='secondary' onClick={handleChangeIconBtnClicked}>{mapKind === MapKind.Real ? 'ピン' : '建物'}変更</Button>
+                    }
+                    {mapKind === MapKind.Real &&
+                        <SearchAddress
+                            ref={searchAddressRef}
+                            onAddress={onSelectAddress}
+                            searchTarget={[GeocoderTarget.Point]}
+                            disabled={stage === Stage.CONFIRM} />
+                    }
+                </>
         </PromptMessageBox>
     );
 

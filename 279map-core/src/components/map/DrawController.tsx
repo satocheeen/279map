@@ -5,7 +5,6 @@ import { mapModeAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
 import { DataId, FeatureType, IconKey } from '../../types-common/common-types';
 import useItemProcess from '../../store/item/useItemProcess';
-import { currentMapIconDefineAtom } from '../../store/icon';
 import useDataSource from '../../store/datasource/useDataSource';
 
 const DrawPointController = lazy(() => import('./draw-controller/structure/DrawPointController'));
@@ -20,7 +19,7 @@ type Props = {
 type ControllerType = {
     type: 'draw-point';
     dataSourceId: string;
-    iconKey?: IconKey;
+    iconFunction?: (icons: SystemIconDefine[]) => Promise<IconKey|'cancel'>;
     onCommit: (geometry: ItemGeoInfo) => void;
     onCancel: () => void;
 } | {
@@ -57,7 +56,6 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
     const [ , setMapMode] = useAtom(mapModeAtom);
     const [ controller, setController] = useState<ControllerType|undefined>();
     const { updateItems } = useItemProcess();
-    const [ icons ] = useAtom(currentMapIconDefineAtom);
     const { isEnableIcon } = useDataSource();
 
     const terminate = useCallback(() => {
@@ -86,19 +84,14 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
                         const enableIcon = isEnableIcon(param.datasourceId);
                         // アイコン指定可能かつiconFunctionが渡されている場合は、ユーザにアイコン指定させる
                         if (enableIcon && param.iconFunction) {
-                            param.iconFunction(icons).then(result => {
-                                if (result === 'cancel') {
-                                    resolve(null);
-                                    return;
-                                }
-                                setController({
-                                    type: 'draw-point',
-                                    dataSourceId: param.datasourceId,
-                                    iconKey: result,
-                                    onCommit,
-                                    onCancel,
-                                })
+                            setController({
+                                type: 'draw-point',
+                                dataSourceId: param.datasourceId,
+                                iconFunction: param.iconFunction,
+                                onCommit,
+                                onCancel,
                             })
+
                         } else {
                             setController({
                                 type: 'draw-point',
@@ -179,7 +172,7 @@ function DrawController({}: Props, ref: React.ForwardedRef<DrawControllerHandler
             return (
                 <Suspense fallback={<LoadingOverlay />}>
                     <DrawPointController dataSourceId={controller.dataSourceId}
-                        iconKey={controller.iconKey}
+                        iconFunction={controller.iconFunction}
                         onCancel={controller.onCancel} onCommit={controller.onCommit} />
                 </Suspense>
             )
