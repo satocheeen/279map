@@ -98,14 +98,14 @@ function TsunaguMapMainFunc(props: TsunaguMapProps, ref: React.ForwardedRef<Tsun
                     if (!drawControllerRef.current) return false;
                     const feature = await drawControllerRef.current.drawTemporaryFeature(param);
                     if (!feature) return false;
-                    eventControlerRef.current?.registData({
+                    const id = await eventControlerRef.current?.registData({
                         datasourceId: param.datasourceId,
                         item: {
                             geo: feature,
                         }
                     })
             
-                    return true;
+                    return id ?? false;
                 },
                 async removeDataByUser(targets) {
                     if (!selectItemControllerRef.current) return;

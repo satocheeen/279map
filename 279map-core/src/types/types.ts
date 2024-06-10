@@ -234,7 +234,7 @@ export interface TsunaguMapHandler {
     /**
      * ユーザにアイテム描画してもらい、描画されたジオメトリを登録する。
      * @param featureType 表示中の地図種別に合わないものを指定した場合は何も実施しない
-     * @return ユーザによりキャンセルされた場合は、false
+     * @return 登録したアイテムのDataId。ユーザによりキャンセルされた場合は、false
      */
     drawAndRegistItem(param: {
         featureType: FeatureType.STRUCTURE;
@@ -249,7 +249,7 @@ export interface TsunaguMapHandler {
     } | {
         featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA | FeatureType.ROAD;
         datasourceId: string;
-    }): Promise<boolean>;
+    }): Promise<DataId|false>;
 
     /**
      * ユーザにアイテム描画してもらい、描画されたジオメトリを返す。
