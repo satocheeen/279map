@@ -11,20 +11,20 @@ services:
       - ./db/mysql_data:/var/lib/mysql
   odba:
     # 任意のイメージを指定
-    image: satocheeen/279map-backend-odba-notion:0.72.2
+    image: satocheeen/279map-backend-odba-notion:0.72.3
     depends_on:
       - db
     env_file:
       - ./.env
       - ./.env.notion
-    # ports:
-    #   - 8082:8082
+    ports:
+      - 8082:8082
     volumes:
       - ./log:/var/log/www
       - ./photo:/var/photo
   frontend:
     # メイン
-    image: satocheeen/279map-frontend:0.82.4
+    image: satocheeen/279map-frontend:0.83.0
     env_file:
       - ./.env
     # ports:
