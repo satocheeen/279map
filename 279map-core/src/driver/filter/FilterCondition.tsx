@@ -3,6 +3,7 @@ import styles from './FilterCondition.module.scss';
 import { useWatch } from '../../util/useWatch2';
 import { DriverContext } from '../TestMap';
 import { Condition } from './FilterTest';
+import { CategoryCondition } from '../../graphql/generated/graphql';
 
 type FilterKind = keyof Required<Condition>;
 const filterKinds: FilterKind[] = ['category', 'date', 'keyword'];
@@ -14,8 +15,8 @@ type Props = {
 export default function FilterCondition(props: Props) {
     const { categories, contentDatasources } = useContext(DriverContext);
     const [ currentMode, setCurrentMode ] = useState<FilterKind>('category');
-    const [ category, setCategory ] = useState<string| undefined>();
-    const onChangeCategory = useCallback((category: string | undefined) => {
+    const [ category, setCategory ] = useState<CategoryCondition| undefined>();
+    const onChangeCategory = useCallback((category: CategoryCondition | undefined) => {
         setCategory(category);
     }, []);
 
@@ -56,7 +57,13 @@ export default function FilterCondition(props: Props) {
                             return (
                                 <label key={c2.value}>
                                     {c2.value}
-                                    <input type="radio" checked={category===c2.value} onChange={() => onChangeCategory(c2.value)} />
+                                    <input type="radio"
+                                        checked={category?.datasourceId=== c.datasourceId && category.fieldKey === c.fieldKey && category.value === c2.value}
+                                        onChange={() => onChangeCategory({
+                                            datasourceId: c.datasourceId,
+                                            fieldKey: c.fieldKey,
+                                            value: c2.value,
+                                        })} />
                                 </label>
                             )
                         })}

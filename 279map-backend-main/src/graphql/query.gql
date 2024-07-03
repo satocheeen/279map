@@ -97,7 +97,7 @@ type ContentsDatasource {
 # search関連
 # --------------
 input Condition {
-    category: [String!]
+    category: [CategoryCondition!]
     date: [DateCondition!]
     keyword: [String!]
 }

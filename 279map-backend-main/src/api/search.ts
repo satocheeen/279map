@@ -1,7 +1,7 @@
 import { ContentBelongMapView, CurrentMap, DatasourceLocationKindType, MapKind } from "../../279map-backend-common/src";
 import { ConnectionPool } from "..";
 import { PoolConnection } from "mysql2/promise";
-import { DateCondition, QuerySearchArgs } from "../graphql/__generated__/types";
+import { CategoryCondition, DateCondition, QuerySearchArgs } from "../graphql/__generated__/types";
 import { DataId } from "../types-common/common-types";
 import { ContentsTable, DataLinkTable } from "../../279map-backend-common/dist";
 import dayjs from "dayjs";
@@ -67,19 +67,18 @@ type HitContent = {
 /**
  * 指定のカテゴリを持つコンテンツを返す
  * @param con 
- * @param category 
+ * @param condition 
  */
-async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, category: string, dataSourceIds?: string[]): Promise<HitContent[]> {
+async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, condition: CategoryCondition, dataSourceIds?: string[]): Promise<HitContent[]> {
 
     const sql = `
     select c.*, cbm.* from contents c 
     inner join content_belong_map cbm on cbm.content_id = c.data_id 
-    where JSON_CONTAINS(c.category, ?) > 0
+    where JSON_CONTAINS(c.contents, ?, ?)
     and cbm.map_page_id = ? and cbm.location_kind in (?) ${dataSourceIds ? 'and cbm.item_datasource_id in (?)' : ''}
     `;
-    const categoryParam = `["${category}"]`;
     const dsKind = currentMap.mapKind === MapKind.Virtual ? DatasourceLocationKindType.VirtualItem : DatasourceLocationKindType.RealItem;
-    const param = [categoryParam, currentMap.mapId, dsKind] as any[];
+    const param = [`["${condition.value}"]`, `$.${condition.fieldKey}`, currentMap.mapId, dsKind] as any[];
     const query = con.format(sql, dataSourceIds ? [...param, dataSourceIds] : param);
     const [rows] = await con.execute(query);
     const records = rows as (ContentsTable & ContentBelongMapView)[]; 

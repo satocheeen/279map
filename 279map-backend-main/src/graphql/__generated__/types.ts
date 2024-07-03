@@ -67,7 +67,7 @@ export type CategoryItem = {
 };
 
 export type Condition = {
-  category?: InputMaybe<Array<Scalars['String']['input']>>;
+  category?: InputMaybe<Array<CategoryCondition>>;
   date?: InputMaybe<Array<DateCondition>>;
   keyword?: InputMaybe<Array<Scalars['String']['input']>>;
 };
