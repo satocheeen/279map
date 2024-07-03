@@ -78,7 +78,7 @@ async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, con
     and cbm.map_page_id = ? and cbm.location_kind in (?) ${dataSourceIds ? 'and cbm.item_datasource_id in (?)' : ''}
     `;
     const dsKind = currentMap.mapKind === MapKind.Virtual ? DatasourceLocationKindType.VirtualItem : DatasourceLocationKindType.RealItem;
-    const param = [`["${condition.value}"]`, `$.${condition.fieldKey}`, currentMap.mapId, dsKind] as any[];
+    const param = [`["${condition.value}"]`, `$."${condition.fieldKey}"`, currentMap.mapId, dsKind] as any[];
     const query = con.format(sql, dataSourceIds ? [...param, dataSourceIds] : param);
     const [rows] = await con.execute(query);
     const records = rows as (ContentsTable & ContentBelongMapView)[]; 

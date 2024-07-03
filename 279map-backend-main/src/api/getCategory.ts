@@ -120,7 +120,7 @@ async function getCategoryValuesOfTheField(datasourceId: string, fieldKey: strin
     try {
         const sql = `
         select * from (
-            select JSON_EXTRACT(c.contents , '$.${fieldKey}') as mycategory
+            select JSON_EXTRACT(c.contents , ?) as mycategory
             from contents c
             inner join datas d on d.data_id = c.data_id 
             where d.data_source_id = ?
@@ -128,7 +128,7 @@ async function getCategoryValuesOfTheField(datasourceId: string, fieldKey: strin
         where c2.mycategory is not null
         `;
     
-        const query = con.format(sql, [datasourceId]);
+        const query = con.format(sql, [`$."${fieldKey}"`, datasourceId]);
         const [rows] = await con.execute(query);
 
         const resultSet = new Set<string>();
