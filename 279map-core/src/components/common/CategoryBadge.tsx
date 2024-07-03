@@ -20,7 +20,7 @@ export default function CategoryBadge(props: Props) {
     }, [props]);
 
     const category = useMemo((): CategoryItem | undefined => {
-        return props.existCategories.find(c => c.name === props.category);
+        return props.existCategories.find(c => c.value === props.category);
     }, [props.category, props.existCategories]);
 
     const style = useMemo((): CSSProperties => {

@@ -54,9 +54,9 @@ export default function FilterCondition(props: Props) {
                         <div className={styles.CategoryFieldLabel}>{label}</div>
                         {c.categories.map(c2 => {
                             return (
-                                <label key={c2.name}>
-                                    {c2.name}
-                                    <input type="radio" checked={category===c2.name} onChange={() => onChangeCategory(c2.name)} />
+                                <label key={c2.value}>
+                                    {c2.value}
+                                    <input type="radio" checked={category===c2.value} onChange={() => onChangeCategory(c2.value)} />
                                 </label>
                             )
                         })}
@@ -65,7 +65,7 @@ export default function FilterCondition(props: Props) {
                 })}
             </div>
         )
-    }, [categories, category, onChangeCategory]);
+    }, [categories, category, onChangeCategory, contentDatasources]);
 
     const calendarFilter = useMemo(() => {
         return (

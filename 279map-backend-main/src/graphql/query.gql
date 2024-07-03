@@ -39,7 +39,7 @@ type CategoryDefine {
     categories: [CategoryItem!]!
 }
 type CategoryItem {
-    name: String!
+    value: String!
     color: String!
 }
 type EventDefine {
@@ -100,6 +100,14 @@ input Condition {
     category: [String!]
     date: [DateCondition!]
     keyword: [String!]
+}
+input CategoryCondition {
+    "対象のコンテンツデータソースID"
+    datasourceId: String!
+    "対象のフィールド"
+    fieldKey: String!
+    "カテゴリ値"
+    value: String!
 }
 input DateCondition {
     "日付文字列"

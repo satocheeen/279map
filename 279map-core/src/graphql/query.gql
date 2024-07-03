@@ -27,7 +27,7 @@ query getCategory(
         datasourceId
         fieldKey
         categories {
-            name
+            value
             color
         }
     }    

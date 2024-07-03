@@ -43,6 +43,15 @@ export type Auth0Config = {
   domain: Scalars['String']['output'];
 };
 
+export type CategoryCondition = {
+  /** 対象のコンテンツデータソースID */
+  datasourceId: Scalars['String']['input'];
+  /** 対象のフィールド */
+  fieldKey: Scalars['String']['input'];
+  /** カテゴリ値 */
+  value: Scalars['String']['input'];
+};
+
 export type CategoryDefine = {
   /** 属するカテゴリ一覧 */
   categories: Array<CategoryItem>;
@@ -54,7 +63,7 @@ export type CategoryDefine = {
 
 export type CategoryItem = {
   color: Scalars['String']['output'];
-  name: Scalars['String']['output'];
+  value: Scalars['String']['output'];
 };
 
 export type Condition = {
@@ -655,6 +664,7 @@ export type ResolversTypes = {
   Auth: Auth;
   Auth0Config: ResolverTypeWrapper<Auth0Config>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
+  CategoryCondition: CategoryCondition;
   CategoryDefine: ResolverTypeWrapper<CategoryDefine>;
   CategoryItem: ResolverTypeWrapper<CategoryItem>;
   Condition: Condition;
@@ -717,6 +727,7 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   Auth0Config: Auth0Config;
   Boolean: Scalars['Boolean']['output'];
+  CategoryCondition: CategoryCondition;
   CategoryDefine: CategoryDefine;
   CategoryItem: CategoryItem;
   Condition: Condition;
@@ -782,7 +793,7 @@ export type CategoryDefineResolvers<ContextType = any, ParentType extends Resolv
 
 export type CategoryItemResolvers<ContextType = any, ParentType extends ResolversParentTypes['CategoryItem'] = ResolversParentTypes['CategoryItem']> = {
   color?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  value?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

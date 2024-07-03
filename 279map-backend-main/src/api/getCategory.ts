@@ -43,7 +43,7 @@ export async function getCategory(param: QueryGetCategoryArgs, currentMap: Curre
                     fieldKey,
                     categories: values.map((val, index) => {
                         return {
-                            name: val,
+                            value: val,
                             color: colors[index],
                         }
                     })
