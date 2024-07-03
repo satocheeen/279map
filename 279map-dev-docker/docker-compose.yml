@@ -35,7 +35,7 @@ services:
     # スマホログ記録
     image: satocheeen/279map-frontend-logregister:0.3.0
   main:
-    image: satocheeen/279map-backend-main:0.80.0
+    image: satocheeen/279map-backend-main:0.80.1
     depends_on:
       - db
     env_file:
