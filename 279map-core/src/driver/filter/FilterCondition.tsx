@@ -12,7 +12,7 @@ type Props = {
 }
 
 export default function FilterCondition(props: Props) {
-    const { categories } = useContext(DriverContext);
+    const { categories, contentDatasources } = useContext(DriverContext);
     const [ currentMode, setCurrentMode ] = useState<FilterKind>('category');
     const [ category, setCategory ] = useState<string| undefined>();
     const onChangeCategory = useCallback((category: string | undefined) => {
@@ -46,11 +46,21 @@ export default function FilterCondition(props: Props) {
                     <input type="radio" checked={category===undefined} onChange={() => onChangeCategory(undefined)} />
                 </label>
                 {categories.map(c => {
+                    const contentDef = contentDatasources.find(cd => cd.datasourceId === c.datasourceId);
+                    const fieldDef = contentDef?.config.fields.find(field => field.key === c.fieldKey);
+                    const label = contentDef?.name + ' - ' + fieldDef?.label;
                     return (
-                        <label key={c.name}>
-                            {c.name}
-                            <input type="radio" checked={category===c.name} onChange={() => onChangeCategory(c.name)} />
-                        </label>
+                        <>
+                        <div className={styles.CategoryFieldLabel}>{label}</div>
+                        {c.categories.map(c2 => {
+                            return (
+                                <label key={c2.name}>
+                                    {c2.name}
+                                    <input type="radio" checked={category===c2.name} onChange={() => onChangeCategory(c2.name)} />
+                                </label>
+                            )
+                        })}
+                        </>
                     )
                 })}
             </div>
