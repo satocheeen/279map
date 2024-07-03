@@ -31,9 +31,16 @@ type ItemDefine {
 }
 
 type CategoryDefine {
-    name: String!
+    "対象のコンテンツデータソースID"
+    datasourceId: String!
+    "対象のフィールド"
+    fieldKey: String!
+    "属するカテゴリ一覧"
+    categories: [CategoryItem!]!
+}
+type CategoryItem {
+    value: String!
     color: String!
-    datasourceIds: [String!]!
 }
 type EventDefine {
     itemDatasourceId: String!
@@ -90,9 +97,17 @@ type ContentsDatasource {
 # search関連
 # --------------
 input Condition {
-    category: [String!]
+    category: [CategoryCondition!]
     date: [DateCondition!]
     keyword: [String!]
+}
+input CategoryCondition {
+    "対象のコンテンツデータソースID"
+    datasourceId: String!
+    "対象のフィールド"
+    fieldKey: String!
+    "カテゴリ値"
+    value: String!
 }
 input DateCondition {
     "日付文字列"

@@ -1,4 +1,4 @@
-import { Auth, CategoryDefine, Condition, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, MapDefine, GetItemsQuery, ThumbSize } from "../graphql/generated/graphql";
+import { Auth, CategoryDefine, Condition, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, MapDefine, GetItemsQuery, ThumbSize, CategoryCondition } from "../graphql/generated/graphql";
 import { ChangeVisibleLayerTarget } from "../store/datasource/useDataSource";
 import { IconDefine, MapKind, ContentValueMap, DataId, FeatureType, GeoProperties, IconKey } from "../types-common/common-types";
 import { OperationResult } from "urql";
@@ -221,7 +221,7 @@ export interface TsunaguMapHandler {
      * @result フィルタ完了したら、true。条件に該当するものがない場合は、フィルタ実行せずfalseを返す。
      */
     filter(condition: {
-        category?: string[];
+        category?: CategoryCondition[];
         date?: string[];
         keyword?: string[];
     }): Promise<boolean>;

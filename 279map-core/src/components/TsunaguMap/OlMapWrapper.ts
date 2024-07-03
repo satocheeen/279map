@@ -396,7 +396,7 @@ export class OlMapWrapper {
         return new Promise<void>((resolve) => {
             const maxZoom = (opt?.zoom === undefined || opt.zoom) ? undefined : this._map.getView().getZoom();
             const options: FitOptions = {
-                padding: [50, 50, 50, 50],
+                padding: [100, 100, 100, 100],
                 duration: opt?.animation ? 500 : undefined,
                 maxZoom,
                 callback: () => {
@@ -415,6 +415,7 @@ export class OlMapWrapper {
                 this._map.getView().cancelAnimations();
             } else {
                 this._fitting = true;
+                console.log('fit', ext, ext)
                 this._map.getView().fit(ext, options);
             }
         })

@@ -3,6 +3,7 @@ import styles from './FilterCondition.module.scss';
 import { useWatch } from '../../util/useWatch2';
 import { DriverContext } from '../TestMap';
 import { Condition } from './FilterTest';
+import { CategoryCondition } from '../../graphql/generated/graphql';
 
 type FilterKind = keyof Required<Condition>;
 const filterKinds: FilterKind[] = ['category', 'date', 'keyword'];
@@ -12,10 +13,10 @@ type Props = {
 }
 
 export default function FilterCondition(props: Props) {
-    const { categories } = useContext(DriverContext);
+    const { categories, contentDatasources } = useContext(DriverContext);
     const [ currentMode, setCurrentMode ] = useState<FilterKind>('category');
-    const [ category, setCategory ] = useState<string| undefined>();
-    const onChangeCategory = useCallback((category: string | undefined) => {
+    const [ category, setCategory ] = useState<CategoryCondition| undefined>();
+    const onChangeCategory = useCallback((category: CategoryCondition | undefined) => {
         setCategory(category);
     }, []);
 
@@ -46,16 +47,32 @@ export default function FilterCondition(props: Props) {
                     <input type="radio" checked={category===undefined} onChange={() => onChangeCategory(undefined)} />
                 </label>
                 {categories.map(c => {
+                    const contentDef = contentDatasources.find(cd => cd.datasourceId === c.datasourceId);
+                    const fieldDef = contentDef?.config.fields.find(field => field.key === c.fieldKey);
+                    const label = contentDef?.name + ' - ' + fieldDef?.label;
                     return (
-                        <label key={c.name}>
-                            {c.name}
-                            <input type="radio" checked={category===c.name} onChange={() => onChangeCategory(c.name)} />
-                        </label>
+                        <>
+                        <div className={styles.CategoryFieldLabel}>{label}</div>
+                        {c.categories.map(c2 => {
+                            return (
+                                <label key={c2.value}>
+                                    {c2.value}
+                                    <input type="radio"
+                                        checked={category?.datasourceId=== c.datasourceId && category.fieldKey === c.fieldKey && category.value === c2.value}
+                                        onChange={() => onChangeCategory({
+                                            datasourceId: c.datasourceId,
+                                            fieldKey: c.fieldKey,
+                                            value: c2.value,
+                                        })} />
+                                </label>
+                            )
+                        })}
+                        </>
                     )
                 })}
             </div>
         )
-    }, [categories, category, onChangeCategory]);
+    }, [categories, category, onChangeCategory, contentDatasources]);
 
     const calendarFilter = useMemo(() => {
         return (
