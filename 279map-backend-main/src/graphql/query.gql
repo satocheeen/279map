@@ -31,9 +31,16 @@ type ItemDefine {
 }
 
 type CategoryDefine {
+    "対象のコンテンツデータソースID"
+    datasourceId: String!
+    "対象のフィールド"
+    fieldKey: String!
+    "属するカテゴリ一覧"
+    categories: [CategoryItem!]!
+}
+type CategoryItem {
     name: String!
     color: String!
-    datasourceIds: [String!]!
 }
 type EventDefine {
     itemDatasourceId: String!

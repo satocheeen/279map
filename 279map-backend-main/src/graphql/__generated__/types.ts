@@ -44,8 +44,16 @@ export type Auth0Config = {
 };
 
 export type CategoryDefine = {
+  /** 属するカテゴリ一覧 */
+  categories: Array<CategoryItem>;
+  /** 対象のコンテンツデータソースID */
+  datasourceId: Scalars['String']['output'];
+  /** 対象のフィールド */
+  fieldKey: Scalars['String']['output'];
+};
+
+export type CategoryItem = {
   color: Scalars['String']['output'];
-  datasourceIds: Array<Scalars['String']['output']>;
   name: Scalars['String']['output'];
 };
 
@@ -648,6 +656,7 @@ export type ResolversTypes = {
   Auth0Config: ResolverTypeWrapper<Auth0Config>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   CategoryDefine: ResolverTypeWrapper<CategoryDefine>;
+  CategoryItem: ResolverTypeWrapper<CategoryItem>;
   Condition: Condition;
   ConnectErrorType: ConnectErrorType;
   ConnectInfo: ResolverTypeWrapper<ConnectInfo>;
@@ -709,6 +718,7 @@ export type ResolversParentTypes = {
   Auth0Config: Auth0Config;
   Boolean: Scalars['Boolean']['output'];
   CategoryDefine: CategoryDefine;
+  CategoryItem: CategoryItem;
   Condition: Condition;
   ConnectInfo: ConnectInfo;
   ConnectResult: ConnectResult;
@@ -764,8 +774,14 @@ export type Auth0ConfigResolvers<ContextType = any, ParentType extends Resolvers
 };
 
 export type CategoryDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['CategoryDefine'] = ResolversParentTypes['CategoryDefine']> = {
+  categories?: Resolver<Array<ResolversTypes['CategoryItem']>, ParentType, ContextType>;
+  datasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  fieldKey?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CategoryItemResolvers<ContextType = any, ParentType extends ResolversParentTypes['CategoryItem'] = ResolversParentTypes['CategoryItem']> = {
   color?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  datasourceIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -1031,6 +1047,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
 export type Resolvers<ContextType = any> = {
   Auth0Config?: Auth0ConfigResolvers<ContextType>;
   CategoryDefine?: CategoryDefineResolvers<ContextType>;
+  CategoryItem?: CategoryItemResolvers<ContextType>;
   ConnectInfo?: ConnectInfoResolvers<ContextType>;
   ConnectResult?: ConnectResultResolvers<ContextType>;
   ContentDatasourceConfig?: GraphQLScalarType;
