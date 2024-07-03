@@ -2,11 +2,11 @@ import React, { CSSProperties, useCallback, useMemo } from 'react';
 import { colorWithAlpha } from '../../util/CommonUtility';
 import styles from './CategoryBadge.module.scss';
 import { MdClose } from 'react-icons/md';
-import { CategoryDefine } from '../../graphql/generated/graphql';
+import { CategoryItem } from '../../graphql/generated/graphql';
 
 type Props = {
     category: string;
-    existCategories: CategoryDefine[];
+    existCategories: CategoryItem[];
     outline?: boolean;      // trueの場合、アウトライン表現
     click?: () => void;    // クリック時のコールバック。
     onDeleteClick?: () => void; // Deleteボタン押下時のコールバック。
@@ -19,7 +19,7 @@ export default function CategoryBadge(props: Props) {
         }
     }, [props]);
 
-    const category = useMemo((): CategoryDefine | undefined => {
+    const category = useMemo((): CategoryItem | undefined => {
         return props.existCategories.find(c => c.name === props.category);
     }, [props.category, props.existCategories]);
 

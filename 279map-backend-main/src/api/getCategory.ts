@@ -88,7 +88,7 @@ async function getCategoriFields(currentMap: CurrentMap): Promise<CategoryFields
 
         const result: CategoryFieldsInDatasource[] = [];
         (rows as (MapDataSourceLinkTable & DataSourceTable)[]).forEach(row => {
-            if (row.mdl_config.location_kind === DatasourceLocationKindType.Track || row.mdl_config.location_kind === DatasourceLocationKindType.VirtualItem) return;
+            if (!('contentFieldKeyList' in row.mdl_config)) return;
             const categoryFields = row.mdl_config.contentFieldKeyList.filter(cfKey => {
                 const contentDef = row.contents_define?.find(def => def.key === cfKey);
                 return contentDef?.type === 'category';
@@ -120,7 +120,7 @@ async function getCategoryValuesOfTheField(datasourceId: string, fieldKey: strin
     try {
         const sql = `
         select * from (
-            select JSON_UNQUOTE(JSON_EXTRACT(c.contents , '$.${fieldKey}')) as mycategory
+            select JSON_EXTRACT(c.contents , '$.${fieldKey}') as mycategory
             from contents c
             inner join datas d on d.data_id = c.data_id 
             where d.data_source_id = ?

@@ -24,9 +24,12 @@ query getCategory(
     $datasourceIds: [String!]
 ){
     getCategory(datasourceIds: $datasourceIds) {
-        name
-        color
-        datasourceIds
+        datasourceId
+        fieldKey
+        categories {
+            name
+            color
+        }
     }    
 }
 
