@@ -35,11 +35,12 @@ export type EventControllerHandler = Pick<TsunaguMapHandler,
     | 'linkContent' | 'unlinkContent'
     | 'getUnpointDataAPI'
     | 'changeVisibleLayer'
-    | 'selectItem'>
+    | 'selectItem'
+    | 'switchBackground'>
 
 function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControllerHandler>) {
     const { loadMap } = useMapController();
-    const { focusItem, fitToDefaultExtent, loadCurrentAreaContents } = useMap();
+    const { map, focusItem, fitToDefaultExtent, loadCurrentAreaContents } = useMap();
     const { updateDatasourceVisible } = useDataSource();
     const [ gqlClient ] = useAtom(clientAtom);
     const [ , setFilteredItem ] = useAtom(filteredDatasAtom);
@@ -101,6 +102,9 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         },
         fitAllItemsExtent() {
             fitToDefaultExtent(true);
+        },
+        switchBackground(value) {
+            map?.switchBackground(value);
         },
         async filter(condition) {            
             if (Object.keys(condition).length === 0) {

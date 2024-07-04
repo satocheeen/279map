@@ -6,7 +6,7 @@ import { Interaction, defaults } from 'ol/interaction'
 import { LayerInfo, LayerType, LayerDefine, VectorLayerMap } from './VectorLayerMap';
 import GeoJSON from 'ol/format/GeoJSON';
 import prefJson from './pref.json';
-import { Cluster, Vector as VectorSource } from "ol/source";
+import { Cluster, Vector as VectorSource, XYZ } from "ol/source";
 import TileLayer from "ol/layer/Tile";
 import OSM from 'ol/source/OSM';
 import VectorLayer from "ol/layer/Vector";
@@ -15,7 +15,7 @@ import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
 import BaseEvent from 'ol/events/Event';
 import * as MapUtility from '../../util/MapUtility';
-import { FeatureProperties, ItemInfo } from '../../types/types';
+import { FeatureProperties, ItemInfo, TsunaguMapHandler } from '../../types/types';
 import { Pixel } from 'ol/pixel';
 import { convertDataIdFromFeatureId, getMapKey } from '../../util/dataUtility';
 import { FitOptions } from 'ol/View';
@@ -39,6 +39,39 @@ const pcControls = olControl.defaults({attribution: true, zoom: false});
 const spControls = olControl.defaults({attribution: true, zoom: false});
 
 // export const TemporaryPointLayerDatasourceId = 'temporary-point';
+
+// OpenStreetMap
+const OpenLayersTile = new TileLayer({
+    source: new OSM(),
+    zIndex: 0,
+    minZoom: 10,
+    visible: true,
+});
+
+// 国土地理院
+const CyberjapanTile = new TileLayer({
+    source: new XYZ({
+        url: "https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png",
+        attributions: "国土地理院(https://maps.gsi.go.jp/development/ichiran.html)",
+        projection: "EPSG:3857"
+    }),
+    zIndex: 0,
+    minZoom: 10,
+    visible: false,
+});
+
+// 国土地理院（衛星画像）
+const CyberjapanPhotoTile = new TileLayer({
+    source: new XYZ({
+        url: "https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg",
+        attributions: "国土地理院(https://maps.gsi.go.jp/development/ichiran.html)",
+        projection: "EPSG:3857"
+    }),
+    zIndex: 0,
+    minZoom: 10,
+    visible: false,
+});
+const BackgroundTileLayers = [OpenLayersTile, CyberjapanTile, CyberjapanPhotoTile];
 
 /**
  * OpenLayersの地図を内包したクラス。
@@ -66,7 +99,6 @@ export class OlMapWrapper {
             target,
             view: new View({
                 projection: 'EPSG:4326',
-                maxZoom: 20,
             }),
             interactions: defaults({ doubleClickZoom: false, pinchRotate: false, shiftDragZoom: false }),
         });
@@ -153,11 +185,7 @@ export class OlMapWrapper {
                 }
 
                 const layers = [
-                    new TileLayer({
-                        source: new OSM(),
-                        zIndex: 0,
-                        minZoom: 10,
-                    }),
+                    ...BackgroundTileLayers,
                     new VectorLayer({
                         source: prefSource,
                         maxZoom: 10,
@@ -181,7 +209,7 @@ export class OlMapWrapper {
                     center: this._map.getView().getCenter(),
                     zoom: this._map.getView().getZoom(),
                     minZoom: this._map.getView().getMinZoom(),
-                    maxZoom: this._map.getView().getMaxZoom(),
+                    // maxZoom: this._map.getView().getMaxZoom(),
                     extent: prefSource.getExtent(),
                 });
                 this._map.setView(view);
@@ -513,7 +541,6 @@ export class OlMapWrapper {
      * @returns 
      */
     addLayer(layerDefine: LayerDefine, initialVisible: boolean): VectorLayer<VectorSource> | undefined{
-        console.log('addLayer', this._id, layerDefine);
         const layer = this._vectorLayerMap.createLayer(layerDefine);
         if (layer) {
             layer.setVisible(initialVisible);
@@ -686,6 +713,24 @@ export class OlMapWrapper {
                     layerInfo.layer.setVisible(target.visible);
                 }
             });
+        })
+    }
+
+    /**
+     * 背景地図の切り替え
+     * @param value 
+     */
+    switchBackground(value: Parameters<TsunaguMapHandler['switchBackground']>[0]) {
+        BackgroundTileLayers.forEach(val => {
+            if (value === 'osm') {
+                val.setVisible(val === OpenLayersTile);
+
+            } else if (value === 'japan') {
+                val.setVisible(val === CyberjapanTile);
+
+            } else {
+                val.setVisible(val === CyberjapanPhotoTile);
+            }
         })
     }
 

@@ -33,8 +33,9 @@ type PropRadioProps<T> = {
         value: T;
     }[];
     default?: T;
+    direction?: 'horizontal' | 'vertical';
 }
-function PropRadio<T>(props: PropRadioProps<T>) {
+export function PropRadio<T>(props: PropRadioProps<T>) {
     const [ value, setValue ] = useState<T>(props.default ?? props.items[0].value);
     const onChange = useCallback((val: T) => {
         setValue(val);
@@ -42,7 +43,7 @@ function PropRadio<T>(props: PropRadioProps<T>) {
     }, [props]);
 
     return (
-        <div className={styles.Row}>
+        <div className={styles.Row} style={props.direction ? {flexDirection: 'column'} : {}}>
             <span className={styles.PropName}>{props.name}</span>
             {props.items.map((item, index) => {
                 return (

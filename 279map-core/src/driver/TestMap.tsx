@@ -28,6 +28,7 @@ import RegistContentDriver from './regist-content/RegistContentDriver';
 import LoadImageDriver from './image/LoadImageDriver';
 import FocusItemDriver from './focus-item/FocusItemDriver';
 import OverrideItemsDriver from './override-items/OverrideItemsDriver';
+import BackgroundDriver from './basic-settings/BackgroundDriver';
 
 export const DriverContext = React.createContext({
     getMap: () => null as TsunaguMapHandler | null,
@@ -326,6 +327,7 @@ export default function TestMap() {
                     <LoadImageDriver />
                 </div>
                 <div className={styles.VerticalArea}>
+                    <BackgroundDriver />
                     <DatasourceDriver />
                     <FilterTest />
                     <RegistContentDriver />

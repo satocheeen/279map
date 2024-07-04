@@ -216,6 +216,12 @@ export interface TsunaguMapHandler {
     fitAllItemsExtent(): void;
 
     /**
+     * 背景画像を切り替える
+     * @param value 
+     */
+    switchBackground(value: 'osm' | 'japan' | 'japan-photo'): void;
+
+    /**
      * 指定の条件でフィルタする
      * @param condition フィルタ条件
      * @result フィルタ完了したら、true。条件に該当するものがない場合は、フィルタ実行せずfalseを返す。
