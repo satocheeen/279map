@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo } from "react";
 import Feature, { FeatureLike } from "ol/Feature";
 import { Fill, Icon, Style, Text } from 'ol/style';
 import { getOpacityValue, getStructureScale } from "../../util/MapUtility";
@@ -68,66 +68,68 @@ export default function usePointStyle() {
             const scale = getStructureScale(param.resolution, mapKind);
 
             const opacity = getOpacityValue(param.opacity);
-            if (mapKind === MapKind.Virtual) {
-                const styleKey: StyleKey = {
-                    iconKey: {
-                        id: param.iconDefine.id,
-                        type: param.iconDefine.type
-                    },
-                    color: param.color,
-                    opacity: param.opacity,
-                };
-                const style = map?.pointStyleMap.get(styleKey);
-                if (style) {
-                    style.getImage().setScale(scale);
-                    return style;
-                }
 
-                const newStyle = new Style({
-                    image: new Icon({
-                        anchor: [0.5, 1],
-                        anchorXUnits: 'fraction',
-                        anchorYUnits: 'fraction',
-                        src: param.iconDefine?.imagePath,
-                        color: param.color ? ColorPattern[param.color] : undefined,
-                        opacity,
-                        scale,
-                    }),
-                });
-                map?.pointStyleMap.set(styleKey, newStyle);
-                return newStyle;
-
-            } else {
-                const { src, color } = function() {
-                    if (param.color && param.iconDefine.originalSvgData) {
-                        const forceData = addFillStyle(param.iconDefine.originalSvgData, ColorPattern[param.color], 'my-color')
-                        return {
-                            src: 'data:image/svg+xml;utf8,' + forceData,
-                            color: undefined,
-                        }
-                    } else {
-                        return {
-                            src: param.iconDefine.imagePath,
-                            color: param.color ? ColorPattern[param.color] : undefined,
-                        }
-                    }
-    
-                }();
-                
-                const style =  new Style({
-                    image: new Icon({
-                        anchor: [0.5, 1],
-                        anchorXUnits: 'fraction',
-                        anchorYUnits: 'fraction',
-                        src,
-                        color,
-                        opacity,
-                        scale,
-                    }),
-                });
+            const styleKey: StyleKey = {
+                iconKey: {
+                    id: param.iconDefine.id,
+                    type: param.iconDefine.type
+                },
+                color: param.color,
+                opacity: param.opacity,
+            };
+            const style = map?.pointStyleMap.get(styleKey);
+            if (style) {
+                style.getImage().setScale(scale);
                 return style;
-
             }
+
+            const newStyle = function() {
+                if (mapKind === MapKind.Virtual) {
+                    return new Style({
+                        image: new Icon({
+                            anchor: [0.5, 1],
+                            anchorXUnits: 'fraction',
+                            anchorYUnits: 'fraction',
+                            src: param.iconDefine?.imagePath,
+                            color: param.color ? ColorPattern[param.color] : undefined,
+                            opacity,
+                            scale,
+                        }),
+                    });
+    
+                } else {
+                    const { src, color } = function() {
+                        if (param.color && param.iconDefine.originalSvgData) {
+                            const forceData = addFillStyle(param.iconDefine.originalSvgData, ColorPattern[param.color], 'my-color')
+                            return {
+                                src: 'data:image/svg+xml;utf8,' + forceData,
+                                color: undefined,
+                            }
+                        } else {
+                            return {
+                                src: param.iconDefine.imagePath,
+                                color: param.color ? ColorPattern[param.color] : undefined,
+                            }
+                        }
+        
+                    }();
+                    
+                    return new Style({
+                        image: new Icon({
+                            anchor: [0.5, 1],
+                            anchorXUnits: 'fraction',
+                            anchorYUnits: 'fraction',
+                            src,
+                            color,
+                            opacity,
+                            scale,
+                        }),
+                    });
+                }
+            }();
+
+            map?.pointStyleMap.set(styleKey, newStyle);
+            return newStyle;
 
         }, [map])
     )
