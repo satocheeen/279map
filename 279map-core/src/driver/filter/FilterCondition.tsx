@@ -51,23 +51,23 @@ export default function FilterCondition(props: Props) {
                     const fieldDef = contentDef?.config.fields.find(field => field.key === c.fieldKey);
                     const label = contentDef?.name + ' - ' + fieldDef?.label;
                     return (
-                        <>
-                        <div className={styles.CategoryFieldLabel}>{label}</div>
-                        {c.categories.map(c2 => {
-                            return (
-                                <label key={c2.value}>
-                                    {c2.value}
-                                    <input type="radio"
-                                        checked={category?.datasourceId=== c.datasourceId && category.fieldKey === c.fieldKey && category.value === c2.value}
-                                        onChange={() => onChangeCategory({
-                                            datasourceId: c.datasourceId,
-                                            fieldKey: c.fieldKey,
-                                            value: c2.value,
-                                        })} />
-                                </label>
-                            )
-                        })}
-                        </>
+                        <div key={c.datasourceId + '-' + c.fieldKey}>
+                            <div className={styles.CategoryFieldLabel}>{label}</div>
+                            {c.categories.map(c2 => {
+                                return (
+                                    <label key={c2.value}>
+                                        {c2.value}
+                                        <input type="radio"
+                                            checked={category?.datasourceId=== c.datasourceId && category.fieldKey === c.fieldKey && category.value === c2.value}
+                                            onChange={() => onChangeCategory({
+                                                datasourceId: c.datasourceId,
+                                                fieldKey: c.fieldKey,
+                                                value: c2.value,
+                                            })} />
+                                    </label>
+                                )
+                            })}
+                        </div>
                     )
                 })}
             </div>
