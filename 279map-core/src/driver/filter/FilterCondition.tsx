@@ -4,6 +4,7 @@ import { useWatch } from '../../util/useWatch2';
 import { DriverContext } from '../TestMap';
 import { Condition } from './FilterTest';
 import { CategoryCondition } from '../../graphql/generated/graphql';
+import { CategoryBadge } from '../../components';
 
 type FilterKind = keyof Required<Condition>;
 const filterKinds: FilterKind[] = ['category', 'date', 'keyword'];
@@ -55,16 +56,26 @@ export default function FilterCondition(props: Props) {
                             <div className={styles.CategoryFieldLabel}>{label}</div>
                             {c.categories.map(c2 => {
                                 return (
-                                    <label key={c2.value}>
-                                        {c2.value}
-                                        <input type="radio"
-                                            checked={category?.datasourceId=== c.datasourceId && category.fieldKey === c.fieldKey && category.value === c2.value}
-                                            onChange={() => onChangeCategory({
-                                                datasourceId: c.datasourceId,
-                                                fieldKey: c.fieldKey,
-                                                value: c2.value,
-                                            })} />
-                                    </label>
+                                    <CategoryBadge key={c2.value}
+                                        category={c2.value}
+                                        existCategories={c.categories}
+                                        outline={category?.datasourceId=== c.datasourceId && category.fieldKey === c.fieldKey && category.value === c2.value}
+                                        click={() => onChangeCategory({
+                                            datasourceId: c.datasourceId,
+                                            fieldKey: c.fieldKey,
+                                            value: c2.value,
+                                        })}
+                                    />
+                                    // <label key={c2.value} style={{backgroundColor: c2.color}}>
+                                    //     {c2.value}
+                                    //     <input type="radio"
+                                    //         checked={category?.datasourceId=== c.datasourceId && category.fieldKey === c.fieldKey && category.value === c2.value}
+                                    //         onChange={() => onChangeCategory({
+                                    //             datasourceId: c.datasourceId,
+                                    //             fieldKey: c.fieldKey,
+                                    //             value: c2.value,
+                                    //         })} />
+                                    // </label>
                                 )
                             })}
                         </div>

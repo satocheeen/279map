@@ -1,8 +1,8 @@
 import React, { CSSProperties, useCallback, useMemo } from 'react';
-import { colorWithAlpha } from '../../util/CommonUtility';
 import styles from './CategoryBadge.module.scss';
 import { MdClose } from 'react-icons/md';
 import { CategoryItem } from '../../graphql/generated/graphql';
+import tinycolor from 'tinycolor2';
 
 type Props = {
     category: string;
@@ -25,6 +25,7 @@ export default function CategoryBadge(props: Props) {
 
     const style = useMemo((): CSSProperties => {
         const color = category ? category.color : '#faa';
+        const textColor = tinycolor(color).isLight() ? '#222' : '#fff';
         if (props.outline) {
             return {
                 borderColor: color,
@@ -32,7 +33,8 @@ export default function CategoryBadge(props: Props) {
             }
         } else {
             return {
-                backgroundColor: colorWithAlpha(color, .7),
+                backgroundColor: tinycolor(color).setAlpha(.8).toHexString(),
+                color: textColor,
             }
         }
 

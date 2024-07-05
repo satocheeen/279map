@@ -36,6 +36,7 @@ export async function getCategory(param: QueryGetCategoryArgs, currentMap: Curre
                     seed: 0,
                     count: values.length,
                     format: 'rgb',
+                    luminosity: 'dark',
                 });
 
                 result.push({
