@@ -7,10 +7,13 @@ import { useAtom } from 'jotai';
 import { itemProcessesAtom } from '../../store/item';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import { FeatureType, GeoProperties } from '../../entry';
+import { FeatureColor } from './types';
 
-const ERROR_COLOR = '#ff8888';
-export const FORCE_COLOR = '#b2438b';
-
+export enum Opacity {
+    Normal = 'Normal',         // 通常
+    Transparent = 'Transparent',    // 半透明
+    Hidden = 'Hidden'          // 非表示
+}
 /**
  * 地物のフィルタ状態を返すフック
  */
@@ -31,7 +34,7 @@ export default function useFilterStatus() {
      * 指定の地物の強調表示色を返す
      * @return 強調表示色。強調しない場合は、undefined。
      */
-    const getForceColor = useCallback((feature: FeatureLike): string | undefined => {
+    const getForceColor = useCallback((feature: FeatureLike): FeatureColor | undefined => {
         const id = convertDataIdFromFeatureId(feature.getId() as string);
 
         // エラー状態のものはエラー色表示
@@ -46,12 +49,12 @@ export default function useFilterStatus() {
                 return false;
             }
         })?.error) {
-            return ERROR_COLOR;
+            return FeatureColor.Error;
         }
 
         // 選択されているものは強調表示
         if (selectedItemId && isEqualId(selectedItemId, id)) {
-            return FORCE_COLOR;
+            return FeatureColor.Selected;
         }
 
         const filterStatus = getFilterStatus(feature);
@@ -73,7 +76,7 @@ export default function useFilterStatus() {
     }, [getFilterStatus, selectedItemId, itemProcesses]);
 
     const { filterUnmatchView } = useContext(OwnerContext);
-    const getOpacity = useCallback((feature: FeatureLike): number => {
+    const getOpacity = useCallback((feature: FeatureLike): Opacity => {
         const id = convertDataIdFromFeatureId(feature.getId() as string);
         if (itemProcesses.some(process => {
             if (process.status === 'registing') {
@@ -83,24 +86,24 @@ export default function useFilterStatus() {
             }            
         })) {
             // 新規登録中アイテム or 削除処理中アイテム（エラー時）
-            return 0.3;
+            return Opacity.Transparent;
         }
 
         // フィルタ時、フィルタ対象外はopacity設定
         const featureType = (feature.getProperties() as GeoProperties).featureType;
         if (![FeatureType.STRUCTURE, FeatureType.TRACK].includes(featureType)) {
             // 土地などは透過しない
-            return 1;
+            return Opacity.Normal;
         }
         const filterStatus = getFilterStatus(feature);
         if (filterStatus === 'UnFiltered') {
             if (filterUnmatchView === 'hidden') {
-                return 0;
+                return Opacity.Hidden;
             } else {
-                return 0.3;
+                return Opacity.Transparent;
             }
         }
-        return 1;
+        return Opacity.Normal;
 
     }, [filterUnmatchView, getFilterStatus, itemProcesses]);
 

@@ -29,6 +29,7 @@ import LoadImageDriver from './image/LoadImageDriver';
 import FocusItemDriver from './focus-item/FocusItemDriver';
 import OverrideItemsDriver from './override-items/OverrideItemsDriver';
 import BackgroundDriver from './basic-settings/BackgroundDriver';
+import { iconDefine as iconDefine2 } from './iconDefine';
 
 export const DriverContext = React.createContext({
     getMap: () => null as TsunaguMapHandler | null,
@@ -49,7 +50,7 @@ export const DriverContext = React.createContext({
 
     setOverrideItems: (val: OverrideItem[] | undefined) => {},
 })
-const iconDefine: TsunaguMapProps['iconDefine'] = {
+const iconDefine1: TsunaguMapProps['iconDefine'] = {
     defines: [
         {
             id: 'pin',
@@ -274,7 +275,7 @@ export default function TestMap() {
             <div className={styles.Map}>
                 {mapId &&
                     <TsunaguMap ref={mapRef}
-                        iconDefine={iconDefine}
+                        iconDefine={iconDefine2}
                         mapId={mapId}
                         mapServer={mapServer}
                         popupMode={popupMode}

@@ -17,6 +17,7 @@ import { getCenter as getExtentCenter } from 'ol/extent';
 import { Cluster } from 'ol/source';
 import { circle, lineString, multiLineString, multiPolygon, polygon, buffer } from '@turf/turf';
 import { MapKind, FeatureType, GeoProperties } from '../types-common/common-types';
+import { Opacity } from '../components/map/useFilterStatus';
 
 /**
  * GeoJSONを元に対応するジオメトリを生成して返す
@@ -308,3 +309,14 @@ export function geoJsonToTurfPolygon(geoJson: geojson.Geometry | geojson.GeoJSON
         return;
     }
 }
+
+export function getOpacityValue(opacity?: Opacity): number {
+    switch(opacity) {
+        case Opacity.Transparent:
+            return 0.3;
+        case Opacity.Hidden:
+            return 0;
+        default:
+            return 1;
+    }
+};

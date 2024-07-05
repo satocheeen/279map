@@ -23,6 +23,7 @@ import { Coordinate } from 'ol/coordinate';
 import { GetGeocoderFeatureDocument, ItemDatasourceInfo } from '../../graphql/generated/graphql';
 import { Client } from 'urql';
 import { DataId, DatasourceLocationKindType, FeatureType, MapKind } from '../../types-common/common-types';
+import PointStyleMap from '../map/PointStyleMap';
 
 export type FeatureInfo = {
     id: DataId;
@@ -85,6 +86,7 @@ export class OlMapWrapper {
     _currentZoom: number;   // Zoomレベル変更検知用に保持
     _device: Device = 'pc';
     _gqlClient: Client;
+    pointStyleMap = new PointStyleMap();
 
     // 描画用レイヤ
     _drawingLayers: VectorLayer<VectorSource>[] = [];
@@ -395,7 +397,7 @@ export class OlMapWrapper {
         }
 
         sourceDefMap.forEach((features, source) => {
-            // console.log('add features', features.length);
+            console.log('add features', features.length);
             source.addFeatures(features);
         })
     }
@@ -443,7 +445,6 @@ export class OlMapWrapper {
                 this._map.getView().cancelAnimations();
             } else {
                 this._fitting = true;
-                console.log('fit', ext, ext)
                 this._map.getView().fit(ext, options);
             }
         })

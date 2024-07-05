@@ -1,11 +1,10 @@
-import { useCallback } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import Feature, { FeatureLike } from "ol/Feature";
 import { Fill, Icon, Style, Text } from 'ol/style';
-import { getStructureScale } from "../../util/MapUtility";
-import useFilterStatus, { FORCE_COLOR } from "./useFilterStatus";
+import { getOpacityValue, getStructureScale } from "../../util/MapUtility";
+import useFilterStatus, { Opacity } from "./useFilterStatus";
 import { Geometry } from "ol/geom";
 import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
-import { useMap } from "./useMap";
 import { useMapOptions } from "../../util/useMapOptions";
 import { selectItemIdAtom } from "../../store/operation";
 import useIcon from "../../store/icon/useIcon";
@@ -13,12 +12,15 @@ import { filteredItemIdListAtom } from "../../store/filter";
 import { itemDataSourcesAtom } from "../../store/datasource";
 import { useAtom } from 'jotai';
 import { MapStyles } from "../../util/constant-defines";
-import { DatasourceLocationKindType, IconKey } from "../../types-common/common-types";
+import { DataId, DatasourceLocationKindType, IconKey } from "../../types-common/common-types";
 import { useAtomCallback } from "jotai/utils";
 import { currentMapKindAtom } from "../../store/session";
-import { MapKind, SystemIconDefine } from "../../entry";
+import { ItemInfo, MapKind, SystemIconDefine } from "../../entry";
 import { addFillStyle, currentDefaultIconAtom } from "../../store/icon";
 import { allItemsAtom } from "../../store/item";
+import { ColorPattern, FeatureColor } from "./types";
+import { StyleKey } from "./PointStyleMap";
+import { useMap } from "./useMap";
 
 /**
  * 建物・地点に関するスタイルを設定するフック
@@ -30,60 +32,75 @@ export default function usePointStyle() {
     const [ filteredItemIdList ] = useAtom(filteredItemIdListAtom);
     const { disabledLabel } = useMapOptions();
     const { getIconDefine } = useIcon();
-    const { map } = useMap();
     const [ selectedItemId ] = useAtom(selectItemIdAtom);
+    const [ allItems ] = useAtom(allItemsAtom);
+    const { map } = useMap();
 
-    const getZindex = useCallback((feature: Feature<Geometry>): number => {
-        if (!map) return 0;
-        // featureが属するレイヤソース取得
-        const pointsSource = map.getLayerInfoContainedTheFeature(feature)?.layer.getSource();
-        if (!pointsSource) {
-            return 0;
-        }
-        // 地図上でY座標が下のものほど手前に表示するようにする
-        const allExtent = pointsSource.getExtent();
-        const maxY = Math.max(allExtent[1], allExtent[3]);
-        const extent = feature.getGeometry()?.getExtent();
-        if (extent === undefined) {
-            return 0;
-        }
-        const zIndex = Math.round(Math.abs(extent[1] - maxY));
-    
-        return zIndex;
-    }, [map]);
+    /**
+     * @return key = featureId, value = zIndex のマップ
+     */
+    const zIndexMap = useMemo(() => {
+        // 地図上でのY座標順にソート
+        const sortedItems = allItems.sort((a, b) => {
+            const getWeight = function(item: ItemInfo) {
+                if (item.geometry.type === 'Point') {
+                    return item.geometry.coordinates[1];
+                } else {
+                    return 0;
+                }
+            }
+            const aWeight = getWeight(a);
+            const bWeight = getWeight(b);
+            return (aWeight - bWeight) * -1;
+        });
+        const map = {} as {[id: DataId]: number};
+        sortedItems.forEach((item, index) => {
+            map[item.id] = index;
+        })
+        return map;
+
+    }, [allItems]);
 
     const _createStyle = useAtomCallback(
-        useCallback((get, set, param: {iconDefine: SystemIconDefine; feature: Feature<Geometry>; resolution: number; color?: string; opacity?: number}) => {
-            const type = param.feature.getGeometry()?.getType();
-            if (type !== 'Point') {
-                console.warn('geometry type is not point', param.feature);
-                return new Style();
-            }
+        useCallback((get, set, param: {iconDefine: SystemIconDefine; resolution: number; color?: FeatureColor; opacity?: Opacity}) => {
             const mapKind = get(currentMapKindAtom);
 
             const scale = getStructureScale(param.resolution, mapKind);
-            // 地図上でY座標が下のものほど手前に表示するようにする
-            const zIndex = getZindex(param.feature);
 
-
+            const opacity = getOpacityValue(param.opacity);
             if (mapKind === MapKind.Virtual) {
-                return new Style({
+                const styleKey: StyleKey = {
+                    iconKey: {
+                        id: param.iconDefine.id,
+                        type: param.iconDefine.type
+                    },
+                    color: param.color,
+                    opacity: param.opacity,
+                };
+                const style = map?.pointStyleMap.get(styleKey);
+                if (style) {
+                    style.getImage().setScale(scale);
+                    return style;
+                }
+
+                const newStyle = new Style({
                     image: new Icon({
                         anchor: [0.5, 1],
-                        anchorXUnits: 'fraction', //IconAnchorUnits.FRACTION,
-                        anchorYUnits: 'fraction', //IconAnchorUnits.FRACTION,
+                        anchorXUnits: 'fraction',
+                        anchorYUnits: 'fraction',
                         src: param.iconDefine?.imagePath,
-                        color: param.color,
-                        opacity: param.opacity,
+                        color: param.color ? ColorPattern[param.color] : undefined,
+                        opacity,
                         scale,
                     }),
-                    zIndex,
                 });
+                map?.pointStyleMap.set(styleKey, newStyle);
+                return newStyle;
 
             } else {
                 const { src, color } = function() {
                     if (param.color && param.iconDefine.originalSvgData) {
-                        const forceData = addFillStyle(param.iconDefine.originalSvgData, param.color, 'my-color')
+                        const forceData = addFillStyle(param.iconDefine.originalSvgData, ColorPattern[param.color], 'my-color')
                         return {
                             src: 'data:image/svg+xml;utf8,' + forceData,
                             color: undefined,
@@ -91,7 +108,7 @@ export default function usePointStyle() {
                     } else {
                         return {
                             src: param.iconDefine.imagePath,
-                            color: param.color,
+                            color: param.color ? ColorPattern[param.color] : undefined,
                         }
                     }
     
@@ -100,20 +117,19 @@ export default function usePointStyle() {
                 const style =  new Style({
                     image: new Icon({
                         anchor: [0.5, 1],
-                        anchorXUnits: 'fraction', //IconAnchorUnits.FRACTION,
-                        anchorYUnits: 'fraction', //IconAnchorUnits.FRACTION,
+                        anchorXUnits: 'fraction',
+                        anchorYUnits: 'fraction',
                         src,
                         color,
-                        opacity: param.opacity,
+                        opacity,
                         scale,
                     }),
-                    zIndex,
                 });
                 return style;
 
             }
 
-        }, [getZindex])
+        }, [map])
     )
 
     /**
@@ -124,7 +140,6 @@ export default function usePointStyle() {
     const getDrawingStructureStyleFunction = useCallback((iconDefine: SystemIconDefine) => {
         return (feature: FeatureLike, resolution: number) => {
             return _createStyle({
-                feature: feature as Feature<Geometry>,
                 resolution,
                 iconDefine,
             });
@@ -204,9 +219,11 @@ export default function usePointStyle() {
 
     const [ dataSources ] = useAtom(itemDataSourcesAtom);
     const _createPointStyle = useAtomCallback(
-        useCallback((get, set, feature: Feature<Geometry>, resolution: number, forceColor?: string, isTemporary?: boolean): Style | Style[] => {
+        useCallback((get, set, feature: Feature<Geometry>, resolution: number, forceColor?: FeatureColor, isTemporary?: boolean): Style | Style[] => {
             const { mainFeature, showFeaturesLength } = _analysisFeatures(feature);
             const allItems = get(allItemsAtom);
+
+            console.log('_createPointStyle')
 
             const iconDefine = function() {
                 if (isTemporary) {
@@ -229,8 +246,8 @@ export default function usePointStyle() {
             }();
 
             // 色設定
-            let color: string | undefined;
-            let opacity = 1;
+            let color: FeatureColor | undefined;
+            let opacity = Opacity.Normal;
             let visible = true;
 
             if (forceColor) {
@@ -240,7 +257,7 @@ export default function usePointStyle() {
                 // -- フィルタ状態に応じて色設定
                 color = getForceColor(mainFeature);
                 const tempOpacity = getOpacity(mainFeature);
-                if (tempOpacity === 0) {
+                if (tempOpacity === Opacity.Hidden) {
                     visible = false;
                 } else {
                     opacity = tempOpacity;
@@ -252,12 +269,15 @@ export default function usePointStyle() {
             }
 
             const style = _createStyle({
-                feature,
                 resolution,
                 iconDefine,
                 color,
                 opacity,
             });
+
+            // 地図上でY座標が下のものほど手前に表示するようにする
+            const zIndex = zIndexMap[mainFeature.getId() as DataId];
+            style.setZIndex(zIndex);
 
             if (showFeaturesLength > 1) {
                 // 複数アイテムがまとまっている場合、まとまっている数を表示
@@ -280,7 +300,7 @@ export default function usePointStyle() {
             }
             return style;
 
-        }, [getOpacity, dataSources, disabledLabel, _createStyle, getForceColor, _analysisFeatures, getIconDefine])
+        }, [getOpacity, dataSources, disabledLabel, _createStyle, getForceColor, _analysisFeatures, getIconDefine, zIndexMap])
     )
 
     /**
@@ -302,7 +322,7 @@ export default function usePointStyle() {
     }, [_createPointStyle]);
 
     const selectedStyleFunction = useCallback((feature: FeatureLike, resolution: number): Style | Style[] => {
-        const style = _createPointStyle(feature as Feature<Geometry>, resolution, FORCE_COLOR);
+        const style = _createPointStyle(feature as Feature<Geometry>, resolution, FeatureColor.Selected);
 
         return style;
     }, [_createPointStyle]);
@@ -319,7 +339,7 @@ export default function usePointStyle() {
  * 建物名ラベルを生成して返す
  * @param feature 
  */
-function createItemNameLabel(feature: FeatureLike, resolution: number, opacity: number): Text {
+function createItemNameLabel(feature: FeatureLike, resolution: number, opacity: Opacity): Text {
     // ラベル設定
     let name = (feature.getProperties().name ?? '') as string;
     if (name.length > MapStyles.Item.maxLabelLength) {
@@ -328,7 +348,7 @@ function createItemNameLabel(feature: FeatureLike, resolution: number, opacity: 
     }
 
     const scale = Math.min(0.002 * (1 / resolution), 1);
-    const color = '#000000' + Math.floor(255 * opacity).toString(16);
+    const color = '#000000' + Math.floor(255 * getOpacityValue(opacity)).toString(16);
 
     const text = new Text({
         textAlign: 'center',
@@ -407,3 +427,4 @@ function multipleColor(color1: string, color2: string) {
     const blueHex = decimalToHex(newColor.b);
     return `#${redHex}${greenHex}${blueHex}`;
 }
+

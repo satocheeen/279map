@@ -2,12 +2,10 @@ import { Overlay } from 'ol';
 import React, { useEffect, useRef, useMemo, useCallback, useState } from 'react';
 import PointsPopup from './PointsPopup';
 import { getCenter } from 'geolib';
-import VectorSource from 'ol/source/Vector';
 import { getMapKey, isEqualId } from '../../util/dataUtility';
-import { LayerType } from '../TsunaguMap/VectorLayerMap';
 import PopupContainerCalculator, { PopupGroupWithPosition } from './PopupContainerCalculator';
 import { useMap } from '../map/useMap';
-import { useWatch } from '../../util/useWatch';
+import { useWatch } from '../../util/useWatch2';
 import { useMapOptions } from '../../util/useMapOptions';
 import { allItemsAtom } from '../../store/item';
 import { mapViewAtom } from '../../store/operation';
@@ -73,39 +71,42 @@ export default function PopupContainer() {
      * 初期化処理。
      * 地図へのFeature追加検知して、表示するポップアップ情報を更新する。
      */
-    useEffect(() => {
-        if (!map) return;
-        // 画像ロード完了していないと、imagePositionの取得に失敗するので、ここでイベント検知して再描画させる
-        const loadendFunc = () => {
-            updatePopupGroups();
-        }
-        map.once('loadend', loadendFunc);
+    // useEffect(() => {
+    //     if (!map) return;
+    //     // 画像ロード完了していないと、imagePositionの取得に失敗するので、ここでイベント検知して再描画させる
+    //     const loadendFunc = () => {
+    //         console.log('loadendFunc')
+    //         updatePopupGroups();
+    //     }
+    //     map.once('loadend', loadendFunc);
 
-        const itemLayers = map.getLayersOfTheType(LayerType.Point);
-        const addfeatureFunc = () => {
-            updatePopupGroups();
-        }
-        itemLayers.forEach(itemLayer => {
-            const source = itemLayer.layer.getSource() as VectorSource;
-            source.on('addfeature', addfeatureFunc);
-        });
+    //     const itemLayers = map.getLayersOfTheType(LayerType.Point);
+    //     const addfeatureFunc = () => {
+    //         console.log('addfeatureFunc')
+    //         updatePopupGroups();
+    //     }
+    //     itemLayers.forEach(itemLayer => {
+    //         const source = itemLayer.layer.getSource() as VectorSource;
+    //         source.on('addfeature', addfeatureFunc);
+    //     });
 
-        return () => {
-            map.un('loadend', loadendFunc);
-            itemLayers.forEach(itemLayer => {
-                const source = itemLayer.layer.getSource() as VectorSource;
-                source?.un('addfeature', addfeatureFunc);
-            });
-        }
+    //     return () => {
+    //         map.un('loadend', loadendFunc);
+    //         itemLayers.forEach(itemLayer => {
+    //             const source = itemLayer.layer.getSource() as VectorSource;
+    //             source?.un('addfeature', addfeatureFunc);
+    //         });
+    //     }
 
-    }, [map, updatePopupGroups]);
+    // }, [map, updatePopupGroups]);
 
     /**
      * 表示対象コンテンツや表示エクステントが変わった契機でポップアップ情報更新
      */
-    useWatch(() => {
+    useWatch([hasContentsItemList, extent], () => {
+        console.log('useWatch')
         updatePopupGroups();
-    }, [hasContentsItemList, extent]);
+    });
 
     // 開閉時に、zIndexを最前面に
     useEffect(() => {
