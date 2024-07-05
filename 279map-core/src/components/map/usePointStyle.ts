@@ -270,7 +270,7 @@ export default function usePointStyle() {
                 return new Style();
             }
 
-            const style = _createStyle({
+            let style = _createStyle({
                 resolution,
                 iconDefine,
                 color,
@@ -284,10 +284,10 @@ export default function usePointStyle() {
             if (showFeaturesLength > 1) {
                 // 複数アイテムがまとまっている場合、まとまっている数を表示
                 if (Array.isArray(style)) {
-                    setClusterLabel(style[0], showFeaturesLength);
+                    style[0] = createStyleWithClusterLabel(style[0], showFeaturesLength);
 
                 } else {
-                    setClusterLabel(style, showFeaturesLength);
+                    style = createStyleWithClusterLabel(style, showFeaturesLength);
 
                 }
 
@@ -379,7 +379,13 @@ function splitString(inputString: string, chunkSize: number) {
     return resultArray;
 }
 
-function setClusterLabel(style: Style, size: number) {
+/**
+ * 指定の数を描画したスタイルを生成する
+ * @param style 
+ * @param size 
+ * @returns 
+ */
+function createStyleWithClusterLabel(style: Style, size: number) {
     const imageSize = style.getImage().getImageSize();
     const scale = style.getImage().getScale() as number;
     const offsetY = imageSize ? - (imageSize[1] / 1.65 * scale) : 0;
@@ -395,7 +401,9 @@ function setClusterLabel(style: Style, size: number) {
         padding: [0, 1, 0, 1],
         scale: 1.2,
     });
-    style.setText(text);
+    const newStyle = style.clone();
+    newStyle.setText(text);
+    return newStyle;
 }
 
 function paraseRgb(hexColor: string) {
