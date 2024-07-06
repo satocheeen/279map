@@ -270,7 +270,7 @@ export default function usePointStyle() {
                 return new Style();
             }
 
-            let style = _createStyle({
+            const style = _createStyle({
                 resolution,
                 iconDefine,
                 color,
@@ -281,26 +281,24 @@ export default function usePointStyle() {
             const zIndex = zIndexMap[mainFeature.getId() as DataId];
             style.setZIndex(zIndex);
 
-            if (showFeaturesLength > 1) {
-                // 複数アイテムがまとまっている場合、まとまっている数を表示
-                if (Array.isArray(style)) {
-                    style[0] = createStyleWithClusterLabel(style[0], showFeaturesLength);
-
-                } else {
-                    style = createStyleWithClusterLabel(style, showFeaturesLength);
-
+            const text = function() {
+                if (showFeaturesLength > 1) {
+                    // 複数アイテムがまとまっている場合、まとまっている数を表示
+                    return createStyleWithClusterLabel(style, showFeaturesLength);
+    
+                } else if (!disabledLabel) {
+                    // ラベル設定
+                    return createItemNameLabel(mainFeature, resolution, opacity);
                 }
-
-            } else if (!disabledLabel) {
-                // ラベル設定
-                const text = createItemNameLabel(mainFeature, resolution, opacity);
-                if (Array.isArray(style)) {
-                    style[0].setText(text);
-                } else {
-                    style.setText(text);
-                }
-            }
-            return style;
+    
+            }();
+            return [
+                style,
+                new Style({
+                    text,
+                    zIndex: zIndex + 1,
+                })
+            ]
 
         }, [getOpacity, dataSources, disabledLabel, _createStyle, getForceColor, _analysisFeatures, getIconDefine, zIndexMap])
     )
@@ -380,12 +378,12 @@ function splitString(inputString: string, chunkSize: number) {
 }
 
 /**
- * 指定の数を描画したスタイルを生成する
+ * 指定の数を描画したTextを生成する
  * @param style 
  * @param size 
  * @returns 
  */
-function createStyleWithClusterLabel(style: Style, size: number) {
+function createStyleWithClusterLabel(style: Style, size: number): Text {
     const imageSize = style.getImage().getImageSize();
     const scale = style.getImage().getScale() as number;
     const offsetY = imageSize ? - (imageSize[1] / 1.65 * scale) : 0;
@@ -401,9 +399,7 @@ function createStyleWithClusterLabel(style: Style, size: number) {
         padding: [0, 1, 0, 1],
         scale: 1.2,
     });
-    const newStyle = style.clone();
-    newStyle.setText(text);
-    return newStyle;
+    return text;
 }
 
 function paraseRgb(hexColor: string) {
