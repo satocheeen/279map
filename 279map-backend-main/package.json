@@ -1,6 +1,6 @@
 {
   "name": "279map-backend-main",
-  "version": "0.81.0",
+  "version": "0.81.3",
   "description": "",
   "main": "index.js",
   "scripts": {

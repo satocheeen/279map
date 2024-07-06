@@ -1111,7 +1111,7 @@ apolloServer.start().then(() => {
             next();
             return;
         }
-        logger.debug('Crawler', userAgent, req.headers)
+        logger.debug('Crawler')
     
         try {
             const mapId = req.path.length > 2 ? req.path.substring(1) : undefined;
@@ -1124,7 +1124,7 @@ apolloServer.start().then(() => {
                 if (mapId) {
                     try {
                         const { mapInfo } = await getMapInfoByIdWithAuth(mapId, req);
-                        info.title = mapInfo.title;
+                        info.title = mapInfo.title + ' by つなぐマップ';
                         if (mapInfo.description) {
                             info.description = mapInfo.description;
                         }
@@ -1148,7 +1148,8 @@ apolloServer.start().then(() => {
             // og:imageは絶対URLを指定
             const protocol = req.headers['x-forwarded-proto'] || req.protocol;
             const host = req.headers['x-forwarded-host'] || req.get('host');
-            const imageUrl = `${protocol}://${host}/${metaInfo.image}`;
+            const domain = `${protocol}://${host}/`;
+            const imageUrl = `${domain}${metaInfo.image}`;
 
             const html = `
             <!DOCTYPE html>
@@ -1159,8 +1160,18 @@ apolloServer.start().then(() => {
                 <title>${metaInfo.title}</title>
                 <meta name="description" content="${metaInfo.description}">
                 <meta property="og:title" content="${metaInfo.title}">
+                <meta property="og:url" content="${domain}">
+                <meta property="og:type" content="website">
                 <meta property="og:description" content="${metaInfo.description}">
                 <meta property="og:image" content="${imageUrl}">
+
+                <!-- Twitter -->
+                <meta property="twitter:card" content="summary_large_image" />
+                <meta property="twitter:url" content="${domain}" />
+                <meta property="twitter:title" content="${metaInfo.title}" />
+                <meta property="twitter:description" content="${metaInfo.description}" />
+                <meta property="twitter:image" content="${imageUrl}" />
+
             </head>
             <body>
                 <div id="root">This is a page for Crawler.</div>
@@ -1176,7 +1187,6 @@ apolloServer.start().then(() => {
 
     /**
      * Frontend資源へプロキシ
-     * (現在は開発環境でのみ使用。本番環境ではNginxでプロキシする方式になっている)
      */
     if (process.env.FRONTEND_SERVICE_HOST && process.env.FRONTEND_SERVICE_PORT) {
         const url = process.env.FRONTEND_SERVICE_HOST + ':' + process.env.FRONTEND_SERVICE_PORT;
