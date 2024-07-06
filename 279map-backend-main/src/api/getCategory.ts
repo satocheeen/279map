@@ -1,6 +1,6 @@
 import randomColor from "randomcolor";
 import { ConnectionPool } from "..";
-import { CurrentMap, DataSourceTable, DatasourceLocationKindType, MapDataSourceLinkTable } from "../../279map-backend-common/src";
+import { CurrentMap, DataSourceTable, DatasourceLocationKindType, MapDataSourceLinkTable, MapKind } from "../../279map-backend-common/src";
 import { getLogger } from "log4js";
 import { CategoryDefine, QueryGetCategoryArgs } from "../graphql/__generated__/types";
 import { QueryResolverReturnType } from "../graphql/type_utility";
@@ -30,7 +30,7 @@ export async function getCategory(param: QueryGetCategoryArgs, currentMap: Curre
         const result: CategoryDefine[] = [];
         for (const field of categoryFields) {
             for (const fieldKey of field.categoryFieldKeyList) {
-                const values = await getCategoryValuesOfTheField(field.datasourceId, fieldKey);
+                const values = await getCategoryValuesOfTheField(currentMap, field.datasourceId, fieldKey);
                 // 色設定
                 const colors = randomColor({
                     seed: 0,
@@ -115,21 +115,24 @@ async function getCategoriFields(currentMap: CurrentMap): Promise<CategoryFields
  * @param datasourceId 
  * @param fieldKey 
  */
-async function getCategoryValuesOfTheField(datasourceId: string, fieldKey: string): Promise<string[]> {
+async function getCategoryValuesOfTheField(currentMap: CurrentMap, datasourceId: string, fieldKey: string): Promise<string[]> {
     const con = await ConnectionPool.getConnection();
 
     try {
         const sql = `
         select * from (
             select JSON_EXTRACT(c.contents , ?) as mycategory
-            from contents c
+            from content_belong_map cbm 
+            inner join contents c on c.data_id = cbm.content_id 
             inner join datas d on d.data_id = c.data_id 
-            where d.data_source_id = ?
+            where map_page_id = ? and location_kind in (?)
+            and d.data_source_id = ?
         ) as c2
         where c2.mycategory is not null
         `;
     
-        const query = con.format(sql, [`$."${fieldKey}"`, datasourceId]);
+        const locationKind = currentMap.mapKind === MapKind.Real ? [DatasourceLocationKindType.RealItem, DatasourceLocationKindType.Track] : [DatasourceLocationKindType.VirtualItem];
+        const query = con.format(sql, [`$."${fieldKey}"`, currentMap.mapId, locationKind, datasourceId]);
         const [rows] = await con.execute(query);
 
         const resultSet = new Set<string>();
