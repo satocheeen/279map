@@ -1093,13 +1093,23 @@ apolloServer.start().then(() => {
                     image: imageUrl,
                 }
                 if (mapId) {
-                    const { mapInfo } = await getMapInfoByIdWithAuth(mapId, req);
-                    info.title = mapInfo.title;
-                    if (mapInfo.description) {
-                        info.description = mapInfo.description;
-                    }
-                    if (mapInfo.thumbnail) {
-                        info.image = 'data:image/' + mapInfo.thumbnail;
+                    try {
+                        const { mapInfo } = await getMapInfoByIdWithAuth(mapId, req);
+                        info.title = mapInfo.title;
+                        if (mapInfo.description) {
+                            info.description = mapInfo.description;
+                        }
+                        if (mapInfo.thumbnail) {
+                            info.image = 'data:image/' + mapInfo.thumbnail;
+                        }
+    
+                    } catch(e) {
+                        if (e instanceof CustomError) {
+                            if (e.type === ConnectErrorType.UndefinedMap) {
+                                throw new Error('Undefied Map');
+                            }
+                        }
+                        // アクセス権限が必要な地図の場合は、デフォルトのメタ情報を表示
                     }
                 }
     
@@ -1125,7 +1135,7 @@ apolloServer.start().then(() => {
             `;
     
             res.send(html);
-        } catch (error) {
+        } catch (e) {
             res.status(400).send('Illegal Parameters');
         }
     });

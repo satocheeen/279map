@@ -7,12 +7,15 @@ type Param = {
     userId?: string;
 }
 export class CustomError extends GraphQLError {
+    type: ConnectErrorType;
+    
     constructor({ type, message, userId }: Param) {
         super(message, {
             extensions: {
                 type,
                 userId,
             }
-        })
+        });
+        this.type = type;
     }
 }
