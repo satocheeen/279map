@@ -24,11 +24,11 @@ export const LogSetting = {
     "categories" : {
         "default" : {
             "appenders" : process.env.ENV === 'dev' ? ["systemFile", "console"] : ["systemFile"],
-            level : process.env.LOG_LEVEL as string,
+            level : process.env.LOG_LEVEL ?? 'info',
         },
         "api" : {
             "appenders" : process.env.ENV === 'dev' ? ["apiFile", "console"] : ["apiFile"],
-            "level" : process.env.LOG_LEVEL as string,
+            level : process.env.LOG_LEVEL ?? 'info',
         }
     }
 } as Configuration;
