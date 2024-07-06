@@ -221,9 +221,8 @@ export default function MapConnector(props: Props) {
                 return '想定外の問題が発生しました。再ロードしても問題が解決しない場合は、管理者へ問い合わせてください。';
         }
     }, [connectErrorType]);
-    
 
-    if (loading || !defaultMapKind) {
+    if (loading) {
         return <Overlay spinner message='ロード中...' />
     }
 
@@ -235,6 +234,10 @@ export default function MapConnector(props: Props) {
                 }
             </Overlay>
         );
+    }
+
+    if (!defaultMapKind) {
+        return <Overlay spinner message='ロード中...' />
     }
 
     return (
