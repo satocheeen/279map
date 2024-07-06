@@ -10,6 +10,16 @@ type MapListItem {
     thumbnail: String
     authLv: Auth!
 }
+
+"地図ページのメタ情報"
+type MapMetaInfo {
+    mapId: String!
+    title: String!
+    description: String
+    keyword: String
+    image: String
+}
+
 type NoneConfig {
     dummy: Boolean  # fragmentで種別判定するために型用意
 }
@@ -137,6 +147,11 @@ type Query {
 
     "ユーザがアクセス可能な地図情報一覧を返す"
     getMapList: [MapListItem!]!
+
+    "地図のメタ情報を返す。ユーザがアクセス不可能な地図については、エラー"
+    getMapMetaInfo (
+        mapId: String!
+    ): MapMetaInfo!
 
     getItems(
         wkt: String!,

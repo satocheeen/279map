@@ -11,7 +11,7 @@ import type {
     OnMapLoadResult,
     OverrideItem,
 } from '../entry';
-import { Auth, MapKind, getAccessableMapList } from '../entry';
+import { Auth, MapKind, getAccessableMapList, getMapMetaInfo } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
 import styles from './TestMap.module.scss';
 import { myMapServer } from './const';
@@ -205,9 +205,14 @@ export default function TestMap() {
     }, [token]);
 
     const getAccessableMapListFunc = useCallback(async() => {
-        const result = await getAccessableMapList(mapServer.host, mapServer.ssl, mapServer.token);
+        const result = await getAccessableMapList(mapServer);
         addConsole('getAccessableMapList', result);
     }, [mapServer, addConsole]);
+
+    const handleGetMapMetaInfoFunc = useCallback(async(id: string) => {
+        const result = await getMapMetaInfo(mapServer, id);
+        addConsole('getAccessableMapList', result);
+    }, [mapServer, addConsole])
 
     const handleShowingItemsChanged = useCallback((val: ItemType[]) => {
         addConsole('onShowingItemsChanged', val);
@@ -318,7 +323,7 @@ export default function TestMap() {
                 <div className={styles.WithoutMapArea}>
                     <AuthPanel />
                     <button onClick={getAccessableMapListFunc}>GetAccessableMapList</button>
-                    <SwitchMapKindDriver onMapShow={handleMapShow} />
+                    <SwitchMapKindDriver onMapShow={handleMapShow} onGetMetaInfo={handleGetMapMetaInfoFunc} />
                 </div>
                 <div className={styles.HorizontalArea}>
                     <BasicSettingDriver />

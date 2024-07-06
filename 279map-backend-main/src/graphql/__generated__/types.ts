@@ -242,6 +242,15 @@ export type MapListItem = {
   thumbnail?: Maybe<Scalars['String']['output']>;
 };
 
+/** 地図ページのメタ情報 */
+export type MapMetaInfo = {
+  description?: Maybe<Scalars['String']['output']>;
+  image?: Maybe<Scalars['String']['output']>;
+  keyword?: Maybe<Scalars['String']['output']>;
+  mapId: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+};
+
 export type MapPageOptions = {
   /** コンテンツソート順 */
   contentsSortCondition?: Maybe<SortCondition>;
@@ -376,6 +385,8 @@ export type Query = {
   getLinkableContentsDatasources: Array<ContentsDatasource>;
   /** ユーザがアクセス可能な地図情報一覧を返す */
   getMapList: Array<MapListItem>;
+  /** 地図のメタ情報を返す。ユーザがアクセス不可能な地図については、エラー */
+  getMapMetaInfo: MapMetaInfo;
   /** 指定のコンテンツのサムネイル画像を返す */
   getThumb: Scalars['String']['output'];
   /** 未割当コンテンツを取得する */
@@ -434,6 +445,11 @@ export type QueryGetItemsArgs = {
 
 export type QueryGetItemsByIdArgs = {
   targets: Array<Scalars['DataId']['input']>;
+};
+
+
+export type QueryGetMapMetaInfoArgs = {
+  mapId: Scalars['String']['input'];
 };
 
 
@@ -704,6 +720,7 @@ export type ResolversTypes = {
   MapInfo: ResolverTypeWrapper<MapInfo>;
   MapKind: ResolverTypeWrapper<Scalars['MapKind']['output']>;
   MapListItem: ResolverTypeWrapper<MapListItem>;
+  MapMetaInfo: ResolverTypeWrapper<MapMetaInfo>;
   MapPageOptions: ResolverTypeWrapper<MapPageOptions>;
   Mutation: ResolverTypeWrapper<{}>;
   NoneConfig: ResolverTypeWrapper<NoneConfig>;
@@ -762,6 +779,7 @@ export type ResolversParentTypes = {
   MapInfo: MapInfo;
   MapKind: Scalars['MapKind']['output'];
   MapListItem: MapListItem;
+  MapMetaInfo: MapMetaInfo;
   MapPageOptions: MapPageOptions;
   Mutation: {};
   NoneConfig: NoneConfig;
@@ -959,6 +977,15 @@ export type MapListItemResolvers<ContextType = any, ParentType extends Resolvers
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type MapMetaInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapMetaInfo'] = ResolversParentTypes['MapMetaInfo']> = {
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  image?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  keyword?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  mapId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type MapPageOptionsResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapPageOptions'] = ResolversParentTypes['MapPageOptions']> = {
   contentsSortCondition?: Resolver<Maybe<ResolversTypes['SortCondition']>, ParentType, ContextType>;
   guestUserAuthLevel?: Resolver<ResolversTypes['Auth'], ParentType, ContextType>;
@@ -1003,6 +1030,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getItemsById?: Resolver<Array<ResolversTypes['ItemDefine']>, ParentType, ContextType, RequireFields<QueryGetItemsByIdArgs, 'targets'>>;
   getLinkableContentsDatasources?: Resolver<Array<ResolversTypes['ContentsDatasource']>, ParentType, ContextType>;
   getMapList?: Resolver<Array<ResolversTypes['MapListItem']>, ParentType, ContextType>;
+  getMapMetaInfo?: Resolver<ResolversTypes['MapMetaInfo'], ParentType, ContextType, RequireFields<QueryGetMapMetaInfoArgs, 'mapId'>>;
   getThumb?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryGetThumbArgs, 'contentId'>>;
   getUnpointContents?: Resolver<ResolversTypes['GetUnpointContentsResult'], ParentType, ContextType, RequireFields<QueryGetUnpointContentsArgs, 'datasourceId'>>;
   getUserList?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
@@ -1085,6 +1113,7 @@ export type Resolvers<ContextType = any> = {
   MapInfo?: MapInfoResolvers<ContextType>;
   MapKind?: GraphQLScalarType;
   MapListItem?: MapListItemResolvers<ContextType>;
+  MapMetaInfo?: MapMetaInfoResolvers<ContextType>;
   MapPageOptions?: MapPageOptionsResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   NoneConfig?: NoneConfigResolvers<ContextType>;

@@ -5,6 +5,7 @@ import { Auth, MapKind } from '../../entry';
 
 type Props = {
     onMapShow: (mapId: string, mapKind?: MapKind) => void;
+    onGetMetaInfo: (mapId: string) => void;
 }
 
 export default function SwitchMapKindDriver(props: Props) {
@@ -30,11 +31,16 @@ export default function SwitchMapKindDriver(props: Props) {
         }
     }, [getMap, authLv])
 
+    const handleGetMetaInfoClicked = useCallback(() => {
+        const mapId = mapIdTextRef.current?.value ?? '';
+        if (mapId.length === 0) return;
+        props.onGetMetaInfo(mapId);
+    }, [props])
+
     if (mapKind !== myMapKind && authLv !== Auth.None) {
         // 地図接続後に地図種別反映
         setMyMapKind(mapKind)
     }
-
 
     return (
         <div className={myStyles.Container}>
@@ -42,6 +48,9 @@ export default function SwitchMapKindDriver(props: Props) {
                 地図ID:
                 <input type='text' ref={mapIdTextRef} />
             </label>
+            <div className={myStyles.Row}>
+                <button onClick={handleGetMetaInfoClicked}>メタ情報取得</button>
+            </div>
             <div className={myStyles.Row}>
                 <button onClick={handleMapIdChanged}>地図表示</button>
                 <label>

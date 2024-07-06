@@ -12,8 +12,8 @@ import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
 import cors from 'cors';
 import { exit } from 'process';
-import { getMapInfoById } from './getMapDefine';
-import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest, loadUserAuthInfo } from './auth/getMapUser';
+import { getMapInfoById, getMapInfoByIdWithAuth } from './getMapDefine';
+import { UserAuthInfo, getUserAuthInfoInTheMap, getUserIdByRequest } from './auth/getMapUser';
 import { getMapPageInfo } from './getMapInfo';
 import { getMapList } from './api/getMapList';
 import { search } from './api/search';
@@ -325,6 +325,23 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
         
             },
+            getMapMetaInfo: async(_, param, ctx): QueryResolverReturnType<'getMapMetaInfo'> => {
+                apiLogger.info('[start] getMapMetaInfo');
+
+                try {
+                    const { mapInfo } = await getMapInfoByIdWithAuth(param.mapId, ctx.request);
+                    return {
+                        mapId: param.mapId,
+                        title: mapInfo.title,
+                        description: mapInfo.description,
+                        image: mapInfo.thumbnail,
+                    }
+    
+                } catch(e) {
+                    logger.warn('getMapMetaInfo error', e, ctx.request.headers.authorization);
+                    throw e;
+                }
+            },
             /**
              * 地図アイテム取得
              */
@@ -558,40 +575,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 apiLogger.info('[start] connect');
 
                 try {
-                    const mapInfo = await getMapInfoById(param.mapId);
-                    if (mapInfo === null) {
-                        throw new CustomError({
-                            type: ConnectErrorType.UndefinedMap,
-                            message: 'mapId is not found : ' + param.mapId,
-                        });
-                    }
-
-                    await loadUserAuthInfo(ctx.request);
-                    const userAccessInfo = await getUserAuthInfoInTheMap(mapInfo, ctx.request);
-                    if (userAccessInfo.authLv === undefined && userAccessInfo.guestAuthLv === Auth.None) {
-                        // ログインが必要な地図の場合
-                        throw new CustomError({
-                            type: ConnectErrorType.Unauthorized,
-                            message: 'need login',
-                        });
-                    }
-
-                    if (userAccessInfo.authLv === Auth.None && userAccessInfo.guestAuthLv === Auth.None) {
-                        // 権限なしエラーを返却
-                        throw new CustomError({
-                            type: ConnectErrorType.NoAuthenticate,
-                            message: 'this user does not have authentication' + userAccessInfo.userId,
-                            userId: userAccessInfo.userId,
-                        })
-                    }
-                    if (userAccessInfo.authLv === Auth.Request && userAccessInfo.guestAuthLv === Auth.None) {
-                        // 承認待ちエラーを返却
-                        throw new CustomError({
-                            type: ConnectErrorType.Requesting,
-                            message: 'requesting',
-                            userId: userAccessInfo.userId,
-                        })
-                    }
+                    const { mapInfo, userAccessInfo } = await getMapInfoByIdWithAuth(param.mapId, ctx.request);
 
                     const session = sessionManager.createSession({
                         mapId: mapInfo.map_page_id,

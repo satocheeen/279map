@@ -1,6 +1,6 @@
 import { ServerInfo } from '../types/types';
 import { cacheExchange, createClient, fetchExchange, subscriptionExchange } from "urql";
-import { ConfigDocument, GetMapListDocument } from "../graphql/generated/graphql";
+import { ConfigDocument, GetMapListDocument, GetMapMetaInfoDocument } from "../graphql/generated/graphql";
 import { SubscriptionClient } from 'subscriptions-transport-ws';
 
 
@@ -38,9 +38,9 @@ export function createGqlClient(serverInfo: ServerInfo, sessionid?: string) {
  * @param host 
  * @returns 
  */
-export async function getAccessableMapList(host: string, ssl: boolean, token: string | undefined) {
+export async function getAccessableMapList({ host, ssl, token }: ServerInfo) {
     const mapServer = {
-        host: host,
+        host,
         ssl,
         token,
     } as ServerInfo;
@@ -61,6 +61,40 @@ export async function getAccessableMapList(host: string, ssl: boolean, token: st
         throw new Error('get accessable maplist failed.', { cause: e});
     }
 
+}
+
+/**
+ * 指定の地図のメタ情報を返す。
+ * ユーザがアクセスできるものに限定する
+ * @param param0 
+ */
+export async function getMapMetaInfo({ host, ssl, token }: ServerInfo, mapId: string) {
+    const mapServer = {
+        host,
+        ssl,
+        token,
+    } as ServerInfo;
+    const gqlClient = createGqlClient(mapServer);
+
+    try {
+        const result = await gqlClient.query(GetMapMetaInfoDocument, { mapId });
+        
+        if (!result.data) {
+            throw new Error('get metainfo failed', result.error)
+        }
+
+        const data = result.data.getMapMetaInfo;
+        return {
+            title: data.title,
+            description: data.description ?? undefined,
+            keyword: data.keyword ?? undefined,
+            image: data.image ?? undefined,
+        }
+
+    } catch(e) {
+        console.warn('get map metainfo failed.', e);
+        throw new Error('get map metainfo failed.', { cause: e});
+    }
 }
 
 /**

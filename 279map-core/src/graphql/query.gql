@@ -20,6 +20,19 @@ query getMapList {
         thumbnail
     }
 }
+
+query getMapMetaInfo (
+    $mapId: String!
+) {
+    getMapMetaInfo(mapId: $mapId) {
+        mapId
+        title
+        description
+        keyword
+        image
+    }
+}
+
 query getCategory(
     $datasourceIds: [String!]
 ){
