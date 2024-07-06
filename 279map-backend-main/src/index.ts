@@ -1111,10 +1111,10 @@ apolloServer.start().then(() => {
             next();
             return;
         }
-        logger.debug('Crawler')
     
         try {
             const mapId = req.path.length > 2 ? req.path.substring(1) : undefined;
+            logger.debug('Crawler', req.path);
             const metaInfo = await async function() {
                 const info = {
                     title: 'つなぐマップ',
@@ -1139,6 +1139,7 @@ apolloServer.start().then(() => {
                             }
                         }
                         // アクセス権限が必要な地図の場合は、デフォルトのメタ情報を表示
+                        logger.debug('access denied and default meta')
                     }
                 }
     
@@ -1153,19 +1154,18 @@ apolloServer.start().then(() => {
 
             const html = `
             <!DOCTYPE html>
-            <html lang="en">
+            <html lang="ja">
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>${metaInfo.title}</title>
                 <meta name="description" content="${metaInfo.description}">
                 <meta property="og:title" content="${metaInfo.title}">
-                <meta property="og:url" content="${domain}">
+                <meta property="og:url" content="${domain}${mapId ?? ''}">
                 <meta property="og:type" content="website">
                 <meta property="og:description" content="${metaInfo.description}">
                 <meta property="og:image" content="${imageUrl}">
 
-                <!-- Twitter -->
                 <meta property="twitter:card" content="summary_large_image" />
                 <meta property="twitter:url" content="${domain}" />
                 <meta property="twitter:title" content="${metaInfo.title}" />
@@ -1178,6 +1178,7 @@ apolloServer.start().then(() => {
             </body>
             </html>
             `;
+            logger.debug(html);
     
             res.send(html);
         } catch (e) {
