@@ -1064,6 +1064,72 @@ apolloServer.start().then(() => {
         }
     )
 
+    // 静的ファイルの提供
+    app.use('/static', express.static('public'));
+
+    /**
+     * SNS等のクローラー向けにメタ情報を生成して返す
+     */
+    app.get('*', async (req, res, next) => {
+        const userAgent = req.headers['user-agent'];
+        if (!userAgent) {
+            next();
+            return;
+        }
+        const isCrawler = /bot|crawler|spider|crawling/i.test(userAgent);
+        if (!isCrawler) {
+            next();
+            return;
+        }
+    
+        try {
+            const mapId = req.path.length > 2 ? req.path.substring(1) : undefined;
+            const metaInfo = await async function() {
+            // og:imageは絶対URLを指定
+            const imageUrl = `${req.protocol}://${req.get('host')}/static/279map.png`;
+                const info = {
+                    title: 'つなぐマップ',
+                    description: '情報をつなげる。楽しくつなげる。',
+                    image: imageUrl,
+                }
+                if (mapId) {
+                    const { mapInfo } = await getMapInfoByIdWithAuth(mapId, req);
+                    info.title = mapInfo.title;
+                    if (mapInfo.description) {
+                        info.description = mapInfo.description;
+                    }
+                    if (mapInfo.thumbnail) {
+                        info.image = 'data:image/' + mapInfo.thumbnail;
+                    }
+                }
+    
+                return info;
+            }();
+
+            const html = `
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>${metaInfo.title}</title>
+                <meta name="description" content="${metaInfo.description}">
+                <meta property="og:title" content="${metaInfo.title}">
+                <meta property="og:description" content="${metaInfo.description}">
+                <meta property="og:image" content="${metaInfo.image}">
+            </head>
+            <body>
+                <div id="root">This is a page for Crawler.</div>
+            </body>
+            </html>
+            `;
+    
+            res.send(html);
+        } catch (error) {
+            res.status(400).send('Illegal Parameters');
+        }
+    });
+
     /**
      * Frontend資源へプロキシ
      */
