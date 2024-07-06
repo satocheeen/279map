@@ -49,6 +49,7 @@ import { getLinkedContent } from './api/get-content/getLinkedContents';
 import { getContent } from './api/get-content/getContent';
 import { publishData } from './util/publish_utility';
 import { getUnpointData } from './api/getUnpointData';
+import { convertBase64ToBinary } from './util/utility';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -83,6 +84,8 @@ if (!process.env.AUTH_METHOD) {
 }
 
 logger.info('start prepare express');
+logger.info('process env', process.env);
+logger.info('log setting', LogSetting);
 
 const app = express();
 const port = 80;
@@ -1067,6 +1070,33 @@ apolloServer.start().then(() => {
     // 静的ファイルの提供
     app.use('/static', express.static('public'));
 
+    app.get('/ogimage/*', async(req, res) => {
+        try {
+            const mapId = req.path.length > 2 ? req.path.substring('/ogimage/'.length) : undefined;
+            if (!mapId) {
+                throw new Error('mapId not found')
+            }
+            const { mapInfo } = await getMapInfoByIdWithAuth(mapId, req);
+            if (mapInfo.thumbnail) {
+                const {contentType, binary } = convertBase64ToBinary(mapInfo.thumbnail);
+
+                res.writeHead(200, {
+                  'Content-Type': contentType,
+                  'Content-Length': binary.length
+                });
+                res.write(binary); 
+                res.end();
+            } else {
+                res.redirect('/static/279map.png');
+            }
+
+        } catch(e) {
+            console.warn(e)
+            res.status(400).send('error');
+        }
+
+    })
+
     /**
      * SNS等のクローラー向けにメタ情報を生成して返す
      */
@@ -1076,21 +1106,20 @@ apolloServer.start().then(() => {
             next();
             return;
         }
-        const isCrawler = /bot|crawler|spider|crawling/i.test(userAgent);
+        const isCrawler = /bot|crawler|spider|crawling|facebookexternalhit/i.test(userAgent);
         if (!isCrawler) {
             next();
             return;
         }
+        logger.debug('Crawler', userAgent, req.headers)
     
         try {
             const mapId = req.path.length > 2 ? req.path.substring(1) : undefined;
             const metaInfo = await async function() {
-            // og:imageは絶対URLを指定
-            const imageUrl = `${req.protocol}://${req.get('host')}/static/279map.png`;
                 const info = {
                     title: 'つなぐマップ',
                     description: '情報をつなげる。楽しくつなげる。',
-                    image: imageUrl,
+                    image: 'static/279map.png',
                 }
                 if (mapId) {
                     try {
@@ -1100,7 +1129,7 @@ apolloServer.start().then(() => {
                             info.description = mapInfo.description;
                         }
                         if (mapInfo.thumbnail) {
-                            info.image = 'data:image/' + mapInfo.thumbnail;
+                            info.image = 'ogimage/' + mapId;
                         }
     
                     } catch(e) {
@@ -1116,6 +1145,11 @@ apolloServer.start().then(() => {
                 return info;
             }();
 
+            // og:imageは絶対URLを指定
+            const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+            const host = req.headers['x-forwarded-host'] || req.get('host');
+            const imageUrl = `${protocol}://${host}/${metaInfo.image}`;
+
             const html = `
             <!DOCTYPE html>
             <html lang="en">
@@ -1126,7 +1160,7 @@ apolloServer.start().then(() => {
                 <meta name="description" content="${metaInfo.description}">
                 <meta property="og:title" content="${metaInfo.title}">
                 <meta property="og:description" content="${metaInfo.description}">
-                <meta property="og:image" content="${metaInfo.image}">
+                <meta property="og:image" content="${imageUrl}">
             </head>
             <body>
                 <div id="root">This is a page for Crawler.</div>
