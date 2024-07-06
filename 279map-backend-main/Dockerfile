@@ -27,6 +27,7 @@ RUN update-ca-certificates
 COPY --from=build /home/node/app/backend/dist /var/www
 RUN mkdir /var/www/graphql
 COPY --from=build /home/node/app/backend/src/graphql/*.gql /var/www/graphql
+COPY --from=build /home/node/app/backend/public /var/www/public
 
 RUN mkdir /var/log/www
 RUN chmod 777 /var/log/www

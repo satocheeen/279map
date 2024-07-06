@@ -1142,6 +1142,7 @@ apolloServer.start().then(() => {
 
     /**
      * Frontend資源へプロキシ
+     * (現在は開発環境でのみ使用。本番環境ではNginxでプロキシする方式になっている)
      */
     if (process.env.FRONTEND_SERVICE_HOST && process.env.FRONTEND_SERVICE_PORT) {
         const url = process.env.FRONTEND_SERVICE_HOST + ':' + process.env.FRONTEND_SERVICE_PORT;
