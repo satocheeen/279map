@@ -24,7 +24,7 @@ services:
       - ./photo:/var/photo
   frontend:
     # メイン
-    image: satocheeen/279map-frontend:0.86.0
+    image: satocheeen/279map-frontend:0.86.1
     env_file:
       - ./.env
     # ports:

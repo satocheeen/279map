@@ -22,9 +22,6 @@ module.exports = {
             },
         ],
     },
-    externals: {
-        'sharp': 'commonjs sharp'
-    },
     resolve: {
         extensions: [
             '.ts', '.js',

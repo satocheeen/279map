@@ -23,7 +23,6 @@ export default [
         sourcemap: false,
       },
     ],
-    external: ["sharp"],
     plugins: [
       resolve(),
       commonjs(),
