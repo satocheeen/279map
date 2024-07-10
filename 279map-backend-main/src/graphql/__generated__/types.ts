@@ -493,6 +493,8 @@ export enum SortCondition {
 }
 
 export type Subscription = {
+  /** 指定の地図のカテゴリに変更があった場合に通知する */
+  categoryUpdateInTheMap?: Maybe<Scalars['Boolean']['output']>;
   /** 指定の地図上のデータが削除された場合に通知する */
   dataDeleteInTheMap: Array<Scalars['DataId']['output']>;
   /** 指定の地図上にデータが追加された場合に通知する */
@@ -512,6 +514,12 @@ export type Subscription = {
   updateUserAuth?: Maybe<Scalars['Boolean']['output']>;
   /** ユーザ一覧情報が更新された場合 */
   userListUpdate?: Maybe<Scalars['Boolean']['output']>;
+};
+
+
+export type SubscriptionCategoryUpdateInTheMapArgs = {
+  mapId: Scalars['String']['input'];
+  mapKind: Scalars['MapKind']['input'];
 };
 
 
@@ -1042,6 +1050,7 @@ export type ServerConfigResolvers<ContextType = any, ParentType extends Resolver
 };
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
+  categoryUpdateInTheMap?: SubscriptionResolver<Maybe<ResolversTypes['Boolean']>, "categoryUpdateInTheMap", ParentType, ContextType, RequireFields<SubscriptionCategoryUpdateInTheMapArgs, 'mapId' | 'mapKind'>>;
   dataDeleteInTheMap?: SubscriptionResolver<Array<ResolversTypes['DataId']>, "dataDeleteInTheMap", ParentType, ContextType, RequireFields<SubscriptionDataDeleteInTheMapArgs, 'mapId' | 'mapKind'>>;
   dataInsertInTheMap?: SubscriptionResolver<Array<ResolversTypes['Target']>, "dataInsertInTheMap", ParentType, ContextType, RequireFields<SubscriptionDataInsertInTheMapArgs, 'mapId' | 'mapKind'>>;
   dataUpdate?: SubscriptionResolver<ResolversTypes['Operation'], "dataUpdate", ParentType, ContextType, RequireFields<SubscriptionDataUpdateArgs, 'id'>>;

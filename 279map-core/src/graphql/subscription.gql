@@ -41,6 +41,13 @@ subscription dataUpdate (
     dataUpdate(id: $id)
 }
 
+# 指定の地図のカテゴリに変更があった場合に通知を受け取る
+subscription categoryUpdateInTheMap (
+    $mapId: String!
+    $mapKind: MapKind!
+) {
+    categoryUpdateInTheMap(mapId: $mapId, mapKind: $mapKind)
+}
 
 # ユーザ権限に更新があった場合に通知を受け取る
 subscription updateUserAuth (

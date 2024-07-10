@@ -517,6 +517,8 @@ export enum SortCondition {
 
 export type Subscription = {
   __typename?: 'Subscription';
+  /** 指定の地図のカテゴリに変更があった場合に通知する */
+  categoryUpdateInTheMap?: Maybe<Scalars['Boolean']['output']>;
   /** 指定の地図上のデータが削除された場合に通知する */
   dataDeleteInTheMap: Array<Scalars['DataId']['output']>;
   /** 指定の地図上にデータが追加された場合に通知する */
@@ -536,6 +538,12 @@ export type Subscription = {
   updateUserAuth?: Maybe<Scalars['Boolean']['output']>;
   /** ユーザ一覧情報が更新された場合 */
   userListUpdate?: Maybe<Scalars['Boolean']['output']>;
+};
+
+
+export type SubscriptionCategoryUpdateInTheMapArgs = {
+  mapId: Scalars['String']['input'];
+  mapKind: Scalars['MapKind']['input'];
 };
 
 
@@ -876,6 +884,14 @@ export type DataUpdateSubscriptionVariables = Exact<{
 
 export type DataUpdateSubscription = { __typename?: 'Subscription', dataUpdate: Operation };
 
+export type CategoryUpdateInTheMapSubscriptionVariables = Exact<{
+  mapId: Scalars['String']['input'];
+  mapKind: Scalars['MapKind']['input'];
+}>;
+
+
+export type CategoryUpdateInTheMapSubscription = { __typename?: 'Subscription', categoryUpdateInTheMap?: boolean | null };
+
 export type UpdateUserAuthSubscriptionVariables = Exact<{
   userId: Scalars['ID']['input'];
   mapId: Scalars['String']['input'];
@@ -939,6 +955,7 @@ export const DataInsertInTheMapDocument = {"kind":"Document","definitions":[{"ki
 export const DataUpdateInTheMapDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"dataUpdateInTheMap"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"mapId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"mapKind"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"MapKind"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dataUpdateInTheMap"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"mapId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"mapId"}}},{"kind":"Argument","name":{"kind":"Name","value":"mapKind"},"value":{"kind":"Variable","name":{"kind":"Name","value":"mapKind"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"datasourceId"}},{"kind":"Field","name":{"kind":"Name","value":"hasItem"}},{"kind":"Field","name":{"kind":"Name","value":"hasContent"}},{"kind":"Field","name":{"kind":"Name","value":"wkt"}}]}}]}}]} as unknown as DocumentNode<DataUpdateInTheMapSubscription, DataUpdateInTheMapSubscriptionVariables>;
 export const DataDeleteInTheMapDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"dataDeleteInTheMap"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"mapId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"mapKind"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"MapKind"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dataDeleteInTheMap"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"mapId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"mapId"}}},{"kind":"Argument","name":{"kind":"Name","value":"mapKind"},"value":{"kind":"Variable","name":{"kind":"Name","value":"mapKind"}}}]}]}}]} as unknown as DocumentNode<DataDeleteInTheMapSubscription, DataDeleteInTheMapSubscriptionVariables>;
 export const DataUpdateDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"dataUpdate"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DataId"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dataUpdate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}]}}]} as unknown as DocumentNode<DataUpdateSubscription, DataUpdateSubscriptionVariables>;
+export const CategoryUpdateInTheMapDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"categoryUpdateInTheMap"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"mapId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"mapKind"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"MapKind"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"categoryUpdateInTheMap"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"mapId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"mapId"}}},{"kind":"Argument","name":{"kind":"Name","value":"mapKind"},"value":{"kind":"Variable","name":{"kind":"Name","value":"mapKind"}}}]}]}}]} as unknown as DocumentNode<CategoryUpdateInTheMapSubscription, CategoryUpdateInTheMapSubscriptionVariables>;
 export const UpdateUserAuthDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"updateUserAuth"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"userId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"mapId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateUserAuth"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"userId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"userId"}}},{"kind":"Argument","name":{"kind":"Name","value":"mapId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"mapId"}}}]}]}}]} as unknown as DocumentNode<UpdateUserAuthSubscription, UpdateUserAuthSubscriptionVariables>;
 export const UserListUpdateDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"userListUpdate"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"mapId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"userListUpdate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"mapId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"mapId"}}}]}]}}]} as unknown as DocumentNode<UserListUpdateSubscription, UserListUpdateSubscriptionVariables>;
 export const MapInfoUpdateDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"mapInfoUpdate"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"mapId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"mapInfoUpdate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"mapId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"mapId"}}}]}]}}]} as unknown as DocumentNode<MapInfoUpdateSubscription, MapInfoUpdateSubscriptionVariables>;

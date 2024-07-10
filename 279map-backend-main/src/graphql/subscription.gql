@@ -70,6 +70,16 @@ type Subscription {
     ): Operation!
 
     """
+    指定の地図のカテゴリに変更があった場合に通知する
+    """
+    categoryUpdateInTheMap (
+        "対象の地図ID"
+        mapId: String!
+        "対象の地図種別"
+        mapKind: MapKind!
+    ): Boolean
+
+    """
     ユーザ権限に更新があった場合
     """
     updateUserAuth (

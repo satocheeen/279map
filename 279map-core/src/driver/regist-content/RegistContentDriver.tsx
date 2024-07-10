@@ -101,9 +101,14 @@ export default function RegistContentDriver(props: Props) {
         const imageField = fields.find(f => f.type === 'image');
         const imageUrl = imageField ? values[imageField.key] : undefined;
         setLoading(true);
-        const result = await getMap()?.updateContent({
-            id: parseInt(targetContentId),
-            values,
+        const result = await getMap()?.updateData({
+            key: {
+                dataId: parseInt(targetContentId),
+                type: 'dataId',
+            },
+            contents: {
+                values,
+            }
         })
         setLoading(false);
         addConsole('updateContent', result);

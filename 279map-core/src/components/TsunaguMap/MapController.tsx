@@ -15,13 +15,14 @@ import { filteredItemIdListAtom } from '../../store/filter';
 import VectorSource from 'ol/source/Vector';
 import useMyMedia from '../../util/useMyMedia';
 import { useWatch } from '../../util/useWatch2';
-import { DataDeleteInTheMapDocument, DataInsertInTheMapDocument, DataUpdateInTheMapDocument, MapInfoUpdateDocument } from '../../graphql/generated/graphql';
+import { CategoryUpdateInTheMapDocument, DataDeleteInTheMapDocument, DataInsertInTheMapDocument, DataUpdateInTheMapDocument, MapInfoUpdateDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import { ItemInfo } from '../../types/types';
 import { selectItemIdAtom } from '../../store/operation';
 import { dataSourceVisibleAtom, itemDataSourcesAtom } from '../../store/datasource';
 import { UpdateLayerVisibleParam } from './OlMapWrapper';
 import { MapKind } from '../../types-common/common-types';
+import { categoriesVersionAtom } from '../../store/category';
 
 /**
  * Jotaiや呼び出し元から渡されたpropsの変更検知して、地図に対して特定のイベントを実行するコンポーネントもどき
@@ -53,6 +54,7 @@ function useMapInitializer() {
 
     const [ urqlClient ] = useAtom(clientAtom);
     const { mapId } = useContext(OwnerContext);
+    const [, updateCategoriesVersion ] = useAtom(categoriesVersionAtom);
 
     // 地図の接続完了したら、地図情報に対するsubscribe開始する
     useEffect(() => {
@@ -113,10 +115,17 @@ function useMapInitializer() {
             }
         })
         
+        const h4 = urqlClient.subscription(CategoryUpdateInTheMapDocument, {mapId, mapKind: currentMapKind }).subscribe((val) => {
+            console.log('subscribe categoryUpdateInTheMap');
+            // カテゴリ更新
+            updateCategoriesVersion();
+        })
+
         return () => {
             h1.unsubscribe();
             h2.unsubscribe();
             h3.unsubscribe();
+            h4.unsubscribe();
         }
 
     }, [urqlClient, currentMapKind, mapId, updateItems, removeItems])

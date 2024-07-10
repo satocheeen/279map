@@ -50,6 +50,7 @@ import { getContent } from './api/get-content/getContent';
 import { publishData } from './util/publish_utility';
 import { getUnpointData } from './api/getUnpointData';
 import { convertBase64ToBinary } from './util/utility';
+import { CategoryChecker } from './memory/CategoryChecker';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -101,11 +102,10 @@ if (allowCorsOrigin.length > 0) {
         credentials: true,
     }));
 }
-/**
- * Android用APIのプロキシ
- */
-app.use('/android', proxy(process.env.ODBA_SERVICE_HOST + ':' + process.env.ODBA_SERVICE_PORT));
- 
+
+// カテゴリ情報のメモリ管理
+const MyCategoryChecker = new CategoryChecker();
+
 app.use(express.urlencoded({extended: true}));
 app.use(express.json({
     limit: '1mb',
@@ -280,7 +280,7 @@ const fileSchema = loadSchemaSync(
     }
 );
 
-const pubsub = new MyPubSub();
+export const PubSub = new MyPubSub();
 // The root provides a resolver function for each API endpoint
 type QueryResolverFunc = (parent: any, param: any, ctx: GraphQlContextType) => QueryResolverReturnType<any>;
 type QueryResolver = Record<QResolvers, QueryResolverFunc>
@@ -667,10 +667,13 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     });
 
                     // 更新通知
-                    publishData(pubsub, 'insert', [id]);
+                    publishData(PubSub, 'insert', [id]);
                     if (param.linkDatas) {
-                        publishData(pubsub, 'update', param.linkDatas);
+                        publishData(PubSub, 'update', param.linkDatas);
                     }
+
+                    // カテゴリ更新チェック
+                    MyCategoryChecker.checkUpdate(ctx.currentMap.mapId);
 
                     return id;
 
@@ -699,7 +702,9 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     }
 
                     // 更新通知
-                    publishData(pubsub, 'update', [param.id]);
+                    publishData(PubSub, 'update', [param.id]);
+                    // カテゴリ更新チェック
+                    MyCategoryChecker.checkUpdate(ctx.currentMap.mapId);
 
                     return true;
 
@@ -723,8 +728,11 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     })
 
                     // 更新通知
-                    publishData(pubsub, 'update', [id]);
+                    publishData(PubSub, 'update', [id]);
 
+                    // カテゴリ更新チェック
+                    MyCategoryChecker.checkUpdate(ctx.currentMap.mapId);
+                    
                     return true;
 
                 } catch(e) {    
@@ -747,13 +755,16 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     });
 
                     // 更新通知
-                    pubsub.publish('dataDeleteInTheMap', ctx.currentMap, [param.id]);
-                    pubsub.publish('dataUpdate', {
+                    PubSub.publish('dataDeleteInTheMap', ctx.currentMap, [param.id]);
+                    PubSub.publish('dataUpdate', {
                         id: param.id
                     }, Operation.Delete);
                     // 削除したデータと紐づいていたものについて、itemUpdate通知を送る
                     const targets = linkedDatas.map(ld => ld.itemId);
-                    publishData(pubsub, 'update', targets);
+                    publishData(PubSub, 'update', targets);
+
+                    // カテゴリ更新チェック
+                    MyCategoryChecker.checkUpdate(ctx.currentMap.mapId);
 
                     return true;
 
@@ -777,7 +788,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     });
 
                     // 更新通知
-                    publishData(pubsub, 'update', [param.parent]);
+                    publishData(PubSub, 'update', [param.parent]);
 
                     return true;
             
@@ -797,7 +808,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     });
 
                     // 更新通知
-                    publishData(pubsub, 'update', [param.parent]);
+                    publishData(PubSub, 'update', [param.parent]);
 
                     return true;
 
@@ -819,7 +830,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     });
             
                     // 更新通知
-                    publishData(pubsub, 'update', [param.parent]);
+                    publishData(PubSub, 'update', [param.parent]);
 
                     return true;
 
@@ -840,8 +851,8 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         userId: param.userId,
                         authLv: param.authLv,
                     });
-                    pubsub.publish('userListUpdate', { mapId }, true);
-                    pubsub.publish('updateUserAuth', { userId: param.userId, mapId }, true);
+                    PubSub.publish('userListUpdate', { mapId }, true);
+                    PubSub.publish('updateUserAuth', { userId: param.userId, mapId }, true);
         
                     return true;
 
@@ -878,8 +889,8 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     });
 
                     // publish
-                    pubsub.publish('userListUpdate', { mapId: queryMapId }, true);
-                    pubsub.publish('updateUserAuth', { userId, mapId: queryMapId }, true);
+                    PubSub.publish('userListUpdate', { mapId: queryMapId }, true);
+                    PubSub.publish('updateUserAuth', { userId, mapId: queryMapId }, true);
 
                     return true;
 
@@ -899,19 +910,25 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             dataInsertInTheMap: {
                 resolve: (payload) => payload,
                 subscribe: (_, args: SubscriptionArgs<'dataInsertInTheMap'>) => {
-                    return pubsub.asyncIterator('dataInsertInTheMap', args);
+                    return PubSub.asyncIterator('dataInsertInTheMap', args);
                 }
             },
             dataUpdateInTheMap: {
                 resolve: (payload) => payload,
                 subscribe: (_, args: SubscriptionArgs<'dataUpdateInTheMap'>) => {
-                    return pubsub.asyncIterator('dataUpdateInTheMap', args);
+                    return PubSub.asyncIterator('dataUpdateInTheMap', args);
                 }
             },
             dataDeleteInTheMap: {
                 resolve: (payload) => payload,
                 subscribe: (_, args: SubscriptionArgs<'dataDeleteInTheMap'>) => {
-                    return pubsub.asyncIterator('dataDeleteInTheMap', args);
+                    return PubSub.asyncIterator('dataDeleteInTheMap', args);
+                }
+            },
+            categoryUpdateInTheMap: {
+                resolve: (payload) => payload,
+                subscribe: (_, args: SubscriptionArgs<'categoryUpdateInTheMap'>) => {
+                    return PubSub.asyncIterator('categoryUpdateInTheMap', args);
                 }
             },
             // childContentsUpdate: {
@@ -923,31 +940,31 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             dataUpdate: {
                 resolve: (payload) => payload,
                 subscribe: (_, args: SubscriptionArgs<'dataUpdate'>) => {
-                    return pubsub.asyncIterator('dataUpdate', args);
+                    return PubSub.asyncIterator('dataUpdate', args);
                 }
             },
             updateUserAuth: {
                 resolve: (payload) => payload,
                 subscribe: (_, args: SubscriptionArgs<'updateUserAuth'>) => {
-                    return pubsub.asyncIterator('updateUserAuth', args);
+                    return PubSub.asyncIterator('updateUserAuth', args);
                 }
             },
             userListUpdate: {
                 resolve: (payload) => payload,
                 subscribe: (_, args: SubscriptionArgs<'userListUpdate'>) => {
-                    return pubsub.asyncIterator('userListUpdate', args);
+                    return PubSub.asyncIterator('userListUpdate', args);
                 }
             },
             mapInfoUpdate: {
                 resolve: (payload) => payload,
                 subscribe: (_, args: SubscriptionArgs<'mapInfoUpdate'>) => {
-                    return pubsub.asyncIterator('mapInfoUpdate', args);
+                    return PubSub.asyncIterator('mapInfoUpdate', args);
                 }
             },
             error: {
                 resolve: (payload) => payload,
                 subscribe: (_, args: SubscriptionArgs<'error'>) => {
-                    return pubsub.asyncIterator('error', args);
+                    return PubSub.asyncIterator('error', args);
                 }
             }
         }as Record<keyof Subscription, IFieldResolverOptions<any, GraphQlContextType, any>>,
@@ -1210,16 +1227,16 @@ apolloServer.start().then(() => {
         const param = req.body as BroadcastItemParam;
         logger.info('broadcast', param);
         if (param.operation === 'delete') {
-            pubsub.publish('dataDeleteInTheMap', 
+            PubSub.publish('dataDeleteInTheMap', 
                 { mapId: param.mapId, mapKind: MapKind.Real },
                 param.itemIdList,
             )
-            pubsub.publish('dataDeleteInTheMap', 
+            PubSub.publish('dataDeleteInTheMap', 
                 { mapId: param.mapId, mapKind: MapKind.Virtual },
                 param.itemIdList,
             )
         } else {
-            publishData(pubsub, param.operation, param.itemIdList);
+            publishData(PubSub, param.operation, param.itemIdList);
         }
 
         res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1246,6 +1263,9 @@ apolloServer.start().then(() => {
     // DB接続完了してから開始
     logger.info('starting db');
     initializeDb()
+    .then(() => {
+        return MyCategoryChecker.initialize()
+    })
     .then(() => {
         logger.info('starting main server');
         server.listen(port, () => {
