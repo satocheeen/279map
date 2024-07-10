@@ -39,6 +39,8 @@ type Device = 'pc' | 'sp';
 const pcControls = olControl.defaults({attribution: true, zoom: false});
 const spControls = olControl.defaults({attribution: true, zoom: false});
 
+const MAX_ZOOM_REAL = 20;
+const MAX_ZOOM_VIRTUAL = 10;
 // export const TemporaryPointLayerDatasourceId = 'temporary-point';
 
 // OpenStreetMap
@@ -285,7 +287,7 @@ export class OlMapWrapper {
         //     layerType: LayerType.Point,
         // }, true);
 
-        this._map.getView().setMaxZoom(mapKind === MapKind.Virtual ? 10 : 18);
+        this._map.getView().setMaxZoom(mapKind === MapKind.Virtual ? MAX_ZOOM_VIRTUAL : MAX_ZOOM_REAL);
         if (extent) {
             this.fit(extent);
         }
