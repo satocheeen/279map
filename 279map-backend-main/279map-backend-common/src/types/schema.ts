@@ -42,7 +42,7 @@ export type DataSourceTable = {
     last_edited_time: string;
 } & (
     {
-        location_kind: DatasourceLocationKindType.None | DatasourceLocationKindType.RealItem | DatasourceLocationKindType.Track;
+        location_kind: DatasourceLocationKindType.None | DatasourceLocationKindType.RealItem | DatasourceLocationKindType.Track | DatasourceLocationKindType.StaticImage;
         config: DatasourceTblConfigForContent;
     } | {
         location_kind: DatasourceLocationKindType.VirtualItem;
