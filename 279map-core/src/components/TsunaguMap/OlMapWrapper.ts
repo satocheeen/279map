@@ -24,6 +24,8 @@ import { GetGeocoderFeatureDocument, ItemDatasourceInfo } from '../../graphql/ge
 import { Client } from 'urql';
 import { DataId, DatasourceLocationKindType, FeatureType, MapKind } from '../../types-common/common-types';
 import PointStyleMap from '../map/PointStyleMap';
+import Static from 'ol/source/ImageStatic';
+import ImageLayer from 'ol/layer/Image';
 
 export type FeatureInfo = {
     id: DataId;
@@ -203,6 +205,14 @@ export class OlMapWrapper {
                                 width: 1,
                             })
                         })
+                    }),
+                    new ImageLayer({
+                        source: new Static({
+                            url: './kinoura_water_depth.jpg',
+                            imageExtent: [137.26410894541078, 37.525180174316056, 137.27424047156507, 37.533808716528185],
+                            projection: 'EPSG: 4326',
+                        }),
+                        zIndex: 10,
                     })
                 ];
                 this._map.setLayers(layers);
