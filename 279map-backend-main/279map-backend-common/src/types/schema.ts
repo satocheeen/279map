@@ -83,7 +83,7 @@ export type MapDataSourceLinkConfig = {
     contentFieldKeyList: string[];  // 当該地図で使用するコンテンツ項目のキー一覧
     defaultIconKey?: IconKey;
 } | {
-    location_kind: DatasourceLocationKindType.Track;
+    location_kind: DatasourceLocationKindType.Track | DatasourceLocationKindType.StaticImage;
     initialVisible: boolean;    // レイヤ初期表示状態
     contentFieldKeyList: string[];  // 当該地図で使用するコンテンツ項目のキー一覧
 } | {
