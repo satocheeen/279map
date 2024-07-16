@@ -77,7 +77,7 @@ export type GeoProperties = {
     max_zoom:  number;
 } | {
     featureType: FeatureType.STATIC_IMAGE;
-    url: string;
+    url?: string;
     opacity?: number;
 }
 

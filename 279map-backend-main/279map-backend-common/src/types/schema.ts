@@ -107,6 +107,7 @@ export type GeometryItemsTable = {
     max_zoom: number;
     feature: any;   // Geometry
     geo_properties: string;       // GeoPropertiesのJSON文字列
+    static_image?: string;      // StaticImageの場合、Base64文字列
 }
 
 export type ContentsTable = {
