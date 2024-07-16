@@ -50,6 +50,7 @@ export default function SelectFeature(props: Props) {
                     case FeatureType.ROAD:
                         return LayerType.Topography;
                     case FeatureType.STRUCTURE:
+                    case FeatureType.STATIC_IMAGE:  // TODO:
                         return LayerType.Point;
                     case FeatureType.TRACK:
                         return LayerType.Track;

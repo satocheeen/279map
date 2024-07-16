@@ -24,8 +24,7 @@ import { GetGeocoderFeatureDocument, ItemDatasourceInfo } from '../../graphql/ge
 import { Client } from 'urql';
 import { DataId, DatasourceLocationKindType, FeatureType, MapKind } from '../../types-common/common-types';
 import PointStyleMap from '../map/PointStyleMap';
-import Static from 'ol/source/ImageStatic';
-import ImageLayer from 'ol/layer/Image';
+import { StaticImageLayerMap } from './StaticImageLayerMap';
 
 export type FeatureInfo = {
     id: DataId;
@@ -86,6 +85,7 @@ export class OlMapWrapper {
     readonly _id: string;
     _map: OlMap;
     _vectorLayerMap: VectorLayerMap;
+    _staticImageLayerMap = new StaticImageLayerMap(this);
     _mapKind?: MapKind;
     _currentZoom: number;   // Zoomレベル変更検知用に保持
     _device: Device = 'pc';
@@ -206,14 +206,6 @@ export class OlMapWrapper {
                             })
                         })
                     }),
-                    new ImageLayer({
-                        source: new Static({
-                            url: './kinoura_water_depth.jpg',
-                            imageExtent: [137.26410894541078, 37.525180174316056, 137.27424047156507, 37.533808716528185],
-                            projection: 'EPSG: 4326',
-                        }),
-                        zIndex: 10,
-                    })
                 ];
                 this._map.setLayers(layers);
 
@@ -242,7 +234,7 @@ export class OlMapWrapper {
                                 max: zoomLv[1],
                             }
                         };
-                        this.addLayer(layerDefine, ds.initialVisible);
+                        this._addLayer(layerDefine, ds.initialVisible);
                     })
 
                 } else if (ds.config.kind === DatasourceLocationKindType.RealItem) {
@@ -252,9 +244,14 @@ export class OlMapWrapper {
                             editable: true,
                             layerType: layerType as LayerType.Point| LayerType.Topography,
                         };
-                        this.addLayer(layerDefine, ds.initialVisible);
+                        this._addLayer(layerDefine, ds.initialVisible);
                     })
 
+                } else if (ds.config.kind === DatasourceLocationKindType.StaticImage) {
+                    this._staticImageLayerMap.createLayer({
+                        datasourceId: ds.datasourceId,
+                        editable: true,
+                    })
                 }
 
             })
@@ -272,7 +269,7 @@ export class OlMapWrapper {
                         editable: true,
                         layerType: layerType as LayerType.Point| LayerType.Topography,
                     };
-                    this.addLayer(layerDefine, ds.initialVisible);
+                    this._addLayer(layerDefine, ds.initialVisible);
                 })
             });
 
@@ -375,7 +372,13 @@ export class OlMapWrapper {
 
         // 追加対象のソースが同一のものをまとめる
         const sourceDefMap = new Map<VectorSource, Feature<Geometry>[]>();
+        const staticImageItems: ItemInfo[] = [];
         for (const def of defs) {
+            if (this._staticImageLayerMap.has(def.datasourceId)) {
+                staticImageItems.push(def);
+                continue;
+            }
+
             const source = this._getTargetSource(def);
             if (!source) {
                 console.warn('追加対象レイヤ見つからず', def);
@@ -411,6 +414,10 @@ export class OlMapWrapper {
         sourceDefMap.forEach((features, source) => {
             console.log('add features', features.length);
             source.addFeatures(features);
+        })
+
+        staticImageItems.forEach(def => {
+            this._staticImageLayerMap.addFeature(def);
         })
     }
 
@@ -553,7 +560,7 @@ export class OlMapWrapper {
      * @param initialVisible 初期時のvisible
      * @returns 
      */
-    addLayer(layerDefine: LayerDefine, initialVisible: boolean): VectorLayer<VectorSource> | undefined{
+    _addLayer(layerDefine: LayerDefine, initialVisible: boolean): VectorLayer<VectorSource> | undefined{
         const layer = this._vectorLayerMap.createLayer(layerDefine);
         if (layer) {
             layer.setVisible(initialVisible);

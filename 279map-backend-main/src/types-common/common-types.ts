@@ -4,7 +4,6 @@
  * 他プロジェクトへは、npm run codegenスクリプトにてコピーされる。
  */
 
-import { BooleanValueNode } from "graphql";
 
 // export type DataId = {
 //     id: string;
@@ -44,6 +43,7 @@ export enum FeatureType {
     FOREST = 'FOREST',
     AREA = 'AREA',
     TRACK = 'TRACK',
+    STATIC_IMAGE = 'STATIC_IMAGE',
 }
 
 /* OSM等で管理されているFeatureを特定する情報 */
@@ -75,6 +75,10 @@ export type GeoProperties = {
     featureType: FeatureType.TRACK;
     min_zoom: number;
     max_zoom:  number;
+} | {
+    featureType: FeatureType.STATIC_IMAGE;
+    url: string;
+    opacity?: number;
 }
 
 /**
@@ -84,6 +88,7 @@ export enum DatasourceLocationKindType {
     VirtualItem = 'VirtualItem',    // 村マップ上の建物や土地に関する情報を格納するデータソース
     RealItem = 'RealItem',          // 世界地図上のピンやエリア
     Track = 'Track',                // 世界地図上の軌跡 
+    StaticImage = 'StaticImage',    // 固定イメージ
     None = 'None',                  // 位置情報を持たないデータソースの場合
 }
 
@@ -96,6 +101,8 @@ export type ItemDatasourceConfig = {
     kind: DatasourceLocationKindType.RealItem;
     drawableArea: boolean;  // trueの場合、エリア描画可能。falseの場合は、ピンのみ描画可能。
     defaultIcon?: IconKey;
+} | {
+    kind: DatasourceLocationKindType.StaticImage;
 }
 
 /**

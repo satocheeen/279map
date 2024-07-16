@@ -178,6 +178,12 @@ export function extractGeoProperty(properties: GeoJsonProperties): GeoProperties
                 max_zoom: properties?.max_zoom,
                 min_zoom: properties?.min_zoom,
             }
+        case FeatureType.STATIC_IMAGE:
+            return {
+                featureType: prop.featureType,
+                url: properties?.url,
+                opacity: properties?.opacity,
+            }
         default:
             return {
                 featureType: prop.featureType,
