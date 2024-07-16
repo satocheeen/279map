@@ -7,6 +7,7 @@ import { OlMapWrapper } from "./OlMapWrapper";
 type StaticImageLayerDefine = {
     datasourceId: string;
     editable: boolean;
+    layers: ImageLayer<Static>[];
 }
 /**
  * StaticImageレイヤを一元管理するクラス
@@ -19,8 +20,8 @@ export class StaticImageLayerMap {
         this._map = map;
     }
 
-    createLayer(define: StaticImageLayerDefine) {
-        this._layerDefineMap.set(define.datasourceId, define);
+    createLayer(define: Omit<StaticImageLayerDefine, 'layers'>) {
+        this._layerDefineMap.set(define.datasourceId, Object.assign({}, define, { layers: []}));
     }
 
     has(datasourceId: string) {
@@ -32,15 +33,25 @@ export class StaticImageLayerMap {
             console.warn('this is not static image', item);
             return;
         }
+        const info = this._layerDefineMap.get(item.datasourceId);
+        if (!info) {
+            console.warn('layer info not exist', item);
+            return;
+        }
         const layer = new ImageLayer({
             source: new Static({
                 url: item.geoProperties.url,
-                imageExtent: bbox(item.geometry), //[137.26410894541078, 37.524180174316056, 137.27424047156507, 37.533808716528185],
+                imageExtent: bbox(item.geometry),
                 projection: 'EPSG: 4326',
             }),
             opacity: item.geoProperties.opacity ?? 1,
             zIndex: 1,
         });
         this._map._map.addLayer(layer);
+        info.layers.push(layer);
+    }
+
+    getLayerOfTheDataSource(datasourceId: string) {
+        return this._layerDefineMap.get(datasourceId)?.layers ?? [];
     }
 }

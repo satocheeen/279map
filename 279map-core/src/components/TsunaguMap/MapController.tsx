@@ -128,7 +128,7 @@ function useMapInitializer() {
             h4.unsubscribe();
         }
 
-    }, [urqlClient, currentMapKind, mapId, updateItems, removeItems])
+    }, [urqlClient, currentMapKind, mapId, updateItems, removeItems, updateCategoriesVersion])
 
 }
 

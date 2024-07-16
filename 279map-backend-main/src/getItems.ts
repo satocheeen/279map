@@ -71,6 +71,29 @@ async function selectItems(param: QueryGetItemsArgs, currentMap: CurrentMap): Pr
                 lastEditedTime,
             });
         }
+        pointContents.push({
+            datasourceId: 'hoge',
+            name: '水深',
+            id: 12345,
+            geometry: {
+                type: 'Polygon',
+                coordinates: [
+                    [
+                        [137.26410894541078, 37.525280174316056],
+                        [137.27414047156507, 37.525280174316056],
+                        [137.27414047156507, 37.535508716528185],
+                        [137.26410894541078, 37.535508716528185],
+                        [137.26410894541078, 37.525280174316056]
+                    ]
+                ],
+            },
+            geoProperties: {
+                featureType: FeatureType.STATIC_IMAGE,
+                url: './kinoura_water_depth.jpg',
+                opacity: 0.6,
+            },
+            lastEditedTime: '',
+        })
 
         return pointContents;
 

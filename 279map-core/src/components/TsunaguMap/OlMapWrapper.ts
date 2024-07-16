@@ -733,6 +733,13 @@ export class OlMapWrapper {
                     layerInfo.layer.setVisible(target.visible);
                 }
             });
+            const staticImageLayers = this._staticImageLayerMap.getLayerOfTheDataSource(target.datasourceId);
+            staticImageLayers.forEach(layer => {
+                const currentVisible = layer.getVisible();
+                if (currentVisible !== target.visible) {
+                    layer.setVisible(target.visible);
+                }
+            })
         })
     }
 
