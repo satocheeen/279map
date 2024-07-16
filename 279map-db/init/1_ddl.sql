@@ -21,7 +21,7 @@ CREATE TABLE `map_page_info` (
 
 CREATE TABLE `data_source` (
   `data_source_id` varchar(100) NOT NULL,
-  `location_kind` enum('VirtualItem','RealItem','Track','None') NOT NULL,
+  `location_kind` enum('VirtualItem','RealItem','Track','StaticImage','None') NOT NULL,
   `config` json NOT NULL,
   `location_define` json DEFAULT NULL COMMENT '位置項目定義情報',
   `contents_define` json DEFAULT NULL COMMENT 'コンテンツ項目定義情報',
@@ -98,6 +98,7 @@ CREATE TABLE `geometry_items` (
   `max_zoom` float NOT NULL,
   `feature` geometry NOT NULL,
   `geo_properties` text,
+  `static_image` mediumtext,
   PRIMARY KEY (`geometry_item_id`),
   KEY `items_sub_FK` (`data_id`),
   CONSTRAINT `geometry_items_FK` FOREIGN KEY (`data_id`) REFERENCES `datas` (`data_id`) ON DELETE CASCADE
