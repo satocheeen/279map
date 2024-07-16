@@ -132,7 +132,7 @@ export type ContentFieldDefine = {
  */
 export type LocationFieldDefine = {
     key: string;
-    type: 'latitude' | 'longitude' | 'radius' | 'address' | 'geojson' | 'gpx-file';
+    type: 'latitude' | 'longitude' | 'radius' | 'address' | 'geojson' | 'gpx-file' | 'static-image' | 'extent';
 }
 
 export type ContentValueMap = {[key: string]: any};
