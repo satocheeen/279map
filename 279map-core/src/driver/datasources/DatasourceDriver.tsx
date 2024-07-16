@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import styles from '../TestMap.module.scss';
 import myStyles from './DatasourceDriver.module.scss';
-import { Auth, FeatureType, ItemDatasourceVisibleList, MapKind } from '../../entry';
+import { Auth, DatasourceLocationKindType, FeatureType, ItemDatasourceVisibleList, MapKind } from '../../entry';
 import { DriverContext } from '../TestMap';
 import { useWatch } from '../../util/useWatch2';
 import SelectStructureDialog, { SelectStructureDialogParams, SelectStructureDialogResult } from '../common/SelectStructureDialog';
@@ -240,13 +240,24 @@ function DatasourceItem(props: DatasourceItemProp) {
         addConsole('drawAndRegistItem', result);
     }, [getMap, props.datasourceId, addConsole]);
 
+    const showEditMenu = useMemo(() => {
+        if (authLv === Auth.View) return false;
+        switch(targetDatasource?.config.kind) {
+            case DatasourceLocationKindType.RealItem:
+            case DatasourceLocationKindType.VirtualItem:
+                return true;
+            default:
+                return false;
+        }
+    }, [authLv, targetDatasource])
+
     return (
         <div key={props.datasourceId} className={`${props.isChild ? myStyles.Child : ''}`}>
             <label>
                 <input type="checkbox" checked={props.visible} onChange={(evt) => props.onChangeVisible(evt.target.checked)} />
                 {name}
             </label>
-            {(authLv !== Auth.View) &&
+            {showEditMenu &&
                 <>
                     <button onClick={()=>handleRegistItem(FeatureType.STRUCTURE)}>{mapKind === MapKind.Real ? 'ピン作成' : '建設'}</button>
                     {mapKind === MapKind.Real ?
