@@ -139,7 +139,7 @@ export type ContentFieldDefine = {
  */
 export type LocationFieldDefine = {
     key: string;
-    type: 'latitude' | 'longitude' | 'radius' | 'address' | 'geojson' | 'gpx-file' | 'static-image' | 'extent';
+    type: 'latitude' | 'longitude' | 'radius' | 'address' | 'geojson' | 'gpx-file' | 'static-image' | 'extent' | 'static-image-opacity';
 }
 
 export type ContentValueMap = {[key: string]: any};
