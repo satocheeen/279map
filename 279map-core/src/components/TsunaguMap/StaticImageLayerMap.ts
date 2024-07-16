@@ -40,7 +40,7 @@ export class StaticImageLayerMap {
         }
         const layer = new ImageLayer({
             source: new Static({
-                url: item.geoProperties.url,
+                url: 'url' in item.geoProperties ? item.geoProperties.url : 'data:image/' + item.geoProperties.base64,
                 imageExtent: bbox(item.geometry),
                 projection: 'EPSG: 4326',
             }),

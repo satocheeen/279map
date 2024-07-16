@@ -75,11 +75,18 @@ export type GeoProperties = {
     featureType: FeatureType.TRACK;
     min_zoom: number;
     max_zoom:  number;
-} | {
-    featureType: FeatureType.STATIC_IMAGE;
-    url: string;
-    opacity?: number;
-}
+} | (
+    {
+        featureType: FeatureType.STATIC_IMAGE;
+        opacity?: number;
+    } & (
+        {
+            url: string;
+        } | {
+            base64: string;
+        }
+    )
+)
 
 /**
  * データソースのLocation種別
@@ -132,7 +139,7 @@ export type ContentFieldDefine = {
  */
 export type LocationFieldDefine = {
     key: string;
-    type: 'latitude' | 'longitude' | 'radius' | 'address' | 'geojson' | 'gpx-file';
+    type: 'latitude' | 'longitude' | 'radius' | 'address' | 'geojson' | 'gpx-file' | 'static-image' | 'extent';
 }
 
 export type ContentValueMap = {[key: string]: any};

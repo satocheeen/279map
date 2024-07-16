@@ -96,10 +96,11 @@ async function getExtent(mapPageId: string, mapKind: MapKind): Promise<[number,n
             inner join datas d on d.data_id = i.data_id 
             inner join data_source ds on ds.data_source_id = d.data_source_id 
             inner join map_datasource_link mdl on mdl.data_source_id = d.data_source_id 
-            where map_page_id = ? and ds.location_kind = ?
+            where map_page_id = ? and ds.location_kind in (?)
             `;
-            const dsKind = mapKind === MapKind.Real ? DatasourceLocationKindType.RealItem : DatasourceLocationKindType.VirtualItem;
-            const [rows] = await con.execute(sql, [mapPageId, dsKind]);
+            const dsKind = mapKind === MapKind.Real ? [DatasourceLocationKindType.RealItem, DatasourceLocationKindType.StaticImage] : [DatasourceLocationKindType.VirtualItem];
+            const query = con.format(sql, [mapPageId, dsKind]);
+            const [rows] = await con.execute(query);
             if((rows as any[]).length === 0) {
                 throw 'Extent error';
             }
@@ -161,7 +162,7 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
         inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
         where map_page_id =? and location_kind in (?)
         order by order_num`;
-        const locationKinds = mapKind === MapKind.Virtual ? [DatasourceLocationKindType.VirtualItem] : [DatasourceLocationKindType.RealItem, DatasourceLocationKindType.Track];
+        const locationKinds = mapKind === MapKind.Virtual ? [DatasourceLocationKindType.VirtualItem] : [DatasourceLocationKindType.RealItem, DatasourceLocationKindType.Track, DatasourceLocationKindType.StaticImage];
         const query = con.format(sql, [mapId, locationKinds]);
         const [rows] = await con.execute(query);
 

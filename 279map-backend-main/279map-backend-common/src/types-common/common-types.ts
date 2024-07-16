@@ -75,11 +75,18 @@ export type GeoProperties = {
     featureType: FeatureType.TRACK;
     min_zoom: number;
     max_zoom:  number;
-} | {
-    featureType: FeatureType.STATIC_IMAGE;
-    url?: string;
-    opacity?: number;
-}
+} | (
+    {
+        featureType: FeatureType.STATIC_IMAGE;
+        opacity?: number;
+    } & (
+        {
+            url: string;
+        } | {
+            base64: string;
+        }
+    )
+)
 
 /**
  * データソースのLocation種別

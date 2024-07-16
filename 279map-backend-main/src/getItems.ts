@@ -57,11 +57,22 @@ async function selectItems(param: QueryGetItemsArgs, currentMap: CurrentMap): Pr
         for(const row of rows as (GeometryItemsTable & {geojson: any; title: string | null; location_kind: DatasourceLocationKindType; last_edited_time: string})[]) {
             let lastEditedTime = row.last_edited_time;
 
-            const geoProperties: GeoProperties = row.location_kind === DatasourceLocationKindType.Track ? {
-                featureType: FeatureType.TRACK,
-                max_zoom: row.max_zoom,
-                min_zoom: row.min_zoom,
-            } : JSON.parse(row.geo_properties);
+            const geoProperties: GeoProperties = function(){
+                if (row.location_kind === DatasourceLocationKindType.Track) {
+                    return {
+                        featureType: FeatureType.TRACK,
+                        max_zoom: row.max_zoom,
+                        min_zoom: row.min_zoom,
+                    }
+                } else if (row.location_kind === DatasourceLocationKindType.StaticImage) {
+                    return Object.assign({}, JSON.parse(row.geo_properties), {
+                        base64: row.static_image,
+                    })
+                }
+                
+                return JSON.parse(row.geo_properties);
+    
+            }();
             pointContents.push({
                 id: row.data_id,
                 datasourceId: param.datasourceId,
@@ -71,29 +82,6 @@ async function selectItems(param: QueryGetItemsArgs, currentMap: CurrentMap): Pr
                 lastEditedTime,
             });
         }
-        pointContents.push({
-            datasourceId: 'hoge',
-            name: '水深',
-            id: 12345,
-            geometry: {
-                type: 'Polygon',
-                coordinates: [
-                    [
-                        [137.26410894541078, 37.525280174316056],
-                        [137.27414047156507, 37.525280174316056],
-                        [137.27414047156507, 37.535508716528185],
-                        [137.26410894541078, 37.535508716528185],
-                        [137.26410894541078, 37.525280174316056]
-                    ]
-                ],
-            },
-            geoProperties: {
-                featureType: FeatureType.STATIC_IMAGE,
-                url: './kinoura_water_depth.jpg',
-                opacity: 0.6,
-            },
-            lastEditedTime: '',
-        })
 
         return pointContents;
 
