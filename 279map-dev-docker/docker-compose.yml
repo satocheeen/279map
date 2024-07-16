@@ -2,7 +2,7 @@
 version: "3"
 services:
   db:
-    image: satocheeen/279map-db:0.55.8
+    image: satocheeen/279map-db:0.56.0
     env_file:
       - ./.env
     ports:
@@ -11,7 +11,7 @@ services:
       - ./db/mysql_data:/var/lib/mysql
   odba:
     # 任意のイメージを指定
-    image: satocheeen/279map-backend-odba-notion:0.72.8
+    image: satocheeen/279map-backend-odba-notion:0.73.0
     depends_on:
       - db
     env_file:
@@ -24,7 +24,7 @@ services:
       - ./photo:/var/photo
   frontend:
     # メイン
-    image: satocheeen/279map-frontend:0.87.0
+    image: satocheeen/279map-frontend:0.88.0
     env_file:
       - ./.env
     # ports:
@@ -35,7 +35,7 @@ services:
     # スマホログ記録
     image: satocheeen/279map-frontend-logregister:0.3.0
   main:
-    image: satocheeen/279map-backend-main:0.82.0
+    image: satocheeen/279map-backend-main:0.83.0
     depends_on:
       - db
     env_file:
