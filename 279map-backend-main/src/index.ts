@@ -1093,7 +1093,7 @@ apolloServer.start().then(() => {
      * 地図のサムネイル画像取得
      * @param 地図ID
      */
-    app.get('/mapimage/*', async(req, res) => {
+    app.get('/mapimage/*', authManagementClient.checkJwt, async(req, res) => {
         try {
             const mapId = req.path.length > 2 ? req.path.substring('/mapimage/'.length) : undefined;
             if (!mapId) {
