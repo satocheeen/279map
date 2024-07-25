@@ -56,6 +56,7 @@
     "mysql2": "^3.2.0",
     "proj4": "^2.9.0",
     "randomcolor": "^0.6.2",
+    "sharp": "^0.33.4",
     "subscriptions-transport-ws": "^0.11.0",
     "superagent-proxy": "^3.0.0",
     "utf-8-validate": "^5.0.10",

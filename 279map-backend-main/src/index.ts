@@ -52,6 +52,7 @@ import { getUnpointData } from './api/getUnpointData';
 import { convertBase64ToBinary } from './util/utility';
 import { CategoryChecker } from './memory/CategoryChecker';
 import { setupForCrawler } from './setupForCrawler';
+import sharp from 'sharp';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -1098,9 +1099,20 @@ apolloServer.start().then(() => {
             if (!mapId) {
                 throw new Error('mapId not found')
             }
+            const width = typeof req.query.w === 'string' ? parseInt(req.query.w) : undefined;
             const { mapInfo } = await getMapInfoByIdWithAuth(mapId, req);
             if (mapInfo.thumbnail) {
-                const {contentType, binary } = convertBase64ToBinary(mapInfo.thumbnail);
+                const { contentType, binary: originalBinary } = convertBase64ToBinary(mapInfo.thumbnail);
+
+                // サイズ指定されている場合はリサイズ
+                const binary = await async function() {
+                    if (!width) return originalBinary;
+                    const image = sharp(originalBinary);
+                    const binary = await image.resize({
+                        width,
+                    }).toBuffer();
+                    return binary;    
+                }();
 
                 res.writeHead(200, {
                   'Content-Type': contentType,

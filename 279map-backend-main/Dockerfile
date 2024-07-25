@@ -13,6 +13,7 @@ RUN npm run build
 
 WORKDIR /home/node/app/backend/dist
 RUN npm init -y
+RUN npm install --platform=linuxmusl --arch=x64 sharp
 
 # 2. deploy stage
 FROM alpine:3.18

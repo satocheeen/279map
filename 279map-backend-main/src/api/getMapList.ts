@@ -41,7 +41,7 @@ export async function getMapList(req: Request): Promise<MapListItem[]> {
             const protocol = req.headers['x-forwarded-proto'] || req.protocol;
             const host = req.headers['x-forwarded-host'] || req.get('host');
             const domain = `${protocol}://${host}/`;
-            const imageUrl = `${domain}mapimage/${record.map_page_id}`;
+            const imageUrl = `${domain}mapimage/${record.map_page_id}?w=600`;
 
             req.hostname + req.protocol + req.originalUrl
             if (compareAuth(authLv, Auth.View) >= 0) {
