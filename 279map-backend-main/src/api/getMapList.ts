@@ -38,13 +38,19 @@ export async function getMapList(req: Request): Promise<MapListItem[]> {
                     return authInfo.authLv;
                 }
             }();
+            const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+            const host = req.headers['x-forwarded-host'] || req.get('host');
+            const domain = `${protocol}://${host}/`;
+            const imageUrl = `${domain}mapimage/${record.map_page_id}`;
+
+            req.hostname + req.protocol + req.originalUrl
             if (compareAuth(authLv, Auth.View) >= 0) {
                 mapList.push({
                     mapId: record.map_page_id,
                     authLv,
                     name: record.title,
                     description: record.description,
-                    thumbnail: record.thumbnail ? 'data:image/' + record.thumbnail : undefined,
+                    thumbnail: record.thumbnail ? imageUrl : undefined,
                 })
             }
         }

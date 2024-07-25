@@ -1088,9 +1088,13 @@ apolloServer.start().then(() => {
     // 静的ファイルの提供
     app.use('/static', express.static('public'));
 
-    app.get('/ogimage/*', async(req, res) => {
+    /**
+     * 地図のサムネイル画像取得
+     * @param 地図ID
+     */
+    app.get('/mapimage/*', async(req, res) => {
         try {
-            const mapId = req.path.length > 2 ? req.path.substring('/ogimage/'.length) : undefined;
+            const mapId = req.path.length > 2 ? req.path.substring('/mapimage/'.length) : undefined;
             if (!mapId) {
                 throw new Error('mapId not found')
             }

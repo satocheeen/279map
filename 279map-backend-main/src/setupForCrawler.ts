@@ -38,7 +38,7 @@ export const setupForCrawler = async(req: Request, res: Response, next: NextFunc
                         info.description = mapInfo.description;
                     }
                     if (mapInfo.thumbnail) {
-                        info.image = 'ogimage/' + mapId;
+                        info.image = 'mapimage/' + mapId;
                     }
 
                 } catch(e) {
