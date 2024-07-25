@@ -27,15 +27,15 @@ services:
     image: satocheeen/279map-frontend:0.88.0
     env_file:
       - ./.env
-    # ports:
-    #   - 3000:80
+    ports:
+      - 3000:80
     volumes:
       - ./log:/var/log/www
   frontend-logregister:
     # スマホログ記録
     image: satocheeen/279map-frontend-logregister:0.3.0
   main:
-    image: satocheeen/279map-backend-main:0.83.0
+    image: satocheeen/279map-backend-main:0.83.1
     depends_on:
       - db
     env_file:
