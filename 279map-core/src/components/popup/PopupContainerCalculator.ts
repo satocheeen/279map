@@ -5,11 +5,11 @@ import VectorSource from "ol/source/Vector";
 import { OlMapType } from "../TsunaguMap/OlMapWrapper";
 import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
 import { getFeatureCenter } from "../../util/MapUtility";
-import Style from "ol/style/Style";
 import { Extent } from "ol/extent";
 import { DataId } from '../../types-common/common-types';
 import { ItemInfo } from '../../types/types';
 
+// 縮尺によっては複数のアイテムがひとまとまりになるので、そのグループ
 type PopupGroup = {
     mainFeature: Feature;
     itemIds: DataId[];  // ポップアップに紐づくアイテムID一覧
@@ -29,15 +29,15 @@ export type PopupGroupWithPosition = {
 export default class PopupContainerCalculator {
     _map: OlMapType;
     _extent: Extent;
-    _hasContentsItemList: ItemInfo[] = [];
+    _targetItemList: ItemInfo[] = [];   // 表示するポップアップを持つアイテム情報一覧
 
     constructor(map: OlMapType, extent: Extent) {
         this._map = map;
         this._extent = extent;
     }
 
-    setHasContentsItemIdList(list: ItemInfo[]) {
-        this._hasContentsItemList = list;
+    setTargetItemIdList(list: ItemInfo[]) {
+        this._targetItemList = list;
     }
 
     /**
@@ -78,19 +78,19 @@ export default class PopupContainerCalculator {
             itemSource.getFeaturesInExtent(this._extent).forEach(feature => {
                 const features = feature.get('features') as Feature[];
     
-                // コンテンツを持つアイテムに絞る
+                // 対象のアイテムに絞る
                 const itemIds = features.map((f): DataId => {
                     const id = convertDataIdFromFeatureId(f.getId() as string);
                     return id;
                 }).filter(id => {
-                    return this._hasContentsItemList.some(item => isEqualId(item.id, id));
+                    return this._targetItemList.some(item => isEqualId(item.id, id));
                 });
                 if (itemIds.length === 0) {
                     return;
                 }
 
                 const hasImage = itemIds.some(itemId => {
-                    const target = this._hasContentsItemList.find(item => isEqualId(itemId, item.id));
+                    const target = this._targetItemList.find(item => isEqualId(itemId, item.id));
                     return (target?.content?.hasImage || target?.linkedContents.some(c => c.hasImage)) ?? false;
                 });
     
@@ -118,11 +118,11 @@ export default class PopupContainerCalculator {
 
                 // コンテンツを持つアイテムに絞る
                 const id = convertDataIdFromFeatureId(feature.getId() as string);
-                if (!this._hasContentsItemList.some(item => isEqualId(item.id, id))) {
+                if (!this._targetItemList.some(item => isEqualId(item.id, id))) {
                     return;
                 }
 
-                const item = this._hasContentsItemList.find(item => isEqualId(id, item.id));
+                const item = this._targetItemList.find(item => isEqualId(id, item.id));
                 const hasImage = (item?.content?.hasImage || item?.linkedContents.some(c => c.hasImage)) ?? false;
 
                 popupInfoList.push({

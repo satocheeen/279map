@@ -61,6 +61,7 @@ export type GeocoderIdInfo = {
 export type GeoProperties = {
     featureType: FeatureType.STRUCTURE;
     icon?: IconKey;
+    mark?: IconKey;      // 強調マークID
 } | {
     featureType: FeatureType.ROAD;
     lineJson: GeoJSON.Feature;  // 元のLine

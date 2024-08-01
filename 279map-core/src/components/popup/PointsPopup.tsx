@@ -11,8 +11,7 @@ import { filteredDatasAtom, filteredItemIdListAtom } from "../../store/filter";
 import { useItems } from "../../store/item/useItems";
 import { useAtom } from "jotai";
 import { useAtomCallback } from 'jotai/utils';
-import { ContentsDefine } from "../../graphql/generated/graphql";
-import { DataId } from "../../types-common/common-types";
+import { DataId, IconKey } from "../../types-common/common-types";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 
 type Props = {
@@ -22,17 +21,22 @@ type Props = {
     size: 's' | 'm' | 'l';
 }
 
-export type PopupItem = {
-    id: string;
-    content?: ContentsDefine;
+type PopupInfo = {
+    type: 'image';
+    imageContentDataId: DataId;
+} | {
+    type: 'three-dot';
+} | {
+    type: 'mark';
+    mark: IconKey;
 }
-
 export default function PointsPopup(props: Props) {
     const { map } = useMap();
     const [ filteredItemIdList ] = useAtom(filteredItemIdListAtom);
     const [ filteredContentIdList ] = useAtom(filteredDatasAtom);
     const [ targetItems, setTargetItems ] = useState<ItemInfo[]>([]);
     const { getItem } = useItems();
+    const { popupMode } = useMapOptions();
 
     const getTarget = useCallback(async(itemIds: DataId[]): Promise<ItemInfo[]> => {
         const items = await Promise.all(itemIds.map(itemId => {
@@ -48,59 +52,75 @@ export default function PointsPopup(props: Props) {
     }, [props.itemIds, getTarget]);
 
     /**
-     * このポップアップで表示するアイテム情報
+     * このポップアップで表示する情報
      */
-    const target = useMemo(() => {
+    const target = useMemo((): PopupInfo | undefined => {
         if (props.itemIds.length === 0) {
             return undefined;
         }
-        let infos = targetItems;
-        // フィルタがかかっている場合は、フィルタ対象のものに絞る
-        if (filteredItemIdList) {
-            infos = infos.filter(info => filteredItemIdList.some(filteredItemId => isEqualId(filteredItemId, info.id)));
-        }
-        if (infos.length === 1) {
-            return infos[0];
-        }
-        // 複数アイテムが表示対象の場合は、画像を持つもののみ表示対象
-        const ownImageInfos = infos.filter(item => item.content?.hasImage || item.linkedContents.some(c => c.hasImage));
-        if (ownImageInfos.length === 0) {
-            // 画像を持つものがない場合は、冒頭
-            return infos[0];
-        }
-        // 最初の画像のみ表示
-        return ownImageInfos[0];
-    }, [props.itemIds, targetItems, filteredItemIdList]);
 
-    const { popupMode } = useMapOptions();
-
-    // 表示する画像URL
-    const imageContentId = useMemo((): DataId | null => {
-        if (!target) return null;
-        if (popupMode !== 'maximum') return null;
-
-        const hasImageContent = function() {
-            const list: ItemInfo['content'][] = [];
-            if (target.content?.hasImage) {
-                list.push(target.content)
+        if (popupMode === 'minimum') {
+            return {
+                type: 'three-dot'
             }
-            target.linkedContents.forEach(c => {
-                if (c.hasImage) {
-                    list.push(c);
-                }
-            })
-            return list;
-        }();
-        // const hasImageContent = target.contents.filter(c => c.hasImage);
-        if (hasImageContent.length === 0) {
-            return null;
         }
-        if (!filteredContentIdList) {
-            return hasImageContent[0]?.id ?? null;
+        // maximumの場合
+        // 画像を探す（表示中のコンテンツ限定）
+        let imageContentId: undefined | DataId;
+        targetItems.some(item => {
+            if (item.content?.hasImage) {
+                imageContentId = item.id;
+                return true;
+            }
+            const imageContent = item.linkedContents.find(lc => {
+                const isShow = function() {
+                    if (!filteredContentIdList) return true;
+                    return filteredContentIdList.some(fc => fc === lc.id);
+                }();
+                return isShow && lc.hasImage;
+            });
+            if (imageContent) {
+                imageContentId = imageContent.id;
+                return true;
+            }
+            return false;
+        })
+        if (!imageContentId) return {
+            type: 'three-dot'
+        };
+        return {
+            type: 'image',
+            imageContentDataId: imageContentId,
         }
-        return hasImageContent.find(c => filteredContentIdList.some(f => f === c?.id))?.id ?? null;
+    }, [props.itemIds, targetItems, popupMode, filteredContentIdList]);
 
-    }, [target, filteredContentIdList, popupMode]);
+    // // 表示する画像URL
+    // const imageContentId = useMemo((): DataId | null => {
+    //     if (!target) return null;
+    //     if (popupMode !== 'maximum') return null;
+
+    //     const hasImageContent = function() {
+    //         const list: ItemInfo['content'][] = [];
+    //         if (target.content?.hasImage) {
+    //             list.push(target.content)
+    //         }
+    //         target.linkedContents.forEach(c => {
+    //             if (c.hasImage) {
+    //                 list.push(c);
+    //             }
+    //         })
+    //         return list;
+    //     }();
+    //     // const hasImageContent = target.contents.filter(c => c.hasImage);
+    //     if (hasImageContent.length === 0) {
+    //         return null;
+    //     }
+    //     if (!filteredContentIdList) {
+    //         return hasImageContent[0]?.id ?? null;
+    //     }
+    //     return hasImageContent.find(c => filteredContentIdList.some(f => f === c?.id))?.id ?? null;
+
+    // }, [target, filteredContentIdList, popupMode]);
 
     const { onItemClick } = useContext(OwnerContext);
     const onClick = useAtomCallback(
@@ -146,11 +166,11 @@ export default function PointsPopup(props: Props) {
     }
     return (
         <>
-            <div className={`${styles.Popup} ${imageContentId ? '' : styles.Minimum} ${sizeClassName}`} onClick={onClick}>
+            <div className={`${styles.Popup} ${target.type === 'image' ? '' : styles.Minimum} ${sizeClassName}`} onClick={onClick}>
                 <div className={styles.Contents}>
-                    {imageContentId ?
+                    {target.type === 'image' ?
                         <div className={`${styles.ImageContainer}`}>
-                            <MyThumbnail className={styles.Image} contentId={imageContentId} alt="contents" />
+                            <MyThumbnail className={styles.Image} contentId={target.imageContentDataId} alt="contents" />
                         </div>
                         :
                         <div className={styles.ThreeDots}>
@@ -158,9 +178,6 @@ export default function PointsPopup(props: Props) {
                         </div>
                     }
                 </div>
-                {/* {props.itemIds.length > 1 &&
-                    <div className={styles.Number}>{contentsNum}</div>
-                } */}
             </div>
             <div className={styles.Triangle} />
         </>

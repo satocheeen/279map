@@ -12,6 +12,7 @@ import { mapViewAtom } from '../../store/operation';
 import { filteredItemIdListAtom } from '../../store/filter';
 import { useAtom } from 'jotai';
 import { visibleDataSourceIdsAtom } from '../../store/datasource';
+import { FeatureType } from '../../entry';
 
 function createKeyFromPopupInfo(param: PopupGroupWithPosition): string {
     if (!param) {
@@ -34,16 +35,25 @@ export default function PopupContainer() {
 
     const [filteredItemIdList] = useAtom(filteredItemIdListAtom);
 
-    // コンテンツを持つアイテムID一覧
-    const hasContentsItemList = useMemo(() => {
-        if (popupMode === 'hidden') {
-            return [];
-        }
-        // 表示中のアイテム
+    /**
+     * ポップアップを表示するアイテム一覧
+     * <条件（いずれか）>
+     * - コンテンツを持つ（popupModeがhidden以外の場合限定）
+     * - markを持つ
+     */
+    const targetItemList = useMemo(() => {
         const list = allItems.filter(item => visibleDataSourceIds.includes(item.datasourceId))
         .filter(item => {
+            // markを持つか、コンテンツを持つものに絞る
+            if (item.geoProperties.featureType === FeatureType.STRUCTURE && item.geoProperties.mark) {
+                return true;
+            }
+            if (popupMode === 'hidden') return false;
+            // コンテンツを持つものに絞る
             const hasValue = item.content?.hasValue || item.linkedContents.some(c => c.hasValue);
-            if (!hasValue) return false;
+            return hasValue;
+        })
+        .filter(item => {
             // フィルタが掛かっている場合は条件外のものは除外する
             if (!filteredItemIdList) return true;
             return filteredItemIdList.some(filteredItemId => isEqualId(filteredItemId, item.id));
@@ -61,49 +71,16 @@ export default function PopupContainer() {
     const updatePopupGroups = useCallback(async() => {
         if (!map) return;
         const calculator = new PopupContainerCalculator(map, extent);
-        calculator.setHasContentsItemIdList(hasContentsItemList);
+        calculator.setTargetItemIdList(targetItemList);
         const popupGroups = await calculator.calculatePopupGroup();
         setPopupGroups(popupGroups);
 
-    }, [map, hasContentsItemList, extent]);
-
-    /**
-     * 初期化処理。
-     * 地図へのFeature追加検知して、表示するポップアップ情報を更新する。
-     */
-    // useEffect(() => {
-    //     if (!map) return;
-    //     // 画像ロード完了していないと、imagePositionの取得に失敗するので、ここでイベント検知して再描画させる
-    //     const loadendFunc = () => {
-    //         console.log('loadendFunc')
-    //         updatePopupGroups();
-    //     }
-    //     map.once('loadend', loadendFunc);
-
-    //     const itemLayers = map.getLayersOfTheType(LayerType.Point);
-    //     const addfeatureFunc = () => {
-    //         console.log('addfeatureFunc')
-    //         updatePopupGroups();
-    //     }
-    //     itemLayers.forEach(itemLayer => {
-    //         const source = itemLayer.layer.getSource() as VectorSource;
-    //         source.on('addfeature', addfeatureFunc);
-    //     });
-
-    //     return () => {
-    //         map.un('loadend', loadendFunc);
-    //         itemLayers.forEach(itemLayer => {
-    //             const source = itemLayer.layer.getSource() as VectorSource;
-    //             source?.un('addfeature', addfeatureFunc);
-    //         });
-    //     }
-
-    // }, [map, updatePopupGroups]);
+    }, [map, targetItemList, extent]);
 
     /**
      * 表示対象コンテンツや表示エクステントが変わった契機でポップアップ情報更新
      */
-    useWatch([hasContentsItemList, extent], () => {
+    useWatch([targetItemList, extent], () => {
         console.log('useWatch')
         updatePopupGroups();
     });
