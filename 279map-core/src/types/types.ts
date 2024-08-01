@@ -108,6 +108,15 @@ type DataKey = {
     type: 'dataId';
     dataId: DataId;
 }
+
+export type MarkDefine = IconKey & {
+    /** 画像ファイルパス */
+    imagePath: string;
+
+    /** SVG画像の場合に、my-colorクラスを付与しているノードに対して、fill設定が行われる */
+    defaultColor?: string;  // デフォルト塗りつぶし色 (将来的にタグなどによる自動色設定や、ユーザによる色指定をできるようにする予定)
+}
+
 export type TsunaguMapProps = {
     mapId: string;
     mapServer: {
@@ -124,6 +133,10 @@ export type TsunaguMapProps = {
             virtual?: string;
             real?: string;
         }
+    };
+
+    markDefine?: {
+        defines: Omit<MarkDefine, 'type'>[];
     };
 
     /**

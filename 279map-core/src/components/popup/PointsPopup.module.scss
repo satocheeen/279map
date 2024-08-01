@@ -117,3 +117,21 @@ $arrow-offset-left: 5px;
     justify-content: center;
     align-items: center;
 }
+.Mark {
+    &.Large {
+        width: 60px;
+        height: 60px;
+    }
+    &.Medium {
+        width: 28px;
+        height: 28px;
+    }
+    &.Small {
+        width: 12px;
+        height: 12px;
+    }
+
+    img {
+        width: 100%;
+    }
+}

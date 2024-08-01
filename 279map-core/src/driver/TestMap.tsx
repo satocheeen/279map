@@ -90,6 +90,14 @@ const iconDefine1: TsunaguMapProps['iconDefine'] = {
         virtual: 'house2',
     }
 };
+const markDefine: TsunaguMapProps['markDefine'] = {
+    defines: [
+        {
+            id: 'mark1',
+            imagePath: './mark/fire-ball.svg',            
+        }
+    ]
+}
 
 export default function TestMap() {
     const mapRef = useRef<TsunaguMapHandler>(null);
@@ -281,6 +289,7 @@ export default function TestMap() {
                 {mapId &&
                     <TsunaguMap ref={mapRef}
                         iconDefine={iconDefine2}
+                        markDefine={markDefine}
                         mapId={mapId}
                         mapServer={mapServer}
                         popupMode={popupMode}

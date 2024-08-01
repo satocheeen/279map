@@ -6,12 +6,12 @@ import MyThumbnail from "../common/image/MyThumbnail";
 import { BsThreeDots } from 'react-icons/bs';
 import { useMapOptions } from "../../util/useMapOptions";
 import { useMap } from "../map/useMap";
-import { selectItemIdAtom, doShowClusterMenuAtom, mapModeAtom } from "../../store/operation";
+import { selectItemIdAtom, doShowClusterMenuAtom, mapModeAtom, mapViewAtom } from "../../store/operation";
 import { filteredDatasAtom, filteredItemIdListAtom } from "../../store/filter";
 import { useItems } from "../../store/item/useItems";
 import { useAtom } from "jotai";
 import { useAtomCallback } from 'jotai/utils';
-import { DataId, IconKey } from "../../types-common/common-types";
+import { DataId, FeatureType, IconKey } from "../../types-common/common-types";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 
 type Props = {
@@ -55,8 +55,18 @@ export default function PointsPopup(props: Props) {
      * このポップアップで表示する情報
      */
     const target = useMemo((): PopupInfo | undefined => {
-        if (props.itemIds.length === 0) {
+        if (targetItems.length === 0) {
             return undefined;
+        }
+
+        // マーク指定されているアイテムがある場合は、それを優先
+        for (const item of targetItems) {
+            if (item.geoProperties.featureType === FeatureType.STRUCTURE && item.geoProperties.mark) {
+                return {
+                    type: 'mark',
+                    mark: item.geoProperties.mark
+                }
+            }
         }
 
         if (popupMode === 'minimum') {
@@ -92,35 +102,7 @@ export default function PointsPopup(props: Props) {
             type: 'image',
             imageContentDataId: imageContentId,
         }
-    }, [props.itemIds, targetItems, popupMode, filteredContentIdList]);
-
-    // // 表示する画像URL
-    // const imageContentId = useMemo((): DataId | null => {
-    //     if (!target) return null;
-    //     if (popupMode !== 'maximum') return null;
-
-    //     const hasImageContent = function() {
-    //         const list: ItemInfo['content'][] = [];
-    //         if (target.content?.hasImage) {
-    //             list.push(target.content)
-    //         }
-    //         target.linkedContents.forEach(c => {
-    //             if (c.hasImage) {
-    //                 list.push(c);
-    //             }
-    //         })
-    //         return list;
-    //     }();
-    //     // const hasImageContent = target.contents.filter(c => c.hasImage);
-    //     if (hasImageContent.length === 0) {
-    //         return null;
-    //     }
-    //     if (!filteredContentIdList) {
-    //         return hasImageContent[0]?.id ?? null;
-    //     }
-    //     return hasImageContent.find(c => filteredContentIdList.some(f => f === c?.id))?.id ?? null;
-
-    // }, [target, filteredContentIdList, popupMode]);
+    }, [targetItems, popupMode, filteredContentIdList]);
 
     const { onItemClick } = useContext(OwnerContext);
     const onClick = useAtomCallback(
@@ -164,6 +146,12 @@ export default function PointsPopup(props: Props) {
     if (mapMode === MapMode.Drawing) {
         return null;
     }
+
+    if (target.type === 'mark') {
+        return (
+            <MarkPopup markId={target.mark} />
+        )
+    }
     return (
         <>
             <div className={`${styles.Popup} ${target.type === 'image' ? '' : styles.Minimum} ${sizeClassName}`} onClick={onClick}>
@@ -182,4 +170,37 @@ export default function PointsPopup(props: Props) {
             <div className={styles.Triangle} />
         </>
     );
+}
+
+type MarkPopupProp = {
+    markId: IconKey;
+}
+function MarkPopup(props: MarkPopupProp) {
+    const { markDefine } = useContext(OwnerContext);
+    const [ mapView ] = useAtom(mapViewAtom);
+
+    const def = useMemo(() => {
+        return markDefine?.defines.find(def => def.id === props.markId.id);
+    }, [markDefine, props]);
+
+    const sizeClassName = useMemo(() => {
+        if (!mapView.zoom) return styles.Small;
+        console.log('zoom', mapView.zoom)
+        if (mapView.zoom < 7) {
+            return styles.Small;
+        } else if (mapView.zoom < 9) {
+            return styles.Medium;
+        } else {
+            return styles.Large;
+        }
+    }, [mapView]);
+
+    if (!def) return null;
+
+    return (
+        <div className={`${styles.Mark} ${sizeClassName}`}>
+            <img src={def.imagePath} />
+        </div>
+    )
+
 }
