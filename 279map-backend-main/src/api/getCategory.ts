@@ -92,7 +92,7 @@ async function getCategoriFields(currentMap: CurrentMap): Promise<CategoryFields
             if (!('contentFieldKeyList' in row.mdl_config)) return;
             const categoryFields = row.mdl_config.contentFieldKeyList.filter(cfKey => {
                 const contentDef = row.contents_define?.find(def => def.key === cfKey);
-                return contentDef?.type === 'category';
+                return contentDef?.type === 'category' || contentDef?.type === 'single-category';
             });
             result.push({
                 datasourceId: row.data_source_id,
@@ -136,10 +136,14 @@ async function getCategoryValuesOfTheField(currentMap: CurrentMap, datasourceId:
         const [rows] = await con.execute(query);
 
         const resultSet = new Set<string>();
-        (rows as {mycategory: string[]}[]).forEach(row => {
-            row.mycategory.forEach(category => {
-                resultSet.add(category);
-            });
+        (rows as {mycategory: string[] | string | null}[]).forEach(row => {
+            if (Array.isArray(row.mycategory)) {
+                row.mycategory.forEach(category => {
+                    resultSet.add(category);
+                });
+            } else if (row.mycategory) {
+                resultSet.add(row.mycategory);
+            }
         })
 
         return Array.from(resultSet);
