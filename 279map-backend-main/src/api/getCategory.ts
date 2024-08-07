@@ -141,8 +141,6 @@ async function getCategoryValuesOfTheField(currentMap: CurrentMap, datasourceId:
                 row.mycategory.forEach(category => {
                     resultSet.add(category);
                 });
-            } else if (row.mycategory) {
-                resultSet.add(row.mycategory);
             }
         })
 
