@@ -129,7 +129,7 @@ export type ContentFieldDefine = {
     key: string;
 
     // stringは１行、textは複数行
-    type: 'title' | 'string' | 'date' | 'url' | 'text' | 'category' | 'number' | 'image';
+    type: 'title' | 'string' | 'date' | 'url' | 'text' | 'category' | 'single-category' | 'number' | 'image';
     label: string;
     readonly?: boolean;
 }
