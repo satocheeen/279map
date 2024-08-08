@@ -27,7 +27,6 @@ export async function convertContentsToContentsDefine(con: PoolConnection, row: 
 
     // 使用する項目に絞る
     const values: ContentValueMap = function() {
-        if (row.location_kind === DatasourceLocationKindType.VirtualItem) return row.contents ?? {};
         
         const allValues = row.contents ?? {};
         const values: ContentValueMap = {};
