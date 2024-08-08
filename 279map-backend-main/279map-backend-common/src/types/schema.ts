@@ -88,6 +88,7 @@ export type MapDataSourceLinkConfig = {
     contentFieldKeyList: string[];  // 当該地図で使用するコンテンツ項目のキー一覧
 } | {
     location_kind: DatasourceLocationKindType.VirtualItem;
+    contentFieldKeyList: string[];  // 当該地図で使用するコンテンツ項目のキー一覧
 } | {
     location_kind: DatasourceLocationKindType.None;
     contentFieldKeyList: string[];  // 当該地図で使用するコンテンツ項目のキー一覧
