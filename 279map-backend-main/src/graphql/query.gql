@@ -65,11 +65,17 @@ enum ContentType {
 type ContentsDefine {
     id: DataId!
     datasourceId: String!
-    parentId: DataId
     # コンテンツにタイトル以外の値が登録されている場合、true
     hasValue: Boolean!
     # 画像を持つ場合、true
     hasImage: Boolean!
+    "紐づいているコンテンツのID一覧"
+    linkedContents: [ContentsDefine!]!
+}
+type ContentsDetail {
+    id: DataId!
+    datasourceId: String!
+    "属性値"
     values: ContentValueMap!
     "他の地図でも参照されているか"
     usingOtherMap: Boolean!
@@ -77,8 +83,6 @@ type ContentsDefine {
     anotherMapItemId: DataId
     "trueの場合、ユーザ権限に関わらずreadonly"
     readonly: Boolean
-    "紐づいているコンテンツのID一覧"
-    linkedContents: [DataId!]!
 }
 type UnpointContent {
     originalId: String!
@@ -168,7 +172,7 @@ type Query {
 
     getCategory(datasourceIds: [String!]): [CategoryDefine!]!
     getEvent(datasourceIds: [String!]): [EventDefine!]!
-    getContent(id: DataId!): ContentsDefine!
+    getContent(id: DataId!): ContentsDetail!
 
     "未割当コンテンツを取得する"
     getUnpointContents(

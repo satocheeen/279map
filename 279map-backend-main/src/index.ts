@@ -53,6 +53,7 @@ import { convertBase64ToBinary } from './util/utility';
 import { CategoryChecker } from './memory/CategoryChecker';
 import { setupForCrawler } from './setupForCrawler';
 import sharp from 'sharp';
+import { DataId } from '../279map-backend-common/dist';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -971,15 +972,38 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             }
         }as Record<keyof Subscription, IFieldResolverOptions<any, GraphQlContextType, any>>,
         ItemDefine: {
-            content: async(parent: ItemDefineWithoutContents, _, ctx): Promise<ContentsDefine|null> => {
+            content: async(parent: ItemDefineWithoutContents, _, ctx): Promise<Omit<ContentsDefine, 'linkedContents'>|null> => {
                 try {
                     // apiLogger.info('[start] ItemDefine>content', parent.id);
                     const result = await getContent({
                         dataId: parent.id,
                         currentMap: ctx.currentMap,
                     });
-                    if (!result?.hasValue) return null;
-                    return result;
+                    if (!result) return null;
+                    // const hasValue = Object.values(result.values).some(val => {
+                    //     // 値があるかどうかチェック
+                    //     const hasValue = function() {
+                    //         // -- タイトルは値と見做さない
+                    //         if (val.type === 'title') return false;
+                    //         if ((val.type === 'image' || val.type === 'link' || val.type === 'category') && val.value.length === 0) {
+                    //             // category項目, image項目またはlink項目で配列0なら、値ありと見做さない
+                    //             return false;
+                    //         }
+                    //         if ((val.type === 'string' || val.type === 'text') && val.value.length === 0) {
+                    //             // テキスト項目で文字数0なら、値ありと見做さない
+                    //             return false;
+                    //         }
+                    //         return true;
+                    //     }();
+                    //     return hasValue;
+                    // })
+                
+                    return {
+                        id: result.id,
+                        datasourceId: result.datasourceId,
+                        hasValue: result.hasValue,
+                        hasImage: result.hasImage,
+                    };
                 } catch(e) {
                     apiLogger.warn('ItemDefine>content error', parent.id, e);
                     throw e;
@@ -997,6 +1021,23 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             //     return result;
             // }
 
+        },
+        ContentsDefine: {
+            linkedContents: async(parent: Omit<ContentsDefine, 'linkedContents'>, _, ctx): Promise<Omit<ContentsDefine, 'linkedContents'>[]> => {
+                const linkedContents = await getLinkedContent({
+                    dataId: parent.id,
+                    currentMap: ctx.currentMap,
+                    authLv: ctx.authLv,
+                });
+                return linkedContents.map(lc => {
+                    return {
+                        id: lc.id,
+                        datasourceId: lc.datasourceId,
+                        hasImage: lc.hasImage,
+                        hasValue: lc.hasValue,
+                    }
+                })
+            }
         },
         // DataId: DataIdScalarType,
         JSON: JsonScalarType,

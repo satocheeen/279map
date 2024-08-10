@@ -1,7 +1,7 @@
 import { ConnectionPool } from "../..";
 import { Auth, ContentsTable, CurrentMap, DataSourceTable, MapDataSourceLinkTable } from "../../../279map-backend-common/src";
 import { convertContentsToContentsDefine } from "../../api-common/convertContent";
-import { ContentsDefine } from "../../graphql/__generated__/types";
+import { ContentsDefine, ContentsDetail } from "../../graphql/__generated__/types";
 import { DataId } from "../../types-common/common-types";
 
 type Param = {
@@ -14,7 +14,7 @@ type Param = {
  * @param dataId 取得対象コンテンツ
  * @param currentMap 接続中の地図。この地図で使われていないコンテンツの場合は、値を返さない。
  */
-export async function getContent({ dataId, currentMap }: Param): Promise<ContentsDefine | null> {
+export async function getContent({ dataId, currentMap }: Param): Promise<ContentsDetail & Omit<ContentsDefine, 'linkedContents'> | null> {
     const con = await ConnectionPool.getConnection();
 
     try {

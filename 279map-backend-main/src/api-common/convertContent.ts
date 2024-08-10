@@ -1,5 +1,5 @@
 import { DataSourceTable, ContentsTable, CurrentMap, ImagesTable, MapDataSourceLinkTable, ContentBelongMapView } from "../../279map-backend-common/src";
-import { ContentsDefine } from "../graphql/__generated__/types";
+import { ContentsDefine, ContentsDetail } from "../graphql/__generated__/types";
 import { ContentFieldDefine, ContentValue, ContentValueMap, DataId, DatasourceLocationKindType, MapKind } from "../types-common/common-types";
 import { PoolConnection } from "mysql2/promise";
 
@@ -9,7 +9,7 @@ type Record = ContentsTable & DataSourceTable & MapDataSourceLinkTable;
  * contentsテーブルの値をContentsDefineの形式に変換して返す
  * @param row
  */
-export async function convertContentsToContentsDefine(con: PoolConnection, row: Record, currentMap: CurrentMap): Promise<ContentsDefine> {
+export async function convertContentsToContentsDefine(con: PoolConnection, row: Record, currentMap: CurrentMap): Promise<ContentsDetail & Omit<ContentsDefine, 'linkedContents'>> {
     const id = row.data_id;
     const anotherMapItemIds = await getAnotherMapKindItemsUsingTheContent(con, id, currentMap);
     const usingOtherMap = anotherMapItemIds.length > 0 ? true : await checkUsingAnotherMap(con, id, currentMap.mapId);
@@ -130,7 +130,7 @@ export async function convertContentsToContentsDefine(con: PoolConnection, row: 
         anotherMapItemId: anotherMapItemIds.length > 0 ? anotherMapItemIds[0] : undefined,  // 複数存在する場合は１つだけ返す
         usingOtherMap,
         readonly,
-        linkedContents,
+        // linkedContents,
     };
 }
 

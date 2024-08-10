@@ -75,10 +75,14 @@ query getItems (
         content {
             id
             datasourceId
-            usingOtherMap
             hasValue
             hasImage
-            linkedContents
+            linkedContents {
+                id
+                datasourceId
+                hasValue
+                hasImage
+            }
         }
     }
 }
@@ -96,10 +100,14 @@ query getItemsById (
         content {
             id
             datasourceId
-            usingOtherMap
             hasValue
             hasImage
-            linkedContents
+            linkedContents {
+                id
+                datasourceId
+                hasValue
+                hasImage
+            }
         }
     }
 }
@@ -109,14 +117,10 @@ query getContent(
     getContent(id: $id) {
         id
         datasourceId
-        parentId
         values
         usingOtherMap
         anotherMapItemId
         readonly
-        hasValue
-        hasImage
-        linkedContents
     }
 }
 

@@ -1,4 +1,4 @@
-import { Auth, CategoryDefine, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, MapDefine, GetItemsQuery, ThumbSize, CategoryCondition } from "../graphql/generated/graphql";
+import { Auth, CategoryDefine, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, MapDefine, GetItemsQuery, ThumbSize, CategoryCondition, ContentsDetail } from "../graphql/generated/graphql";
 import { ChangeVisibleLayerTarget } from "../store/datasource/useDataSource";
 import { IconDefine, MapKind, DataId, FeatureType, GeoProperties, IconKey, ContentValueMapForDB } from "../types-common/common-types";
 import { OperationResult } from "urql";
@@ -55,7 +55,7 @@ export type ItemType = {
     content?: {
         id: DataId;
         datasourceId: string;
-        usingOtherMap: boolean;
+        // usingOtherMap: boolean;
         filterHit?: boolean;   // フィルタ時にフィルタ条件に該当した場合、true
     };
 }
@@ -178,7 +178,7 @@ export type TsunaguMapProps = {
 }
 
 export type LoadContentsResult = {
-    content: ContentsDefine;
+    content: ContentsDetail;
     unsubscribe?: () => void;   // callbackを渡した場合に格納されている
 }
 
