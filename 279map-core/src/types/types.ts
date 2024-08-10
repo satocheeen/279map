@@ -57,6 +57,11 @@ export type ItemType = {
         datasourceId: string;
         // usingOtherMap: boolean;
         filterHit?: boolean;   // フィルタ時にフィルタ条件に該当した場合、true
+        linkedContents: {
+            id: DataId;
+            datasourceId: string;
+            filterHit?: boolean;   // フィルタ時にフィルタ条件に該当した場合、true
+        }[];
     };
 }
 

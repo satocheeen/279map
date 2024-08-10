@@ -190,7 +190,6 @@ export const showingItemsAtom = atom<ItemType[]>((get) => {
     const items: ItemType[] = [];
     storedItems.forEach((item) => {
         if (!visibleDataSourceIds.includes(item.datasourceId)) return;
-        // item.content.
         // const belongContents = item.contents.reduce((acc, cur) => {
         //     const childrenIds = cur.children?.map(child => child.id) ?? [];
         //     return [...acc, cur.id, ...childrenIds];
@@ -213,6 +212,13 @@ export const showingItemsAtom = atom<ItemType[]>((get) => {
                 datasourceId: item.datasourceId,
                 // usingOtherMap: item.content.usingOtherMap,
                 filterHit: filteredDatas?.includes(item.content.id),
+                linkedContents: item.content.linkedContents.map(lc => {
+                    return {
+                        id: lc.id,
+                        datasourceId: lc.datasourceId,
+                        filterHit: filteredDatas?.includes(lc.id),
+                    }
+                })
             } : undefined,
             geoInfo: {
                 geometry: item.geometry,
