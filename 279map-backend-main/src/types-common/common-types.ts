@@ -129,9 +129,14 @@ export type ContentFieldDefine = {
     key: string;
 
     // stringは１行、textは複数行. link=他アイテムへのリンク項目
-    type: 'title' | 'string' | 'date' | 'url' | 'text' | 'category' | 'single-category' | 'number' | 'image' | 'link';
+    type: 'title' | 'string' | 'date' | 'url' | 'text' | 'category' | 'single-category' | 'number' | 'image';
     label: string;
     readonly?: boolean;
+} | {
+    key: string;
+    type: 'link'
+    label: string;
+    databaseId: string;
 }
 
 /**
@@ -142,4 +147,24 @@ export type LocationFieldDefine = {
     type: 'latitude' | 'longitude' | 'radius' | 'address' | 'geojson' | 'gpx-file' | 'static-image' | 'extent' | 'static-image-opacity';
 }
 
-export type ContentValueMap = {[key: string]: any};
+
+export type ContentValueMapForDB = {[key: string]: any};
+export type ContentValueMap = {[key: string]: ContentValue};
+
+export type ContentValue = {
+    type: 'title' | 'string' | 'text' | 'date' | 'image' | 'url';
+    value: string;
+} | {
+    type: 'number';
+    value: number;
+} | {
+    type: 'category' | 'single-category';
+    value: string[];
+} | {
+    type: 'link';
+    value: {
+        dataId: DataId;     // リンク先アイテムID
+        name: string;       // リンク先アイテム名
+        mapKind: MapKind[]; // 当該アイテムが存在する地図種別
+    }[];
+}
