@@ -1,4 +1,4 @@
-import { DataSourceTable, ContentsTable, CurrentMap, ImagesTable, MapDataSourceLinkTable } from "../../279map-backend-common/src";
+import { DataSourceTable, ContentsTable, CurrentMap, ImagesTable, MapDataSourceLinkTable, ContentBelongMapView } from "../../279map-backend-common/src";
 import { ContentsDefine } from "../graphql/__generated__/types";
 import { ContentFieldDefine, ContentValue, ContentValueMap, DataId, DatasourceLocationKindType, MapKind } from "../types-common/common-types";
 import { PoolConnection } from "mysql2/promise";
@@ -242,12 +242,39 @@ async function getItemInfo(con: PoolConnection, dataId: DataId, mapId: string, c
             return title ?? '';    
         }();
 
+        const sql2 = `
+        select * from content_belong_map cbm 
+        inner join contents c on c.data_id = cbm.item_id 
+        where content_id = ? and location_kind <> 'None'
+        `;
+        const [rows] = await con.query(sql2, [dataId]);
+        const records = rows as (ContentBelongMapView & ContentsTable)[];
+
         return {
             name,
-            belongingItems: [],
+            belongingItems: records.map(rec => {
+                const name = getTitleValue(rec.contents ?? {}) ?? '';
+                return {
+                    itemId: rec.item_id,
+                    mapKind: rec.location_kind === DatasourceLocationKindType.VirtualItem ? MapKind.Virtual : MapKind.Real,
+                    name,
+                }
+            }),
         }
 
     } finally {
     }
 
+}
+
+function getTitleValue(values: ContentValueMap) {
+    let result: string | undefined;
+    Object.values(values).some(val => {
+        if (val.type === 'title') {
+            result = val.value;
+            return true;
+        }
+        return false;
+    });
+    return result;
 }
