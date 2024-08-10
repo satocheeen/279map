@@ -28,7 +28,7 @@ const config: CodegenConfig = {
           IconKey: 'IconKey',
           GeoProperties: 'GeoProperties',
           GeocoderIdInfo: 'GeocoderIdInfo',
-          ContentValueMap: 'ContentValueMap',
+          // ContentValueMap: 'ContentValueMap',
           IconDefine: 'IconDefine',
           MapKind: 'MapKind'
         },

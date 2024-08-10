@@ -142,4 +142,5 @@ export type LocationFieldDefine = {
     type: 'latitude' | 'longitude' | 'radius' | 'address' | 'geojson' | 'gpx-file' | 'static-image' | 'extent' | 'static-image-opacity';
 }
 
+
 export type ContentValueMapForDB = {[key: string]: any};

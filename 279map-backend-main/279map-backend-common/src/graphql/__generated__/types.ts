@@ -15,7 +15,7 @@ export type Scalars = {
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
   ContentDatasourceConfig: { input: ContentDatasourceConfig; output: ContentDatasourceConfig; }
-  ContentValueMap: { input: ContentValueMap; output: ContentValueMap; }
+  ContentValueMap: { input: any; output: any; }
   DataId: { input: DataId; output: DataId; }
   GeoProperties: { input: GeoProperties; output: GeoProperties; }
   GeocoderIdInfo: { input: GeocoderIdInfo; output: GeocoderIdInfo; }
