@@ -61,7 +61,6 @@ export type GeocoderIdInfo = {
 export type GeoProperties = {
     featureType: FeatureType.STRUCTURE;
     icon?: IconKey;
-    mark?: IconKey;      // 強調マークID
 } | {
     featureType: FeatureType.ROAD;
     lineJson: GeoJSON.Feature;  // 元のLine
@@ -129,8 +128,8 @@ export type ContentDatasourceConfig = {
 export type ContentFieldDefine = {
     key: string;
 
-    // stringは１行、textは複数行
-    type: 'title' | 'string' | 'date' | 'url' | 'text' | 'category' | 'single-category' | 'number' | 'image';
+    // stringは１行、textは複数行. link=他アイテムへのリンク項目
+    type: 'title' | 'string' | 'date' | 'url' | 'text' | 'category' | 'single-category' | 'number' | 'image' | 'link';
     label: string;
     readonly?: boolean;
 }
