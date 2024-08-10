@@ -1,5 +1,5 @@
 import { MapPageOptions } from '../graphql/__generated__/types';
-import { ContentDatasourceConfig, MapKind, ContentFieldDefine, DatasourceLocationKindType, LocationFieldDefine, IconKey, ContentValueMap } from '../types-common/common-types';
+import { ContentDatasourceConfig, MapKind, ContentFieldDefine, DatasourceLocationKindType, LocationFieldDefine, IconKey, ContentValueMapForDB } from '../types-common/common-types';
 
 export enum PublicRange {
     Public = 'Public',
@@ -113,7 +113,7 @@ export type GeometryItemsTable = {
 
 export type ContentsTable = {
     data_id: number;
-    contents?: ContentValueMap;
+    contents?: ContentValueMapForDB;
     category?: string[];
     date?: string;
 }
