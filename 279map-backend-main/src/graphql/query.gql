@@ -35,9 +35,6 @@ type ItemDefine {
 
     "アイテムと対になるコンテンツ"
     content: ContentsDefine
-
-    "アイテムに紐づけられたコンテンツ"
-    linkedContents: [ContentsDefine!]!
 }
 
 type CategoryDefine {
@@ -80,6 +77,8 @@ type ContentsDefine {
     anotherMapItemId: DataId
     "trueの場合、ユーザ権限に関わらずreadonly"
     readonly: Boolean
+    "紐づいているコンテンツのID一覧"
+    linkedContents: [DataId!]!
 }
 type UnpointContent {
     originalId: String!

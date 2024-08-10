@@ -78,13 +78,7 @@ query getItems (
             usingOtherMap
             hasValue
             hasImage
-        }
-        linkedContents {
-            id
-            datasourceId
-            usingOtherMap
-            hasValue
-            hasImage
+            linkedContents
         }
     }
 }
@@ -105,13 +99,7 @@ query getItemsById (
             usingOtherMap
             hasValue
             hasImage
-        }
-        linkedContents {
-            id
-            datasourceId
-            usingOtherMap
-            hasValue
-            hasImage
+            linkedContents
         }
     }
 }
@@ -128,6 +116,7 @@ query getContent(
         readonly
         hasValue
         hasImage
+        linkedContents
     }
 }
 

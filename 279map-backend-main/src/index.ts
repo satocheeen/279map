@@ -988,14 +988,14 @@ const schema = makeExecutableSchema<GraphQlContextType>({
 
                 }
             },
-            linkedContents: async(parent: ItemDefineWithoutContents, _, ctx): Promise<ContentsDefine[]> => {
-                const result = await getLinkedContent({
-                    dataId: parent.id,
-                    currentMap: ctx.currentMap,
-                    authLv: ctx.authLv,
-                });
-                return result;
-            }
+            // linkedContents: async(parent: ItemDefineWithoutContents, _, ctx): Promise<ContentsDefine[]> => {
+            //     const result = await getLinkedContent({
+            //         dataId: parent.id,
+            //         currentMap: ctx.currentMap,
+            //         authLv: ctx.authLv,
+            //     });
+            //     return result;
+            // }
 
         },
         // DataId: DataIdScalarType,

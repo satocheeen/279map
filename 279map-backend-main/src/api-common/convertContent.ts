@@ -115,6 +115,11 @@ export async function convertContentsToContentsDefine(con: PoolConnection, row: 
         };
         if (ids.length > 0) hasImage = true;
     }
+    const linkedContents = Object.values(values).reduce((acc, cur) => {
+        if (cur.type !== 'link') return acc;
+        const ids = cur.value.map(v => v.dataId);
+        return [...acc, ...ids];
+    }, [] as DataId[]);
 
     return {
         id,
@@ -125,6 +130,7 @@ export async function convertContentsToContentsDefine(con: PoolConnection, row: 
         anotherMapItemId: anotherMapItemIds.length > 0 ? anotherMapItemIds[0] : undefined,  // 複数存在する場合は１つだけ返す
         usingOtherMap,
         readonly,
+        linkedContents,
     };
 }
 

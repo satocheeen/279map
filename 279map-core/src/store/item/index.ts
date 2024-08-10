@@ -71,7 +71,6 @@ export const allItemsAtom = atom<ItemInfo[]>((get) => {
                 // hasImageContentId: [],
                 lastEditedTime: '',
                 temporary: itemProcess.status,
-                linkedContents: [],
             }
             result.push(item);
 
@@ -88,7 +87,6 @@ export const allItemsAtom = atom<ItemInfo[]>((get) => {
                             id: currentItem.id,
                             datasourceId: currentItem.datasourceId,
                             content: currentItem.content,
-                            linkedContents: currentItem.linkedContents,
                             geometry: tempItem.geometry ?? currentItem.geometry,
                             geoProperties: tempItem.geoProperties ?? currentItem.geoProperties,
                             lastEditedTime: '',
@@ -122,11 +120,6 @@ export const allItemsAtom = atom<ItemInfo[]>((get) => {
             const item: ItemInfo = {
                 id,
                 datasourceId: overrideItem.datasourceId,
-                linkedContents: [],
-                // id: {
-                //     id,
-                //     dataSourceId: overrideItem.datasourceId,
-                // },
                 geometry: overrideItem.geometry,
                 geoProperties: overrideItem.geoProperties,
                 name: overrideItem.name,
@@ -146,7 +139,6 @@ export const allItemsAtom = atom<ItemInfo[]>((get) => {
                     return {
                         id: item.id,
                         datasourceId: item.datasourceId,
-                        linkedContents: item.linkedContents,
                         geometry: overrideItem.geometry ?? item.geometry,
                         geoProperties: overrideItem.geoProperties ?? item.geoProperties,
                         name: overrideItem.name ?? item.name,
@@ -222,13 +214,6 @@ export const showingItemsAtom = atom<ItemType[]>((get) => {
                 usingOtherMap: item.content.usingOtherMap,
                 filterHit: filteredDatas?.includes(item.content.id),
             } : undefined,
-            linkedContents: item.linkedContents.map(c => {
-                return {
-                    id: c.id,
-                    datasourceId: c.datasourceId,
-                    filterHit: filteredDatas?.includes(c.id),
-                }
-            }) ?? [],
             geoInfo: {
                 geometry: item.geometry,
                 geoProperties: item.geoProperties,

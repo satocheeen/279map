@@ -131,6 +131,8 @@ export type ContentsDefine = {
   hasImage: Scalars['Boolean']['output'];
   hasValue: Scalars['Boolean']['output'];
   id: Scalars['DataId']['output'];
+  /** 紐づいているコンテンツのID一覧 */
+  linkedContents: Array<Scalars['DataId']['output']>;
   parentId?: Maybe<Scalars['DataId']['output']>;
   /** trueの場合、ユーザ権限に関わらずreadonly */
   readonly?: Maybe<Scalars['Boolean']['output']>;
@@ -203,8 +205,6 @@ export type ItemDefine = {
   geometry: Scalars['Geometry']['output'];
   id: Scalars['DataId']['output'];
   lastEditedTime: Scalars['String']['output'];
-  /** アイテムに紐づけられたコンテンツ */
-  linkedContents: Array<ContentsDefine>;
   name: Scalars['String']['output'];
 };
 
@@ -864,6 +864,7 @@ export type ContentsDefineResolvers<ContextType = any, ParentType extends Resolv
   hasImage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   hasValue?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
+  linkedContents?: Resolver<Array<ResolversTypes['DataId']>, ParentType, ContextType>;
   parentId?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType>;
   readonly?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   usingOtherMap?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -947,7 +948,6 @@ export type ItemDefineResolvers<ContextType = any, ParentType extends ResolversP
   geometry?: Resolver<ResolversTypes['Geometry'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   lastEditedTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  linkedContents?: Resolver<Array<ResolversTypes['ContentsDefine']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
