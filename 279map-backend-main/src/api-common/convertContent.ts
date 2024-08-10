@@ -1,6 +1,6 @@
 import { DataSourceTable, ContentsTable, CurrentMap, ImagesTable, MapDataSourceLinkTable } from "../../279map-backend-common/src";
-import { Auth, ContentsDefine } from "../graphql/__generated__/types";
-import { ContentFieldDefine, ContentValueMap, DataId, DatasourceLocationKindType, MapKind } from "../types-common/common-types";
+import { ContentsDefine } from "../graphql/__generated__/types";
+import { ContentFieldDefine, ContentValue, ContentValueMap, DataId, DatasourceLocationKindType, MapKind } from "../types-common/common-types";
 import { PoolConnection } from "mysql2/promise";
 
 type Record = ContentsTable & DataSourceTable & MapDataSourceLinkTable;
@@ -26,37 +26,79 @@ export async function convertContentsToContentsDefine(con: PoolConnection, row: 
     }();
 
     // 使用する項目に絞る
-    const values: ContentValueMap = function() {
-        
-        const allValues = row.contents ?? {};
-        const values: ContentValueMap = {};
-        if ('contentFieldKeyList' in row.mdl_config) {
-            row.mdl_config.contentFieldKeyList.forEach(key => {
-                values[key] = allValues[key];
-
-                // 値があるかどうかチェック
-                const value = values[key];
-                if (!value) return;
-                // -- タイトルは値と見做さない
-                if (key === titleField?.key) return;
-                const def = row.contents_define?.find(def => def.key === key);
-                if (!def) return;
-                if (def.type === 'category' && (value as string[]).length === 0) {
-                    // category項目で配列0なら、値ありと見做さない
-                    return;
-                }
-                if (def.type === 'image' && (value as string[]).length === 0) {
-                    // image項目で配列0なら、値ありと見做さない
-                    return;
-                }
-                if ((def.type === 'string' || def.type === 'text') && (value as string).length === 0) {
-                    // テキスト項目で文字数0なら、値ありと見做さない
-                    return;
-                }
-                hasValue = true;
-            });
+    const values: ContentValueMap = await async function() {
+        if (!('contentFieldKeyList' in row.mdl_config)) {
+            return {};
         }
-        return values;
+        const allValues = row.contents ?? {};
+        const result: ContentValueMap = {};
+
+        for (const key of row.mdl_config.contentFieldKeyList) {
+            const def = row.contents_define?.find(def => def.key === key);
+            if (!def) continue;
+
+            const fixedValue = await async function(): Promise<ContentValue> {
+                const val = allValues[key];
+                switch(def.type) {
+                    case 'title':
+                    case 'string':
+                    case 'text':
+                    case 'date':
+                    case 'url':
+                        return {
+                            type: def.type,
+                            value: val + '',
+                        }
+                    case 'number':
+                        return {
+                            type: def.type,
+                            value: typeof val === 'number' ? val : parseInt(val),
+                        }
+                    case 'category':
+                    case 'single-category':
+                    case 'image':
+                        return {
+                            type: def.type,
+                            value: Array.isArray(val) ? val : [],
+                        }
+                    case 'link':
+                        const value = await Promise.all((val as DataId[]).map(async(id) => {
+                            // 指定のアイテムの名称と使用地図を取得する
+                            const itemInfo = await getItemInfo(con, id, currentMap.mapId, row.contents_define ?? []);
+                            return {
+                                dataId: id,
+                                name: itemInfo.name,
+                                belongingItems: itemInfo.belongingItems,
+                            }
+                        }));
+                        return {
+                            type: def.type,
+                            value,
+                        }
+                }
+            }();
+            result[key] = fixedValue;
+
+            // 値があるかどうかチェック
+            const hasValueItem = function() {
+                if (!fixedValue) return false;
+                // -- タイトルは値と見做さない
+                if (key === titleField?.key) return false;
+                if ((fixedValue.type === 'image' || fixedValue.type === 'link' || fixedValue.type === 'category') && fixedValue.value.length === 0) {
+                    // category項目, image項目またはlink項目で配列0なら、値ありと見做さない
+                    return false;
+                }
+                if ((fixedValue.type === 'string' || fixedValue.type === 'text') && fixedValue.value.length === 0) {
+                    // テキスト項目で文字数0なら、値ありと見做さない
+                    return false;
+                }
+                return true;
+            }();
+            if (hasValueItem) {
+                hasValue = true;
+            }
+        }
+        return result;
     }();
 
     // 画像が存在する場合は、valuesにIDを含めて返す
@@ -67,7 +109,10 @@ export async function convertContentsToContentsDefine(con: PoolConnection, row: 
     }() ?? [];
     for (const imageField of imageFields) {
         const ids = await getImageIdList(con, row.data_id, imageField);
-        values[imageField.key] = ids;
+        values[imageField.key] = {
+            type: 'image',
+            value: ids,
+        };
         if (ids.length > 0) hasImage = true;
     }
 
@@ -156,13 +201,52 @@ async function checkUsingAnotherMap(con: PoolConnection, contentId: DataId, mapI
  * @param dataId
  * @param imageField 
  */
-async function getImageIdList(con: PoolConnection, dataId: DataId, imageField: ContentFieldDefine): Promise<ContentValueMap> {
+async function getImageIdList(con: PoolConnection, dataId: DataId, imageField: ContentFieldDefine): Promise<DataId[]> {
     try {
         const imageQuery = 'select * from images where data_id = ? and field_key = ?';
         const [rows] = await con.execute(imageQuery, [dataId, imageField.key]);
         const ids = (rows as ImagesTable[]).map(row => row.image_id);
         return ids;
     
+    } finally {
+    }
+
+}
+
+type ItemInfo = {
+    name: string;
+    // 属しているアイテム
+    belongingItems: {
+        itemId: DataId;
+        name: string;
+        mapKind: MapKind; // 当該アイテムが存在する地図種別
+    }[];
+}
+/**
+ * 指定のIDのアイテム情報を返す
+ * @param dataId 
+ * @param mapId 
+ */
+async function getItemInfo(con: PoolConnection, dataId: DataId, mapId: string, contentDefines: ContentFieldDefine[]): Promise<ItemInfo> {
+    // 名称取得
+    try {
+        const name = await async function() {
+            const titleDef = contentDefines.find(def => def.type === 'title');
+            if (!titleDef) return '';
+
+            const sql = 'select * from contents where data_id = ?';
+            const [rows] = await con.query(sql, [dataId]);
+            const records = rows as ContentsTable[];
+            if (records.length === 0 || !records[0].contents) return '';
+            const title = records[0].contents[titleDef.key] as string;
+            return title ?? '';    
+        }();
+
+        return {
+            name,
+            belongingItems: [],
+        }
+
     } finally {
     }
 

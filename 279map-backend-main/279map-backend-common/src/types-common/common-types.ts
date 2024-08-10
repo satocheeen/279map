@@ -152,7 +152,7 @@ export type ContentValueMapForDB = {[key: string]: any};
 export type ContentValueMap = {[key: string]: ContentValue};
 
 export type ContentValue = {
-    type: 'title' | 'string' | 'text' | 'date' | 'image' | 'url';
+    type: 'title' | 'string' | 'text' | 'date' | 'url';
     value: string;
 } | {
     type: 'number';
@@ -161,10 +161,18 @@ export type ContentValue = {
     type: 'category' | 'single-category';
     value: string[];
 } | {
+    type: 'image';
+    value: DataId[];
+} | {
     type: 'link';
     value: {
-        dataId: DataId;     // リンク先アイテムID
-        name: string;       // リンク先アイテム名
-        mapKind: MapKind[]; // 当該アイテムが存在する地図種別
+        dataId: DataId;
+        name: string;
+        // 属しているアイテム
+        belongingItems: {
+            itemId: DataId;
+            name: string;
+            mapKind: MapKind; // 当該アイテムが存在する地図種別
+        }[];
     }[];
 }

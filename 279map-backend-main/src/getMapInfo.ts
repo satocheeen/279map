@@ -235,12 +235,7 @@ async function getContentDataSources(mapId: string, mapKind: MapKind): Promise<C
                     fields: 'contentFieldKeyList' in mdlConfig ? mdlConfig.contentFieldKeyList.map((key): ContentFieldDefine | undefined => {
                         const define = rec.contents_define?.find(def => def.key === key);
                         if (!define) return;
-                        return {
-                            key,
-                            label: define.label,
-                            type: define.type,
-                            readonly: define.readonly,
-                        }
+                        return define;
                     }).filter(def => !!def) as ContentFieldDefine[] : [],
                 },
             }

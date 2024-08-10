@@ -63,31 +63,31 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
     /**
      * コンテンツ用comparator
      */
-    const contentsComparator = useCallback((a: ContentsDefine, b: ContentsDefine) => {
-        const sortCondition = mapDefine?.options.contentsSortCondition ?? SortCondition.CreatedAtAsc;
-        switch(sortCondition) {
-            case SortCondition.DateAsc:
-            case SortCondition.DateDesc:
-                {
+    // const contentsComparator = useCallback((a: ContentsDefine, b: ContentsDefine) => {
+    //     const sortCondition = mapDefine?.options.contentsSortCondition ?? SortCondition.CreatedAtAsc;
+    //     switch(sortCondition) {
+    //         case SortCondition.DateAsc:
+    //         case SortCondition.DateDesc:
+    //             {
 
-                    const aDateField = contentDatasources
-                                        .find(c => c.datasourceId === a.datasourceId)?.config.fields
-                                        .find(f => f.type === 'date');
-                    const bDateField = contentDatasources
-                        .find(c => c.datasourceId === b.datasourceId)?.config.fields
-                        .find(f => f.type === 'date');
-                    const aDate = aDateField ? a.values[aDateField.key] : undefined;
-                    const bDate = bDateField ? b.values[bDateField.key] : undefined;
-                    if (!aDate && !bDate) return 0;
-                    if (!aDate) return 1;
-                    if (!bDate) return -1;
-                    const aVal = dayjs(aDate).valueOf();
-                    const bVal = dayjs(bDate).valueOf();
-                    return (sortCondition === SortCondition.DateAsc ? 1 : -1) * (aVal - bVal)
-                }
-        }
-        return 0;
-    }, [mapDefine, contentDatasources]);
+    //                 const aDateField = contentDatasources
+    //                                     .find(c => c.datasourceId === a.datasourceId)?.config.fields
+    //                                     .find(f => f.type === 'date');
+    //                 const bDateField = contentDatasources
+    //                     .find(c => c.datasourceId === b.datasourceId)?.config.fields
+    //                     .find(f => f.type === 'date');
+    //                 const aDate = aDateField ? a.values[aDateField.key] : undefined;
+    //                 const bDate = bDateField ? b.values[bDateField.key] : undefined;
+    //                 if (!aDate && !bDate) return 0;
+    //                 if (!aDate) return 1;
+    //                 if (!bDate) return -1;
+    //                 const aVal = dayjs(aDate).valueOf();
+    //                 const bVal = dayjs(bDate).valueOf();
+    //                 return (sortCondition === SortCondition.DateAsc ? 1 : -1) * (aVal - bVal)
+    //             }
+    //     }
+    //     return 0;
+    // }, [mapDefine, contentDatasources]);
 
     const { registData: registDataProcess } = useItemProcess();
 
