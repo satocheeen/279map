@@ -90,7 +90,7 @@ type ContentsDetail {
     "属性値"
     values: ContentValueMap!
     "当該コンテンツへのリンクを持つコンテンツ一覧"
-    backlinks: [BackLink]!
+    backlinks: [BackLink!]!
     "他の地図でも参照されているか"
     usingOtherMap: Boolean!
     "trueの場合、ユーザ権限に関わらずreadonly"

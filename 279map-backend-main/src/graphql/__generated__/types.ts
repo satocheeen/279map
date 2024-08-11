@@ -148,7 +148,7 @@ export type ContentsDefine = {
 
 export type ContentsDetail = {
   /** 当該コンテンツへのリンクを持つコンテンツ一覧 */
-  backlinks: Array<Maybe<BackLink>>;
+  backlinks: Array<BackLink>;
   datasourceId: Scalars['String']['output'];
   id: Scalars['DataId']['output'];
   /** trueの場合、ユーザ権限に関わらずreadonly */
@@ -899,7 +899,7 @@ export type ContentsDefineResolvers<ContextType = any, ParentType extends Resolv
 };
 
 export type ContentsDetailResolvers<ContextType = any, ParentType extends ResolversParentTypes['ContentsDetail'] = ResolversParentTypes['ContentsDetail']> = {
-  backlinks?: Resolver<Array<Maybe<ResolversTypes['BackLink']>>, ParentType, ContextType>;
+  backlinks?: Resolver<Array<ResolversTypes['BackLink']>, ParentType, ContextType>;
   datasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   readonly?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;

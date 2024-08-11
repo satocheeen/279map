@@ -158,7 +158,7 @@ export type ContentsDefine = {
 export type ContentsDetail = {
   __typename?: 'ContentsDetail';
   /** 当該コンテンツへのリンクを持つコンテンツ一覧 */
-  backlinks: Array<Maybe<BackLink>>;
+  backlinks: Array<BackLink>;
   datasourceId: Scalars['String']['output'];
   id: Scalars['DataId']['output'];
   /** trueの場合、ユーザ権限に関わらずreadonly */
@@ -807,7 +807,7 @@ export type GetContentQueryVariables = Exact<{
 }>;
 
 
-export type GetContentQuery = { __typename?: 'Query', getContent: { __typename?: 'ContentsDetail', id: DataId, datasourceId: string, values: ContentValueMap, usingOtherMap: boolean, readonly?: boolean | null, backlinks: Array<{ __typename?: 'BackLink', contentId: DataId, contentName: string, itemId: DataId, itemName: string, mapKind: MapKind } | null> } };
+export type GetContentQuery = { __typename?: 'Query', getContent: { __typename?: 'ContentsDetail', id: DataId, datasourceId: string, values: ContentValueMap, usingOtherMap: boolean, readonly?: boolean | null, backlinks: Array<{ __typename?: 'BackLink', contentId: DataId, contentName: string, itemId: DataId, itemName: string, mapKind: MapKind }> } };
 
 export type GetUnpointContentsQueryVariables = Exact<{
   datasourceId: Scalars['String']['input'];
