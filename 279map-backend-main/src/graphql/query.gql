@@ -72,15 +72,27 @@ type ContentsDefine {
     "紐づいているコンテンツのID一覧"
     linkedContents: [ContentsDefine!]!
 }
+type BackLink {
+    "参照元コンテンツ"
+    contentId: DataId!
+    "コンテンツ名"
+    contentName: String!
+    "参照元コンテンツが属するアイテムID"
+    itemId: DataId!
+    "アイテム名"
+    itemName: String!
+    "参照元コンテンツが属するアイテムが載っている地図種別"
+    mapKind: MapKind!
+}
 type ContentsDetail {
     id: DataId!
     datasourceId: String!
     "属性値"
     values: ContentValueMap!
+    "当該コンテンツへのリンクを持つコンテンツ一覧"
+    backlinks: [BackLink]!
     "他の地図でも参照されているか"
     usingOtherMap: Boolean!
-    "もう片方の地図で参照されている場合に、その参照元のID"
-    anotherMapItemId: DataId
     "trueの場合、ユーザ権限に関わらずreadonly"
     readonly: Boolean
 }

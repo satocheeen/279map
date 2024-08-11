@@ -1,6 +1,6 @@
 import { DataSourceTable, ContentsTable, CurrentMap, ImagesTable, MapDataSourceLinkTable, ContentBelongMapView } from "../../279map-backend-common/src";
-import { ContentsDefine, ContentsDetail } from "../graphql/__generated__/types";
-import { ContentFieldDefine, ContentValue, ContentValueMap, DataId, DatasourceLocationKindType, MapKind } from "../types-common/common-types";
+import { BackLink, ContentsDefine, ContentsDetail } from "../graphql/__generated__/types";
+import { ContentFieldDefine, ContentValue, ContentValueMap, ContentValueMapForDB, DataId, DatasourceLocationKindType, MapKind } from "../types-common/common-types";
 import { PoolConnection } from "mysql2/promise";
 
 type Record = ContentsTable & DataSourceTable & MapDataSourceLinkTable;
@@ -11,8 +11,9 @@ type Record = ContentsTable & DataSourceTable & MapDataSourceLinkTable;
  */
 export async function convertContentsToContentsDefine(con: PoolConnection, row: Record, currentMap: CurrentMap): Promise<ContentsDetail & Omit<ContentsDefine, 'linkedContents'>> {
     const id = row.data_id;
-    const anotherMapItemIds = await getAnotherMapKindItemsUsingTheContent(con, id, currentMap);
-    const usingOtherMap = anotherMapItemIds.length > 0 ? true : await checkUsingAnotherMap(con, id, currentMap.mapId);
+    const backlinks = await getBacklinks(con, id);
+    // const anotherMapItemIds = await getAnotherMapKindItemsUsingTheContent(con, id, currentMap);
+    const usingOtherMap = await checkUsingAnotherMap(con, id, currentMap.mapId);
 
     const readonly = function() {
         if (row.location_kind === DatasourceLocationKindType.VirtualItem) return true;
@@ -115,23 +116,55 @@ export async function convertContentsToContentsDefine(con: PoolConnection, row: 
         };
         if (ids.length > 0) hasImage = true;
     }
-    const linkedContents = Object.values(values).reduce((acc, cur) => {
-        if (cur.type !== 'link') return acc;
-        const ids = cur.value.map(v => v.dataId);
-        return [...acc, ...ids];
-    }, [] as DataId[]);
-
     return {
         id,
         datasourceId: row.data_source_id,
         values,
         hasValue,
         hasImage,
-        anotherMapItemId: anotherMapItemIds.length > 0 ? anotherMapItemIds[0] : undefined,  // 複数存在する場合は１つだけ返す
+        backlinks,
+        // anotherMapItemId: anotherMapItemIds.length > 0 ? anotherMapItemIds[0] : undefined,  // 複数存在する場合は１つだけ返す
         usingOtherMap,
         readonly,
-        // linkedContents,
     };
+}
+
+/**
+ * 指定のコンテンツを参照元にしているコンテンツ情報の一覧を返す
+ * @param con 
+ * @param contentId 
+ */
+async function getBacklinks(con: PoolConnection, contentId: DataId) {
+    try {
+        const sql = `
+        select cbm.*, c.contents as contents, c2.contents as item_contents from data_link dl
+        inner join content_belong_map cbm on dl.from_data_id = cbm.content_id 
+        inner join contents c on c.data_id = cbm.content_id 
+        inner join contents c2 on c2.data_id = cbm.item_id 
+        where dl.to_data_id = ? and cbm.item_id <> ? and location_kind <> 'None'
+        `;
+        const [rows] = await con.query(sql, [contentId, contentId]);
+
+        const records = (rows as (ContentBelongMapView & {
+            contents: ContentValueMap;
+            item_contents: ContentValueMap;
+        })[]);
+
+        return records.map((record): BackLink => {
+            const contentName = getTitleValue(record.contents) ?? '';
+            const itemName = getTitleValue(record.item_contents) ?? '';
+            return {
+                contentId: record.content_id,
+                contentName,
+                itemId: record.item_id,
+                itemName,
+                mapKind: record.location_kind === DatasourceLocationKindType.VirtualItem ? MapKind.Virtual : MapKind.Real,
+            }
+        })
+
+    } finally {
+
+    }
 }
 
 /**
@@ -273,11 +306,11 @@ async function getItemInfo(con: PoolConnection, dataId: DataId, mapId: string, c
 
 }
 
-function getTitleValue(values: ContentValueMap) {
+function getTitleValue(values: ContentValueMapForDB) {
     let result: string | undefined;
-    Object.values(values).some(val => {
-        if (val.type === 'title') {
-            result = val.value;
+    Object.entries(values).some(([key, val]) => {
+        if (key === 'title') {
+            result = val;
             return true;
         }
         return false;

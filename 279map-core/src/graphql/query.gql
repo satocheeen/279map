@@ -118,8 +118,14 @@ query getContent(
         id
         datasourceId
         values
+        backlinks {
+            contentId
+            contentName
+            itemId
+            itemName
+            mapKind
+        }
         usingOtherMap
-        anotherMapItemId
         readonly
     }
 }

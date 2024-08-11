@@ -43,6 +43,19 @@ export type Auth0Config = {
   domain: Scalars['String']['output'];
 };
 
+export type BackLink = {
+  /** 参照元コンテンツ */
+  contentId: Scalars['DataId']['output'];
+  /** コンテンツ名 */
+  contentName: Scalars['String']['output'];
+  /** 参照元コンテンツが属するアイテムID */
+  itemId: Scalars['DataId']['output'];
+  /** アイテム名 */
+  itemName: Scalars['String']['output'];
+  /** 参照元コンテンツが属するアイテムが載っている地図種別 */
+  mapKind: Scalars['MapKind']['output'];
+};
+
 export type CategoryCondition = {
   /** 対象のコンテンツデータソースID */
   datasourceId: Scalars['String']['input'];
@@ -134,8 +147,8 @@ export type ContentsDefine = {
 };
 
 export type ContentsDetail = {
-  /** もう片方の地図で参照されている場合に、その参照元のID */
-  anotherMapItemId?: Maybe<Scalars['DataId']['output']>;
+  /** 当該コンテンツへのリンクを持つコンテンツ一覧 */
+  backlinks: Array<Maybe<BackLink>>;
   datasourceId: Scalars['String']['output'];
   id: Scalars['DataId']['output'];
   /** trueの場合、ユーザ権限に関わらずreadonly */
@@ -692,6 +705,7 @@ export type ResolversUnionTypes<RefType extends Record<string, unknown>> = {
 export type ResolversTypes = {
   Auth: Auth;
   Auth0Config: ResolverTypeWrapper<Auth0Config>;
+  BackLink: ResolverTypeWrapper<BackLink>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   CategoryCondition: CategoryCondition;
   CategoryDefine: ResolverTypeWrapper<CategoryDefine>;
@@ -757,6 +771,7 @@ export type ResolversTypes = {
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
   Auth0Config: Auth0Config;
+  BackLink: BackLink;
   Boolean: Scalars['Boolean']['output'];
   CategoryCondition: CategoryCondition;
   CategoryDefine: CategoryDefine;
@@ -814,6 +829,15 @@ export type Auth0ConfigResolvers<ContextType = any, ParentType extends Resolvers
   audience?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   clientId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   domain?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type BackLinkResolvers<ContextType = any, ParentType extends ResolversParentTypes['BackLink'] = ResolversParentTypes['BackLink']> = {
+  contentId?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
+  contentName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  itemId?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
+  itemName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  mapKind?: Resolver<ResolversTypes['MapKind'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -875,7 +899,7 @@ export type ContentsDefineResolvers<ContextType = any, ParentType extends Resolv
 };
 
 export type ContentsDetailResolvers<ContextType = any, ParentType extends ResolversParentTypes['ContentsDetail'] = ResolversParentTypes['ContentsDetail']> = {
-  anotherMapItemId?: Resolver<Maybe<ResolversTypes['DataId']>, ParentType, ContextType>;
+  backlinks?: Resolver<Array<Maybe<ResolversTypes['BackLink']>>, ParentType, ContextType>;
   datasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   readonly?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
@@ -1106,6 +1130,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
 
 export type Resolvers<ContextType = any> = {
   Auth0Config?: Auth0ConfigResolvers<ContextType>;
+  BackLink?: BackLinkResolvers<ContextType>;
   CategoryDefine?: CategoryDefineResolvers<ContextType>;
   CategoryItem?: CategoryItemResolvers<ContextType>;
   ConnectInfo?: ConnectInfoResolvers<ContextType>;
