@@ -46,7 +46,7 @@ import { AuthMethod, ItemDefineWithoutContents } from './types';
 import { getImage } from './api/getImage';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import { getLinkedContent } from './api/get-content/getLinkedContents';
-import { getContent } from './api/get-content/getContent';
+import { getContentDefine, getContentDetail } from './api/get-content/getContent';
 import { publishData } from './util/publish_utility';
 import { getUnpointData } from './api/getUnpointData';
 import { convertBase64ToBinary } from './util/utility';
@@ -417,7 +417,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
              */
             getContent: async(parent: any, param: QueryGetContentArgs, ctx): QueryResolverReturnType<'getContent'> => {
                 try {
-                    const result = await getContent({
+                    const result = await getContentDetail({
                         dataId: param.id,
                         currentMap: ctx.currentMap,
                     });
@@ -975,28 +975,11 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             content: async(parent: ItemDefineWithoutContents, _, ctx): Promise<Omit<ContentsDefine, 'linkedContents'>|null> => {
                 try {
                     // apiLogger.info('[start] ItemDefine>content', parent.id);
-                    const result = await getContent({
+                    const result = await getContentDefine({
                         dataId: parent.id,
                         currentMap: ctx.currentMap,
                     });
                     if (!result) return null;
-                    // const hasValue = Object.values(result.values).some(val => {
-                    //     // 値があるかどうかチェック
-                    //     const hasValue = function() {
-                    //         // -- タイトルは値と見做さない
-                    //         if (val.type === 'title') return false;
-                    //         if ((val.type === 'image' || val.type === 'link' || val.type === 'category') && val.value.length === 0) {
-                    //             // category項目, image項目またはlink項目で配列0なら、値ありと見做さない
-                    //             return false;
-                    //         }
-                    //         if ((val.type === 'string' || val.type === 'text') && val.value.length === 0) {
-                    //             // テキスト項目で文字数0なら、値ありと見做さない
-                    //             return false;
-                    //         }
-                    //         return true;
-                    //     }();
-                    //     return hasValue;
-                    // })
                 
                     return {
                         id: result.id,
@@ -1009,18 +992,8 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     throw e;
                 } finally {
                     // apiLogger.info('[end] ItemDefine>content', parent.id);
-
                 }
             },
-            // linkedContents: async(parent: ItemDefineWithoutContents, _, ctx): Promise<ContentsDefine[]> => {
-            //     const result = await getLinkedContent({
-            //         dataId: parent.id,
-            //         currentMap: ctx.currentMap,
-            //         authLv: ctx.authLv,
-            //     });
-            //     return result;
-            // }
-
         },
         ContentsDefine: {
             linkedContents: async(parent: Omit<ContentsDefine, 'linkedContents'>, _, ctx): Promise<Omit<ContentsDefine, 'linkedContents'>[]> => {

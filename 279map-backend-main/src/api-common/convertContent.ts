@@ -9,21 +9,67 @@ type Record = ContentsTable & DataSourceTable & MapDataSourceLinkTable;
  * contentsテーブルの値をContentsDefineの形式に変換して返す
  * @param row
  */
-export async function convertContentsToContentsDefine(con: PoolConnection, row: Record, currentMap: CurrentMap): Promise<ContentsDetail & Omit<ContentsDefine, 'linkedContents'>> {
+export async function convertContentsToContentsDefine(con: PoolConnection, row: Record): Promise<Omit<ContentsDefine, 'linkedContents'>> {
+    const id = row.data_id;
+
+    const titleField = function() {
+        const contentsDefine = row.contents_define as ContentFieldDefine[];
+        return contentsDefine.find(fd => fd.type === 'title');
+    }();
+
+    // 値があるかどうかチェック
+    let hasValue = false;
+    const allValues = row.contents ?? {};
+    for (const key of row.mdl_config.contentFieldKeyList) {
+        const def = row.contents_define?.find(def => def.key === key);
+        if (!def) continue;
+
+        const val = allValues[key];
+        const hasValueItem = function() {
+            if (!val) return false;
+            // -- タイトルは値と見做さない
+            if (key === titleField?.key) return false;
+            if (Array.isArray(val) && val.length === 0) {
+                // category項目, image項目またはlink項目で配列0なら、値ありと見做さない
+                return false;
+            }
+            if (typeof val === 'string' && val.length === 0) {
+                // テキスト項目で文字数0なら、値ありと見做さない
+                return false;
+            }
+            return true;
+        }();
+        if (hasValueItem) {
+            hasValue = true;
+        }
+    }
+
+    // 画像が存在する場合は、valuesにIDを含めて返す
+    let hasImage = false;
+    const imageFields = function() {
+        const contentsDefine = row.contents_define as ContentFieldDefine[];
+        return contentsDefine.filter(fd => fd.type === 'image');
+    }() ?? [];
+    for (const imageField of imageFields) {
+        const ids = await getImageIdList(con, row.data_id, imageField);
+        if (ids.length > 0) hasImage = true;
+    }
+    return {
+        id,
+        datasourceId: row.data_source_id,
+        hasValue,
+        hasImage,
+    };
+}
+
+export async function convertContentsToContentsDetail(con: PoolConnection, row: Record, currentMap: CurrentMap): Promise<ContentsDetail> {
     const id = row.data_id;
     const backlinks = await getBacklinks(con, id);
-    // const anotherMapItemIds = await getAnotherMapKindItemsUsingTheContent(con, id, currentMap);
     const usingOtherMap = await checkUsingAnotherMap(con, id, currentMap.mapId);
 
     const readonly = function() {
         if (row.location_kind === DatasourceLocationKindType.VirtualItem) return true;
         return row.config.readonly;
-    }();
-
-    let hasValue = false;
-    const titleField = function() {
-        const contentsDefine = row.contents_define as ContentFieldDefine[];
-        return contentsDefine.find(fd => fd.type === 'title');
     }();
 
     // 使用する項目に絞る
@@ -79,31 +125,11 @@ export async function convertContentsToContentsDefine(con: PoolConnection, row: 
                 }
             }();
             result[key] = fixedValue;
-
-            // 値があるかどうかチェック
-            const hasValueItem = function() {
-                if (!fixedValue) return false;
-                // -- タイトルは値と見做さない
-                if (key === titleField?.key) return false;
-                if ((fixedValue.type === 'image' || fixedValue.type === 'link' || fixedValue.type === 'category') && fixedValue.value.length === 0) {
-                    // category項目, image項目またはlink項目で配列0なら、値ありと見做さない
-                    return false;
-                }
-                if ((fixedValue.type === 'string' || fixedValue.type === 'text') && fixedValue.value.length === 0) {
-                    // テキスト項目で文字数0なら、値ありと見做さない
-                    return false;
-                }
-                return true;
-            }();
-            if (hasValueItem) {
-                hasValue = true;
-            }
         }
         return result;
     }();
 
     // 画像が存在する場合は、valuesにIDを含めて返す
-    let hasImage = false;
     const imageFields = function() {
         const contentsDefine = row.contents_define as ContentFieldDefine[];
         return contentsDefine.filter(fd => fd.type === 'image');
@@ -114,99 +140,19 @@ export async function convertContentsToContentsDefine(con: PoolConnection, row: 
             type: 'image',
             value: ids,
         };
-        if (ids.length > 0) hasImage = true;
     }
+    
     return {
         id,
         datasourceId: row.data_source_id,
         values,
-        hasValue,
-        hasImage,
         backlinks,
-        // anotherMapItemId: anotherMapItemIds.length > 0 ? anotherMapItemIds[0] : undefined,  // 複数存在する場合は１つだけ返す
         usingOtherMap,
         readonly,
-    };
-}
-
-/**
- * 指定のコンテンツを参照元にしているコンテンツ情報の一覧を返す
- * @param con 
- * @param contentId 
- */
-async function getBacklinks(con: PoolConnection, contentId: DataId) {
-    try {
-        const sql = `
-        select cbm.*, c.contents as contents, c2.contents as item_contents from data_link dl
-        inner join content_belong_map cbm on dl.from_data_id = cbm.content_id 
-        inner join contents c on c.data_id = cbm.content_id 
-        inner join contents c2 on c2.data_id = cbm.item_id 
-        where dl.to_data_id = ? and cbm.item_id <> ? and location_kind <> 'None'
-        `;
-        const [rows] = await con.query(sql, [contentId, contentId]);
-
-        const records = (rows as (ContentBelongMapView & {
-            contents: ContentValueMap;
-            item_contents: ContentValueMap;
-        })[]);
-
-        return records.map((record): BackLink => {
-            const contentName = getTitleValue(record.contents) ?? '';
-            const itemName = getTitleValue(record.item_contents) ?? '';
-            return {
-                contentId: record.content_id,
-                contentName,
-                itemId: record.item_id,
-                itemName,
-                mapKind: record.location_kind === DatasourceLocationKindType.VirtualItem ? MapKind.Virtual : MapKind.Real,
-            }
-        })
-
-    } finally {
-
     }
 }
 
-/**
- * 指定のコンテンツが、もう片方の地図から参照されている場合に、そのItemIDを返す
- * @param con 
- * @param contentId 
- * @param currentMap 
- * @returns 
- */
-async function getAnotherMapKindItemsUsingTheContent(con: PoolConnection, contentId: DataId, currentMap: CurrentMap): Promise<DataId[]> {
 
-    try {
-        // もう片方の地図に存在するかチェック
-        const sql = `
-        select dl.from_data_id as data_id from data_link dl 
-        where dl.to_data_id = ?
-        and EXISTS (
-            select * from datas d
-            inner join data_source ds on ds.data_source_id = d.data_source_id 
-            inner join map_datasource_link mdl on mdl.data_source_id = d.data_source_id 
-            where mdl.map_page_id = ? and ds.location_kind in (?)
-            and d.data_id = dl.from_data_id 
-        )
-        union
-        select d2.data_id from datas d2
-        inner join geometry_items gi on gi.data_id = d2.data_id 
-        inner join data_source ds2 on ds2.data_source_id = d2.data_source_id 
-        inner join map_datasource_link mdl2 on mdl2.data_source_id = d2.data_source_id 
-        where d2.data_id = ?
-        and mdl2.map_page_id = ? and ds2.location_kind in (?)
-        `;
-        const anotherMapKind = currentMap.mapKind === MapKind.Virtual ? [DatasourceLocationKindType.RealItem, DatasourceLocationKindType.Track] : [DatasourceLocationKindType.VirtualItem];
-        const query = con.format(sql, [contentId, currentMap.mapId, anotherMapKind, contentId, currentMap.mapId, anotherMapKind]);
-        const [rows] = await con.execute(query);
-
-        return (rows as {data_id: DataId}[]).map((row): DataId => {
-            return row.data_id;
-        });
-
-    } finally {
-    }
-}
 
 /**
  * 指定のコンテンツが他の地図で使用されているかチェック
@@ -306,7 +252,7 @@ async function getItemInfo(con: PoolConnection, dataId: DataId, mapId: string, c
 
 }
 
-function getTitleValue(values: ContentValueMapForDB) {
+export function getTitleValue(values: ContentValueMapForDB) {
     let result: string | undefined;
     Object.entries(values).some(([key, val]) => {
         if (key === 'title') {
@@ -316,4 +262,42 @@ function getTitleValue(values: ContentValueMapForDB) {
         return false;
     });
     return result;
+}
+
+/**
+ * 指定のコンテンツを参照元にしているコンテンツ情報の一覧を返す
+ * @param con 
+ * @param contentId 
+ */
+async function getBacklinks(con: PoolConnection, contentId: DataId) {
+    try {
+        const sql = `
+        select cbm.*, c.contents as contents, c2.contents as item_contents from data_link dl
+        inner join content_belong_map cbm on dl.from_data_id = cbm.content_id 
+        inner join contents c on c.data_id = cbm.content_id 
+        inner join contents c2 on c2.data_id = cbm.item_id 
+        where dl.to_data_id = ? and cbm.item_id <> ? and location_kind <> 'None'
+        `;
+        const [rows] = await con.query(sql, [contentId, contentId]);
+
+        const records = (rows as (ContentBelongMapView & {
+            contents: ContentValueMap;
+            item_contents: ContentValueMap;
+        })[]);
+
+        return records.map((record): BackLink => {
+            const contentName = getTitleValue(record.contents) ?? '';
+            const itemName = getTitleValue(record.item_contents) ?? '';
+            return {
+                contentId: record.content_id,
+                contentName,
+                itemId: record.item_id,
+                itemName,
+                mapKind: record.location_kind === DatasourceLocationKindType.VirtualItem ? MapKind.Virtual : MapKind.Real,
+            }
+        })
+
+    } finally {
+
+    }
 }
