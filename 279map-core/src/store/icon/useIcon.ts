@@ -16,6 +16,7 @@ export default function useIcon() {
      */
     const getIconDefine = 
         useCallback((iconInfo?: IconKey) => {
+            console.log('currentDefaultIcon', currentDefaultIcon)
             if (!iconInfo) {
                 return currentDefaultIcon;
             }
