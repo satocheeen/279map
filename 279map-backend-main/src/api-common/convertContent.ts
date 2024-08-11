@@ -48,7 +48,7 @@ export async function convertContentsToContentsDefine(con: PoolConnection, row: 
                     case 'url':
                         return {
                             type: def.type,
-                            value: val + '',
+                            value: val,
                         }
                     case 'number':
                         return {
