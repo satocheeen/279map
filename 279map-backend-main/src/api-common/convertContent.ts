@@ -272,13 +272,14 @@ export function getTitleValue(values: ContentValueMapForDB) {
 async function getBacklinks(con: PoolConnection, contentId: DataId) {
     try {
         const sql = `
-        select cbm.*, c.contents as contents, c2.contents as item_contents from data_link dl
-        inner join content_belong_map cbm on dl.from_data_id = cbm.content_id 
+        select cbm.*, c.contents as contents, c2.contents as item_contents 
+        from content_belong_map cbm 
         inner join contents c on c.data_id = cbm.content_id 
         inner join contents c2 on c2.data_id = cbm.item_id 
-        where dl.to_data_id = ? and cbm.item_id <> ? and location_kind <> 'None'
+        where content_id = ?
+        and location_kind <> 'None'
         `;
-        const [rows] = await con.query(sql, [contentId, contentId]);
+        const [rows] = await con.query(sql, [contentId]);
 
         const records = (rows as (ContentBelongMapView & {
             contents: ContentValueMap;
