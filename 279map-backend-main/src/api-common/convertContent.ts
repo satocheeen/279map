@@ -278,6 +278,7 @@ async function getBacklinks(con: PoolConnection, contentId: DataId, currentMap: 
             from content_belong_map cbm 
             inner join contents c on c.data_id = cbm.item_id 
             where cbm.content_id = cbm.item_id and cbm.content_id = ?
+            and location_kind not in ('VirtualItem', 'None')
             `
             :
             // 日本地図→村マップの場合は、VirtualItemに紐づいているもの
