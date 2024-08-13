@@ -44,16 +44,10 @@ export type Auth0Config = {
 };
 
 export type BackLink = {
-  /** 参照元コンテンツ */
-  contentId: Scalars['DataId']['output'];
-  /** コンテンツ名 */
-  contentName: Scalars['String']['output'];
-  /** 参照元コンテンツが属するアイテムID */
+  /** コンテンツが属するアイテムID */
   itemId: Scalars['DataId']['output'];
   /** アイテム名 */
   itemName: Scalars['String']['output'];
-  /** 参照元コンテンツが属するアイテムが載っている地図種別 */
-  mapKind: Scalars['MapKind']['output'];
 };
 
 export type CategoryCondition = {
@@ -147,7 +141,10 @@ export type ContentsDefine = {
 };
 
 export type ContentsDetail = {
-  /** 当該コンテンツへのリンクを持つコンテンツ一覧 */
+  /**
+   * もう片方の地図での、このコンテンツが属するアイテムID一覧
+   * （村マップ側では複数の建物に日本地図側の同一コンテンツが割り当たっている可能性もあるので、配列にしている）
+   */
   backlinks: Array<BackLink>;
   datasourceId: Scalars['String']['output'];
   id: Scalars['DataId']['output'];
@@ -833,11 +830,8 @@ export type Auth0ConfigResolvers<ContextType = any, ParentType extends Resolvers
 };
 
 export type BackLinkResolvers<ContextType = any, ParentType extends ResolversParentTypes['BackLink'] = ResolversParentTypes['BackLink']> = {
-  contentId?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
-  contentName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   itemId?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   itemName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  mapKind?: Resolver<ResolversTypes['MapKind'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

@@ -64,7 +64,7 @@ export async function convertContentsToContentsDefine(con: PoolConnection, row: 
 
 export async function convertContentsToContentsDetail(con: PoolConnection, row: Record, currentMap: CurrentMap): Promise<ContentsDetail> {
     const id = row.data_id;
-    const backlinks = await getBacklinks(con, id);
+    const backlinks = await getBacklinks(con, id, currentMap);
     const usingOtherMap = await checkUsingAnotherMap(con, id, currentMap.mapId);
 
     const readonly = function() {
@@ -265,36 +265,43 @@ export function getTitleValue(values: ContentValueMapForDB) {
 }
 
 /**
- * 指定のコンテンツを参照元にしているコンテンツ情報の一覧を返す
+ * もう片方の地図での、このコンテンツが属するアイテムID一覧を返す
  * @param con 
  * @param contentId 
  */
-async function getBacklinks(con: PoolConnection, contentId: DataId) {
+async function getBacklinks(con: PoolConnection, contentId: DataId, currentMap: CurrentMap) {
     try {
-        const sql = `
-        select cbm.*, c.contents as contents, c2.contents as item_contents 
-        from content_belong_map cbm 
-        inner join contents c on c.data_id = cbm.content_id 
-        inner join contents c2 on c2.data_id = cbm.item_id 
-        where content_id = ?
-        and location_kind <> 'None'
-        `;
+        const sql = currentMap.mapKind === MapKind.Virtual ?
+            // 村マップ→日本地図の場合は、位置を持つコンテンツ
+            `
+            select cbm.*, c.contents as item_contents
+            from content_belong_map cbm 
+            inner join contents c on c.data_id = cbm.item_id 
+            where cbm.content_id = cbm.item_id and cbm.content_id = ?
+            `
+            :
+            // 日本地図→村マップの場合は、VirtualItemに紐づいているもの
+            `
+            select cbm.*, c.contents as item_contents
+            from content_belong_map cbm 
+            inner join contents c on c.data_id = cbm.item_id 
+            where location_kind = 'VirtualItem' and cbm.content_id = ?
+            `;
+        if (currentMap.mapKind === MapKind.Virtual) {
+
+
+        }
         const [rows] = await con.query(sql, [contentId]);
 
         const records = (rows as (ContentBelongMapView & {
-            contents: ContentValueMap;
             item_contents: ContentValueMap;
         })[]);
 
         return records.map((record): BackLink => {
-            const contentName = getTitleValue(record.contents) ?? '';
             const itemName = getTitleValue(record.item_contents) ?? '';
             return {
-                contentId: record.content_id,
-                contentName,
                 itemId: record.item_id,
                 itemName,
-                mapKind: record.location_kind === DatasourceLocationKindType.VirtualItem ? MapKind.Virtual : MapKind.Real,
             }
         })
 
