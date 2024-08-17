@@ -115,7 +115,7 @@ export async function convertContentsToContentsDetail(con: PoolConnection, row: 
                             return {
                                 dataId: id,
                                 name: itemInfo.name,
-                                belongingItems: itemInfo.belongingItems,
+                                belongingItem: itemInfo.belongingItem,
                             }
                         }));
                         return {
@@ -201,11 +201,11 @@ async function getImageIdList(con: PoolConnection, dataId: DataId, imageField: C
 type ItemInfo = {
     name: string;
     // 属しているアイテム
-    belongingItems: {
+    belongingItem: {
         itemId: DataId;
         name: string;
         mapKind: MapKind; // 当該アイテムが存在する地図種別
-    }[];
+    };
 }
 /**
  * 指定のIDのアイテム情報を返す
@@ -213,6 +213,13 @@ type ItemInfo = {
  * @param mapId 
  */
 async function getItemInfo(con: PoolConnection, dataId: DataId, mapId: string, contentDefines: ContentFieldDefine[]): Promise<ItemInfo> {
+    /**
+     * 仕様
+     * ・位置を持つコンテンツの場合は、世界地図上の当該コンテンツアイテムを指し示す
+     * ・位置を持たないコンテンツの場合は、以下条件でアイテムを選出
+     *   ・当該コンテンツを直下に持つアイテム
+     * 　・村マップのアイテム優先
+     */
     // 名称取得
     try {
         const name = await async function() {
@@ -235,16 +242,25 @@ async function getItemInfo(con: PoolConnection, dataId: DataId, mapId: string, c
         const [rows] = await con.query(sql2, [dataId]);
         const records = rows as (ContentBelongMapView & ContentsTable)[];
 
+        const item = records.sort((a, b) => {
+            const getWeight = (rec: (ContentBelongMapView & ContentsTable)) => {
+                // 位置を持つコンテンツが最優先
+                if (rec.content_id === rec.item_id) return 0;
+                // 村マップのアイテムが優先
+                return rec.location_kind === DatasourceLocationKindType.VirtualItem ? 1 : 2;
+            }
+            const aWeight = getWeight(a);
+            const bWeight = getWeight(b);
+            return aWeight - bWeight;
+        })[0];
+
         return {
             name,
-            belongingItems: records.map(rec => {
-                const name = getTitleValue(rec.contents ?? {}) ?? '';
-                return {
-                    itemId: rec.item_id,
-                    mapKind: rec.location_kind === DatasourceLocationKindType.VirtualItem ? MapKind.Virtual : MapKind.Real,
-                    name,
-                }
-            }),
+            belongingItem: {
+                itemId: item.item_id,
+                mapKind: item.location_kind === DatasourceLocationKindType.VirtualItem ? MapKind.Virtual : MapKind.Real,
+                name: getTitleValue(item.contents ?? {}) ?? '',
+            } 
         }
 
     } finally {
