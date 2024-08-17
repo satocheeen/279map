@@ -447,7 +447,11 @@ export class OlMapWrapper {
             const maxZoom = (()=> {
                 if ((opt?.zoom === undefined || opt.zoom)) {
                     // ズームする場合
-                    return this._mapKind === MapKind.Real ? 11 : undefined;
+                    // 日本地図でピンにfocusする場合は、ズームしすぎないようにする
+                    const currentZoomLv = this._map.getView().getZoom();
+                    const [minX, minY, maxX, maxY] = ext;
+                    const isPoint = minX === maxX && minY === maxY;                    
+                    return (this._mapKind === MapKind.Real && isPoint) ? Math.max(11, currentZoomLv ?? 0) : undefined;
                 } else {
                     return this._map.getView().getZoom();
                 }
