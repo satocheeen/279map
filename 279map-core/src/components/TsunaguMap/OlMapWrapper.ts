@@ -119,6 +119,7 @@ export class OlMapWrapper {
 
         map.on('moveend', () => {
             const zoom = map.getView().getZoom() ?? 0;
+            console.log('zoom', zoom);
             if (this._currentZoom !== zoom) {
                 this._onZoomLvChanged();
             }
@@ -443,7 +444,14 @@ export class OlMapWrapper {
      */
     async fit(ext: Extent, opt?: {animation?: boolean, zoom?: boolean}) {
         return new Promise<void>((resolve) => {
-            const maxZoom = (opt?.zoom === undefined || opt.zoom) ? undefined : this._map.getView().getZoom();
+            const maxZoom = (()=> {
+                if ((opt?.zoom === undefined || opt.zoom)) {
+                    // ズームする場合
+                    return this._mapKind === MapKind.Real ? 11 : undefined;
+                } else {
+                    return this._map.getView().getZoom();
+                }
+            })();
             const options: FitOptions = {
                 padding: [100, 100, 100, 100],
                 duration: opt?.animation ? 500 : undefined,
