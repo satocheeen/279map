@@ -2,7 +2,7 @@
 version: "3"
 services:
   db:
-    image: satocheeen/279map-db:0.56.0
+    image: satocheeen/279map-db:0.57.0
     env_file:
       - ./.env
     ports:
@@ -24,7 +24,7 @@ services:
       - ./photo:/var/photo
   frontend:
     # メイン
-    image: satocheeen/279map-frontend:0.90.7
+    image: satocheeen/279map-frontend:0.90.8
     env_file:
       - ./.env
     ports:
@@ -35,7 +35,7 @@ services:
     # スマホログ記録
     image: satocheeen/279map-frontend-logregister:0.3.0
   main:
-    image: satocheeen/279map-backend-main:0.85.3
+    image: satocheeen/279map-backend-main:0.85.4
     depends_on:
       - db
     env_file:
