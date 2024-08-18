@@ -111,7 +111,7 @@ export async function convertContentsToContentsDetail(con: PoolConnection, row: 
                     case 'link':
                         const value = await Promise.all((val as DataId[]).map(async(id) => {
                             // 指定のアイテムの名称と使用地図を取得する
-                            const itemInfo = await getItemInfo(con, id, currentMap.mapId, row.contents_define ?? []);
+                            const itemInfo = await getItemInfo(con, id, currentMap, row.contents_define ?? []);
                             return {
                                 dataId: id,
                                 name: itemInfo.name,
@@ -212,14 +212,7 @@ type ItemInfo = {
  * @param dataId 
  * @param mapId 
  */
-async function getItemInfo(con: PoolConnection, dataId: DataId, mapId: string, contentDefines: ContentFieldDefine[]): Promise<ItemInfo> {
-    /**
-     * 仕様
-     * ・位置を持つコンテンツの場合は、世界地図上の当該コンテンツアイテムを指し示す
-     * ・位置を持たないコンテンツの場合は、以下条件でアイテムを選出
-     *   ・当該コンテンツを直下に持つアイテム
-     * 　・村マップのアイテム優先
-     */
+async function getItemInfo(con: PoolConnection, dataId: DataId, currentMap: CurrentMap, contentDefines: ContentFieldDefine[]): Promise<ItemInfo> {
     // 名称取得
     try {
         const name = await async function() {
@@ -237,17 +230,17 @@ async function getItemInfo(con: PoolConnection, dataId: DataId, mapId: string, c
         const sql2 = `
         select * from content_belong_map cbm 
         inner join contents c on c.data_id = cbm.item_id 
-        where content_id = ? and location_kind <> 'None'
+        where map_page_id = ? and content_id = ?
         `;
-        const [rows] = await con.query(sql2, [dataId]);
+        const [rows] = await con.query(sql2, [currentMap.mapId, dataId]);
         const records = rows as (ContentBelongMapView & ContentsTable)[];
 
         const item = records.sort((a, b) => {
             const getWeight = (rec: (ContentBelongMapView & ContentsTable)) => {
-                // 位置を持つコンテンツが最優先
-                if (rec.content_id === rec.item_id) return 0;
-                // 村マップのアイテムが優先
-                return rec.location_kind === DatasourceLocationKindType.VirtualItem ? 1 : 2;
+                // 現在の地図種別のものが最優先
+                if (rec.map_kind === currentMap.mapKind) return 0;
+                // アイテム近い（deepが低い）コンテンツが優先
+                return rec.deep + 1;
             }
             const aWeight = getWeight(a);
             const bWeight = getWeight(b);
@@ -258,7 +251,7 @@ async function getItemInfo(con: PoolConnection, dataId: DataId, mapId: string, c
             name,
             belongingItem: {
                 itemId: item.item_id,
-                mapKind: item.location_kind === DatasourceLocationKindType.VirtualItem ? MapKind.Virtual : MapKind.Real,
+                mapKind: item.map_kind,
                 name: getTitleValue(item.contents ?? {}) ?? '',
             } 
         }
@@ -294,7 +287,7 @@ async function getBacklinks(con: PoolConnection, contentId: DataId, currentMap: 
             from content_belong_map cbm 
             inner join contents c on c.data_id = cbm.item_id 
             where cbm.content_id = cbm.item_id and cbm.content_id = ?
-            and location_kind not in ('VirtualItem', 'None')
+            and map_kind = 'Real'
             `
             :
             // 日本地図→村マップの場合は、VirtualItemに紐づいているもの
@@ -302,12 +295,8 @@ async function getBacklinks(con: PoolConnection, contentId: DataId, currentMap: 
             select cbm.*, c.contents as item_contents
             from content_belong_map cbm 
             inner join contents c on c.data_id = cbm.item_id 
-            where location_kind = 'VirtualItem' and cbm.content_id = ?
+            where map_kind = 'Virtual' and cbm.content_id = ?
             `;
-        if (currentMap.mapKind === MapKind.Virtual) {
-
-
-        }
         const [rows] = await con.query(sql, [contentId]);
 
         const records = (rows as (ContentBelongMapView & {

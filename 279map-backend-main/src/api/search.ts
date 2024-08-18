@@ -75,10 +75,9 @@ async function searchByCategory(con: PoolConnection, currentMap: CurrentMap, con
     select c.*, cbm.* from contents c 
     inner join content_belong_map cbm on cbm.content_id = c.data_id 
     where JSON_CONTAINS(c.contents, ?, ?)
-    and cbm.map_page_id = ? and cbm.location_kind in (?) ${dataSourceIds ? 'and cbm.item_datasource_id in (?)' : ''}
+    and cbm.map_page_id = ? and cbm.map_kind = ? ${dataSourceIds ? 'and cbm.item_datasource_id in (?)' : ''}
     `;
-    const dsKind = currentMap.mapKind === MapKind.Virtual ? DatasourceLocationKindType.VirtualItem : DatasourceLocationKindType.RealItem;
-    const param = [`["${condition.value}"]`, `$."${condition.fieldKey}"`, currentMap.mapId, dsKind] as any[];
+    const param = [`["${condition.value}"]`, `$."${condition.fieldKey}"`, currentMap.mapId, currentMap.mapKind] as any[];
     const query = con.format(sql, dataSourceIds ? [...param, dataSourceIds] : param);
     const [rows] = await con.execute(query);
     const records = rows as (ContentsTable & ContentBelongMapView)[]; 
@@ -106,11 +105,10 @@ async function searchByDate(con: PoolConnection, currentMap: CurrentMap, date: D
     select c.*, cbm.* from contents c 
     inner join content_belong_map cbm on cbm.content_id = c.data_id 
     where CONVERT_TZ(date, '+00:00', ?) BETWEEN ? AND ?
-    and cbm.map_page_id = ? and cbm.location_kind in (?) ${dataSourceIds ? 'and cbm.item_datasource_id in (?)' : ''}
+    and cbm.map_page_id = ? and cbm.map_kind = ? ${dataSourceIds ? 'and cbm.item_datasource_id in (?)' : ''}
     `;
 
-    const dsKind = currentMap.mapKind === MapKind.Virtual ? DatasourceLocationKindType.VirtualItem : DatasourceLocationKindType.RealItem;
-    const params = [offsetStr, startDate, endDate, currentMap.mapId, dsKind] as any[];
+    const params = [offsetStr, startDate, endDate, currentMap.mapId, currentMap.mapKind] as any[];
     if (dataSourceIds) {
         params.push(dataSourceIds);
     }
@@ -139,12 +137,11 @@ async function searchByKeyword(con: PoolConnection, currentMap: CurrentMap, keyw
     select c.*, cbm.* from contents c 
     inner join content_belong_map cbm on cbm.content_id = c.data_id 
     where JSON_SEARCH(c.contents, 'one', ?) is not null
-    and cbm.map_page_id = ? and cbm.location_kind in (?) ${dataSourceIds ? 'and cbm.item_datasource_id in (?)' : ''}
+    and cbm.map_page_id = ? and cbm.map_kind = ? ${dataSourceIds ? 'and cbm.item_datasource_id in (?)' : ''}
     `;
 
     const keywordParam = `%${keyword}%`;
-    const dsKind = currentMap.mapKind === MapKind.Virtual ? [DatasourceLocationKindType.VirtualItem] : [DatasourceLocationKindType.RealItem, DatasourceLocationKindType.Track];
-    const params = [keywordParam, currentMap.mapId, dsKind] as any[];
+    const params = [keywordParam, currentMap.mapId, currentMap.mapKind] as any[];
     if (dataSourceIds) {
         params.push(dataSourceIds);
     }

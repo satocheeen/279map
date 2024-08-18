@@ -125,14 +125,14 @@ async function getCategoryValuesOfTheField(currentMap: CurrentMap, datasourceId:
             from content_belong_map cbm 
             inner join contents c on c.data_id = cbm.content_id 
             inner join datas d on d.data_id = c.data_id 
-            where map_page_id = ? and location_kind in (?)
+            where map_page_id = ? and map_kind = ?
             and d.data_source_id = ?
         ) as c2
         where c2.mycategory is not null
         `;
     
-        const locationKind = currentMap.mapKind === MapKind.Real ? [DatasourceLocationKindType.RealItem, DatasourceLocationKindType.Track] : [DatasourceLocationKindType.VirtualItem];
-        const query = con.format(sql, [`$."${fieldKey}"`, currentMap.mapId, locationKind, datasourceId]);
+        const query = con.format(sql, [`$."${fieldKey}"`, currentMap.mapId, currentMap.mapKind, datasourceId]);
+        // console.log('query', query)
         const [rows] = await con.execute(query);
 
         const resultSet = new Set<string>();

@@ -148,7 +148,8 @@ export type OriginalIconsTable = {
 export type ContentBelongMapView = {
     content_id: number;
     item_id: number;
+    deep: number;
     item_datasource_id: string;
-    location_kind: DatasourceLocationKindType;
+    map_kind: MapKind;
     map_page_id: string;
 }
