@@ -289,7 +289,7 @@ async function getBacklinks(con: PoolConnection, contentId: DataId, currentMap: 
         const sql = currentMap.mapKind === MapKind.Virtual ?
             // 村マップ→日本地図の場合は、位置を持つコンテンツ
             `
-            select cbm.*, c.contents as item_contents
+            select distinct cbm.item_id, c.contents as item_contents
             from content_belong_map cbm 
             inner join contents c on c.data_id = cbm.item_id 
             where cbm.content_id = cbm.item_id and cbm.content_id = ?
@@ -298,7 +298,7 @@ async function getBacklinks(con: PoolConnection, contentId: DataId, currentMap: 
             :
             // 日本地図→村マップの場合は、VirtualItemに紐づいているもの
             `
-            select cbm.*, c.contents as item_contents
+            select distinct cbm.item_id, c.contents as item_contents
             from content_belong_map cbm 
             inner join contents c on c.data_id = cbm.item_id 
             where map_kind = 'Virtual' and cbm.content_id = ?
