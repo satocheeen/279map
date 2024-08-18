@@ -43,12 +43,12 @@ export async function search(currentMap: CurrentMap, param: QuerySearchArgs): Pr
         // TODO: ANDで絞る
         // hitList = filterArrayByAND(hitList, searchResult, (a, b) => a.contentId.id === b.contentId.id && a.contentId.dataSourceId === b.contentId.dataSourceId);
 
-        const result: DataId[] = [];
+        const resultSet = new Set<DataId>;
         hitContents.forEach(hitRecord => {
-            result.push(hitRecord.contentId);
+            resultSet.add(hitRecord.contentId);
         });
 
-        return result;
+        return Array.from(resultSet);
     
     } finally {
         await con.commit();

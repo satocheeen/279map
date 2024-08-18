@@ -201,14 +201,14 @@ async function getImageIdList(con: PoolConnection, dataId: DataId, imageField: C
 type ItemInfo = {
     name: string;
     // 属しているアイテム
-    belongingItem: {
+    belongingItem?: {
         itemId: DataId;
         name: string;
         mapKind: MapKind; // 当該アイテムが存在する地図種別
     };
 }
 /**
- * 指定のIDのアイテム情報を返す
+ * 指定のデータIDが紐づくアイテム情報を返す
  * @param dataId 
  * @param mapId 
  */
@@ -234,6 +234,12 @@ async function getItemInfo(con: PoolConnection, dataId: DataId, currentMap: Curr
         `;
         const [rows] = await con.query(sql2, [currentMap.mapId, dataId]);
         const records = rows as (ContentBelongMapView & ContentsTable)[];
+
+        if (records.length === 0) {
+            return {
+                name,
+            }
+        }
 
         const item = records.sort((a, b) => {
             const getWeight = (rec: (ContentBelongMapView & ContentsTable)) => {

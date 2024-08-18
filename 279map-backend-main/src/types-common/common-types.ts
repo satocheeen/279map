@@ -169,7 +169,7 @@ export type ContentValue = {
         dataId: DataId;
         name: string;
         // 属しているアイテム
-        belongingItem: {
+        belongingItem?: {
             itemId: DataId;
             name: string;
             mapKind: MapKind; // 当該アイテムが存在する地図種別
