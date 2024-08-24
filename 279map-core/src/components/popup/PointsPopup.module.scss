@@ -122,3 +122,58 @@ $arrow-offset-left: 5px;
         width: 100%;
     }
 }
+
+@keyframes slide {
+    0% {
+        transform: translateX(10px);
+    }
+    100% {
+        transform: translateX(-30px);
+    }
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    50% {
+        transform: rotate(180deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+// メトロノームのように揺れる
+@keyframes swing-bottom {
+    0%, 100% {
+      transform: rotate(-25deg);
+      transform-origin: center bottom; /* 支点を中央下に設定 */
+    }
+    50% {
+      transform: rotate(25deg);
+      transform-origin: center bottom; /* 支点を中央下に設定 */
+    }
+}
+
+// 支点を中央上にして揺れる
+@keyframes swing-top {
+    0%, 100% {
+      transform: rotate(-25deg);
+      transform-origin: center top;
+    }
+    50% {
+      transform: rotate(25deg);
+      transform-origin: center top;
+    }
+}
+
+// 明滅
+@keyframes fire-flush {
+    0%, 100% {
+        filter: brightness(.8) drop-shadow(0px);
+      }
+    50% {
+        filter: brightness(1.5) drop-shadow(3px 3px 5px #fa5);
+    }
+  }

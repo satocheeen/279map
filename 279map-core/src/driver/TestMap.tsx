@@ -94,7 +94,43 @@ const markDefine: TsunaguMapProps['markDefine'] = {
     defines: [
         {
             id: 'mark1',
+            imagePath: './mark/sun.svg',            
+            keyframeName: 'fire-flush',
+        },
+        {
+            id: 'heart',
+            imagePath: './mark/heart.svg',            
+            keyframeName: 'fire-flush',
+        },
+        {
+            id: 'sun',
+            imagePath: './mark/sun.svg',            
+            keyframeName: 'fire-flush',
+        },
+        {
+            id: 'snowman',
+            imagePath: './mark/snowman.svg',            
+            keyframeName: 'swing-bottom',
+        },
+        {
+            id: 'bell',
+            imagePath: './mark/bell.svg',
+            keyframeName: 'swing-top',
+        },
+        {
+            id: 'timer',
+            imagePath: './mark/timer.svg',
+            keyframeName: 'rotate',
+        },
+        {
+            id: 'running',
+            imagePath: './mark/running.svg',
+            keyframeName: 'slide',
+        },
+        {
+            id: 'fire',
             imagePath: './mark/fire-ball.svg',            
+            keyframeName: 'flush',
         }
     ]
 }

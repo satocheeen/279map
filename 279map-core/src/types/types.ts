@@ -112,6 +112,9 @@ export type MarkDefine = IconKey & {
     /** 画像ファイルパス */
     imagePath: string;
 
+    /** アニメーション名 */
+    keyframeName?: 'slide' | 'swing-bottom' | 'swing-top' | 'fire-flush' | 'rotate';
+
     /** SVG画像の場合に、my-colorクラスを付与しているノードに対して、fill設定が行われる */
     defaultColor?: string;  // デフォルト塗りつぶし色 (将来的にタグなどによる自動色設定や、ユーザによる色指定をできるようにする予定)
 }

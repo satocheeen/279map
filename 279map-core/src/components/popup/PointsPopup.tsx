@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState, useEffect, useContext } from "react";
+import React, { useCallback, useMemo, useState, useEffect, useContext, CSSProperties } from "react";
 import styles from './PointsPopup.module.scss';
 import { ItemInfo, MapMode } from "../../types/types";
 import { isEqualId } from "../../util/dataUtility";
@@ -180,11 +180,19 @@ function MyMark(props: MarkProp) {
         return markDefine?.defines.find(def => def.id === props.markId.id);
     }, [markDefine, props]);
 
+    const style = useMemo((): CSSProperties | undefined => {
+        if (!def || !def.keyframeName) return;
+
+        return {
+            animation: `${styles[def.keyframeName]} linear 2s infinite`
+        }
+    }, [def])
+
     if (!def) return null;
 
     return (
         <div className={`${styles.Mark}`}>
-            <img src={def.imagePath} />
+            <img src={def.imagePath} style={style} />
         </div>
     )
 }
