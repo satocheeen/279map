@@ -145,10 +145,15 @@ export type ContentFieldDefine = {
 
 /**
  * 位置（item or track）関連の項目情報
+ * TODO: ODBAの管轄にする
  */
 export type LocationFieldDefine = {
     key: string;
-    type: 'latitude' | 'longitude' | 'radius' | 'address' | 'geojson' | 'gpx-file' | 'static-image' | 'extent' | 'static-image-opacity';
+    type: 'latitude' | 'longitude' | 'radius'
+     | 'address' | 'geojson' | 'gpx-file'
+     | 'mark' | 'mark-speed'    // 建物の上に表示するマーク
+     | 'static-image' | 'extent' | 'static-image-opacity'   // 重ね合わせ画像定義
+     ;
 }
 
 
