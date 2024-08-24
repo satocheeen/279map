@@ -82,7 +82,7 @@ export default function PointsPopup(props: Props) {
                 imageContentId = item.id;
                 return true;
             }
-            const imageContent = item.linkedContents.find(lc => {
+            const imageContent = item.content?.linkedContents.find(lc => {
                 const isShow = function() {
                     if (!filteredContentIdList) return true;
                     return filteredContentIdList.some(fc => fc === lc.id);
