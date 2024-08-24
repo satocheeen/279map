@@ -93,11 +93,6 @@ const iconDefine1: TsunaguMapProps['iconDefine'] = {
 const markDefine: TsunaguMapProps['markDefine'] = {
     defines: [
         {
-            id: 'mark1',
-            imagePath: './mark/sun.svg',            
-            keyframeName: 'fire-flush',
-        },
-        {
             id: 'heart',
             imagePath: './mark/heart.svg',            
             keyframeName: 'fire-flush',
