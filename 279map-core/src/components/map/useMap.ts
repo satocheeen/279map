@@ -202,7 +202,7 @@ export function useMap() {
                                     geoProperties: i.geoProperties,
                                     content: i.content,
                                     lastEditedTime: i.lastEditedTime,
-                                    linkedContents: i.linkedContents,
+                                    // linkedContents: i.linkedContents,
                                 }
                             }) ?? [];
                             return [...acc, ...items];
@@ -346,7 +346,7 @@ export function useMap() {
                             name: newItem.name,
                             content: newItem.content,
                             lastEditedTime: newItem.lastEditedTime,
-                            linkedContents: newItem.linkedContents,
+                            // linkedContents: newItem.linkedContents,
                         }
                     } else {
                         return item;
@@ -363,7 +363,7 @@ export function useMap() {
                                             name: item.name,
                                             content: item.content,
                                             lastEditedTime: item.lastEditedTime,
-                                            linkedContents: item.linkedContents,
+                                            // linkedContents: item.linkedContents,
                                         }
                                     })
 

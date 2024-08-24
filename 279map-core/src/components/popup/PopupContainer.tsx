@@ -50,7 +50,7 @@ export default function PopupContainer() {
             }
             if (popupMode === 'hidden') return false;
             // コンテンツを持つものに絞る
-            const hasValue = item.content?.hasValue || item.linkedContents.some(c => c.hasValue);
+            const hasValue = item.content?.hasValue || item.content?.linkedContents.some(c => c.hasValue);
             return hasValue;
         })
         .filter(item => {

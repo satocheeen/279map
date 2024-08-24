@@ -35,9 +35,6 @@ type ItemDefine {
 
     "アイテムと対になるコンテンツ"
     content: ContentsDefine
-
-    "アイテムに紐づけられたコンテンツ"
-    linkedContents: [ContentsDefine!]!
 }
 
 type CategoryDefine {
@@ -68,16 +65,31 @@ enum ContentType {
 type ContentsDefine {
     id: DataId!
     datasourceId: String!
-    parentId: DataId
     # コンテンツにタイトル以外の値が登録されている場合、true
     hasValue: Boolean!
     # 画像を持つ場合、true
     hasImage: Boolean!
+    "紐づいているコンテンツのID一覧"
+    linkedContents: [ContentsDefine!]!
+}
+type BackLink {
+    "コンテンツが属するアイテムID"
+    itemId: DataId!
+    "アイテム名"
+    itemName: String!
+}
+type ContentsDetail {
+    id: DataId!
+    datasourceId: String!
+    "属性値"
     values: ContentValueMap!
+    """
+    もう片方の地図での、このコンテンツが属するアイテムID一覧
+    （村マップ側では複数の建物に日本地図側の同一コンテンツが割り当たっている可能性もあるので、配列にしている）
+    """
+    backlinks: [BackLink!]!
     "他の地図でも参照されているか"
     usingOtherMap: Boolean!
-    "もう片方の地図で参照されている場合に、その参照元のID"
-    anotherMapItemId: DataId
     "trueの場合、ユーザ権限に関わらずreadonly"
     readonly: Boolean
 }
@@ -169,7 +181,7 @@ type Query {
 
     getCategory(datasourceIds: [String!]): [CategoryDefine!]!
     getEvent(datasourceIds: [String!]): [EventDefine!]!
-    getContent(id: DataId!): ContentsDefine!
+    getContent(id: DataId!): ContentsDetail!
 
     "未割当コンテンツを取得する"
     getUnpointContents(

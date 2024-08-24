@@ -17,7 +17,7 @@ type Param = {
  * @param authLv ユーザ認証レベル。この値を加味して、コンテンツのeditable等を設定して返す。
  * @return 指定のdataIdに紐づくコンテンツ一覧。指定のdataId自体のコンテンツは含まない。
  */
-export async function getLinkedContent({ dataId, currentMap, authLv }: Param): Promise<ContentsDefine[]> {
+export async function getLinkedContent({ dataId, currentMap }: Param): Promise<(Omit<ContentsDefine, "linkedContents">)[]> {
     const con = await ConnectionPool.getConnection();
 
     try {
@@ -36,7 +36,7 @@ export async function getLinkedContent({ dataId, currentMap, authLv }: Param): P
         const [rows] = await con.query(sql, [currentMap.mapId, dataId]);
 
         const contents = await Promise.all((rows as (ContentsTable & DataSourceTable & MapDataSourceLinkTable)[]).map(async(record) => {
-            return convertContentsToContentsDefine(con, record, currentMap);
+            return convertContentsToContentsDefine(con, record);
         }));
 
         return contents;

@@ -28,6 +28,7 @@ type Props = {
 }
 
 enum Stage {
+    SELECT_ICON,
     DRAWING,
     CONFIRM,
 }
@@ -38,7 +39,7 @@ enum Stage {
  * @returns 
  */
 export default function DrawPointController(props: Props) {
-    const [stage, setStage] = useState(Stage.DRAWING);
+    const [stage, setStage] = useState(Stage.SELECT_ICON);
     const { getIconDefine } = useIcon();
     const drawingIconRef = useRef<SystemIconDefine>(getIconDefine());
 
@@ -118,10 +119,6 @@ export default function DrawPointController(props: Props) {
         setStage(Stage.DRAWING);
     }, [map, drawReset, onDrawEnd, pointStyleHook])
 
-    useEffect(() => {
-        startDrawing();
-    }, [])
-
     const handleOk = useCallback(() => {
         if (!drawingFeature.current) {
             console.warn('描画アイテムなし');
@@ -193,16 +190,34 @@ export default function DrawPointController(props: Props) {
     }, [stage, onConfirmCancel, props]);
 
     const [ icons ] = useAtom(currentMapIconDefineAtom);
-    const handleChangeIconBtnClicked = useCallback(async() => {
-        if (!props.iconFunction) return;
+    const selectIcon = useCallback(async() => {
+        if (!props.iconFunction) return false;
         const result = await props.iconFunction(icons);
-        if (result === 'cancel') return;
+        if (result === 'cancel') return false;
 
         const icon = getIconDefine(result);
         drawingIconRef.current = icon;
-        startDrawing();
+        return true;
+    }, [getIconDefine, props, icons]);
 
-    }, [props, icons, getIconDefine, startDrawing])
+    const handleChangeIconBtnClicked = useCallback(async() => {
+        const changed = await selectIcon();
+        if (changed)
+            startDrawing();
+
+    }, [selectIcon, startDrawing])
+
+    if (stage === Stage.SELECT_ICON) {
+        selectIcon().then((result) => {
+            if (result) {
+                startDrawing();
+                setStage(Stage.DRAWING);
+            } else {
+                props.onCancel();
+            }
+        })
+        return null;
+    }
 
     return (
         <PromptMessageBox 

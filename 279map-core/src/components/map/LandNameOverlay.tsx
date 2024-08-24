@@ -1,7 +1,7 @@
 import { Overlay } from 'ol';
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './LandNameOverlay.module.scss';
-import { getMapKey, isEqualId } from '../../util/dataUtility';
+import { getMapKey } from '../../util/dataUtility';
 import { useMap } from './useMap';
 import { mapModeAtom, mapViewAtom } from '../../store/operation';
 import { allItemsAtom } from '../../store/item';
@@ -11,12 +11,13 @@ import { ItemInfo, MapMode } from '../../types/types';
 import { geoJsonToTurfPolygon } from '../../util/MapUtility';
 import { bboxPolygon, centerOfMass, intersect } from '@turf/turf';
 import { DatasourceLocationKindType, FeatureType } from '../../types-common/common-types';
+import { useWatch } from '../../util/useWatch2';
 
 // 島名を常時表示するズームLv.境界値（この値よりも小さい場合に、常時表示）
-const LandNameShowZoomLv = 9.3;
+const LandNameShowZoomLv = 8.9;
+const ForestNameShowZoomLv = 9.5;
 
 export default function LandNameOverlay() {
-    const { map } = useMap();
     const [ dataSources ] = useAtom(itemDataSourcesAtom);
     const virtualItemDatasource = useMemo(() => {
         return dataSources.find(ds => ds.config.kind===DatasourceLocationKindType.VirtualItem);
@@ -29,9 +30,6 @@ export default function LandNameOverlay() {
         }
         return allItems.filter(item => virtualItemDatasource.datasourceId === item.datasourceId);
     }, [allItems, virtualItemDatasource]);
-
-    const landNameDivMapRef = useRef({} as { [id: string]: HTMLDivElement });
-    const landNameOverlayMapRef = useRef({} as  { [id: string]: Overlay });
 
     const [mapView] = useAtom(mapViewAtom);
     const [ mapMode ] = useAtom(mapModeAtom);
@@ -46,7 +44,7 @@ export default function LandNameOverlay() {
             if (item.name.length === 0) {
                 return false;
             }
-            return item.geoProperties.featureType === FeatureType.EARTH;
+            return [FeatureType.EARTH, FeatureType.FOREST].includes(item.geoProperties.featureType);
         });
     }, [items, mapMode]);
 
@@ -61,68 +59,91 @@ export default function LandNameOverlay() {
         });
     }, [namedEarth, mapView.extent]);
 
-    // 現在オーバーレイ表示中のアイテム一覧
-    const currentOverlayItemRef = useRef<ItemInfo[]>([]);
-
-    // 島名の付与された島に変更があった場合
-    useEffect(() => {
-        // オーバレイを配置する
-        currentAreaNamedEarth.forEach(item => {
-            const exist = currentOverlayItemRef.current.some(prev => isEqualId(prev.id, item.id));
-            if (exist) return;
-
-            // 追加
-            const element = landNameDivMapRef.current[getMapKey(item.id)];
-            if (element === undefined || element === null) {
-                return;
-            }
-            const overlay = new Overlay({
-                id: 'landname' + item.id,
-                element,
-                autoPan: false,
-                autoPanAnimation: {
-                    duration: 250
-                },
-                className: styles.LandnameOverlayContainer,
-            });
-
-            const itemPolygon = geoJsonToTurfPolygon(item.geometry);
-            const center = centerOfMass(itemPolygon);
-            overlay.setPosition(center.geometry.coordinates);
-            map?.addOverlay(overlay);            
-            landNameOverlayMapRef.current[getMapKey(item.id)] = overlay;
-        });
-
-        currentOverlayItemRef.current.forEach(item => {
-            const exist = currentAreaNamedEarth.some(cur => isEqualId(cur.id, item.id));
-            if (exist) return;
-
-            // 削除
-            const overlay = landNameOverlayMapRef.current[getMapKey(item.id)];
-            map?.removeOverlay(overlay);
-        });
-        currentOverlayItemRef.current = currentAreaNamedEarth.concat();
-    }, [currentAreaNamedEarth, map]);
-
-    const fadeClass = useMemo(() => {
-        if (!mapView.zoom) return null;
-        const isLandNameFade = mapView.zoom > LandNameShowZoomLv;
-        return isLandNameFade ? styles.fadeOut : "";
-    }, [mapView]);
-
     return (
         <React.Fragment>
             {
                 currentAreaNamedEarth.map((item) => {
                     return (
                         <div key={getMapKey(item.id)}>
-                            <div className={`${styles.LandnameOverlay} ${fadeClass}`} ref={ref => landNameDivMapRef.current[getMapKey(item.id)] = ref as HTMLDivElement}>
-                                {item.name}
-                            </div>
+                            <LandName item={item} />
                         </div>
                     )
                 })
             }
         </React.Fragment>
     );
+}
+
+type LandNameProps = {
+    item: ItemInfo;
+}
+function LandName({ item }: LandNameProps) {
+    const { map } = useMap();
+    const [ mapView ] = useAtom(mapViewAtom);
+    const landNameDivRef = useRef<HTMLDivElement|null>(null);
+    const landNameOverlayRef = useRef<Overlay|undefined>();
+
+    const isShow = useMemo(() => {
+        if (!mapView.zoom) return false;
+
+        if (item.geoProperties.featureType === FeatureType.EARTH) {
+            return mapView.zoom < LandNameShowZoomLv;
+
+        } else {
+            return mapView.zoom > LandNameShowZoomLv && mapView.zoom < ForestNameShowZoomLv;
+        }
+    }, [mapView, item]);
+
+    const [ fade, setFade ] = useState(false);
+    useWatch(isShow, () => {
+        setFade(true);
+    })
+
+    useEffect(() => {
+        // オーバレイを配置する
+        const element = landNameDivRef.current;
+        if (element === undefined || element === null) {
+            return;
+        }
+        const overlay = new Overlay({
+            id: 'landname' + item.id,
+            element,
+            autoPan: false,
+            autoPanAnimation: {
+                duration: 250
+            },
+            className: styles.LandnameOverlayContainer,
+        });
+
+        const itemPolygon = geoJsonToTurfPolygon(item.geometry);
+        const center = centerOfMass(itemPolygon);
+        overlay.setPosition(center.geometry.coordinates);
+        map?.addOverlay(overlay);            
+        landNameOverlayRef.current = overlay;
+
+        return () => {
+            // 削除
+            if (landNameOverlayRef.current) {
+                console.log('removeOverlay')
+                map?.removeOverlay(landNameOverlayRef.current);
+            }
+        }
+
+    }, [item, map]);
+
+    const visibleClass = useMemo(() => {
+        if (isShow) {
+            return styles.fadeIn;
+        } else if (fade) {
+            return styles.fadeOut;
+        } else {
+            return styles.Hide;
+        }
+    }, [isShow, fade]);
+
+    return (
+        <div className={`${styles.LandnameOverlay} ${visibleClass}`} ref={landNameDivRef}>
+            {item.name}
+        </div>
+    )
 }

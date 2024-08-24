@@ -39,7 +39,24 @@ export const currentDefaultIconAtom = atom<SystemIconDefine>((get) => {
     const icon = currentMapIconDefine.find(def => def.type === 'system' && def.id === id);
     if (!icon) {
         console.warn('想定外エラー. default icon not find.');
-        return currentMapIconDefine[0];
+        if (currentMapKind === MapKind.Real) {
+            return {
+                type: 'system',
+                id: 'default',
+                caption: 'default',
+                imagePath: defaultIconReal,
+                useMaps: [MapKind.Real] as MapKind[],
+                defaultColor: '#271AA8',
+            }
+        } else {
+            return {
+                type: 'system',
+                id: 'default',
+                caption: 'default',
+                imagePath: defaultIconVirtual,
+                useMaps: [MapKind.Virtual] as MapKind[],
+            }
+        }
     }
     return icon;
 })

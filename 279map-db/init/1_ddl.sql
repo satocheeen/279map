@@ -134,28 +134,54 @@ CREATE TABLE `data_link` (
 
 -- コンテンツの属する地図一覧View
 create view content_belong_map as 
-  -- この地図上のアイテムと直接紐づいているコンテンツ
-  select c.data_id as content_id, d.data_id as item_id, d.data_source_id as item_datasource_id, ds.location_kind, mdl.map_page_id
-  from contents c
-  inner join datas d on d.data_id = c.data_id 
-  inner join data_source ds on ds.data_source_id = d.data_source_id 
-  inner join map_datasource_link mdl on mdl.data_source_id = d.data_source_id 
-  where EXISTS (
-    select * from geometry_items gi 
-    where gi.data_id = c.data_id 
-  )
-  UNION 
-  -- この地図上のアイテムから参照されているコンテンツ
-  select c2.data_id as content_id, dl2.from_data_id as item_id, d2.data_source_id as item_datasource_id, ds.location_kind, mdl.map_page_id  
-  from contents c2
-  inner join data_link dl2 on dl2.to_data_id = c2.data_id 
-  inner join datas d2 on d2.data_id = dl2.from_data_id 
+  select 
+    temp.*,
+    ds.data_source_id as item_datasource_id,
+    case
+      when ds.location_kind = 'VirtualItem' COLLATE utf8mb4_bin then 'Virtual'
+      COLLATE utf8mb4_bin else 'Real'
+    end as map_kind,
+    mdl.map_page_id	
+  from (
+    -- アイテムと直接紐づいているコンテンツ
+    select 
+      c.data_id as content_id,
+      d.data_id as item_id,
+      0 as deep
+    from contents c
+    inner join datas d on d.data_id = c.data_id 
+    where EXISTS (
+      select * from geometry_items gi 
+      where gi.data_id = c.data_id 
+    )
+    union
+   -- アイテムから参照されているコンテンツ(1階層)
+    select
+      dl.to_data_id as content_id,
+      dl.from_data_id as item_id,
+      1 as deep
+    from data_link dl 
+    inner join geometry_items gi2 on gi2.data_id = dl.from_data_id 
+    union
+   -- アイテムから参照されているコンテンツ(2階層)
+    select
+      dl.to_data_id as content_id,
+      dl2.from_data_id as item_id,
+      2 as deep
+    from data_link dl
+    inner join data_link dl2 on dl.from_data_id = dl2.to_data_id 
+    -- まだ登場していないコンテンツに絞る
+    where not EXISTS (
+	    select
+	      dl.to_data_id as content_id,
+	      dl.from_data_id as item_id
+	    from data_link dl_lv1
+	    inner join geometry_items gi2 on gi2.data_id = dl_lv1.from_data_id 
+    )
+  ) as temp
+  inner join datas d2 on d2.data_id = temp.item_id
   inner join data_source ds on ds.data_source_id = d2.data_source_id 
-  inner join map_datasource_link mdl on mdl.data_source_id = d2.data_source_id 
-  where EXISTS (
-      select * from datas d 
-      inner join data_source ds on ds.data_source_id = d.data_source_id 
-      INNER join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
-      where d.data_id = dl2.from_data_id 
-  )
-  ;
+  inner join map_datasource_link mdl on mdl.data_source_id = ds.data_source_id 
+  inner join contents ci on ci.data_id = temp.item_id 
+  inner join contents cc on cc.data_id = temp.content_id
+;

@@ -92,7 +92,7 @@ async function getCategoriFields(currentMap: CurrentMap): Promise<CategoryFields
             if (!('contentFieldKeyList' in row.mdl_config)) return;
             const categoryFields = row.mdl_config.contentFieldKeyList.filter(cfKey => {
                 const contentDef = row.contents_define?.find(def => def.key === cfKey);
-                return contentDef?.type === 'category';
+                return contentDef?.type === 'category' || contentDef?.type === 'single-category';
             });
             result.push({
                 datasourceId: row.data_source_id,
@@ -125,21 +125,23 @@ async function getCategoryValuesOfTheField(currentMap: CurrentMap, datasourceId:
             from content_belong_map cbm 
             inner join contents c on c.data_id = cbm.content_id 
             inner join datas d on d.data_id = c.data_id 
-            where map_page_id = ? and location_kind in (?)
+            where map_page_id = ? and map_kind = ?
             and d.data_source_id = ?
         ) as c2
         where c2.mycategory is not null
         `;
     
-        const locationKind = currentMap.mapKind === MapKind.Real ? [DatasourceLocationKindType.RealItem, DatasourceLocationKindType.Track] : [DatasourceLocationKindType.VirtualItem];
-        const query = con.format(sql, [`$."${fieldKey}"`, currentMap.mapId, locationKind, datasourceId]);
+        const query = con.format(sql, [`$."${fieldKey}"`, currentMap.mapId, currentMap.mapKind, datasourceId]);
+        // console.log('query', query)
         const [rows] = await con.execute(query);
 
         const resultSet = new Set<string>();
-        (rows as {mycategory: string[]}[]).forEach(row => {
-            row.mycategory.forEach(category => {
-                resultSet.add(category);
-            });
+        (rows as {mycategory: string[] | string | null}[]).forEach(row => {
+            if (Array.isArray(row.mycategory)) {
+                row.mycategory.forEach(category => {
+                    resultSet.add(category);
+                });
+            }
         })
 
         return Array.from(resultSet);

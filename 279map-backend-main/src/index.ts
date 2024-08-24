@@ -46,13 +46,14 @@ import { AuthMethod, ItemDefineWithoutContents } from './types';
 import { getImage } from './api/getImage';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import { getLinkedContent } from './api/get-content/getLinkedContents';
-import { getContent } from './api/get-content/getContent';
+import { getContentDefine, getContentDetail } from './api/get-content/getContent';
 import { publishData } from './util/publish_utility';
 import { getUnpointData } from './api/getUnpointData';
 import { convertBase64ToBinary } from './util/utility';
 import { CategoryChecker } from './memory/CategoryChecker';
 import { setupForCrawler } from './setupForCrawler';
 import sharp from 'sharp';
+import { DataId } from '../279map-backend-common/dist';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -416,7 +417,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
              */
             getContent: async(parent: any, param: QueryGetContentArgs, ctx): QueryResolverReturnType<'getContent'> => {
                 try {
-                    const result = await getContent({
+                    const result = await getContentDetail({
                         dataId: param.id,
                         currentMap: ctx.currentMap,
                     });
@@ -971,32 +972,45 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             }
         }as Record<keyof Subscription, IFieldResolverOptions<any, GraphQlContextType, any>>,
         ItemDefine: {
-            content: async(parent: ItemDefineWithoutContents, _, ctx): Promise<ContentsDefine|null> => {
+            content: async(parent: ItemDefineWithoutContents, _, ctx): Promise<Omit<ContentsDefine, 'linkedContents'>|null> => {
                 try {
                     // apiLogger.info('[start] ItemDefine>content', parent.id);
-                    const result = await getContent({
+                    const result = await getContentDefine({
                         dataId: parent.id,
                         currentMap: ctx.currentMap,
                     });
-                    if (!result?.hasValue) return null;
-                    return result;
+                    if (!result) return null;
+                
+                    return {
+                        id: result.id,
+                        datasourceId: result.datasourceId,
+                        hasValue: result.hasValue,
+                        hasImage: result.hasImage,
+                    };
                 } catch(e) {
                     apiLogger.warn('ItemDefine>content error', parent.id, e);
                     throw e;
                 } finally {
                     // apiLogger.info('[end] ItemDefine>content', parent.id);
-
                 }
             },
-            linkedContents: async(parent: ItemDefineWithoutContents, _, ctx): Promise<ContentsDefine[]> => {
-                const result = await getLinkedContent({
+        },
+        ContentsDefine: {
+            linkedContents: async(parent: Omit<ContentsDefine, 'linkedContents'>, _, ctx): Promise<Omit<ContentsDefine, 'linkedContents'>[]> => {
+                const linkedContents = await getLinkedContent({
                     dataId: parent.id,
                     currentMap: ctx.currentMap,
                     authLv: ctx.authLv,
                 });
-                return result;
+                return linkedContents.map(lc => {
+                    return {
+                        id: lc.id,
+                        datasourceId: lc.datasourceId,
+                        hasImage: lc.hasImage,
+                        hasValue: lc.hasValue,
+                    }
+                })
             }
-
         },
         // DataId: DataIdScalarType,
         JSON: JsonScalarType,

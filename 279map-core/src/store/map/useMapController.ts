@@ -33,8 +33,8 @@ export function useMapController() {
                 ...data
             })
 
+            const icons = await get(currentMapIconDefinePromiseAtom);
             if (onMapLoad) {
-                const icons = await get(currentMapIconDefinePromiseAtom);
                 const callbackResult = await onMapLoad({
                     mapKind,
                     icons,

@@ -1,22 +1,47 @@
+import { PoolConnection } from "mysql2/promise";
 import { ConnectionPool } from "../..";
-import { Auth, ContentsTable, CurrentMap, DataSourceTable, MapDataSourceLinkTable } from "../../../279map-backend-common/src";
-import { convertContentsToContentsDefine } from "../../api-common/convertContent";
+import { ContentsTable, CurrentMap, DataSourceTable, MapDataSourceLinkTable } from "../../../279map-backend-common/src";
+import { convertContentsToContentsDefine, convertContentsToContentsDetail } from "../../api-common/convertContent";
 import { ContentsDefine } from "../../graphql/__generated__/types";
 import { DataId } from "../../types-common/common-types";
+import { getLogger } from "log4js";
+
+const apiLogger = getLogger('api');
 
 type Param = {
     dataId: DataId;
     currentMap: CurrentMap;
 }
 
-/**
- * 指定のコンテンツについて情報を取得して返す
- * @param dataId 取得対象コンテンツ
- * @param currentMap 接続中の地図。この地図で使われていないコンテンツの場合は、値を返さない。
- */
-export async function getContent({ dataId, currentMap }: Param): Promise<ContentsDefine | null> {
+export async function getContentDefine({ dataId, currentMap }: Param): Promise<Omit<ContentsDefine, 'linkedContents'> | null> {
     const con = await ConnectionPool.getConnection();
 
+    try {
+        const record = await getContentRecord(con, { dataId, currentMap });
+        const content = await convertContentsToContentsDefine(con, record);
+
+        return content;
+
+    } finally {
+        con.release();
+    }
+}
+
+export async function getContentDetail({ dataId, currentMap }: Param) {
+    const con = await ConnectionPool.getConnection();
+
+    try {
+        const record = await getContentRecord(con, { dataId, currentMap });
+        const content = await convertContentsToContentsDetail(con, record, currentMap);
+
+        return content;
+
+    } finally {
+        con.release();
+    }
+}
+
+async function getContentRecord(con: PoolConnection, { dataId, currentMap }: Param) {
     try {
         // 指定のdataIdのコンテンツを取得
         const sql = `
@@ -29,14 +54,15 @@ export async function getContent({ dataId, currentMap }: Param): Promise<Content
 
         const [rows] = await con.query(sql, [currentMap.mapId, dataId]);
         if ((rows as []).length === 0) {
-            return null;
+            throw new Error('data not find');
         }
         const record = (rows as (ContentsTable & DataSourceTable & MapDataSourceLinkTable)[])[0];
-        const content = await convertContentsToContentsDefine(con, record, currentMap);
+        return record;
 
-        return content;
-
-    } finally {
-        con.release();
+    } catch(err) {
+        apiLogger.warn('get data records failed', err);
+        throw err;
     }
+    
 }
+

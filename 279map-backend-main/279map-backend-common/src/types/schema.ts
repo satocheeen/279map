@@ -1,5 +1,5 @@
 import { MapPageOptions } from '../graphql/__generated__/types';
-import { ContentDatasourceConfig, MapKind, ContentFieldDefine, DatasourceLocationKindType, LocationFieldDefine, IconKey, ContentValueMap } from '../types-common/common-types';
+import { ContentDatasourceConfig, MapKind, ContentFieldDefine, DatasourceLocationKindType, LocationFieldDefine, IconKey, ContentValueMapForDB } from '../types-common/common-types';
 
 export enum PublicRange {
     Public = 'Public',
@@ -88,6 +88,7 @@ export type MapDataSourceLinkConfig = {
     contentFieldKeyList: string[];  // 当該地図で使用するコンテンツ項目のキー一覧
 } | {
     location_kind: DatasourceLocationKindType.VirtualItem;
+    contentFieldKeyList: string[];  // 当該地図で使用するコンテンツ項目のキー一覧
 } | {
     location_kind: DatasourceLocationKindType.None;
     contentFieldKeyList: string[];  // 当該地図で使用するコンテンツ項目のキー一覧
@@ -112,7 +113,7 @@ export type GeometryItemsTable = {
 
 export type ContentsTable = {
     data_id: number;
-    contents?: ContentValueMap;
+    contents?: ContentValueMapForDB;
     category?: string[];
     date?: string;
 }
@@ -147,7 +148,8 @@ export type OriginalIconsTable = {
 export type ContentBelongMapView = {
     content_id: number;
     item_id: number;
+    deep: number;
     item_datasource_id: string;
-    location_kind: DatasourceLocationKindType;
+    map_kind: MapKind;
     map_page_id: string;
 }

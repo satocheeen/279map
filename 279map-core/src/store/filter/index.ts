@@ -17,7 +17,7 @@ export const filteredItemIdListAtom = atom<DataId[] | undefined>(( get ) => {
     return storedItems.filter(item => {
         const itemHit = filteredDatas.includes(item.id);
         if (itemHit) return true;
-        const childHit = item.linkedContents.some(child => filteredDatas.includes(child.id));
+        const childHit = item.content?.linkedContents.some(lc => filteredDatas.includes(lc.id));
         return !!childHit;
     }).map(item => item.id);
 })

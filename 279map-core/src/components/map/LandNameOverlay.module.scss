@@ -12,12 +12,19 @@
     padding: 5px 10px 5px 10px;
   
     /* Fade In */
-    animation: fadeIn 2s;
-    opacity: 1;
+    &.fadeIn {
+      animation: fadeIn 2s forwards;
+    }
+    // opacity: 0;
+    // opacity: 1;
   
     &.fadeOut {
-      animation: fadeOut 2s;
-      opacity: 0;
+      animation: fadeOut 2s forwards;
+      // opacity: 0;
     }
   
+}
+
+.Hide {
+    opacity: 0;
 }
