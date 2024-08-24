@@ -190,7 +190,7 @@ function MyMark(props: MarkProp) {
         return {
             animation: `${styles[def.keyframeName]} linear ${props.speed}s infinite`
         }
-    }, [def])
+    }, [def, props.speed])
 
     if (!def) return null;
 
