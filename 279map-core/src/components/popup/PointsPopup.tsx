@@ -147,11 +147,6 @@ export default function PointsPopup(props: Props) {
         return null;
     }
 
-    if (target.type === 'mark') {
-        return (
-            <MarkPopup markId={target.mark} />
-        )
-    }
     return (
         <>
             <div className={`${styles.Popup} ${target.type === 'image' ? '' : styles.Minimum} ${sizeClassName}`} onClick={onClick}>
@@ -160,10 +155,12 @@ export default function PointsPopup(props: Props) {
                         <div className={`${styles.ImageContainer}`}>
                             <MyThumbnail className={styles.Image} contentId={target.imageContentDataId} alt="contents" />
                         </div>
-                        :
-                        <div className={styles.ThreeDots}>
-                            <BsThreeDots />
-                        </div>
+                        : target.type === 'three-dot' ?
+                            <div className={styles.ThreeDots}>
+                                <BsThreeDots />
+                            </div>
+                            :
+                            <MyMark markId={target.mark} />
                     }
                 </div>
             </div>
@@ -172,35 +169,23 @@ export default function PointsPopup(props: Props) {
     );
 }
 
-type MarkPopupProp = {
+type MarkProp = {
     markId: IconKey;
 }
-function MarkPopup(props: MarkPopupProp) {
+
+function MyMark(props: MarkProp) {
     const { markDefine } = useContext(OwnerContext);
-    const [ mapView ] = useAtom(mapViewAtom);
 
     const def = useMemo(() => {
         return markDefine?.defines.find(def => def.id === props.markId.id);
     }, [markDefine, props]);
 
-    const sizeClassName = useMemo(() => {
-        if (!mapView.zoom) return styles.Small;
-        console.log('zoom', mapView.zoom)
-        if (mapView.zoom < 7) {
-            return styles.Small;
-        } else if (mapView.zoom < 9) {
-            return styles.Medium;
-        } else {
-            return styles.Large;
-        }
-    }, [mapView]);
-
     if (!def) return null;
 
     return (
-        <div className={`${styles.Mark} ${sizeClassName}`}>
+        <div className={`${styles.Mark}`}>
             <img src={def.imagePath} />
         </div>
     )
-
 }
+
