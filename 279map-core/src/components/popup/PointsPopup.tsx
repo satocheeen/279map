@@ -11,7 +11,7 @@ import { filteredDatasAtom, filteredItemIdListAtom } from "../../store/filter";
 import { useItems } from "../../store/item/useItems";
 import { useAtom } from "jotai";
 import { useAtomCallback } from 'jotai/utils';
-import { DataId, FeatureType, IconKey } from "../../types-common/common-types";
+import { DataId, FeatureType, GeoProperties, IconKey } from "../../types-common/common-types";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 
 type Props = {
@@ -28,7 +28,10 @@ type PopupInfo = {
     type: 'three-dot';
 } | {
     type: 'mark';
-    mark: IconKey;
+    mark: {
+        key: IconKey;
+        speed: number;
+    }
 }
 export default function PointsPopup(props: Props) {
     const { map } = useMap();
@@ -160,7 +163,7 @@ export default function PointsPopup(props: Props) {
                                 <BsThreeDots />
                             </div>
                             :
-                            <MyMark markId={target.mark} />
+                            <MyMark markKey={target.mark.key} speed={target.mark.speed} />
                     }
                 </div>
             </div>
@@ -170,21 +173,22 @@ export default function PointsPopup(props: Props) {
 }
 
 type MarkProp = {
-    markId: IconKey;
+    markKey: IconKey;
+    speed: number;
 }
 
 function MyMark(props: MarkProp) {
     const { markDefine } = useContext(OwnerContext);
 
     const def = useMemo(() => {
-        return markDefine?.defines.find(def => def.id === props.markId.id);
+        return markDefine?.defines.find(def => def.id === props.markKey.id);
     }, [markDefine, props]);
 
     const style = useMemo((): CSSProperties | undefined => {
         if (!def || !def.keyframeName) return;
 
         return {
-            animation: `${styles[def.keyframeName]} linear 2s infinite`
+            animation: `${styles[def.keyframeName]} linear ${props.speed}s infinite`
         }
     }, [def])
 
