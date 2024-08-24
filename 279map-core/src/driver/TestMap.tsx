@@ -125,7 +125,7 @@ const markDefine: TsunaguMapProps['markDefine'] = {
         {
             id: 'fire',
             imagePath: './mark/fire-ball.svg',            
-            keyframeName: 'flush',
+            keyframeName: 'fire-flush',
         }
     ]
 }
