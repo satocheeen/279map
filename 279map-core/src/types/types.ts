@@ -110,7 +110,7 @@ type DataKey = {
 
 export type ContentValueType = {
     key: string;
-    value: string | number | string[];
+    value: string | number | string[] | number[];
 }
 export type MarkDefine = IconKey & {
     /** 画像ファイルパス */
