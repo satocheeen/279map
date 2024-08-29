@@ -86,10 +86,15 @@ export default function useItemProcess() {
             let dataId: DataId | undefined;
             do {
                 retryFlag = false;
+                const contents = data.contents?.values.reduce((acc, cur) => {
+                    return Object.assign({}, acc, {
+                        [cur.key]: cur.value,
+                    });
+                }, {});
                 const result = await gqlClient.mutation(RegistDataDocument, {
                     datasourceId: data.datasourceId,
                     item: data.item?.geo,
-                    contents: data.contents?.values,
+                    contents,
                     linkDatas: data.parent ? [data.parent] : undefined,
                 })
                 if (result.error) {

@@ -108,6 +108,10 @@ type DataKey = {
     dataId: DataId;
 }
 
+export type ContentValueType = {
+    key: string;
+    value: string | number | string[];
+}
 export type MarkDefine = IconKey & {
     /** 画像ファイルパス */
     imagePath: string;
@@ -303,7 +307,7 @@ export interface TsunaguMapHandler {
             geo: ItemGeoInfo,
         },
         contents?: {
-            values: ContentValueMapForDB,
+            values: ContentValueType[],
         }
         // 指定した場合は、指定先のparentの子として紐づける
         parent?: DataId,
@@ -321,7 +325,7 @@ export interface TsunaguMapHandler {
             geo: ItemGeoInfo | null,    // nullの場合、位置情報を削除する
         },
         contents?: {
-            values: ContentValueMapForDB,
+            values: ContentValueType[],
         }
     }): Promise<void>;
 

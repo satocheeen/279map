@@ -204,12 +204,17 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         },
         
         async updateData(param) {
+            const contents = param.contents?.values.reduce((acc, cur) => {
+                return Object.assign({}, acc, {
+                    [cur.key]: cur.value,
+                });
+            }, {});
             if (param.key.type === 'dataId') {
                 const result = await gqlClient.mutation(UpdateDataDocument, {
                     id: param.key.dataId,
                     item: param.item?.geo ?? undefined,
                     deleteItem: param.item?.geo === null,
-                    contents: param.contents?.values,
+                    contents,
                 });
                 if (result.error) {
                     throw new Error(result.error.message);
@@ -219,7 +224,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 const result = await gqlClient.mutation(UpdateDataByOriginalIdDocument, {
                     originalId: param.key.originalId,
                     item: param.item?.geo,
-                    contents: param.contents?.values,
+                    contents,
                 });
                 if (result.error) {
                     throw new Error(result.error.message);
