@@ -199,7 +199,12 @@ export type TsunaguMapProps = {
 }
 
 export type LoadContentsResult = {
-    content: ContentsDetail;
+    content: Omit<ContentsDetail, '__typename' | 'values'> & {
+        values: {
+            key: string;
+            value: ContentValue;
+        }[];
+    };
     unsubscribe?: () => void;   // callbackを渡した場合に格納されている
 }
 
@@ -303,9 +308,11 @@ export interface TsunaguMapHandler {
             geo: ItemGeoInfo,
         };
         contents?: {
-            key: string;
-            value: ContentValue;
-        }[];
+            values: {
+                key: string;
+                value: ContentValue;
+            }[];
+        };
         // 指定した場合は、指定先のparentの子として紐づける
         parent?: DataId;
     }): Promise<DataId>;
@@ -322,9 +329,11 @@ export interface TsunaguMapHandler {
             geo: ItemGeoInfo | null,    // nullの場合、位置情報を削除する
         };
         contents?: {
-            key: string;
-            value: ContentValue;
-        }[];
+            values: {
+                key: string;
+                value: ContentValue;
+            }[];
+        };
     }): Promise<void>;
 
     /**

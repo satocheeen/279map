@@ -173,10 +173,24 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 const content = result.data?.getContent ?? null;
                 if (!content) return null;
                 // content.children = content?.children?.sort(contentsComparator);
+                const values = Object.entries(content.values).reduce((acc, [key, value]) => {
+                    return [...acc, {
+                        key,
+                        value,
+                    }]
+                }, [] as LoadContentsResult['content']['values']);
         
-                if (!changeListener) {
+                const newContent = {
+                    backlinks: content.backlinks,
+                    datasourceId: content.datasourceId,
+                    id: content.id,
+                    usingOtherMap: content.usingOtherMap,
+                    readonly: content.readonly,
+                    values,
+                };
+            if (!changeListener) {
                     return {
-                        content,
+                        content: newContent,
                     }
                 }
 
@@ -190,7 +204,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                     subscription.unsubscribe();
                 }
                 return {
-                    content,
+                    content: newContent,
                     unsubscribe,
                 }
 
@@ -204,7 +218,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         },
         
         async updateData(param) {
-            const contents = param.contents?.reduce((acc, cur) => {
+            const contents = param.contents?.values.reduce((acc, cur) => {
                 // 現時点ではlink項目は直接登録対象外
                 if (cur.value.type === 'link') return acc;
                 return Object.assign({}, acc, {
