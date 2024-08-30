@@ -1,6 +1,6 @@
-import { Auth, CategoryDefine, ContentsDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, MapDefine, GetItemsQuery, ThumbSize, CategoryCondition, ContentsDetail } from "../graphql/generated/graphql";
+import { Auth, CategoryDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, MapDefine, GetItemsQuery, ThumbSize, CategoryCondition, ContentsDetail } from "../graphql/generated/graphql";
 import { ChangeVisibleLayerTarget } from "../store/datasource/useDataSource";
-import { IconDefine, MapKind, DataId, FeatureType, GeoProperties, IconKey, ContentValueMapForDB } from "../types-common/common-types";
+import { IconDefine, MapKind, DataId, FeatureType, GeoProperties, IconKey, ContentValueMapForDB, ContentValue } from "../types-common/common-types";
 import { OperationResult } from "urql";
 
 /**
@@ -108,10 +108,6 @@ type DataKey = {
     dataId: DataId;
 }
 
-export type ContentValueType = {
-    key: string;
-    value: string | number | string[] | number[];
-}
 export type MarkDefine = IconKey & {
     /** 画像ファイルパス */
     imagePath: string;
@@ -302,15 +298,16 @@ export interface TsunaguMapHandler {
      * @param values コンテンツデータ
      */
     registData(param: {
-        datasourceId: string,
+        datasourceId: string;
         item?: {
             geo: ItemGeoInfo,
-        },
+        };
         contents?: {
-            values: ContentValueType[],
-        }
+            key: string;
+            value: ContentValue;
+        }[];
         // 指定した場合は、指定先のparentの子として紐づける
-        parent?: DataId,
+        parent?: DataId;
     }): Promise<DataId>;
     
     /**
@@ -320,13 +317,14 @@ export interface TsunaguMapHandler {
      * @param values コンテンツデータ
      */
     updateData(param: {
-        key: DataKey,
+        key: DataKey;
         item?: {
             geo: ItemGeoInfo | null,    // nullの場合、位置情報を削除する
-        },
+        };
         contents?: {
-            values: ContentValueType[],
-        }
+            key: string;
+            value: ContentValue;
+        }[];
     }): Promise<void>;
 
     /**

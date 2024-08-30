@@ -204,7 +204,9 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         },
         
         async updateData(param) {
-            const contents = param.contents?.values.reduce((acc, cur) => {
+            const contents = param.contents?.reduce((acc, cur) => {
+                // 現時点ではlink項目は直接登録対象外
+                if (cur.value.type === 'link') return acc;
                 return Object.assign({}, acc, {
                     [cur.key]: cur.value,
                 });
