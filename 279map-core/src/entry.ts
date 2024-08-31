@@ -3,8 +3,6 @@
  */
 export type {
     CategoryDefine, 
-    ContentsDefine, 
-    ContentsDetail,    
     EventDefine,
     MapDefine, 
     ServerConfig, MapPageOptions, ItemDatasourceInfo, ContentDatasourceInfo
@@ -24,6 +22,7 @@ export {
     IconDefine,
     FeatureType,
     DatasourceLocationKindType,
+    ContentFieldDefine,
     ContentValue,
     ContentValueInput
 } from './types-common/common-types';
