@@ -182,13 +182,13 @@ export type ContentValue = {
     }[];
 }
 
-export type ContentValueForRegist = Omit<ContentValue, 'image'|'link'> & ({
+export type ContentValueForRegist = Exclude<ContentValue, {type:'image'} | {type:'link'}> | {
     type: 'image';
     value: string[];    // 画像URL
 } | {
     type: 'link';
     value: DataId[];
-})
+};
 
 /**
  * Backendとcore間でやり取りする形式
