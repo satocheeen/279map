@@ -6,7 +6,7 @@ import { selectItemIdAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
 import { itemProcessesAtom } from '../../store/item';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
-import { FeatureType, GeoProperties } from '../../entry';
+import { FeatureType, GeoProperties } from '../../types-common/common-types';
 import { FeatureColor } from './types';
 
 export enum Opacity {
