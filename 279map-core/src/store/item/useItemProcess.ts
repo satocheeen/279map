@@ -86,11 +86,11 @@ export default function useItemProcess() {
             let dataId: DataId | undefined;
             do {
                 retryFlag = false;
-                const contents = data.contents?.values.reduce((acc, cur) => {
+                const contents = Object.entries(data.contents?.values ?? {}).reduce((acc, [key, value]) => {
                     // 現時点ではlink項目は直接登録対象外
-                    if (cur.value.type === 'link') return acc;
+                    if (value.type === 'link') return acc;
                     return Object.assign({}, acc, {
-                        [cur.key]: cur.value.value,
+                        [key]: value.value,
                     });
                 }, {});
                 const result = await gqlClient.mutation(RegistDataDocument, {

@@ -305,10 +305,7 @@ export interface TsunaguMapHandler {
             geo: ItemGeoInfo,
         };
         contents?: {
-            values: {
-                key: string;
-                value: ContentValueForRegist;
-            }[];
+            values: {[key: string]: ContentValueForRegist};
         };
         // 指定した場合は、指定先のparentの子として紐づける
         parent?: DataId;
@@ -326,10 +323,7 @@ export interface TsunaguMapHandler {
             geo: ItemGeoInfo | null,    // nullの場合、位置情報を削除する
         };
         contents?: {
-            values: {
-                key: string;
-                value: ContentValueForRegist;
-            }[];
+            values: {[key: string]: ContentValueForRegist};
         };
     }): Promise<void>;
 
