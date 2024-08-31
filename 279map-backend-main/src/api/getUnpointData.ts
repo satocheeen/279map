@@ -55,7 +55,7 @@ export async function getUnpointData({ currentMap, dataSourceId, keyword }: Odba
         const textDefList = datasource.contents_define?.filter(def => def.type === 'string' || def.type === 'text') ?? [];
         const imageDefList = datasource.contents_define?.filter(def => def.type === 'image') ?? [];
         return records.map(record => {
-            const title = (titleDef && record.contents) ? record.contents[titleDef.key] : '';
+            const title = (titleDef && record.contents) ? (record.contents[titleDef.key] as string) : '';
             const overview = record.contents ? textDefList.map(def => record.contents ? record.contents[def.key] as string : '').join('') : undefined;
             const hasImage = imageDefList.some(def => record.contents ? def.key in record.contents : false);
             return {
