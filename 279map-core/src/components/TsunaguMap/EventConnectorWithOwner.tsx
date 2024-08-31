@@ -22,6 +22,7 @@ import dayjs from 'dayjs';
 import useItemProcess from '../../store/item/useItemProcess';
 import { useAtomCallback } from 'jotai/utils';
 import { DataId } from '../../entry';
+import { ContentValueMapInput } from '../../types-common/common-types';
 
 /**
  * 呼び出し元とイベント連携するためのコンポーネントもどき。
@@ -272,10 +273,9 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             const contents = Object.entries(param.contents?.values ?? {}).reduce((acc, [key, value]) => {
                 // 現時点ではlink項目は直接登録対象外
                 if (value.type === 'link') return acc;
-                return Object.assign({}, acc, {
-                    [key]: value,
-                });
-            }, {});
+                acc[key] = value.value;
+                return acc;
+            }, {} as ContentValueMapInput);
             if (param.key.type === 'dataId') {
                 const result = await gqlClient.mutation(UpdateDataDocument, {
                     id: param.key.dataId,
