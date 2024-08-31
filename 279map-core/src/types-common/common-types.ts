@@ -156,10 +156,6 @@ export type LocationFieldDefine = {
      ;
 }
 
-
-export type ContentValueMapForDB = {[key: string]: any};
-export type ContentValueMap = {[key: string]: ContentValue};
-
 export type ContentValue = {
     type: 'title' | 'string' | 'text' | 'date' | 'url';
     value: string;
@@ -185,3 +181,21 @@ export type ContentValue = {
         }
     }[];
 }
+
+export type ContentValueInput = Exclude<ContentValue, {type:'image'} | {type:'link'}> | {
+    type: 'image';
+    value: string[];    // 画像URL
+} | {
+    type: 'link';
+    value: DataId[];
+};
+
+/**
+ * Backendとcore間でやり取りする形式
+ * - 通信データ量を削減するため、valueのみを渡している
+ * - typeとの紐づけはデータを受け取った側で行う
+ */
+// 登録・更新用（DBのcontents内もこの形式で格納されている）
+export type ContentValueMapInput = {[key: string]: ContentValueInput['value']};
+// 参照用
+export type ContentValueMap = {[key: string]: ContentValue['value']};

@@ -104,5 +104,6 @@ scalar IconKey
 scalar GeoProperties
 scalar GeocoderIdInfo
 scalar ContentValueMap
+scalar ContentValueMapInput
 scalar MapKind
 scalar IconDefine

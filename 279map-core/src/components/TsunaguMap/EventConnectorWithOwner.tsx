@@ -21,6 +21,8 @@ import { ConfirmBtnPattern } from '../common/confirm/types';
 import dayjs from 'dayjs';
 import useItemProcess from '../../store/item/useItemProcess';
 import { useAtomCallback } from 'jotai/utils';
+import { DataId } from '../../entry';
+import { ContentValueMapInput } from '../../types-common/common-types';
 
 /**
  * 呼び出し元とイベント連携するためのコンポーネントもどき。
@@ -172,13 +174,63 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 }
                 const content = result.data?.getContent ?? null;
                 if (!content) return null;
+                
+                const dsDef = contentDatasources.find(def => def.datasourceId === content.datasourceId);
+                if (!dsDef) return null;
                 // content.children = content?.children?.sort(contentsComparator);
                 const values = Object.entries(content.values).reduce((acc, [key, value]) => {
-                    return [...acc, {
-                        key,
-                        value,
-                    }]
-                }, [] as LoadContentsResult['content']['values']);
+                    const field = dsDef.config.fields.find(def => def.key === key);
+                    if (!field) return acc;
+                    switch(field.type) {
+                        case 'string':
+                        case 'title':
+                        case 'text':
+                        case 'date':
+                        case 'url':
+                            if (typeof value === 'string') {
+                                acc[key] = {
+                                    type: field.type,
+                                    value,
+                                }
+                            }
+                            break;
+                        case 'number':
+                            if (typeof value === 'number') {
+                                acc[key] = {
+                                    type: field.type,
+                                    value,
+                                }
+                            }
+                            break;
+                        case 'image':
+                            if (Array.isArray(value)) {
+                                acc[key] = {
+                                    type: field.type,
+                                    value : value as DataId[],
+                                }
+                            }
+                            break;
+                        case 'category':
+                        case 'single-category':
+                            if (Array.isArray(value)) {
+                                acc[key] = {
+                                    type: field.type,
+                                    value : value as string[],
+                                }
+                            }
+                            break;
+                        case 'link':
+                            if (Array.isArray(value)) {
+                                acc[key] = {
+                                    type: field.type,
+                                    value : value as [],
+                                }
+                            }
+                            break;
+                            
+                    }
+                    return acc;
+                }, {} as LoadContentsResult['content']['values']);
         
                 const newContent = {
                     backlinks: content.backlinks,
@@ -218,13 +270,12 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         },
         
         async updateData(param) {
-            const contents = param.contents?.values.reduce((acc, cur) => {
+            const contents = Object.entries(param.contents?.values ?? {}).reduce((acc, [key, value]) => {
                 // 現時点ではlink項目は直接登録対象外
-                if (cur.value.type === 'link') return acc;
-                return Object.assign({}, acc, {
-                    [cur.key]: cur.value,
-                });
-            }, {});
+                if (value.type === 'link') return acc;
+                acc[key] = value.value;
+                return acc;
+            }, {} as ContentValueMapInput);
             if (param.key.type === 'dataId') {
                 const result = await gqlClient.mutation(UpdateDataDocument, {
                     id: param.key.dataId,

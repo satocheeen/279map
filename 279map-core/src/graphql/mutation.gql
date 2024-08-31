@@ -54,7 +54,7 @@ mutation switchMapKind (
 mutation registData (
     $datasourceId: String!
     $item: RegistDataItemInput
-    $contents: ContentValueMap
+    $contents: ContentValueMapInput
     $linkDatas: [DataId!]
 ) {
     registData (
@@ -69,7 +69,7 @@ mutation updateData (
     $id: DataId!
     $item: RegistDataItemInput
     $deleteItem: Boolean
-    $contents: ContentValueMap
+    $contents: ContentValueMapInput
 ) {
     updateData (
         id: $id,
@@ -82,7 +82,7 @@ mutation updateData (
 mutation updateDataByOriginalId (
     $originalId: String!
     $item: RegistDataItemInput
-    $contents: ContentValueMap
+    $contents: ContentValueMapInput
 ) {
     updateDataByOriginalId (
         originalId: $originalId,

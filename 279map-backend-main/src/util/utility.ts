@@ -1,9 +1,9 @@
 import { ConnectionPool } from '..';
 import { DataSourceTable, DatasTable } from '../../279map-backend-common/src/types/schema';
-import { buffer, circle, featureCollection, lineString, multiLineString, multiPolygon, point, polygon, union } from '@turf/turf';
+import { buffer, circle, featureCollection, lineString, multiLineString, multiPolygon, polygon } from '@turf/turf';
 import crypto from 'crypto';
 import * as geojson from 'geojson';
-import { ContentFieldDefine, ContentValueMapForDB, DataId } from '../types-common/common-types';
+import { ContentFieldDefine, ContentValueMapInput, DataId } from '../types-common/common-types';
 import { MapDataSourceLinkTable } from '../../279map-backend-common/src';
 import { Auth } from '../graphql/__generated__/types';
 
@@ -107,7 +107,7 @@ export function isEqualId(id1: DataId, id2: DataId): boolean {
  * @param values 
  * @return 処置したあとの値
  */
-export async function cleanupContentValuesForRegist(mapId: string, datasourceId: string, values: ContentValueMapForDB): Promise<ContentValueMapForDB> {
+export async function cleanupContentValuesForRegist(mapId: string, datasourceId: string, values: ContentValueMapInput): Promise<ContentValueMapInput> {
     const con = await ConnectionPool.getConnection();
 
     try {
@@ -123,7 +123,7 @@ export async function cleanupContentValuesForRegist(mapId: string, datasourceId:
         }
         const contents_define = (rows as (MapDataSourceLinkTable & DataSourceTable)[])[0].contents_define as ContentFieldDefine[];
 
-        const newValues = {} as ContentValueMapForDB;
+        const newValues = {} as ContentValueMapInput;
         Object.entries(values).forEach(([key, value]) => {
             const field = contents_define.find(def => def.key === key);
             if (!field) return;

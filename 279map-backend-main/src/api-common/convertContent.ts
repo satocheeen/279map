@@ -1,6 +1,6 @@
 import { DataSourceTable, ContentsTable, CurrentMap, ImagesTable, MapDataSourceLinkTable, ContentBelongMapView } from "../../279map-backend-common/src";
 import { BackLink, ContentsDefine, ContentsDetail } from "../graphql/__generated__/types";
-import { ContentFieldDefine, ContentValue, ContentValueMap, ContentValueMapForDB, DataId, DatasourceLocationKindType, MapKind } from "../types-common/common-types";
+import { ContentFieldDefine, ContentValue, ContentValueMap, ContentValueMapInput, DataId, DatasourceLocationKindType, MapKind } from "../types-common/common-types";
 import { PoolConnection } from "mysql2/promise";
 
 type Record = ContentsTable & DataSourceTable & MapDataSourceLinkTable;
@@ -29,11 +29,11 @@ export async function convertContentsToContentsDefine(con: PoolConnection, row: 
             if (!val) return false;
             // -- タイトルは値と見做さない
             if (key === titleField?.key) return false;
-            if (Array.isArray(val) && val.length === 0) {
+            if (Array.isArray(val) && (val as []).length === 0) {
                 // category項目, image項目またはlink項目で配列0なら、値ありと見做さない
                 return false;
             }
-            if (typeof val === 'string' && val.length === 0) {
+            if (typeof val === 'string' && (val as string).length === 0) {
                 // テキスト項目で文字数0なら、値ありと見做さない
                 return false;
             }
@@ -62,6 +62,12 @@ export async function convertContentsToContentsDefine(con: PoolConnection, row: 
     };
 }
 
+/**
+ * contentsレコード情報をクライアントに返す形式に変換する
+ * @param row レコード情報
+ * @param currentMap 
+ * @returns 
+ */
 export async function convertContentsToContentsDetail(con: PoolConnection, row: Record, currentMap: CurrentMap): Promise<ContentsDetail> {
     const id = row.data_id;
     const backlinks = await getBacklinks(con, id, currentMap);
@@ -84,7 +90,7 @@ export async function convertContentsToContentsDetail(con: PoolConnection, row: 
             const def = row.contents_define?.find(def => def.key === key);
             if (!def) continue;
 
-            const fixedValue = await async function(): Promise<ContentValue> {
+            const fixedValue = await async function(): Promise<ContentValue | undefined> {
                 const val = allValues[key];
                 switch(def.type) {
                     case 'title':
@@ -94,20 +100,38 @@ export async function convertContentsToContentsDetail(con: PoolConnection, row: 
                     case 'url':
                         return {
                             type: def.type,
-                            value: val,
+                            value: typeof val === 'string' ? val : '',
                         }
                     case 'number':
                         return {
                             type: def.type,
-                            value: typeof val === 'number' ? val : parseInt(val),
+                            value: typeof val === 'number' ? val : typeof val === 'string' ? parseInt(val) : 0,
                         }
                     case 'category':
                     case 'single-category':
-                    case 'image':
-                        return {
-                            type: def.type,
-                            value: Array.isArray(val) ? val : [],
+                        if (Array.isArray(val) && (val as []).every(v => typeof v === 'string')) {
+                            return {
+                                type: def.type,
+                                value: val as string[],
+                            }
+                        } else {
+                            return {
+                                type: def.type,
+                                value: [],
+                            }
                         }
+                    // case 'image':
+                    //     if (Array.isArray(val)) {
+                    //         return {
+                    //             type: def.type,
+                    //             value: val as DataId[],
+                    //         }
+                    //     } else {
+                    //         return {
+                    //             type: def.type,
+                    //             value: [],
+                    //         }
+                    //     }
                     case 'link':
                         const value = await Promise.all((val as DataId[]).map(async(id) => {
                             // 指定のアイテムの名称と使用地図を取得する
@@ -124,7 +148,8 @@ export async function convertContentsToContentsDetail(con: PoolConnection, row: 
                         }
                 }
             }();
-            result[key] = fixedValue;
+            if (fixedValue)
+                result[key] = fixedValue.value;
         }
         return result;
     }();
@@ -136,10 +161,7 @@ export async function convertContentsToContentsDetail(con: PoolConnection, row: 
     }() ?? [];
     for (const imageField of imageFields) {
         const ids = await getImageIdList(con, row.data_id, imageField);
-        values[imageField.key] = {
-            type: 'image',
-            value: ids,
-        };
+        values[imageField.key] = ids;
     }
     
     return {
@@ -267,11 +289,11 @@ async function getItemInfo(con: PoolConnection, dataId: DataId, currentMap: Curr
 
 }
 
-export function getTitleValue(values: ContentValueMapForDB) {
+export function getTitleValue(values: ContentValueMapInput) {
     let result: string | undefined;
     Object.entries(values).some(([key, val]) => {
         if (key === 'title') {
-            result = val;
+            result = val as string;
             return true;
         }
         return false;
@@ -306,7 +328,7 @@ async function getBacklinks(con: PoolConnection, contentId: DataId, currentMap: 
         const [rows] = await con.query(sql, [contentId]);
 
         const records = (rows as (ContentBelongMapView & {
-            item_contents: ContentValueMap;
+            item_contents: ContentValueMapInput;
         })[]);
 
         return records.map((record): BackLink => {
