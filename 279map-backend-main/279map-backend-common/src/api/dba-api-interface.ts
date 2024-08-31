@@ -3,7 +3,7 @@
  */
 
 import { APIDefine, CurrentMap } from "../types";
-import { ContentValueMapForDB, DataId, GeoProperties } from "../types-common/common-types";
+import { ContentValueMapInput, DataId, GeoProperties } from "../types-common/common-types";
 
 type CommonParam = {
     currentMap: CurrentMap;
@@ -21,7 +21,7 @@ export type OdbaRegistDataParam = CommonParam & {
         geometry: GeoJSON.Geometry;
         geoProperties: GeoProperties;
     };
-    contents?: ContentValueMapForDB;
+    contents?: ContentValueMapInput;
     linkItems?: DataId[];   // 既存のアイテムに紐づける場合に指定
 }
 
@@ -43,7 +43,7 @@ export type OdbaUpdateDataParam = CommonParam & {
         geometry: GeoJSON.Geometry;
         geoProperties: GeoProperties;
     } | null;   // nullの場合、item削除
-    contents?: ContentValueMapForDB;
+    contents?: ContentValueMapInput;
 }
 
 export const OdbaRemoveDataAPI = {

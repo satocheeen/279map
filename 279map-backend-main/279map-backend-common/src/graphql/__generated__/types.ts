@@ -1,5 +1,5 @@
 import { Geometry } from 'geojson'
-import { DataId, GeoProperties, GeocoderIdInfo, IconKey, ItemDatasourceConfig, ContentDatasourceConfig, ContentValueMap, MapKind, IconDefine } from '../../types-common/common-types'
+import { DataId, GeoProperties, GeocoderIdInfo, IconKey, ItemDatasourceConfig, ContentDatasourceConfig, ContentValueMap, ContentValueMapInput, MapKind, IconDefine } from '../../types-common/common-types'
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -16,6 +16,7 @@ export type Scalars = {
   Float: { input: number; output: number; }
   ContentDatasourceConfig: { input: ContentDatasourceConfig; output: ContentDatasourceConfig; }
   ContentValueMap: { input: ContentValueMap; output: ContentValueMap; }
+  ContentValueMapInput: { input: ContentValueMapInput; output: ContentValueMapInput; }
   DataId: { input: DataId; output: DataId; }
   GeoProperties: { input: GeoProperties; output: GeoProperties; }
   GeocoderIdInfo: { input: GeocoderIdInfo; output: GeocoderIdInfo; }

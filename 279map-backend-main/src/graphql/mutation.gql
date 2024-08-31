@@ -68,7 +68,7 @@ type Mutation {
     registData (
         datasourceId: String!
         item: RegistDataItemInput
-        contents: ContentValueMap
+        contents: ContentValueMapInput
         linkDatas: [DataId!]
     ): DataId!
 
@@ -78,14 +78,14 @@ type Mutation {
         item: RegistDataItemInput
         "trueの場合、item削除する"
         deleteItem: Boolean
-        contents: ContentValueMap
+        contents: ContentValueMapInput
     ): Boolean!
 
     "データ更新（オリジナルID指定）"
     updateDataByOriginalId (
         originalId: String!
         item: RegistDataItemInput
-        contents: ContentValueMap
+        contents: ContentValueMapInput
     ): Boolean!
 
     "データ削除"

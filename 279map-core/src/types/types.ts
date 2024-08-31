@@ -1,6 +1,6 @@
 import { Auth, CategoryDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, MapDefine, GetItemsQuery, ThumbSize, CategoryCondition, ContentsDetail } from "../graphql/generated/graphql";
 import { ChangeVisibleLayerTarget } from "../store/datasource/useDataSource";
-import { IconDefine, MapKind, DataId, FeatureType, GeoProperties, IconKey, ContentValueMapForDB, ContentValue } from "../types-common/common-types";
+import { IconDefine, MapKind, DataId, FeatureType, GeoProperties, IconKey, ContentValueMapInput, ContentValue, ContentValueForRegist } from "../types-common/common-types";
 import { OperationResult } from "urql";
 
 /**
@@ -200,10 +200,7 @@ export type TsunaguMapProps = {
 
 export type LoadContentsResult = {
     content: Omit<ContentsDetail, '__typename' | 'values'> & {
-        values: {
-            key: string;
-            value: ContentValue;
-        }[];
+        values: {[key: string]: ContentValue};
     };
     unsubscribe?: () => void;   // callbackを渡した場合に格納されている
 }
@@ -310,7 +307,7 @@ export interface TsunaguMapHandler {
         contents?: {
             values: {
                 key: string;
-                value: ContentValue;
+                value: ContentValueForRegist;
             }[];
         };
         // 指定した場合は、指定先のparentの子として紐づける
@@ -331,7 +328,7 @@ export interface TsunaguMapHandler {
         contents?: {
             values: {
                 key: string;
-                value: ContentValue;
+                value: ContentValueForRegist;
             }[];
         };
     }): Promise<void>;

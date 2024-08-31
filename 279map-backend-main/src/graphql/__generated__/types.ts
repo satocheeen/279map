@@ -1,6 +1,6 @@
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
 import { Geometry } from 'geojson'
-import { DataId, GeoProperties, GeocoderIdInfo, IconKey, ItemDatasourceConfig, ContentDatasourceConfig, ContentValueMap, MapKind, IconDefine } from '../../types-common/common-types'
+import { DataId, GeoProperties, GeocoderIdInfo, IconKey, ItemDatasourceConfig, ContentDatasourceConfig, ContentValueMap, ContentValueMapInput, MapKind, IconDefine } from '../../types-common/common-types'
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -18,6 +18,7 @@ export type Scalars = {
   Float: { input: number; output: number; }
   ContentDatasourceConfig: { input: ContentDatasourceConfig; output: ContentDatasourceConfig; }
   ContentValueMap: { input: ContentValueMap; output: ContentValueMap; }
+  ContentValueMapInput: { input: ContentValueMapInput; output: ContentValueMapInput; }
   DataId: { input: DataId; output: DataId; }
   GeoProperties: { input: GeoProperties; output: GeoProperties; }
   GeocoderIdInfo: { input: GeocoderIdInfo; output: GeocoderIdInfo; }
@@ -327,7 +328,7 @@ export type MutationLinkDataByOriginalIdArgs = {
 
 
 export type MutationRegistDataArgs = {
-  contents?: InputMaybe<Scalars['ContentValueMap']['input']>;
+  contents?: InputMaybe<Scalars['ContentValueMapInput']['input']>;
   datasourceId: Scalars['String']['input'];
   item?: InputMaybe<RegistDataItemInput>;
   linkDatas?: InputMaybe<Array<Scalars['DataId']['input']>>;
@@ -357,7 +358,7 @@ export type MutationUnlinkDataArgs = {
 
 
 export type MutationUpdateDataArgs = {
-  contents?: InputMaybe<Scalars['ContentValueMap']['input']>;
+  contents?: InputMaybe<Scalars['ContentValueMapInput']['input']>;
   deleteItem?: InputMaybe<Scalars['Boolean']['input']>;
   id: Scalars['DataId']['input'];
   item?: InputMaybe<RegistDataItemInput>;
@@ -365,7 +366,7 @@ export type MutationUpdateDataArgs = {
 
 
 export type MutationUpdateDataByOriginalIdArgs = {
-  contents?: InputMaybe<Scalars['ContentValueMap']['input']>;
+  contents?: InputMaybe<Scalars['ContentValueMapInput']['input']>;
   item?: InputMaybe<RegistDataItemInput>;
   originalId: Scalars['String']['input'];
 };
@@ -715,6 +716,7 @@ export type ResolversTypes = {
   ContentDatasourceInfo: ResolverTypeWrapper<ContentDatasourceInfo>;
   ContentType: ContentType;
   ContentValueMap: ResolverTypeWrapper<Scalars['ContentValueMap']['output']>;
+  ContentValueMapInput: ResolverTypeWrapper<Scalars['ContentValueMapInput']['output']>;
   ContentsDatasource: ResolverTypeWrapper<ContentsDatasource>;
   ContentsDatasourceInput: ContentsDatasourceInput;
   ContentsDefine: ResolverTypeWrapper<ContentsDefine>;
@@ -779,6 +781,7 @@ export type ResolversParentTypes = {
   ContentDatasourceConfig: Scalars['ContentDatasourceConfig']['output'];
   ContentDatasourceInfo: ContentDatasourceInfo;
   ContentValueMap: Scalars['ContentValueMap']['output'];
+  ContentValueMapInput: Scalars['ContentValueMapInput']['output'];
   ContentsDatasource: ContentsDatasource;
   ContentsDatasourceInput: ContentsDatasourceInput;
   ContentsDefine: ContentsDefine;
@@ -875,6 +878,10 @@ export type ContentDatasourceInfoResolvers<ContextType = any, ParentType extends
 
 export interface ContentValueMapScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['ContentValueMap'], any> {
   name: 'ContentValueMap';
+}
+
+export interface ContentValueMapInputScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['ContentValueMapInput'], any> {
+  name: 'ContentValueMapInput';
 }
 
 export type ContentsDatasourceResolvers<ContextType = any, ParentType extends ResolversParentTypes['ContentsDatasource'] = ResolversParentTypes['ContentsDatasource']> = {
@@ -1132,6 +1139,7 @@ export type Resolvers<ContextType = any> = {
   ContentDatasourceConfig?: GraphQLScalarType;
   ContentDatasourceInfo?: ContentDatasourceInfoResolvers<ContextType>;
   ContentValueMap?: GraphQLScalarType;
+  ContentValueMapInput?: GraphQLScalarType;
   ContentsDatasource?: ContentsDatasourceResolvers<ContextType>;
   ContentsDefine?: ContentsDefineResolvers<ContextType>;
   ContentsDetail?: ContentsDetailResolvers<ContextType>;
