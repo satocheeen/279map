@@ -1,6 +1,6 @@
 import { Auth, CategoryDefine, ItemDatasourceInfo, ContentDatasourceInfo, EventDefine, MapDefine, GetItemsQuery, ThumbSize, CategoryCondition, ContentsDetail } from "../graphql/generated/graphql";
 import { ChangeVisibleLayerTarget } from "../store/datasource/useDataSource";
-import { IconDefine, MapKind, DataId, FeatureType, GeoProperties, IconKey, ContentValueMapInput, ContentValue, ContentValueForRegist } from "../types-common/common-types";
+import { IconDefine, MapKind, DataId, FeatureType, GeoProperties, IconKey, ContentValueMapInput, ContentValue, ContentValueInput } from "../types-common/common-types";
 import { OperationResult } from "urql";
 
 /**
@@ -305,7 +305,7 @@ export interface TsunaguMapHandler {
             geo: ItemGeoInfo,
         };
         contents?: {
-            values: {[key: string]: ContentValueForRegist};
+            values: {[key: string]: ContentValueInput};
         };
         // 指定した場合は、指定先のparentの子として紐づける
         parent?: DataId;
@@ -323,7 +323,7 @@ export interface TsunaguMapHandler {
             geo: ItemGeoInfo | null,    // nullの場合、位置情報を削除する
         };
         contents?: {
-            values: {[key: string]: ContentValueForRegist};
+            values: {[key: string]: ContentValueInput};
         };
     }): Promise<void>;
 

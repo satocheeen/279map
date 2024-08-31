@@ -182,7 +182,7 @@ export type ContentValue = {
     }[];
 }
 
-export type ContentValueForRegist = Exclude<ContentValue, {type:'image'} | {type:'link'}> | {
+export type ContentValueInput = Exclude<ContentValue, {type:'image'} | {type:'link'}> | {
     type: 'image';
     value: string[];    // 画像URL
 } | {
@@ -196,6 +196,6 @@ export type ContentValueForRegist = Exclude<ContentValue, {type:'image'} | {type
  * - typeとの紐づけはデータを受け取った側で行う
  */
 // 登録・更新用（DBのcontents内もこの形式で格納されている）
-export type ContentValueMapInput = {[key: string]: ContentValueForRegist['value']};
+export type ContentValueMapInput = {[key: string]: ContentValueInput['value']};
 // 参照用
 export type ContentValueMap = {[key: string]: ContentValue['value']};
