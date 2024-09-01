@@ -336,11 +336,17 @@ const schema = makeExecutableSchema<GraphQlContextType>({
 
                 try {
                     const { mapInfo } = await getMapInfoByIdWithAuth(param.mapId, ctx.request);
+                    const protocol = ctx.request.headers['x-forwarded-proto'] || ctx.request.protocol;
+                    const host = ctx.request.headers['x-forwarded-host'] || ctx.request.get('host');
+                    const domain = `${protocol}://${host}/`;
+                    const image = mapInfo.thumbnail ? `mapimage/${param.mapId}` : 'static/279map.png';
+                    const imageUrl = `${domain}${image}`;
+            
                     return {
                         mapId: param.mapId,
                         title: mapInfo.title,
                         description: mapInfo.description,
-                        image: mapInfo.thumbnail,
+                        image: imageUrl,
                     }
     
                 } catch(e) {
