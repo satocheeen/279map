@@ -15,15 +15,17 @@ export {
 export * from './components';
 export * from './types/types';
 export * from './api';
-export {
+export type {
     DataId,
-    MapKind,
     IconKey,
     IconDefine,
-    FeatureType,
-    DatasourceLocationKindType,
     ContentFieldDefine,
     ContentValue,
     ContentValueInput
+} from './types-common/common-types';
+export {
+    MapKind,
+    FeatureType,
+    DatasourceLocationKindType,
 } from './types-common/common-types';
 export type { ItemsByDatasourceMap } from './store/item/index';
