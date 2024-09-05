@@ -18,7 +18,7 @@ import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { ItemGeoInfo, SystemIconDefine } from '../../../../entry';
 import useIcon from '../../../../store/icon/useIcon';
 import Button from '../../../common/button/Button';
-import { currentMapIconDefineAtom } from '../../../../store/icon';
+import { currentDefaultIconAtom, currentMapIconDefineAtom } from '../../../../store/icon';
 
 type Props = {
     dataSourceId: string;   // 作図対象のデータソース
@@ -51,7 +51,7 @@ export default function DrawPointController(props: Props) {
 
     const [ mapKind ] = useAtom(currentMapKindAtom);
     const searchAddressRef = useRef<SearchAddressHandler>(null);
-    const drawingLayer = useRef<VectorLayer<VectorSource>>();
+    const drawingLayer = useRef<VectorLayer<VectorSource>|null>(null);
     const drawingSource = useRef<VectorSource|null>(null);
 
     const drawReset = useCallback(() => {
@@ -76,9 +76,11 @@ export default function DrawPointController(props: Props) {
             // UnMount時
             if (draw.current) {
                 map.removeInteraction(draw.current);
+                draw.current = null;
             }
             if (drawingLayer.current) {
                 map.removeDrawingLayer(drawingLayer.current);
+                drawingLayer.current = null;
             }
         }
     }, [map]);
@@ -98,7 +100,7 @@ export default function DrawPointController(props: Props) {
      * Drawing開始時の処理
      */
     const startDrawing = useCallback(() => {
-        if (!map) {
+        if (!map || !drawingLayer.current) {
             return;
         }
         drawReset();
@@ -107,6 +109,10 @@ export default function DrawPointController(props: Props) {
         drawingLayer.current?.setStyle(style);
         drawingFeature.current = undefined;
         map.createDrawingLayer(LayerType.Point, style);
+        if (draw.current) {
+            map.removeInteraction(draw.current);
+            draw.current = null;
+        }
         draw.current = new Draw({
             source: drawingSource.current as VectorSource,
             type,
@@ -184,26 +190,33 @@ export default function DrawPointController(props: Props) {
 
     const cancel = useCallback(() => {
         if (stage === Stage.DRAWING) {
+            drawReset();
             props.onCancel();
+            return;
         }
         onConfirmCancel();
-    }, [stage, onConfirmCancel, props]);
+    }, [drawReset, stage, onConfirmCancel, props]);
 
     const [ icons ] = useAtom(currentMapIconDefineAtom);
+    const [ currentDefaultIcon ] = useAtom(currentDefaultIconAtom);
     const selectIcon = useCallback(async() => {
-        if (!props.iconFunction) return false;
+        if (!props.iconFunction) {
+            drawingIconRef.current = currentDefaultIcon;
+            return true;
+        }
         const result = await props.iconFunction(icons);
         if (result === 'cancel') return false;
 
         const icon = getIconDefine(result);
         drawingIconRef.current = icon;
         return true;
-    }, [getIconDefine, props, icons]);
+    }, [getIconDefine, props, icons, currentDefaultIcon]);
 
     const handleChangeIconBtnClicked = useCallback(async() => {
         const changed = await selectIcon();
-        if (changed)
+        if (changed) {
             startDrawing();
+        }
 
     }, [selectIcon, startDrawing])
 

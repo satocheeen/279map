@@ -15,12 +15,16 @@ const placeholder = `[{
     "geoProperties": {}
 }]`
 export default function OverrideItemsDriver(props: Props) {
+    const [ datasourceId, setDatasourceId ] = useState('');
     const { setOverrideItems, getMap, addConsole } = useContext(DriverContext);
 
     const handleDrawTemporaryFeature = useCallback(async() => {
-        const result = await getMap()?.drawTemporaryFeature(FeatureType.STRUCTURE);
+        const result = await getMap()?.drawTemporaryFeature({
+            datasourceId,
+            featureType: FeatureType.STRUCTURE,
+        });
         addConsole('drawTemporaryFeature', result);
-    }, [getMap, addConsole])
+    }, [getMap, addConsole, datasourceId])
 
     const handleChangeOverrideItemsText = useCallback((text: string) => {
         try {
@@ -34,6 +38,10 @@ export default function OverrideItemsDriver(props: Props) {
     return (
         <div className={mystyles.Container}>
             <div className={styles.PropName}>一時アイテム関連</div>
+            <label>
+                datasourceId
+                <input type='text' value={datasourceId} onChange={(evt)=>setDatasourceId(evt.target.value)} />
+            </label>
             <button onClick={handleDrawTemporaryFeature}>drawTemporaryFeature</button>
             <label>
                 OverrideItems
