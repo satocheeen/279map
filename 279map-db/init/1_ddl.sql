@@ -66,7 +66,7 @@ CREATE TABLE `original_icons` (
 -- 279map_db.datas definition
 
 CREATE TABLE `datas` (
-  `data_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `data_id` varchar(50) NOT NULL,
   `data_source_id` varchar(100) DEFAULT NULL,
   `original_id` varchar(100) NOT NULL COMMENT '出典元データのID。ODBAで登録・更新を行う際に参照する用途。',
   `last_edited_time` varchar(100) NOT NULL,
@@ -80,7 +80,7 @@ CREATE TABLE `datas` (
 -- 279map_db.contents definition
 
 CREATE TABLE `contents` (
-  `data_id` int(10) unsigned NOT NULL,
+  `data_id` varchar(50) NOT NULL,
   `contents` json DEFAULT NULL,
   `category` json DEFAULT NULL,
   `date` datetime DEFAULT NULL,
@@ -92,7 +92,7 @@ CREATE TABLE `contents` (
 -- 279map_db.geometry_items definition
 
 CREATE TABLE `geometry_items` (
-  `data_id` int(10) unsigned NOT NULL,
+  `data_id` varchar(50) NOT NULL,
   `geometry_item_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `min_zoom` float NOT NULL,
   `max_zoom` float NOT NULL,
@@ -109,7 +109,7 @@ CREATE TABLE `geometry_items` (
 
 CREATE TABLE `images` (
   `image_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `data_id` int(10) unsigned NOT NULL,
+  `data_id` varchar(50) NOT NULL,
   `thumbnail` mediumtext NOT NULL,
   `medium` mediumtext NOT NULL,
   `field_key` varchar(100) NOT NULL COMMENT '対応するコンテンツFieldのキー',
@@ -122,8 +122,8 @@ CREATE TABLE `images` (
 -- 279map_db.data_link definition
 
 CREATE TABLE `data_link` (
-  `from_data_id` int(10) unsigned NOT NULL,
-  `to_data_id` int(10) unsigned NOT NULL,
+  `from_data_id` varchar(50) NOT NULL,
+  `to_data_id` varchar(50) NOT NULL,
   `last_edited_time` varchar(100) NOT NULL,
   PRIMARY KEY (`from_data_id`,`to_data_id`),
   KEY `data_link_FK_1` (`to_data_id`),
