@@ -1,5 +1,5 @@
 import { MapPageOptions } from '../graphql/__generated__/types';
-import { ContentDatasourceConfig, MapKind, ContentFieldDefine, DatasourceLocationKindType, LocationFieldDefine, IconKey, ContentValueMapInput } from '../types-common/common-types';
+import { ContentDatasourceConfig, MapKind, ContentFieldDefine, DatasourceLocationKindType, LocationFieldDefine, IconKey, ContentValueMapInput, DataId } from '../types-common/common-types';
 
 export enum PublicRange {
     Public = 'Public',
@@ -95,7 +95,7 @@ export type MapDataSourceLinkConfig = {
 }
 
 export type DatasTable = {
-    data_id: number;
+    data_id: DataId;
     data_source_id: string;
     original_id: string;
     last_edited_time: string;
@@ -103,7 +103,7 @@ export type DatasTable = {
 
 export type GeometryItemsTable = {
     geometry_item_id: number;
-    data_id: number;
+    data_id: DataId;
     min_zoom: number;
     max_zoom: number;
     feature: any;   // Geometry
@@ -112,7 +112,7 @@ export type GeometryItemsTable = {
 }
 
 export type ContentsTable = {
-    data_id: number;
+    data_id: DataId;
     contents?: ContentValueMapInput;
     category?: string[];
     date?: string;
@@ -124,15 +124,15 @@ export type ContentsTableForRegist = Omit<ContentsTable, 'contents' | 'category'
 }
 export type ImagesTable = {
     image_id: number;
-    data_id: number;
+    data_id: DataId;
     field_key: string;
     thumbnail: string;
     medium: string;
 }
 
 export type DataLinkTable = {
-    from_data_id: number;
-    to_data_id: number;
+    from_data_id: DataId;
+    to_data_id: DataId;
     last_edited_time: string;
 }
 
@@ -146,8 +146,8 @@ export type OriginalIconsTable = {
 }
 
 export type ContentBelongMapView = {
-    content_id: number;
-    item_id: number;
+    content_id: DataId;
+    item_id: DataId;
     deep: number;
     item_datasource_id: string;
     map_kind: MapKind;

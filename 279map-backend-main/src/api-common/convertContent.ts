@@ -208,7 +208,7 @@ async function checkUsingAnotherMap(con: PoolConnection, contentId: DataId, mapI
  * @param dataId
  * @param imageField 
  */
-async function getImageIdList(con: PoolConnection, dataId: DataId, imageField: ContentFieldDefine): Promise<DataId[]> {
+async function getImageIdList(con: PoolConnection, dataId: DataId, imageField: ContentFieldDefine): Promise<number[]> {
     try {
         const imageQuery = 'select * from images where data_id = ? and field_key = ?';
         const [rows] = await con.execute(imageQuery, [dataId, imageField.key]);

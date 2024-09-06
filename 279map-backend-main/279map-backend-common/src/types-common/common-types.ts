@@ -5,11 +5,7 @@
  */
 
 
-// export type DataId = {
-//     id: string;
-//     dataSourceId: string;
-// }
-export type DataId = number;
+export type DataId = string;
 
 export enum MapKind {
     Real = 'Real',
@@ -167,7 +163,7 @@ export type ContentValue = {
     value: string[];
 } | {
     type: 'image';
-    value: DataId[];
+    value: number[];
 } | {
     type: 'link';
     value: {
