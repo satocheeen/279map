@@ -17,7 +17,6 @@ import BaseEvent from 'ol/events/Event';
 import * as MapUtility from '../../util/MapUtility';
 import { FeatureProperties, ItemInfo, TsunaguMapHandler } from '../../types/types';
 import { Pixel } from 'ol/pixel';
-import { convertDataIdFromFeatureId, getMapKey } from '../../util/dataUtility';
 import { FitOptions } from 'ol/View';
 import { Coordinate } from 'ol/coordinate';
 import { GetGeocoderFeatureDocument, ItemDatasourceInfo } from '../../graphql/generated/graphql';
@@ -336,7 +335,7 @@ export class OlMapWrapper {
 
     _createFeatureGeometryFromItemDefine(def: ItemInfo): Feature<Geometry> | undefined {
         const feature = MapUtility.createFeatureByGeoJson(def.geometry, def.geoProperties);
-        feature.setId(getMapKey(def.id));
+        feature.setId(def.id);
 
         if (def.geoProperties?.featureType === FeatureType.AREA && ('geocoderId' in def.geoProperties && def.geoProperties.geocoderId)) {
             // Geocoderの図形の場合は、Geocoder図形呼び出して後から差し替える
@@ -394,7 +393,7 @@ export class OlMapWrapper {
                 continue;
             }
 
-            const existFeature = source.getFeatureById(getMapKey(def.id));
+            const existFeature = source.getFeatureById(def.id);
             if (existFeature) {
                 existFeature.setGeometry(geom);
                 const properties = Object.assign({}, feature.getProperties(), def.geoProperties ? def.geoProperties : {}, {
@@ -428,7 +427,7 @@ export class OlMapWrapper {
             console.warn('対象sourceなし');
             return;
         }
-        const feature = source.getFeatureById(getMapKey(item.id));
+        const feature = source.getFeatureById(item.id);
         if (!feature) {
             console.warn('削除対象が該当sourceに存在しない', item.id);
             return;
@@ -707,14 +706,14 @@ export class OlMapWrapper {
             if (layerInfo.layerType === LayerType.Point) {
                 const features = feature.get('features') as Feature[];
                 features.forEach(f => {
-                    const dataId = convertDataIdFromFeatureId(f.getId() as string);
+                    const dataId = f.getId() as DataId;
                     points.push({
                         id: dataId,
                         feature: f,
                     });
                 });
             } else {
-                const dataId = convertDataIdFromFeatureId(feature.getId());
+                const dataId = feature.getId() as DataId;
                 points.push({
                     id: dataId,
                     feature: feature as Feature<Geometry>,

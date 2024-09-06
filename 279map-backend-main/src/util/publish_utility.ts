@@ -1,9 +1,8 @@
 import { ConnectionPool } from "..";
-import { DataId } from "../../279map-backend-common/dist";
 import { DatasTable } from "../../279map-backend-common/src";
 import MyPubSub from "../graphql/MyPubSub";
 import { Operation, Target } from "../graphql/__generated__/types";
-import { DatasourceLocationKindType, MapKind } from "../types-common/common-types";
+import { DataId, DatasourceLocationKindType, MapKind } from "../types-common/common-types";
 
 export async function publishData(pubsub: MyPubSub, operation: 'insert' | 'update',  targets: DataId[]) {
     // 変更対象を取得する

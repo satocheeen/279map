@@ -8,26 +8,25 @@ type Props = {
 
 export default function FocusItemDriver(props: Props) {
     const { getMap } = useContext(DriverContext);
-    const [ idText, setIdText ] = useState('');
+    const [ id, setId ] = useState('');
     const [ zoom, setZoom ] = useState(false);
     const [ select, setSelect ] = useState(false);
 
     const handleFocusItem = useCallback(() => {
-        const itemId = JSON.parse(idText);
         getMap()?.focusItem({
-            itemId,
+            itemId: id,
             zoom,
             select,
         })
-    }, [idText, getMap, select, zoom]);
+    }, [id, getMap, select, zoom]);
 
 
     return (
         <div className={mystyles.Container}>
             <div className={styles.PropName}>Focus Item</div>
             <label>
-                ID(JSON)<br/>
-                <textarea value={idText} onChange={evt=>setIdText(evt.target.value)} />
+                ID<br/>
+                <input type='text' value={id} onChange={evt=>setId(evt.target.value)} />
             </label>
             <div>
                 <label>

@@ -1,12 +1,11 @@
 import { FeatureLike } from 'ol/Feature';
 import { useCallback, useContext } from 'react';
 import { useFilter } from '../../store/filter/useFilter';
-import { convertDataIdFromFeatureId, isEqualId } from '../../util/dataUtility';
 import { selectItemIdAtom } from '../../store/operation';
 import { useAtom } from 'jotai';
 import { itemProcessesAtom } from '../../store/item';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
-import { FeatureType, GeoProperties } from '../../types-common/common-types';
+import { DataId, FeatureType, GeoProperties } from '../../types-common/common-types';
 import { FeatureColor } from './types';
 
 export enum Opacity {
@@ -26,7 +25,7 @@ export default function useFilterStatus() {
      * 指定の地物のフィルタ状態を返す
      */
      const getFilterStatus = useCallback((feature: FeatureLike) => {
-        const itemId = convertDataIdFromFeatureId(feature.getId() as string);
+        const itemId = feature.getId() as DataId;
         return getFilterStatusOfTheItem(itemId);
     }, [getFilterStatusOfTheItem]);
 
@@ -35,16 +34,16 @@ export default function useFilterStatus() {
      * @return 強調表示色。強調しない場合は、undefined。
      */
     const getForceColor = useCallback((feature: FeatureLike): FeatureColor | undefined => {
-        const id = convertDataIdFromFeatureId(feature.getId() as string);
+        const id = feature.getId() as DataId;
 
         // エラー状態のものはエラー色表示
         if (itemProcesses.find(process => {
             if (process.status === 'registing') {
-                return isEqualId(process.item.id, id)
+                return process.item.id === id;
             } else if (process.status === 'updating') {
-                return process.items.some(item => isEqualId(item.id, id));
+                return process.items.some(item => item.id === id);
             } else if (process.status === 'deleting') {
-                return isEqualId(process.itemId, id)
+                return process.itemId === id;
             } else {
                 return false;
             }
@@ -53,7 +52,7 @@ export default function useFilterStatus() {
         }
 
         // 選択されているものは強調表示
-        if (selectedItemId && isEqualId(selectedItemId, id)) {
+        if (selectedItemId && (selectedItemId === id)) {
             return FeatureColor.Selected;
         }
 
@@ -77,12 +76,12 @@ export default function useFilterStatus() {
 
     const { filterUnmatchView } = useContext(OwnerContext);
     const getOpacity = useCallback((feature: FeatureLike): Opacity => {
-        const id = convertDataIdFromFeatureId(feature.getId() as string);
+        const id = feature.getId() as DataId;
         if (itemProcesses.some(process => {
             if (process.status === 'registing') {
-                return isEqualId(process.item.id, id)
+                return process.item.id === id;
             } else if (process.status === 'deleting') {
-                return isEqualId(process.itemId, id)
+                return process.itemId === id;
             }            
         })) {
             // 新規登録中アイテム or 削除処理中アイテム（エラー時）

@@ -27,7 +27,7 @@ export const overrideItemsAtom = atom<OverrideItem[]>([]);
 
 // 登録・更新・削除処理中のアイテム
 export type ItemProcessType = {
-    processId: DataId;     // 処理ID
+    processId: number;     // 処理ID
     error?: boolean;    // 処理失敗時にtrue
 } & ({
     status: 'registing';

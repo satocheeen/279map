@@ -12,7 +12,6 @@ import { TranslateEvent } from 'ol/interaction/Translate';
 import "react-toggle/style.css";
 import Toggle from 'react-toggle';
 import usePointStyle from '../../usePointStyle';
-import { convertDataIdFromFeatureId, isEqualId } from '../../../../util/dataUtility';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { useMap } from '../../useMap';
 import { FeatureLike } from 'ol/Feature';
@@ -21,7 +20,7 @@ import useTopographyStyle from '../../useTopographyStyle';
 import { topographySelectStyleFunction } from '../utility';
 import { LineString, Polygon } from 'ol/geom';
 import { useAtom } from 'jotai';
-import { FeatureType, GeoProperties, MapKind } from '../../../../types-common/common-types';
+import { DataId, FeatureType, GeoProperties, MapKind } from '../../../../types-common/common-types';
 import useItemProcess, { UpdateItemParam } from '../../../../store/item/useItemProcess';
 import { currentMapKindAtom } from '../../../../store/session';
 
@@ -112,10 +111,10 @@ export default function MoveItemController(props: Props) {
                     geometry = mfGeoJson.geometry;
                 }
 
-                const id = convertDataIdFromFeatureId(feature.getId() as string);
+                const id = feature.getId() as DataId;
 
                 // 同じアイテムが存在する場合（移動操作を複数回行った場合）は、上書き
-                const index = targets.findIndex(t => isEqualId(t.id, id));
+                const index = targets.findIndex(t => t.id === id);
                 if (index === -1) {
                     targets.push({
                         id,

@@ -1,7 +1,6 @@
 import { Overlay } from 'ol';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './LandNameOverlay.module.scss';
-import { getMapKey } from '../../util/dataUtility';
 import { useMap } from './useMap';
 import { mapModeAtom, mapViewAtom } from '../../store/operation';
 import { allItemsAtom } from '../../store/item';
@@ -64,7 +63,7 @@ export default function LandNameOverlay() {
             {
                 currentAreaNamedEarth.map((item) => {
                     return (
-                        <div key={getMapKey(item.id)}>
+                        <div key={item.id}>
                             <LandName item={item} />
                         </div>
                     )

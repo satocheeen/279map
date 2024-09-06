@@ -3,7 +3,6 @@ import { Overlay } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import styles from './ClusterMenu.module.scss';
 import useIcon from '../../store/icon/useIcon';
-import { getMapKey } from '../../util/dataUtility';
 import { useMap } from '../map/useMap';
 import { BsImage } from 'react-icons/bs';
 import { useItem } from '../../store/item/useItem';
@@ -74,7 +73,7 @@ export default function ClusterMenu(props: Props) {
                 <div className={styles.Container} style={style}>
                     {props.itemIds.map(id => {
                         return (
-                            <MenuItem key={getMapKey(id)} id={id} 
+                            <MenuItem key={id} id={id} 
                                 onClick={() => onItemClick(id)}
                                 onClose={props.onClose} />
                         );
