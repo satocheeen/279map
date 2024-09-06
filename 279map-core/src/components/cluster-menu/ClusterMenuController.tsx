@@ -4,7 +4,6 @@ import React, { useRef, useEffect, useState, useCallback, useContext, useImperat
 import ClusterMenu from './ClusterMenu';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import { usePrevious } from '../../util/usePrevious';
-import { isEqualId } from '../../util/dataUtility';
 import { useMap } from '../map/useMap';
 import { mapModeAtom, mapViewAtom, selectItemIdAtom } from '../../store/operation';
 import { filteredItemIdListAtom } from '../../store/filter';
@@ -110,7 +109,7 @@ function ClusterMenuController(props: Props, ref: React.ForwardedRef<ClusterMenu
         pointIds = pointIds.filter(id => {
             return !itemProcessesRef.current.some(process => {
                 if (process.status === 'registing') {
-                    return isEqualId(process.item.id, id.id);
+                    return process.item.id === id.id;
                 }
             });
         })
@@ -119,7 +118,7 @@ function ClusterMenuController(props: Props, ref: React.ForwardedRef<ClusterMenu
         if (filteredItemIdListRef.current) {
             pointIds = pointIds.filter(point => {
                 return filteredItemIdListRef.current?.some(itemId => {
-                    return isEqualId(point.id, itemId);
+                    return point.id === itemId;
                 });
             });
         }
@@ -183,7 +182,7 @@ function ClusterMenuController(props: Props, ref: React.ForwardedRef<ClusterMenu
      * 重畳選択メニュー選択時のコールバック
      */
     const onClusterMenuSelected = useCallback((id: DataId) => {
-        const target = clusterMenuInfo?.targets.find(target => isEqualId(target, id));
+        const target = clusterMenuInfo?.targets.find(target => target === id);
         if (target) {
             props.onSelect(target);
         }

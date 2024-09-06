@@ -12,10 +12,9 @@ import { containFeatureInLayer } from '../../../../util/MapUtility';
 import { useMap } from '../../useMap';
 import { currentMapKindAtom } from '../../../../store/session';
 import { useAtom } from 'jotai';
-import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useItems } from '../../../../store/item/useItems';
 import { topographySelectStyleFunction } from '../utility';
-import { MapKind, FeatureType, GeoProperties } from "../../../../types-common/common-types";
+import { MapKind, FeatureType, GeoProperties, DataId } from "../../../../types-common/common-types";
 import { Style } from 'ol/style';
 
 type Props = {
@@ -180,8 +179,7 @@ export default function SelectFeature(props: Props) {
             console.warn('選択アイテムなし');
             return;
         }
-        const idStr = selectedFeature.getId() as string;
-        const id = convertDataIdFromFeatureId(idStr);
+        const id = selectedFeature.getId() as DataId;
         const item = getItem(id);
         if (item?.temporary) {
             setErrorMessage('現在登録処理中のアイテムのため編集できません。少し待ってから選択してください。');

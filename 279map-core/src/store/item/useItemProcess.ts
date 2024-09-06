@@ -5,7 +5,6 @@ import { ItemInfo, TsunaguMapHandler } from "../../types/types";
 import { clientAtom } from "jotai-urql";
 import { RegistDataDocument, RemoveDataDocument, UpdateDataDocument } from "../../graphql/generated/graphql";
 import { DataId } from "../../entry";
-import { isEqualId } from "../../util/dataUtility";
 
 /**
  * 登録・更新・削除処理を担うカスタムフック
@@ -36,7 +35,7 @@ export default function useItemProcess() {
      * プロセス削除
      */
     const _removeItemProcess = useAtomCallback(
-        useCallback((get, set, processId: DataId) => {
+        useCallback((get, set, processId: number) => {
             set(itemProcessesAtom, (cur) => {
                 return cur.filter(cur => cur.processId !== processId);
             })
@@ -47,12 +46,12 @@ export default function useItemProcess() {
      * 指定のプロセスの指定の仮アイテムを削除する
      */
     const _removeTemporaryItems = useAtomCallback(
-        useCallback((get, set, processId: DataId, targets: DataId[]) => {
+        useCallback((get, set, processId: number, targets: DataId[]) => {
             set(itemProcessesAtom, (cur) => {
                 return cur.map(cur => {
                     if (cur.processId !== processId) return cur;
                     if (cur.status !== 'updating') return cur;
-                    const newItems = cur.items.filter(item => !targets.some(target => isEqualId(target, item.id)));
+                    const newItems = cur.items.filter(item => !targets.some(target => target === item.id));
                     return Object.assign({}, cur, { items: newItems });
                 });
             })
@@ -64,7 +63,7 @@ export default function useItemProcess() {
      * 指定のプロセスについてエラーフラグを更新する
      */
     const _setErrorWithTemporaryItem = useAtomCallback(
-        useCallback((get, set, processId: DataId, errorFlag: boolean) => {
+        useCallback((get, set, processId: number, errorFlag: boolean) => {
             set(itemProcessesAtom, (cur) => {
                 return cur.map(item => {
                     if (item.processId === processId) {
@@ -80,7 +79,7 @@ export default function useItemProcess() {
     )
 
     const _registDataSub = useAtomCallback(
-        useCallback(async(get, set, data: RegistDataParam, processId: DataId): Promise<DataId> => {
+        useCallback(async(get, set, data: RegistDataParam, processId: number): Promise<DataId> => {
             const gqlClient = get(clientAtom);
             let retryFlag = false;
             let dataId: DataId | undefined;
@@ -139,7 +138,7 @@ export default function useItemProcess() {
                 _addItemProcess({
                     processId,
                     item: {
-                        id: processId,
+                        id: processId + '',
                         geometry: data.item.geo.geometry,
                         geoProperties: data.item.geo.geoProperties,
                     },
@@ -250,7 +249,7 @@ export default function useItemProcess() {
      * @param retry リトライの場合、true。キャンセルの場合、false。
      */
     const continueProcess = useAtomCallback(
-        useCallback(async(get, set, processId: DataId, retry: boolean) => {
+        useCallback(async(get, set, processId: number, retry: boolean) => {
             if (!resolveMap[processId]) {
                 console.warn('not exist the process', processId);
                 return;
@@ -268,8 +267,8 @@ export default function useItemProcess() {
 }
 
 // リトライの場合、true。キャンセルの場合、false。
-const resolveMap = {} as {[processId: DataId]: (value: boolean) => void};
-async function waitFor(processId: DataId) {
+const resolveMap = {} as {[processId: number]: (value: boolean) => void};
+async function waitFor(processId: number) {
     return new Promise<boolean>((resolve) => {
         resolveMap[processId] = resolve;
     })

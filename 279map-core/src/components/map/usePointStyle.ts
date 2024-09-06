@@ -4,7 +4,6 @@ import { Fill, Icon, Style, Text } from 'ol/style';
 import { getOpacityValue, getStructureScale } from "../../util/MapUtility";
 import useFilterStatus, { Opacity } from "./useFilterStatus";
 import { Geometry } from "ol/geom";
-import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
 import { useMapOptions } from "../../util/useMapOptions";
 import { selectItemIdAtom } from "../../store/operation";
 import useIcon from "../../store/icon/useIcon";
@@ -170,8 +169,8 @@ export default function usePointStyle() {
         if (filteredItemIdList && features.length > 1) {
             const filteredFeature = features.filter(feature => {
                 const exist = filteredItemIdList.some(itemId => {
-                    const id = convertDataIdFromFeatureId(feature.getId() as string);
-                    return isEqualId(id, itemId);
+                    const id = feature.getId() as DataId;
+                    return id === itemId;
                 });
                 return exist;
             });
@@ -181,8 +180,8 @@ export default function usePointStyle() {
         // 優先1. 選択状態のもの
         if (selectedItemId) {
             const selected = features.find(f => {
-                const id = convertDataIdFromFeatureId(f.getId() as string);
-                return isEqualId(selectedItemId, id);
+                const id = f.getId() as DataId;
+                return selectedItemId === id;
             });
             if (selected) {
                 return {
@@ -197,8 +196,8 @@ export default function usePointStyle() {
             let mainFeature;
             const filteredFeature = features.filter(feature => {
                 const exist = filteredItemIdList.some(itemId => {
-                    const id = convertDataIdFromFeatureId(feature.getId() as string);
-                    return isEqualId(id, itemId);
+                    const id = feature.getId() as DataId;
+                    return id === itemId;
                 });
                 return exist;
             });
@@ -234,7 +233,7 @@ export default function usePointStyle() {
                     return pinIconDefine;
                 } else {
                     let icon = mainFeature.getProperties().icon as IconKey | undefined;
-                    const itemId = convertDataIdFromFeatureId(mainFeature.getId() as string);
+                    const itemId = mainFeature.getId() as DataId;
                     const item = allItems.find(i => i.id === itemId);
                     if (!icon && item) {
                         // icon未指定の場合はレイヤデフォルトアイコンを設定

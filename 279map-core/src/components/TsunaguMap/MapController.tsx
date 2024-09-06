@@ -7,7 +7,6 @@ import { useMap } from '../map/useMap';
 import { OwnerContext } from './TsunaguMap';
 import { usePrevious } from '../../util/usePrevious';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { isEqualId } from '../../util/dataUtility';
 import usePointStyle from '../map/usePointStyle';
 import useTopographyStyleWithState from '../map/useTopographyStyleWithState';
 import useTrackStyle from '../map/useTrackStyle';
@@ -199,7 +198,7 @@ function useItemUpdater() {
         // 追加、更新
         // TODO: OlMapWrapperに追加有無判断は任せる
         const updateItems = geoJsonItems.filter(item => {
-            const before = prevGeoJsonItemsRef.current.find(pre => isEqualId(pre.id, item.id));
+            const before = prevGeoJsonItemsRef.current.find(pre => pre.id === item.id);
             if (!before) return true;   // 追加Item
             return JSON.stringify(before) !== JSON.stringify(item);   // 更新Item
         })
@@ -208,7 +207,7 @@ function useItemUpdater() {
         // 削除アイテム＝prevGeoJsonItemに存在して、geoJsonItemsに存在しないもの
         const currentIds = geoJsonItems.map(item => item.id);
         const deleteItems = prevGeoJsonItemsRef.current.filter(pre => {
-            return !currentIds.some(current => isEqualId(current, pre.id));
+            return !currentIds.some(current => current === pre.id);
         });
         deleteItems.forEach(item => {
             map.removeFeature(item);

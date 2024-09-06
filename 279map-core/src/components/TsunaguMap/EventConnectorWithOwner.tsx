@@ -206,7 +206,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                             if (Array.isArray(value)) {
                                 acc[key] = {
                                     type: field.type,
-                                    value : value as DataId[],
+                                    value : value as number[],
                                 }
                             }
                             break;

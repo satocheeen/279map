@@ -1,5 +1,4 @@
 import { useCallback } from "react";
-import { isEqualId } from "../../util/dataUtility";
 import { filteredDatasAtom, filteredItemIdListAtom } from ".";
 import { useAtomCallback } from "jotai/utils";
 import { DataId } from "../../types-common/common-types";

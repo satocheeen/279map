@@ -3,7 +3,6 @@ import { GeolibInputCoordinates } from 'geolib/es/types';
 import { LayerType } from "../TsunaguMap/VectorLayerMap";
 import VectorSource from "ol/source/Vector";
 import { OlMapType } from "../TsunaguMap/OlMapWrapper";
-import { convertDataIdFromFeatureId, isEqualId } from "../../util/dataUtility";
 import { getFeatureCenter } from "../../util/MapUtility";
 import { Extent } from "ol/extent";
 import { DataId } from '../../types-common/common-types';
@@ -80,17 +79,17 @@ export default class PopupContainerCalculator {
     
                 // 対象のアイテムに絞る
                 const itemIds = features.map((f): DataId => {
-                    const id = convertDataIdFromFeatureId(f.getId() as string);
+                    const id = f.getId() as DataId;
                     return id;
                 }).filter(id => {
-                    return this._targetItemList.some(item => isEqualId(item.id, id));
+                    return this._targetItemList.some(item => item.id === id);
                 });
                 if (itemIds.length === 0) {
                     return;
                 }
 
                 const hasImage = itemIds.some(itemId => {
-                    const target = this._targetItemList.find(item => isEqualId(itemId, item.id));
+                    const target = this._targetItemList.find(item => itemId === item.id);
                     return (target?.content?.hasImage || target?.content?.linkedContents.some(c => c.hasImage)) ?? false;
                 });
     
@@ -117,12 +116,12 @@ export default class PopupContainerCalculator {
             source.getFeaturesInExtent(this._extent).forEach(feature => {
 
                 // コンテンツを持つアイテムに絞る
-                const id = convertDataIdFromFeatureId(feature.getId() as string);
-                if (!this._targetItemList.some(item => isEqualId(item.id, id))) {
+                const id = feature.getId() as DataId;
+                if (!this._targetItemList.some(item => item.id === id)) {
                     return;
                 }
 
-                const item = this._targetItemList.find(item => isEqualId(id, item.id));
+                const item = this._targetItemList.find(item => id === item.id);
                 const hasImage = (item?.content?.hasImage || item?.content?.linkedContents.some(c => c.hasImage)) ?? false;
 
                 popupInfoList.push({

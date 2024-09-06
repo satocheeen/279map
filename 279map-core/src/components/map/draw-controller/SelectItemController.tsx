@@ -3,7 +3,6 @@ import { DataId, FeatureType, MapMode, TsunaguMapHandler } from '../../../entry'
 import LoadingOverlay from '../../common/spinner/LoadingOverlay';
 import SelectFeature from './common/SelectFeature';
 import { Feature } from 'ol';
-import { convertDataIdFromFeatureId } from '../../../util/dataUtility';
 import { mapModeAtom } from '../../../store/operation';
 import { useAtom } from 'jotai';
 
@@ -44,8 +43,7 @@ function SelectItemController({}: Props, ref: React.ForwardedRef<SelectItemContr
     const handleSelect = useCallback((feature: Feature) => {
         setShow(false);
         setMapMode(MapMode.Normal);
-        const idStr = feature.getId() as string;
-        const id = convertDataIdFromFeatureId(idStr);
+        const id = feature.getId() as DataId;
         if (resolveCallback) {
             resolveCallback(id);
         }

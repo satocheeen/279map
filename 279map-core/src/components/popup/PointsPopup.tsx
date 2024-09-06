@@ -1,17 +1,16 @@
 import React, { useCallback, useMemo, useState, useEffect, useContext, CSSProperties } from "react";
 import styles from './PointsPopup.module.scss';
 import { ItemInfo, MapMode } from "../../types/types";
-import { isEqualId } from "../../util/dataUtility";
 import MyThumbnail from "../common/image/MyThumbnail";
 import { BsThreeDots } from 'react-icons/bs';
 import { useMapOptions } from "../../util/useMapOptions";
 import { useMap } from "../map/useMap";
-import { selectItemIdAtom, doShowClusterMenuAtom, mapModeAtom, mapViewAtom } from "../../store/operation";
+import { selectItemIdAtom, doShowClusterMenuAtom, mapModeAtom } from "../../store/operation";
 import { filteredDatasAtom, filteredItemIdListAtom } from "../../store/filter";
 import { useItems } from "../../store/item/useItems";
 import { useAtom } from "jotai";
 import { useAtomCallback } from 'jotai/utils';
-import { DataId, FeatureType, GeoProperties, IconKey } from "../../types-common/common-types";
+import { DataId, FeatureType, IconKey } from "../../types-common/common-types";
 import { OwnerContext } from "../TsunaguMap/TsunaguMap";
 
 type Props = {

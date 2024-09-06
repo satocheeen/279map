@@ -4,7 +4,6 @@ import Feature from "ol/Feature";
 import { Geometry } from "ol/geom";
 import { StyleFunction } from "ol/style/Style";
 import Layer from "ol/layer/Layer";
-import { getMapKey } from "../../util/dataUtility";
 import { DataId } from "../../types-common/common-types";
 
 export enum LayerType {
@@ -249,7 +248,6 @@ export class VectorLayerMap {
      * @returns 
      */
     getFeatureById(id: DataId) {
-        const idStr = getMapKey(id);
         let hit: Feature<Geometry> | undefined;
         this._layerMap.forEach((layer) => {
             let source = layer.layer.getSource();
@@ -257,7 +255,7 @@ export class VectorLayerMap {
                 source = (source as Cluster).getSource();
             }
             if (!source) return;
-            const feature = source.getFeatureById(idStr);
+            const feature = source.getFeatureById(id);
             if (feature) {
                 hit = feature;
             }

@@ -2,7 +2,6 @@ import { Overlay } from 'ol';
 import React, { useEffect, useRef, useMemo, useCallback, useState } from 'react';
 import PointsPopup from './PointsPopup';
 import { getCenter } from 'geolib';
-import { getMapKey, isEqualId } from '../../util/dataUtility';
 import PopupContainerCalculator, { PopupGroupWithPosition } from './PopupContainerCalculator';
 import { useMap } from '../map/useMap';
 import { useWatch } from '../../util/useWatch2';
@@ -18,7 +17,7 @@ function createKeyFromPopupInfo(param: PopupGroupWithPosition): string {
     if (!param) {
         return '';
     }
-    return param.itemIds.map(id => getMapKey(id)).join(',');
+    return param.itemIds.join(',');
 }
 export default function PopupContainer() {
     const elementRefMap = useRef<{ [key: string]: HTMLDivElement }>({});
@@ -56,7 +55,7 @@ export default function PopupContainer() {
         .filter(item => {
             // フィルタが掛かっている場合は条件外のものは除外する
             if (!filteredItemIdList) return true;
-            return filteredItemIdList.some(filteredItemId => isEqualId(filteredItemId, item.id));
+            return filteredItemIdList.some(filteredItemId => filteredItemId === item.id);
         });
         return list;
     }, [allItems, popupMode, visibleDataSourceIds, filteredItemIdList]);

@@ -10,7 +10,6 @@ import PromptMessageBox from '../PromptMessageBox';
 import SelectFeature from './SelectFeature';
 import RoadWidthSelecter from '../topography/RoadWidthSelecter';
 import { Geometry } from 'ol/geom';
-import { convertDataIdFromFeatureId } from '../../../../util/dataUtility';
 import { useMap } from '../../useMap';
 import { ConfirmBtnPattern, ConfirmResult } from '../../../common/confirm/types';
 import { DataId, FeatureType, GeoProperties, IconKey } from '../../../../types-common/common-types';
@@ -107,7 +106,7 @@ enum Stage {
                 props.onCancel();
                 return;
             }
-            const id = convertDataIdFromFeatureId(selectedFeature.current.getId() as string);
+            const id = selectedFeature.current.getId() as DataId;
             const item = getItem(id);
             if (!item) {
                 console.warn('illegal item', id);
@@ -177,7 +176,7 @@ enum Stage {
         // 更新
         const geoProperties = extractGeoProperty(feature.getProperties());
         const geoJson = geoProperties.featureType === FeatureType.ROAD ? geoProperties.lineJson : createGeoJson(feature);
-        const id = convertDataIdFromFeatureId(selectedFeature.current?.getId() as string);
+        const id = selectedFeature.current?.getId() as DataId;
         updateItems([
             {
                 id,
