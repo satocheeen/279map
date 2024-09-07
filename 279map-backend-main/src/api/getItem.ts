@@ -29,6 +29,7 @@ export async function getItem(id: DataId): Promise<ItemDefineWithoutContents|und
         inner join datas d on d.data_id = gi.data_id 
         inner join contents c on c.data_id = d.data_id 
         inner join data_source ds on ds.data_source_id = d.data_source_id 
+        where gi.data_id = ?
         `;
         const params = [id];
         const [rows] = await con.execute(sql, params);

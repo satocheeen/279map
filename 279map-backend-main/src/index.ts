@@ -51,9 +51,8 @@ import { publishData } from './util/publish_utility';
 import { getUnpointData } from './api/getUnpointData';
 import { convertBase64ToBinary } from './util/utility';
 import { CategoryChecker } from './memory/CategoryChecker';
-import { setupForCrawler } from './setupForCrawler';
 import sharp from 'sharp';
-import { DataId } from '../279map-backend-common/dist';
+import { getItemThumbnail } from './api/getItemThumbnail';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -365,10 +364,17 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     if (result.length === 0) {
                         throw new Error('id is not find');
                     }
+
+                    const protocol = ctx.request.headers['x-forwarded-proto'] || ctx.request.protocol;
+                    const host = ctx.request.headers['x-forwarded-host'] || ctx.request.get('host');
+                    const domain = `${protocol}://${host}/`;
+                    const imageUrl = `${domain}itemimage?mapid=${param.mapId}&id=${param.itemId}`;
+
                     return {
                         id: param.itemId,
                         mapKind: result[0].mapKind,
                         name: result[0].name,
+                        image: imageUrl,
                     }
 
                 } catch(e) {
@@ -1174,21 +1180,54 @@ apolloServer.start().then(() => {
     })
 
     /**
-     * SNS等のクローラー向けにメタ情報を生成して返す
+     * 地図アイテムのサムネイル画像取得
+     * @param 地図ID
      */
-    app.get('*', setupForCrawler);
+    app.get('/itemimage*', authManagementClient.checkJwt, async(req, res) => {
+        try {
+            // TODO: 認証情報チェック
+            const mapId = req.query['mapid'] as string;
+            const itemId = req.query['id'] as string;
+            console.log('debug', itemId);
+            if (!mapId || !itemId) {
+                throw new Error('mapId not found')
+            }
 
-    /**
-     * Frontend資源へプロキシ
-     */
-    if (process.env.FRONTEND_SERVICE_HOST && process.env.FRONTEND_SERVICE_PORT) {
-        const url = process.env.FRONTEND_SERVICE_HOST + ':' + process.env.FRONTEND_SERVICE_PORT;
-        app.use('*', proxy(url, {
-            proxyReqPathResolver: (req) => {
-                return req.originalUrl;
-            },
-        }));    
-    }
+            const image = await getItemThumbnail({
+                mapId,
+                itemId,
+            });
+            // const width = typeof req.query.w === 'string' ? parseInt(req.query.w) : undefined;
+            if (image) {
+                const { contentType, binary } = convertBase64ToBinary(image);
+
+                // // サイズ指定されている場合はリサイズ
+                // const binary = await async function() {
+                //     if (!width) return originalBinary;
+                //     const image = sharp(originalBinary);
+                //     const binary = await image.resize({
+                //         width,
+                //     }).toBuffer();
+                //     return binary;    
+                // }();
+
+                res.writeHead(200, {
+                  'Content-Type': contentType,
+                  'Content-Length': binary.length
+                });
+                res.write(binary); 
+                res.end();
+            } else {
+                res.send();
+                // res.redirect('/static/279map.png');
+            }
+
+        } catch(e) {
+            console.warn(e)
+            res.status(400).send('error');
+        }
+
+    })
 
     logger.info('starting internal server');
     /**
