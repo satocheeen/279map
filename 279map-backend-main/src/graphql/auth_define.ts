@@ -7,6 +7,7 @@ export const authDefine: AuthLvDefine = {
     config: Auth.None,
     getMapList: Auth.None,
     getMapMetaInfo: Auth.None,
+    getItemMetaInfo: Auth.None,
     
     connect: Auth.None,
     disconnect: Auth.None,

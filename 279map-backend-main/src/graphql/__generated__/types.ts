@@ -236,6 +236,17 @@ export enum ItemLabelMode {
   VirtualShow = 'virtualShow'
 }
 
+/** アイテムのメタ情報 */
+export type ItemMetaInfo = {
+  id: Scalars['DataId']['output'];
+  /** アイテムに紐づく画像 */
+  image?: Maybe<Scalars['String']['output']>;
+  /** アイテムが属する地図種別 */
+  mapKind: Scalars['MapKind']['output'];
+  /** アイテム名 */
+  name: Scalars['String']['output'];
+};
+
 export type MapDefine = {
   defaultMapKind: Scalars['MapKind']['output'];
   name: Scalars['String']['output'];
@@ -263,7 +274,7 @@ export type MapMetaInfo = {
   description?: Maybe<Scalars['String']['output']>;
   image?: Maybe<Scalars['String']['output']>;
   keyword?: Maybe<Scalars['String']['output']>;
-  mapId: Scalars['String']['output'];
+  mapId: Scalars['ID']['output'];
   title: Scalars['String']['output'];
 };
 
@@ -396,6 +407,8 @@ export type Query = {
   /** 指定の画像を返す */
   getImage: Scalars['String']['output'];
   getImageUrl: Scalars['String']['output'];
+  /** 指定の地図の指定のアイテムのメタ情報を返す。ユーザがアクセス不可能な地図については、エラー */
+  getItemMetaInfo: ItemMetaInfo;
   getItems: Array<ItemDefine>;
   getItemsById: Array<ItemDefine>;
   getLinkableContentsDatasources: Array<ContentsDatasource>;
@@ -450,6 +463,12 @@ export type QueryGetImageUrlArgs = {
 };
 
 
+export type QueryGetItemMetaInfoArgs = {
+  itemId: Scalars['DataId']['input'];
+  mapId: Scalars['ID']['input'];
+};
+
+
 export type QueryGetItemsArgs = {
   datasourceId: Scalars['String']['input'];
   excludeItemIds?: InputMaybe<Array<Scalars['DataId']['input']>>;
@@ -465,7 +484,7 @@ export type QueryGetItemsByIdArgs = {
 
 
 export type QueryGetMapMetaInfoArgs = {
-  mapId: Scalars['String']['input'];
+  mapId: Scalars['ID']['input'];
 };
 
 
@@ -742,6 +761,7 @@ export type ResolversTypes = {
   ItemDatasourceInfo: ResolverTypeWrapper<ItemDatasourceInfo>;
   ItemDefine: ResolverTypeWrapper<ItemDefine>;
   ItemLabelMode: ItemLabelMode;
+  ItemMetaInfo: ResolverTypeWrapper<ItemMetaInfo>;
   JSON: ResolverTypeWrapper<Scalars['JSON']['output']>;
   MapDefine: ResolverTypeWrapper<MapDefine>;
   MapInfo: ResolverTypeWrapper<MapInfo>;
@@ -804,6 +824,7 @@ export type ResolversParentTypes = {
   ItemDatasourceConfig: Scalars['ItemDatasourceConfig']['output'];
   ItemDatasourceInfo: ItemDatasourceInfo;
   ItemDefine: ItemDefine;
+  ItemMetaInfo: ItemMetaInfo;
   JSON: Scalars['JSON']['output'];
   MapDefine: MapDefine;
   MapInfo: MapInfo;
@@ -989,6 +1010,14 @@ export type ItemDefineResolvers<ContextType = any, ParentType extends ResolversP
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type ItemMetaInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemMetaInfo'] = ResolversParentTypes['ItemMetaInfo']> = {
+  id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
+  image?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  mapKind?: Resolver<ResolversTypes['MapKind'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export interface JsonScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['JSON'], any> {
   name: 'JSON';
 }
@@ -1026,7 +1055,7 @@ export type MapMetaInfoResolvers<ContextType = any, ParentType extends Resolvers
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   image?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   keyword?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  mapId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  mapId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -1071,6 +1100,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getGeocoderFeature?: Resolver<ResolversTypes['Geometry'], ParentType, ContextType, RequireFields<QueryGetGeocoderFeatureArgs, 'id'>>;
   getImage?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryGetImageArgs, 'imageId' | 'size'>>;
   getImageUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryGetImageUrlArgs, 'contentId'>>;
+  getItemMetaInfo?: Resolver<ResolversTypes['ItemMetaInfo'], ParentType, ContextType, RequireFields<QueryGetItemMetaInfoArgs, 'itemId' | 'mapId'>>;
   getItems?: Resolver<Array<ResolversTypes['ItemDefine']>, ParentType, ContextType, RequireFields<QueryGetItemsArgs, 'datasourceId' | 'wkt' | 'zoom'>>;
   getItemsById?: Resolver<Array<ResolversTypes['ItemDefine']>, ParentType, ContextType, RequireFields<QueryGetItemsByIdArgs, 'targets'>>;
   getLinkableContentsDatasources?: Resolver<Array<ResolversTypes['ContentsDatasource']>, ParentType, ContextType>;
@@ -1157,6 +1187,7 @@ export type Resolvers<ContextType = any> = {
   ItemDatasourceConfig?: GraphQLScalarType;
   ItemDatasourceInfo?: ItemDatasourceInfoResolvers<ContextType>;
   ItemDefine?: ItemDefineResolvers<ContextType>;
+  ItemMetaInfo?: ItemMetaInfoResolvers<ContextType>;
   JSON?: GraphQLScalarType;
   MapDefine?: MapDefineResolvers<ContextType>;
   MapInfo?: MapInfoResolvers<ContextType>;

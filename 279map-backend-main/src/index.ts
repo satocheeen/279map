@@ -28,7 +28,7 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { IFieldResolverOptions } from '@graphql-tools/utils';
-import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkDataArgs, MutationLinkDataByOriginalIdArgs, MutationRegistDataArgs, MutationRemoveDataArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkDataArgs, MutationUpdateDataArgs, MutationUpdateDataByOriginalIdArgs, Operation, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, Target } from './graphql/__generated__/types';
+import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkDataArgs, MutationLinkDataByOriginalIdArgs, MutationRegistDataArgs, MutationRemoveDataArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkDataArgs, MutationUpdateDataArgs, MutationUpdateDataByOriginalIdArgs, Operation, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemMetaInfoArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetMapMetaInfoArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, Target } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { GeoPropertiesScalarType, GeocoderIdInfoScalarType, IconKeyScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -331,7 +331,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 }
         
             },
-            getMapMetaInfo: async(_, param, ctx): QueryResolverReturnType<'getMapMetaInfo'> => {
+            getMapMetaInfo: async(_, param: QueryGetMapMetaInfoArgs, ctx): QueryResolverReturnType<'getMapMetaInfo'> => {
                 apiLogger.info('[start] getMapMetaInfo');
 
                 try {
@@ -351,6 +351,28 @@ const schema = makeExecutableSchema<GraphQlContextType>({
     
                 } catch(e) {
                     logger.warn('getMapMetaInfo error', e, ctx.request.headers.authorization);
+                    throw e;
+                }
+            },
+            getItemMetaInfo: async(_, param: QueryGetItemMetaInfoArgs, ctx): QueryResolverReturnType<'getItemMetaInfo'> => {
+                try {
+                    // 地図へのアクセス権限があるか確認（アクセス権限がない場合は、エラーではじかれる）
+                    await getMapInfoByIdWithAuth(param.mapId, ctx.request);
+                    // 指定のアイテム情報を取得
+                    const result = await getItemsById({
+                        targets: [param.itemId]
+                    });
+                    if (result.length === 0) {
+                        throw new Error('id is not find');
+                    }
+                    return {
+                        id: param.itemId,
+                        mapKind: result[0].mapKind,
+                        name: result[0].name,
+                    }
+
+                } catch(e) {
+                    logger.warn('getItemMetaInfo error', e);
                     throw e;
                 }
             },

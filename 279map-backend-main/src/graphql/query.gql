@@ -13,10 +13,21 @@ type MapListItem {
 
 "地図ページのメタ情報"
 type MapMetaInfo {
-    mapId: String!
+    mapId: ID!
     title: String!
     description: String
     keyword: String
+    image: String
+}
+
+"アイテムのメタ情報"
+type ItemMetaInfo {
+    id: DataId!
+    "アイテムが属する地図種別"
+    mapKind: MapKind!
+    "アイテム名"
+    name: String!
+    "アイテムに紐づく画像"
     image: String
 }
 
@@ -162,8 +173,14 @@ type Query {
 
     "地図のメタ情報を返す。ユーザがアクセス不可能な地図については、エラー"
     getMapMetaInfo (
-        mapId: String!
+        mapId: ID!
     ): MapMetaInfo!
+
+    "指定の地図の指定のアイテムのメタ情報を返す。ユーザがアクセス不可能な地図については、エラー"
+    getItemMetaInfo (
+        mapId: ID!
+        itemId: DataId!
+    ): ItemMetaInfo!
 
     getItems(
         wkt: String!,

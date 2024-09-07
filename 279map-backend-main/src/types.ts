@@ -1,4 +1,5 @@
 import { ItemDefine } from "./graphql/__generated__/types";
+import { MapKind } from "./types-common/common-types";
 
 export enum AuthMethod {
     None = "None",
@@ -6,4 +7,6 @@ export enum AuthMethod {
     Original = "Original",
 }
 
-export type ItemDefineWithoutContents = Omit<ItemDefine, 'contents'>;
+export type ItemDefineWithoutContents = Omit<ItemDefine, 'contents'> & {
+    mapKind: MapKind;
+};

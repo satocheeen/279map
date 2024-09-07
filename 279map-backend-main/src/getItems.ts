@@ -4,7 +4,7 @@ import { CurrentMap } from '../279map-backend-common/src';
 import { GeometryItemsTable } from '../279map-backend-common/src/types/schema';
 import { QueryGetItemsArgs } from './graphql/__generated__/types';
 import { ItemContentInfo } from './api/getItem';
-import { DatasourceLocationKindType, FeatureType, GeoProperties } from './types-common/common-types';
+import { DatasourceLocationKindType, FeatureType, GeoProperties, MapKind } from './types-common/common-types';
 import { ItemDefineWithoutContents } from './types';
 import { DataSourceTable } from '../279map-backend-common/dist';
 
@@ -76,6 +76,7 @@ async function selectItems(param: QueryGetItemsArgs, currentMap: CurrentMap): Pr
             pointContents.push({
                 id: row.data_id,
                 datasourceId: param.datasourceId,
+                mapKind: row.location_kind === DatasourceLocationKindType.VirtualItem ? MapKind.Virtual : MapKind.Real,
                 name: row.title ?? '',
                 geometry: row.geojson,
                 geoProperties,
