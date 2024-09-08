@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useContext, useEffect, useState } from 'react';
+import React, { useRef, useMemo, useContext, useEffect, useState, useCallback } from 'react';
 import { allItemsAtom, loadedItemMapAtom, storedItemsAtom } from '../../store/item';
 import { currentMapDefineAtom, currentMapKindAtom, isWorldMapAtom } from '../../store/session';
 import { atom, useAtom } from 'jotai';
@@ -14,7 +14,7 @@ import { filteredItemIdListAtom } from '../../store/filter';
 import VectorSource from 'ol/source/Vector';
 import useMyMedia from '../../util/useMyMedia';
 import { useWatch } from '../../util/useWatch2';
-import { CategoryUpdateInTheMapDocument, DataDeleteInTheMapDocument, DataInsertInTheMapDocument, DatasourceUpdateInTheMapDocument, DataUpdateInTheMapDocument, MapInfoUpdateDocument } from '../../graphql/generated/graphql';
+import { CategoryUpdateInTheMapDocument, DataDeleteInTheMapDocument, DataInsertInTheMapDocument, DatasourceUpdateInTheMapDocument, DataUpdateInTheMapDocument, MapDatasources, MapInfoUpdateDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import { ItemInfo } from '../../types/types';
 import { selectItemIdAtom } from '../../store/operation';
@@ -22,6 +22,7 @@ import { dataSourceVisibleAtom, itemDataSourcesAtom } from '../../store/datasour
 import { UpdateLayerVisibleParam } from './OlMapWrapper';
 import { MapKind } from '../../types-common/common-types';
 import { categoriesVersionAtom } from '../../store/category';
+import { useAtomCallback } from 'jotai/utils';
 
 /**
  * Jotaiや呼び出し元から渡されたpropsの変更検知して、地図に対して特定のイベントを実行するコンポーネントもどき
@@ -54,7 +55,6 @@ function useMapInitializer() {
     const [ urqlClient ] = useAtom(clientAtom);
     const { mapId } = useContext(OwnerContext);
     const [, updateCategoriesVersion ] = useAtom(categoriesVersionAtom);
-    const [ currentMapDefine, setCurrentMapDefine ] = useAtom(currentMapDefineAtom);
 
     // 地図の接続完了したら、地図情報に対するsubscribe開始する
     useEffect(() => {
@@ -70,6 +70,20 @@ function useMapInitializer() {
         }
 
     }, [urqlClient, mapId]);
+
+    const updateMapDefine = useAtomCallback(
+        useCallback((get, set, param: MapDatasources) => {
+            const currentMapDefine = get(currentMapDefineAtom);
+            if (currentMapDefine) {
+                // コンテンツ定義更新
+                const newDefine = structuredClone(currentMapDefine);
+                newDefine.contentDataSources = param.contentDataSources;
+                newDefine.itemDataSources = param.itemDataSources;
+                set(currentMapDefineAtom, newDefine);
+            }
+
+        }, [])
+    )
 
     // 地図種別が変更されたら、地図に対してsubscribe, unsubscribeする
     useEffect(() => {
@@ -122,12 +136,10 @@ function useMapInitializer() {
         })
 
         const h5 = urqlClient.subscription(DatasourceUpdateInTheMapDocument, { mapId, mapKind: currentMapKind }).subscribe((val) => {
-            if (val.data?.datasourceUpdateInTheMap && currentMapDefine) {
+            console.log('subscribe datasourceUpdateInTheMap', val.data)
+            if (val.data?.datasourceUpdateInTheMap) {
                 // コンテンツ定義更新
-                const newDefine = structuredClone(currentMapDefine);
-                newDefine.contentDataSources = val.data.datasourceUpdateInTheMap.contentDataSources;
-                newDefine.itemDataSources = val.data.datasourceUpdateInTheMap.itemDataSources;
-                setCurrentMapDefine(newDefine);
+                updateMapDefine(val.data.datasourceUpdateInTheMap);
             }
         })
 
@@ -139,7 +151,7 @@ function useMapInitializer() {
             h5.unsubscribe();
         }
 
-    }, [urqlClient, currentMapKind, mapId, updateItems, removeItems, updateCategoriesVersion])
+    }, [urqlClient, currentMapKind, mapId, updateItems, removeItems, updateCategoriesVersion, updateMapDefine])
 
 }
 

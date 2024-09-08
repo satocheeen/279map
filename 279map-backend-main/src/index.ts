@@ -945,10 +945,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
         Subscription: {
             datasourceUpdateInTheMap: {
                 resolve: (payload) => payload,
-                subscribe: (_, args: SubscriptionArgs<'datasourceUpdateInTheMap'>, ctx) => {
-                    if (ctx.currentMap.mapId !== args.mapId || ctx.currentMap.mapKind !== args.mapKind) {
-                        throw new Error('can not subscribe unconnecting map.');
-                    }
+                subscribe: (_, args: SubscriptionArgs<'datasourceUpdateInTheMap'>) => {
                     return PubSub.asyncIterator('datasourceUpdateInTheMap', args);
                 }
             },
