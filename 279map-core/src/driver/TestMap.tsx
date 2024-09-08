@@ -329,6 +329,7 @@ export default function TestMap() {
                         overrideItems={overriderItems}
                         onConnect={onConnect}
                         onMapLoad={onMapLoad}
+                        onMapDefineChanged={(val) => onCallback('onMapDefineChanged', val)}
                         onItemDatasourcesVisibleChanged={handleItemDataSourceVisibleChanged}
                         onSelectChange={handleSelectChange}
                         onShowingItemsChanged={handleShowingItemsChanged}

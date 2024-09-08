@@ -164,6 +164,13 @@ export type TsunaguMapProps = {
 
     onConnect?: (param: OnConnectParam) => Promise<void | OnConnectResult>;
     onMapLoad?: (param: OnMapLoadParam) => Promise<void | OnMapLoadResult>;
+
+    /**
+     * 現在表示中の地図に関する定義情報に変更があった際のコールバック
+     * @param param 
+     * @returns 
+     */
+    onMapDefineChanged?: (param: Partial<Omit<OnMapLoadParam, 'mapKind'>>) => void; 
     onItemDatasourcesVisibleChanged?: (param: ItemDatasourceVisibleList) => void;
 
     /**

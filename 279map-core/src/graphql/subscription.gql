@@ -1,3 +1,24 @@
+# 指定の地図上のコンテンツ定義が更新された場合に通知する
+subscription datasourceUpdateInTheMap (
+    $mapId: String!
+    $mapKind: MapKind!
+) {
+    datasourceUpdateInTheMap(mapId: $mapId, mapKind: $mapKind) {
+        itemDataSources {
+            datasourceId
+            name
+            groupName
+            initialVisible
+            config
+        }
+        contentDataSources {
+            datasourceId
+            name
+            config
+        }
+    }
+}
+
 # 地図上にアイテムが追加された場合に通知を受け取る
 subscription dataInsertInTheMap (
     $mapId: String!

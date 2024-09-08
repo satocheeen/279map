@@ -4,7 +4,7 @@ import { OwnerContext } from './TsunaguMap';
 import { categoriesAtom } from '../../store/category';
 import { eventsAtom } from '../../store/event';
 import { mapModeAtom, selectItemIdAtom } from '../../store/operation';
-import { mapDefineAtom } from '../../store/session';
+import { currentMapDefineAtom, mapDefineAtom } from '../../store/session';
 import { filteredDatasAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
@@ -408,10 +408,25 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
 }
 
 function EventListener() {
-    const { onItemDatasourcesVisibleChanged, onShowingItemsChanged, onCategoriesLoaded, onEventsLoaded, onModeChanged, onSelectChange }  = useContext(OwnerContext);
+    const { onItemDatasourcesVisibleChanged, onMapDefineChanged, onShowingItemsChanged, onCategoriesLoaded, onEventsLoaded, onModeChanged, onSelectChange }  = useContext(OwnerContext);
 
     /**
-     * Datasource定義、表示状態が変化した場合に呼び出し元にイベント発火する
+     * 現在の地図定義情報が変化した場合に呼び出し元にイベント発火する
+     */
+    const [ currentMapDefine ] = useAtom(currentMapDefineAtom);
+    useWatch(currentMapDefine,
+        useCallback(() => {
+            if (onMapDefineChanged) {
+                onMapDefineChanged({
+                    contentDatasources: currentMapDefine?.contentDataSources,
+                    itemDatasources: currentMapDefine?.itemDataSources,
+                })
+            }
+        }, [onMapDefineChanged, currentMapDefine])
+    )
+
+    /**
+     * アイテムDatasourceの表示状態が変化した場合に呼び出し元にイベント発火する
      */
     const [ visibleList ] = useAtom(itemDatasourcesWithVisibleAtom);
     useWatch(visibleList,

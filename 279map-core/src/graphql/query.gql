@@ -22,7 +22,7 @@ query getMapList {
 }
 
 query getMapMetaInfo (
-    $mapId: String!
+    $mapId: ID!
 ) {
     getMapMetaInfo(mapId: $mapId) {
         mapId
