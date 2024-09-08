@@ -1188,7 +1188,6 @@ apolloServer.start().then(() => {
             // TODO: 認証情報チェック
             const mapId = req.query['mapid'] as string;
             const itemId = req.query['id'] as string;
-            console.log('debug', itemId);
             if (!mapId || !itemId) {
                 throw new Error('mapId not found')
             }
@@ -1197,19 +1196,25 @@ apolloServer.start().then(() => {
                 mapId,
                 itemId,
             });
-            // const width = typeof req.query.w === 'string' ? parseInt(req.query.w) : undefined;
             if (image) {
-                const { contentType, binary } = convertBase64ToBinary(image);
+                const { contentType, binary: originalBinary } = convertBase64ToBinary(image);
 
-                // // サイズ指定されている場合はリサイズ
-                // const binary = await async function() {
-                //     if (!width) return originalBinary;
-                //     const image = sharp(originalBinary);
-                //     const binary = await image.resize({
-                //         width,
-                //     }).toBuffer();
-                //     return binary;    
-                // }();
+                // 200x200よりも小さい場合はリサイズ
+                const binary = await async function() {
+                    // if (!width) return originalBinary;
+                    const image = sharp(originalBinary);
+                    const meta = await image.metadata();
+                    if (!meta.width || !meta.height) return originalBinary;
+                    if (meta.width >= 200 && meta.height >= 200) return originalBinary;
+                    const newSize = meta.width < 200 ? {
+                        width: 200,
+                    } : {
+                        height: 200,
+                    };
+                    if (meta.width < 200) {}
+                    const binary = await image.resize(newSize).toBuffer();
+                    return binary;    
+                }();
 
                 res.writeHead(200, {
                   'Content-Type': contentType,
