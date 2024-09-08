@@ -5,6 +5,10 @@ export type BroadcastItemParam = {
     mapId: string;
     operation: 'insert' | 'update' | 'delete';
     itemIdList: DataId[];
+} | {
+    // 指定のデータソース定義に更新があった場合
+    operation: 'datasource-define-update';
+    datasourceId: string;
 }
 
 export async function callBroadcast(param: BroadcastItemParam) {

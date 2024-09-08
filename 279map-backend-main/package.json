@@ -45,7 +45,6 @@
     "geolib": "^3.3.3",
     "gpxparser": "^3.0.8",
     "graphql": "^16.8.1",
-    "graphql-http": "^1.22.0",
     "graphql-subscriptions": "^2.0.0",
     "jsonfile": "^6.1.0",
     "jsonschema": "^1.2.6",

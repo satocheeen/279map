@@ -1245,17 +1245,25 @@ apolloServer.start().then(() => {
     internalApp.post('/api/broadcast', async(req: Request, res: Response) => {
         const param = req.body as BroadcastItemParam;
         logger.info('broadcast', param);
-        if (param.operation === 'delete') {
-            PubSub.publish('dataDeleteInTheMap', 
-                { mapId: param.mapId, mapKind: MapKind.Real },
-                param.itemIdList,
-            )
-            PubSub.publish('dataDeleteInTheMap', 
-                { mapId: param.mapId, mapKind: MapKind.Virtual },
-                param.itemIdList,
-            )
-        } else {
-            publishData(PubSub, param.operation, param.itemIdList);
+        switch(param.operation) {
+            case 'delete':
+                PubSub.publish('dataDeleteInTheMap', 
+                    { mapId: param.mapId, mapKind: MapKind.Real },
+                    param.itemIdList,
+                )
+                PubSub.publish('dataDeleteInTheMap', 
+                    { mapId: param.mapId, mapKind: MapKind.Virtual },
+                    param.itemIdList,
+                )
+                break;
+
+            case 'insert':
+            case 'update':
+                publishData(PubSub, param.operation, param.itemIdList);
+                break;
+
+            case 'datasource-define-update':
+                
         }
 
         res.setHeader('Access-Control-Allow-Origin', '*');
