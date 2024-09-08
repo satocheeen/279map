@@ -16,17 +16,18 @@ export async function getItemThumbnail(param: Param) {
     const con = await ConnectionPool.getConnection();
 
     try {
-        const sql = `
-            select i.medium, cbm.* from content_belong_map cbm 
-            inner join images i on i.data_id = cbm.content_id 
-            where map_page_id = ? and item_id = ?
-        `
-        const [rows] = await con.query(sql, [param.mapId, param.itemId]);
-        const records = (rows as (ImagesTable)[]);
+        // コンテンツ画像は著作権まわりについて懸念があるので、ひとまず表示させない
+        // const sql = `
+        //     select i.medium, cbm.* from content_belong_map cbm 
+        //     inner join images i on i.data_id = cbm.content_id 
+        //     where map_page_id = ? and item_id = ?
+        // `
+        // const [rows] = await con.query(sql, [param.mapId, param.itemId]);
+        // const records = (rows as (ImagesTable)[]);
 
-        if (records.length > 0) {
-            return records[0].medium;
-        }
+        // if (records.length > 0) {
+        //     return records[0].medium;
+        // }
 
         // コンテンツ画像が存在しない場合は、ピン or 建物のアイコン画像
         const sql2 = `
