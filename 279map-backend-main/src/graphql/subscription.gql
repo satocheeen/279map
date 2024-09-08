@@ -29,7 +29,21 @@ enum Operation {
     Delete
 }
 
+type MapDatasources {
+    itemDataSources: [ItemDatasourceInfo!]!
+    contentDataSources: [ContentDatasourceInfo!]!
+}
 type Subscription {
+    """
+    指定の地図上のコンテンツ定義が更新された場合に通知する
+    """
+    datasourceUpdateInTheMap (
+        "対象の地図ID"
+        mapId: String!
+        "対象の地図種別"
+        mapKind: MapKind!
+    ): MapDatasources!
+
     """
     指定の地図上にデータが追加された場合に通知する
     """

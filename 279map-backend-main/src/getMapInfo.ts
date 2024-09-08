@@ -8,7 +8,7 @@ import { ContentFieldDefine, DatasourceLocationKindType, ItemDatasourceConfig, M
  * 指定の地図データページ配下のコンテンツ情報を返す
  * @param mapId Notion地図データページID
  */
-export async function getMapInfo(mapId: string, mapKind: MapKind, authLv: Auth): Promise<MapInfo> {
+export async function getMapInfo(mapId: string, mapKind: MapKind): Promise<MapInfo> {
     const mapPageInfo = await getMapPageInfo(mapId);
     if (mapPageInfo === null) {
         // 該当地図が存在しない場合

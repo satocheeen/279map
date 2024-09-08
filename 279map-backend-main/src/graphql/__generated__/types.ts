@@ -247,6 +247,11 @@ export type ItemMetaInfo = {
   name: Scalars['String']['output'];
 };
 
+export type MapDatasources = {
+  contentDataSources: Array<ContentDatasourceInfo>;
+  itemDataSources: Array<ItemDatasourceInfo>;
+};
+
 export type MapDefine = {
   defaultMapKind: Scalars['MapKind']['output'];
   name: Scalars['String']['output'];
@@ -538,6 +543,8 @@ export type Subscription = {
   dataUpdate: Operation;
   /** 指定の地図上のデータが更新された場合に通知する */
   dataUpdateInTheMap: Array<Target>;
+  /** 指定の地図上のコンテンツ定義が更新された場合に通知する */
+  datasourceUpdateInTheMap: MapDatasources;
   /**
    * ユーザが操作している地図でエラーが発生した場合にエラー内容を通知する。
    * 突き放し実行している登録、更新処理でエラー発生した場合に通知するために用意。
@@ -576,6 +583,12 @@ export type SubscriptionDataUpdateArgs = {
 
 
 export type SubscriptionDataUpdateInTheMapArgs = {
+  mapId: Scalars['String']['input'];
+  mapKind: Scalars['MapKind']['input'];
+};
+
+
+export type SubscriptionDatasourceUpdateInTheMapArgs = {
   mapId: Scalars['String']['input'];
   mapKind: Scalars['MapKind']['input'];
 };
@@ -763,6 +776,7 @@ export type ResolversTypes = {
   ItemLabelMode: ItemLabelMode;
   ItemMetaInfo: ResolverTypeWrapper<ItemMetaInfo>;
   JSON: ResolverTypeWrapper<Scalars['JSON']['output']>;
+  MapDatasources: ResolverTypeWrapper<MapDatasources>;
   MapDefine: ResolverTypeWrapper<MapDefine>;
   MapInfo: ResolverTypeWrapper<MapInfo>;
   MapKind: ResolverTypeWrapper<Scalars['MapKind']['output']>;
@@ -826,6 +840,7 @@ export type ResolversParentTypes = {
   ItemDefine: ItemDefine;
   ItemMetaInfo: ItemMetaInfo;
   JSON: Scalars['JSON']['output'];
+  MapDatasources: MapDatasources;
   MapDefine: MapDefine;
   MapInfo: MapInfo;
   MapKind: Scalars['MapKind']['output'];
@@ -1022,6 +1037,12 @@ export interface JsonScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes
   name: 'JSON';
 }
 
+export type MapDatasourcesResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapDatasources'] = ResolversParentTypes['MapDatasources']> = {
+  contentDataSources?: Resolver<Array<ResolversTypes['ContentDatasourceInfo']>, ParentType, ContextType>;
+  itemDataSources?: Resolver<Array<ResolversTypes['ItemDatasourceInfo']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type MapDefineResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapDefine'] = ResolversParentTypes['MapDefine']> = {
   defaultMapKind?: Resolver<ResolversTypes['MapKind'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1122,6 +1143,7 @@ export type SubscriptionResolvers<ContextType = any, ParentType extends Resolver
   dataInsertInTheMap?: SubscriptionResolver<Array<ResolversTypes['Target']>, "dataInsertInTheMap", ParentType, ContextType, RequireFields<SubscriptionDataInsertInTheMapArgs, 'mapId' | 'mapKind'>>;
   dataUpdate?: SubscriptionResolver<ResolversTypes['Operation'], "dataUpdate", ParentType, ContextType, RequireFields<SubscriptionDataUpdateArgs, 'id'>>;
   dataUpdateInTheMap?: SubscriptionResolver<Array<ResolversTypes['Target']>, "dataUpdateInTheMap", ParentType, ContextType, RequireFields<SubscriptionDataUpdateInTheMapArgs, 'mapId' | 'mapKind'>>;
+  datasourceUpdateInTheMap?: SubscriptionResolver<ResolversTypes['MapDatasources'], "datasourceUpdateInTheMap", ParentType, ContextType, RequireFields<SubscriptionDatasourceUpdateInTheMapArgs, 'mapId' | 'mapKind'>>;
   error?: SubscriptionResolver<ResolversTypes['ErrorInfo'], "error", ParentType, ContextType, RequireFields<SubscriptionErrorArgs, 'sid'>>;
   mapInfoUpdate?: SubscriptionResolver<Maybe<ResolversTypes['Boolean']>, "mapInfoUpdate", ParentType, ContextType, RequireFields<SubscriptionMapInfoUpdateArgs, 'mapId'>>;
   updateUserAuth?: SubscriptionResolver<Maybe<ResolversTypes['Boolean']>, "updateUserAuth", ParentType, ContextType, RequireFields<SubscriptionUpdateUserAuthArgs, 'mapId' | 'userId'>>;
@@ -1189,6 +1211,7 @@ export type Resolvers<ContextType = any> = {
   ItemDefine?: ItemDefineResolvers<ContextType>;
   ItemMetaInfo?: ItemMetaInfoResolvers<ContextType>;
   JSON?: GraphQLScalarType;
+  MapDatasources?: MapDatasourcesResolvers<ContextType>;
   MapDefine?: MapDefineResolvers<ContextType>;
   MapInfo?: MapInfoResolvers<ContextType>;
   MapKind?: GraphQLScalarType;

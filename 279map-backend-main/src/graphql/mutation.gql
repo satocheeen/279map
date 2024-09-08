@@ -18,7 +18,7 @@ type ConnectResult {
 }
 
 # --------------
-# swutchMapKind
+# switchMapKind
 # --------------
 type MapInfo {
     extent: [Float!]!

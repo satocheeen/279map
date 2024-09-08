@@ -6,7 +6,6 @@ import { configure, getLogger } from "log4js";
 import { DbSetting, LogSetting } from './config';
 import { getThumbnail } from './api/getThumbnsil';
 import { getEvents } from './getEvents';
-import proxy from 'express-http-proxy';
 import http from 'http';
 import { geocoder, getGeocoderFeature } from './api/geocoder';
 import { getCategory } from './api/getCategory';
@@ -53,6 +52,7 @@ import { convertBase64ToBinary } from './util/utility';
 import { CategoryChecker } from './memory/CategoryChecker';
 import sharp from 'sharp';
 import { getItemThumbnail } from './api/getItemThumbnail';
+import { publishDatasourceUpdate } from './pubsub/publishDatasourceUpdate';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -675,7 +675,6 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     const result = await getMapInfo(
                         ctx.currentMap.mapId,
                         param.mapKind,
-                        ctx.authLv,
                     );
 
                     ctx.session.setMapKind(param.mapKind);
@@ -944,6 +943,12 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             },
         } as MutationResolver,
         Subscription: {
+            datasourceUpdateInTheMap: {
+                resolve: (payload) => payload,
+                subscribe: (_, args: SubscriptionArgs<'datasourceUpdateInTheMap'>) => {
+                    return PubSub.asyncIterator('datasourceUpdateInTheMap', args);
+                }
+            },
             dataInsertInTheMap: {
                 resolve: (payload) => payload,
                 subscribe: (_, args: SubscriptionArgs<'dataInsertInTheMap'>) => {
@@ -1263,7 +1268,8 @@ apolloServer.start().then(() => {
                 break;
 
             case 'datasource-define-update':
-                
+                publishDatasourceUpdate(param.datasourceId);
+                break;
         }
 
         res.setHeader('Access-Control-Allow-Origin', '*');
