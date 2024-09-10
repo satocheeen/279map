@@ -63,7 +63,6 @@ export type GeoProperties = {
     }
 } | {
     featureType: FeatureType.ROAD;
-    lineJson: GeoJSON.Feature;  // 元のLine
     width: string;  // RoadWidth.key
 } | {
     featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA;

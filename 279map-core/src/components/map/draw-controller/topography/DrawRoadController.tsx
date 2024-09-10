@@ -6,9 +6,9 @@ import Draw, { DrawEvent } from "ol/interaction/Draw";
 import useTopographyStyle from '../../useTopographyStyle';
 import PromptMessageBox from '../PromptMessageBox';
 import RoadWidthSelecter from './RoadWidthSelecter';
-import { extractGeoProperty } from '../../../../util/MapUtility';
+import { extractGeoProperty, GeoPropertiesForCore } from '../../../../util/MapUtility';
 import { useMap } from '../../useMap';
-import { FeatureType } from '../../../../types-common/common-types';
+import { FeatureType, GeoProperties } from '../../../../types-common/common-types';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
 import { ItemGeoInfo } from '../../../../entry';
 
@@ -86,8 +86,9 @@ export default function DrawRoadController(props: Props) {
         }
         
         // line情報を保存する
-        const geoProperties = extractGeoProperty(drawingFeature.current.getProperties());
-        const geoJson = geoProperties.featureType === FeatureType.ROAD ? geoProperties.lineJson : undefined;
+        const currentPropeties = drawingFeature.current.getProperties() as GeoPropertiesForCore;
+        const geoJson = currentPropeties.featureType === FeatureType.ROAD ? currentPropeties.lineJson : undefined;
+        const geoProperties = extractGeoProperty(currentPropeties);
         if (!geoJson) {
             console.warn('ライン情報なし');
             return;

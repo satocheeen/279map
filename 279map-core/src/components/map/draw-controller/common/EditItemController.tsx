@@ -4,7 +4,7 @@ import VectorSource from 'ol/source/Vector';
 import { Stroke, Style } from 'ol/style';
 import React, { useEffect, useCallback, useRef, useState } from 'react';
 import useConfirm from '../../../common/confirm/useConfirm';
-import { createGeoJson, extractGeoProperty, getOriginalLine } from '../../../../util/MapUtility';
+import { createGeoJson, extractGeoProperty, GeoPropertiesForCore, getOriginalLine } from '../../../../util/MapUtility';
 import useTopographyStyle from '../../useTopographyStyle';
 import PromptMessageBox from '../PromptMessageBox';
 import SelectFeature from './SelectFeature';
@@ -174,14 +174,15 @@ enum Stage {
         }
 
         // 更新
+        const currentPropeties = feature.getProperties() as GeoPropertiesForCore;
+        const geoJson = currentPropeties.featureType === FeatureType.ROAD ? currentPropeties.lineJson : createGeoJson(feature);
         const geoProperties = extractGeoProperty(feature.getProperties());
-        const geoJson = geoProperties.featureType === FeatureType.ROAD ? geoProperties.lineJson : createGeoJson(feature);
         const id = selectedFeature.current?.getId() as DataId;
         updateItems([
             {
                 id,
                 geometry: geoJson.geometry,
-                geoProperties: extractGeoProperty(geoJson.properties),
+                geoProperties,
             }
         ])
 

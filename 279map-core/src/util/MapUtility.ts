@@ -125,7 +125,7 @@ export function convertLineToPolygon(lineFeature: Feature<Geometry>, distance: n
  * 指定のポリゴンがLineから生成されたものの場合、元のLineを返す
  */
 export function getOriginalLine(lineFeature: Feature<Geometry>): Feature<Geometry> {
-    const properties = extractGeoProperty(lineFeature.getProperties());
+    const properties = lineFeature.getProperties() as GeoPropertiesForCore;
     if (properties.featureType !== FeatureType.ROAD) {
         console.warn('道ではない');
         return lineFeature;
@@ -140,6 +140,14 @@ export function getOriginalLine(lineFeature: Feature<Geometry>): Feature<Geometr
 
     return feature;
 }
+
+/**
+ * 道は、core内でのみlineJson情報を保持する
+ */
+type RoadGeoPropertiesForCore =  Extract<GeoProperties, { featureType: FeatureType.ROAD} > & {
+    lineJson: GeoJSON.Feature;  // 元のLine
+};
+export type GeoPropertiesForCore = Exclude<GeoProperties, { featureType: FeatureType.ROAD }> | RoadGeoPropertiesForCore;
 
 /**
  * GeoPropertiesに含まれるプロパティのみを抽出して返す
@@ -157,7 +165,7 @@ export function extractGeoProperty(properties: GeoJsonProperties): GeoProperties
         case FeatureType.ROAD:
             return {
                 featureType: prop.featureType,
-                lineJson: properties?.lineJson,
+                // lineJson: properties?.lineJson,
                 width: properties?.width,
             };
         case FeatureType.AREA:
