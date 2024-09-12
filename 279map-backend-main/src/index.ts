@@ -46,7 +46,7 @@ import { getImage } from './api/getImage';
 import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import { getLinkedContent } from './api/get-content/getLinkedContents';
 import { getContentDefine, getContentDetail } from './api/get-content/getContent';
-import { publishData } from './util/publish_utility';
+import { publishData } from './pubsub/publishData';
 import { getUnpointData } from './api/getUnpointData';
 import { convertBase64ToBinary } from './util/utility';
 import { CategoryChecker } from './memory/CategoryChecker';
@@ -1251,20 +1251,23 @@ apolloServer.start().then(() => {
         const param = req.body as BroadcastItemParam;
         logger.info('broadcast', param);
         switch(param.operation) {
-            case 'delete':
-                PubSub.publish('dataDeleteInTheMap', 
-                    { mapId: param.mapId, mapKind: MapKind.Real },
-                    param.itemIdList,
-                )
-                PubSub.publish('dataDeleteInTheMap', 
-                    { mapId: param.mapId, mapKind: MapKind.Virtual },
-                    param.itemIdList,
-                )
+            // case 'data-delete':
+            //     PubSub.publish('dataDeleteInTheMap', 
+            //         { mapId: param.mapId, mapKind: MapKind.Real },
+            //         param.targets,
+            //     )
+            //     PubSub.publish('dataDeleteInTheMap', 
+            //         { mapId: param.mapId, mapKind: MapKind.Virtual },
+            //         param.targets,
+            //     )
+            //     break;
+
+            case 'data-insert':
+                publishData(PubSub, 'insert', param.targets);
                 break;
 
-            case 'insert':
-            case 'update':
-                publishData(PubSub, param.operation, param.itemIdList);
+                case 'data-update':
+                publishData(PubSub, 'update', param.targets);
                 break;
 
             case 'datasource-define-update':
