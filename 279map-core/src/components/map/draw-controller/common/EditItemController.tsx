@@ -176,7 +176,7 @@ enum Stage {
         // 更新
         const currentPropeties = feature.getProperties() as GeoPropertiesForCore;
         const geoJson = currentPropeties.featureType === FeatureType.ROAD ? currentPropeties.lineJson : createGeoJson(feature);
-        const geoProperties = extractGeoProperty(feature.getProperties());
+        const geoProperties = extractGeoProperty(geoJson.properties);
         const id = selectedFeature.current?.getId() as DataId;
         updateItems([
             {
