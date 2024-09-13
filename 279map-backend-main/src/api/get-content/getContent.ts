@@ -22,6 +22,9 @@ export async function getContentDefine({ dataId, currentMap }: Param): Promise<O
 
         return content;
 
+    } catch(err) {
+        return null;
+
     } finally {
         con.release();
     }
@@ -35,6 +38,9 @@ export async function getContentDetail({ dataId, currentMap }: Param) {
         const content = await convertContentsToContentsDetail(con, record, currentMap);
 
         return content;
+
+    } catch(err) {
+        return null;
 
     } finally {
         con.release();
