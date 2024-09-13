@@ -14,34 +14,21 @@ export async function getUnpointData({ currentMap, dataSourceId, keyword }: Odba
 
     try {
         let sql = `
-            select * from datas d3 
-            inner join contents c on c.data_id = d3.data_id 
+            select * from datas d
+            inner join contents c on c.data_id = d.data_id 
             where not EXISTS (
-                -- 対になるitemが指定の地図上に存在するdata
-                select d.* from datas d 
-                inner join geometry_items gi on gi.data_id = d.data_id 
-                inner join data_source ds on ds.data_source_id = d.data_source_id 
-                inner join map_datasource_link mdl on mdl.data_source_id = d.data_source_id 
-                where mdl.map_page_id = ? and ds.location_kind in (?)
-                and d.data_id = d3.data_id 
-                UNION 
-                -- 指定の地図上に存在するitemから参照されているdata
-                select d2.* from datas d2 
-                inner join data_link dl on dl.to_data_id = d2.data_id 
-                inner join datas from_d on from_d.data_id = dl.from_data_id 
-                inner join data_source ds2 on ds2.data_source_id = from_d .data_source_id  
-                inner join map_datasource_link mdl2 on mdl2.data_source_id = from_d .data_source_id  
-                where mdl2.map_page_id = ? and ds2.location_kind in (?)
-                and d2.data_id = d3.data_id 
+                select * from content_belong_map cbm 
+                where cbm.content_id = d.data_id 
+                and cbm.map_page_id = ? and cbm.map_kind = ?
             )
-            and d3.data_source_id = ?        
+            and d.data_source_id = ?        
             `;
 
-        const locationKinds = currentMap.mapKind === MapKind.Real ? [DatasourceLocationKindType.RealItem, DatasourceLocationKindType.Track] : [DatasourceLocationKindType.VirtualItem];
-        const params = [currentMap.mapId, locationKinds, currentMap.mapId, locationKinds, dataSourceId];
+        const params = [currentMap.mapId, currentMap.mapKind, dataSourceId];
         if (keyword) {
             sql += "and JSON_SEARCH(c.contents, 'one', ?) is not null";
-            params.push(keyword);
+            const keywordParam = `%${keyword}%`;
+            params.push(keywordParam);
 
         }
         const query = con.format(sql, params);
