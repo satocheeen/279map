@@ -35,7 +35,7 @@ export default function GetUnlinkedContentDriver(props: Props) {
             setResult(JSON.stringify(res.contents, undefined, 2))
             setNextToken(res.nextToken ?? '');
         }
-    }, [getMap, keyword, target, nextToken])
+    }, [getMap, keyword, target, nextToken, includeAllocated])
 
     return (
         <div className={myStyles.Container}>
