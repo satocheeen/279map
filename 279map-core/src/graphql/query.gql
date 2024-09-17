@@ -127,12 +127,12 @@ query getContent(
     }
 }
 
-query getUnpointContents(
+query allocatableContents(
     $datasourceId: String!
     $nextToken: String
     $keyword: String
 ) {
-    getUnpointContents(datasourceId: $datasourceId, nextToken: $nextToken, keyword: $keyword) {
+    allocatableContents(datasourceId: $datasourceId, nextToken: $nextToken, keyword: $keyword) {
         contents {
             originalId
             dataId

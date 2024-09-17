@@ -2,9 +2,8 @@ import { ConnectionPool } from "..";
 import { ContentsTable } from "../../279map-backend-common/dist";
 import { DataSourceTable, DatasTable, OdbaGetUncachedDataParam } from "../../279map-backend-common/src";
 import { QueryResolverReturnType } from "../graphql/type_utility";
-import { DatasourceLocationKindType, MapKind } from "../types-common/common-types";
 
-export type UnpointContent = Awaited<QueryResolverReturnType<'getUnpointContents'>>['contents'][0];
+export type UnpointContent = Awaited<QueryResolverReturnType<'allocatableContents'>>['contents'][0];
 
 /**
  * キャッシュDBに存在するデータの中から、指定の地図上のアイテムにプロットされていないデータを取得する

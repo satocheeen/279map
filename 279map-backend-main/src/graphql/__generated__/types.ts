@@ -30,6 +30,11 @@ export type Scalars = {
   MapKind: { input: MapKind; output: MapKind; }
 };
 
+export type AllocatableContentsResult = {
+  contents: Array<UnpointContent>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
+
 export enum Auth {
   Admin = 'Admin',
   Edit = 'Edit',
@@ -199,11 +204,6 @@ export enum GeocoderTarget {
   Area = 'Area',
   Point = 'Point'
 }
-
-export type GetUnpointContentsResult = {
-  contents: Array<UnpointContent>;
-  nextToken?: Maybe<Scalars['String']['output']>;
-};
 
 export type ItemDatasourceInfo = {
   config: Scalars['ItemDatasourceConfig']['output'];
@@ -403,6 +403,8 @@ export enum PopupMode {
 }
 
 export type Query = {
+  /** 割当候補のコンテンツを取得する */
+  allocatableContents: AllocatableContentsResult;
   config: ServerConfig;
   geocoder: Array<GeocoderItem>;
   getCategory: Array<CategoryDefine>;
@@ -423,11 +425,17 @@ export type Query = {
   getMapMetaInfo: MapMetaInfo;
   /** 指定のコンテンツのサムネイル画像を返す */
   getThumb: Scalars['String']['output'];
-  /** 未割当コンテンツを取得する */
-  getUnpointContents: GetUnpointContentsResult;
   getUserList: Array<User>;
-  /** 検索。検索にヒットしたもののデータIDを返す */
+  /** 検索。指定の条件にヒットするアイテムやコンテンツのデータIDを返す */
   search: Array<Scalars['DataId']['output']>;
+};
+
+
+export type QueryAllocatableContentsArgs = {
+  datasourceId: Scalars['String']['input'];
+  includeAllocated?: InputMaybe<Scalars['Boolean']['input']>;
+  keyword?: InputMaybe<Scalars['String']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -495,13 +503,6 @@ export type QueryGetMapMetaInfoArgs = {
 
 export type QueryGetThumbArgs = {
   contentId: Scalars['DataId']['input'];
-};
-
-
-export type QueryGetUnpointContentsArgs = {
-  datasourceId: Scalars['String']['input'];
-  keyword?: InputMaybe<Scalars['String']['input']>;
-  nextToken?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -733,6 +734,7 @@ export type ResolversUnionTypes<RefType extends Record<string, unknown>> = {
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
+  AllocatableContentsResult: ResolverTypeWrapper<AllocatableContentsResult>;
   Auth: Auth;
   Auth0Config: ResolverTypeWrapper<Auth0Config>;
   BackLink: ResolverTypeWrapper<BackLink>;
@@ -765,7 +767,6 @@ export type ResolversTypes = {
   GeocoderItem: ResolverTypeWrapper<GeocoderItem>;
   GeocoderTarget: GeocoderTarget;
   Geometry: ResolverTypeWrapper<Scalars['Geometry']['output']>;
-  GetUnpointContentsResult: ResolverTypeWrapper<GetUnpointContentsResult>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   IconDefine: ResolverTypeWrapper<Scalars['IconDefine']['output']>;
   IconKey: ResolverTypeWrapper<Scalars['IconKey']['output']>;
@@ -803,6 +804,7 @@ export type ResolversTypes = {
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
+  AllocatableContentsResult: AllocatableContentsResult;
   Auth0Config: Auth0Config;
   BackLink: BackLink;
   Boolean: Scalars['Boolean']['output'];
@@ -830,7 +832,6 @@ export type ResolversParentTypes = {
   GeocoderIdInfo: Scalars['GeocoderIdInfo']['output'];
   GeocoderItem: GeocoderItem;
   Geometry: Scalars['Geometry']['output'];
-  GetUnpointContentsResult: GetUnpointContentsResult;
   ID: Scalars['ID']['output'];
   IconDefine: Scalars['IconDefine']['output'];
   IconKey: Scalars['IconKey']['output'];
@@ -859,6 +860,12 @@ export type ResolversParentTypes = {
   UpdateItemInput: UpdateItemInput;
   UpdateItemsResult: UpdateItemsResult;
   User: User;
+};
+
+export type AllocatableContentsResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['AllocatableContentsResult'] = ResolversParentTypes['AllocatableContentsResult']> = {
+  contents?: Resolver<Array<ResolversTypes['UnpointContent']>, ParentType, ContextType>;
+  nextToken?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type Auth0ConfigResolvers<ContextType = any, ParentType extends ResolversParentTypes['Auth0Config'] = ResolversParentTypes['Auth0Config']> = {
@@ -987,12 +994,6 @@ export interface GeometryScalarConfig extends GraphQLScalarTypeConfig<ResolversT
   name: 'Geometry';
 }
 
-export type GetUnpointContentsResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['GetUnpointContentsResult'] = ResolversParentTypes['GetUnpointContentsResult']> = {
-  contents?: Resolver<Array<ResolversTypes['UnpointContent']>, ParentType, ContextType>;
-  nextToken?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export interface IconDefineScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['IconDefine'], any> {
   name: 'IconDefine';
 }
@@ -1113,6 +1114,7 @@ export type NoneConfigResolvers<ContextType = any, ParentType extends ResolversP
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+  allocatableContents?: Resolver<ResolversTypes['AllocatableContentsResult'], ParentType, ContextType, RequireFields<QueryAllocatableContentsArgs, 'datasourceId'>>;
   config?: Resolver<ResolversTypes['ServerConfig'], ParentType, ContextType>;
   geocoder?: Resolver<Array<ResolversTypes['GeocoderItem']>, ParentType, ContextType, RequireFields<QueryGeocoderArgs, 'address' | 'searchTarget'>>;
   getCategory?: Resolver<Array<ResolversTypes['CategoryDefine']>, ParentType, ContextType, Partial<QueryGetCategoryArgs>>;
@@ -1128,7 +1130,6 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getMapList?: Resolver<Array<ResolversTypes['MapListItem']>, ParentType, ContextType>;
   getMapMetaInfo?: Resolver<ResolversTypes['MapMetaInfo'], ParentType, ContextType, RequireFields<QueryGetMapMetaInfoArgs, 'mapId'>>;
   getThumb?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryGetThumbArgs, 'contentId'>>;
-  getUnpointContents?: Resolver<ResolversTypes['GetUnpointContentsResult'], ParentType, ContextType, RequireFields<QueryGetUnpointContentsArgs, 'datasourceId'>>;
   getUserList?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
   search?: Resolver<Array<ResolversTypes['DataId']>, ParentType, ContextType, RequireFields<QuerySearchArgs, 'condition'>>;
 };
@@ -1182,6 +1183,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
 };
 
 export type Resolvers<ContextType = any> = {
+  AllocatableContentsResult?: AllocatableContentsResultResolvers<ContextType>;
   Auth0Config?: Auth0ConfigResolvers<ContextType>;
   BackLink?: BackLinkResolvers<ContextType>;
   CategoryDefine?: CategoryDefineResolvers<ContextType>;
@@ -1203,7 +1205,6 @@ export type Resolvers<ContextType = any> = {
   GeocoderIdInfo?: GraphQLScalarType;
   GeocoderItem?: GeocoderItemResolvers<ContextType>;
   Geometry?: GraphQLScalarType;
-  GetUnpointContentsResult?: GetUnpointContentsResultResolvers<ContextType>;
   IconDefine?: GraphQLScalarType;
   IconKey?: GraphQLScalarType;
   ItemDatasourceConfig?: GraphQLScalarType;

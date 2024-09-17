@@ -27,7 +27,7 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { IFieldResolverOptions } from '@graphql-tools/utils';
-import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkDataArgs, MutationLinkDataByOriginalIdArgs, MutationRegistDataArgs, MutationRemoveDataArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkDataArgs, MutationUpdateDataArgs, MutationUpdateDataByOriginalIdArgs, Operation, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemMetaInfoArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetMapMetaInfoArgs, QueryGetThumbArgs, QueryGetUnpointContentsArgs, QuerySearchArgs, Subscription, Target } from './graphql/__generated__/types';
+import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkDataArgs, MutationLinkDataByOriginalIdArgs, MutationRegistDataArgs, MutationRemoveDataArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkDataArgs, MutationUpdateDataArgs, MutationUpdateDataByOriginalIdArgs, Operation, QueryAllocatableContentsArgs, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemMetaInfoArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetMapMetaInfoArgs, QueryGetThumbArgs, QuerySearchArgs, Subscription, Target } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { GeoPropertiesScalarType, GeocoderIdInfoScalarType, IconKeyScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -465,7 +465,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     throw e;
                 }
             },
-            getUnpointContents: async(_: any, param: QueryGetUnpointContentsArgs, ctx): QueryResolverReturnType<'getUnpointContents'> => {
+            allocatableContents: async(_: any, param: QueryAllocatableContentsArgs, ctx): QueryResolverReturnType<'allocatableContents'> => {
                 try {
                     // キャッシュDBに存在するデータの中から、指定の地図上のアイテムにプロットされていないデータを取得する
                     const unpointDataList = await getUnpointData({

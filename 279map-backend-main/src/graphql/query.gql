@@ -112,7 +112,7 @@ type UnpointContent {
     overview: String
     hasImage: Boolean
 }
-type GetUnpointContentsResult {
+type AllocatableContentsResult {
     contents: [UnpointContent!]!
     nextToken: String
 }
@@ -200,8 +200,8 @@ type Query {
     getEvent(datasourceIds: [String!]): [EventDefine!]!
     getContent(id: DataId!): ContentsDetail!
 
-    "未割当コンテンツを取得する"
-    getUnpointContents(
+    "割当候補のコンテンツを取得する"
+    allocatableContents (
         "取得対象コンテンツデータソースID"
         datasourceId: String!
 
@@ -210,7 +210,10 @@ type Query {
 
         "指定されている場合、当該キーワードをタイトルに含むコンテンツを返す"
         keyword: String
-    ): GetUnpointContentsResult!
+
+        "trueを指定した場合、既に建物に割り当て済みのコンテンツも含めて返す"
+        includeAllocated: Boolean
+    ): AllocatableContentsResult!
 
     "指定のコンテンツのサムネイル画像を返す"
     getThumb(contentId: DataId!): String!
@@ -220,9 +223,9 @@ type Query {
 
     getImageUrl(contentId: DataId!): String!
 
-    "検索。検索にヒットしたもののデータIDを返す"
+    "検索。指定の条件にヒットするアイテムやコンテンツのデータIDを返す"
     search(
-        condition: Condition!,
+        condition: Condition!
         "指定されている場合、指定のデータソースのみ検索対象にする"
         datasourceIds: [String!]
     ): [DataId!]!

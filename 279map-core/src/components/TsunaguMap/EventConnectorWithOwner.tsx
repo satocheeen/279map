@@ -14,14 +14,13 @@ import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSour
 import { overrideItemsAtom, showingItemsAtom, } from '../../store/item';
 import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
-import { ContentsDefine, GetUnpointContentsDocument, SearchDocument, SortCondition, GetImageDocument, UpdateDataDocument, LinkDataDocument, UnlinkDataDocument, GetContentDocument, DataUpdateDocument, Operation, LinkDataByOriginalIdDocument, UpdateDataByOriginalIdDocument, Condition } from '../../graphql/generated/graphql';
+import { AllocatableContentsDocument, SearchDocument, GetImageDocument, UpdateDataDocument, LinkDataDocument, UnlinkDataDocument, GetContentDocument, DataUpdateDocument, Operation, LinkDataByOriginalIdDocument, UpdateDataByOriginalIdDocument, Condition } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import useConfirm from '../common/confirm/useConfirm';
 import { ConfirmBtnPattern } from '../common/confirm/types';
 import dayjs from 'dayjs';
 import useItemProcess from '../../store/item/useItemProcess';
 import { useAtomCallback } from 'jotai/utils';
-import { DataId } from '../../entry';
 import { ContentValueMapInput } from '../../types-common/common-types';
 
 /**
@@ -327,7 +326,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
             }
         },
         async getUnpointDataAPI({ datasourceId, nextToken, keyword }) {
-            const result = await gqlClient.query(GetUnpointContentsDocument, {
+            const result = await gqlClient.query(AllocatableContentsDocument, {
                 datasourceId,
                 nextToken,
                 keyword,
@@ -338,7 +337,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 throw new Error('getUnpoinData error', result.error);
             }
             return {
-                contents: result.data.getUnpointContents.contents.map(c => {
+                contents: result.data.allocatableContents.contents.map(c => {
                     if (c.dataId) {
                         return {
                             id: {
@@ -363,7 +362,7 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
     
                     }
                 }),
-                nextToken: result.data.getUnpointContents.nextToken ?? undefined,
+                nextToken: result.data.allocatableContents.nextToken ?? undefined,
             }
         },
     
