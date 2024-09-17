@@ -325,11 +325,12 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 throw new Error(result.error.message);
             }
         },
-        async getUnpointDataAPI({ datasourceId, nextToken, keyword }) {
+        async getUnpointDataAPI({ datasourceId, nextToken, keyword, includeAllocated }) {
             const result = await gqlClient.query(AllocatableContentsDocument, {
                 datasourceId,
                 nextToken,
                 keyword,
+                includeAllocated,
             }, {
                 requestPolicy: 'network-only',
             });

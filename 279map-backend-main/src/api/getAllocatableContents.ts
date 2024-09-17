@@ -1,29 +1,42 @@
 import { ConnectionPool } from "..";
 import { ContentsTable } from "../../279map-backend-common/dist";
-import { DataSourceTable, DatasTable, OdbaGetUncachedDataParam } from "../../279map-backend-common/src";
+import { CurrentMap, DataSourceTable, DatasTable } from "../../279map-backend-common/src";
 import { QueryResolverReturnType } from "../graphql/type_utility";
 
-export type UnpointContent = Awaited<QueryResolverReturnType<'allocatableContents'>>['contents'][0];
+export type AllocatableContent = Awaited<QueryResolverReturnType<'allocatableContents'>>['contents'][0];
 
+type Param = {
+    currentMap: CurrentMap;
+    dataSourceId: string;
+    keyword?: string;
+
+    // trueを指定した場合、既に建物に割り当て済みのコンテンツも含めて返す
+    includeAllocated?: boolean;
+}
 /**
- * キャッシュDBに存在するデータの中から、指定の地図上のアイテムにプロットされていないデータを取得する
+ * キャッシュDBに存在するデータの中から、指定の地図上のアイテムにプロット可能なデータを取得して返す
  */
-export async function getUnpointData({ currentMap, dataSourceId, keyword }: OdbaGetUncachedDataParam): Promise<UnpointContent[]> {
+export async function getAllocatableContents({ currentMap, dataSourceId, keyword, includeAllocated }: Param): Promise<AllocatableContent[]> {
     const con = await ConnectionPool.getConnection();
 
     try {
         let sql = `
             select * from datas d
             inner join contents c on c.data_id = d.data_id 
-            where not EXISTS (
+            where d.data_source_id = ?        
+            `;
+
+        const params = [dataSourceId];
+        if (!includeAllocated) {
+            sql += `
+            and not EXISTS (
                 select * from content_belong_map cbm 
                 where cbm.content_id = d.data_id 
                 and cbm.map_page_id = ? and cbm.map_kind = ?
             )
-            and d.data_source_id = ?        
             `;
-
-        const params = [currentMap.mapId, currentMap.mapKind, dataSourceId];
+            Array.prototype.push.apply(params, [currentMap.mapId, currentMap.mapKind]);
+        }
         if (keyword) {
             sql += "and JSON_SEARCH(c.contents, 'one', ?) is not null";
             const keywordParam = `%${keyword}%`;

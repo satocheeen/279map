@@ -13,6 +13,7 @@ export default function GetUnlinkedContentDriver(props: Props) {
     const [ target, setTarget ] = useState<string|undefined>();
     const [ keyword, setKeyword ] = useState('');
     const [ nextToken, setNextToken ] = useState('');
+    const [ includeAllocated, setIncludeAllocated ] = useState(false);
 
     useWatch(contentDatasources, () => {
         if (target) return;
@@ -28,6 +29,7 @@ export default function GetUnlinkedContentDriver(props: Props) {
                 datasourceId: target,
                 keyword: keyword.length > 0 ? keyword : undefined,
                 nextToken: nextToken.length > 0 ? nextToken : undefined,
+                includeAllocated,
             });
         if (res) {
             setResult(JSON.stringify(res.contents, undefined, 2))
@@ -55,8 +57,12 @@ export default function GetUnlinkedContentDriver(props: Props) {
                 <input type='text' value={keyword} onChange={evt=>setKeyword(evt.target.value)} />
             </label>
             <label className={myStyles.Row}>
-                token
+                nextToken
                 <input type='text' value={nextToken} onChange={evt=>setNextToken(evt.target.value)} />
+            </label>
+            <label className={myStyles.Row}>
+            includeAllocated
+                <input type='checkbox' checked={includeAllocated} onChange={evt=>setIncludeAllocated(evt.target.checked)} />
             </label>
             <button onClick={handleClick}>取得</button>
 

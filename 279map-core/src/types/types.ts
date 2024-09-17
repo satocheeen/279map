@@ -414,7 +414,8 @@ export interface TsunaguMapHandler {
     getUnpointDataAPI(param: {
         datasourceId: string;
         nextToken?: string;
-        keyword?: string
+        keyword?: string;
+        includeAllocated?: boolean;
     }): Promise<{
         contents: {
             id: {

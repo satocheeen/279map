@@ -47,7 +47,7 @@ import { getOriginalIconDefine } from './api/getOriginalIconDefine';
 import { getLinkedContent } from './api/get-content/getLinkedContents';
 import { getContentDefine, getContentDetail } from './api/get-content/getContent';
 import { publishData } from './pubsub/publishData';
-import { getUnpointData } from './api/getUnpointData';
+import { getAllocatableContents } from './api/getAllocatableContents';
 import { convertBase64ToBinary } from './util/utility';
 import { CategoryChecker } from './memory/CategoryChecker';
 import sharp from 'sharp';
@@ -468,10 +468,11 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             allocatableContents: async(_: any, param: QueryAllocatableContentsArgs, ctx): QueryResolverReturnType<'allocatableContents'> => {
                 try {
                     // キャッシュDBに存在するデータの中から、指定の地図上のアイテムにプロットされていないデータを取得する
-                    const unpointDataList = await getUnpointData({
+                    const unpointDataList = param.nextToken ? [] : await getAllocatableContents({
                         currentMap: ctx.currentMap,
                         dataSourceId: param.datasourceId,
                         keyword: param.keyword ?? undefined,
+                        includeAllocated: param.includeAllocated ?? undefined,
                     });
                     // ODBAに問い合わせて、キャッシュDBに未登録のデータを取得する
                     const result = await callOdbaApi(OdbaGetUncachedDataAPI, {
