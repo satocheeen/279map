@@ -299,28 +299,30 @@ export function useMap() {
                 if (getItem(target.id)) return true;
 
                 // 取得済み範囲の場合、取得
-                const key = getLoadedAreaMapKey(target.datasourceId, 0);
-                const loadedAreaInfo = loadedItemMap[JSON.stringify(key)];
-                if (!loadedAreaInfo) {
-                    console.log('loadedAreaInfo undefined', loadedItemMap);
-                    return false;
-                }
-                const loadedPolygon = geoJsonToTurfPolygon(loadedAreaInfo.geometry);
-                if (!loadedPolygon) {
-                    console.log('loadedPolygon undefined');
-                    return false;
-                }
+                // XXX: ここの判定がうまく行かないことがあるので、とりあえずすべて再取得する形で暫定対処
+                return true;
+                // const key = getLoadedAreaMapKey(target.datasourceId, 0);
+                // const loadedAreaInfo = loadedItemMap[JSON.stringify(key)];
+                // if (!loadedAreaInfo) {
+                //     console.log('loadedAreaInfo undefined', loadedItemMap);
+                //     return false;
+                // }
+                // const loadedPolygon = geoJsonToTurfPolygon(loadedAreaInfo.geometry);
+                // if (!loadedPolygon) {
+                //     console.log('loadedPolygon undefined');
+                //     return false;
+                // }
 
-                if (!target.wkt) return true;
+                // if (!target.wkt) return true;
                 
-                const geoJson = wktToGeoJSON(target.wkt);
-                const polygon = geoJsonToTurfPolygon(geoJson);
-                if (!polygon) {
-                    console.log('polygon undefined');
-                    return false;
-                }
-                const isContain =  intersect(loadedPolygon, polygon) !== null;
-                return isContain;
+                // const geoJson = wktToGeoJSON(target.wkt);
+                // const polygon = geoJsonToTurfPolygon(geoJson);
+                // if (!polygon) {
+                //     console.log('polygon undefined');
+                //     return false;
+                // }
+                // const isContain =  intersect(loadedPolygon, polygon) !== null;
+                // return isContain;
 
             }).map((target): DataId => {
                 return target.id;
