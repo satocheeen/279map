@@ -3,3 +3,4 @@ log/
 photo/
 .env*
 !.env.**.sample
+service-account-key.json
