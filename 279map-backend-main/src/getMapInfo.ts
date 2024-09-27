@@ -223,14 +223,12 @@ async function getContentDataSources(mapId: string, mapKind: MapKind): Promise<C
                 }
             }
             
-            const hasLocation = (rec.location_define && rec.location_define.length > 0) ? true : false;
-
             return {
                 datasourceId: rec.data_source_id,
                 name: rec.datasource_name,
                 config: {
-                    // 世界地図の場合は、位置項目を持つものはアイテムへのリンク不可。村マップの場合は、VirtualItem以外はリンク可能。
-                    linkableToItem: mapKind === MapKind.Real ? !hasLocation : true,
+                    // 世界地図の場合は、Track以外はリンク可能（TrackもTrack側が誤動作しないか確認したらリンク可能にしてよい）。村マップの場合は、VirtualItem以外はリンク可能。
+                    linkableToItem: mapKind === MapKind.Real ? rec.location_kind !== DatasourceLocationKindType.Track : true,
                     readonly: rec.config.readonly,
                     fields: 'contentFieldKeyList' in mdlConfig ? mdlConfig.contentFieldKeyList.map((key): ContentFieldDefine | undefined => {
                         const define = rec.contents_define?.find(def => def.key === key);
