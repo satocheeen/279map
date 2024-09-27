@@ -23,7 +23,7 @@ services:
       - ./log:/var/log/www
   frontend:
     # メイン
-    image: satocheeen/279map-frontend:0.95.2
+    image: satocheeen/279map-frontend:0.96.1
     env_file:
       - ./.env
     ports:
