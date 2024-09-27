@@ -7,7 +7,7 @@ import { OwnerContext } from "../../components/TsunaguMap/TsunaguMap";
 import { loadedItemMapAtom, storedItemsAtom } from "../item";
 import { dataSourceVisibleAtom } from "../datasource";
 import { MapKind } from "../../types-common/common-types";
-import { currentMapIconDefineAtom, currentMapIconDefinePromiseAtom } from "../icon";
+import { currentMapIconDefinePromiseAtom } from "../icon";
 
 export function useMapController() {
     const { onMapLoad } = useContext(OwnerContext);

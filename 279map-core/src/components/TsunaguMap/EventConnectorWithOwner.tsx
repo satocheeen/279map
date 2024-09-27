@@ -139,10 +139,6 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 }
                 const hitItems = result.data?.search ?? [];
                 if (hitItems.length === 0) {
-                    confirm({
-                        message: '該当するものが見つかりませんでした',
-                        btnPattern: ConfirmBtnPattern.OkOnly,
-                    })
                     setFilteredItem(null);
                     return false;
                 }
