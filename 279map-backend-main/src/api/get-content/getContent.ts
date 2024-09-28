@@ -60,7 +60,7 @@ async function getContentRecord(con: PoolConnection, { dataId, currentMap }: Par
 
         const [rows] = await con.query(sql, [currentMap.mapId, dataId]);
         if ((rows as []).length === 0) {
-            throw new Error('data not find');
+            throw new Error('data not find: ' + dataId);
         }
         const record = (rows as (ContentsTable & DataSourceTable & MapDataSourceLinkTable)[])[0];
         return record;
