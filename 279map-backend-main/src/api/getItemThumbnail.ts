@@ -41,7 +41,7 @@ export async function getItemThumbnail(param: Param) {
         if (itemRecords.length === 0) {
             return null;
         }
-        const geoProperties = JSON.parse(itemRecords[0].geo_properties) as GeoProperties;
+        const geoProperties = JSON.parse(itemRecords[0].geo_properties ?? {}) as GeoProperties;
         if (geoProperties.featureType !== FeatureType.STRUCTURE) {
             return null;
         }

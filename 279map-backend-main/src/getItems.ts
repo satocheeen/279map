@@ -7,6 +7,7 @@ import { ItemContentInfo } from './api/getItem';
 import { DatasourceLocationKindType, FeatureType, GeoProperties, MapKind } from './types-common/common-types';
 import { ItemDefineWithoutContents } from './types';
 import { DataSourceTable } from '../279map-backend-common/dist';
+import { Geometry } from 'geojson';
 
 const apiLogger = getLogger('api');
 
@@ -65,12 +66,26 @@ async function selectItems(param: QueryGetItemsArgs, currentMap: CurrentMap): Pr
                         min_zoom: row.min_zoom,
                     }
                 } else if (row.location_kind === DatasourceLocationKindType.StaticImage) {
-                    return Object.assign({}, JSON.parse(row.geo_properties), {
+                    return Object.assign({}, JSON.parse(row.geo_properties ?? {}), {
                         base64: row.static_image,
                     })
+                } else if (row.location_kind === DatasourceLocationKindType.RealItem) {
+                    // geo_properties未設定の場合の対処
+                    if (!row.geo_properties) {
+                        switch((row.geojson as Geometry).type) {
+                            case 'Point':
+                                return {
+                                    featureType: FeatureType.STRUCTURE,
+                                }
+                            default:
+                                return {
+                                    featureType: FeatureType.AREA,
+                                }
+                        }
+                    }
                 }
                 
-                return JSON.parse(row.geo_properties);
+                return JSON.parse(row.geo_properties ?? {});
     
             }();
             pointContents.push({
