@@ -15,6 +15,7 @@ export type OnConnectParam = {
     authLv: Auth;
     userName: string | undefined;
     mapDefine: Omit<MapDefine, '__typename' | 'originalIcons'>;
+    sessionId: string;
 };
 export type OnConnectResult = {
     /**

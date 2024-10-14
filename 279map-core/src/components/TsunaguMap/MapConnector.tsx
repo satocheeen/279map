@@ -104,6 +104,7 @@ export default function MapConnector(props: Props) {
                     mapDefine: result.data.connect.mapDefine,
                     authLv,
                     userName,
+                    sessionId: sessionid,
                 });
                 if (callbackResult && callbackResult.mapKind) {
                     mapKind = callbackResult.mapKind;
