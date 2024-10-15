@@ -22,7 +22,10 @@ export type OdbaRegistDataParam = CommonParam & {
         geoProperties: GeoProperties;
     };
     contents?: ContentValueMapInput;
-    linkItems?: DataId[];   // 既存のアイテムに紐づける場合に指定
+    linkItems?: {
+        id: DataId;
+        fieldKey?: string;
+    }[];   // 既存のアイテムに紐づける場合に指定
 }
 
 export const OdbaUpdateDataAPI = {

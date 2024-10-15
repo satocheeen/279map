@@ -53,6 +53,10 @@ input RegistDataItemInput {
     geometry: Geometry!
     geoProperties: GeoProperties!
 }
+input RegistDataLinkDataInput {
+    id: DataId!
+    fieldKey: String
+}
 type Mutation {
     connect (
         mapId: String!
@@ -69,7 +73,7 @@ type Mutation {
         datasourceId: String!
         item: RegistDataItemInput
         contents: ContentValueMapInput
-        linkDatas: [DataId!]
+        linkDatas: [RegistDataLinkDataInput!]
     ): DataId!
 
     "データ更新"

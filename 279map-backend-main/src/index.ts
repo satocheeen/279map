@@ -700,13 +700,18 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         dataSourceId: param.datasourceId,
                         item: param.item ?? undefined,
                         contents: param.contents ?? undefined,
-                        linkItems: param.linkDatas ?? undefined,
+                        linkItems: param.linkDatas?.map(ld => {
+                            return {
+                                id: ld.id,
+                                fieldKey: ld.fieldKey ?? undefined,
+                            }
+                        }) ?? undefined,
                     });
 
                     // 更新通知
                     publishData(PubSub, 'insert', [id]);
                     if (param.linkDatas) {
-                        publishData(PubSub, 'update', param.linkDatas);
+                        publishData(PubSub, 'update', param.linkDatas.map(ld => ld.id));
                     }
 
                     // カテゴリ更新チェック

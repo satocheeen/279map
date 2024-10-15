@@ -349,7 +349,7 @@ export type MutationRegistDataArgs = {
   contents?: InputMaybe<Scalars['ContentValueMapInput']['input']>;
   datasourceId: Scalars['String']['input'];
   item?: InputMaybe<RegistDataItemInput>;
-  linkDatas?: InputMaybe<Array<Scalars['DataId']['input']>>;
+  linkDatas?: InputMaybe<Array<RegistDataLinkDataInput>>;
 };
 
 
@@ -517,6 +517,11 @@ export type QuerySearchArgs = {
 export type RegistDataItemInput = {
   geoProperties: Scalars['GeoProperties']['input'];
   geometry: Scalars['Geometry']['input'];
+};
+
+export type RegistDataLinkDataInput = {
+  fieldKey?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['DataId']['input'];
 };
 
 export type ServerConfig = Auth0Config | NoneConfig;
@@ -793,6 +798,7 @@ export type ResolversTypes = {
   PopupMode: PopupMode;
   Query: ResolverTypeWrapper<{}>;
   RegistDataItemInput: RegistDataItemInput;
+  RegistDataLinkDataInput: RegistDataLinkDataInput;
   ServerConfig: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['ServerConfig']>;
   SortCondition: SortCondition;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
@@ -855,6 +861,7 @@ export type ResolversParentTypes = {
   NoneConfig: NoneConfig;
   Query: {};
   RegistDataItemInput: RegistDataItemInput;
+  RegistDataLinkDataInput: RegistDataLinkDataInput;
   ServerConfig: ResolversUnionTypes<ResolversParentTypes>['ServerConfig'];
   String: Scalars['String']['output'];
   Subscription: {};
