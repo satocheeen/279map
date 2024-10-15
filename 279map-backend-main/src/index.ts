@@ -822,6 +822,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         type: 'dataId',
                         id: param.id,
                         parent: param.parent,
+                        fieldKey: param.fieldKey ?? undefined,
                     });
 
                     // 更新通知
@@ -842,6 +843,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         type: 'originalId',
                         originalId: param.originalId,
                         parent: param.parent,
+                        fieldKey: param.fieldKey ?? undefined,
                     });
 
                     // 更新通知
@@ -864,6 +866,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         currentMap: ctx.currentMap,
                         id: param.id,
                         parent: param.parent,
+                        fieldKey: param.fieldKey,
                     });
             
                     // 更新通知

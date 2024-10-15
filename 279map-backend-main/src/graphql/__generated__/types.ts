@@ -332,12 +332,14 @@ export type MutationConnectArgs = {
 
 
 export type MutationLinkDataArgs = {
+  fieldKey?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['DataId']['input'];
   parent: Scalars['DataId']['input'];
 };
 
 
 export type MutationLinkDataByOriginalIdArgs = {
+  fieldKey?: InputMaybe<Scalars['String']['input']>;
   originalId: Scalars['String']['input'];
   parent: Scalars['DataId']['input'];
 };
@@ -368,6 +370,7 @@ export type MutationSwitchMapKindArgs = {
 
 
 export type MutationUnlinkDataArgs = {
+  fieldKey: Scalars['String']['input'];
   id: Scalars['DataId']['input'];
   parent: Scalars['DataId']['input'];
 };
@@ -1103,7 +1106,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   removeData?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveDataArgs, 'id'>>;
   request?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRequestArgs, 'mapId' | 'name'>>;
   switchMapKind?: Resolver<ResolversTypes['MapInfo'], ParentType, ContextType, RequireFields<MutationSwitchMapKindArgs, 'mapKind'>>;
-  unlinkData?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkDataArgs, 'id' | 'parent'>>;
+  unlinkData?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkDataArgs, 'fieldKey' | 'id' | 'parent'>>;
   updateData?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateDataArgs, 'id'>>;
   updateDataByOriginalId?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateDataByOriginalIdArgs, 'originalId'>>;
 };

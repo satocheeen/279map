@@ -42,6 +42,7 @@ export function initializeOdba(app: Express, odba: OdbaInterface, logger: Logger
                     currentMap: param.param.currentMap, 
                     parent: param.param.parent,
                     id: param.param.id,
+                    fieldKey: param.param.fieldKey,
                 })
             }
         },

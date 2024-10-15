@@ -97,6 +97,7 @@ type Mutation {
     linkData (
         id: DataId!
         parent: DataId!
+        fieldKey: String
     ): Boolean
 
     """
@@ -105,11 +106,13 @@ type Mutation {
     linkDataByOriginalId (
         originalId: String!
         parent: DataId!
+        fieldKey: String
     ): Boolean
 
     unlinkData (
         id: DataId!
         parent: DataId!
+        fieldKey: String!
     ): Boolean
 
     changeAuthLevel (
