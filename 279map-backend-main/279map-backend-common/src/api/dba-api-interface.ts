@@ -60,16 +60,12 @@ export const OdbaUnlinkDataAPI = {
     uri: 'unlink-data',
     method: 'post',
     resultType: 'none',
-} as APIDefine<OdbaUnLinkDataParam, void>;
-
-export type OdbaUnLinkDataParam = CommonParam & ({
-    id: DataId;
-    parent: DataId;
-})
+} as APIDefine<OdbaUnlinkDataParam, void>;
 
 export type OdbaUnlinkDataParam = CommonParam & {
     id: DataId;
     parent: DataId;
+    fieldKey: string;  // parentのこのフィールドからのリンクを解除する
 }
 
 /**
@@ -109,12 +105,13 @@ export const OdbaLinkDataAPI = {
 export type OdbaLinkDataParam = CommonParam & ({
     type: 'dataId',
     id: DataId;
-    parent: DataId;
 } | {
     type: 'originalId',
     originalId: string;
+}) & {
     parent: DataId;
-})
+    fieldKey?: string;  // 指定されている場合、ここで指定したフィールドにリンク追加する。未指定の場合は、追加可能なフィールドにリンク追加する。
+}
 
 export const OdbaGetImageUrlAPI = {
     uri: 'get-imageurl',
