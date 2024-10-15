@@ -55,7 +55,7 @@ mutation registData (
     $datasourceId: String!
     $item: RegistDataItemInput
     $contents: ContentValueMapInput
-    $linkDatas: [DataId!]
+    $linkDatas: [RegistDataLinkDataInput!]
 ) {
     registData (
         datasourceId: $datasourceId,
@@ -96,36 +96,6 @@ mutation removeData (
 ) {
     removeData (
         id: $id
-    )
-}
-
-mutation linkData (
-    $id: DataId!
-    $parent: DataId!
-) {
-    linkData (
-        id: $id
-        parent: $parent
-    )
-}
-
-mutation linkDataByOriginalId (
-    $originalId: String!
-    $parent: DataId!
-) {
-    linkDataByOriginalId (
-        originalId: $originalId
-        parent: $parent
-    )
-}
-
-mutation unlinkData (
-    $id: DataId!
-    $parent: DataId!
-) {
-    unlinkData (
-        id: $id
-        parent: $parent
     )
 }
 

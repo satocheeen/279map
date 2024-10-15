@@ -14,10 +14,9 @@ import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSour
 import { overrideItemsAtom, showingItemsAtom, } from '../../store/item';
 import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
-import { AllocatableContentsDocument, SearchDocument, GetImageDocument, UpdateDataDocument, LinkDataDocument, UnlinkDataDocument, GetContentDocument, DataUpdateDocument, Operation, LinkDataByOriginalIdDocument, UpdateDataByOriginalIdDocument, Condition } from '../../graphql/generated/graphql';
+import { AllocatableContentsDocument, SearchDocument, GetImageDocument, UpdateDataDocument, GetContentDocument, DataUpdateDocument, Operation, UpdateDataByOriginalIdDocument, Condition } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import useConfirm from '../common/confirm/useConfirm';
-import { ConfirmBtnPattern } from '../common/confirm/types';
 import dayjs from 'dayjs';
 import useItemProcess from '../../store/item/useItemProcess';
 import { useAtomCallback } from 'jotai/utils';
@@ -33,7 +32,6 @@ export type EventControllerHandler = Pick<TsunaguMapHandler,
     'switchMapKind' | 'focusItem' | 'loadContent' | 'loadImage'
     | 'filter' | 'clearFilter'
     | 'registData' | 'updateData'
-    | 'linkContent' | 'unlinkContent'
     | 'getUnpointDataAPI'
     | 'changeVisibleLayer'
     | 'selectItem'
@@ -291,34 +289,6 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 if (result.error) {
                     throw new Error(result.error.message);
                 }
-            }
-        },
-        async linkContent(param: Parameters<TsunaguMapHandler['linkContent']>[0]) {
-            if (param.child.type === 'dataId') {
-                const result = await gqlClient.mutation(LinkDataDocument, {
-                    id: param.child.dataId,
-                    parent: param.parent,
-                });
-                if (result.error) {
-                    throw new Error(result.error.message);
-                }
-            } else {
-                const result = await gqlClient.mutation(LinkDataByOriginalIdDocument, {
-                    originalId: param.child.originalId,
-                    parent: param.parent,
-                });
-                if (result.error) {
-                    throw new Error(result.error.message);
-                }
-            }
-        },
-        async unlinkContent(param) {
-            const result = await gqlClient.mutation(UnlinkDataDocument, {
-                id: param.id,
-                parent: param.parent,
-            });
-            if (result.error) {
-                throw new Error(result.error.message);
             }
         },
         async getUnpointDataAPI({ datasourceId, nextToken, keyword, includeAllocated }) {

@@ -316,7 +316,10 @@ export interface TsunaguMapHandler {
             values: {[key: string]: ContentValueInput};
         };
         // 指定した場合は、指定先のparentの子として紐づける
-        parent?: DataId;
+        parent?: {
+            id: DataId;
+            fieldKey?: string
+        }
     }): Promise<DataId>;
     
     /**
@@ -387,30 +390,6 @@ export interface TsunaguMapHandler {
      * @param refresh trueの場合、キャッシュを用いずに最新ロードする
      */
     loadImage(param: {imageId: number, size: ThumbSize, refresh?: boolean}): Promise<string>;
-
-    /**
-     * 指定のコンテンツを指定のアイテムまたはコンテンツに子供として紐づける
-     * @param param 
-     */
-    linkContent(param: {
-        parent: DataId;
-        child: {
-            type: 'originalId';
-            originalId: string;
-        } | {
-            type: 'dataId';
-            dataId: DataId;
-        }
-    }): Promise<void>;
-
-    /**
-     * 指定のコンテンツについて、指定のアイテムまたはコンテンツとの紐づけを解除する
-     * @param param 
-     */
-    unlinkContent(param: {
-        id: DataId;
-        parent: DataId;
-    }): Promise<void>;
 
     getUnpointDataAPI(param: {
         datasourceId: string;
