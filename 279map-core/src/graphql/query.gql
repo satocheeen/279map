@@ -127,24 +127,6 @@ query getContent(
     }
 }
 
-query allocatableContents(
-    $datasourceId: String!
-    $nextToken: String
-    $keyword: String
-    $includeAllocated: Boolean
-) {
-    allocatableContents(datasourceId: $datasourceId, nextToken: $nextToken, keyword: $keyword, includeAllocated: $includeAllocated) {
-        contents {
-            originalId
-            dataId
-            title
-            overview
-            hasImage
-        }
-        nextToken
-    }
-}
-
 query getThumb (
     $contentId: DataId!
 ) {

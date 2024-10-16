@@ -4,7 +4,7 @@ import { OwnerContext } from './TsunaguMap';
 import { categoriesAtom } from '../../store/category';
 import { eventsAtom } from '../../store/event';
 import { mapModeAtom, selectItemIdAtom } from '../../store/operation';
-import { currentMapDefineAtom, mapDefineAtom } from '../../store/session';
+import { currentMapDefineAtom } from '../../store/session';
 import { filteredDatasAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
@@ -14,9 +14,8 @@ import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSour
 import { overrideItemsAtom, showingItemsAtom, } from '../../store/item';
 import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
-import { AllocatableContentsDocument, SearchDocument, GetImageDocument, UpdateDataDocument, GetContentDocument, DataUpdateDocument, Operation, UpdateDataByOriginalIdDocument, Condition } from '../../graphql/generated/graphql';
+import { SearchDocument, GetImageDocument, UpdateDataDocument, GetContentDocument, DataUpdateDocument, Operation, UpdateDataByOriginalIdDocument, Condition } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
-import useConfirm from '../common/confirm/useConfirm';
 import dayjs from 'dayjs';
 import useItemProcess from '../../store/item/useItemProcess';
 import { useAtomCallback } from 'jotai/utils';
@@ -44,8 +43,6 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
     const [ , setFilteredItem ] = useAtom(filteredDatasAtom);
     const [ visibleDataSourceIds ] = useAtom(visibleDataSourceIdsAtom);
     const { showProcessMessage, hideProcessMessage } = useProcessMessage();
-    const { confirm } = useConfirm();
-    const [ mapDefine ] = useAtom(mapDefineAtom);
     const [ , setSelectItemId ] = useAtom(selectItemIdAtom);
     const [ contentDatasources ] = useAtom(contentDataSourcesAtom);
     const { overrideItems } = useContext(OwnerContext);
