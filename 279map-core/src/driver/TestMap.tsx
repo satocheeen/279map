@@ -19,7 +19,6 @@ import AuthPanel from './AuthPanel';
 import { AuthContext } from './DriverRoot';
 import FilterTest from './filter/FilterTest';
 import DatasourceDriver from './datasources/DatasourceDriver';
-import GetUnlinkedContentDriver from './get-unpoint-content/GetUnpointContentDriver';
 import LinkContentDriver from './linkcontent/LinkContentDriver';
 import ItemController from './item-controller/ItemContriller';
 import SwitchMapKindDriver from './switch-mapkind/SwitchMapKindDriver';
@@ -378,7 +377,6 @@ export default function TestMap() {
                     <DatasourceDriver />
                     <FilterTest />
                     <RegistContentDriver />
-                    <GetUnlinkedContentDriver />
                     <LinkContentDriver />
                     <FocusItemDriver />
                     <OverrideItemsDriver />

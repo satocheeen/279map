@@ -32,7 +32,6 @@ export type EventControllerHandler = Pick<TsunaguMapHandler,
     'switchMapKind' | 'focusItem' | 'loadContent' | 'loadImage'
     | 'filter' | 'clearFilter'
     | 'registData' | 'updateData'
-    | 'getUnpointDataAPI'
     | 'changeVisibleLayer'
     | 'selectItem'
     | 'switchBackground'>
@@ -289,47 +288,6 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
                 if (result.error) {
                     throw new Error(result.error.message);
                 }
-            }
-        },
-        async getUnpointDataAPI({ datasourceId, nextToken, keyword, includeAllocated }) {
-            const result = await gqlClient.query(AllocatableContentsDocument, {
-                datasourceId,
-                nextToken,
-                keyword,
-                includeAllocated,
-            }, {
-                requestPolicy: 'network-only',
-            });
-            if (!result.data) {
-                throw new Error('getUnpoinData error', result.error);
-            }
-            return {
-                contents: result.data.allocatableContents.contents.map(c => {
-                    if (c.dataId) {
-                        return {
-                            id: {
-                                type: 'dataId',
-                                dataId: c.dataId,
-                            },
-                            title: c.title,
-                            hasImage: c.hasImage ?? undefined,
-                            overview: c.overview ?? undefined,
-
-                        }
-                    } else {
-                        return {
-                            id: {
-                                type: 'originalId',
-                                originalId: c.originalId,
-                            },
-                            title: c.title,
-                            hasImage: c.hasImage ?? undefined,
-                            overview: c.overview ?? undefined,        
-                        }
-    
-                    }
-                }),
-                nextToken: result.data.allocatableContents.nextToken ?? undefined,
             }
         },
     
