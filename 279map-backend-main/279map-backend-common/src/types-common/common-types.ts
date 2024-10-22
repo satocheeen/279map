@@ -169,7 +169,7 @@ export type LocationFieldDefine = {
     fields: {
         image: string;
         extent: string;
-        opacity: string;
+        opacity?: string;
     }
 }
 
