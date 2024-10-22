@@ -140,16 +140,39 @@ export type ContentFieldDefine = {
 
 /**
  * 位置（item or track）関連の項目情報
- * TODO: ODBAの管轄にする
  */
 export type LocationFieldDefine = {
-    key: string;
-    type: 'latitude' | 'longitude' | 'radius'
-     | 'address' | 'geojson' | 'gpx-file'
-     | 'mark' | 'mark-speed'    // 建物の上に表示するマーク
-     | 'static-image' | 'extent' | 'static-image-opacity'   // 重ね合わせ画像定義
-     ;
+    // 緯度経度
+    type: 'point';
+    epsg?: number;  // 未指定時は4326と判断
+    fields: {
+        latitude: string;
+        longitude: string;
+        radius?: string;
+    }
+} | {
+    // GeoJson
+    type: 'geojson';
+    epsg?: number;  // 未指定時は4326と判断
+    fields: {
+        geojson: string;
+    }
+} | {
+    // trackデータ
+    type: 'track';
+    fields: {
+        gpxfile: string;
+    }
+} | {
+    // 重ね合わせ画像
+    type: 'static-image';
+    fields: {
+        image: string;
+        extent: string;
+        opacity: string;
+    }
 }
+
 
 export type ContentValue = {
     type: 'title' | 'string' | 'text' | 'date' | 'url';
