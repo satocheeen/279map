@@ -41,6 +41,9 @@ const spControls = olControl.defaults({attribution: true, zoom: false});
 
 const MAX_ZOOM_REAL = 20;
 const MAX_ZOOM_VIRTUAL = 10;
+const ProjectionRealMap = 'EPSG:4326';
+const ProjectionVirtualMap = 'EPSG:3857';
+
 // export const TemporaryPointLayerDatasourceId = 'temporary-point';
 
 // OpenStreetMap
@@ -103,7 +106,7 @@ export class OlMapWrapper {
         const map = new OlMap({
             target,
             view: new View({
-                projection: 'EPSG:4326',
+                projection: ProjectionRealMap,
             }),
             interactions: defaults({ doubleClickZoom: false, pinchRotate: false, shiftDragZoom: false }),
         });
@@ -180,6 +183,17 @@ export class OlMapWrapper {
                 ];
                 this._map.setLayers(layers);
 
+                const view = new View({
+                    projection: ProjectionRealMap,
+                    // center: this._map.getView().getCenter(),
+                    // zoom: this._map.getView().getZoom(),
+                    // minZoom: this._map.getView().getMinZoom(),
+                    maxZoom: MAX_ZOOM_REAL,
+                    extent: undefined,
+                });
+                console.log('setView japan')
+                this._map.setView(view);
+                
             } else {
                 // 日本地図
                 // 都道府県レイヤ
@@ -211,11 +225,11 @@ export class OlMapWrapper {
 
                 // 日本地図に収まる範囲にパンニング可能範囲を制御
                 const view = new View({
-                    projection: this._map.getView().getProjection(),
-                    center: this._map.getView().getCenter(),
-                    zoom: this._map.getView().getZoom(),
-                    minZoom: this._map.getView().getMinZoom(),
-                    // maxZoom: this._map.getView().getMaxZoom(),
+                    projection: ProjectionRealMap,
+                    // center: this._map.getView().getCenter(),
+                    // zoom: this._map.getView().getZoom(),
+                    // minZoom: this._map.getView().getMinZoom(),
+                    maxZoom: MAX_ZOOM_REAL,
                     extent: prefSource.getExtent(),
                 });
                 this._map.setView(view);
@@ -275,11 +289,11 @@ export class OlMapWrapper {
 
             // パンニング可能範囲の制御解除
             const view = new View({
-                projection: this._map.getView().getProjection(),
-                center: this._map.getView().getCenter(),
-                zoom: this._map.getView().getZoom(),
-                minZoom: this._map.getView().getMinZoom(),
-                maxZoom: this._map.getView().getMaxZoom(),
+                projection: ProjectionVirtualMap,
+                // center: this._map.getView().getCenter(),
+                // zoom: this._map.getView().getZoom(),
+                // minZoom: this._map.getView().getMinZoom(),
+                maxZoom: MAX_ZOOM_VIRTUAL,
                 extent: undefined,
             });
             this._map.setView(view);
@@ -287,14 +301,6 @@ export class OlMapWrapper {
 
         }
 
-        // // 一時レイヤを用意
-        // this.addLayer({
-        //     dataSourceId: TemporaryPointLayerDatasourceId,
-        //     editable: false,
-        //     layerType: LayerType.Point,
-        // }, true);
-
-        this._map.getView().setMaxZoom(mapKind === MapKind.Virtual ? MAX_ZOOM_VIRTUAL : MAX_ZOOM_REAL);
         if (extent) {
             this.fit(extent);
         }
