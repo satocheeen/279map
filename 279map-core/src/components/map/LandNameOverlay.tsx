@@ -9,9 +9,8 @@ import { itemDataSourcesAtom } from '../../store/datasource';
 import { ItemInfo, MapMode } from '../../types/types';
 import { geoJsonToTurfPolygon } from '../../util/MapUtility';
 import { bboxPolygon, centerOfMass, intersect } from '@turf/turf';
-import { DatasourceLocationKindType, FeatureType, MapKind } from '../../types-common/common-types';
+import { DatasourceLocationKindType, FeatureType } from '../../types-common/common-types';
 import { useWatch } from '../../util/useWatch2';
-import { currentMapKindAtom } from '../../store/session';
 
 // 島名を常時表示するズームLv.境界値（この値よりも小さい場合に、常時表示）
 const LandNameShowZoomLv = 8.9;
@@ -33,7 +32,6 @@ export default function LandNameOverlay() {
 
     const [mapView] = useAtom(mapViewAtom);
     const [ mapMode ] = useAtom(mapModeAtom);
-    const [ mapKind ] = useAtom(currentMapKindAtom);
 
     // 名前を持つ島
     const namedEarth = useMemo(() => {
@@ -54,12 +52,11 @@ export default function LandNameOverlay() {
         // 表示範囲内の地物に絞る
         return namedEarth.filter(item => {
             const extentPolygon = bboxPolygon(mapView.extent as [number,number,number,number]);
-            const itemPolygon = geoJsonToTurfPolygon(item.geometry, mapKind ?? MapKind.Real);
+            const itemPolygon = geoJsonToTurfPolygon(item.geometry);
             if (!itemPolygon) return false;
-            const result =  !!intersect(extentPolygon, itemPolygon);
-            return result;
+            return !!intersect(extentPolygon, itemPolygon);
         });
-    }, [namedEarth, mapView.extent, mapKind]);
+    }, [namedEarth, mapView.extent]);
 
     return (
         <React.Fragment>
@@ -101,7 +98,6 @@ function LandName({ item }: LandNameProps) {
         setFade(true);
     })
 
-    const [ mapKind ] = useAtom(currentMapKindAtom);
     useEffect(() => {
         // オーバレイを配置する
         const element = landNameDivRef.current;
@@ -118,16 +114,9 @@ function LandName({ item }: LandNameProps) {
             className: styles.LandnameOverlayContainer,
         });
 
-        const center = function() {
-            if (item.geometry.type === 'Point') {
-                return item.geometry.coordinates;
-            } else {
-                const itemPolygon = geoJsonToTurfPolygon(item.geometry, mapKind ?? MapKind.Real);
-                const c = centerOfMass(itemPolygon);
-                return c.geometry.coordinates;
-            }
-        }();
-        overlay.setPosition(center);
+        const itemPolygon = geoJsonToTurfPolygon(item.geometry);
+        const center = centerOfMass(itemPolygon);
+        overlay.setPosition(center.geometry.coordinates);
         map?.addOverlay(overlay);            
         landNameOverlayRef.current = overlay;
 
@@ -139,7 +128,7 @@ function LandName({ item }: LandNameProps) {
             }
         }
 
-    }, [item, map, mapKind]);
+    }, [item, map]);
 
     const visibleClass = useMemo(() => {
         if (isShow) {

@@ -19,7 +19,7 @@ import { GetItemsByIdDocument, GetItemsDocument } from '../../graphql/generated/
 import { clientAtom } from 'jotai-urql';
 import GeoJSON from 'geojson';
 import { Extent } from 'ol/extent';
-import { DataId, DatasourceLocationKindType, MapKind } from '../../types-common/common-types';
+import { DataId, DatasourceLocationKindType } from '../../types-common/common-types';
 import { selectItemIdAtom } from '../../store/operation';
 import { ItemInfo, TsunaguMapHandler } from '../../entry';
 
@@ -110,12 +110,11 @@ export function useMap() {
             // 取得済みのアイテムを抽出
             const allItems = get(allItemsAtom);
             const extentPolygon = bboxPolygon(extent as [number,number,number,number]);
-            const mapKind = get(currentMapKindAtom);
             return allItems.filter(item => {
                 let hit: boolean = false;
                 if (item.geometry.type === 'GeometryCollection') {
                     hit = item.geometry.geometries.some(g => {
-                        const polygon = geoJsonToTurfPolygon(g, mapKind ?? MapKind.Real);
+                        const polygon = geoJsonToTurfPolygon(g);
                         if (!polygon) return false;
                         const result = intersect(extentPolygon, polygon);
                         return result !== null;
@@ -142,12 +141,11 @@ export function useMap() {
 
                 // ロード対象
                 const loadTargets = [] as {datasourceId: string; geometry: GeoJSON.Geometry}[];
-                const mapKind = get(currentMapKindAtom);
                 visibleDataSourceIds.forEach((datasourceId) => {
                     const loadedItemMap = get(loadedItemMapAtom);
                     const key = getLoadedAreaMapKey(datasourceId, zoom);
                     const loadedItemInfo = loadedItemMap[JSON.stringify(key)];
-                    const loadedPolygon = loadedItemInfo ? geoJsonToTurfPolygon(loadedItemInfo.geometry, mapKind ?? MapKind.Real) : undefined;
+                    const loadedPolygon = loadedItemInfo ? geoJsonToTurfPolygon(loadedItemInfo.geometry) : undefined;
                     let polygon: LoadedAreaInfo['geometry'] | undefined;
                     if (loadedPolygon) {
                         if (intersect(loadedPolygon, extentPolygon) !== null) {
@@ -221,8 +219,8 @@ export function useMap() {
                     const currentData = loadedItemMap[keyStr];
                     let polygon: LoadedAreaInfo['geometry'];
                     if (currentData) {
-                        const loadedPolygon = geoJsonToTurfPolygon(currentData.geometry, mapKind ?? MapKind.Real);
-                        const newLoadedPolygon = geoJsonToTurfPolygon(info.geometry, mapKind ?? MapKind.Real);
+                        const loadedPolygon = geoJsonToTurfPolygon(currentData.geometry);
+                        const newLoadedPolygon = geoJsonToTurfPolygon(info.geometry);
                         if (!newLoadedPolygon) return;
                         const newPolygon = loadedPolygon ?
                             union(
