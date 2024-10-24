@@ -39,8 +39,8 @@ type Device = 'pc' | 'sp';
 const pcControls = olControl.defaults({attribution: true, zoom: false});
 const spControls = olControl.defaults({attribution: true, zoom: false});
 
-const MAX_ZOOM_REAL = 20;
-const MAX_ZOOM_VIRTUAL = 10;
+const MAX_ZOOM_LV = 20;
+const MIN_ZOOM_LV = 5;
 // export const TemporaryPointLayerDatasourceId = 'temporary-point';
 
 // OpenStreetMap
@@ -118,7 +118,7 @@ export class OlMapWrapper {
 
         map.on('moveend', () => {
             const zoom = map.getView().getZoom() ?? 0;
-            console.log('zoom', zoom);
+            console.log('zoom event', zoom);
             if (this._currentZoom !== zoom) {
                 this._onZoomLvChanged();
             }
@@ -215,6 +215,7 @@ export class OlMapWrapper {
                     center: this._map.getView().getCenter(),
                     zoom: this._map.getView().getZoom(),
                     minZoom: this._map.getView().getMinZoom(),
+                    maxZoom: MAX_ZOOM_LV,
                     // maxZoom: this._map.getView().getMaxZoom(),
                     extent: prefSource.getExtent(),
                 });
@@ -258,7 +259,7 @@ export class OlMapWrapper {
 
         } else {
             // 村マップ
-            extent ??= [0, 0, 2, 2];
+            extent ??= [0, 0, 0.5, 0.5];
             itemDataSources.forEach(ds => {
                 if (ds.config.kind !== DatasourceLocationKindType.VirtualItem) {
                     return;
@@ -278,8 +279,8 @@ export class OlMapWrapper {
                 projection: this._map.getView().getProjection(),
                 center: this._map.getView().getCenter(),
                 zoom: this._map.getView().getZoom(),
-                minZoom: this._map.getView().getMinZoom(),
-                maxZoom: this._map.getView().getMaxZoom(),
+                minZoom: MIN_ZOOM_LV,
+                maxZoom: MAX_ZOOM_LV,
                 extent: undefined,
             });
             this._map.setView(view);
@@ -294,7 +295,6 @@ export class OlMapWrapper {
         //     layerType: LayerType.Point,
         // }, true);
 
-        this._map.getView().setMaxZoom(mapKind === MapKind.Virtual ? MAX_ZOOM_VIRTUAL : MAX_ZOOM_REAL);
         if (extent) {
             this.fit(extent);
         }

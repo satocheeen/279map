@@ -10,9 +10,9 @@ import { MapKind, FeatureType } from "../../types-common/common-types";
 const DRAWING_COLOR = '#eebbaa'
 
 export class RoadWidth {
-    static S = new RoadWidth('S', 0.005, '小道');
-    static M = new RoadWidth('M', 0.02, '一般道');
-    static L = new RoadWidth('L', 0.05, '大通り');
+    static S = new RoadWidth('S', 0.00005, '小道');
+    static M = new RoadWidth('M', 0.0002, '一般道');
+    static L = new RoadWidth('L', 0.0005, '大通り');
 
     key: string;
     distance: number;

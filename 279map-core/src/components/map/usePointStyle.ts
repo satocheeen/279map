@@ -224,7 +224,7 @@ export default function usePointStyle() {
             const { mainFeature, showFeaturesLength } = _analysisFeatures(feature);
             const allItems = get(allItemsAtom);
 
-            console.log('_createPointStyle')
+            console.log('_createPointStyle', resolution)
 
             const iconDefine = function() {
                 if (isTemporary) {
@@ -346,7 +346,12 @@ function createItemNameLabel(feature: FeatureLike, resolution: number, opacity: 
         name = splitString(name, MapStyles.Item.maxLabelLength).join('\n');
     }
 
-    const scale = Math.min(0.002 * (1 / resolution), 1);
+    const scale = function() {
+        const s = 0.00005 * (1 / resolution);
+        if (s > 1) return 1;
+        if (s < 0.5) return 0.5;
+        return s;
+    }();
     const color = '#000000' + Math.floor(255 * getOpacityValue(opacity)).toString(16);
 
     const text = new Text({
