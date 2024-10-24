@@ -49,17 +49,11 @@ import { Opacity } from '../components/map/useFilterStatus';
  */
 export function getStructureScale(resolution: number, mapKind: MapKind|undefined): number {
     // 世界地図では、だいぶ遠景から見ることがあるのと、あまりピンが大きいともっさりするので村マップとは異なる値で調整。
-    if (mapKind === MapKind.Real) {
-        const scale = Math.min(0.001 * (1 / resolution), 1) * 3;
-        if (scale < 0.1) return 0.1;
-        if (scale > 0.5) return 0.5;
-        return scale;
+    const scale = Math.min(0.001 * (1 / resolution), 1) * (mapKind === MapKind.Virtual ? 1 : 3);
+    if (mapKind === MapKind.Real && scale < 0.1) return 0.1;
+    if (mapKind === MapKind.Real && scale > 0.5) return 0.5;
 
-    } else {
-        const scale = (1 / resolution) * 200;
-        if (scale > 1) return 1;
-        return scale;
-    }
+    return scale;
 }
 
 export function createGeoJson(feature: Feature): GeoJSON.Feature {
