@@ -144,7 +144,6 @@ export type ContentFieldDefine = {
 export type LocationFieldDefine = {
     // 緯度経度
     type: 'point';
-    epsg?: number;  // 未指定時は4326と判断
     fields: {
         latitude: string;
         longitude: string;
@@ -153,7 +152,6 @@ export type LocationFieldDefine = {
 } | {
     // GeoJson
     type: 'geojson';
-    epsg?: number;  // 未指定時は4326と判断
     fields: {
         geojson: string;
     }
