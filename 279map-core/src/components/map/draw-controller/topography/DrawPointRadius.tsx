@@ -193,7 +193,7 @@ export default function DrawPointRadius(props: Props) {
             setCircleFeature(event.feature);
         });
         map?.addInteraction(draw.current);
-    }, [styleHook, map, centerCoordinates, mapKind]);
+    }, [styleHook, map, centerCoordinates]);
  
     useEffect(() => {
         if (stage === Stage.SelectCenter) {

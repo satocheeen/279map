@@ -161,7 +161,7 @@ export default function PopupContainer() {
             delete overlayRefMap.current[key];
         });
 
-    }, [map, popupGroups, zoom, mapKind]);
+    }, [map, popupGroups, zoom]);
 
     const popupSize = useMemo(() => {
         if (popupGroups.length > 30) {
