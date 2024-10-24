@@ -17,6 +17,7 @@ import { Cluster } from 'ol/source';
 import { circle, lineString, multiLineString, multiPolygon, polygon, buffer } from '@turf/turf';
 import { MapKind, FeatureType, GeoProperties } from '../types-common/common-types';
 import { Opacity } from '../components/map/useFilterStatus';
+import { ProjectionVirtualMap } from './constant-defines';
 
 /**
  * GeoJSONを元に対応するジオメトリを生成して返す
@@ -249,7 +250,7 @@ export function containFeatureInLayer(feature: Feature<Geometry>, layer: VectorL
     return source?.hasFeature(feature) ?? false;
 }
 
-export function geoJsonToTurfPolygon(geoJson: geojson.Geometry | geojson.GeoJSON) {
+export function geoJsonToTurfPolygon(geoJson: geojson.Geometry | geojson.GeoJSON, mapKind: MapKind, radius?: number) {
     try {
         switch(geoJson.type) {
             case 'Polygon':
@@ -257,11 +258,20 @@ export function geoJsonToTurfPolygon(geoJson: geojson.Geometry | geojson.GeoJSON
             case 'MultiPolygon':
                 return multiPolygon(geoJson.coordinates);
             case 'Point':
-                return circle(geoJson.coordinates, .05);
+                if (mapKind === MapKind.Virtual) {
+                    const convertC = proj4(ProjectionVirtualMap, 'EPSG:4326', geoJson.coordinates);
+                    const polygon = circle(convertC, 0.5);
+                    polygon.geometry.coordinates[0] = polygon.geometry.coordinates[0].map(coord => 
+                        proj4("EPSG:4326", ProjectionVirtualMap, coord)
+                    );
+                    return polygon;
+                } else {
+                    return circle(geoJson.coordinates, 0.5);
+                }
             case 'LineString':
-                return buffer(lineString(geoJson.coordinates), 0.05);
+                return buffer(lineString(geoJson.coordinates), mapKind===MapKind.Real ? 0.05 : 100);
             case 'MultiLineString':
-                return buffer(multiLineString(geoJson.coordinates), 0.05);
+                return buffer(multiLineString(geoJson.coordinates), mapKind===MapKind.Real ? 0.05 : 100);
         }
     
     } catch(e) {
