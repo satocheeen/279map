@@ -6,9 +6,8 @@ import LineString from 'ol/geom/LineString';
 import { RoadWidth } from '../components/map/useTopographyStyle';
 import { GeoJsonObject, GeoJsonProperties } from 'geojson';
 import { fromExtent } from 'ol/geom/Polygon';
-import { getCenter } from 'geolib';
+import { getCenter as getGeolibCenter } from 'geolib';
 import * as geojson from 'geojson';
-import { GeolibInputCoordinates } from 'geolib/es/types';
 import proj4 from 'proj4';
 import 'https://unpkg.com/jsts@2.6.1/dist/jsts.min.js';
 import VectorLayer from 'ol/layer/Vector';
@@ -234,32 +233,6 @@ export function getLayerName(featureType: FeatureType) {
     return r;
 }
 
-export function getGeoJsonCenter(geoJson: GeoJsonObject): false |  { longitude: number; latitude: number; } {
-    if (!('coordinates' in geoJson)) {
-        console.warn('no coordinates', geoJson);
-        return false;
-    }
-    let coordinates: GeolibInputCoordinates[] | undefined = undefined;
-    type GeoJsonPosition = [number, number] | [number, number, number];
-    switch(geoJson.type) {
-        case 'Point':
-            coordinates = [(geoJson as geojson.Point).coordinates as GeoJsonPosition];
-            break;
-        case 'Polygon':
-            coordinates = ((geoJson as geojson.Polygon).coordinates as GeoJsonPosition[][])[0];
-            break;
-    }
-    if (!coordinates) {
-        return false;
-    }
-    try {
-        const center = getCenter(coordinates);
-        return center;
-    } catch(e) {
-        console.warn('no coordinates', geoJson);
-        return false;
-    }
-}
 export function getFeatureCenter(feature: FeatureLike): false |  { longitude: number; latitude: number; } {
     const ext = feature.getGeometry()?.getExtent();
     if (!ext) return false;
@@ -340,3 +313,23 @@ export function getOpacityValue(opacity?: Opacity): number {
             return 1;
     }
 };
+
+export function getCenter(points: {longitude: number; latitude: number}[], epsg: string) {
+    const toProj = 'EPSG:4326';
+    if (toProj === epsg) {
+        return getGeolibCenter(points);
+    }
+
+    // 座標変換
+    const convertedPoints = points.map(coord => {
+        const transformed = proj4(epsg, toProj, [coord.longitude, coord.latitude]);
+        return { latitude: transformed[1], longitude: transformed[0] };
+    });
+
+    const center = getGeolibCenter(convertedPoints);
+    if (!center) return;
+
+    // 中心を元のEPSGに戻す
+    const originalCenter = proj4(toProj, epsg, [center.longitude, center.latitude]);
+    return { latitude: originalCenter[1], longitude: originalCenter[0] };
+}

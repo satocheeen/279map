@@ -1,3 +1,6 @@
+export const ProjectionRealMap = 'EPSG:4326';
+export const ProjectionVirtualMap = 'EPSG:3857';
+
 export const MapStyles = {
     Earth: {
         color: '#f5f2e9',

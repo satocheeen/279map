@@ -1,5 +1,4 @@
 import Feature from 'ol/Feature';
-import { GeolibInputCoordinates } from 'geolib/es/types';
 import { LayerType } from "../TsunaguMap/VectorLayerMap";
 import VectorSource from "ol/source/Vector";
 import { OlMapType } from "../TsunaguMap/OlMapWrapper";
@@ -16,7 +15,7 @@ type PopupGroup = {
 }
 
 export type PopupGroupWithPosition = {
-    itemPositions: GeolibInputCoordinates[];    // ポップアップ表示位置
+    itemPositions: {longitude: number; latitude: number}[];    // ポップアップ表示位置
     itemIds: DataId[];  // ポップアップに紐づくアイテムID一覧
 }
 

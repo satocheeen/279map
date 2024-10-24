@@ -24,6 +24,7 @@ import { Client } from 'urql';
 import { DataId, DatasourceLocationKindType, FeatureType, MapKind } from '../../types-common/common-types';
 import PointStyleMap from '../map/PointStyleMap';
 import { StaticImageLayerMap } from './StaticImageLayerMap';
+import { ProjectionRealMap, ProjectionVirtualMap } from '../../util/constant-defines';
 
 export type FeatureInfo = {
     id: DataId;
@@ -41,8 +42,6 @@ const spControls = olControl.defaults({attribution: true, zoom: false});
 
 const MAX_ZOOM_REAL = 20;
 const MAX_ZOOM_VIRTUAL = 10;
-const ProjectionRealMap = 'EPSG:4326';
-const ProjectionVirtualMap = 'EPSG:3857';
 
 // export const TemporaryPointLayerDatasourceId = 'temporary-point';
 
