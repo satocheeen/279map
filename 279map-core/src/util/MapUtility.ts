@@ -56,7 +56,7 @@ export function getStructureScale(resolution: number, mapKind: MapKind|undefined
         return scale;
 
     } else {
-        const scale = (1 / resolution) * 200;
+        const scale = (1 / resolution) * 130;
         if (scale > 1) return 1;
         return scale;
     }

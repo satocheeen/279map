@@ -280,6 +280,8 @@ export default function usePointStyle() {
             const zIndex = zIndexMap[mainFeature.getId() as DataId];
             style.setZIndex(zIndex);
 
+            const mapKind = get(currentMapKindAtom) ?? MapKind.Real;
+
             const text = function() {
                 if (showFeaturesLength > 1) {
                     // 複数アイテムがまとまっている場合、まとまっている数を表示
@@ -287,7 +289,7 @@ export default function usePointStyle() {
     
                 } else if (!disabledLabel) {
                     // ラベル設定
-                    return createItemNameLabel(mainFeature, resolution, opacity);
+                    return createItemNameLabel(mainFeature, resolution, mapKind, opacity);
                 }
     
             }();
@@ -338,7 +340,7 @@ export default function usePointStyle() {
  * 建物名ラベルを生成して返す
  * @param feature 
  */
-function createItemNameLabel(feature: FeatureLike, resolution: number, opacity: Opacity): Text {
+function createItemNameLabel(feature: FeatureLike, resolution: number, mapKind: MapKind, opacity: Opacity): Text {
     // ラベル設定
     let name = (feature.getProperties().name ?? '') as string;
     if (name.length > MapStyles.Item.maxLabelLength) {
@@ -346,7 +348,7 @@ function createItemNameLabel(feature: FeatureLike, resolution: number, opacity: 
         name = splitString(name, MapStyles.Item.maxLabelLength).join('\n');
     }
 
-    const scale = Math.min(0.002 * (1 / resolution), 1);
+    const scale = getStructureScale(resolution, mapKind) * 2;
     const color = '#000000' + Math.floor(255 * getOpacityValue(opacity)).toString(16);
 
     const text = new Text({
