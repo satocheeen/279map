@@ -348,7 +348,7 @@ function createItemNameLabel(feature: FeatureLike, resolution: number, mapKind: 
         name = splitString(name, MapStyles.Item.maxLabelLength).join('\n');
     }
 
-    const scale = getStructureScale(resolution, mapKind) * 2;
+    const scale = getStructureScale(resolution, mapKind) * 1.5;
     const color = '#000000' + Math.floor(255 * getOpacityValue(opacity)).toString(16);
 
     const text = new Text({
