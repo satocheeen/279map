@@ -6,7 +6,7 @@ import LineString from 'ol/geom/LineString';
 import { RoadWidth } from '../components/map/useTopographyStyle';
 import { GeoJsonObject, GeoJsonProperties } from 'geojson';
 import { fromExtent } from 'ol/geom/Polygon';
-import { getCenter as getGeolibCenter } from 'geolib';
+import { getCenter as getGeolibCenter, getDistance as getGeolibDistance } from 'geolib';
 import * as geojson from 'geojson';
 import proj4 from 'proj4';
 import 'https://unpkg.com/jsts@2.6.1/dist/jsts.min.js';
@@ -205,15 +205,6 @@ export function extractGeoProperty(properties: GeoJsonProperties): GeoProperties
     }
 }
 
-export function getLayerName(featureType: FeatureType) {
-    switch(featureType) {
-        case FeatureType.STRUCTURE:
-            return 'itemLayer';
-        default:
-            return 'topographyLayer';
-    }
-}
-
 /**
  * kmの長さを緯度経度座標での数値に変換する
  * @param p 中心座標
@@ -256,30 +247,6 @@ export function containFeatureInLayer(feature: Feature<Geometry>, layer: VectorL
         source = source.getSource();
     }
     return source?.hasFeature(feature) ?? false;
-}
-
-/**
- * 2つのエクステントの関係を判断する
- * @param ext1 
- * @param ext2 
- * @return ext2がext1に包含されている場合、1。ext1がext2に包含されている場合、2。包含関係にない場合、0。
- */
-export function checkContaining(ext1: Extent, ext2: Extent) {
-    const isContain1in2 = (ext1: Extent, ext2: Extent) => {
-        if (ext1[0] < ext2[0]) return false;
-        if (ext1[2] > ext2[2]) return false;
-        if (ext1[1] < ext2[1]) return false;
-        if (ext1[3] > ext2[3]) return false;
-        return true;
-    }
-
-    if (isContain1in2(ext1, ext2)) {
-        return 2;
-    }
-    if (isContain1in2(ext2, ext1)) {
-        return 1;
-    }
-    return 0;
 }
 
 export function geoJsonToTurfPolygon(geoJson: geojson.Geometry | geojson.GeoJSON) {
@@ -332,4 +299,22 @@ export function getCenter(points: {longitude: number; latitude: number}[], epsg:
     // 中心を元のEPSGに戻す
     const originalCenter = proj4(toProj, epsg, [center.longitude, center.latitude]);
     return { latitude: originalCenter[1], longitude: originalCenter[0] };
+}
+
+/**
+ * 2点間の距離kmを返す
+ * @param from 
+ * @param to 
+ * @param epsg 
+ * @returns 
+ */
+export function getDistance(from: [number, number], to: [number, number], epsg: string) {
+    const toProj = 'EPSG:4326';
+    if (toProj === epsg) {
+        return getGeolibDistance(from, to);
+    }
+
+    const transformedFrom = proj4(epsg, toProj, from);
+    const transformedTo = proj4(epsg, toProj, to);
+    return getGeolibDistance(transformedFrom, transformedTo);
 }

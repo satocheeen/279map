@@ -5,7 +5,7 @@ import GeoJSON from 'ol/format/GeoJSON';
 import { Feature } from 'ol';
 import VectorSource from 'ol/source/Vector';
 import Button from '../../../common/button/Button';
-import { convertKmToLonLat, getStructureScale } from '../../../../util/MapUtility';
+import { convertKmToLonLat, getDistance, getStructureScale } from '../../../../util/MapUtility';
 import { Circle, Geometry } from 'ol/geom';
 import PromptMessageBox from '../PromptMessageBox';
 import { Draw } from 'ol/interaction';
@@ -16,13 +16,15 @@ import { Icon, Style } from 'ol/style';
 import IconAnchorUnits from 'ol/style/IconAnchorUnits';
 import useIcon from '../../../../store/icon/useIcon';
 import usePointStyle from '../../usePointStyle';
-import { getDistance } from 'geolib';
 import FormGroup from '../../../common/form/FormGroup';
 import Input from '../../../common/form/Input';
 import { useMap } from '../../useMap';
 import { GeocoderTarget } from '../../../../graphql/generated/graphql';
 import { FeatureType, MapKind } from '../../../../types-common/common-types';
 import { LayerType } from '../../../TsunaguMap/VectorLayerMap';
+import { useAtom } from 'jotai';
+import { currentMapKindAtom } from '../../../../store/session';
+import { ProjectionRealMap, ProjectionVirtualMap } from '../../../../util/constant-defines';
 
 type Props = {
     onCancel?: () => void;
@@ -45,6 +47,8 @@ export default function DrawPointRadius(props: Props) {
     const [centerCoordinates, setCenterCoordinates] = useState<[number, number]>();
     const [radius, setRadius] = useState(0);
     const [circleFeature, setCircleFeature] = useState<Feature>();
+
+    const [ mapKind ] = useAtom(currentMapKindAtom);
 
     const draw = useRef<Draw|undefined>();
     const { map } = useMap();
@@ -163,7 +167,7 @@ export default function DrawPointRadius(props: Props) {
                 const last = coords[1] as [number, number];
                 console.log('center', centerCoordinates, last);
                 const radius = Math.sqrt(Math.pow(centerCoordinates[0] - last[0], 2) + Math.pow(centerCoordinates[1] - last[1], 2));
-                const distance = getDistance(centerCoordinates, last) / 1000;
+                const distance = getDistance(centerCoordinates, last, mapKind === MapKind.Real ? ProjectionRealMap : ProjectionVirtualMap) / 1000;
                 console.log('distance', distance);
                 console.log('radius', radius, distance);
                 circleGeometry.setCenter(centerCoordinates);
