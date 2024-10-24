@@ -16,7 +16,7 @@ export default function ItemController(props: Props) {
 
     const result = useMemo(() => {
         if (!itemId) return '';
-        const hit = loadedItems.find(item => item.id === parseInt(itemId));
+        const hit = loadedItems.find(item => item.id === itemId);
         if (!hit) return '該当アイテムなし';
         return JSON.stringify(hit, undefined, 2);
     }, [itemId, loadedItems]);
@@ -25,20 +25,19 @@ export default function ItemController(props: Props) {
     const unsubscribeRef = useRef<()=>void|undefined>();
     const handleLoadContents = useCallback(async() => {
         if (!itemId) return;
-        const id = parseInt(itemId);
         try {
             if (unsubscribeRef.current) {
                 unsubscribeRef.current();
                 unsubscribeRef.current = undefined;
             }
             if (isSubscribe) {
-                const res = await getMap()?.loadContent(id, (contentId, operation) => {
+                const res = await getMap()?.loadContent(itemId, (contentId, operation) => {
                     addConsole('Change Content', contentId, operation);
                 });
                 addConsole('loadContent result', res?.content);
                 unsubscribeRef.current = res?.unsubscribe;
             } else {
-                const res = await getMap()?.loadContent(id);
+                const res = await getMap()?.loadContent(itemId);
                 addConsole('loadContent result', res?.content);
             }
     
