@@ -1,6 +1,7 @@
 import { Overlay } from 'ol';
 import React, { useEffect, useRef, useMemo, useCallback, useState } from 'react';
 import PointsPopup from './PointsPopup';
+import { getCenter } from 'geolib';
 import PopupContainerCalculator, { PopupGroupWithPosition } from './PopupContainerCalculator';
 import { useMap } from '../map/useMap';
 import { useWatch } from '../../util/useWatch2';
@@ -10,10 +11,7 @@ import { mapViewAtom } from '../../store/operation';
 import { filteredItemIdListAtom } from '../../store/filter';
 import { useAtom } from 'jotai';
 import { visibleDataSourceIdsAtom } from '../../store/datasource';
-import { FeatureType, MapKind } from '../../entry';
-import { getCenter } from '../../util/MapUtility';
-import { currentMapKindAtom } from '../../store/session';
-import { ProjectionRealMap, ProjectionVirtualMap } from '../../util/constant-defines';
+import { FeatureType } from '../../entry';
 
 function createKeyFromPopupInfo(param: PopupGroupWithPosition): string {
     if (!param) {
@@ -35,7 +33,6 @@ export default function PopupContainer() {
     const [ visibleDataSourceIds ] = useAtom(visibleDataSourceIdsAtom);
 
     const [filteredItemIdList] = useAtom(filteredItemIdListAtom);
-    const [ mapKind ] = useAtom(currentMapKindAtom);
 
     /**
      * ポップアップを表示するアイテム一覧
@@ -118,7 +115,7 @@ export default function PopupContainer() {
 
         addChildren.forEach(target => {
             if (!target.itemPositions) return;
-            const position = getCenter(target.itemPositions, mapKind === MapKind.Real ? ProjectionRealMap : ProjectionVirtualMap);
+            const position = getCenter(target.itemPositions);
             if (!position) {
                 return;
             }
@@ -140,7 +137,7 @@ export default function PopupContainer() {
         });
         updateChildren.forEach(target => {
             if (!target.itemPositions) return;
-            const position = getCenter(target.itemPositions, mapKind === MapKind.Real ? ProjectionRealMap : ProjectionVirtualMap);
+            const position = getCenter(target.itemPositions);
             if (!position) {
                 return;
             }
