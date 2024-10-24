@@ -33,7 +33,7 @@ export interface OdbaConnection {
 export type DataSourceTable = {
     data_source_id: string;
 
-    location_define: LocationFieldDefine[] | null;
+    location_define: LocationFieldDefine | null;
     contents_define: ContentFieldDefine[] | null;
 
     // ODBAで使用するための接続関連情報
