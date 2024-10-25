@@ -40,7 +40,8 @@ const pcControls = olControl.defaults({attribution: true, zoom: false});
 const spControls = olControl.defaults({attribution: true, zoom: false});
 
 const MAX_ZOOM_LV = 20;
-const MIN_ZOOM_LV = 5;
+const MIN_ZOOM_LV_REAL = 5;
+const MIN_ZOOM_LV_VIRTUAL = 16;
 // export const TemporaryPointLayerDatasourceId = 'temporary-point';
 
 // OpenStreetMap
@@ -180,6 +181,15 @@ export class OlMapWrapper {
                 ];
                 this._map.setLayers(layers);
 
+                const view = new View({
+                    projection: this._map.getView().getProjection(),
+                    center: this._map.getView().getCenter(),
+                    zoom: (MAX_ZOOM_LV + MIN_ZOOM_LV_REAL) / 2,
+                    minZoom: MIN_ZOOM_LV_REAL,
+                    maxZoom: MAX_ZOOM_LV,
+                });
+                this._map.setView(view);
+
             } else {
                 // 日本地図
                 // 都道府県レイヤ
@@ -213,8 +223,8 @@ export class OlMapWrapper {
                 const view = new View({
                     projection: this._map.getView().getProjection(),
                     center: this._map.getView().getCenter(),
-                    zoom: this._map.getView().getZoom(),
-                    minZoom: this._map.getView().getMinZoom(),
+                    zoom: (MAX_ZOOM_LV + MIN_ZOOM_LV_REAL) / 2,
+                    minZoom: MIN_ZOOM_LV_REAL,
                     maxZoom: MAX_ZOOM_LV,
                     // maxZoom: this._map.getView().getMaxZoom(),
                     extent: prefSource.getExtent(),
@@ -259,7 +269,10 @@ export class OlMapWrapper {
 
         } else {
             // 村マップ
-            extent ??= [0, 0, 0.5, 0.5];
+            if (!extent || extent.every(v => v===0)) {
+                // extent未指定の場合
+                extent = [0, 0, 0.002, 0.002];
+            }
             itemDataSources.forEach(ds => {
                 if (ds.config.kind !== DatasourceLocationKindType.VirtualItem) {
                     return;
@@ -278,8 +291,8 @@ export class OlMapWrapper {
             const view = new View({
                 projection: this._map.getView().getProjection(),
                 center: this._map.getView().getCenter(),
-                zoom: this._map.getView().getZoom(),
-                minZoom: MIN_ZOOM_LV,
+                zoom: (MAX_ZOOM_LV + MIN_ZOOM_LV_VIRTUAL) / 2,
+                minZoom: MIN_ZOOM_LV_VIRTUAL,
                 maxZoom: MAX_ZOOM_LV,
                 extent: undefined,
             });
