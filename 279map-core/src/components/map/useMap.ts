@@ -166,15 +166,17 @@ export function useMap() {
                 const beforeMapKind = get(currentMapKindAtom);
                 const apiResults = await Promise.all(loadTargets.map(async(target) => {
                     const wkt = geojsonToWKT(target.geometry);
-                    const latestEditedTime = get(latestEditedTimeOfDatasourceAtom)[target.datasourceId];
+                    // TrackがズームLv.を切り替えると取得できないので、ひとまずコメントアウト
+                    // Extentチェックして、取得済みのExtentは再取得しないようにしているからlastEditedTime, excludeItemIdsはどちらにしろ指定不要かも。
+                    // const latestEditedTime = get(latestEditedTimeOfDatasourceAtom)[target.datasourceId];
+                    // const excludeItemIds = getExcludeItemIds(target.datasourceId, param.extent);
 
-                    const excludeItemIds = getExcludeItemIds(target.datasourceId, param.extent);
                     return gqlClient.query(GetItemsDocument, {
                         wkt,
                         zoom,
-                        latestEditedTime,
+                        // latestEditedTime,
                         datasourceId: target.datasourceId,
-                        excludeItemIds,
+                        // excludeItemIds,
                     }, {
                         requestPolicy: 'network-only',  // 地図切り替えを繰り返した際にキャッシュが使われると、新たに追加・削除したものが反映されないため。
                     });
