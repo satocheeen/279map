@@ -18,6 +18,7 @@ export async function getContentDefine({ dataId, currentMap }: Param): Promise<O
 
     try {
         const record = await getContentRecord(con, { dataId, currentMap });
+        if (!record) return null;
         const content = await convertContentsToContentsDefine(con, record);
 
         return content;
@@ -35,6 +36,7 @@ export async function getContentDetail({ dataId, currentMap }: Param) {
 
     try {
         const record = await getContentRecord(con, { dataId, currentMap });
+        if (!record) return null;
         const content = await convertContentsToContentsDetail(con, record, currentMap);
 
         return content;
@@ -60,7 +62,7 @@ async function getContentRecord(con: PoolConnection, { dataId, currentMap }: Par
 
         const [rows] = await con.query(sql, [currentMap.mapId, dataId]);
         if ((rows as []).length === 0) {
-            throw new Error('data not find: ' + dataId);
+            return;
         }
         const record = (rows as (ContentsTable & DataSourceTable & MapDataSourceLinkTable)[])[0];
         return record;
