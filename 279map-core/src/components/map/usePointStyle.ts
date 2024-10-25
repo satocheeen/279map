@@ -223,8 +223,7 @@ export default function usePointStyle() {
         useCallback((get, set, feature: Feature<Geometry>, resolution: number, forceColor?: FeatureColor, isTemporary?: boolean): Style | Style[] => {
             const { mainFeature, showFeaturesLength } = _analysisFeatures(feature);
             const allItems = get(allItemsAtom);
-
-            console.log('_createPointStyle', resolution)
+            const mapKind = get(currentMapKindAtom);
 
             const iconDefine = function() {
                 if (isTemporary) {
@@ -287,7 +286,7 @@ export default function usePointStyle() {
     
                 } else if (!disabledLabel) {
                     // ラベル設定
-                    return createItemNameLabel(mainFeature, resolution, opacity);
+                    return createItemNameLabel(mainFeature, resolution, opacity, mapKind);
                 }
     
             }();
@@ -338,7 +337,7 @@ export default function usePointStyle() {
  * 建物名ラベルを生成して返す
  * @param feature 
  */
-function createItemNameLabel(feature: FeatureLike, resolution: number, opacity: Opacity): Text {
+function createItemNameLabel(feature: FeatureLike, resolution: number, opacity: Opacity, mapKind: MapKind|undefined): Text {
     // ラベル設定
     let name = (feature.getProperties().name ?? '') as string;
     if (name.length > MapStyles.Item.maxLabelLength) {
@@ -346,12 +345,7 @@ function createItemNameLabel(feature: FeatureLike, resolution: number, opacity: 
         name = splitString(name, MapStyles.Item.maxLabelLength).join('\n');
     }
 
-    const scale = function() {
-        const s = 0.00005 * (1 / resolution);
-        if (s > 1) return 1;
-        if (s < 0.5) return 0.5;
-        return s;
-    }();
+    const scale = getStructureScale(resolution, mapKind) * (mapKind === MapKind.Virtual ? 1.5 : 2);
     const color = '#000000' + Math.floor(255 * getOpacityValue(opacity)).toString(16);
 
     const text = new Text({
