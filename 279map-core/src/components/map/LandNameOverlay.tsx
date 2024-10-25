@@ -13,8 +13,8 @@ import { DatasourceLocationKindType, FeatureType } from '../../types-common/comm
 import { useWatch } from '../../util/useWatch2';
 
 // 島名を常時表示するズームLv.境界値（この値よりも小さい場合に、常時表示）
-const LandNameShowZoomLv = 8.9;
-const ForestNameShowZoomLv = 9.5;
+const LandNameShowZoomLv = 17.8;
+const ForestNameShowZoomLv = 18.5;
 
 export default function LandNameOverlay() {
     const [ dataSources ] = useAtom(itemDataSourcesAtom);
