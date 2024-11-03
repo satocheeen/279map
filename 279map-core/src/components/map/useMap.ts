@@ -12,8 +12,8 @@ import { sleep } from '../../util/CommonUtility';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { initialLoadingAtom } from '../TsunaguMap/MapController';
 import { geoJsonToTurfPolygon } from '../../util/MapUtility';
-import { bboxPolygon, intersect, union } from '@turf/turf';
-import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt';
+import { bboxPolygon, intersect, union, buffer, point, booleanPointInPolygon, bbox} from '@turf/turf';
+import { geojsonToWKT } from '@terraformer/wkt';
 import { useItems } from '../../store/item/useItems';
 import { GetItemsByIdDocument, GetItemsDocument } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
@@ -425,9 +425,47 @@ export function useMap() {
                 console.warn('focusItem target not found', param.itemId);
                 return;
             }
-    
-            const ext = itemFeature.getGeometry()?.getExtent();
-            if (!ext) return;
+            const featureExtent = itemFeature.getGeometry()?.getExtent();
+            if (!featureExtent) return;
+
+            const items = get(allItemsAtom);
+            const ext = function() {
+                if (!param.zoom) {
+                    return featureExtent;
+                }
+                // ズームする場合は、周囲のポイントを加味して、引き過ぎず、ズームしすぎず、のエクステントにする。
+                const extentPolygon = bboxPolygon(featureExtent as [number, number, number, number]);
+                
+                // 初期バッファ距離 (キロメートル)
+                let bufferDistance = 30; // 初期の距離をキロメートル単位で設定
+                let exclusiveExtent = featureExtent;
+                let isExistOtherPoint = true;
+
+                do {
+                    // Turfでバッファを生成（距離はキロメートル単位）
+                    const buffered = buffer(extentPolygon, bufferDistance, { units: 'kilometers' });
+                    if (!buffered) {
+                        break;
+                    }
+                    exclusiveExtent = bbox(buffered); // 最終的なバッファのエクステントを取得
+
+                    // 他のポイントがバッファ内に存在しないか確認
+                    isExistOtherPoint = items.some(item => {
+                        if (item.geometry.type !== 'Point') return false;
+                        if (item.id === param.itemId) return false;
+                        
+                        const otherPoint = point(item.geometry.coordinates);
+                        return booleanPointInPolygon(otherPoint, buffered);
+                    });
+
+                    // 他のポイントが含まれている場合、バッファ距離を縮小
+                    if (isExistOtherPoint) {
+                        bufferDistance -= 0.05; // バッファ距離を少しずつ縮小 (キロメートル単位)
+                    }
+                }while (isExistOtherPoint && bufferDistance > 0.1) // 最小バッファ距離を設定
+
+                return exclusiveExtent;
+            }();
             await map.fit(ext, {
                 animation: true,
                 zoom: param.zoom,
