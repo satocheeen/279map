@@ -459,8 +459,9 @@ export class OlMapWrapper {
             const maxZoom = (()=> {
                 if ((opt?.zoom === undefined || opt.zoom)) {
                     // ズームする場合
-                    return 15;
+                    return;
                 } else {
+                    // ズームしない場合
                     return this._map.getView().getZoom();
                 }
             })();

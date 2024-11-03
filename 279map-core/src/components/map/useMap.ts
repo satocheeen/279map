@@ -462,7 +462,7 @@ export function useMap() {
                     if (isExistOtherPoint) {
                         bufferDistance -= 0.05; // バッファ距離を少しずつ縮小 (キロメートル単位)
                     }
-                }while (isExistOtherPoint && bufferDistance > 0.1) // 最小バッファ距離を設定
+                }while (isExistOtherPoint && bufferDistance > 0.01) // 最小バッファ距離を設定
 
                 return exclusiveExtent;
             }();
