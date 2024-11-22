@@ -11,7 +11,7 @@ import type {
     OnMapLoadResult,
     OverrideItem,
 } from '../entry';
-import { Auth, MapKind, getAccessableMapList, getMapMetaInfo } from '../entry';
+import { Auth, MapKind, createGqlClient, getAccessableMapList, getMapMetaInfo } from '../entry';
 import TsunaguMap from '../components/TsunaguMap/TsunaguMap';
 import styles from './TestMap.module.scss';
 import { myMapServer } from './const';
@@ -29,6 +29,7 @@ import FocusItemDriver from './focus-item/FocusItemDriver';
 import OverrideItemsDriver from './override-items/OverrideItemsDriver';
 import BackgroundDriver from './basic-settings/BackgroundDriver';
 import { iconDefine as iconDefine2 } from './iconDefine';
+import { Provider } from 'urql';
 
 export const DriverContext = React.createContext({
     getMap: () => null as TsunaguMapHandler | null,
@@ -167,9 +168,11 @@ export default function TestMap() {
 
     const [ categories, setCategories ] = useState<CategoryDefine[]>([]);
     const [ authLv, setAuthLv ] = useState(Auth.None);
+    const [ sessionId, setSessionId ] = useState<string|undefined>();
     const onConnect = useCallback(async(param: OnConnectParam): Promise<OnConnectResult> => {
         console.log('connect', param);
         setAuthLv(param.authLv);
+        setSessionId(param.sessionId);
         setCnt(cnt + 1);
 
         return {
@@ -265,6 +268,10 @@ export default function TestMap() {
         mapRef.current?.selectItem(null);
     }, []);
 
+    const client = useMemo(() => {
+        return createGqlClient(mapServer, sessionId);
+    }, [mapServer, sessionId])
+
     return (
         <div className={styles.Container}>
             {/* <div className={styles.HorizontalArea}>
@@ -340,48 +347,50 @@ export default function TestMap() {
                 }
             </div>
 
-            <DriverContext.Provider
-                value={{
-                    getMap: () => {
-                        return mapRef.current
-                    },
-                    addConsole,
-                    categories,
-                    itemDatasources,
-                    itemDatasourcesVisibleList,
-                    contentDatasources,
-                    authLv,
-                    mapKind,
-                    loadedItems,
-                    filterUnmatchView,
-                    setFilterUnmatchView,
-                    setPopupMode,
-                    setDisableLabel,
-                    setOverrideItems,
-                }}
-            >
-                <div className={styles.WithoutMapArea}>
-                    <AuthPanel />
-                    <button onClick={getAccessableMapListFunc}>GetAccessableMapList</button>
-                    <SwitchMapKindDriver onMapShow={handleMapShow} onGetMetaInfo={handleGetMapMetaInfoFunc} />
-                </div>
-                <div className={styles.HorizontalArea}>
-                    <BasicSettingDriver />
-                    <button onClick={() => mapRef.current?.moveItem()}>移築</button>
- 
-                    <ItemController />
-                    <LoadImageDriver />
-                </div>
-                <div className={styles.VerticalArea}>
-                    <BackgroundDriver />
-                    <DatasourceDriver />
-                    <FilterTest />
-                    <RegistContentDriver />
-                    <LinkContentDriver />
-                    <FocusItemDriver />
-                    <OverrideItemsDriver />
-                </div>
-            </DriverContext.Provider>
+            <Provider value={client}>
+                <DriverContext.Provider
+                    value={{
+                        getMap: () => {
+                            return mapRef.current
+                        },
+                        addConsole,
+                        categories,
+                        itemDatasources,
+                        itemDatasourcesVisibleList,
+                        contentDatasources,
+                        authLv,
+                        mapKind,
+                        loadedItems,
+                        filterUnmatchView,
+                        setFilterUnmatchView,
+                        setPopupMode,
+                        setDisableLabel,
+                        setOverrideItems,
+                    }}
+                >
+                    <div className={styles.WithoutMapArea}>
+                        <AuthPanel />
+                        <button onClick={getAccessableMapListFunc}>GetAccessableMapList</button>
+                        <SwitchMapKindDriver onMapShow={handleMapShow} onGetMetaInfo={handleGetMapMetaInfoFunc} />
+                    </div>
+                    <div className={styles.HorizontalArea}>
+                        <BasicSettingDriver />
+                        <button onClick={() => mapRef.current?.moveItem()}>移築</button>
+    
+                        <ItemController />
+                        <LoadImageDriver />
+                    </div>
+                    <div className={styles.VerticalArea}>
+                        <BackgroundDriver />
+                        <DatasourceDriver />
+                        <FilterTest />
+                        <RegistContentDriver />
+                        <LinkContentDriver />
+                        <FocusItemDriver />
+                        <OverrideItemsDriver />
+                    </div>
+                </DriverContext.Provider>
+            </Provider>
 
             <div className={styles.ConsoleArea}>
                 <textarea ref={consoleRef} value={consoleText} readOnly />

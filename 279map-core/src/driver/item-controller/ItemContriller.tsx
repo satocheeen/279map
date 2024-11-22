@@ -6,13 +6,16 @@ import myStyles from './ItemController.module.scss';
 import { useWatch } from '../../util/useWatch2';
 import SelectStructureDialog, { SelectStructureDialogParams, SelectStructureDialogResult } from '../common/SelectStructureDialog';
 import { ModalHandler } from '../common/useModal';
+import { Client, Context } from 'urql';
+import { DataUpdateDocument, GetContentDocument } from '../../graphql/generated/graphql';
 
 type Props = {
 }
 
 export default function ItemController(props: Props) {
-    const { getMap, loadedItems, addConsole } = useContext(DriverContext);
+    const { loadedItems, addConsole } = useContext(DriverContext);
     const [ itemId, setItemId ] = useState('');
+    const gqlClient = useContext(Context) as Client;
 
     const result = useMemo(() => {
         if (!itemId) return '';
@@ -26,25 +29,29 @@ export default function ItemController(props: Props) {
     const handleLoadContents = useCallback(async() => {
         if (!itemId) return;
         try {
+            const res = await gqlClient.query(GetContentDocument, {
+                id: itemId,
+            });
+            addConsole('loadContent result', res.data);
+            
             if (unsubscribeRef.current) {
                 unsubscribeRef.current();
                 unsubscribeRef.current = undefined;
             }
+
             if (isSubscribe) {
-                const res = await getMap()?.loadContent(itemId, (contentId, operation) => {
-                    addConsole('Change Content', contentId, operation);
+                const subscription = gqlClient.subscription(DataUpdateDocument, {
+                    id: itemId,
+                }).subscribe((result) => {
+                    addConsole('Change Content', itemId, result);
                 });
-                addConsole('loadContent result', res?.content);
-                unsubscribeRef.current = res?.unsubscribe;
-            } else {
-                const res = await getMap()?.loadContent(itemId);
-                addConsole('loadContent result', res?.content);
+                unsubscribeRef.current = subscription.unsubscribe;
             }
     
         } catch(e) {
             addConsole('loadContentsInItem failed.', e);
         }
-    }, [itemId, getMap, addConsole, isSubscribe]);
+    }, [itemId, addConsole, isSubscribe, gqlClient]);
 
     const handleUnsubscribe = useCallback(() => {
         if (unsubscribeRef.current) {
@@ -68,7 +75,7 @@ export default function ItemController(props: Props) {
                         <textarea readOnly value={result} rows={3} />
                     </div>
                     <div>
-                        <button onClick={handleLoadContents}>Load Contents</button>
+                        <button onClick={handleLoadContents}>getContent</button>
                         <label>
                             <input type='checkbox' checked={isSubscribe} onChange={evt=>setSubscribe(evt.target.checked)} />
                             Subscribe

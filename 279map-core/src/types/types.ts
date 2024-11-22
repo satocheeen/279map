@@ -206,13 +206,6 @@ export type TsunaguMapProps = {
     onShowingItemsChanged?: (items: ItemType[]) => void;
 }
 
-export type LoadContentsResult = {
-    content: Omit<ContentsDetail, '__typename' | 'values'> & {
-        values: {[key: string]: ContentValue};
-    };
-    unsubscribe?: () => void;   // callbackを渡した場合に格納されている
-}
-
 export interface TsunaguMapHandler {
     getInstanceId(): string;
 
@@ -375,13 +368,6 @@ export interface TsunaguMapHandler {
      * @param targets 削除可能対象
      */
     removeDataByUser(targets: FeatureType[]): Promise<void>;
-
-    /**
-     * 指定のDataIdに属するコンテンツを取得する
-     * @param dataId 
-     * @return 指定のDataIdに属するコンテンツ. 属するコンテンツが存在しない場合は、nul
-     */
-    loadContent(dataId: DataId, changeListener?: (contentId: DataId, operation: 'update' | 'delete') => void): Promise<LoadContentsResult | null>;
 
     /**
      * 指定の画像データ(Base64)を取得する

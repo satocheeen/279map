@@ -8,13 +8,13 @@ import { currentMapDefineAtom } from '../../store/session';
 import { filteredDatasAtom } from '../../store/filter';
 import { useMap } from '../map/useMap';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
-import { TsunaguMapHandler, LoadContentsResult } from '../../types/types';
+import { TsunaguMapHandler } from '../../types/types';
 import { useAtom } from 'jotai';
 import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import { overrideItemsAtom, showingItemsAtom, } from '../../store/item';
 import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
-import { SearchDocument, GetImageDocument, UpdateDataDocument, GetContentDocument, DataUpdateDocument, Operation, UpdateDataByOriginalIdDocument, Condition } from '../../graphql/generated/graphql';
+import { SearchDocument, GetImageDocument, UpdateDataDocument, UpdateDataByOriginalIdDocument, Condition } from '../../graphql/generated/graphql';
 import { clientAtom } from 'jotai-urql';
 import dayjs from 'dayjs';
 import useItemProcess from '../../store/item/useItemProcess';
@@ -28,7 +28,7 @@ import { ContentValueMapInput } from '../../types-common/common-types';
  * - ref経由での操作を実行
  */
 export type EventControllerHandler = Pick<TsunaguMapHandler, 
-    'switchMapKind' | 'focusItem' | 'loadContent' | 'loadImage'
+    'switchMapKind' | 'focusItem' | 'loadImage'
     | 'filter' | 'clearFilter'
     | 'registData' | 'updateData'
     | 'changeVisibleLayer'
@@ -149,109 +149,6 @@ function EventConnectorWithOwner(props: {}, ref: React.ForwardedRef<EventControl
         },
         clearFilter() {
             setFilteredItem(null);
-        },
-
-        async loadContent(dataId, changeListener): Promise<LoadContentsResult | null> {
-            try {
-                const result = await gqlClient.query(GetContentDocument, {
-                    id: dataId,
-                }, {
-                    requestPolicy: 'network-only',
-                });
-                if (result.error) {
-                    throw new Error(result.error.message);
-                }
-                const content = result.data?.getContent ?? null;
-                if (!content) return null;
-                
-                const dsDef = contentDatasources.find(def => def.datasourceId === content.datasourceId);
-                if (!dsDef) return null;
-                // content.children = content?.children?.sort(contentsComparator);
-                const values = Object.entries(content.values).reduce((acc, [key, value]) => {
-                    const field = dsDef.config.fields.find(def => def.key === key);
-                    if (!field) return acc;
-                    switch(field.type) {
-                        case 'string':
-                        case 'title':
-                        case 'text':
-                        case 'date':
-                        case 'url':
-                            if (typeof value === 'string') {
-                                acc[key] = {
-                                    type: field.type,
-                                    value,
-                                }
-                            }
-                            break;
-                        case 'number':
-                            if (typeof value === 'number') {
-                                acc[key] = {
-                                    type: field.type,
-                                    value,
-                                }
-                            }
-                            break;
-                        case 'image':
-                            if (Array.isArray(value)) {
-                                acc[key] = {
-                                    type: field.type,
-                                    value : value as number[],
-                                }
-                            }
-                            break;
-                        case 'category':
-                        case 'single-category':
-                            if (Array.isArray(value)) {
-                                acc[key] = {
-                                    type: field.type,
-                                    value : value as string[],
-                                }
-                            }
-                            break;
-                        case 'link':
-                            if (Array.isArray(value)) {
-                                acc[key] = {
-                                    type: field.type,
-                                    value : value as [],
-                                }
-                            }
-                            break;
-                            
-                    }
-                    return acc;
-                }, {} as LoadContentsResult['content']['values']);
-        
-                const newContent = {
-                    backlinks: content.backlinks,
-                    datasourceId: content.datasourceId,
-                    id: content.id,
-                    usingOtherMap: content.usingOtherMap,
-                    readonly: content.readonly,
-                    values,
-                };
-            if (!changeListener) {
-                    return {
-                        content: newContent,
-                    }
-                }
-
-                const subscription = gqlClient.subscription(DataUpdateDocument, {
-                    id: content.id,
-                }).subscribe((result) => {
-                    if (!result.data?.dataUpdate) return;
-                    changeListener(content.id, result.data.dataUpdate === Operation.Update ? 'update' : 'delete');
-                });
-                const unsubscribe = () => {
-                    subscription.unsubscribe();
-                }
-                return {
-                    content: newContent,
-                    unsubscribe,
-                }
-
-            } catch(err) {
-                throw err;
-            }
         },
 
         async registData(param) {
