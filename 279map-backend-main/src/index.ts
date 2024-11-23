@@ -27,7 +27,7 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { IFieldResolverOptions } from '@graphql-tools/utils';
-import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkDataArgs, MutationLinkDataByOriginalIdArgs, MutationRegistDataArgs, MutationRemoveDataArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkDataArgs, MutationUpdateDataArgs, MutationUpdateDataByOriginalIdArgs, Operation, QueryAllocatableContentsArgs, QueryGeocoderArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemMetaInfoArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetMapMetaInfoArgs, QueryGetThumbArgs, QuerySearchArgs, Subscription, Target } from './graphql/__generated__/types';
+import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkDataArgs, MutationLinkDataByOriginalIdArgs, MutationRegistDataArgs, MutationRemoveDataArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkDataArgs, MutationUpdateDataArgs, MutationUpdateDataByOriginalIdArgs, Operation, QueryAllocatableContentsArgs, QueryGeocoderArgs, QueryGetBelogingItemsArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemMetaInfoArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetMapMetaInfoArgs, QueryGetThumbArgs, QuerySearchArgs, Subscription, Target } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { GeoPropertiesScalarType, GeocoderIdInfoScalarType, IconKeyScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -53,6 +53,7 @@ import { CategoryChecker } from './memory/CategoryChecker';
 import sharp from 'sharp';
 import { getItemThumbnail } from './api/getItemThumbnail';
 import { publishDatasourceUpdate } from './pubsub/publishDatasourceUpdate';
+import { getBelongingItem } from './api/getBelongingItems';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -462,6 +463,17 @@ const schema = makeExecutableSchema<GraphQlContextType>({
 
                 } catch(e) {    
                     apiLogger.warn('getContent error', param, e);
+                    throw e;
+                }
+            },
+            getBelogingItems: async(_: any, param: QueryGetBelogingItemsArgs, ctx): QueryResolverReturnType<'getBelogingItems'> => {
+                try {
+                    const result = await getBelongingItem(param.id, ctx.currentMap);
+
+                    return result;
+
+                } catch(e) {
+                    apiLogger.warn('getBelogingItems error', param, e);
                     throw e;
                 }
             },

@@ -139,7 +139,6 @@ export async function convertContentsToContentsDetail(con: PoolConnection, row: 
                             return {
                                 dataId: id,
                                 name: itemInfo.name,
-                                belongingItem: itemInfo.belongingItem,
                             }
                         }));
                         return {
@@ -249,39 +248,8 @@ async function getItemInfo(con: PoolConnection, dataId: DataId, currentMap: Curr
             return title ?? '';    
         }();
 
-        const sql2 = `
-        select * from content_belong_map cbm 
-        inner join contents c on c.data_id = cbm.item_id 
-        where map_page_id = ? and content_id = ?
-        `;
-        const [rows] = await con.query(sql2, [currentMap.mapId, dataId]);
-        const records = rows as (ContentBelongMapView & ContentsTable)[];
-
-        if (records.length === 0) {
-            return {
-                name,
-            }
-        }
-
-        const item = records.sort((a, b) => {
-            const getWeight = (rec: (ContentBelongMapView & ContentsTable)) => {
-                // 現在の地図種別のものが最優先
-                if (rec.map_kind === currentMap.mapKind) return 0;
-                // アイテム近い（deepが低い）コンテンツが優先
-                return rec.deep + 1;
-            }
-            const aWeight = getWeight(a);
-            const bWeight = getWeight(b);
-            return aWeight - bWeight;
-        })[0];
-
         return {
             name,
-            belongingItem: {
-                itemId: item.item_id,
-                mapKind: item.map_kind,
-                name: getTitleValue(item.contents ?? {}) ?? '',
-            } 
         }
 
     } finally {

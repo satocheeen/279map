@@ -94,6 +94,7 @@ type ContentsDetail {
     datasourceId: String!
     "属性値"
     values: ContentValueMap!
+
     """
     もう片方の地図での、このコンテンツが属するアイテムID一覧
     （村マップ側では複数の建物に日本地図側の同一コンテンツが割り当たっている可能性もあるので、配列にしている）
@@ -104,6 +105,19 @@ type ContentsDetail {
     "trueの場合、ユーザ権限に関わらずreadonly"
     readonly: Boolean
 }
+
+"コンテンツが属するアイテム情報"
+type BelongingItemInfo {
+    "コンテンツが属するアイテムID"
+    itemId: DataId!
+    "アイテム名"
+    name: String!
+    "アイテムが属する地図種別"
+    mapKind: MapKind!
+    "アイテムからの距離"
+    deep: Int!
+}
+
 type UnpointContent {
     originalId: String!
     "DBに登録済みの場合は、dataIdも返す"
@@ -199,6 +213,8 @@ type Query {
     getCategory(datasourceIds: [String!]): [CategoryDefine!]!
     getEvent(datasourceIds: [String!]): [EventDefine!]!
     getContent(id: DataId!): ContentsDetail!
+    "指定のコンテンツが紐づくアイテムに関する情報を取得する"
+    getBelogingItems(id: DataId!): [BelongingItemInfo!]!
 
     "割当候補のコンテンツを取得する"
     allocatableContents (

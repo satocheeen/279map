@@ -59,6 +59,19 @@ export type BackLink = {
   itemName: Scalars['String']['output'];
 };
 
+/** コンテンツが属するアイテム情報 */
+export type BelongingItemInfo = {
+  __typename?: 'BelongingItemInfo';
+  /** アイテムからの距離 */
+  deep: Scalars['Int']['output'];
+  /** コンテンツが属するアイテムID */
+  itemId: Scalars['DataId']['output'];
+  /** アイテムが属する地図種別 */
+  mapKind: Scalars['MapKind']['output'];
+  /** アイテム名 */
+  name: Scalars['String']['output'];
+};
+
 export type CategoryCondition = {
   /** 対象のコンテンツデータソースID */
   datasourceId: Scalars['String']['input'];
@@ -437,6 +450,8 @@ export type Query = {
   allocatableContents: AllocatableContentsResult;
   config: ServerConfig;
   geocoder: Array<GeocoderItem>;
+  /** 指定のコンテンツが紐づくアイテムに関する情報を取得する */
+  getBelogingItems: Array<BelongingItemInfo>;
   getCategory: Array<CategoryDefine>;
   getContent: ContentsDetail;
   getEvent: Array<EventDefine>;
@@ -472,6 +487,11 @@ export type QueryAllocatableContentsArgs = {
 export type QueryGeocoderArgs = {
   address: Scalars['String']['input'];
   searchTarget: Array<GeocoderTarget>;
+};
+
+
+export type QueryGetBelogingItemsArgs = {
+  id: Scalars['DataId']['input'];
 };
 
 

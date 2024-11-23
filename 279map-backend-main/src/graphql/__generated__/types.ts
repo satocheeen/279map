@@ -56,6 +56,18 @@ export type BackLink = {
   itemName: Scalars['String']['output'];
 };
 
+/** コンテンツが属するアイテム情報 */
+export type BelongingItemInfo = {
+  /** アイテムからの距離 */
+  deep: Scalars['Int']['output'];
+  /** コンテンツが属するアイテムID */
+  itemId: Scalars['DataId']['output'];
+  /** アイテムが属する地図種別 */
+  mapKind: Scalars['MapKind']['output'];
+  /** アイテム名 */
+  name: Scalars['String']['output'];
+};
+
 export type CategoryCondition = {
   /** 対象のコンテンツデータソースID */
   datasourceId: Scalars['String']['input'];
@@ -410,6 +422,8 @@ export type Query = {
   allocatableContents: AllocatableContentsResult;
   config: ServerConfig;
   geocoder: Array<GeocoderItem>;
+  /** 指定のコンテンツが紐づくアイテムに関する情報を取得する */
+  getBelogingItems: Array<BelongingItemInfo>;
   getCategory: Array<CategoryDefine>;
   getContent: ContentsDetail;
   getEvent: Array<EventDefine>;
@@ -445,6 +459,11 @@ export type QueryAllocatableContentsArgs = {
 export type QueryGeocoderArgs = {
   address: Scalars['String']['input'];
   searchTarget: Array<GeocoderTarget>;
+};
+
+
+export type QueryGetBelogingItemsArgs = {
+  id: Scalars['DataId']['input'];
 };
 
 
@@ -746,6 +765,7 @@ export type ResolversTypes = {
   Auth: Auth;
   Auth0Config: ResolverTypeWrapper<Auth0Config>;
   BackLink: ResolverTypeWrapper<BackLink>;
+  BelongingItemInfo: ResolverTypeWrapper<BelongingItemInfo>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   CategoryCondition: CategoryCondition;
   CategoryDefine: ResolverTypeWrapper<CategoryDefine>;
@@ -816,6 +836,7 @@ export type ResolversParentTypes = {
   AllocatableContentsResult: AllocatableContentsResult;
   Auth0Config: Auth0Config;
   BackLink: BackLink;
+  BelongingItemInfo: BelongingItemInfo;
   Boolean: Scalars['Boolean']['output'];
   CategoryCondition: CategoryCondition;
   CategoryDefine: CategoryDefine;
@@ -888,6 +909,14 @@ export type Auth0ConfigResolvers<ContextType = any, ParentType extends Resolvers
 export type BackLinkResolvers<ContextType = any, ParentType extends ResolversParentTypes['BackLink'] = ResolversParentTypes['BackLink']> = {
   itemId?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   itemName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type BelongingItemInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['BelongingItemInfo'] = ResolversParentTypes['BelongingItemInfo']> = {
+  deep?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  itemId?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
+  mapKind?: Resolver<ResolversTypes['MapKind'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1127,6 +1156,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   allocatableContents?: Resolver<ResolversTypes['AllocatableContentsResult'], ParentType, ContextType, RequireFields<QueryAllocatableContentsArgs, 'datasourceId'>>;
   config?: Resolver<ResolversTypes['ServerConfig'], ParentType, ContextType>;
   geocoder?: Resolver<Array<ResolversTypes['GeocoderItem']>, ParentType, ContextType, RequireFields<QueryGeocoderArgs, 'address' | 'searchTarget'>>;
+  getBelogingItems?: Resolver<Array<ResolversTypes['BelongingItemInfo']>, ParentType, ContextType, RequireFields<QueryGetBelogingItemsArgs, 'id'>>;
   getCategory?: Resolver<Array<ResolversTypes['CategoryDefine']>, ParentType, ContextType, Partial<QueryGetCategoryArgs>>;
   getContent?: Resolver<ResolversTypes['ContentsDetail'], ParentType, ContextType, RequireFields<QueryGetContentArgs, 'id'>>;
   getEvent?: Resolver<Array<ResolversTypes['EventDefine']>, ParentType, ContextType, Partial<QueryGetEventArgs>>;
@@ -1196,6 +1226,7 @@ export type Resolvers<ContextType = any> = {
   AllocatableContentsResult?: AllocatableContentsResultResolvers<ContextType>;
   Auth0Config?: Auth0ConfigResolvers<ContextType>;
   BackLink?: BackLinkResolvers<ContextType>;
+  BelongingItemInfo?: BelongingItemInfoResolvers<ContextType>;
   CategoryDefine?: CategoryDefineResolvers<ContextType>;
   CategoryItem?: CategoryItemResolvers<ContextType>;
   ConnectInfo?: ConnectInfoResolvers<ContextType>;
