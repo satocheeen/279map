@@ -21,7 +21,9 @@ export type {
     IconDefine,
     ContentFieldDefine,
     ContentValue,
-    ContentValueInput
+    ContentValueInput,
+    ContentValueMap,
+    ContentValueMapInput,
 } from './types-common/common-types';
 export {
     MapKind,
