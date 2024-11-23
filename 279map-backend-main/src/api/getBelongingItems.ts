@@ -12,13 +12,6 @@ export async function getBelongingItem(dataId: DataId, currentMap: CurrentMap): 
     const con = await ConnectionPool.getConnection();
 
     try {
-        const hasLocation = await async function() {
-            const sql = 'select * from geometry_items where data_id = ?';
-            const [rows] = await con.query(sql, [dataId]);
-            const records = rows as GeometryItemsTable[];
-            return records.length > 0;
-        }();
-
         const sql = `
         select * from content_belong_map cbm 
         inner join contents c on c.data_id = cbm.item_id 
@@ -28,10 +21,7 @@ export async function getBelongingItem(dataId: DataId, currentMap: CurrentMap): 
         const records = rows as (ContentBelongMapView & ContentsTable)[];
 
         if (records.length === 0) {
-            return {
-                hasLocation,
-                belongingItems: [],
-            }
+            return [];
         }
 
         const items = records.sort((a, b) => {
@@ -46,16 +36,14 @@ export async function getBelongingItem(dataId: DataId, currentMap: CurrentMap): 
             return aWeight - bWeight;
         });
 
-        return {
-            hasLocation,
-            belongingItems: items.map(item => {
-                return {
-                    itemId: item.item_id,
-                    mapKind: item.map_kind,
-                    name: getTitleValue(item.contents ?? {}) ?? '',
-                }
-            }),
-        }
+        return items.map(item => {
+            return {
+                itemId: item.item_id,
+                mapKind: item.map_kind,
+                name: getTitleValue(item.contents ?? {}) ?? '',
+                deep: item.deep,
+            }
+        })
 
     } finally {
         con.release();

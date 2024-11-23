@@ -106,21 +106,18 @@ type ContentsDetail {
     readonly: Boolean
 }
 
-type ItemInfo {
+"コンテンツが属するアイテム情報"
+type BelongingItemInfo {
     "コンテンツが属するアイテムID"
     itemId: DataId!
     "アイテム名"
     name: String!
     "アイテムが属する地図種別"
     mapKind: MapKind!
+    "アイテムからの距離"
+    deep: Int!
 }
-"コンテンツが属するアイテム情報"
-type GetBelongingItemsResult {
-    "日本地図での位置情報を持つ場合,true"
-    hasLocation: Boolean!
-    "コンテンツが紐づくアイテム一覧"
-    belongingItems: [ItemInfo!]!
-}
+
 type UnpointContent {
     originalId: String!
     "DBに登録済みの場合は、dataIdも返す"
@@ -217,7 +214,7 @@ type Query {
     getEvent(datasourceIds: [String!]): [EventDefine!]!
     getContent(id: DataId!): ContentsDetail!
     "指定のコンテンツが紐づくアイテムに関する情報を取得する"
-    getBelogingItems(id: DataId!): GetBelongingItemsResult!
+    getBelogingItems(id: DataId!): [BelongingItemInfo!]!
 
     "割当候補のコンテンツを取得する"
     allocatableContents (

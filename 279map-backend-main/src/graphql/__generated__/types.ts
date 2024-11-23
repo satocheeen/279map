@@ -56,6 +56,18 @@ export type BackLink = {
   itemName: Scalars['String']['output'];
 };
 
+/** コンテンツが属するアイテム情報 */
+export type BelongingItemInfo = {
+  /** アイテムからの距離 */
+  deep: Scalars['Int']['output'];
+  /** コンテンツが属するアイテムID */
+  itemId: Scalars['DataId']['output'];
+  /** アイテムが属する地図種別 */
+  mapKind: Scalars['MapKind']['output'];
+  /** アイテム名 */
+  name: Scalars['String']['output'];
+};
+
 export type CategoryCondition = {
   /** 対象のコンテンツデータソースID */
   datasourceId: Scalars['String']['input'];
@@ -205,14 +217,6 @@ export enum GeocoderTarget {
   Point = 'Point'
 }
 
-/** コンテンツが属するアイテム情報 */
-export type GetBelongingItemsResult = {
-  /** コンテンツが紐づくアイテム一覧 */
-  belongingItems: Array<ItemInfo>;
-  /** 日本地図での位置情報を持つ場合,true */
-  hasLocation: Scalars['Boolean']['output'];
-};
-
 export type ItemDatasourceInfo = {
   config: Scalars['ItemDatasourceConfig']['output'];
   datasourceId: Scalars['String']['output'];
@@ -229,15 +233,6 @@ export type ItemDefine = {
   geometry: Scalars['Geometry']['output'];
   id: Scalars['DataId']['output'];
   lastEditedTime: Scalars['String']['output'];
-  name: Scalars['String']['output'];
-};
-
-export type ItemInfo = {
-  /** コンテンツが属するアイテムID */
-  itemId: Scalars['DataId']['output'];
-  /** アイテムが属する地図種別 */
-  mapKind: Scalars['MapKind']['output'];
-  /** アイテム名 */
   name: Scalars['String']['output'];
 };
 
@@ -428,7 +423,7 @@ export type Query = {
   config: ServerConfig;
   geocoder: Array<GeocoderItem>;
   /** 指定のコンテンツが紐づくアイテムに関する情報を取得する */
-  getBelogingItems: GetBelongingItemsResult;
+  getBelogingItems: Array<BelongingItemInfo>;
   getCategory: Array<CategoryDefine>;
   getContent: ContentsDetail;
   getEvent: Array<EventDefine>;
@@ -770,6 +765,7 @@ export type ResolversTypes = {
   Auth: Auth;
   Auth0Config: ResolverTypeWrapper<Auth0Config>;
   BackLink: ResolverTypeWrapper<BackLink>;
+  BelongingItemInfo: ResolverTypeWrapper<BelongingItemInfo>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   CategoryCondition: CategoryCondition;
   CategoryDefine: ResolverTypeWrapper<CategoryDefine>;
@@ -799,7 +795,6 @@ export type ResolversTypes = {
   GeocoderItem: ResolverTypeWrapper<GeocoderItem>;
   GeocoderTarget: GeocoderTarget;
   Geometry: ResolverTypeWrapper<Scalars['Geometry']['output']>;
-  GetBelongingItemsResult: ResolverTypeWrapper<GetBelongingItemsResult>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   IconDefine: ResolverTypeWrapper<Scalars['IconDefine']['output']>;
   IconKey: ResolverTypeWrapper<Scalars['IconKey']['output']>;
@@ -807,7 +802,6 @@ export type ResolversTypes = {
   ItemDatasourceConfig: ResolverTypeWrapper<Scalars['ItemDatasourceConfig']['output']>;
   ItemDatasourceInfo: ResolverTypeWrapper<ItemDatasourceInfo>;
   ItemDefine: ResolverTypeWrapper<ItemDefine>;
-  ItemInfo: ResolverTypeWrapper<ItemInfo>;
   ItemLabelMode: ItemLabelMode;
   ItemMetaInfo: ResolverTypeWrapper<ItemMetaInfo>;
   JSON: ResolverTypeWrapper<Scalars['JSON']['output']>;
@@ -842,6 +836,7 @@ export type ResolversParentTypes = {
   AllocatableContentsResult: AllocatableContentsResult;
   Auth0Config: Auth0Config;
   BackLink: BackLink;
+  BelongingItemInfo: BelongingItemInfo;
   Boolean: Scalars['Boolean']['output'];
   CategoryCondition: CategoryCondition;
   CategoryDefine: CategoryDefine;
@@ -867,7 +862,6 @@ export type ResolversParentTypes = {
   GeocoderIdInfo: Scalars['GeocoderIdInfo']['output'];
   GeocoderItem: GeocoderItem;
   Geometry: Scalars['Geometry']['output'];
-  GetBelongingItemsResult: GetBelongingItemsResult;
   ID: Scalars['ID']['output'];
   IconDefine: Scalars['IconDefine']['output'];
   IconKey: Scalars['IconKey']['output'];
@@ -875,7 +869,6 @@ export type ResolversParentTypes = {
   ItemDatasourceConfig: Scalars['ItemDatasourceConfig']['output'];
   ItemDatasourceInfo: ItemDatasourceInfo;
   ItemDefine: ItemDefine;
-  ItemInfo: ItemInfo;
   ItemMetaInfo: ItemMetaInfo;
   JSON: Scalars['JSON']['output'];
   MapDatasources: MapDatasources;
@@ -916,6 +909,14 @@ export type Auth0ConfigResolvers<ContextType = any, ParentType extends Resolvers
 export type BackLinkResolvers<ContextType = any, ParentType extends ResolversParentTypes['BackLink'] = ResolversParentTypes['BackLink']> = {
   itemId?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   itemName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type BelongingItemInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['BelongingItemInfo'] = ResolversParentTypes['BelongingItemInfo']> = {
+  deep?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  itemId?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
+  mapKind?: Resolver<ResolversTypes['MapKind'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1032,12 +1033,6 @@ export interface GeometryScalarConfig extends GraphQLScalarTypeConfig<ResolversT
   name: 'Geometry';
 }
 
-export type GetBelongingItemsResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['GetBelongingItemsResult'] = ResolversParentTypes['GetBelongingItemsResult']> = {
-  belongingItems?: Resolver<Array<ResolversTypes['ItemInfo']>, ParentType, ContextType>;
-  hasLocation?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export interface IconDefineScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['IconDefine'], any> {
   name: 'IconDefine';
 }
@@ -1066,13 +1061,6 @@ export type ItemDefineResolvers<ContextType = any, ParentType extends ResolversP
   geometry?: Resolver<ResolversTypes['Geometry'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
   lastEditedTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type ItemInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemInfo'] = ResolversParentTypes['ItemInfo']> = {
-  itemId?: Resolver<ResolversTypes['DataId'], ParentType, ContextType>;
-  mapKind?: Resolver<ResolversTypes['MapKind'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -1168,7 +1156,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   allocatableContents?: Resolver<ResolversTypes['AllocatableContentsResult'], ParentType, ContextType, RequireFields<QueryAllocatableContentsArgs, 'datasourceId'>>;
   config?: Resolver<ResolversTypes['ServerConfig'], ParentType, ContextType>;
   geocoder?: Resolver<Array<ResolversTypes['GeocoderItem']>, ParentType, ContextType, RequireFields<QueryGeocoderArgs, 'address' | 'searchTarget'>>;
-  getBelogingItems?: Resolver<ResolversTypes['GetBelongingItemsResult'], ParentType, ContextType, RequireFields<QueryGetBelogingItemsArgs, 'id'>>;
+  getBelogingItems?: Resolver<Array<ResolversTypes['BelongingItemInfo']>, ParentType, ContextType, RequireFields<QueryGetBelogingItemsArgs, 'id'>>;
   getCategory?: Resolver<Array<ResolversTypes['CategoryDefine']>, ParentType, ContextType, Partial<QueryGetCategoryArgs>>;
   getContent?: Resolver<ResolversTypes['ContentsDetail'], ParentType, ContextType, RequireFields<QueryGetContentArgs, 'id'>>;
   getEvent?: Resolver<Array<ResolversTypes['EventDefine']>, ParentType, ContextType, Partial<QueryGetEventArgs>>;
@@ -1238,6 +1226,7 @@ export type Resolvers<ContextType = any> = {
   AllocatableContentsResult?: AllocatableContentsResultResolvers<ContextType>;
   Auth0Config?: Auth0ConfigResolvers<ContextType>;
   BackLink?: BackLinkResolvers<ContextType>;
+  BelongingItemInfo?: BelongingItemInfoResolvers<ContextType>;
   CategoryDefine?: CategoryDefineResolvers<ContextType>;
   CategoryItem?: CategoryItemResolvers<ContextType>;
   ConnectInfo?: ConnectInfoResolvers<ContextType>;
@@ -1257,13 +1246,11 @@ export type Resolvers<ContextType = any> = {
   GeocoderIdInfo?: GraphQLScalarType;
   GeocoderItem?: GeocoderItemResolvers<ContextType>;
   Geometry?: GraphQLScalarType;
-  GetBelongingItemsResult?: GetBelongingItemsResultResolvers<ContextType>;
   IconDefine?: GraphQLScalarType;
   IconKey?: GraphQLScalarType;
   ItemDatasourceConfig?: GraphQLScalarType;
   ItemDatasourceInfo?: ItemDatasourceInfoResolvers<ContextType>;
   ItemDefine?: ItemDefineResolvers<ContextType>;
-  ItemInfo?: ItemInfoResolvers<ContextType>;
   ItemMetaInfo?: ItemMetaInfoResolvers<ContextType>;
   JSON?: GraphQLScalarType;
   MapDatasources?: MapDatasourcesResolvers<ContextType>;
