@@ -136,6 +136,10 @@ export type ContentFieldDefine = {
     type: 'link'
     label: string;
     databaseId: string;
+    // 双方向リンクの場合、値あり
+    bidirectional?: {
+        fieldKey: string;   // こちらに連携しているリンク先のfieldKey
+    }
 }
 
 /**
