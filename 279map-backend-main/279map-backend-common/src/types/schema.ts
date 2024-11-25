@@ -132,6 +132,7 @@ export type ImagesTable = {
 
 export type DataLinkTable = {
     from_data_id: DataId;
+    from_field_key: string;
     to_data_id: DataId;
     last_edited_time: string;
 }
