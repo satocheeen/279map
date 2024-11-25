@@ -82,7 +82,6 @@ CREATE TABLE `datas` (
 CREATE TABLE `contents` (
   `data_id` varchar(50) NOT NULL,
   `contents` json DEFAULT NULL,
-  `category` json DEFAULT NULL,
   `date` datetime DEFAULT NULL,
   PRIMARY KEY (`data_id`),
   CONSTRAINT `contents_FK` FOREIGN KEY (`data_id`) REFERENCES `datas` (`data_id`) ON DELETE CASCADE

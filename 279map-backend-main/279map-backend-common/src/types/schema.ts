@@ -114,12 +114,10 @@ export type GeometryItemsTable = {
 export type ContentsTable = {
     data_id: DataId;
     contents?: ContentValueMapInput;
-    category?: string[];
     date?: string;
 }
-export type ContentsTableForRegist = Omit<ContentsTable, 'contents' | 'category' | 'date'> & {
+export type ContentsTableForRegist = Omit<ContentsTable, 'contents' | 'date'> & {
     contents?: string;
-    category?: string;
     date?: Date;
 }
 export type ImagesTable = {
