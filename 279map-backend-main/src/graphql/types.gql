@@ -42,6 +42,7 @@ enum PopupMode {
     hidden
     minimum
     maximum
+    onlyImage
 }
 """
 アイテムラベル表示モード
