@@ -145,10 +145,11 @@ export type TsunaguMapProps = {
     /**
      * ポップアップ表示モード
      * - hidden: ポップアップ表示しない
-     * - minimum: 小さなポップアップを表示する
-     * - maximum: 大きいポップアップ（画像表示）を表示する（デフォルト）
+     * - minimum: コンテンツの存在する場合に、…のポップアップを表示する
+     * - maximum: 画像が存在する場合に画像ポップアップ、存在しない場合は…のポップアップを表示する
+     * - onlyImage: 画像が存在する場合のみ画像ポップアップ表示する
      */
-    popupMode?: 'hidden' | 'minimum' | 'maximum';
+    popupMode?: 'hidden' | 'minimum' | 'maximum' | 'onlyImage';
     disabledLabel?: boolean; // when true, the item's label hidden.
 
     /**

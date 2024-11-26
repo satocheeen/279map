@@ -76,7 +76,7 @@ export default function PointsPopup(props: Props) {
                 type: 'three-dot'
             }
         }
-        // maximumの場合
+        // maximum/onlyImageの場合
         // 画像を探す（表示中のコンテンツ限定）
         let imageContentId: undefined | DataId;
         targetItems.some(item => {
@@ -97,9 +97,15 @@ export default function PointsPopup(props: Props) {
             }
             return false;
         })
-        if (!imageContentId) return {
-            type: 'three-dot'
-        };
+        if (!imageContentId) {
+            if (popupMode === 'maximum') {
+                return {
+                    type: 'three-dot'
+                };
+            } else {
+                return;
+            }
+        }
         return {
             type: 'image',
             imageContentDataId: imageContentId,

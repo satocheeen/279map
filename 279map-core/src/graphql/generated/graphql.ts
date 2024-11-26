@@ -441,7 +441,8 @@ export enum Operation {
 export enum PopupMode {
   Hidden = 'hidden',
   Maximum = 'maximum',
-  Minimum = 'minimum'
+  Minimum = 'minimum',
+  OnlyImage = 'onlyImage'
 }
 
 export type Query = {

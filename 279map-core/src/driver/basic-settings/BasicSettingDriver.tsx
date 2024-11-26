@@ -1,12 +1,9 @@
 import React, { useCallback, useContext, useState } from 'react';
 import styles from '../TestMap.module.scss';
-import { TsunaguMapProps } from '../../entry';
 import { DriverContext } from '../TestMap';
 
 type Props = {
 }
-
-const defaultPopupMode: TsunaguMapProps['popupMode'] = 'maximum';
 
 export default function BasicSettingDriver(props: Props) {
     const { setPopupMode, setDisableLabel } = useContext(DriverContext);
@@ -14,8 +11,14 @@ export default function BasicSettingDriver(props: Props) {
     return (
         <div className={styles.Col}>
             <PropRadio name='Popup'
-                items={[{ label: 'hidden', value: 'hidden' }, {label: 'minimum', value: 'minimum' }, { label: 'maximum', value: 'maximum' }]}
-                default={defaultPopupMode}
+                items={[
+                    { label: '未指定', value: undefined },
+                    { label: 'hidden', value: 'hidden' }, 
+                    { label: 'minimum', value: 'minimum' }, 
+                    { label: 'maximum', value: 'maximum' },
+                    { label: 'onlyImage', value: 'onlyImage' }
+                ]}
+                default={undefined}
                 onChange={setPopupMode} />
             <PropRadio name='Label'
                 items={[{ label: 'enabled', value: true }, { label: 'disabled', value: false }]}

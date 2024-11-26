@@ -190,7 +190,7 @@ export default function TestMap() {
     const [ mapKind, setMapKind ] = useState(MapKind.Real);
 
     // switch popup
-    const [ popupMode, setPopupMode ] = useState<TsunaguMapProps['popupMode']>('maximum');
+    const [ popupMode, setPopupMode ] = useState<TsunaguMapProps['popupMode']>(undefined);
 
     const [ disabledLabel, setDisableLabel ] = useState(false);
 
