@@ -1,4 +1,4 @@
-import { DataSourceTable, ContentsTable, CurrentMap, ImagesTable, MapDataSourceLinkTable, ContentBelongMapView } from "../../279map-backend-common/src";
+import { DataSourceTable, ContentsTable, CurrentMap, ImagesTable, MapDataSourceLinkTable, ContentBelongMapView, DataLinkTable } from "../../279map-backend-common/src";
 import { BackLink, ContentsDefine, ContentsDetail } from "../graphql/__generated__/types";
 import { ContentFieldDefine, ContentValue, ContentValueMap, ContentValueMapInput, DataId, DatasourceLocationKindType, MapKind } from "../types-common/common-types";
 import { PoolConnection } from "mysql2/promise";
@@ -72,6 +72,7 @@ export async function convertContentsToContentsDetail(con: PoolConnection, row: 
     const id = row.data_id;
     const backlinks = await getBacklinks(con, id, currentMap);
     const usingOtherMap = await checkUsingAnotherMap(con, id, currentMap.mapId);
+    const datalinks = await getDataLinks(con, id);
 
     const readonly = function() {
         if (row.location_kind === DatasourceLocationKindType.VirtualItem) return true;
@@ -133,7 +134,9 @@ export async function convertContentsToContentsDetail(con: PoolConnection, row: 
                     //         }
                     //     }
                     case 'link':
-                        const value = await Promise.all((val as DataId[]).map(async(id) => {
+                        const links = datalinks.filter(link => link.from_field_key === def.key);
+                        const value = await Promise.all(links.map(async(link) => {
+                            const id = link.to_data_id;
                             // 指定のアイテムの名称と使用地図を取得する
                             const itemInfo = await getItemInfo(con, id, currentMap, row.contents_define ?? []);
                             return {
@@ -306,6 +309,25 @@ async function getBacklinks(con: PoolConnection, contentId: DataId, currentMap: 
                 itemName,
             }
         })
+
+    } finally {
+
+    }
+}
+
+/**
+ * 指定のコンテンツが参照しているリンク情報を返す
+ * @param con 
+ * @param contentId 
+ * @returns 
+ */
+async function getDataLinks(con: PoolConnection, contentId: DataId) {
+    try {
+        const sql = 'select * from data_link where from_data_id = ?';
+        const [rows] = await con.query(sql, [contentId]);
+
+        const records = rows as DataLinkTable[];
+        return records;
 
     } finally {
 

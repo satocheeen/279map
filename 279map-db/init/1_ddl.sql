@@ -82,7 +82,6 @@ CREATE TABLE `datas` (
 CREATE TABLE `contents` (
   `data_id` varchar(50) NOT NULL,
   `contents` json DEFAULT NULL,
-  `category` json DEFAULT NULL,
   `date` datetime DEFAULT NULL,
   PRIMARY KEY (`data_id`),
   CONSTRAINT `contents_FK` FOREIGN KEY (`data_id`) REFERENCES `datas` (`data_id`) ON DELETE CASCADE
@@ -123,9 +122,10 @@ CREATE TABLE `images` (
 
 CREATE TABLE `data_link` (
   `from_data_id` varchar(50) NOT NULL,
+  `from_field_key` varchar(50) NOT NULL,
   `to_data_id` varchar(50) NOT NULL,
   `last_edited_time` varchar(100) NOT NULL,
-  PRIMARY KEY (`from_data_id`,`to_data_id`),
+  PRIMARY KEY (`from_data_id`,`from_field_key`, `to_data_id`),
   KEY `data_link_FK_1` (`to_data_id`),
   CONSTRAINT `data_link_FK` FOREIGN KEY (`from_data_id`) REFERENCES `datas` (`data_id`) ON DELETE CASCADE,
   CONSTRAINT `data_link_FK_1` FOREIGN KEY (`to_data_id`) REFERENCES `datas` (`data_id`) ON DELETE CASCADE
