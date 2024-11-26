@@ -12,7 +12,7 @@ export default function BackgroundDriver(props: Props) {
 
     const handleChange = useCallback((val: Parameters<TsunaguMapHandler['switchBackground']>[0]) => {
         getMap()?.switchBackground(val);
-    }, [])
+    }, [getMap])
 
     return (
         <div className={styles.Col}>
