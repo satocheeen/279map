@@ -6,7 +6,7 @@ import { useAtom } from 'jotai';
 import { itemProcessesAtom } from '../../store/item';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import { DataId, FeatureType, GeoProperties } from '../../types-common/common-types';
-import { FeatureColor } from './types';
+import { ColorPattern, FeatureColor } from './types';
 
 export enum Opacity {
     Normal = 'Normal',         // 通常
@@ -33,7 +33,7 @@ export default function useFilterStatus() {
      * 指定の地物の強調表示色を返す
      * @return 強調表示色。強調しない場合は、undefined。
      */
-    const getForceColor = useCallback((feature: FeatureLike): FeatureColor | undefined => {
+    const getForceColor = useCallback((feature: FeatureLike): string | undefined => {
         const id = feature.getId() as DataId;
 
         // エラー状態のものはエラー色表示
@@ -48,12 +48,17 @@ export default function useFilterStatus() {
                 return false;
             }
         })?.error) {
-            return FeatureColor.Error;
+            return ColorPattern[FeatureColor.Error];
         }
 
         // 選択されているものは強調表示
         if (selectedItemId && (selectedItemId === id)) {
-            return FeatureColor.Selected;
+            return ColorPattern[FeatureColor.Selected];
+        }
+
+        const properties = feature.getProperties() as GeoProperties;
+        if (properties.featureType === FeatureType.STRUCTURE && properties.color) {
+            return properties.color;
         }
 
         const filterStatus = getFilterStatus(feature);

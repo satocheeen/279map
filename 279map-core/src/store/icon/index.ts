@@ -151,7 +151,11 @@ export const addFillStyle = (svgData: string, fillColor: string, targetClass: st
     const targetElements = doc.getElementsByClassName(targetClass);
 
     for (let i = 0; i < targetElements.length; i++) {
-      targetElements[i].setAttribute('fill', hexToRgb(fillColor));
+        if (fillColor.startsWith('#')) {
+            targetElements[i].setAttribute('fill', hexToRgb(fillColor));
+        } else {
+            targetElements[i].setAttribute('fill', fillColor);
+        }
     }
 
     return new XMLSerializer().serializeToString(doc);

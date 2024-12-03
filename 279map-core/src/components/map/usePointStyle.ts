@@ -61,7 +61,7 @@ export default function usePointStyle() {
     }, [allItems]);
 
     const _createStyle = useAtomCallback(
-        useCallback((get, set, param: {iconDefine: SystemIconDefine; resolution: number; color?: FeatureColor; opacity?: Opacity}) => {
+        useCallback((get, set, param: {iconDefine: SystemIconDefine; resolution: number; color?: string; opacity?: Opacity}) => {
             const mapKind = get(currentMapKindAtom);
 
             const scale = getStructureScale(param.resolution, mapKind);
@@ -90,7 +90,7 @@ export default function usePointStyle() {
                             anchorXUnits: 'fraction',
                             anchorYUnits: 'fraction',
                             src: param.iconDefine?.imagePath,
-                            color: param.color ? ColorPattern[param.color] : undefined,
+                            color: param.color,
                             opacity,
                             scale,
                         }),
@@ -99,7 +99,7 @@ export default function usePointStyle() {
                 } else {
                     const { src, color } = function() {
                         if (param.color && param.iconDefine.originalSvgData) {
-                            const forceData = addFillStyle(param.iconDefine.originalSvgData, ColorPattern[param.color], 'my-color')
+                            const forceData = addFillStyle(param.iconDefine.originalSvgData, param.color, 'my-color')
                             return {
                                 src: 'data:image/svg+xml;utf8,' + forceData,
                                 color: undefined,
@@ -107,7 +107,7 @@ export default function usePointStyle() {
                         } else {
                             return {
                                 src: param.iconDefine.imagePath,
-                                color: param.color ? ColorPattern[param.color] : undefined,
+                                color: param.color,
                             }
                         }
         
@@ -246,15 +246,15 @@ export default function usePointStyle() {
             }();
 
             // 色設定
-            let color: FeatureColor | undefined;
+            let color: string | undefined;
             let opacity = Opacity.Normal;
             let visible = true;
 
             if (forceColor) {
-                color = forceColor;
+                color = ColorPattern[forceColor];
 
             } else if(!isTemporary){
-                // -- フィルタ状態に応じて色設定
+                // -- 色設定
                 color = getForceColor(mainFeature);
                 const tempOpacity = getOpacity(mainFeature);
                 if (tempOpacity === Opacity.Hidden) {

@@ -7,7 +7,6 @@ import { Style } from 'ol/style';
 import { OwnerContext } from '../TsunaguMap/TsunaguMap';
 import { FeatureType } from '../../types-common/common-types';
 import ol_color from 'ol/color';
-import { ColorPattern } from './types';
 import { getOpacityValue } from '../../util/MapUtility';
 
 /**
@@ -45,19 +44,19 @@ export default function useTopographyStyleWithState() {
                         defaultStyle.getFill().setColor(colorWithAlpha(defaultColor.toString(), 0.1));
                 } else {
                     if (color) {
-                        defaultStyle.getStroke().setColor(ColorPattern[color]);
-                        defaultStyle.getFill().setColor(colorWithAlpha(ColorPattern[color], 0.3));
+                        defaultStyle.getStroke().setColor(color);
+                        defaultStyle.getFill().setColor(colorWithAlpha(color, 0.3));
                     }
                 }
             } else {
                 if (color) {
-                    defaultStyle.getStroke().setColor(ColorPattern[color]);
+                    defaultStyle.getStroke().setColor(color);
                 }
             }
             // set opacity
             if (opacity !== Opacity.Normal) {
                 const currentColor = defaultStyle.getFill().getColor() as ol_color.Color;
-                defaultStyle.getFill().setColor(colorWithAlpha(color ? ColorPattern[color] : currentColor, getOpacityValue(opacity)))
+                defaultStyle.getFill().setColor(colorWithAlpha(color ? color : currentColor, getOpacityValue(opacity)))
             }
 
             return defaultStyle;

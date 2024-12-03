@@ -1,17 +1,16 @@
-import { Icon, Style } from "ol/style";
+import { Style } from "ol/style";
 import { IconKey } from "../../entry";
-import { FeatureColor } from "./types";
 import { Opacity } from "./useFilterStatus";
 
 type StyleItem = {
     iconKey: IconKey;
-    color?: FeatureColor;
+    color?: string;
     opacity: Opacity;
     style: Style;
 }
 export type StyleKey = {
     iconKey: IconKey;
-    color?: FeatureColor;
+    color?: string;
     opacity?: Opacity;
 }
 /**
