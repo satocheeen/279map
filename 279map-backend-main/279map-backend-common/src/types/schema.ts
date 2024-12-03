@@ -81,6 +81,7 @@ export type MapDataSourceLinkConfig = {
     location_kind: DatasourceLocationKindType.RealItem;
     initialVisible: boolean;    // レイヤ初期表示状態
     contentFieldKeyList: string[];  // 当該地図で使用するコンテンツ項目のキー一覧
+    unclickable?: boolean;      // trueの場合、クリック不可
     defaultIconKey?: IconKey;
 } | {
     location_kind: DatasourceLocationKindType.Track | DatasourceLocationKindType.StaticImage;
