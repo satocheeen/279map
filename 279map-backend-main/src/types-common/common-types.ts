@@ -60,16 +60,19 @@ export type GeoProperties = {
     mark?: {
         key: IconKey;      // 強調マークID
         speed: number;      // アニメーション速度
-    }
+    };
+    color?: string;
 } | {
     featureType: FeatureType.ROAD;
     width: string;  // RoadWidth.key
 } | {
-    featureType: FeatureType.EARTH | FeatureType.FOREST | FeatureType.AREA;
+    featureType: FeatureType.EARTH | FeatureType.FOREST;
     radius?: number;
 } | {
     featureType: FeatureType.AREA;
+    radius?: number;
     geocoderId?: GeocoderIdInfo;    // OSM等で管理されているFeatureの場合
+    color?: string;
 } | {
     featureType: FeatureType.TRACK;
     min_zoom: number;
