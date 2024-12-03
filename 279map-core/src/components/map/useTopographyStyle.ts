@@ -71,7 +71,8 @@ export default function useTopographyStyle(props: Props) {
                         zIndex = MapStyles.Road.zIndex;
                         break;
                     case FeatureType.AREA:
-                        defaultColor = MapStyles.Area.color;
+                        const properties = feature.getProperties();
+                        defaultColor = 'color' in properties ? properties.color : MapStyles.Area.color;
                         zIndex = MapStyles.Area.zIndex;
                         alpha = 0.3;
                         break;
