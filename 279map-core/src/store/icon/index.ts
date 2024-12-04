@@ -5,6 +5,7 @@ import defaultIconVirtual from './house.png';
 import { atom } from 'jotai';
 import { MapKind } from '../../types-common/common-types';
 import { loadable } from "jotai/utils";
+import { decodeBase64Svg, SVG_BASE64_PREFIX } from '../../util/CommonUtility';
 
 /**
  * オリジナルアイコン
@@ -105,20 +106,21 @@ export const currentMapIconDefinePromiseAtom = atom<Promise<SystemIconDefine[]>>
 
     // SVG画像の場合は、データ展開する
     return Promise.all(list.map(async(def): Promise<SystemIconDefine> => {
-        if ((def.imagePath as string).endsWith('.svg')) {
+        if ((def.imagePath as string).endsWith('.svg') || (def.imagePath as string).startsWith(SVG_BASE64_PREFIX)) {
             const fetchSvgData = async () => {
+                if ((def.imagePath as string).startsWith(SVG_BASE64_PREFIX)) {
+                    try {
+                        return decodeBase64Svg(def.imagePath);
+        
+                    } catch(err) {
+                        console.warn('conver error', err)
+                        return;
+                    }
+                }
                 try {
                     const response = await fetch(def.imagePath);
                     const data = await response.text();
-                    if (def.defaultColor) {
-                        const modifiedData = addFillStyle(data, def.defaultColor, 'my-color');
-                        return {
-                            data,
-                            modifiedData,
-                        };
-                    } else {
-                        return { data };
-                    }
+                    return data;
                 } catch (error) {
                     console.warn('SVGファイルの読み込みに失敗しました:', error);
                     return;
@@ -126,9 +128,14 @@ export const currentMapIconDefinePromiseAtom = atom<Promise<SystemIconDefine[]>>
             };
             const data = await fetchSvgData();
             if (!data) return def;
-            def.originalSvgData = data.data;
-            def.imagePath = 'data:image/svg+xml;utf8,' + (data.modifiedData ? data.modifiedData : data.data);
+
+            const modifiedData = def.defaultColor ? addFillStyle(data, def.defaultColor, 'my-color') : undefined;
+
+            def.originalSvgData = data;
+            def.imagePath = 'data:image/svg+xml;utf8,' + (modifiedData ? modifiedData : data);
             return def;
+
+        } else if ((def.imagePath as string).startsWith(SVG_BASE64_PREFIX)) {
         }
         return def;
     }));
