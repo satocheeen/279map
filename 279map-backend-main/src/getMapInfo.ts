@@ -182,6 +182,7 @@ async function getItemDataSourceGroups(mapId: string, mapKind: MapKind): Promise
                 name: row.datasource_name,
                 groupName: row.group_name,
                 initialVisible: 'initialVisible' in mdlConfig ? mdlConfig.initialVisible ?? true : true,
+                unclickable: mdlConfig.location_kind === DatasourceLocationKindType.RealItem ? mdlConfig.unclickable : undefined,
                 config,
             }
 

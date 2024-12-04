@@ -239,6 +239,7 @@ export class OlMapWrapper {
                         const layerDefine: LayerDefine = {
                             dataSourceId: ds.datasourceId,
                             editable: false,
+                            unclickable: true,
                             layerType: LayerType.Track,
                             zoomLv: {
                                 min: zoomLv[0],
@@ -253,6 +254,7 @@ export class OlMapWrapper {
                         const layerDefine: LayerDefine = {
                             dataSourceId: ds.datasourceId,
                             editable: true,
+                            unclickable: ds.unclickable ?? false,
                             layerType: layerType as LayerType.Point| LayerType.Topography,
                         };
                         this._addLayer(layerDefine, ds.initialVisible);
@@ -281,6 +283,7 @@ export class OlMapWrapper {
                     const layerDefine: LayerDefine = {
                         dataSourceId: ds.datasourceId,
                         editable: true,
+                        unclickable: ds.unclickable ?? false,
                         layerType: layerType as LayerType.Point| LayerType.Topography,
                     };
                     this._addLayer(layerDefine, ds.initialVisible);
@@ -713,6 +716,7 @@ export class OlMapWrapper {
         this._map.forEachFeatureAtPixel(pixel, (feature, layer) => {
             const layerInfo = this._vectorLayerMap.getLayerInfo(layer);
             if (!layerInfo) return;
+            if (layerInfo.unclickable) return;
             if (layerInfo.layerType === LayerType.Point) {
                 const features = feature.get('features') as Feature[];
                 features.forEach(f => {

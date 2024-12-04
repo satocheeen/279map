@@ -41,6 +41,7 @@ mutation switchMapKind (
             name
             groupName
             initialVisible
+            unclickable
             config
         }
         contentDataSources {

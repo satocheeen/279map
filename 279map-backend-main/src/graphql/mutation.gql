@@ -30,6 +30,8 @@ type ItemDatasourceInfo {
     name: String!
     groupName: String
     initialVisible: Boolean!
+    "Trueの場合、クリック不可"
+    unclickable: Boolean
     config: ItemDatasourceConfig!
 }
 type ContentDatasourceInfo {

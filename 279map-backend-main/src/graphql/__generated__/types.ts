@@ -223,6 +223,8 @@ export type ItemDatasourceInfo = {
   groupName?: Maybe<Scalars['String']['output']>;
   initialVisible: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
+  /** Trueの場合、クリック不可 */
+  unclickable?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type ItemDefine = {
@@ -1052,6 +1054,7 @@ export type ItemDatasourceInfoResolvers<ContextType = any, ParentType extends Re
   groupName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   initialVisible?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  unclickable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

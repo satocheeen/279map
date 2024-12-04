@@ -16,6 +16,7 @@ export type LayerDefine = {
     dataSourceId: string;
     // group: string;
     editable: boolean;
+    unclickable: boolean;
 } & (
     {
         layerType: LayerType.Point | LayerType.Topography;
