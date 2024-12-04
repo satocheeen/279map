@@ -24,6 +24,7 @@ import { Client } from 'urql';
 import { DataId, DatasourceLocationKindType, FeatureType, MapKind } from '../../types-common/common-types';
 import PointStyleMap from '../map/PointStyleMap';
 import { StaticImageLayerMap } from './StaticImageLayerMap';
+import { bbox, bboxPolygon, buffer } from '@turf/turf';
 
 export type FeatureInfo = {
     id: DataId;
@@ -40,7 +41,7 @@ const pcControls = olControl.defaults({attribution: true, zoom: false});
 const spControls = olControl.defaults({attribution: true, zoom: false});
 
 const MAX_ZOOM_LV = 20;
-const MIN_ZOOM_LV_REAL = 5;
+const MIN_ZOOM_LV_REAL = 3;
 const MIN_ZOOM_LV_VIRTUAL = 16;
 // export const TemporaryPointLayerDatasourceId = 'temporary-point';
 
@@ -220,6 +221,39 @@ export class OlMapWrapper {
                 this._map.setLayers(layers);
 
                 // 日本地図に収まる範囲にパンニング可能範囲を制御
+                // -- 画面サイズを考慮して、日本地図全体が画面に収まる大きさでExtent設定
+                const bufferedExtent = (() => {
+                    // 若干、バッファを設ける
+                    const extentPolygon = bboxPolygon(prefSource.getExtent() as [number, number, number, number]);
+                    const buffered = buffer(extentPolygon, 50, { units: 'kilometers' });
+                    const prefExtent = bbox(buffered);
+
+                    const mapSize = this._map.getSize();
+                    if (!mapSize) return prefExtent;
+
+                    const extentWidth = prefExtent[2] - prefExtent[0];
+                    const extentHeight = prefExtent[3] - prefExtent[1];
+                    const screenAspectRatio = mapSize[0] / mapSize[1];
+                    const extentAspectRatio = extentWidth / extentHeight;
+                    let newExtent = [...prefExtent];
+
+                    if (extentAspectRatio > screenAspectRatio) {
+                        // 指定のextentの方が横長 → 高さを拡張
+                        const newHeight = extentWidth / screenAspectRatio;
+                        const heightDiff = (newHeight - extentHeight) / 2;
+                    
+                        newExtent[1] -= heightDiff; // 下側を拡張
+                        newExtent[3] += heightDiff; // 上側を拡張
+                    } else {
+                        // 指定のextentの方が縦長 → 幅を拡張
+                        const newWidth = extentHeight * screenAspectRatio;
+                        const widthDiff = (newWidth - extentWidth) / 2;
+                    
+                        newExtent[0] -= widthDiff; // 左側を拡張
+                        newExtent[2] += widthDiff; // 右側を拡張
+                    }
+                    return newExtent;
+                })();
                 const view = new View({
                     projection: this._map.getView().getProjection(),
                     center: this._map.getView().getCenter(),
@@ -227,7 +261,7 @@ export class OlMapWrapper {
                     minZoom: MIN_ZOOM_LV_REAL,
                     maxZoom: MAX_ZOOM_LV,
                     // maxZoom: this._map.getView().getMaxZoom(),
-                    extent: prefSource.getExtent(),
+                    extent: bufferedExtent,
                 });
                 this._map.setView(view);
     
