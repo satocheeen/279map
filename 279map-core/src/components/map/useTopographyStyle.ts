@@ -88,7 +88,7 @@ export default function useTopographyStyle(props: Props) {
                         width: props.drawing ? 3 : 1,
                     }),
                     fill: new Fill({
-                        color: colorWithAlpha(defaultColor, alpha),
+                        color: colorWithAlpha(defaultColor, defaultColor === 'transparent' ? 0 : alpha),
                     }),
                     zIndex,
                 });
