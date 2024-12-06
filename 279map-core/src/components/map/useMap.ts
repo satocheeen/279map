@@ -3,7 +3,7 @@ import { OlMapWrapper } from '../TsunaguMap/OlMapWrapper';
 import { atom, useAtom } from 'jotai';
 import { useAtomCallback, atomWithReducer } from 'jotai/utils';
 import { currentMapKindAtom, defaultExtentAtom, instanceIdAtom } from '../../store/session';
-import { LoadedAreaInfo, LoadedItemKey, allItemsAtom, latestEditedTimeOfDatasourceAtom, loadedItemMapAtom, storedItemsAtom } from '../../store/item';
+import { LoadedAreaInfo, LoadedItemKey, allItemsAtom, loadedItemMapAtom, storedItemsAtom } from '../../store/item';
 import { itemDataSourcesAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import useMyMedia from '../../util/useMyMedia';
 import Feature from "ol/Feature";
@@ -12,7 +12,7 @@ import { sleep } from '../../util/CommonUtility';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { initialLoadingAtom } from '../TsunaguMap/MapController';
 import { geoJsonToTurfPolygon } from '../../util/MapUtility';
-import { bboxPolygon, intersect, union, buffer, point, booleanPointInPolygon, bbox} from '@turf/turf';
+import { bboxPolygon, intersect, union, buffer, point, booleanPointInPolygon, bbox, polygon} from '@turf/turf';
 import { geojsonToWKT } from '@terraformer/wkt';
 import { useItems } from '../../store/item/useItems';
 import { GetItemsByIdDocument, GetItemsDocument } from '../../graphql/generated/graphql';
@@ -146,22 +146,42 @@ export function useMap() {
                     const key = getLoadedAreaMapKey(datasourceId, zoom);
                     const loadedItemInfo = loadedItemMap[JSON.stringify(key)];
                     const loadedPolygon = loadedItemInfo ? geoJsonToTurfPolygon(loadedItemInfo.geometry) : undefined;
-                    let polygon: LoadedAreaInfo['geometry'] | undefined;
                     if (loadedPolygon) {
-                        if (intersect(loadedPolygon, extentPolygon) !== null) {
+                        const isContain = (() => {
+                            return extentPolygon.geometry.coordinates.every(coords => {
+                                return coords.every(point => {
+                                    if (loadedPolygon.geometry.type === 'MultiPolygon') {
+                                        return loadedPolygon.geometry.coordinates.some(coords => {
+                                            const loadedArea = polygon(coords)
+                                            const res = booleanPointInPolygon(point, loadedArea);
+                                            return res;
+                                        });
+                                    } else {
+                                        const loadedArea = polygon(loadedPolygon.geometry.coordinates);
+                                        const res = booleanPointInPolygon(point, loadedArea);
+                                        return res;
+                                    }
+                                })
+                            })
+    
+                        })();
+                        console.log('isContain', isContain, loadedPolygon, extentPolygon)
+                        if (isContain) {
                             // ロード済み領域の場合はロードしない
                             return;
                         }
                     }
-                    polygon = {
+                    let polygon2: LoadedAreaInfo['geometry'] | undefined;
+                    polygon2 = {
                         type: 'Polygon',
                         coordinates: extentPolygon.geometry.coordinates
                     }
                     loadTargets.push({
                         datasourceId,
-                        geometry: polygon,
+                        geometry: polygon2,
                     });
                 });
+                console.log('loadTargets', loadTargets)
 
                 const beforeMapKind = get(currentMapKindAtom);
                 const apiResults = await Promise.all(loadTargets.map(async(target) => {
