@@ -10,7 +10,7 @@ import { useMap } from '../map/useMap';
 import { useProcessMessage } from '../common/spinner/useProcessMessage';
 import { TsunaguMapHandler } from '../../types/types';
 import { useAtom } from 'jotai';
-import { contentDataSourcesAtom, itemDatasourcesWithVisibleAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
+import { contentDataSourcesAtom, itemDatasourceVisibleListAtom, visibleDataSourceIdsAtom } from '../../store/datasource';
 import { overrideItemsAtom, showingItemsAtom, } from '../../store/item';
 import { useMapController } from '../../store/map/useMapController';
 import useDataSource, { ChangeVisibleLayerTarget } from '../../store/datasource/useDataSource';
@@ -246,7 +246,7 @@ function EventListener() {
     /**
      * アイテムDatasourceの表示状態が変化した場合に呼び出し元にイベント発火する
      */
-    const [ visibleList ] = useAtom(itemDatasourcesWithVisibleAtom);
+    const [ visibleList ] = useAtom(itemDatasourceVisibleListAtom);
     useWatch(visibleList,
         useCallback(() => {
             if (onItemDatasourcesVisibleChanged) {

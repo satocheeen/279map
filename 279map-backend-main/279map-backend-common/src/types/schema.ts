@@ -65,12 +65,13 @@ export type MapDataSourceLinkTable = {
     map_page_id: string;
     data_source_id: string;
     datasource_name: string;
-    group_name?: string;
+    group_name?: string[];
     order_num?: number;
     mdl_config: MapDataSourceLinkConfig;
     last_edited_time: string;
 }
-export type MapDataSourceLinkTableForRegist = Omit<MapDataSourceLinkTable, 'mdl_config'> & {
+export type MapDataSourceLinkTableForRegist = Omit<MapDataSourceLinkTable, 'mdl_config' | 'group_name'> & {
+    group_name?: string;
     mdl_config: string;
 }
 

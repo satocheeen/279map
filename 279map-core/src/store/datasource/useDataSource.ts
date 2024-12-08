@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { dataSourceVisibleAtom, itemDataSourcesAtom, itemDatasourcesWithVisibleAtom } from '.';
+import { dataSourceVisibleAtom, itemDataSourcesAtom, itemDatasourceVisibleListAtom } from '.';
 import { useAtomCallback } from 'jotai/utils';
 import { DatasourceLocationKindType } from '../../entry';
 
@@ -26,17 +26,10 @@ export default function useDataSource() {
                 if ('group' in param) {
                     const groupName = param.group;
                     // 当該グループに属するデータソース取得
-                    const itemDatasourceVisibleList = get(itemDatasourcesWithVisibleAtom);
-                    const hit = itemDatasourceVisibleList.find(item => item.type === 'group' && item.groupName === groupName);
-                    if (!hit) {
-                        console.warn('group not exist', groupName);
-                        return;
-                    }
-                    if (hit.type === 'group') {
-                        for (const ds of hit.datasources) {
-                            newMap[ds.datasourceId] = param.visible;
-                        }
-
+                    const itemDatasourceVisibleList = get(itemDatasourceVisibleListAtom);
+                    const targets = itemDatasourceVisibleList.filter(item => item.groupNames.includes(param.group));
+                    for (const ds of targets) {
+                        newMap[ds.datasourceId] = param.visible;
                     }
                 } else {
                     const ds = param.dataSourceId;
