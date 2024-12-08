@@ -28,7 +28,7 @@ type MapInfo {
 type ItemDatasourceInfo {
     datasourceId: String!
     name: String!
-    groupName: String
+    groupNames: [String!]!
     initialVisible: Boolean!
     "Trueの場合、クリック不可"
     unclickable: Boolean

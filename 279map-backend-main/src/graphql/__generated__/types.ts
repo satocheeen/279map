@@ -220,7 +220,7 @@ export enum GeocoderTarget {
 export type ItemDatasourceInfo = {
   config: Scalars['ItemDatasourceConfig']['output'];
   datasourceId: Scalars['String']['output'];
-  groupName?: Maybe<Scalars['String']['output']>;
+  groupNames: Array<Scalars['String']['output']>;
   initialVisible: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
   /** Trueの場合、クリック不可 */
@@ -1051,7 +1051,7 @@ export interface ItemDatasourceConfigScalarConfig extends GraphQLScalarTypeConfi
 export type ItemDatasourceInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemDatasourceInfo'] = ResolversParentTypes['ItemDatasourceInfo']> = {
   config?: Resolver<ResolversTypes['ItemDatasourceConfig'], ParentType, ContextType>;
   datasourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  groupName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  groupNames?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   initialVisible?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   unclickable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;

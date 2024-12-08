@@ -7,7 +7,7 @@ subscription datasourceUpdateInTheMap (
         itemDataSources {
             datasourceId
             name
-            groupName
+            groupNames
             initialVisible
             unclickable
             config

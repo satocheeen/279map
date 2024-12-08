@@ -66,18 +66,10 @@ export type ItemType = {
     };
 }
 
-export type DatasourceVisible = {
-    type: 'datasource';
+export type ItemDatasourceVisible = {
     datasourceId: string;
     visible: boolean;
 }
-export type DatasourceVisibleGroup = {
-    type: 'group';
-    groupName: string;
-    visible: boolean;
-    datasources: DatasourceVisible[];
-}
-export type ItemDatasourceVisibleList = (DatasourceVisibleGroup|DatasourceVisible)[];
 
 export type ItemGeoInfo = {
     geometry: GeoJSON.Geometry;
@@ -173,7 +165,7 @@ export type TsunaguMapProps = {
      * @returns 
      */
     onMapDefineChanged?: (param: Partial<Omit<OnMapLoadParam, 'mapKind'>>) => void; 
-    onItemDatasourcesVisibleChanged?: (param: ItemDatasourceVisibleList) => void;
+    onItemDatasourcesVisibleChanged?: (param: ItemDatasourceVisible[]) => void;
 
     /**
      * 地図上で建物orピンの選択状態が変更された場合のコールバック

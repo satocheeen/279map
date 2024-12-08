@@ -1,6 +1,6 @@
 import { atom } from 'jotai';
 import { currentMapDefineAtom } from '../session';
-import { DatasourceVisible, DatasourceVisibleGroup, ItemDatasourceVisibleList } from '../../types/types';
+import { ItemDatasourceVisible } from '../../types/types';
 
 /**
  * データソース関連のRecoil
@@ -26,16 +26,15 @@ export const itemDataSourcesAtom = atom((get) => {
 /**
  * アイテムデータソースの表示情報一覧
  */
-const itemDatasourceVisibleListAtom = atom((get) => {
+export const itemDatasourceVisibleListAtom = atom((get) => {
     const dataSources = get(itemDataSourcesAtom);
     const visibleInfo = get(dataSourceVisibleAtom);
-    return dataSources.map((ds): (DatasourceVisible & {groupName?: string}) => {
+    return dataSources.map((ds): (ItemDatasourceVisible & {groupNames: string[]}) => {
         const visible = visibleInfo[ds.datasourceId] ?? ds.initialVisible;
         return {
-            type: 'datasource',
             datasourceId: ds.datasourceId,
             visible,
-            groupName: ds.groupName ?? undefined,
+            groupNames: ds.groupNames ?? [],
         }
     });
 })
@@ -48,60 +47,60 @@ export const visibleDataSourceIdsAtom = atom((get) => {
     return dataSources.filter(ds => ds.visible).map(ds => ds.datasourceId);
 })
 
-/**
- * 現在のアイテムレイヤの表示状態情報
- */
-export const itemDatasourcesWithVisibleAtom = atom<ItemDatasourceVisibleList>((get) => {
-    const itemDatasourceVisibleList = get(itemDatasourceVisibleListAtom);
+// /**
+//  * 現在のアイテムレイヤの表示状態情報
+//  */
+// export const itemDatasourcesWithVisibleAtom = atom<ItemDatasourceVisibleList>((get) => {
+//     const itemDatasourceVisibleList = get(itemDatasourceVisibleListAtom);
 
-    // グループになるものをまとめる
-    const groupNames = itemDatasourceVisibleList.reduce((acc, cur) => {
-        if (!cur.groupName) return acc;
-        if (acc.includes(cur.groupName)) return acc;
-        return [...acc, cur.groupName];
-    }, [] as string[]);
+//     // グループになるものをまとめる
+//     const groupNames = itemDatasourceVisibleList.reduce((acc, cur) => {
+//         if (!cur.groupName) return acc;
+//         if (acc.includes(cur.groupName)) return acc;
+//         return [...acc, cur.groupName];
+//     }, [] as string[]);
 
-    const groups = groupNames.map((groupName): DatasourceVisibleGroup => {
-        const datasources = itemDatasourceVisibleList
-                                .filter(ds => ds.groupName === groupName);
-        const visible = datasources.some(ds => ds.visible);
-        return {
-            type: 'group',
-            groupName,
-            datasources,
-            visible,
-        }
-    })
+//     const groups = groupNames.map((groupName): DatasourceVisibleGroup => {
+//         const datasources = itemDatasourceVisibleList
+//                                 .filter(ds => ds.groupName === groupName);
+//         const visible = datasources.some(ds => ds.visible);
+//         return {
+//             type: 'group',
+//             groupName,
+//             datasources,
+//             visible,
+//         }
+//     })
 
-    // グループにならないもの
-    const noGroupDsList = itemDatasourceVisibleList.filter(ds => !ds.groupName);
+//     // グループにならないもの
+//     const noGroupDsList = itemDatasourceVisibleList.filter(ds => !ds.groupName);
 
-    const list = [...groups, ...noGroupDsList];
+//     const list = [...groups, ...noGroupDsList];
 
-    // ソート
-    const listWithOrder = list.map(item => {
-        const order = function() {
-            if (item.type === 'group') {
-                // groupの場合は、最も若いindex
-                const orderList = item.datasources.map(ds => {
-                    const index = itemDatasourceVisibleList.findIndex(iv => iv.datasourceId === ds.datasourceId);
-                    return index;
-                });
-                return Math.min(...orderList);
-            } else {
-                return itemDatasourceVisibleList.findIndex(iv => iv.datasourceId === item.datasourceId);
-            }
-        }();
-        return Object.assign({}, item, { order });
-    });
-    return listWithOrder
-        .sort((a, b) => a.order - b.order)
-        .map(item => {
-            const newItem = JSON.parse(JSON.stringify(item));
-            delete newItem.order;
-            return newItem;
-        });
-})
+//     // ソート
+//     const listWithOrder = list.map(item => {
+//         const order = function() {
+//             if (item.type === 'group') {
+//                 // groupの場合は、最も若いindex
+//                 const orderList = item.datasources.map(ds => {
+//                     const index = itemDatasourceVisibleList.findIndex(iv => iv.datasourceId === ds.datasourceId);
+//                     return index;
+//                 });
+//                 return Math.min(...orderList);
+//             } else {
+//                 return itemDatasourceVisibleList.findIndex(iv => iv.datasourceId === item.datasourceId);
+//             }
+//         }();
+//         return Object.assign({}, item, { order });
+//     });
+//     return listWithOrder
+//         .sort((a, b) => a.order - b.order)
+//         .map(item => {
+//             const newItem = JSON.parse(JSON.stringify(item));
+//             delete newItem.order;
+//             return newItem;
+//         });
+// })
 
 /**
  * コンテンツのデータソース一覧

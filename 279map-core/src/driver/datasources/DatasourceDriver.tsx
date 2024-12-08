@@ -1,9 +1,8 @@
 import React, { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import styles from '../TestMap.module.scss';
 import myStyles from './DatasourceDriver.module.scss';
-import { Auth, DatasourceLocationKindType, FeatureType, ItemDatasourceVisibleList, MapKind } from '../../entry';
+import { Auth, DatasourceLocationKindType, FeatureType, MapKind } from '../../entry';
 import { DriverContext } from '../TestMap';
-import { useWatch } from '../../util/useWatch2';
 import SelectStructureDialog, { SelectStructureDialogParams, SelectStructureDialogResult } from '../common/SelectStructureDialog';
 import { ModalHandler } from '../common/useModal';
 
@@ -16,105 +15,29 @@ type Props = {
  * @returns 
  */
 export default function DatasourceDriver(props: Props) {
-    const [ changeMode, setChangeMode ] = useState<'every'|'together'>('every')
-    const { itemDatasourcesVisibleList, getMap, addConsole } = useContext(DriverContext);
-    const [ myItemDatasourcesVisibleList, setMyItemDatasourcesVisibleList ] = useState<ItemDatasourceVisibleList>([]);
+    const { itemDatasourcesVisibleList, itemDatasources, getMap, addConsole } = useContext(DriverContext);
     const [ temporaryGeoJsonText, setTemporaryGeoJsonText ] = useState('');
     const [ temporaryItemIdText, setTemporaryItemIdText ] = useState('');
 
-    const handleChangeVisible = useCallback((group: string, val: boolean) => {
-        if (changeMode === 'every') {
-            getMap()?.changeVisibleLayer([
-                {
-                    group,
-                    visible: val
-                }
-            ]);
-        } else {
-            setMyItemDatasourcesVisibleList(current => {
-                return current.map(cur => {
-                    if (cur.type === 'group' && cur.groupName === group) {
-                        return Object.assign({}, cur, {
-                            visible: val,
-                        })
-                    } else {
-                        return cur;
-                    }
-                })
-            })
-        }
-    }, [getMap, changeMode]);
+    console.log('itemDatasources', itemDatasources)
 
-    const handleChangeDatasourceVisible = useCallback((group: string | undefined, datasourceId: string, val: boolean) => {
-        // TODO:
-        if (changeMode === 'every') {
-            getMap()?.changeVisibleLayer([
-                {
-                    dataSourceId: datasourceId,
-                    visible: val,
-                }
-            ]);
-        } else {
-            setMyItemDatasourcesVisibleList(current => {
-                return current.map(cur => {
-                    if (cur.type === 'group' && cur.groupName === group) {
-                        const newDatasources = cur.datasources.map(ds => {
-                            if (ds.datasourceId === datasourceId) {
-                                return Object.assign({}, ds, { visible: val })
-                            } else {
-                                return ds;
-                            }
-                        })
-                        console.log('newDatasources', newDatasources)
-                        return Object.assign({}, cur, {
-                            datasources: newDatasources,
-                        })
-                    } else if (cur.type === 'datasource' && cur.datasourceId === datasourceId) {
-                        return Object.assign({}, cur, {
-                            visible: val,
-                        })
-                    } else {
-                        return cur;
-                    }
-                })
-            })
-
-        }
-    }, [getMap, changeMode])
-
-    const handleTogetherChange = useCallback(() => {
-        const targets: {
-            id: string;
-            visible: boolean;
-        }[] = [];
-        myItemDatasourcesVisibleList.forEach(item => {
-            if (item.type === 'group') {
-                item.datasources.forEach(ds => {
-                    targets.push({
-                        id: ds.datasourceId,
-                        visible: ds.visible,
-                    })
-                })
-            } else {
-                targets.push({
-                    id: item.datasourceId,
-                    visible: item.visible,
-                })
+    const handleChangeGroupVisible = useCallback((group: string, val: boolean) => {
+        getMap()?.changeVisibleLayer([
+            {
+                group,
+                visible: val
             }
-        })
-        getMap()?.changeVisibleLayer(targets.map(t => {
-            return {
-                dataSourceId: t.id,
-                visible: t.visible,
+        ]);
+    }, [getMap]);
+
+    const handleChangeDatasourceVisible = useCallback((datasourceId: string, val: boolean) => {
+        getMap()?.changeVisibleLayer([
+            {
+                dataSourceId: datasourceId,
+                visible: val,
             }
-        }));
-    }, [getMap, myItemDatasourcesVisibleList])
-
-
-    useWatch(itemDatasourcesVisibleList, () => {
-        if (changeMode === 'every')
-            setMyItemDatasourcesVisibleList(itemDatasourcesVisibleList);
-    }, {immediate: true})
+        ]);
+    }, [getMap])
 
     const [ temporaryItemName, setTemporaryItemName ] = useState('');
     // const handleRegistTemporaryItem = useCallback(async() => {
@@ -127,52 +50,55 @@ export default function DatasourceDriver(props: Props) {
     //     }
     // }, [getMap, addConsole, temporaryItemIdText, temporaryItemName])
 
+    const itemGroupVisibleList = useMemo(() => {
+        // グループ単位に情報をまとめたもの
+        return itemDatasources.reduce((acc, cur) => {
+            for (const name of cur.groupNames) {
+                console.log('debug', name)
+                const visible = itemDatasourcesVisibleList.find(item => item.datasourceId === cur.datasourceId)?.visible ?? false;
+                const current = acc.find(item => item.name === name);
+                if (!current) {
+                    acc.push({
+                        name,
+                        visible,
+                    });
+                } else {
+                    current.visible = visible;
+                }
+            }
+            return acc;
+        }, [] as {name: string; visible: boolean}[]);
+    }, [itemDatasources, itemDatasourcesVisibleList])
+
     return (
         <div>
             <div className={styles.PropName}>データソース</div>
-            <div className={myStyles.Row}>
-                <span>表示切替え</span>
-                <label>
-                    <input type='radio' checked={changeMode==='every'} onChange={()=>setChangeMode('every')}/>
-                    つど
-                </label>
-                <label>
-                <input type='radio' checked={changeMode==='together'} onChange={()=>setChangeMode('together')} />
-                    一括
-                </label>
-                <button disabled={changeMode==='every'} onClick={handleTogetherChange}>切替え</button>
-            </div>
             <div className={myStyles.List}>
-                {myItemDatasourcesVisibleList.map(item => {
+                {itemDatasourcesVisibleList.map(item => {
                     return (
-                        item.type === 'group' ?
-                        <div className={myStyles.Group} key={item.groupName}>
-                            <label>
-                                <input type="checkbox" checked={item.visible} onChange={(evt) => handleChangeVisible(item.groupName, evt.target.checked)} />
-                                {item.groupName}
-                            </label>
-                            {item.datasources.map(ds => {
-                                return (
-                                    <DatasourceItem
-                                        key={ds.datasourceId}
-                                        datasourceId={ds.datasourceId}
-                                        visible={ds.visible}
-                                        isChild
-                                        onChangeVisible={(val)=>handleChangeDatasourceVisible(item.groupName, ds.datasourceId, val)}
-                                    />
-                                )
-                            })}
-                        </div>
-                        :
                         <DatasourceItem
                             key={item.datasourceId}
                             datasourceId={item.datasourceId}
                             visible={item.visible}
-                            onChangeVisible={(val)=>handleChangeDatasourceVisible(undefined, item.datasourceId, val)}
+                            onChangeVisible={(val)=>handleChangeDatasourceVisible(item.datasourceId, val)}
                             />
                     )
                 })}
             </div>
+            <div className={styles.PropName}>データソースグループ</div>
+            <div className={myStyles.List}>
+                {itemGroupVisibleList.map(group => {
+                    return (
+                        <div className={myStyles.Group} key={group.name}>
+                            <label>
+                                <input type="checkbox" checked={group.visible} onChange={(evt) => handleChangeGroupVisible(group.name, evt.target.checked)} />
+                                {group.name}
+                            </label>
+                        </div>
+                    )
+                })}
+            </div>
+
             <label>
                 登録時指定GeoJson
                 <textarea className={myStyles.GeoJsonTextarea} value={temporaryGeoJsonText} onChange={evt=>setTemporaryGeoJsonText(evt.target.value)} rows={3} />
@@ -211,7 +137,7 @@ function DatasourceItem(props: DatasourceItemProp) {
         return targetDatasource?.name;
     }, [targetDatasource]);
 
-    const handleRegistItem = useCallback(async(featureType: FeatureType) => {
+    const handleRegistItem = useCallback(async(featureType: FeatureType.STRUCTURE | FeatureType.AREA | FeatureType.FOREST | FeatureType.EARTH | FeatureType.ROAD) => {
         if (featureType === FeatureType.STRUCTURE) {
             const result = await getMap()?.drawAndRegistItem({
                 featureType: FeatureType.STRUCTURE,
@@ -228,9 +154,6 @@ function DatasourceItem(props: DatasourceItemProp) {
             })
             addConsole('drawAndRegistItem', result);
     
-            return;
-        }
-        if (featureType === FeatureType.TRACK) {
             return;
         }
         const result = await getMap()?.drawAndRegistItem({
