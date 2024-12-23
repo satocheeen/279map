@@ -54,6 +54,7 @@ import sharp from 'sharp';
 import { getItemThumbnail } from './api/getItemThumbnail';
 import { publishDatasourceUpdate } from './pubsub/publishDatasourceUpdate';
 import { getBelongingItem } from './api/getBelongingItems';
+import { registTransaction } from './util/transaction';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -741,6 +742,10 @@ const schema = makeExecutableSchema<GraphQlContextType>({
              */
             updateData: async(_, param: MutationUpdateDataArgs, ctx): MutationResolverReturnType<'updateData'> => {
                 try {
+                    // トランザクションデータを登録
+                    const id = await registTransaction(param);
+                    console.log('transaction id', id);
+
                     // call ODBA
                     const result = await callOdbaApi(OdbaUpdateDataAPI, {
                         currentMap: ctx.currentMap,
