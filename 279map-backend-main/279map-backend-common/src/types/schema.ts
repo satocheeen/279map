@@ -148,6 +148,7 @@ export type OriginalIconsTable = {
 
 export type TransactionQueueTable = {
     id: string;
+    session_key: string;
     operation: object;
     status: 'Pending' | 'Failed';
     created_at: string;
