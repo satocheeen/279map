@@ -146,6 +146,17 @@ export type OriginalIconsTable = {
     last_edited_time: string;
 }
 
+export type TransactionQueueTable = {
+    id: string;
+    operation: object;
+    status: 'Pending' | 'Failed';
+    created_at: string;
+    updated_at: string;
+}
+export type TransactionQueueTableForRegist = Omit<ContentsTable, 'id' | 'operation' | 'created_at' | 'updated_at'> & {
+    operation: string;
+}
+
 export type ContentBelongMapView = {
     content_id: DataId;
     item_id: DataId;

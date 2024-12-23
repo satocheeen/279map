@@ -131,6 +131,16 @@ CREATE TABLE `data_link` (
   CONSTRAINT `data_link_FK_1` FOREIGN KEY (`to_data_id`) REFERENCES `datas` (`data_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
+-- 279map_db.transaction_queue definition
+
+CREATE TABLE `transaction_queue` (
+  `id` char(36) NOT NULL,
+  `operation` json NOT NULL,
+  `status` enum('Pending','Failed') NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- コンテンツの属する地図一覧View
 create view content_belong_map as 
