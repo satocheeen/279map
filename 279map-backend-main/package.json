@@ -17,7 +17,7 @@
     "@graphql-tools/schema": "^10.0.2",
     "@notionhq/client": "^1.0.4",
     "@terraformer/wkt": "^2.2.0",
-    "@turf/turf": "^6.5.0",
+    "@turf/turf": "^7.1.0",
     "@types/cookie": "^0.5.1",
     "@types/cookie-parser": "^1.4.3",
     "@types/cors": "^2.8.12",

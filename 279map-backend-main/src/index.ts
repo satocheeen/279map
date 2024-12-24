@@ -54,7 +54,7 @@ import sharp from 'sharp';
 import { getItemThumbnail } from './api/getItemThumbnail';
 import { publishDatasourceUpdate } from './pubsub/publishDatasourceUpdate';
 import { getBelongingItem } from './api/getBelongingItems';
-import { registTransaction } from './util/transaction';
+import { mergeTransactionToResultOfGetItems, registTransaction } from './util/transaction';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -395,9 +395,14 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         currentMap: ctx.currentMap,
                     });
         
-                    // apiLogger.debug('result', result);
+                    // トランザクション内容をマージ
+                    const mergedItems = await mergeTransactionToResultOfGetItems({
+                        items,
+                        param,
+                        currentMap: ctx.currentMap,
+                    });
         
-                    return items;
+                    return mergedItems;
         
                 } catch(e) {
                     apiLogger.warn('get-items API error', param, e);

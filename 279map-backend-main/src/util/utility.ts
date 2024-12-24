@@ -81,10 +81,18 @@ export function geoJsonToTurfFeatureCollection(geoJsons: (geojson.Geometry | geo
                     list.features.push(circle(geoJson.coordinates, .05));
                     break;
                 case 'LineString':
-                    list.features.push(buffer(lineString(geoJson.coordinates), 0.05));
+                    {
+                        const newFeature = buffer(lineString(geoJson.coordinates), 0.05);
+                        if (newFeature)
+                            list.features.push(newFeature);
+                    }
                     break;
                 case 'MultiLineString':
-                    list.features.push(buffer(multiLineString(geoJson.coordinates), 0.05));
+                    {
+                        const newFeature = buffer(multiLineString(geoJson.coordinates), 0.05);
+                        if (newFeature)
+                            list.features.push(newFeature);
+                    }
             }
         
         } catch(e) {
