@@ -753,12 +753,12 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             updateData: async(_, param: MutationUpdateDataArgs, ctx): MutationResolverReturnType<'updateData'> => {
                 try {
                     // トランザクションデータを登録
-                    const transactionId = await registTransaction({
+                    await registTransaction({
                         sessionKey: ctx.sessionKey,
+                        currentMap: ctx.currentMap,
                         operation: 'updateData',
                         args: param
                     });
-                    console.log('transaction id', transactionId);
 
                     // call ODBA
                     callOdbaApi(OdbaUpdateDataAPI, {

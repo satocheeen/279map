@@ -17,34 +17,20 @@ import { Geometry } from "geojson";
  * @returns 
  */
 export async function registTransaction(
-    { sessionKey, operation, args}
-    : { sessionKey: string; operation: string; args: object })
+    { sessionKey, currentMap, operation, args}
+    : { sessionKey: string; currentMap: CurrentMap, operation: string; args: object })
 {
     const con = await ConnectionPool.getConnection();
 
     const query = `
-        INSERT INTO transaction_queue (id, session_key, operation, param, status)
-        VALUES (UUID(), ?, ?, ?, ?)
-    `;
-    const uuidQuery = `
-        SELECT id FROM transaction_queue WHERE id = LAST_INSERT_ID()
+        INSERT INTO transaction_queue (id, session_key, map_page_id, map_kind, operation, param, status)
+        VALUES (UUID(), ?, ?, ?, ?, ?, ?)
     `;
 
     try {
-        await con.beginTransaction();
-        await con.execute(query, [sessionKey, operation, args, 'Pending']);
-        const [rows] = await con.execute(uuidQuery);
-
-        if ((rows as []).length === 0) {
-            throw new Error('not regist')
-        }
-
-        await con.commit();
-
-        return (rows as TransactionQueueTable[])[0].id;
+        await con.execute(query, [sessionKey, currentMap.mapId, currentMap.mapKind, operation, args, 'Pending']);
 
     } catch(err) {
-        await con.rollback();
         throw new Error('faield transaction regist: ' + err);
 
     } finally {

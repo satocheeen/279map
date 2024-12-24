@@ -136,6 +136,8 @@ CREATE TABLE `data_link` (
 CREATE TABLE `transaction_queue` (
   `id` char(36) NOT NULL,
   `session_key` varchar(100) NOT NULL,
+  `map_page_id` varchar(100) NOT NULL,
+  `map_kind` enum('Real','Virtual') NOT NULL,
   `operation` varchar(100) NOT NULL,
   `param` json NOT NULL,
   `status` enum('Pending','Failed') NOT NULL,

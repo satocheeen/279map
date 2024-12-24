@@ -149,6 +149,8 @@ export type OriginalIconsTable = {
 export type TransactionQueueTable = {
     id: string;
     session_key: string;
+    map_page_id: string;
+    map_kind: MapKind;
     operation: string;
     param: object;
     status: 'Pending' | 'Failed';
