@@ -136,7 +136,8 @@ CREATE TABLE `data_link` (
 CREATE TABLE `transaction_queue` (
   `id` char(36) NOT NULL,
   `session_key` varchar(100) NOT NULL,
-  `operation` json NOT NULL,
+  `operation` varchar(100) NOT NULL,
+  `param` json NOT NULL,
   `status` enum('Pending','Failed') NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
