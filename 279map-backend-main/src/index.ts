@@ -54,7 +54,7 @@ import sharp from 'sharp';
 import { getItemThumbnail } from './api/getItemThumbnail';
 import { publishDatasourceUpdate } from './pubsub/publishDatasourceUpdate';
 import { getBelongingItem } from './api/getBelongingItems';
-import { mergeTransactionToResultOfGetItems, registTransaction } from './util/transaction';
+import { mergeTransactionToResultOfGetItems, mergeTransactionToResultOfGetItemsById, registTransaction } from './util/transaction';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -417,9 +417,14 @@ const schema = makeExecutableSchema<GraphQlContextType>({
              */
             getItemsById: async(_, param: QueryGetItemsByIdArgs, ctx): Promise<ItemDefineWithoutContents[]> => {
                 try {
-                    const result = await getItemsById(param);
+                    const items = await getItemsById(param);
+                    const mergedItems = await mergeTransactionToResultOfGetItemsById({
+                        items,
+                        param,
+                        currentMap: ctx.currentMap,
+                    });
 
-                    return result;
+                    return mergedItems;
 
                 } catch(e) {
                     apiLogger.warn('get-items-by-id API error', param, e);

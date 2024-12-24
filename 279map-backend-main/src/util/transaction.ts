@@ -5,7 +5,7 @@
 import { wktToGeoJSON } from "@terraformer/wkt";
 import { ConnectionPool } from "..";
 import { CurrentMap, TransactionQueueTable } from "../../279map-backend-common/src";
-import { MutationUpdateDataArgs, QueryGetItemsArgs } from "../graphql/__generated__/types";
+import { MutationUpdateDataArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs } from "../graphql/__generated__/types";
 import { ItemDefineWithoutContents } from "../types";
 import * as turf from '@turf/turf';
 import { Geometry } from "geojson";
@@ -61,6 +61,55 @@ export async function mergeTransactionToResultOfGetItems(
     : { items: ItemDefineWithoutContents[]; param: QueryGetItemsArgs; currentMap: CurrentMap }
 ): Promise<ItemDefineWithoutContents[]> {
 
+    const result = await mergeTransactionToResultOfGetItemsSub({
+        items,
+        currentMap,
+        isTargetFunc(transactionRec) {
+            const args = transactionRec.param as MutationUpdateDataArgs;
+            const newGeometry = args.item?.geometry;
+            if (!newGeometry) return false;
+            return containItemInTheArea(newGeometry, param.wkt);
+        }
+    });
+    return result;
+
+}
+
+/**
+ * getItemsByIdの結果にトランザクションの内容をマージしたものを返す
+ * @param items 
+ */
+export async function mergeTransactionToResultOfGetItemsById(
+    { items, param, currentMap }
+    : { items: ItemDefineWithoutContents[]; param: QueryGetItemsByIdArgs; currentMap: CurrentMap }
+): Promise<ItemDefineWithoutContents[]> {
+
+    const result = await mergeTransactionToResultOfGetItemsSub({
+        items,
+        currentMap,
+        isTargetFunc(transactionRec) {
+            const args = transactionRec.param as MutationUpdateDataArgs;
+            return param.targets.includes(args.id);
+        }
+    });
+    return result;
+}
+
+/**
+ * getItemsの結果にトランザクションの内容をマージしたものを返す
+ * @param items 
+ */
+async function mergeTransactionToResultOfGetItemsSub(
+    { items, isTargetFunc, currentMap }
+    :
+    {
+        items: ItemDefineWithoutContents[];
+        // 指定のトランザクションデータがマージ対象かを判定するfunction
+        isTargetFunc: (rec: TransactionQueueTable) => boolean;
+        currentMap: CurrentMap
+    }
+): Promise<ItemDefineWithoutContents[]> {
+
     const con = await ConnectionPool.getConnection();
 
     try {
@@ -73,7 +122,7 @@ export async function mergeTransactionToResultOfGetItems(
         const [ rows ] = await con.execute(sql);
 
         return (rows as TransactionQueueTable[]).reduce((acc, cur) => {
-            // TODO: 新規追加されたアイテムがgetItemsの取得範囲内の場合、結果に追加する
+            // TODO: 新規追加されたアイテムがgetItemsByIdの取得対象の場合、結果に追加する
 
             if (cur.operation === 'updateData') {
                 const args = cur.param as MutationUpdateDataArgs;
@@ -88,9 +137,9 @@ export async function mergeTransactionToResultOfGetItems(
                 }
                 const newGeometry = args.item?.geometry;
                 if (!newGeometry) return acc;
-                const isContain = containItemInTheArea(newGeometry, param.wkt);
-                if (isContain) {
-                    // getItemsの取得範囲内の場合、結果情報更新
+                const isTarget = isTargetFunc(cur);
+                if (isTarget) {
+                    // getItemsの取得対象の場合、結果情報更新
                     return acc.map(item => {
                         if (item.id !== args.id) return item;
                         const newItem = structuredClone(item);
