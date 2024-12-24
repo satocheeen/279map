@@ -761,7 +761,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     console.log('transaction id', transactionId);
 
                     // call ODBA
-                    const result = await callOdbaApi(OdbaUpdateDataAPI, {
+                    callOdbaApi(OdbaUpdateDataAPI, {
                         currentMap: ctx.currentMap,
                         target: {
                             type: 'dataId',
@@ -769,10 +769,9 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         },
                         item: param.deleteItem ? null : (param.item ?? undefined),
                         contents: param.contents ?? undefined,
+                    }).catch(err => {
+                        apiLogger.warn('callOdba failed.', err);
                     })
-                    if (!result) {
-                        throw new Error('failed');
-                    }
 
                     // 更新通知
                     publishData(PubSub, 'update', [param.id]);
