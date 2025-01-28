@@ -1,35 +1,54 @@
-# 279map
+<div align="center">
+	<h1>
+		つなぐマップ<br/>
+		<span style="font-size:60%">Tsunagu Map</span>
+	</h1>
+	<p>
+	    <img src="https://img.shields.io/badge/-React-grey.svg?logo=react&flat" alt="React" />
+		<img src="https://img.shields.io/badge/-Express-gray.svg?logo=express&flat" alt="Express" />
+	    <img src="https://img.shields.io/badge/-Openlayers-grey.svg?logo=openlayers&flat" alt="Openlayers" />
+		<img src="https://img.shields.io/badge/-TypeScript-gray.svg?logo=typescript&flat" alt="TypeScript" />
+	    <img src="https://img.shields.io/badge/-MySQL-grey.svg?logo=mysql&flat" alt="MySQL" />
+		<img src="https://img.shields.io/badge/-Docker-gray.svg?logo=docker&flat" alt="Docker" />
+	</p>
+	<p>
+		<img src="./doc/279map_logo.svg" width="100" />
+	</p>
+	<p>
+		<a href="https://279map-doc.satocheeen.com/">
+			⇒システム紹介サイト
+		</a>
+	</p>
+</div>
 
-## Package Configuration
-```mermaid
-flowchart LR
-	subgraph frontend
-		subgraph 279map-frontend
-			279map-core
-		end
-	end
+## Structure
+### modules
+つなぐマップは、以下のモジュールで構成されています。
 
-	subgraph backend
-		db[("279map-db")]
-		279map-backend-main
+<img src="./doc/modules.svg" />
 
-		279map-backend-main <--> odba["279map-backend-odba"]
-		odba-."use".->279map-backend-common
-		279map-backend-main-."use".->279map-backend-common
+| モジュール | 概要 | 実装言語・ライブラリ |
+| ---- | ---- | ---- |
+| core | フロントエンド側のコア機能 | React, TypeScript |
+| backend-main | バックエンド側のコア機能 | Express, TypeScript |
+| frontend | フロントエンドの画面 | React, TypeScript |
+| backend-odba | 原本データアクセス | Express, TypeScript |
+| db | 地図用キャッシュDB | MySQL |
 
-		db -.read.-> 279map-backend-main
-		odba -.insert.-> db
-	end
-	279map-core <--> 279map-backend-main
-	original-db[("Original DB")] <--> odba
-```
+本リポジトリでは、このうちのcore, backend-main, dbを管理しています。
 
-| package | | detail |
-|--|--|--|
-| 279map-backend-main | main server |[ReadeMe](279map-backend-main/README.md) |
-| 279map-core | frontend's core modules |[ReadeMe](279map-core/README.md) |
-| 279map-backend-common | common modules for backend |[ReadeMe](279map-backend-common/README.md) |
-| 279map-db | cache db | [ReadeMe](279map-db/README.md) |
+### deployment
+つなぐマップはDockerコンテナ上で動作します。
+Dockerイメージは以下の単位で用意しています。
+- frontend
+- backend-main
+- db
+- backend-odba
+
+frontendやbackend-odbaのイメージを差し替えることで、異なる画面に切り替えることや、別の外部サービスと連携させることが可能です。
+
+<img src="./doc/docker.png" />
+
 
 ## Develop
 ### set up Database
