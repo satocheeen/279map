@@ -4,12 +4,14 @@
 		<span style="font-size:60%">Tsunagu Map</span>
 	</h1>
 	<p>
-	    <img src="https://img.shields.io/badge/-React-grey.svg?logo=react&flat" alt="React" />
-		<img src="https://img.shields.io/badge/-Express-gray.svg?logo=express&flat" alt="Express" />
-	    <img src="https://img.shields.io/badge/-Openlayers-grey.svg?logo=openlayers&flat" alt="Openlayers" />
-		<img src="https://img.shields.io/badge/-TypeScript-gray.svg?logo=typescript&flat" alt="TypeScript" />
-	    <img src="https://img.shields.io/badge/-MySQL-grey.svg?logo=mysql&flat" alt="MySQL" />
-		<img src="https://img.shields.io/badge/-Docker-gray.svg?logo=docker&flat" alt="Docker" />
+	    <img src="https://img.shields.io/badge/-React-gray.svg?logo=react" alt="React" />
+		<img src="https://img.shields.io/badge/-Express-gray.svg?logo=express" alt="Express" />
+	    <img src="https://img.shields.io/badge/-Openlayers-grey.svg?logo=openlayers" alt="Openlayers" />
+	    <img src="https://img.shields.io/badge/-GraphQL-grey.svg?logo=graphql" alt="GraphQL" />
+	    <img src="https://img.shields.io/badge/-Auth0-grey.svg?logo=auth0" alt="Auth0" />
+		<img src="https://img.shields.io/badge/-TypeScript-gray.svg?logo=typescript" alt="TypeScript" />
+	    <img src="https://img.shields.io/badge/-MySQL-grey.svg?logo=mysql" alt="MySQL" />
+		<img src="https://img.shields.io/badge/-Docker-gray.svg?logo=docker" alt="Docker" />
 	</p>
 	<p>
 		<img src="./doc/279map_logo.svg" width="100" />
