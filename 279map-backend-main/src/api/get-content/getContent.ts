@@ -42,6 +42,7 @@ export async function getContentDetail({ dataId, currentMap }: Param) {
         return content;
 
     } catch(err) {
+        apiLogger.warn(err);
         return null;
 
     } finally {

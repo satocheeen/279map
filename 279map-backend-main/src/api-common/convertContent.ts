@@ -299,11 +299,11 @@ async function getBacklinks(con: PoolConnection, contentId: DataId, currentMap: 
         const [rows] = await con.query(sql, [contentId]);
 
         const records = (rows as (ContentBelongMapView & {
-            item_contents: ContentValueMapInput;
+            item_contents: ContentValueMapInput | null;
         })[]);
 
         return records.map((record): BackLink => {
-            const itemName = getTitleValue(record.item_contents) ?? '';
+            const itemName = getTitleValue(record.item_contents ?? {}) ?? '';
             return {
                 itemId: record.item_id,
                 itemName,
