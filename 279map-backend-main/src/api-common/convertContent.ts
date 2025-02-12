@@ -1,3 +1,4 @@
+import { DatasTable } from "../../279map-backend-common/dist";
 import { DataSourceTable, ContentsTable, CurrentMap, ImagesTable, MapDataSourceLinkTable, ContentBelongMapView, DataLinkTable } from "../../279map-backend-common/src";
 import { BackLink, ContentsDefine, ContentsDetail } from "../graphql/__generated__/types";
 import { ContentFieldDefine, ContentValue, ContentValueMap, ContentValueMapInput, DataId, DatasourceLocationKindType, MapKind } from "../types-common/common-types";
@@ -135,15 +136,26 @@ export async function convertContentsToContentsDetail(con: PoolConnection, row: 
                     //     }
                     case 'link':
                         const links = datalinks.filter(link => link.from_field_key === def.key);
-                        const value = await Promise.all(links.map(async(link) => {
+                        const linkValues = await Promise.all(links.map(async(link) => {
                             const id = link.to_data_id;
                             // 指定のアイテムの名称と使用地図を取得する
                             const itemInfo = await getItemInfo(con, id, currentMap, row.contents_define?.fields ?? []);
                             return {
                                 dataId: id,
-                                name: itemInfo.name,
+                                itemInfo,
                             }
                         }));
+                        // TODO: ソート定義に応じてソートする
+                        const value = linkValues.sort((a, b) => {
+                            // とりあえず、更新日時順
+                            return (a.itemInfo?.last_edited_time ?? '').localeCompare(b.itemInfo?.last_edited_time ?? '');
+                        }).map((val): Extract<ContentValue, {type: 'link'}>['value'][0] => {
+                            return {
+                                dataId: val.dataId,
+                                name: val.itemInfo?.name ?? '',
+                            }
+                        });
+
                         return {
                             type: def.type,
                             value,
@@ -224,6 +236,8 @@ async function getImageIdList(con: PoolConnection, dataId: DataId, imageField: C
 
 type ItemInfo = {
     name: string;
+    values: ContentValueMap;
+    last_edited_time: string;
     // 属しているアイテム
     belongingItem?: {
         itemId: DataId;
@@ -236,23 +250,28 @@ type ItemInfo = {
  * @param dataId 
  * @param mapId 
  */
-async function getItemInfo(con: PoolConnection, dataId: DataId, currentMap: CurrentMap, contentDefines: ContentFieldDefine[]): Promise<ItemInfo> {
+async function getItemInfo(con: PoolConnection, dataId: DataId, currentMap: CurrentMap, contentDefines: ContentFieldDefine[]): Promise<ItemInfo | null> {
     // 名称取得
     try {
-        const name = await async function() {
-            const titleDef = contentDefines.find(def => def.type === 'title');
-            if (!titleDef) return '';
+        const titleDef = contentDefines.find(def => def.type === 'title');
+        // if (!titleDef) return '';
 
-            const sql = 'select * from contents where data_id = ?';
-            const [rows] = await con.query(sql, [dataId]);
-            const records = rows as ContentsTable[];
-            if (records.length === 0 || !records[0].contents) return '';
-            const title = records[0].contents[titleDef.key] as string;
-            return title ?? '';    
-        }();
+        const sql = `
+        select * from contents c 
+        inner join datas d on c.data_id = d.data_id 
+        where c.data_id = ?
+        `;
+        const [rows] = await con.query(sql, [dataId]);
+        const records = rows as (ContentsTable & DatasTable)[];
+
+        if (records.length === 0 || !records[0].contents) return null;
+
+        const title = titleDef ? records[0].contents[titleDef.key] as string : '';
 
         return {
-            name,
+            name: title,
+            last_edited_time: records[0].last_edited_time,
+            values: records[0].contents,
         }
 
     } finally {
