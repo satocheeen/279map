@@ -35,7 +35,7 @@ async function selectItems(param: QueryGetItemsArgs, currentMap: CurrentMap): Pr
             throw new Error('datasource not found');
         }
         const datasource = (dsRows as DataSourceTable[])[0];
-        const titleDef = datasource.contents_define?.find(def => def.type === 'title');
+        const titleDef = datasource.contents_define?.fields.find(def => def.type === 'title');
 
         let sql = `
         select gi.*, ST_AsGeoJSON(gi.feature) as geojson, ds.location_kind, JSON_UNQUOTE(JSON_EXTRACT(c.contents , '$.${titleDef?.key ?? 'title'}')) as title, d.last_edited_time 

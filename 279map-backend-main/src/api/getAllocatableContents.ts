@@ -50,9 +50,9 @@ export async function getAllocatableContents({ currentMap, dataSourceId, keyword
         const dsSql = 'select * from data_source where data_source_id = ?';
         const [dsRows] = await con.query(dsSql, [dataSourceId]);
         const datasource = (dsRows as DataSourceTable[])[0];
-        const titleDef = datasource.contents_define?.find(def => def.type === 'title');
-        const textDefList = datasource.contents_define?.filter(def => def.type === 'string' || def.type === 'text') ?? [];
-        const imageDefList = datasource.contents_define?.filter(def => def.type === 'image') ?? [];
+        const titleDef = datasource.contents_define?.fields.find(def => def.type === 'title');
+        const textDefList = datasource.contents_define?.fields.filter(def => def.type === 'string' || def.type === 'text') ?? [];
+        const imageDefList = datasource.contents_define?.fields.filter(def => def.type === 'image') ?? [];
         return records.map(record => {
             const title = (titleDef && record.contents) ? (record.contents[titleDef.key] as string) : '';
             const overview = record.contents ? textDefList.map(def => record.contents ? record.contents[def.key] as string : '').join('') : undefined;

@@ -13,15 +13,15 @@ export async function convertContentsToContentsDefine(con: PoolConnection, row: 
     const id = row.data_id;
 
     const titleField = function() {
-        const contentsDefine = row.contents_define as ContentFieldDefine[];
-        return contentsDefine.find(fd => fd.type === 'title');
+        const contentsDefine = row.contents_define;
+        return contentsDefine?.fields.find(fd => fd.type === 'title');
     }();
 
     // 値があるかどうかチェック
     let hasValue = false;
     const allValues = row.contents ?? {};
     for (const key of row.mdl_config.contentFieldKeyList) {
-        const def = row.contents_define?.find(def => def.key === key);
+        const def = row.contents_define?.fields.find(def => def.key === key);
         if (!def) continue;
 
         const val = allValues[key];
@@ -47,8 +47,8 @@ export async function convertContentsToContentsDefine(con: PoolConnection, row: 
     // 画像が存在する場合は、valuesにIDを含めて返す
     let hasImage = false;
     const imageFields = function() {
-        const contentsDefine = row.contents_define as ContentFieldDefine[];
-        return contentsDefine.filter(fd => fd.type === 'image');
+        const contentsDefine = row.contents_define;
+        return contentsDefine?.fields.filter(fd => fd.type === 'image');
     }() ?? [];
     for (const imageField of imageFields) {
         const ids = await getImageIdList(con, row.data_id, imageField);
@@ -88,7 +88,7 @@ export async function convertContentsToContentsDetail(con: PoolConnection, row: 
         const result: ContentValueMap = {};
 
         for (const key of row.mdl_config.contentFieldKeyList) {
-            const def = row.contents_define?.find(def => def.key === key);
+            const def = row.contents_define?.fields.find(def => def.key === key);
             if (!def) continue;
 
             const fixedValue = await async function(): Promise<ContentValue | undefined> {
@@ -138,7 +138,7 @@ export async function convertContentsToContentsDetail(con: PoolConnection, row: 
                         const value = await Promise.all(links.map(async(link) => {
                             const id = link.to_data_id;
                             // 指定のアイテムの名称と使用地図を取得する
-                            const itemInfo = await getItemInfo(con, id, currentMap, row.contents_define ?? []);
+                            const itemInfo = await getItemInfo(con, id, currentMap, row.contents_define?.fields ?? []);
                             return {
                                 dataId: id,
                                 name: itemInfo.name,
@@ -158,8 +158,8 @@ export async function convertContentsToContentsDetail(con: PoolConnection, row: 
 
     // 画像が存在する場合は、valuesにIDを含めて返す
     const imageFields = function() {
-        const contentsDefine = row.contents_define as ContentFieldDefine[];
-        return contentsDefine.filter(fd => fd.type === 'image');
+        const contentsDefine = row.contents_define;
+        return contentsDefine?.fields.filter(fd => fd.type === 'image');
     }() ?? [];
     for (const imageField of imageFields) {
         const ids = await getImageIdList(con, row.data_id, imageField);

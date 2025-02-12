@@ -91,7 +91,7 @@ async function getCategoriFields(currentMap: CurrentMap): Promise<CategoryFields
         (rows as (MapDataSourceLinkTable & DataSourceTable)[]).forEach(row => {
             if (!('contentFieldKeyList' in row.mdl_config)) return;
             const categoryFields = row.mdl_config.contentFieldKeyList.filter(cfKey => {
-                const contentDef = row.contents_define?.find(def => def.key === cfKey);
+                const contentDef = row.contents_define?.fields.find(def => def.key === cfKey);
                 return contentDef?.type === 'category' || contentDef?.type === 'single-category';
             });
             result.push({
