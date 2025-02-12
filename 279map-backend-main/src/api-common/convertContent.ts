@@ -145,10 +145,48 @@ export async function convertContentsToContentsDetail(con: PoolConnection, row: 
                                 itemInfo,
                             }
                         }));
-                        // TODO: ソート定義に応じてソートする
+                        // ソート定義に応じてソートする
+                        const sortDefine = await (async() => {
+                            const dsQuery = 'select * from data_source where data_source_id = ?';
+                            const [dsRows] = await con.query(dsQuery, [def.databaseId]);
+                            const records = dsRows as DataSourceTable[];
+                            if (records.length === 0) return;
+                            return records[0].contents_define?.sort;
+                        })();
+
                         const value = linkValues.sort((a, b) => {
-                            // とりあえず、更新日時順
-                            return (a.itemInfo?.last_edited_time ?? '').localeCompare(b.itemInfo?.last_edited_time ?? '');
+                            const compareRes = (() => {
+                                if (!sortDefine || sortDefine?.type === 'update_datetime') {
+                                    // 更新日時順でソート
+                                    return (a.itemInfo?.last_edited_time ?? '').localeCompare(b.itemInfo?.last_edited_time ?? '');
+    
+                                } else if (sortDefine.type === 'field') {
+                                    // 対象の項目でソート
+                                    const aValue = a.itemInfo?.values[sortDefine.fieldKey];
+                                    const bValue = b.itemInfo?.values[sortDefine.fieldKey];
+                                    if (aValue === undefined) {
+                                        if (bValue === undefined) return 0;
+                                        return -1;
+                                    }
+                                    if (bValue === undefined) {
+                                        return 1;
+                                    }
+                                    if (typeof aValue === 'string' && typeof bValue === 'string') {
+                                        return aValue.localeCompare(bValue);
+                                    } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+                                        return aValue - bValue;
+                                    }
+                                    return 0;
+                                } else {
+                                    return 0;
+                                }
+                            })();
+                            const order = sortDefine?.order ?? 'asc';
+                            if (order === 'asc') {
+                                return compareRes;
+                            } else {
+                                return -1 * compareRes;
+                            }
                         }).map((val): Extract<ContentValue, {type: 'link'}>['value'][0] => {
                             return {
                                 dataId: val.dataId,
