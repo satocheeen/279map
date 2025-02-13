@@ -221,7 +221,7 @@ async function getContentDataSources(mapId: string, mapKind: MapKind): Promise<C
                     name: rec.datasource_name,
                     config: {
                         linkableToItem: false,
-                        fields: rec.contents_define ?? [],
+                        fields: rec.contents_define?.fields ?? [],
                     },
                 }
             }
@@ -234,7 +234,7 @@ async function getContentDataSources(mapId: string, mapKind: MapKind): Promise<C
                     linkableToItem: mapKind === MapKind.Real ? rec.location_kind !== DatasourceLocationKindType.Track : true,
                     readonly: rec.config.readonly,
                     fields: 'contentFieldKeyList' in mdlConfig ? mdlConfig.contentFieldKeyList.map((key): ContentFieldDefine | undefined => {
-                        const define = rec.contents_define?.find(def => def.key === key);
+                        const define = rec.contents_define?.fields.find(def => def.key === key);
                         if (!define) return;
                         return define;
                     }).filter(def => !!def) as ContentFieldDefine[] : [],

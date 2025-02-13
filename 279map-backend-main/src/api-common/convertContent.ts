@@ -1,3 +1,4 @@
+import { DatasTable } from "../../279map-backend-common/dist";
 import { DataSourceTable, ContentsTable, CurrentMap, ImagesTable, MapDataSourceLinkTable, ContentBelongMapView, DataLinkTable } from "../../279map-backend-common/src";
 import { BackLink, ContentsDefine, ContentsDetail } from "../graphql/__generated__/types";
 import { ContentFieldDefine, ContentValue, ContentValueMap, ContentValueMapInput, DataId, DatasourceLocationKindType, MapKind } from "../types-common/common-types";
@@ -13,15 +14,15 @@ export async function convertContentsToContentsDefine(con: PoolConnection, row: 
     const id = row.data_id;
 
     const titleField = function() {
-        const contentsDefine = row.contents_define as ContentFieldDefine[];
-        return contentsDefine.find(fd => fd.type === 'title');
+        const contentsDefine = row.contents_define;
+        return contentsDefine?.fields.find(fd => fd.type === 'title');
     }();
 
     // 値があるかどうかチェック
     let hasValue = false;
     const allValues = row.contents ?? {};
     for (const key of row.mdl_config.contentFieldKeyList) {
-        const def = row.contents_define?.find(def => def.key === key);
+        const def = row.contents_define?.fields.find(def => def.key === key);
         if (!def) continue;
 
         const val = allValues[key];
@@ -47,8 +48,8 @@ export async function convertContentsToContentsDefine(con: PoolConnection, row: 
     // 画像が存在する場合は、valuesにIDを含めて返す
     let hasImage = false;
     const imageFields = function() {
-        const contentsDefine = row.contents_define as ContentFieldDefine[];
-        return contentsDefine.filter(fd => fd.type === 'image');
+        const contentsDefine = row.contents_define;
+        return contentsDefine?.fields.filter(fd => fd.type === 'image');
     }() ?? [];
     for (const imageField of imageFields) {
         const ids = await getImageIdList(con, row.data_id, imageField);
@@ -88,7 +89,7 @@ export async function convertContentsToContentsDetail(con: PoolConnection, row: 
         const result: ContentValueMap = {};
 
         for (const key of row.mdl_config.contentFieldKeyList) {
-            const def = row.contents_define?.find(def => def.key === key);
+            const def = row.contents_define?.fields.find(def => def.key === key);
             if (!def) continue;
 
             const fixedValue = await async function(): Promise<ContentValue | undefined> {
@@ -135,15 +136,64 @@ export async function convertContentsToContentsDetail(con: PoolConnection, row: 
                     //     }
                     case 'link':
                         const links = datalinks.filter(link => link.from_field_key === def.key);
-                        const value = await Promise.all(links.map(async(link) => {
+                        const linkValues = await Promise.all(links.map(async(link) => {
                             const id = link.to_data_id;
                             // 指定のアイテムの名称と使用地図を取得する
-                            const itemInfo = await getItemInfo(con, id, currentMap, row.contents_define ?? []);
+                            const itemInfo = await getItemInfo(con, id, currentMap, row.contents_define?.fields ?? []);
                             return {
                                 dataId: id,
-                                name: itemInfo.name,
+                                itemInfo,
                             }
                         }));
+                        // ソート定義に応じてソートする
+                        const sortDefine = await (async() => {
+                            const dsQuery = 'select * from data_source where data_source_id = ?';
+                            const [dsRows] = await con.query(dsQuery, [def.databaseId]);
+                            const records = dsRows as DataSourceTable[];
+                            if (records.length === 0) return;
+                            return records[0].contents_define?.sort;
+                        })();
+
+                        const value = linkValues.sort((a, b) => {
+                            const compareRes = (() => {
+                                if (!sortDefine || sortDefine?.type === 'update_datetime') {
+                                    // 更新日時順でソート
+                                    return (a.itemInfo?.last_edited_time ?? '').localeCompare(b.itemInfo?.last_edited_time ?? '');
+    
+                                } else if (sortDefine.type === 'field') {
+                                    // 対象の項目でソート
+                                    const aValue = a.itemInfo?.values[sortDefine.fieldKey];
+                                    const bValue = b.itemInfo?.values[sortDefine.fieldKey];
+                                    if (aValue === undefined) {
+                                        if (bValue === undefined) return 0;
+                                        return -1;
+                                    }
+                                    if (bValue === undefined) {
+                                        return 1;
+                                    }
+                                    if (typeof aValue === 'string' && typeof bValue === 'string') {
+                                        return aValue.localeCompare(bValue);
+                                    } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+                                        return aValue - bValue;
+                                    }
+                                    return 0;
+                                } else {
+                                    return 0;
+                                }
+                            })();
+                            const order = sortDefine?.order ?? 'asc';
+                            if (order === 'asc') {
+                                return compareRes;
+                            } else {
+                                return -1 * compareRes;
+                            }
+                        }).map((val): Extract<ContentValue, {type: 'link'}>['value'][0] => {
+                            return {
+                                dataId: val.dataId,
+                                name: val.itemInfo?.name ?? '',
+                            }
+                        });
+
                         return {
                             type: def.type,
                             value,
@@ -158,8 +208,8 @@ export async function convertContentsToContentsDetail(con: PoolConnection, row: 
 
     // 画像が存在する場合は、valuesにIDを含めて返す
     const imageFields = function() {
-        const contentsDefine = row.contents_define as ContentFieldDefine[];
-        return contentsDefine.filter(fd => fd.type === 'image');
+        const contentsDefine = row.contents_define;
+        return contentsDefine?.fields.filter(fd => fd.type === 'image');
     }() ?? [];
     for (const imageField of imageFields) {
         const ids = await getImageIdList(con, row.data_id, imageField);
@@ -224,6 +274,8 @@ async function getImageIdList(con: PoolConnection, dataId: DataId, imageField: C
 
 type ItemInfo = {
     name: string;
+    values: ContentValueMap;
+    last_edited_time: string;
     // 属しているアイテム
     belongingItem?: {
         itemId: DataId;
@@ -236,23 +288,28 @@ type ItemInfo = {
  * @param dataId 
  * @param mapId 
  */
-async function getItemInfo(con: PoolConnection, dataId: DataId, currentMap: CurrentMap, contentDefines: ContentFieldDefine[]): Promise<ItemInfo> {
+async function getItemInfo(con: PoolConnection, dataId: DataId, currentMap: CurrentMap, contentDefines: ContentFieldDefine[]): Promise<ItemInfo | null> {
     // 名称取得
     try {
-        const name = await async function() {
-            const titleDef = contentDefines.find(def => def.type === 'title');
-            if (!titleDef) return '';
+        const titleDef = contentDefines.find(def => def.type === 'title');
+        // if (!titleDef) return '';
 
-            const sql = 'select * from contents where data_id = ?';
-            const [rows] = await con.query(sql, [dataId]);
-            const records = rows as ContentsTable[];
-            if (records.length === 0 || !records[0].contents) return '';
-            const title = records[0].contents[titleDef.key] as string;
-            return title ?? '';    
-        }();
+        const sql = `
+        select * from contents c 
+        inner join datas d on c.data_id = d.data_id 
+        where c.data_id = ?
+        `;
+        const [rows] = await con.query(sql, [dataId]);
+        const records = rows as (ContentsTable & DatasTable)[];
+
+        if (records.length === 0 || !records[0].contents) return null;
+
+        const title = titleDef ? records[0].contents[titleDef.key] as string : '';
 
         return {
-            name,
+            name: title,
+            last_edited_time: records[0].last_edited_time,
+            values: records[0].contents,
         }
 
     } finally {

@@ -30,11 +30,24 @@ export interface OdbaConnection {
     type: string;   // ODBA識別名称
     // 他に必要な項目は、ODBA内で個別に設定する
 }
+export type ContentsDefine = {
+    fields: ContentFieldDefine[];
+    sort?: {
+        order: 'asc' | 'desc';
+    } & (
+        {
+            type: 'field';
+            fieldKey: string;
+        } | {
+            type: 'update_datetime';
+        }
+    )
+}
 export type DataSourceTable = {
     data_source_id: string;
 
     location_define: LocationFieldDefine | null;
-    contents_define: ContentFieldDefine[] | null;
+    contents_define: ContentsDefine | null;
 
     // ODBAで使用するための接続関連情報
     odba_connection: OdbaConnection;

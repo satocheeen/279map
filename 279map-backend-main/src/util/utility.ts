@@ -3,7 +3,7 @@ import { DataSourceTable, DatasTable } from '../../279map-backend-common/src/typ
 import { buffer, circle, featureCollection, lineString, multiLineString, multiPolygon, polygon } from '@turf/turf';
 import crypto from 'crypto';
 import * as geojson from 'geojson';
-import { ContentFieldDefine, ContentValueMapInput, DataId } from '../types-common/common-types';
+import { ContentValueMapInput, DataId } from '../types-common/common-types';
 import { MapDataSourceLinkTable } from '../../279map-backend-common/src';
 import { Auth } from '../graphql/__generated__/types';
 
@@ -131,11 +131,11 @@ export async function cleanupContentValuesForRegist(mapId: string, datasourceId:
         if ((rows as []).length === 0) {
             throw new Error('data_source not find. ->' + datasourceId);
         }
-        const contents_define = (rows as (MapDataSourceLinkTable & DataSourceTable)[])[0].contents_define as ContentFieldDefine[];
+        const contents_define = (rows as (MapDataSourceLinkTable & DataSourceTable)[])[0].contents_define;
 
         const newValues = {} as ContentValueMapInput;
         Object.entries(values).forEach(([key, value]) => {
-            const field = contents_define.find(def => def.key === key);
+            const field = contents_define?.fields.find(def => def.key === key);
             if (!field) return;
             if ('readonly' in field && field.readonly) {
                 // readonly項目は、はじく
