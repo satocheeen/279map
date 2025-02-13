@@ -39,7 +39,7 @@ export type ContentsDefine = {
             type: 'field';
             fieldKey: string;
         } | {
-            type: 'created_datetime' | 'update_datetime';
+            type: 'update_datetime';
         }
     )
 }
