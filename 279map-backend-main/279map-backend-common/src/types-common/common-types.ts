@@ -207,6 +207,7 @@ export type ContentValueInput = Exclude<ContentValue, {type:'image'} | {type:'li
             url: string;
         } | {
             type: 'base64';
+            fileName: string;
             base64: string;
         }
     )[];
