@@ -201,7 +201,15 @@ export type ContentValue = {
 
 export type ContentValueInput = Exclude<ContentValue, {type:'image'} | {type:'link'}> | {
     type: 'image';
-    value: string[];    // 画像URL
+    value: (
+        {
+            type: 'url';
+            url: string;
+        } | {
+            type: 'base64';
+            base64: string;
+        }
+    )[];
 } | {
     type: 'link';
     value: DataId[];

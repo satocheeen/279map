@@ -3,7 +3,10 @@ import styles from '../TestMap.module.scss';
 import myStyles from './RegistContentDriver.module.scss';
 import { DriverContext } from '../TestMap';
 import { useWatch } from '../../util/useWatch2';
-import { ContentValueMap, DataId } from '../../entry';
+import { ContentValueMapInput } from '../../entry';
+import ImageForm from './ImageForm';
+import { Client, Context } from 'urql';
+import { RegistDataDocument, UpdateDataDocument } from '../../graphql/generated/graphql';
 
 type Props = {
 }
@@ -17,12 +20,12 @@ export default function RegistContentDriver(props: Props) {
         return contentDatasources.filter(ds => !ds.config.readonly);
     }, [contentDatasources]);
 
-    const [ mode, setMode ] = useState<'new'|'update'>('new');
-    const [ values, setValues ] = useState<ContentValueMap>({});
-    const [ targetDsId, setTargetDsId ] = useState<string|undefined>();
-    const [ targetContentId, setTargetContentId ] = useState('');
-    const [ targetItemId, setTargetItemId ] = useState('');
-    const [ loading, setLoading ] = useState(false);
+    const [mode, setMode] = useState<'new' | 'update'>('new');
+    const [values, setValues] = useState<ContentValueMapInput>({});
+    const [targetDsId, setTargetDsId] = useState<string | undefined>();
+    const [targetContentId, setTargetContentId] = useState('');
+    const [targetItemId, setTargetItemId] = useState('');
+    const [loading, setLoading] = useState(false);
 
     // useWatch([targetContentId, mode], () => {
     //     console.log('targetContentId', targetContentId);
@@ -38,7 +41,7 @@ export default function RegistContentDriver(props: Props) {
 
     const fields = useMemo(() => {
         const target = contentDatasources.find(ds => ds.datasourceId === targetDsId);
-        if (!target) return[];
+        if (!target) return [];
 
         return target.config.fields;
     }, [contentDatasources, targetDsId]);
@@ -46,7 +49,7 @@ export default function RegistContentDriver(props: Props) {
     useWatch(fields, () => {
         setValues({});
 
-    }, {immediate: true })
+    }, { immediate: true })
 
     const handleChangeDatasource = useCallback((dsId: string) => {
         const target = contentDatasources.find(ds => ds.datasourceId === dsId);
@@ -76,39 +79,43 @@ export default function RegistContentDriver(props: Props) {
         return false;
     }, [targetItemId, targetDsId, targetContentId, mode, loading]);
 
-    const handleRegist = useCallback(async() => {
+    const gqlClient = useContext(Context) as Client;
+    const handleRegist = useCallback(async () => {
         if (!targetDsId) return;
         if (!targetItemId) return;
 
         const imageField = fields.find(f => f.type === 'image');
         const imageUrl = imageField ? values[imageField.key] : undefined;
         setLoading(true);
-        const result = await getMap()?.registContent({
+        const result = await gqlClient.mutation(RegistDataDocument, {
             datasourceId: targetDsId,
-            parent: {
-                type: 'item',
-                id: parseInt(targetItemId),
-            },
-            values,
-        });
+            contents: values,
+            linkDatas: {
+                id: targetItemId,
+            }
+        })
+
+        // const result = await getMap()?.registContent({
+        //     datasourceId: targetDsId,
+        //     parent: {
+        //         type: 'item',
+        //         id: parseInt(targetItemId),
+        //     },
+        //     values,
+        // });
         setLoading(false);
         addConsole('registContent', result);
     }, [addConsole, fields, getMap, targetDsId, targetItemId, values]);
 
-    const handleUpdate = useCallback(async() => {
+    const handleUpdate = useCallback(async () => {
         if (!targetContentId) return;
 
         const imageField = fields.find(f => f.type === 'image');
         const imageUrl = imageField ? values[imageField.key] : undefined;
         setLoading(true);
-        const result = await getMap()?.updateData({
-            key: {
-                dataId: parseInt(targetContentId),
-                type: 'dataId',
-            },
-            contents: {
-                values,
-            }
+        const result = await gqlClient.mutation(UpdateDataDocument, {
+            id: targetContentId,
+            contents: values,
         })
         setLoading(false);
         addConsole('updateContent', result);
@@ -120,31 +127,31 @@ export default function RegistContentDriver(props: Props) {
             <div className={styles.PropName}>コンテンツ登録・更新</div>
             <div>
                 <label>
-                    <input type='radio' name='mode' checked={mode==='new'} onChange={()=>setMode('new')}></input>
+                    <input type='radio' name='mode' checked={mode === 'new'} onChange={() => setMode('new')}></input>
                     新規
                 </label>
                 <label className={myStyles.TargetID}>
                     対象ItemID
-                    <input type='text' disabled={mode==='update'}
-                        value={targetItemId} onChange={evt=>setTargetItemId(evt.target.value)} />
+                    <input type='text' disabled={mode === 'update'}
+                        value={targetItemId} onChange={evt => setTargetItemId(evt.target.value)} />
                 </label>
             </div>
             <div>
                 <label>
-                    <input type='radio' name='mode' checked={mode==='update'} onChange={()=>setMode('update')}></input>
+                    <input type='radio' name='mode' checked={mode === 'update'} onChange={() => setMode('update')}></input>
                     更新
                 </label>
                 <label className={myStyles.TargetID}>
                     ContentID
-                    <input type='text' disabled={mode==='new'}
-                        value={targetContentId} onChange={evt=>setTargetContentId(evt.target.value)}
+                    <input type='text' disabled={mode === 'new'}
+                        value={targetContentId} onChange={evt => setTargetContentId(evt.target.value)}
                     />
                 </label>
             </div>
             <label>
                 対象
                 <select onChange={(evt) => handleChangeDatasource(evt.target.value)}
-                    disabled={mode==='update'}
+                    disabled={mode === 'update'}
                     value={targetDsId}
                 >
                     {contentDatasources.map(ds => (
@@ -155,8 +162,8 @@ export default function RegistContentDriver(props: Props) {
             <table className={myStyles.Table}>
                 <tbody>
                     {fields.map(field => {
-                        const type = function() {
-                            switch(field.type) {
+                        const type = function () {
+                            switch (field.type) {
                                 case 'date':
                                     return 'datetime-local';
                                 case 'number':
@@ -168,15 +175,19 @@ export default function RegistContentDriver(props: Props) {
                         return (
                             <tr key={field.key}>
                                 <td>
-                                    <span className={myStyles.Key}>{field.key}</span><br/>
+                                    <span className={myStyles.Key}>{field.key}</span><br />
                                     <span>[{field.type}]</span>
                                 </td>
                                 <td className={myStyles.Label}>{'label' in field ? field.label : ''}</td>
                                 <td>
-                                    <input type={type} value={values[field.key]??''} onChange={(evt)=>handleChangeValue(field.key, evt.target.value)} />
-                                    {(field.type === 'image' && mode==='update') &&
+                                    {field.type === 'image' ?
+                                        <ImageForm onChange={(val) => handleChangeValue(field.key, val)} />
+                                        :
+                                        <input type={type} value={values[field.key] ?? ''} onChange={(evt) => handleChangeValue(field.key, evt.target.value)} />
+                                    }
+                                    {(field.type === 'image' && mode === 'update') &&
                                         <label>
-                                            <input type='checkbox' checked={values[field.key] === null} onChange={(evt)=>handleChangeValue(field.key, evt.target.checked ? null : undefined )}/>
+                                            <input type='checkbox' checked={values[field.key] === null} onChange={(evt) => handleChangeValue(field.key, evt.target.checked ? null : undefined)} />
                                             削除
                                         </label>
                                     }
