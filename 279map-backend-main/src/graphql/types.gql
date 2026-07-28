@@ -108,3 +108,4 @@ scalar ContentValueMap
 scalar ContentValueMapInput
 scalar MapKind
 scalar IconDefine
+scalar Upload

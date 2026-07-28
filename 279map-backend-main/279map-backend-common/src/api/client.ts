@@ -2,11 +2,19 @@ import axios, { AxiosResponse } from 'axios';
 import FormData from 'form-data';
 import { APIDefine } from '../types';
 
-export async function callOdbaApi<API extends APIDefine<any,any>>(api: API, param: API['param']): Promise<API['result']> {
+export async function callOdbaApi<API extends APIDefine<any, any>>(api: API, param: API['param']): Promise<API['result']> {
     const url = `http://${process.env.ODBA_SERVICE_HOST}:${process.env.ODBA_SERVICE_PORT}/${api.uri}/`;
     try {
         let res: AxiosResponse;
-        if (api.method === 'get') {
+        if ((param as any) instanceof FormData) {
+            res = await axios.post(url, param, {
+                headers: param.getHeaders(),
+                maxContentLength: Infinity,
+                maxBodyLength: Infinity, // 大容量対応
+                timeout: 60000,
+            });
+
+        } else if (api.method === 'get') {
             res = await axios.get(url, {
                 headers: {
                     'Content-Type': 'application/json',
@@ -25,7 +33,7 @@ export async function callOdbaApi<API extends APIDefine<any,any>>(api: API, para
         const result = res.data;
 
         return result as API['result'];
-    
+
     } catch (e) {
         throw 'connecting server failed:' + url + e;
     }

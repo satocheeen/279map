@@ -27,7 +27,7 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { IFieldResolverOptions } from '@graphql-tools/utils';
-import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkDataArgs, MutationLinkDataByOriginalIdArgs, MutationRegistDataArgs, MutationRemoveDataArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkDataArgs, MutationUpdateDataArgs, MutationUpdateDataByOriginalIdArgs, Operation, QueryAllocatableContentsArgs, QueryGeocoderArgs, QueryGetBelogingItemsArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemMetaInfoArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetMapMetaInfoArgs, QueryGetThumbArgs, QuerySearchArgs, Subscription, Target } from './graphql/__generated__/types';
+import { Auth, ConnectErrorType, ConnectInfo, ContentsDefine, MapDefine, MapPageOptions, MutationChangeAuthLevelArgs, MutationConnectArgs, MutationLinkDataArgs, MutationLinkDataByOriginalIdArgs, MutationRegistDataArgs, MutationRemoveDataArgs, MutationRequestArgs, MutationSwitchMapKindArgs, MutationUnlinkDataArgs, MutationUpdateDataArgs, MutationUpdateDataByOriginalIdArgs, MutationUploadImageArgs, Operation, QueryAllocatableContentsArgs, QueryGeocoderArgs, QueryGetBelogingItemsArgs, QueryGetCategoryArgs, QueryGetContentArgs, QueryGetEventArgs, QueryGetGeocoderFeatureArgs, QueryGetImageArgs, QueryGetImageUrlArgs, QueryGetItemMetaInfoArgs, QueryGetItemsArgs, QueryGetItemsByIdArgs, QueryGetMapMetaInfoArgs, QueryGetThumbArgs, QuerySearchArgs, Subscription, Target } from './graphql/__generated__/types';
 import { MResolvers, MutationResolverReturnType, QResolvers, QueryResolverReturnType, Resolvers } from './graphql/type_utility';
 import { authDefine } from './graphql/auth_define';
 import { GeoPropertiesScalarType, GeocoderIdInfoScalarType, IconKeyScalarType, JsonScalarType } from './graphql/custom_scalar';
@@ -109,16 +109,16 @@ if (allowCorsOrigin.length > 0) {
 // カテゴリ情報のメモリ管理
 const MyCategoryChecker = new CategoryChecker();
 
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json({
     limit: '1mb',
-})); 
+}));
 
 // DBコネクションプーリング
 logger.debug('DbSetting', DbSetting);
 export const ConnectionPool = mysql.createPool(DbSetting);
 
-const initializeDb = async() => {
+const initializeDb = async () => {
     // DB接続失敗したらリトライする
     let flag = true;
     do {
@@ -129,8 +129,8 @@ const initializeDb = async() => {
             logger.warn('db cconnect failed. retry...');
             await sleep(3);
         }
-        
-    } while(flag);
+
+    } while (flag);
 }
 
 // let connectNum = 0;
@@ -160,8 +160,8 @@ const sessionManager = new SessionManager(sessionStoragePath);
  * Initialize Auth
  */
 export const authMethod = process.env.AUTH_METHOD as AuthMethod;
-export const authManagementClient = function() {
-    switch(authMethod) {
+export const authManagementClient = function () {
+    switch (authMethod) {
         case AuthMethod.Auth0:
             return new Auth0Management()
         case AuthMethod.Original:
@@ -171,7 +171,7 @@ export const authManagementClient = function() {
         default:
             console.warn('illegal value AUTH_METHOD: ' + process.env.AUTH_METHOD);
             exit(1);
-        }
+    }
 }();
 authManagementClient.initialize();
 
@@ -201,7 +201,7 @@ const authenticateErrorProcess = (err: Error, req: Request, res: Response, next:
  * @returns セッションキー、接続中の地図情報
  * @throws セッション接続できていない場合
  */
-const sessionCheckFunc = async(req: Request) => {
+const sessionCheckFunc = async (req: Request) => {
     const sessionKey = req.headers.sessionid;
     if (!sessionKey || typeof sessionKey !== 'string') {
         throw new CustomError({
@@ -221,13 +221,13 @@ const sessionCheckFunc = async(req: Request) => {
     // extend expired time of session
     session.extendExpire();
 
-    return { 
+    return {
         sessionKey,
         session,
     }
 }
 
-const checkGraphQlAuthLv = async(operationName: string, userAuthInfo: UserAuthInfo) => {
+const checkGraphQlAuthLv = async (operationName: string, userAuthInfo: UserAuthInfo) => {
     if (!(operationName in authDefine)) {
         throw new CustomError({
             type: ConnectErrorType.IllegalError,
@@ -236,7 +236,7 @@ const checkGraphQlAuthLv = async(operationName: string, userAuthInfo: UserAuthIn
     }
     const needAuthLv = authDefine[operationName as Resolvers];
     let allowAuthList: Auth[];
-    switch(needAuthLv) {
+    switch (needAuthLv) {
         case Auth.None:
             allowAuthList = [Auth.None, Auth.View, Auth.Edit, Auth.Admin];
             break;
@@ -249,11 +249,11 @@ const checkGraphQlAuthLv = async(operationName: string, userAuthInfo: UserAuthIn
         default:
             allowAuthList = [Auth.Admin];
     }
-    const userAuthLv = function() {
+    const userAuthLv = function () {
         if (!userAuthInfo) {
             return Auth.None;
         }
-        switch(userAuthInfo.authLv) {
+        switch (userAuthInfo.authLv) {
             case undefined:
             case Auth.None:
             case Auth.Request:
@@ -297,7 +297,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * システム共通定義を返す
              */
-            config: async(): QueryResolverReturnType<'config'> => {
+            config: async (): QueryResolverReturnType<'config'> => {
                 if (authMethod === AuthMethod.Auth0) {
                     return {
                         domain: process.env.AUTH0_DOMAIN ?? '',
@@ -314,7 +314,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
              * ログインユーザーがアクセス可能な地図一覧を返す。
              * ログインしていないユーザーの場合は、Public地図のみ返す
              */
-            getMapList: async(_, param, ctx): QueryResolverReturnType<'getMapList'> => {
+            getMapList: async (_, param, ctx): QueryResolverReturnType<'getMapList'> => {
                 apiLogger.info('[start] getmaplist');
                 try {
                     const userId = ctx.userId;
@@ -322,16 +322,16 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         await authManagementClient.getUserMapList(userId);
                     }
                     const list = await getMapList(ctx.request);
-            
+
                     return list;
-    
-                } catch(e) {
+
+                } catch (e) {
                     logger.warn('getmaplist error', e, ctx.request.headers.authorization);
                     throw e;
                 }
-        
+
             },
-            getMapMetaInfo: async(_, param: QueryGetMapMetaInfoArgs, ctx): QueryResolverReturnType<'getMapMetaInfo'> => {
+            getMapMetaInfo: async (_, param: QueryGetMapMetaInfoArgs, ctx): QueryResolverReturnType<'getMapMetaInfo'> => {
                 apiLogger.info('[start] getMapMetaInfo');
 
                 try {
@@ -341,20 +341,20 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     const domain = `${protocol}://${host}/`;
                     const image = mapInfo.thumbnail ? `mapimage/${param.mapId}` : 'static/279map.png';
                     const imageUrl = `${domain}${image}`;
-            
+
                     return {
                         mapId: param.mapId,
                         title: mapInfo.title,
                         description: mapInfo.description,
                         image: imageUrl,
                     }
-    
-                } catch(e) {
+
+                } catch (e) {
                     logger.warn('getMapMetaInfo error', e, ctx.request.headers.authorization);
                     throw e;
                 }
             },
-            getItemMetaInfo: async(_, param: QueryGetItemMetaInfoArgs, ctx): QueryResolverReturnType<'getItemMetaInfo'> => {
+            getItemMetaInfo: async (_, param: QueryGetItemMetaInfoArgs, ctx): QueryResolverReturnType<'getItemMetaInfo'> => {
                 try {
                     // 地図へのアクセス権限があるか確認（アクセス権限がない場合は、エラーではじかれる）
                     await getMapInfoByIdWithAuth(param.mapId, ctx.request);
@@ -378,7 +378,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         image: imageUrl,
                     }
 
-                } catch(e) {
+                } catch (e) {
                     logger.warn('getItemMetaInfo error', e);
                     throw e;
                 }
@@ -386,19 +386,19 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * 地図アイテム取得
              */
-            getItems: async(parent: any, param: QueryGetItemsArgs, ctx): Promise<ItemDefineWithoutContents[]> => {
+            getItems: async (parent: any, param: QueryGetItemsArgs, ctx): Promise<ItemDefineWithoutContents[]> => {
                 try {
                     apiLogger.info('[start] getItems');
                     const items = await getItems({
                         param,
                         currentMap: ctx.currentMap,
                     });
-        
+
                     // apiLogger.debug('result', result);
-        
+
                     return items;
-        
-                } catch(e) {
+
+                } catch (e) {
                     apiLogger.warn('get-items API error', param, e);
                     throw e;
                 } finally {
@@ -409,13 +409,13 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * 地図アイテム取得(ID指定)
              */
-            getItemsById: async(_, param: QueryGetItemsByIdArgs, ctx): Promise<ItemDefineWithoutContents[]> => {
+            getItemsById: async (_, param: QueryGetItemsByIdArgs, ctx): Promise<ItemDefineWithoutContents[]> => {
                 try {
                     const result = await getItemsById(param);
 
                     return result;
 
-                } catch(e) {
+                } catch (e) {
                     apiLogger.warn('get-items-by-id API error', param, e);
                     throw e;
                 }
@@ -423,12 +423,12 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * カテゴリ取得
              */
-            getCategory: async(parent: any, param: QueryGetCategoryArgs, ctx): QueryResolverReturnType<'getCategory'> => {
+            getCategory: async (parent: any, param: QueryGetCategoryArgs, ctx): QueryResolverReturnType<'getCategory'> => {
                 try {
                     const result = await getCategory(param, ctx.currentMap);
                     return result;
 
-                } catch(e) {    
+                } catch (e) {
                     apiLogger.warn('getCategory error', param, e);
                     throw e;
                 }
@@ -437,12 +437,12 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * イベント取得
              */
-            getEvent: async(parent: any, param: QueryGetEventArgs, ctx): QueryResolverReturnType<'getEvent'> => {
+            getEvent: async (parent: any, param: QueryGetEventArgs, ctx): QueryResolverReturnType<'getEvent'> => {
                 try {
                     const result = await getEvents(param, ctx.currentMap);
                     return result;
 
-                } catch(e) {    
+                } catch (e) {
                     apiLogger.warn('getEvent error', param, e);
                     throw e;
                 }
@@ -450,7 +450,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * コンテンツ取得（コンテンツID指定）
              */
-            getContent: async(parent: any, param: QueryGetContentArgs, ctx): QueryResolverReturnType<'getContent'> => {
+            getContent: async (parent: any, param: QueryGetContentArgs, ctx): QueryResolverReturnType<'getContent'> => {
                 try {
                     const result = await getContentDetail({
                         dataId: param.id,
@@ -461,23 +461,23 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     }
                     return result;
 
-                } catch(e) {    
+                } catch (e) {
                     apiLogger.warn('getContent error', param, e);
                     throw e;
                 }
             },
-            getBelogingItems: async(_: any, param: QueryGetBelogingItemsArgs, ctx): QueryResolverReturnType<'getBelogingItems'> => {
+            getBelogingItems: async (_: any, param: QueryGetBelogingItemsArgs, ctx): QueryResolverReturnType<'getBelogingItems'> => {
                 try {
                     const result = await getBelongingItem(param.id, ctx.currentMap);
 
                     return result;
 
-                } catch(e) {
+                } catch (e) {
                     apiLogger.warn('getBelogingItems error', param, e);
                     throw e;
                 }
             },
-            allocatableContents: async(_: any, param: QueryAllocatableContentsArgs, ctx): QueryResolverReturnType<'allocatableContents'> => {
+            allocatableContents: async (_: any, param: QueryAllocatableContentsArgs, ctx): QueryResolverReturnType<'allocatableContents'> => {
                 try {
                     // キャッシュDBに存在するデータの中から、指定の地図上のアイテムにプロットされていないデータを取得する
                     const unpointDataList = param.nextToken ? [] : await getAllocatableContents({
@@ -499,7 +499,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         nextToken: result.nextToken,
                     };
 
-                } catch(e) {
+                } catch (e) {
                     apiLogger.warn('get-unpointdata API error', param, e);
                     throw e;
                 }
@@ -508,21 +508,21 @@ const schema = makeExecutableSchema<GraphQlContextType>({
              * 指定のコンテンツのサムネイル画像取得
              * 複数の画像が紐づく場合は、代表１つを取得して返す
              */
-            getThumb: async(_, param: QueryGetThumbArgs, ctx): QueryResolverReturnType<'getThumb'> => {
+            getThumb: async (_, param: QueryGetThumbArgs, ctx): QueryResolverReturnType<'getThumb'> => {
                 try {
                     return await getThumbnail(param.contentId);
 
-                } catch(e) {
+                } catch (e) {
                     apiLogger.warn('get-thumb error', param.contentId, e);
                     throw e;
                 }
 
             },
-            getImage: async(_, param: QueryGetImageArgs, ctx): QueryResolverReturnType<'getImage'> => {
+            getImage: async (_, param: QueryGetImageArgs, ctx): QueryResolverReturnType<'getImage'> => {
                 try {
                     return await getImage(param.imageId, param.size, ctx.currentMap);
 
-                } catch(e) {
+                } catch (e) {
                     apiLogger.warn('get-image error', param.imageId, e);
                     throw e;
                 }
@@ -530,7 +530,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * オリジナル画像URL取得
              */
-            getImageUrl: async(_, param: QueryGetImageUrlArgs, ctx): QueryResolverReturnType<'getImageUrl'> => {
+            getImageUrl: async (_, param: QueryGetImageUrlArgs, ctx): QueryResolverReturnType<'getImageUrl'> => {
                 try {
                     // call odba
                     const result = await callOdbaApi(OdbaGetImageUrlAPI, {
@@ -539,7 +539,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     });
                     return result ?? '';
 
-                } catch(e) {
+                } catch (e) {
                     apiLogger.warn('get-imageurl API error', param, e);
                     throw e;
                 }
@@ -547,12 +547,12 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * 検索
              */
-            search: async(_, param: QuerySearchArgs, ctx): QueryResolverReturnType<'search'> => {
+            search: async (_, param: QuerySearchArgs, ctx): QueryResolverReturnType<'search'> => {
                 try {
                     const result = await search(ctx.currentMap, param)
                     return result;
 
-                } catch(e) {
+                } catch (e) {
                     apiLogger.warn('search API error', param, e);
                     throw e;
                 }
@@ -560,7 +560,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * 住所検索
              */
-            geocoder: async(_, param: QueryGeocoderArgs): QueryResolverReturnType<'geocoder'> => {
+            geocoder: async (_, param: QueryGeocoderArgs): QueryResolverReturnType<'geocoder'> => {
 
                 try {
                     const result = await geocoder(param);
@@ -571,8 +571,8 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                             geometry: res.geometry as Geometry,
                         }
                     });
-            
-                } catch(e) {
+
+                } catch (e) {
                     apiLogger.warn('geocoder API error', param, e);
                     throw e;
                 }
@@ -581,24 +581,24 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * 住所検索結果Feature取得
              */
-            getGeocoderFeature: async(_, param: QueryGetGeocoderFeatureArgs): QueryResolverReturnType<'getGeocoderFeature'> => {
+            getGeocoderFeature: async (_, param: QueryGetGeocoderFeatureArgs): QueryResolverReturnType<'getGeocoderFeature'> => {
                 try {
                     const result = await getGeocoderFeature(param);
                     return result;
 
-                } catch(e) {
+                } catch (e) {
                     apiLogger.warn('get-geocoder-feature API error', param, e);
                     throw e;
                 }
 
             },
-            getUserList: async(parent: any, _, ctx): QueryResolverReturnType<'getUserList'> => {
+            getUserList: async (parent: any, _, ctx): QueryResolverReturnType<'getUserList'> => {
                 try {
                     const mapId = ctx.currentMap.mapId;
                     const users = await authManagementClient.getUserList(mapId);
                     return users;
-        
-                } catch(e) {
+
+                } catch (e) {
                     apiLogger.warn('get-userlist API error', e);
                     throw e;
                 }
@@ -606,7 +606,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * リンク可能なコンテンツ一覧を返す
              */
-            getLinkableContentsDatasources: async(_, param, ctx): QueryResolverReturnType<'getLinkableContentsDatasources'> => {
+            getLinkableContentsDatasources: async (_, param, ctx): QueryResolverReturnType<'getLinkableContentsDatasources'> => {
                 try {
                     // call odba
                     const result = await callOdbaApi(OdbaGetLinkableContentsAPI, {
@@ -614,7 +614,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     });
                     return result.contents;
 
-                } catch(e) {
+                } catch (e) {
                     apiLogger.warn('get-linkable-contents API error', e);
                     throw e;
                 }
@@ -624,7 +624,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * 接続確立
              */
-            connect: async(_, param: MutationConnectArgs, ctx): MutationResolverReturnType<'connect'> => {
+            connect: async (_, param: MutationConnectArgs, ctx): MutationResolverReturnType<'connect'> => {
                 apiLogger.info('[start] connect');
 
                 try {
@@ -634,7 +634,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         mapId: mapInfo.map_page_id,
                         mapKind: mapInfo.default_map,
                     });
-                
+
                     // オリジナルアイコン定義を取得
                     const originalIcons = await getOriginalIconDefine(param.mapId);
 
@@ -648,25 +648,25 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         originalIcons,
                     };
 
-                    const connect: ConnectInfo = 
+                    const connect: ConnectInfo =
                         (userAccessInfo.authLv === undefined || userAccessInfo.authLv === Auth.None || userAccessInfo.authLv === Auth.Request)
-                        ? {
-                            sid: session.sid,
-                            authLv: userAccessInfo.guestAuthLv,
-                        }
-                        : {
-                            sid: session.sid,
-                            authLv: userAccessInfo.authLv,
-                            userId: userAccessInfo.userId,
-                            userName: 'userName' in userAccessInfo ? userAccessInfo.userName : '',
-                        };
+                            ? {
+                                sid: session.sid,
+                                authLv: userAccessInfo.guestAuthLv,
+                            }
+                            : {
+                                sid: session.sid,
+                                authLv: userAccessInfo.authLv,
+                                userId: userAccessInfo.userId,
+                                userName: 'userName' in userAccessInfo ? userAccessInfo.userName : '',
+                            };
 
                     return {
                         mapDefine,
                         connect,
                     }
-                
-                } catch(e) {
+
+                } catch (e) {
                     apiLogger.warn('connect error', e, ctx.request.headers.authorization);
                     throw e;
 
@@ -676,14 +676,14 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * 切断
              */
-            disconnect: async(_, param, ctx): MutationResolverReturnType<'disconnect'> => {
+            disconnect: async (_, param, ctx): MutationResolverReturnType<'disconnect'> => {
                 sessionManager.delete(ctx.sessionKey);
                 return true;
             },
             /**
              * 地図切り替え
              */
-            switchMapKind: async(_, param: MutationSwitchMapKindArgs, ctx): MutationResolverReturnType<'switchMapKind'> => {
+            switchMapKind: async (_, param: MutationSwitchMapKindArgs, ctx): MutationResolverReturnType<'switchMapKind'> => {
                 try {
                     const result = await getMapInfo(
                         ctx.currentMap.mapId,
@@ -696,7 +696,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
 
                     return result;
 
-                } catch(e) {    
+                } catch (e) {
                     apiLogger.warn('switchMapKind error', e);
                     throw e;
                 }
@@ -704,7 +704,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * データ登録
              */
-            registData: async(_, param: MutationRegistDataArgs, ctx): MutationResolverReturnType<'registData'> => {
+            registData: async (_, param: MutationRegistDataArgs, ctx): MutationResolverReturnType<'registData'> => {
                 try {
                     // call ODBA
                     const id = await callOdbaApi(OdbaRegistDataAPI, {
@@ -731,7 +731,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
 
                     return id;
 
-                } catch(e) {    
+                } catch (e) {
                     apiLogger.warn('regist-data API error', param, e);
                     throw e;
                 }
@@ -739,7 +739,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * データ更新
              */
-            updateData: async(_, param: MutationUpdateDataArgs, ctx): MutationResolverReturnType<'updateData'> => {
+            updateData: async (_, param: MutationUpdateDataArgs, ctx): MutationResolverReturnType<'updateData'> => {
                 try {
                     // call ODBA
                     const result = await callOdbaApi(OdbaUpdateDataAPI, {
@@ -762,13 +762,13 @@ const schema = makeExecutableSchema<GraphQlContextType>({
 
                     return true;
 
-                } catch(e) {    
+                } catch (e) {
                     apiLogger.warn('update-item API error', param, e);
                     throw e;
                 }
             },
 
-            updateDataByOriginalId: async(_, param: MutationUpdateDataByOriginalIdArgs, ctx): MutationResolverReturnType<'updateDataByOriginalId'> => {
+            updateDataByOriginalId: async (_, param: MutationUpdateDataByOriginalIdArgs, ctx): MutationResolverReturnType<'updateDataByOriginalId'> => {
                 try {
                     // call ODBA
                     const id = await callOdbaApi(OdbaUpdateDataAPI, {
@@ -786,10 +786,10 @@ const schema = makeExecutableSchema<GraphQlContextType>({
 
                     // カテゴリ更新チェック
                     MyCategoryChecker.checkUpdate(ctx.currentMap.mapId);
-                    
+
                     return true;
 
-                } catch(e) {    
+                } catch (e) {
                     apiLogger.warn('update-item API error', param, e);
                     throw e;
                 }
@@ -797,9 +797,32 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             },
 
             /**
+             * 画像アップロード
+             */
+            uploadImage: async (_, param: MutationUploadImageArgs): MutationResolverReturnType<'uploadImage'> => {
+                // file は Promise<FileUpload>。await して展開
+                const { createReadStream, filename, mimetype, encoding } = await param.file;
+
+                // 例: ストレージへ保存（ローカル/Cloud Storage/S3等）
+                const stream = createReadStream();
+                // ここでストリームを保存する処理（省略）
+                // const url = await saveStreamToStorage(stream, filename, mimetype);
+
+                const url = `https://example.com/${encodeURIComponent(filename)}`; // ダミー
+
+                // 例: DBにメタ情報＋ファイルURLを保存
+                // const id = await db.asset.create({ url, ...meta })
+
+                return {
+                    id: "new-id",
+                    url,
+                    title: meta.title,
+                };
+            },
+            /**
              * データ削除
              */
-            removeData: async(_, param: MutationRemoveDataArgs, ctx): MutationResolverReturnType<'removeData'> => {
+            removeData: async (_, param: MutationRemoveDataArgs, ctx): MutationResolverReturnType<'removeData'> => {
                 try {
                     // 削除する前に紐づいているdataを取得
                     const linkedDatas = await getLinkedDataIdList(param.id);
@@ -822,7 +845,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
 
                     return true;
 
-                } catch(e) {
+                } catch (e) {
                     apiLogger.warn('remove-data API error', param, e);
                     throw e;
                 }
@@ -831,7 +854,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * コンテンツをアイテムに紐づけ
              */
-            linkData: async(parent: any, param: MutationLinkDataArgs, ctx): MutationResolverReturnType<'linkData'> => {
+            linkData: async (parent: any, param: MutationLinkDataArgs, ctx): MutationResolverReturnType<'linkData'> => {
                 try {
                     // call ODBA
                     await callOdbaApi(OdbaLinkDataAPI, {
@@ -846,14 +869,14 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     publishData(PubSub, 'update', [param.parent]);
 
                     return true;
-            
-                } catch(e) {
+
+                } catch (e) {
                     apiLogger.warn('link-content2item API error', param, e);
                     throw e;
                 }
             },
 
-            linkDataByOriginalId: async(_, param: MutationLinkDataByOriginalIdArgs, ctx): MutationResolverReturnType<'linkDataByOriginalId'> => {
+            linkDataByOriginalId: async (_, param: MutationLinkDataByOriginalIdArgs, ctx): MutationResolverReturnType<'linkDataByOriginalId'> => {
                 try {
                     await callOdbaApi(OdbaLinkDataAPI, {
                         currentMap: ctx.currentMap,
@@ -868,7 +891,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
 
                     return true;
 
-                } catch(e) {
+                } catch (e) {
                     apiLogger.warn('linkDataByOriginalId API error', param, e);
                     throw e;
                 }
@@ -876,7 +899,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * コンテンツ紐づけ解除
              */
-            unlinkData: async(parent: any, param: MutationUnlinkDataArgs, ctx): MutationResolverReturnType<'unlinkData'> => {
+            unlinkData: async (parent: any, param: MutationUnlinkDataArgs, ctx): MutationResolverReturnType<'unlinkData'> => {
                 try {
                     // call ODBA
                     await callOdbaApi(OdbaUnlinkDataAPI, {
@@ -885,13 +908,13 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         parent: param.parent,
                         fieldKey: param.fieldKey,
                     });
-            
+
                     // 更新通知
                     publishData(PubSub, 'update', [param.parent]);
 
                     return true;
 
-                } catch(e) {
+                } catch (e) {
                     apiLogger.warn('remove-content API error', param, e);
                     throw e;
                 }
@@ -900,7 +923,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * ユーザ権限変更
              */
-            changeAuthLevel: async(parent: any, param: MutationChangeAuthLevelArgs, ctx): MutationResolverReturnType<'changeAuthLevel'> => {
+            changeAuthLevel: async (parent: any, param: MutationChangeAuthLevelArgs, ctx): MutationResolverReturnType<'changeAuthLevel'> => {
                 try {
                     const mapId = ctx.currentMap.mapId;
                     await authManagementClient.updateUserAuth({
@@ -910,10 +933,10 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     });
                     PubSub.publish('userListUpdate', { mapId }, true);
                     PubSub.publish('updateUserAuth', { userId: param.userId, mapId }, true);
-        
+
                     return true;
 
-                } catch(e) {
+                } catch (e) {
                     apiLogger.warn('change-auth-level API error', param, e);
                     throw e;
                 }
@@ -921,7 +944,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             /**
              * 地図へのユーザ登録申請
              */
-            request: async(_, param: MutationRequestArgs, ctx): MutationResolverReturnType<'request'> => {
+            request: async (_, param: MutationRequestArgs, ctx): MutationResolverReturnType<'request'> => {
                 try {
                     apiLogger.info('[start] request', param);
 
@@ -951,7 +974,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
 
                     return true;
 
-                } catch(e) {
+                } catch (e) {
                     apiLogger.warn('request error', e);
                     throw e;
 
@@ -1030,9 +1053,9 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                     return PubSub.asyncIterator('error', args);
                 }
             }
-        }as Record<keyof Subscription, IFieldResolverOptions<any, GraphQlContextType, any>>,
+        } as Record<keyof Subscription, IFieldResolverOptions<any, GraphQlContextType, any>>,
         ItemDefine: {
-            content: async(parent: ItemDefineWithoutContents, _, ctx): Promise<Omit<ContentsDefine, 'linkedContents'>|null> => {
+            content: async (parent: ItemDefineWithoutContents, _, ctx): Promise<Omit<ContentsDefine, 'linkedContents'> | null> => {
                 try {
                     // apiLogger.info('[start] ItemDefine>content', parent.id);
                     const result = await getContentDefine({
@@ -1040,14 +1063,14 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         currentMap: ctx.currentMap,
                     });
                     if (!result) return null;
-                
+
                     return {
                         id: result.id,
                         datasourceId: result.datasourceId,
                         hasValue: result.hasValue,
                         hasImage: result.hasImage,
                     };
-                } catch(e) {
+                } catch (e) {
                     apiLogger.warn('ItemDefine>content error', parent.id, e);
                     throw e;
                 } finally {
@@ -1056,7 +1079,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             },
         },
         ContentsDefine: {
-            linkedContents: async(parent: Omit<ContentsDefine, 'linkedContents'>, _, ctx): Promise<Omit<ContentsDefine, 'linkedContents'>[]> => {
+            linkedContents: async (parent: Omit<ContentsDefine, 'linkedContents'>, _, ctx): Promise<Omit<ContentsDefine, 'linkedContents'>[]> => {
                 const linkedContents = await getLinkedContent({
                     dataId: parent.id,
                     currentMap: ctx.currentMap,
@@ -1097,7 +1120,7 @@ app.use(
 
 const apolloServer = new ApolloServer({
     schema,
-    context: async(ctx) => {
+    context: async (ctx) => {
         const req = ctx.req as Request;
         const operationName = ctx.req.body.operationName;
         apiLogger.debug('operationName', operationName);
@@ -1128,7 +1151,7 @@ const apolloServer = new ApolloServer({
                     type: ConnectErrorType.Unauthorized,
                     message: 'Unauthenticated.this map is private, please login.',
                 })
-            }        
+            }
         }
 
         const authLv = await checkGraphQlAuthLv(operationName, userAuthInfo);
@@ -1138,7 +1161,7 @@ const apolloServer = new ApolloServer({
             userId: userAuthInfo.userId,
             currentMap: session.currentMap,
             authLv,
-            request: req,    
+            request: req,
         }
 
     }
@@ -1167,7 +1190,7 @@ apolloServer.start().then(() => {
      * 地図のサムネイル画像取得
      * @param 地図ID
      */
-    app.get('/mapimage/*', authManagementClient.checkJwt, async(req, res) => {
+    app.get('/mapimage/*', authManagementClient.checkJwt, async (req, res) => {
         try {
             const mapId = req.path.length > 2 ? req.path.substring('/mapimage/'.length) : undefined;
             if (!mapId) {
@@ -1179,26 +1202,26 @@ apolloServer.start().then(() => {
                 const { contentType, binary: originalBinary } = convertBase64ToBinary(mapInfo.thumbnail);
 
                 // サイズ指定されている場合はリサイズ
-                const binary = await async function() {
+                const binary = await async function () {
                     if (!width) return originalBinary;
                     const image = sharp(originalBinary);
                     const binary = await image.resize({
                         width,
                     }).toBuffer();
-                    return binary;    
+                    return binary;
                 }();
 
                 res.writeHead(200, {
-                  'Content-Type': contentType,
-                  'Content-Length': binary.length
+                    'Content-Type': contentType,
+                    'Content-Length': binary.length
                 });
-                res.write(binary); 
+                res.write(binary);
                 res.end();
             } else {
                 res.redirect('/static/279map.png');
             }
 
-        } catch(e) {
+        } catch (e) {
             console.warn(e)
             res.status(400).send('error');
         }
@@ -1209,7 +1232,7 @@ apolloServer.start().then(() => {
      * 地図アイテムのサムネイル画像取得
      * @param 地図ID
      */
-    app.get('/itemimage*', authManagementClient.checkJwt, async(req, res) => {
+    app.get('/itemimage*', authManagementClient.checkJwt, async (req, res) => {
         try {
             // TODO: 認証情報チェック
             const mapId = req.query['mapid'] as string;
@@ -1226,7 +1249,7 @@ apolloServer.start().then(() => {
                 const { contentType, binary: originalBinary } = convertBase64ToBinary(image);
 
                 // 200x200よりも小さい場合はリサイズ
-                const binary = await async function() {
+                const binary = await async function () {
                     // if (!width) return originalBinary;
                     const image = sharp(originalBinary);
                     const meta = await image.metadata();
@@ -1237,23 +1260,23 @@ apolloServer.start().then(() => {
                     } : {
                         height: 200,
                     };
-                    if (meta.width < 200) {}
+                    if (meta.width < 200) { }
                     const binary = await image.resize(newSize).toBuffer();
-                    return binary;    
+                    return binary;
                 }();
 
                 res.writeHead(200, {
-                  'Content-Type': contentType,
-                  'Content-Length': binary.length
+                    'Content-Type': contentType,
+                    'Content-Length': binary.length
                 });
-                res.write(binary); 
+                res.write(binary);
                 res.end();
             } else {
                 res.send();
                 // res.redirect('/static/279map.png');
             }
 
-        } catch(e) {
+        } catch (e) {
             console.warn(e)
             res.status(400).send('error');
         }
@@ -1264,14 +1287,14 @@ apolloServer.start().then(() => {
     /**
      * 内部向けサーバー
      */
-    internalApp.use(express.urlencoded({extended: true}));
+    internalApp.use(express.urlencoded({ extended: true }));
     internalApp.use(express.json({
         limit: '1mb',
-    })); 
-    internalApp.post('/api/broadcast', async(req: Request, res: Response) => {
+    }));
+    internalApp.post('/api/broadcast', async (req: Request, res: Response) => {
         const param = req.body as BroadcastItemParam;
         logger.info('broadcast', param);
-        switch(param.operation) {
+        switch (param.operation) {
             // case 'data-delete':
             //     PubSub.publish('dataDeleteInTheMap', 
             //         { mapId: param.mapId, mapKind: MapKind.Real },
@@ -1287,7 +1310,7 @@ apolloServer.start().then(() => {
                 publishData(PubSub, 'insert', param.targets);
                 break;
 
-                case 'data-update':
+            case 'data-update':
                 publishData(PubSub, 'update', param.targets);
                 break;
 
@@ -1307,7 +1330,7 @@ apolloServer.start().then(() => {
         try {
             sessionManager.removeExpiredSessions();
 
-        } catch(e) {
+        } catch (e) {
             logger.warn('更新チェック失敗', e);
 
         } finally {
@@ -1320,19 +1343,19 @@ apolloServer.start().then(() => {
     // DB接続完了してから開始
     logger.info('starting db');
     initializeDb()
-    .then(() => {
-        return MyCategoryChecker.initialize()
-    })
-    .then(() => {
-        logger.info('starting main server');
-        server.listen(port, () => {
-            logger.info('start server', port);
-        });
-        internalApp.listen(process.env.MAIN_SERVICE_PORT, () => {
-            logger.info('start internal server', process.env.MAIN_SERVICE_PORT);
+        .then(() => {
+            return MyCategoryChecker.initialize()
         })
-        checkSessionProcess();
-    });
+        .then(() => {
+            logger.info('starting main server');
+            server.listen(port, () => {
+                logger.info('start server', port);
+            });
+            internalApp.listen(process.env.MAIN_SERVICE_PORT, () => {
+                logger.info('start internal server', process.env.MAIN_SERVICE_PORT);
+            })
+            checkSessionProcess();
+        });
 
 
 

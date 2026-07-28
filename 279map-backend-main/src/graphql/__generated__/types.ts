@@ -28,6 +28,7 @@ export type Scalars = {
   ItemDatasourceConfig: { input: ItemDatasourceConfig; output: ItemDatasourceConfig; }
   JSON: { input: any; output: any; }
   MapKind: { input: MapKind; output: MapKind; }
+  Upload: { input: any; output: any; }
 };
 
 export type AllocatableContentsResult = {
@@ -331,6 +332,8 @@ export type Mutation = {
   updateData: Scalars['Boolean']['output'];
   /** データ更新（オリジナルID指定） */
   updateDataByOriginalId: Scalars['Boolean']['output'];
+  /** 画像アップロード */
+  uploadImage: Scalars['ID']['output'];
 };
 
 
@@ -402,6 +405,11 @@ export type MutationUpdateDataByOriginalIdArgs = {
   contents?: InputMaybe<Scalars['ContentValueMapInput']['input']>;
   item?: InputMaybe<RegistDataItemInput>;
   originalId: Scalars['String']['input'];
+};
+
+
+export type MutationUploadImageArgs = {
+  file: Scalars['Upload']['input'];
 };
 
 export type NoneConfig = {
@@ -831,6 +839,7 @@ export type ResolversTypes = {
   UnpointContent: ResolverTypeWrapper<UnpointContent>;
   UpdateItemInput: UpdateItemInput;
   UpdateItemsResult: ResolverTypeWrapper<UpdateItemsResult>;
+  Upload: ResolverTypeWrapper<Scalars['Upload']['output']>;
   User: ResolverTypeWrapper<User>;
 };
 
@@ -893,6 +902,7 @@ export type ResolversParentTypes = {
   UnpointContent: UnpointContent;
   UpdateItemInput: UpdateItemInput;
   UpdateItemsResult: UpdateItemsResult;
+  Upload: Scalars['Upload']['output'];
   User: User;
 };
 
@@ -1149,6 +1159,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   unlinkData?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUnlinkDataArgs, 'fieldKey' | 'id' | 'parent'>>;
   updateData?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateDataArgs, 'id'>>;
   updateDataByOriginalId?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateDataByOriginalIdArgs, 'originalId'>>;
+  uploadImage?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationUploadImageArgs, 'file'>>;
 };
 
 export type NoneConfigResolvers<ContextType = any, ParentType extends ResolversParentTypes['NoneConfig'] = ResolversParentTypes['NoneConfig']> = {
@@ -1219,6 +1230,10 @@ export type UpdateItemsResultResolvers<ContextType = any, ParentType extends Res
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export interface UploadScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Upload'], any> {
+  name: 'Upload';
+}
+
 export type UserResolvers<ContextType = any, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
   authLv?: Resolver<ResolversTypes['Auth'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -1272,6 +1287,7 @@ export type Resolvers<ContextType = any> = {
   Target?: TargetResolvers<ContextType>;
   UnpointContent?: UnpointContentResolvers<ContextType>;
   UpdateItemsResult?: UpdateItemsResultResolvers<ContextType>;
+  Upload?: GraphQLScalarType;
   User?: UserResolvers<ContextType>;
 };
 

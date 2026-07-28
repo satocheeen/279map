@@ -94,6 +94,11 @@ type Mutation {
         contents: ContentValueMapInput
     ): Boolean!
 
+    "画像アップロード"
+    uploadImage(
+        file: Upload!
+    ): ID!
+
     "データ削除"
     removeData (
         id: DataId!

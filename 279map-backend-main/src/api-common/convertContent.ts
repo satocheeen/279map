@@ -317,7 +317,7 @@ async function getItemInfo(con: PoolConnection, dataId: DataId, currentMap: Curr
 
 }
 
-export function getTitleValue(values: ContentValueMapInput) {
+export function getTitleValue(values: ContentValueMap | ContentValueMapInput) {
     let result: string | undefined;
     Object.entries(values).some(([key, val]) => {
         if (key === 'title') {

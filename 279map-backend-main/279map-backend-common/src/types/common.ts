@@ -10,7 +10,7 @@ export type CurrentMap = {
  */
 export type APIDefine<PARAM, RESULT> = {
     uri: string;
-    method: 'post' | 'get';
+    method: 'post' | 'get' | 'file';
     resultType: 'json' | 'blob' | 'string' | 'none';
     param: PARAM;
     result: RESULT;

@@ -49,6 +49,15 @@ export type OdbaUpdateDataParam = CommonParam & {
     contents?: ContentValueMapInput;
 }
 
+export const OdbaUploadImageAPI = {
+    uri: 'upload-image',
+    method: 'post',
+    resultType: 'json',
+} as APIDefine<OdbaUploadImageParam, DataId>;
+
+export type OdbaUploadImageParam = CommonParam & {
+}
+
 export const OdbaRemoveDataAPI = {
     uri: 'remove-data',
     method: 'post',
