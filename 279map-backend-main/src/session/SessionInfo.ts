@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { CurrentMap } from '../../279map-backend-common/src';
+import { CurrentMap } from '../../../279map-backend-api/src';
 import { MapKind, DataId } from '../types-common/common-types';
 
 type ItemInfoMap = {[dataSourceId: string]: ItemInfo[]};

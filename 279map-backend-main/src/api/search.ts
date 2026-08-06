@@ -1,9 +1,8 @@
-import { ContentBelongMapView, CurrentMap, DatasourceLocationKindType, MapKind } from "../../279map-backend-common/src";
+import { ContentBelongMapView, CurrentMap, ContentsTable, DataLinkTable } from "../../../279map-backend-api/src";
 import { ConnectionPool } from "..";
 import { PoolConnection } from "mysql2/promise";
 import { CategoryCondition, DateCondition, QuerySearchArgs } from "../graphql/__generated__/types";
 import { DataId } from "../types-common/common-types";
-import { ContentsTable, DataLinkTable } from "../../279map-backend-common/dist";
 import dayjs from "dayjs";
 
 export async function search(currentMap: CurrentMap, param: QuerySearchArgs): Promise<DataId[]> {

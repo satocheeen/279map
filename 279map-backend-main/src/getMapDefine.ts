@@ -1,9 +1,9 @@
 import { ConnectionPool } from '.';
 import { getLogger } from 'log4js';
-import { MapPageInfoTable } from '../279map-backend-common/src/types/schema';
+import { MapPageInfoTable } from '../../279map-backend-api/src/types/schema';
 import { getUserAuthInfoInTheMap, loadUserAuthInfo } from './auth/getMapUser';
 import { Request } from 'express';
-import { Auth, ConnectErrorType } from '../279map-backend-common/src';
+import { Auth, ConnectErrorType } from '../../279map-backend-api/src';
 import { CustomError } from './graphql/CustomError';
 
 const apiLogger = getLogger('api');

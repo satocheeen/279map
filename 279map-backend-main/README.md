@@ -14,8 +14,8 @@ flowchart LR
 		279map-backend-main
 
 		279map-backend-main <--> odba["279map-backend-odba"]
-		odba-."use".->279map-backend-common
-		279map-backend-main-."use".->279map-backend-common
+		odba-."use".->279map-backend-api
+		279map-backend-main-."use".->279map-backend-api
 
 		db -.read.-> 279map-backend-main
 		odba -.insert.-> db

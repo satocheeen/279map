@@ -1,6 +1,6 @@
 import { PoolConnection } from "mysql2/promise";
 import { ConnectionPool } from "../..";
-import { ContentsTable, CurrentMap, DataSourceTable, MapDataSourceLinkTable } from "../../../279map-backend-common/src";
+import { ContentsTable, CurrentMap, DataSourceTable, MapDataSourceLinkTable } from "../../../../279map-backend-api/src";
 import { convertContentsToContentsDefine, convertContentsToContentsDetail } from "../../api-common/convertContent";
 import { ContentsDefine } from "../../graphql/__generated__/types";
 import { DataId } from "../../types-common/common-types";

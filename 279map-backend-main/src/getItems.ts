@@ -1,12 +1,11 @@
 import { getLogger } from 'log4js';
 import { ConnectionPool } from '.';
-import { CurrentMap } from '../279map-backend-common/src';
-import { GeometryItemsTable } from '../279map-backend-common/src/types/schema';
+import { CurrentMap, DataSourceTable } from '../../279map-backend-api/src';
+import { GeometryItemsTable } from '../../279map-backend-api/src/types/schema';
 import { QueryGetItemsArgs } from './graphql/__generated__/types';
 import { ItemContentInfo } from './api/getItem';
 import { DatasourceLocationKindType, FeatureType, GeoProperties, MapKind } from './types-common/common-types';
 import { ItemDefineWithoutContents } from './types';
-import { DataSourceTable } from '../279map-backend-common/dist';
 import { Geometry } from 'geojson';
 
 const apiLogger = getLogger('api');

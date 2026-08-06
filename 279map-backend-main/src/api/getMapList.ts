@@ -1,5 +1,5 @@
 import { ConnectionPool } from "..";
-import { MapPageInfoTable, PublicRange } from "../../279map-backend-common/src/types/schema";
+import { MapPageInfoTable, PublicRange } from "../../../279map-backend-api/src/types/schema";
 import { getUserAuthInfoInTheMap, loadUserAuthInfo } from "../auth/getMapUser";
 import { Auth, MapListItem } from "../graphql/__generated__/types";
 import { Request } from 'express';

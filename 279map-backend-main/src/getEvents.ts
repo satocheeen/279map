@@ -1,10 +1,9 @@
 import { ConnectionPool } from ".";
 import { getLogger } from "log4js";
-import { CurrentMap, DataId, DataSourceTable } from "../279map-backend-common/src";
+import { CurrentMap, DataId, DataSourceTable, ContentsTable } from "../../279map-backend-api/src";
 import { EventContent, EventDefine, QueryGetEventArgs } from "./graphql/__generated__/types";
 import { QueryResolverReturnType } from "./graphql/type_utility";
 import { DatasourceLocationKindType, MapKind } from "./types-common/common-types";
-import { ContentsTable } from "../279map-backend-common/dist";
 
 const logger = getLogger('api');
 export async function getEvents(param: QueryGetEventArgs, currentMap: CurrentMap): QueryResolverReturnType<'getEvent'> {

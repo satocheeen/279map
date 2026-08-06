@@ -1,6 +1,6 @@
 import { ConnectionPool } from "../..";
-import { ContentsTable, DataId, DataSourceTable, MapDataSourceLinkTable } from "../../../279map-backend-common/src";
-import { Auth, CurrentMap } from "../../../279map-backend-common/src";
+import { ContentsTable, DataId, DataSourceTable, MapDataSourceLinkTable } from "../../../../279map-backend-api/src";
+import { Auth, CurrentMap } from "../../../../279map-backend-api/src";
 import { convertContentsToContentsDefine } from "../../api-common/convertContent";
 import { ContentsDefine } from "../../graphql/__generated__/types";
 

@@ -1,6 +1,6 @@
 import randomColor from "randomcolor";
 import { ConnectionPool } from "..";
-import { CurrentMap, DataSourceTable, DatasourceLocationKindType, MapDataSourceLinkTable, MapKind } from "../../279map-backend-common/src";
+import { CurrentMap, DataSourceTable, DatasourceLocationKindType, MapDataSourceLinkTable, MapKind } from "../../../279map-backend-api/src";
 import { getLogger } from "log4js";
 import { CategoryDefine, QueryGetCategoryArgs } from "../graphql/__generated__/types";
 import { QueryResolverReturnType } from "../graphql/type_utility";

@@ -1,5 +1,4 @@
-import { DatasTable } from "../../279map-backend-common/dist";
-import { DataSourceTable, ContentsTable, CurrentMap, ImagesTable, MapDataSourceLinkTable, ContentBelongMapView, DataLinkTable } from "../../279map-backend-common/src";
+import { DatasTable, DataSourceTable, ContentsTable, CurrentMap, ImagesTable, MapDataSourceLinkTable, ContentBelongMapView, DataLinkTable } from "../../../279map-backend-api/src";
 import { BackLink, ContentsDefine, ContentsDetail } from "../graphql/__generated__/types";
 import { ContentFieldDefine, ContentValue, ContentValueMap, ContentValueMapInput, DataId, DatasourceLocationKindType, MapKind } from "../types-common/common-types";
 import { PoolConnection } from "mysql2/promise";

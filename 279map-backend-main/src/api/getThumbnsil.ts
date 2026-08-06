@@ -1,5 +1,5 @@
 import { ConnectionPool } from "..";
-import { DataId, ImagesTable } from "../../279map-backend-common/src";
+import { DataId, ImagesTable } from "../../../279map-backend-api/src";
 
 /**
  * 指定のコンテンツのサムネイル画像取得

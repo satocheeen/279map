@@ -1,5 +1,5 @@
 import { ConnectionPool } from "..";
-import { ContentBelongMapView, ContentsTable, CurrentMap, GeometryItemsTable } from "../../279map-backend-common/src";
+import { ContentBelongMapView, ContentsTable, CurrentMap, GeometryItemsTable } from "../../../279map-backend-api/src";
 import { getTitleValue } from "../api-common/convertContent";
 import { QueryResolverReturnType } from "../graphql/type_utility";
 import { DataId } from "../types-common/common-types";
