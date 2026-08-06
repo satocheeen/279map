@@ -20,7 +20,7 @@ import { Auth0Management } from './auth/Auth0Management';
 import { OriginalAuthManagement } from './auth/OriginalAuthManagement';
 import { NoneAuthManagement } from './auth/NoneAuthManagement';
 import { CurrentMap, sleep } from '../../backend-api/src';
-import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUncachedDataAPI, OdbaLinkDataAPI, OdbaRegistDataAPI, OdbaRemoveDataAPI, OdbaUnlinkDataAPI, OdbaUpdateDataAPI, callOdbaApi } from '../../backend-api/src/api';
+import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUncachedDataAPI, OdbaLinkDataAPI, OdbaRemoveDataAPI, OdbaUnlinkDataAPI, OdbaUpdateDataAPI, callOdbaApi } from '../../backend-api/src/api';
 import SessionManager from './session/SessionManager';
 import { getItemsById } from './api/getItem';
 import { loadSchemaSync } from '@graphql-tools/load';
@@ -54,6 +54,7 @@ import sharp from 'sharp';
 import { getItemThumbnail } from './api/getItemThumbnail';
 import { publishDatasourceUpdate } from './pubsub/publishDatasourceUpdate';
 import { getBelongingItem } from './api/getBelongingItems';
+import { odba } from '../../backend-api/src/odba';
 
 type GraphQlContextType = {
     request: express.Request,
@@ -707,7 +708,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             registData: async(_, param: MutationRegistDataArgs, ctx): MutationResolverReturnType<'registData'> => {
                 try {
                     // call ODBA
-                    const id = await callOdbaApi(OdbaRegistDataAPI, {
+                    const id = await odba.registData({
                         currentMap: ctx.currentMap,
                         dataSourceId: param.datasourceId,
                         item: param.item ?? undefined,
