@@ -20,7 +20,7 @@ import { Auth0Management } from './auth/Auth0Management';
 import { OriginalAuthManagement } from './auth/OriginalAuthManagement';
 import { NoneAuthManagement } from './auth/NoneAuthManagement';
 import { CurrentMap, sleep } from '../../backend-api/src';
-import { BroadcastItemParam, OdbaGetImageUrlAPI, OdbaGetLinkableContentsAPI, OdbaGetUncachedDataAPI, OdbaLinkDataAPI, OdbaRemoveDataAPI, OdbaUnlinkDataAPI, OdbaUpdateDataAPI, callOdbaApi } from '../../backend-api/src/api';
+import { BroadcastItemParam, callOdbaApi } from '../../backend-api/src/api';
 import SessionManager from './session/SessionManager';
 import { getItemsById } from './api/getItem';
 import { loadSchemaSync } from '@graphql-tools/load';
@@ -488,7 +488,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                         includeAllocated: param.includeAllocated ?? undefined,
                     });
                     // ODBAに問い合わせて、キャッシュDBに未登録のデータを取得する
-                    const result = await callOdbaApi(OdbaGetUncachedDataAPI, {
+                    const result = await odba.getUncachedData({
                         currentMap: ctx.currentMap,
                         dataSourceId: param.datasourceId,
                         nextToken: param.nextToken ?? undefined,
@@ -534,7 +534,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             getImageUrl: async(_, param: QueryGetImageUrlArgs, ctx): QueryResolverReturnType<'getImageUrl'> => {
                 try {
                     // call odba
-                    const result = await callOdbaApi(OdbaGetImageUrlAPI, {
+                    const result = await odba.getImageUrl({
                         currentMap: ctx.currentMap,
                         id: param.contentId,
                     });
@@ -610,7 +610,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             getLinkableContentsDatasources: async(_, param, ctx): QueryResolverReturnType<'getLinkableContentsDatasources'> => {
                 try {
                     // call odba
-                    const result = await callOdbaApi(OdbaGetLinkableContentsAPI, {
+                    const result = await odba.getLinkableContents({
                         currentMap: ctx.currentMap,
                     });
                     return result.contents;
@@ -743,7 +743,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             updateData: async(_, param: MutationUpdateDataArgs, ctx): MutationResolverReturnType<'updateData'> => {
                 try {
                     // call ODBA
-                    const result = await callOdbaApi(OdbaUpdateDataAPI, {
+                    const result = await odba.updateData({
                         currentMap: ctx.currentMap,
                         target: {
                             type: 'dataId',
@@ -772,7 +772,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             updateDataByOriginalId: async(_, param: MutationUpdateDataByOriginalIdArgs, ctx): MutationResolverReturnType<'updateDataByOriginalId'> => {
                 try {
                     // call ODBA
-                    const id = await callOdbaApi(OdbaUpdateDataAPI, {
+                    const id = await odba.updateData({
                         currentMap: ctx.currentMap,
                         target: {
                             type: 'originalId',
@@ -804,7 +804,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
                 try {
                     // 削除する前に紐づいているdataを取得
                     const linkedDatas = await getLinkedDataIdList(param.id);
-                    await callOdbaApi(OdbaRemoveDataAPI, {
+                    await odba.removeData({
                         currentMap: ctx.currentMap,
                         id: param.id,
                     });
@@ -835,7 +835,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             linkData: async(parent: any, param: MutationLinkDataArgs, ctx): MutationResolverReturnType<'linkData'> => {
                 try {
                     // call ODBA
-                    await callOdbaApi(OdbaLinkDataAPI, {
+                    await odba.linkData({
                         currentMap: ctx.currentMap,
                         type: 'dataId',
                         id: param.id,
@@ -856,7 +856,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
 
             linkDataByOriginalId: async(_, param: MutationLinkDataByOriginalIdArgs, ctx): MutationResolverReturnType<'linkDataByOriginalId'> => {
                 try {
-                    await callOdbaApi(OdbaLinkDataAPI, {
+                    await odba.linkData({
                         currentMap: ctx.currentMap,
                         type: 'originalId',
                         originalId: param.originalId,
@@ -880,7 +880,7 @@ const schema = makeExecutableSchema<GraphQlContextType>({
             unlinkData: async(parent: any, param: MutationUnlinkDataArgs, ctx): MutationResolverReturnType<'unlinkData'> => {
                 try {
                     // call ODBA
-                    await callOdbaApi(OdbaUnlinkDataAPI, {
+                    await odba.unlinkData({
                         currentMap: ctx.currentMap,
                         id: param.id,
                         parent: param.parent,
