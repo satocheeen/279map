@@ -1,6 +1,6 @@
 import { PoolConnection } from "mysql2/promise";
 import { ConnectionPool } from "..";
-import { ContentBelongMapView, GeometryItemsTable, ImagesTable, OriginalIconsTable } from "../../../279map-backend-api/src";
+import { ContentBelongMapView, GeometryItemsTable, ImagesTable, OriginalIconsTable } from "../../../backend-api/src";
 import { FeatureType, GeoProperties } from "../types-common/common-types";
 
 type Param = {

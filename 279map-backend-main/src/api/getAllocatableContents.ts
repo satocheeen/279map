@@ -1,5 +1,5 @@
 import { ConnectionPool } from "..";
-import { CurrentMap, DataSourceTable, DatasTable, ContentsTable } from "../../../279map-backend-api/src";
+import { CurrentMap, DataSourceTable, DatasTable, ContentsTable } from "../../../backend-api/src";
 import { QueryResolverReturnType } from "../graphql/type_utility";
 
 export type AllocatableContent = Awaited<QueryResolverReturnType<'allocatableContents'>>['contents'][0];

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
 import { ParsedQs } from "qs";
-import { AuthManagementInterface, MapInfo, UserAuthData } from "../../../279map-backend-api/src";
+import { AuthManagementInterface, MapInfo, UserAuthData } from "../../../backend-api/src";
 import { Auth, User } from "../graphql/__generated__/types";
 
 export class NoneAuthManagement extends AuthManagementInterface {

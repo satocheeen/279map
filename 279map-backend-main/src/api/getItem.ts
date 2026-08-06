@@ -1,10 +1,10 @@
 import { getLogger } from "log4js";
 import { ConnectionPool } from "..";
-import { GeometryItemsTable } from "../../../279map-backend-api/src/types/schema";
+import { GeometryItemsTable } from "../../../backend-api/src/types/schema";
 import { QueryGetItemsByIdArgs } from "../graphql/__generated__/types";
 import { DataId, DatasourceLocationKindType, MapKind } from "../types-common/common-types";
 import { ItemDefineWithoutContents } from "../types";
-import { DatasTable } from "../../../279map-backend-api/src";
+import { DatasTable } from "../../../backend-api/src";
 
 const apiLogger = getLogger('api');
 

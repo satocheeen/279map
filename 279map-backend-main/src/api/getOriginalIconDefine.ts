@@ -1,6 +1,6 @@
 import { ConnectionPool } from "..";
 import { getIcon } from "./getIcon";
-import { OriginalIconsTable } from "../../../279map-backend-api/src/types/schema";
+import { OriginalIconsTable } from "../../../backend-api/src/types/schema";
 import { IconDefine, MapKind } from "../types-common/common-types";
 
 export async function getOriginalIconDefine(mapId: string): Promise<IconDefine[]> {

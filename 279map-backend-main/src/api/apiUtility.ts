@@ -1,5 +1,5 @@
 import { ConnectionPool } from "..";
-import { DataLinkTable, DataSourceTable, MapDataSourceLinkTable } from "../../../279map-backend-api/src";
+import { DataLinkTable, DataSourceTable, MapDataSourceLinkTable } from "../../../backend-api/src";
 import { MapKind, DatasourceLocationKindType, DataId } from "../types-common/common-types";
 
 type Result = {

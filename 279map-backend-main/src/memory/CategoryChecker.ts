@@ -1,5 +1,5 @@
 import { ConnectionPool, PubSub } from "..";
-import { MapKind, MapPageInfoTable } from "../../../279map-backend-api/src";
+import { MapKind, MapPageInfoTable } from "../../../backend-api/src";
 import { getCategory } from "../api/getCategory";
 import { CategoryDefine } from "../graphql/__generated__/types";
 import { getLogger } from "log4js";

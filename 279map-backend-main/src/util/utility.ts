@@ -1,10 +1,10 @@
 import { ConnectionPool } from '..';
-import { DataSourceTable, DatasTable } from '../../../279map-backend-api/src/types/schema';
+import { DataSourceTable, DatasTable } from '../../../backend-api/src/types/schema';
 import { buffer, circle, featureCollection, lineString, multiLineString, multiPolygon, polygon } from '@turf/turf';
 import crypto from 'crypto';
 import * as geojson from 'geojson';
 import { ContentValueMapInput, DataId } from '../types-common/common-types';
-import { MapDataSourceLinkTable } from '../../../279map-backend-api/src';
+import { MapDataSourceLinkTable } from '../../../backend-api/src';
 import { Auth } from '../graphql/__generated__/types';
 
 type Extent = number[];

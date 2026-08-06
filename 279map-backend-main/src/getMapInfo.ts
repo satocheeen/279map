@@ -1,6 +1,6 @@
 import { ConnectionPool } from '.';
 import mysql from 'mysql2/promise';
-import { DataSourceTable, MapDataSourceLinkConfig, MapDataSourceLinkTable, MapPageInfoTable } from '../../279map-backend-api/src/types/schema';
+import { DataSourceTable, MapDataSourceLinkConfig, MapDataSourceLinkTable, MapPageInfoTable } from '../../backend-api/src/types/schema';
 import { ItemDatasourceInfo, ContentDatasourceInfo, MapInfo, Auth } from './graphql/__generated__/types';
 import { ContentFieldDefine, DatasourceLocationKindType, ItemDatasourceConfig, MapKind } from './types-common/common-types';
 

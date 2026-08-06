@@ -1,6 +1,6 @@
 import { ConnectionPool } from ".";
 import { getLogger } from "log4js";
-import { CurrentMap, DataId, DataSourceTable, ContentsTable } from "../../279map-backend-api/src";
+import { CurrentMap, DataId, DataSourceTable, ContentsTable } from "../../backend-api/src";
 import { EventContent, EventDefine, QueryGetEventArgs } from "./graphql/__generated__/types";
 import { QueryResolverReturnType } from "./graphql/type_utility";
 import { DatasourceLocationKindType, MapKind } from "./types-common/common-types";

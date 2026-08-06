@@ -1,5 +1,5 @@
 import { ConnectionPool, PubSub } from "..";
-import { DataSourceTable, MapDataSourceLinkTable } from "../../../279map-backend-api/src";
+import { DataSourceTable, MapDataSourceLinkTable } from "../../../backend-api/src";
 import { getMapInfo } from "../getMapInfo";
 import { DatasourceLocationKindType, MapKind } from "../types-common/common-types";
 

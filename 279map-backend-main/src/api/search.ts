@@ -1,4 +1,4 @@
-import { ContentBelongMapView, CurrentMap, ContentsTable, DataLinkTable } from "../../../279map-backend-api/src";
+import { ContentBelongMapView, CurrentMap, ContentsTable, DataLinkTable } from "../../../backend-api/src";
 import { ConnectionPool } from "..";
 import { PoolConnection } from "mysql2/promise";
 import { CategoryCondition, DateCondition, QuerySearchArgs } from "../graphql/__generated__/types";

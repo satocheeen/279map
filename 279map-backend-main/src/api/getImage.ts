@@ -1,5 +1,5 @@
 import { ConnectionPool } from "..";
-import { CurrentMap } from "../../../279map-backend-api/src";
+import { CurrentMap } from "../../../backend-api/src";
 import { ThumbSize } from "../graphql/__generated__/types";
 
 export async function getImage(imageId: number, size: ThumbSize, currentMap: CurrentMap): Promise <string> {

@@ -1,7 +1,7 @@
 import SessionInfo, { SerializableSessionInfo } from "./SessionInfo";
 import jsonfile from 'jsonfile';
 import { getLogger } from "log4js";
-import { CurrentMap } from "../../../279map-backend-api/src";
+import { CurrentMap } from "../../../backend-api/src";
 import { createHash } from "../util/utility";
 
 type SessionMapTypeForStorage = {[sid: string]: SerializableSessionInfo};

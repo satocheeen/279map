@@ -2,7 +2,7 @@ import { ConnectionPool, authManagementClient } from "..";
 import { getLogger } from 'log4js';
 import { authMethod } from '..';
 import { Request } from 'express';
-import { MapPageInfoTable, PublicRange } from "../../../279map-backend-api/src/types/schema";
+import { MapPageInfoTable, PublicRange } from "../../../backend-api/src/types/schema";
 import { Auth, MapPageOptions } from "../graphql/__generated__/types";
 import { AuthMethod } from "../types";
 

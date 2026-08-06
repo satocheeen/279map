@@ -1,5 +1,5 @@
 import { ConnectionPool } from "..";
-import { DatasTable } from "../../../279map-backend-api/src";
+import { DatasTable } from "../../../backend-api/src";
 import MyPubSub from "../graphql/MyPubSub";
 import { Operation, Target } from "../graphql/__generated__/types";
 import { DataId, DatasourceLocationKindType, MapKind } from "../types-common/common-types";

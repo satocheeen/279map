@@ -3,7 +3,7 @@ import axios from "axios";
 import { ManagementClient } from 'auth0';
 import { auth } from "express-oauth2-jwt-bearer";
 import { getLogger } from 'log4js';
-import { AuthManagementInterface, UserAuthData } from '../../../279map-backend-api/src';
+import { AuthManagementInterface, UserAuthData } from '../../../backend-api/src';
 import { Auth, User } from '../graphql/__generated__/types';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { jwtDecode } from "jwt-decode";

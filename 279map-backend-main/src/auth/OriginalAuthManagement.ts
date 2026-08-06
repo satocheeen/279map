@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from "axios";
 import { Request, Response, NextFunction } from "express";
-import { AuthManagementInterface, MapInfo, UserAuthData } from "../../../279map-backend-api/src";
+import { AuthManagementInterface, MapInfo, UserAuthData } from "../../../backend-api/src";
 import { Auth, User } from "../graphql/__generated__/types";
 
 /**
