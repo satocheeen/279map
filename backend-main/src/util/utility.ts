@@ -188,3 +188,9 @@ export async function getDataByOriginalId(originalId: string): Promise<DatasTabl
         con.release();
     }
 }
+
+export const sleep = (sec: number) => new Promise<void>((resolve) => {
+    setTimeout(() => {
+        resolve();
+    }, sec * 1000);
+});
