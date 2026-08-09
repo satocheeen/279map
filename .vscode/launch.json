@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Attach to npm run dev",
+      "type": "node",
+      "request": "attach",
+      "address": "localhost",
+      "port": 9228,
+      "restart": true,
+      "protocol": "inspector",
+      "sourceMaps": true,
+      "cwd": "${workspaceFolder}",
+      "localRoot": "${workspaceFolder}",
+      "remoteRoot": "${workspaceFolder}",
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/node_modules/**"
+      ]
+    }
+  ]
+}
