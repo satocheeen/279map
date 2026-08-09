@@ -1,8 +1,14 @@
+# backend-main image build
 # 1. build stage
-FROM node:18.17 as build
+FROM node:22-bookworm-slim as build
 
-WORKDIR /home/node/app/backend
-COPY . .
+WORKDIR /home/node/app
+
+# backend-main
+COPY backend-main ./backend
+
+# backend-api
+COPY backend-api ./backend-api
 
 WORKDIR /home/node/app/backend
 
@@ -15,18 +21,22 @@ WORKDIR /home/node/app/backend/dist
 RUN npm init -y
 RUN npm install --platform=linuxmusl --arch=x64 sharp
 
-# 2. deploy stage
-FROM alpine:3.18
 
-RUN apk add --no-cache nodejs~=18
+# 2. deploy stage
+FROM alpine:3.22
+
+RUN apk add --no-cache nodejs~=22
+
 # -- setup ca-certificates
 RUN apk add --no-cache ca-certificates
-COPY ./dev/cert.pem /etc/ssl/certs/ca-certificates.crt
+COPY backend-main/dev/cert.pem /etc/ssl/certs/ca-certificates.crt
 RUN update-ca-certificates
 
 COPY --from=build /home/node/app/backend/dist /var/www
+
 RUN mkdir /var/www/graphql
 COPY --from=build /home/node/app/backend/src/graphql/*.gql /var/www/graphql
+
 COPY --from=build /home/node/app/backend/public /var/www/public
 
 RUN mkdir /var/log/www
