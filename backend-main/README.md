@@ -4,26 +4,24 @@ This is the main server of 279map.
 ```mermaid
 flowchart LR
 	subgraph frontend
-		subgraph 279map-frontend
-			279map-core
-		end
+    core
 	end
 
 	subgraph backend
-		db[("279map-db")]
-		279map-backend-main
+		db[("cache db")]
+		backend-main
 
-		279map-backend-main <--> odba["279map-backend-odba"]
-		odba-."use".->279map-backend-api
-		279map-backend-main-."use".->279map-backend-api
+		backend-main <--> odba["backend-odba"]
+		odba-."use".->backend-api
+		backend-main-."use".->backend-api
 
-		db -.read.-> 279map-backend-main
+		db -.read.-> backend-main
 		odba -.insert.-> db
 	end
-	279map-core <--> 279map-backend-main
+	core <--> backend-main
 	original-db[("Original DB")] <--> odba
 
-	style 279map-backend-main fill:#faa, stroke:#f55
+	style backend-main fill:#faa, stroke:#f55
 ```
 
 ## Develop
